@@ -35,7 +35,8 @@ try {
   }
 
   $rebuildArgs = ("--verbose" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis/netcoreapp3.1`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis`"" +
+  " --assembliesPath $ArtifactsDir/obj/csc/$configuration/netcoreapp3.1" +
   " --debugPath `"$ArtifactsDir\BuildValidator`"" +
   " --sourcePath `"$RepoRoot`"" +
   " --referencesPaths `"$ArtifactsDir\bin`"")

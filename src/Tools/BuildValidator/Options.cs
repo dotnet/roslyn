@@ -10,7 +10,7 @@ using System.IO;
 namespace BuildValidator
 {
     internal record Options(
-        string AssembliesPath,
+        string[] AssembliesPaths,
         string[] ReferencesPaths,
         string SourcePath,
         bool Verbose,

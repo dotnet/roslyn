@@ -43,8 +43,8 @@ namespace BuildValidator
             var rootCommand = new RootCommand
             {
                 new Option<string>(
-                    "--assembliesPath", "Path to assemblies to rebuild"
-                ) { IsRequired = true },
+                    "--assembliesPath", "Path to assemblies to rebuild (can be specified one or more times)"
+                ) { IsRequired = true, Argument = { Arity = ArgumentArity.OneOrMore } },
                 new Option<string>(
                     "--sourcePath", "Path to sources to use in rebuild"
                 ) { IsRequired = true },
@@ -64,11 +64,11 @@ namespace BuildValidator
                     "--debugPath", "Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled."
                 )
             };
-            rootCommand.Handler = CommandHandler.Create<string, string, string[]?, bool, bool, bool, string>(HandleCommand);
+            rootCommand.Handler = CommandHandler.Create<string[], string, string[]?, bool, bool, bool, string>(HandleCommand);
             return rootCommand.Invoke(args);
         }
 
-        static int HandleCommand(string assembliesPath, string sourcePath, string[]? referencesPaths, bool verbose, bool quiet, bool debug, string? debugPath)
+        static int HandleCommand(string[] assembliesPath, string sourcePath, string[]? referencesPaths, bool verbose, bool quiet, bool debug, string? debugPath)
         {
             // If user provided a debug path then assume we should write debug outputs.
             debug |= debugPath is object;
@@ -110,10 +110,11 @@ namespace BuildValidator
 
                 var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
 
-                var artifactsDir = new DirectoryInfo(options.AssembliesPath);
+                var artifactsDirs = options.AssembliesPaths.Select(path => new DirectoryInfo(path));
 
-                var filesToValidate = artifactsDir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
-                    .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
+                var filesToValidate = artifactsDirs.SelectMany(dir =>
+                        dir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
+                            .Concat(dir.EnumerateFiles("*.dll", SearchOption.AllDirectories)))
                     .Distinct(FileNameEqualityComparer.Instance);
 
                 var success = ValidateFiles(filesToValidate, buildConstructor, logger, options);

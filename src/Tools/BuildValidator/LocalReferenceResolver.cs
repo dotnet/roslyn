@@ -34,7 +34,10 @@ namespace BuildValidator
             {
                 _indexDirectories.Add(directoryInfo);
             }
-            _indexDirectories.Add(new DirectoryInfo(options.AssembliesPath));
+            foreach (var path in options.AssembliesPaths)
+            {
+                _indexDirectories.Add(new DirectoryInfo(path));
+            }
             _indexDirectories.Add(GetNugetCacheDirectory());
             foreach (var path in options.ReferencesPaths)
             {
