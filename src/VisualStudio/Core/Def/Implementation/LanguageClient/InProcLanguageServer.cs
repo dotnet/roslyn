@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LogHub;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
-using Microsoft.VisualStudio.Utilities.Internal;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -676,7 +675,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 {
                     // There were diagnostics from other documents, but none from the current document.
                     // If we're tracking the current document, we can stop.
-                    _publishedFileToDiagnostics.GetOrDefault(fileUri)?.Remove(document.Id);
+                    IReadOnlyDictionaryExtensions.GetValueOrDefault(_publishedFileToDiagnostics, fileUri)?.Remove(document.Id);
                     _documentsToPublishedUris.MultiRemove(document.Id, fileUri);
                 }
             }
@@ -762,8 +761,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         // if we were working with a non-C#/VB file, then the property should have been populated.
         // In this case, unless we have a null client name, we don't want to publish the diagnostic
         // (since a null client name represents the C#/VB language server).
-        private bool IncludeDiagnostic(DiagnosticData diagnostic) =>
-            diagnostic.Properties.GetOrDefault(nameof(DocumentPropertiesService.DiagnosticsLspClientName)) == _clientName;
+        private bool IncludeDiagnostic(DiagnosticData diagnostic)
+            => IReadOnlyDictionaryExtensions.GetValueOrDefault(diagnostic.Properties, nameof(DocumentPropertiesService.DiagnosticsLspClientName)) == _clientName;
 
         private static LSP.Range GetDiagnosticRange(DiagnosticDataLocation diagnosticDataLocation, SourceText text)
         {
