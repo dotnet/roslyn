@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         protected override FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)
             => new(this, tokenStream);
 
-        protected override NodeOperations CreateNodeOperations(CancellationToken cancellationToken)
+        protected override NodeOperations CreateNodeOperations(OperationFactory factory, CancellationToken cancellationToken)
         {
             // ignore all node operations for structured trivia since it is not possible for this to have any impact currently.
             return NodeOperations.Empty;

@@ -145,10 +145,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             return new TokenData(this, indexInStream, token);
         }
 
+        public TokenData GetTokenData(int indexInStream)
+            => new(this, indexInStream, _tokens[indexInStream]);
+
         public TokenData GetPreviousTokenData(TokenData tokenData)
         {
             if (tokenData.IndexInStream > 0 && tokenData.IndexInStream < this.TokenCount)
-            {
+            { 
                 return new TokenData(this, tokenData.IndexInStream - 1, _tokens[tokenData.IndexInStream - 1]);
             }
 
@@ -192,6 +195,9 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             return token;
         }
+
+        public bool TwoTokensOriginallyOnSameLine(int token1Index, int token2index)
+            => TwoTokensOnSameLineWorker(_tokens[token1Index], _tokens[token2index], _getOriginalTriviaData);
 
         public bool TwoTokensOriginallyOnSameLine(SyntaxToken token1, SyntaxToken token2)
             => TwoTokensOnSameLineWorker(token1, token2, _getOriginalTriviaData);
@@ -498,7 +504,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return this.GetTriviaData(tokenData1, tokenData2).SecondTokenIsFirstTokenOnLine;
         }
 
-        private int GetTokenIndexInStream(SyntaxToken token)
+        public int GetTokenIndexInStream(SyntaxToken token)
         {
             var tokenIndex = _tokens.BinarySearch(token, TokenOrderComparer.Instance);
             if (tokenIndex < 0)

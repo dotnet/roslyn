@@ -201,6 +201,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectWriterExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SegmentedListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\Operations\OperationFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\IPrecedenceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\Precedence\PrecedenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\UnusedParametersPreference.cs" />

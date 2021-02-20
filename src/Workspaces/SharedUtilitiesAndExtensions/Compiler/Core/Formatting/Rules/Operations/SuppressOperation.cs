@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         public readonly TextSpan TextSpan;
         public readonly SuppressOption Option;
 
-        public readonly SyntaxToken StartToken;
-        public readonly SyntaxToken EndToken;
+        public readonly int StartToken;
+        public readonly int EndToken;
 
-        public SuppressOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, SuppressOption option)
+        public SuppressOperation(int startToken, int endToken, TextSpan textSpan, SuppressOption option)
         {
             Contract.ThrowIfTrue(textSpan.Start < 0 || textSpan.Length < 0);
-            Contract.ThrowIfTrue(startToken.RawKind == 0);
-            Contract.ThrowIfTrue(endToken.RawKind == 0);
+            Contract.ThrowIfTrue(startToken < 0);
+            Contract.ThrowIfTrue(endToken < 0);
 
             TextSpan = textSpan;
             Option = option;

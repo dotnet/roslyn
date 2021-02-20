@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
         private class SmartTokenFormattingRule : NoLineChangeFormattingRule
         {
-            public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+            public override void AddSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             {
                 // don't suppress anything
             }

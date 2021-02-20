@@ -117,20 +117,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, indentationDelta: 0, option: option));
         }
 
-        protected static void AddSuppressWrappingIfOnSingleLineOperation(SegmentedList<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
-            => AddSuppressOperation(list, startToken, endToken, SuppressOption.NoWrappingIfOnSingleLine | extraOption);
+        protected static void AddSuppressWrappingIfOnSingleLineOperation(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
+            => AddSuppressOperation(factory, list, startToken, endToken, SuppressOption.NoWrappingIfOnSingleLine | extraOption);
 
-        protected static void AddSuppressAllOperationIfOnMultipleLine(SegmentedList<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
-            => AddSuppressOperation(list, startToken, endToken, SuppressOption.NoSpacingIfOnMultipleLine | SuppressOption.NoWrapping | extraOption);
+        protected static void AddSuppressAllOperationIfOnMultipleLine(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
+            => AddSuppressOperation(factory, list, startToken, endToken, SuppressOption.NoSpacingIfOnMultipleLine | SuppressOption.NoWrapping | extraOption);
 
-        protected static void AddSuppressOperation(SegmentedList<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
+        protected static void AddSuppressOperation(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
         {
             if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
             {
                 return;
             }
 
-            list.Add(FormattingOperations.CreateSuppressOperation(startToken, endToken, option));
+            list.Add(factory.CreateSuppressOperation(startToken, endToken, option));
         }
 
         protected static void AddAnchorIndentationOperation(SegmentedList<AnchorIndentationOperation> list, SyntaxToken anchorToken, SyntaxToken endToken)
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         protected static AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option)
             => FormattingOperations.CreateAdjustSpacesOperation(space, option);
 
-        protected static void AddBraceSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        protected static void AddBraceSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
             if (!bracePair.IsValidBracePair())
@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // suppress wrapping on whole construct that owns braces and also brace pair itself if 
             // it is on same line
-            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, bracePair.closeBrace);
-            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.openBrace, bracePair.closeBrace);
+            AddSuppressWrappingIfOnSingleLineOperation(factory, list, firstTokenOfNode, bracePair.closeBrace);
+            AddSuppressWrappingIfOnSingleLineOperation(factory, list, bracePair.openBrace, bracePair.closeBrace);
         }
     }
 }

@@ -39,18 +39,6 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             => new(anchorToken, startToken, endToken, textSpan);
 
         /// <summary>
-        /// create suppress region around start and end token
-        /// </summary>
-        public static SuppressOperation CreateSuppressOperation(SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
-            => CreateSuppressOperation(startToken, endToken, TextSpan.FromBounds(startToken.SpanStart, endToken.Span.End), option);
-
-        /// <summary>
-        /// create suppress region around the given text span
-        /// </summary>
-        private static SuppressOperation CreateSuppressOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, SuppressOption option)
-            => new(startToken, endToken, textSpan, option);
-
-        /// <summary>
         /// create indent block region around the start and end token with the given indentation delta added to the existing indentation at the position of the start token
         /// </summary>
         public static IndentBlockOperation CreateIndentBlockOperation(SyntaxToken startToken, SyntaxToken endToken, int indentationDelta, IndentBlockOption option)
@@ -147,12 +135,12 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return SuppressOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static SegmentedList<SuppressOperation> GetSuppressOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
+        internal static SegmentedList<SuppressOperation> GetSuppressOperations(OperationFactory factory, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, AnalyzerConfigOptions options)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
 
             var list = new SegmentedList<SuppressOperation>();
-            chainedFormattingRules.AddSuppressOperations(list, node);
+            chainedFormattingRules.AddSuppressOperations(factory, list, node);
             return list;
         }
 

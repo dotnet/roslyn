@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return New DefaultOperationProvider(cachedOptions)
         End Function
 
-        Public Overrides Sub AddSuppressOperationsSlow(operations As SegmentedList(Of SuppressOperation), node As SyntaxNode, ByRef nextAction As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(factory As OperationFactory, operations As SegmentedList(Of SuppressOperation), node As SyntaxNode, ByRef nextAction As NextSuppressOperationAction)
         End Sub
 
         Public Overrides Sub AddAnchorIndentationOperationsSlow(operations As SegmentedList(Of AnchorIndentationOperation), node As SyntaxNode, ByRef nextAction As NextAnchorIndentationOperationAction)

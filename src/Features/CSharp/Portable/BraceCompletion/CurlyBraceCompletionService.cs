@@ -406,9 +406,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 }
             }
 
-            public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+            public override void AddSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
             {
-                base.AddSuppressOperations(list, node, in nextOperation);
+                base.AddSuppressOperations(factory, list, node, in nextOperation);
 
                 // not sure exactly what is happening here, but removing the bellow causesthe indentation to be wrong.
 

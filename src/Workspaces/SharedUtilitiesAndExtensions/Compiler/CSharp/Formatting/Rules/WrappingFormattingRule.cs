@@ -42,15 +42,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new WrappingFormattingRule(cachedOptions);
         }
 
-        public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
-            AddBraceSuppressOperations(list, node);
+            AddBraceSuppressOperations(factory, list, node);
 
-            AddStatementExceptBlockSuppressOperations(list, node);
+            AddStatementExceptBlockSuppressOperations(factory, list, node);
 
-            AddSpecificNodesSuppressOperations(list, node);
+            AddSpecificNodesSuppressOperations(factory, list, node);
 
             if (!_options.WrappingPreserveSingleLine)
             {
@@ -88,16 +88,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             };
         }
 
-        private static void AddSpecificNodesSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        private static void AddSpecificNodesSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             var (firstToken, lastToken) = GetSpecificNodeSuppressionTokenRange(node);
             if (!firstToken.IsKind(SyntaxKind.None) || !lastToken.IsKind(SyntaxKind.None))
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, firstToken, lastToken);
             }
         }
 
-        private static void AddStatementExceptBlockSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        private static void AddStatementExceptBlockSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var firstToken = statementNode.GetFirstToken(includeZeroWidth: true);
             var lastToken = statementNode.GetLastToken(includeZeroWidth: true);
 
-            AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
+            AddSuppressWrappingIfOnSingleLineOperation(factory, list, firstToken, lastToken);
         }
 
         private static void RemoveSuppressOperationForStatementMethodDeclaration(SegmentedList<SuppressOperation> list, SyntaxNode node)

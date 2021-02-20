@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             _indentStyle = indentStyle
         End Sub
 
-        Public Overrides Sub AddSuppressOperationsSlow(list As SegmentedList(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
+        Public Overrides Sub AddSuppressOperationsSlow(factory As OperationFactory, list As SegmentedList(Of SuppressOperation), node As SyntaxNode, ByRef nextOperation As NextSuppressOperationAction)
             ' don't suppress anything
         End Sub
 

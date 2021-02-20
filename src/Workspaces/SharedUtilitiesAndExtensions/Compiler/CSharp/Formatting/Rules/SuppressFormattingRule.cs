@@ -18,30 +18,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Suppress Formatting Rule";
 
-        public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
-            AddFormatSuppressOperations(list, node);
+            AddFormatSuppressOperations(factory, list, node);
 
-            AddInitializerSuppressOperations(list, node);
+            AddInitializerSuppressOperations(factory, list, node);
 
-            AddBraceSuppressOperations(list, node);
+            AddBraceSuppressOperations(factory, list, node);
 
-            AddStatementExceptBlockSuppressOperations(list, node);
+            AddStatementExceptBlockSuppressOperations(factory, list, node);
 
-            AddSpecificNodesSuppressOperations(list, node);
+            AddSpecificNodesSuppressOperations(factory, list, node);
         }
 
-        private static void AddSpecificNodesSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        private static void AddSpecificNodesSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (node is IfStatementSyntax ifStatementNode)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, ifStatementNode.IfKeyword, ifStatementNode.Statement.GetLastToken(includeZeroWidth: true));
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, ifStatementNode.IfKeyword, ifStatementNode.Statement.GetLastToken(includeZeroWidth: true));
 
                 if (ifStatementNode.Else != null)
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, ifStatementNode.Else.ElseKeyword, ifStatementNode.Else.Statement.GetLastToken(includeZeroWidth: true));
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list, ifStatementNode.Else.ElseKeyword, ifStatementNode.Else.Statement.GetLastToken(includeZeroWidth: true));
                 }
 
                 return;
@@ -57,10 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     var openParenToken = positional.OpenParenToken;
                     var closeParenToken = positional.CloseParenToken;
                     // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
-                    AddSuppressWrappingIfOnSingleLineOperation(list, openParenToken, closeParenToken);
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list, openParenToken, closeParenToken);
                     if (property != null)
                     {
-                        AddSuppressWrappingIfOnSingleLineOperation(list, openParenToken, property.GetLastToken());
+                        AddSuppressWrappingIfOnSingleLineOperation(factory, list, openParenToken, property.GetLastToken());
                     }
                 }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     var openBraceToken = property.OpenBraceToken;
                     var closeBraceToken = property.CloseBraceToken;
                     // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
-                    AddSuppressWrappingIfOnSingleLineOperation(list, openBraceToken, closeBraceToken);
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list, openBraceToken, closeBraceToken);
                 }
 
                 return;
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node.IsKind(SyntaxKind.SwitchExpressionArm))
             {
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
-                AddSuppressWrappingIfOnSingleLineOperation(list, node.GetFirstToken(), node.GetLastToken());
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, node.GetFirstToken(), node.GetLastToken());
                 return;
             }
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node.IsKind(SyntaxKind.SwitchExpression))
             {
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
-                AddSuppressWrappingIfOnSingleLineOperation(list, node.GetFirstToken(), node.GetLastToken());
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, node.GetFirstToken(), node.GetLastToken());
                 return;
             }
 
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node is CasePatternSwitchLabelSyntax casePattern)
             {
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
-                AddSuppressWrappingIfOnSingleLineOperation(list, casePattern.GetFirstToken(), casePattern.GetLastToken());
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, casePattern.GetFirstToken(), casePattern.GetLastToken());
                 return;
             }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node is IsPatternExpressionSyntax isPattern)
             {
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
-                AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.GetFirstToken(), isPattern.GetLastToken());
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, isPattern.GetFirstToken(), isPattern.GetLastToken());
 
                 if (isPattern.Pattern.IsKind(SyntaxKind.RecursivePattern, out recursivePattern))
                 {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     var propertyPatternClause = recursivePattern.PropertyPatternClause;
                     if (propertyPatternClause != null)
                     {
-                        AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, propertyPatternClause.GetLastToken());
+                        AddSuppressWrappingIfOnSingleLineOperation(factory, list, isPattern.IsKeyword, propertyPatternClause.GetLastToken());
                     }
                 }
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var constructorDeclarationNode = constructorInitializerNode.Parent as ConstructorDeclarationSyntax;
                 if (constructorDeclarationNode?.Body != null)
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, constructorInitializerNode.ColonToken, constructorDeclarationNode.Body.CloseBraceToken);
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list, constructorInitializerNode.ColonToken, constructorDeclarationNode.Body.CloseBraceToken);
                 }
 
                 return;
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (node is DoStatementSyntax whileStatementNode)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, whileStatementNode.GetFirstToken(includeZeroWidth: true), whileStatementNode.Statement.GetLastToken(includeZeroWidth: true));
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, whileStatementNode.GetFirstToken(includeZeroWidth: true), whileStatementNode.Statement.GetLastToken(includeZeroWidth: true));
                 return;
             }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Attempt to keep the part of a member that follows the attributes on a single
                 // line if that's how it's currently written.
                 var (firstToken, lastToken) = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
-                AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, firstToken, lastToken);
 
                 // Also, If the member is on single line with its attributes on it, then keep 
                 // it on a single line.  This is for code like the following:
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var endToken = node.GetLastToken(includeZeroWidth: true);
                 for (var i = 0; i < attributes.Count; ++i)
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list,
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list,
                         attributes[i].GetFirstToken(includeZeroWidth: true),
                         endToken);
                 }
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var propertyDeclNode = node as PropertyDeclarationSyntax;
                 if (propertyDeclNode?.Initializer != null && propertyDeclNode?.AccessorList != null)
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, propertyDeclNode.AccessorList.GetLastToken());
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list, firstToken, propertyDeclNode.AccessorList.GetLastToken());
                 }
 
                 return;
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (node is AccessorDeclarationSyntax accessorDeclNode)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, accessorDeclNode.Keyword, accessorDeclNode.GetLastToken(includeZeroWidth: true));
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, accessorDeclNode.Keyword, accessorDeclNode.GetLastToken(includeZeroWidth: true));
                 return;
             }
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 if (switchSection.Labels.Count < 2)
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list, switchSection.GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
                     return;
                 }
                 else
@@ -195,14 +195,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     {
                         if (switchSection.Labels[i] != null)
                         {
-                            AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.Labels[i].GetFirstToken(includeZeroWidth: true), switchSection.Labels[i].GetLastToken(includeZeroWidth: true));
+                            AddSuppressWrappingIfOnSingleLineOperation(factory, list, switchSection.Labels[i].GetFirstToken(includeZeroWidth: true), switchSection.Labels[i].GetLastToken(includeZeroWidth: true));
                         }
                     }
 
                     // For the last label add the rest of the statements of the switch
                     if (switchSection.Labels[switchSection.Labels.Count - 1] != null)
                     {
-                        AddSuppressWrappingIfOnSingleLineOperation(list, switchSection.Labels[switchSection.Labels.Count - 1].GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
+                        AddSuppressWrappingIfOnSingleLineOperation(factory, list, switchSection.Labels[switchSection.Labels.Count - 1].GetFirstToken(includeZeroWidth: true), switchSection.GetLastToken(includeZeroWidth: true));
                     }
 
                     return;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (node is AnonymousFunctionExpressionSyntax ||
                 node is LocalFunctionStatementSyntax)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list,
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list,
                     node.GetFirstToken(includeZeroWidth: true),
                     node.GetLastToken(includeZeroWidth: true),
                     SuppressOption.IgnoreElasticWrapping);
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (parameterNode.AttributeLists.Count != 0)
                 {
                     var anchorToken = parameterNode.AttributeLists.First().OpenBracketToken;
-                    AddSuppressAllOperationIfOnMultipleLine(list, anchorToken, parameterNode.GetLastToken());
+                    AddSuppressAllOperationIfOnMultipleLine(factory, list, anchorToken, parameterNode.GetLastToken());
                 }
             }
 
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Add a suppression operation if the try keyword and the block are in the same line
                 if (!tryStatement.TryKeyword.IsMissing && tryStatement.Block != null && !tryStatement.Block.CloseBraceToken.IsMissing)
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, tryStatement.TryKeyword, tryStatement.Block.CloseBraceToken);
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list, tryStatement.TryKeyword, tryStatement.Block.CloseBraceToken);
                 }
             }
 
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Add a suppression operation if the catch keyword and the corresponding block are in the same line
                 if (!catchClause.CatchKeyword.IsMissing && catchClause.Block != null && !catchClause.Block.CloseBraceToken.IsMissing)
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, catchClause.CatchKeyword, catchClause.Block.CloseBraceToken);
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list, catchClause.CatchKeyword, catchClause.Block.CloseBraceToken);
                 }
             }
 
@@ -251,17 +251,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Add a suppression operation if the finally keyword and the corresponding block are in the same line
                 if (!finallyClause.FinallyKeyword.IsMissing && finallyClause.Block != null && !finallyClause.Block.CloseBraceToken.IsMissing)
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
                 }
             }
 
             if (node is InterpolatedStringExpressionSyntax interpolatedStringExpression)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, interpolatedStringExpression.StringStartToken, interpolatedStringExpression.StringEndToken);
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, interpolatedStringExpression.StringStartToken, interpolatedStringExpression.StringEndToken);
             }
         }
 
-        private static void AddStatementExceptBlockSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        private static void AddStatementExceptBlockSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (!(node is StatementSyntax statementNode) || statementNode.Kind() == SyntaxKind.Block)
             {
@@ -271,10 +271,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var firstToken = statementNode.GetFirstToken(includeZeroWidth: true);
             var lastToken = statementNode.GetLastToken(includeZeroWidth: true);
 
-            AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
+            AddSuppressWrappingIfOnSingleLineOperation(factory, list, firstToken, lastToken);
         }
 
-        private static void AddFormatSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        private static void AddFormatSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (!node.ContainsDirectives)
             {
@@ -288,32 +288,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     continue;
                 }
 
-                ProcessTriviaList(list, child.AsToken().LeadingTrivia);
-                ProcessTriviaList(list, child.AsToken().TrailingTrivia);
+                ProcessTriviaList(factory, list, child.AsToken().LeadingTrivia);
+                ProcessTriviaList(factory, list, child.AsToken().TrailingTrivia);
             }
 
             return;
 
             // Local functions
-            static void ProcessTriviaList(SegmentedList<SuppressOperation> list, SyntaxTriviaList triviaList)
+            static void ProcessTriviaList(OperationFactory factory, SegmentedList< SuppressOperation> list, SyntaxTriviaList triviaList)
             {
                 foreach (var trivia in triviaList)
                 {
-                    ProcessTrivia(list, trivia);
+                    ProcessTrivia(factory, list, trivia);
                 }
             }
 
-            static void ProcessTrivia(SegmentedList<SuppressOperation> list, SyntaxTrivia trivia)
+            static void ProcessTrivia(OperationFactory factory, SegmentedList< SuppressOperation> list, SyntaxTrivia trivia)
             {
                 if (!(trivia.HasStructure))
                 {
                     return;
                 }
 
-                ProcessStructuredTrivia(list, trivia.GetStructure()!);
+                ProcessStructuredTrivia(factory, list, trivia.GetStructure()!);
             }
 
-            static void ProcessStructuredTrivia(SegmentedList<SuppressOperation> list, SyntaxNode structure)
+            static void ProcessStructuredTrivia(OperationFactory factory, SegmentedList< SuppressOperation> list, SyntaxNode structure)
             {
                 if (!(structure is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
                 {
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 Debug.Assert(!startToken.IsKind(SyntaxKind.None) && !endToken.IsKind(SyntaxKind.None));
                 var textSpan = TextSpan.FromBounds(startToken.Span.End, endToken.SpanStart);
-                list.Add(new SuppressOperation(startToken, endToken, textSpan, SuppressOption.DisableFormatting));
+                list.Add(factory.SuppressOperation(startToken, endToken, textSpan, SuppressOption.DisableFormatting));
             }
         }
 
@@ -367,34 +367,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return false;
         }
 
-        private static void AddInitializerSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        private static void AddInitializerSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             // array or collection initializer case
             if (node.IsInitializerForArrayOrCollectionCreationExpression())
             {
                 var arrayOrCollectionInitializer = (InitializerExpressionSyntax)node;
-                AddSuppressAllOperationIfOnMultipleLine(list, arrayOrCollectionInitializer.OpenBraceToken.GetPreviousToken(includeZeroWidth: true), arrayOrCollectionInitializer.CloseBraceToken);
+                AddSuppressAllOperationIfOnMultipleLine(factory, list, arrayOrCollectionInitializer.OpenBraceToken.GetPreviousToken(includeZeroWidth: true), arrayOrCollectionInitializer.CloseBraceToken);
                 return;
             }
 
             var initializer = GetInitializerNode(node);
             if (initializer is { Parent: { } })
             {
-                AddInitializerSuppressOperations(list, initializer.Parent, initializer.Expressions);
+                AddInitializerSuppressOperations(factory, list, initializer.Parent, initializer.Expressions);
                 return;
             }
 
             if (node is AnonymousObjectCreationExpressionSyntax anonymousCreationNode)
             {
-                AddInitializerSuppressOperations(list, anonymousCreationNode, anonymousCreationNode.Initializers);
+                AddInitializerSuppressOperations(factory, list, anonymousCreationNode, anonymousCreationNode.Initializers);
                 return;
             }
         }
 
-        private static void AddInitializerSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode parent, IEnumerable<SyntaxNode> items)
+        private static void AddInitializerSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode parent, IEnumerable<SyntaxNode> items)
         {
             // make creation node itself to not break into multiple line, if it is on same line
-            AddSuppressWrappingIfOnSingleLineOperation(list, parent.GetFirstToken(includeZeroWidth: true), parent.GetLastToken(includeZeroWidth: true));
+            AddSuppressWrappingIfOnSingleLineOperation(factory, list, parent.GetFirstToken(includeZeroWidth: true), parent.GetLastToken(includeZeroWidth: true));
 
             // make each initializer expression to not break into multiple line if it is on same line
             foreach (var item in items)
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 if (!firstToken.Equals(lastToken))
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
+                    AddSuppressWrappingIfOnSingleLineOperation(factory, list, firstToken, lastToken);
                 }
             }
         }

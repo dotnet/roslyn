@@ -89,9 +89,10 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (Logger.LogBlock(FunctionId.Formatting_Format, FormatSummary, cancellationToken))
             {
                 // setup environment
-                var nodeOperations = CreateNodeOperations(cancellationToken);
-
                 var tokenStream = new TokenStream(this.TreeData, this.Options, this.SpanToFormat, CreateTriviaFactory());
+                var operationFactory = new OperationFactory(tokenStream);
+                var nodeOperations = CreateNodeOperations(operationFactory, cancellationToken);
+
                 var tokenOperation = CreateTokenOperation(tokenStream, cancellationToken);
 
                 // initialize context
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return context;
         }
 
-        protected virtual NodeOperations CreateNodeOperations(CancellationToken cancellationToken)
+        protected virtual NodeOperations CreateNodeOperations(OperationFactory factory, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -150,21 +151,21 @@ namespace Microsoft.CodeAnalysis.Formatting
             SegmentedList<IndentBlockOperation> indentBlockOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectIndentBlock, cancellationToken))
             {
-                indentBlockOperation = AddOperations<IndentBlockOperation>(nodeIterator, (l, n) => _formattingRules.AddIndentBlockOperations(l, n), cancellationToken);
+                indentBlockOperation = AddOperations<IndentBlockOperation>(factory, nodeIterator, (_, l, n) => _formattingRules.AddIndentBlockOperations(l, n), cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
             SegmentedList<SuppressOperation> suppressOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectSuppressOperation, cancellationToken))
             {
-                suppressOperation = AddOperations<SuppressOperation>(nodeIterator, (l, n) => _formattingRules.AddSuppressOperations(l, n), cancellationToken);
+                suppressOperation = AddOperations<SuppressOperation>(factory, nodeIterator, (f, l, n) => _formattingRules.AddSuppressOperations(f, l, n), cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
             SegmentedList<AlignTokensOperation> alignmentOperation;
             using (Logger.LogBlock(FunctionId.Formatting_CollectAlignOperation, cancellationToken))
             {
-                var operations = AddOperations<AlignTokensOperation>(nodeIterator, (l, n) => _formattingRules.AddAlignTokensOperations(l, n), cancellationToken);
+                var operations = AddOperations<AlignTokensOperation>(factory, nodeIterator, (_, l, n) => _formattingRules.AddAlignTokensOperations(l, n), cancellationToken);
 
                 // make sure we order align operation from left to right
                 operations.Sort((o1, o2) => o1.BaseToken.Span.CompareTo(o2.BaseToken.Span));
@@ -176,13 +177,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             SegmentedList<AnchorIndentationOperation> anchorIndentationOperations;
             using (Logger.LogBlock(FunctionId.Formatting_CollectAnchorOperation, cancellationToken))
             {
-                anchorIndentationOperations = AddOperations<AnchorIndentationOperation>(nodeIterator, (l, n) => _formattingRules.AddAnchorIndentationOperations(l, n), cancellationToken);
+                anchorIndentationOperations = AddOperations<AnchorIndentationOperation>(factory, nodeIterator, (_, l, n) => _formattingRules.AddAnchorIndentationOperations(l, n), cancellationToken);
             }
 
             return new NodeOperations(indentBlockOperation, suppressOperation, anchorIndentationOperations, alignmentOperation);
         }
 
-        private static SegmentedList<T> AddOperations<T>(SegmentedList<SyntaxNode> nodes, Action<SegmentedList<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
+        private static SegmentedList<T> AddOperations<T>(OperationFactory factory, SegmentedList<SyntaxNode> nodes, Action<OperationFactory, SegmentedList<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
             where T : struct
         {
             var operations = new SegmentedList<T>();
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             foreach (var n in nodes)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                addOperations(list, n);
+                addOperations(factory, list, n);
 
                 operations.AddRange(list);
                 list.Clear();

@@ -11,17 +11,20 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     [NonDefaultable]
     internal readonly struct NextSuppressOperationAction
     {
+        private readonly OperationFactory _operationFactory;
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly int _index;
         private readonly SyntaxNode _node;
         private readonly SegmentedList<SuppressOperation> _list;
 
         public NextSuppressOperationAction(
+            OperationFactory operationFactory,
             ImmutableArray<AbstractFormattingRule> formattingRules,
             int index,
             SyntaxNode node,
             SegmentedList<SuppressOperation> list)
         {
+            _operationFactory = operationFactory;
             _formattingRules = formattingRules;
             _index = index;
             _node = node;
@@ -29,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         }
 
         private NextSuppressOperationAction NextAction
-            => new(_formattingRules, _index + 1, _node, _list);
+            => new(_operationFactory, _formattingRules, _index + 1, _node, _list);
 
         public void Invoke()
         {
@@ -41,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             else
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                _formattingRules[_index].AddSuppressOperations(_list, _node, NextAction);
+                _formattingRules[_index].AddSuppressOperations(_operationFactory, _list, _node, NextAction);
                 return;
             }
         }

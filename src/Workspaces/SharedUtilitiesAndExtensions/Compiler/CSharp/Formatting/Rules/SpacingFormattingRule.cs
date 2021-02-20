@@ -497,11 +497,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke(in previousToken, in currentToken);
         }
 
-        public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
-            SuppressVariableDeclaration(list, node);
+            SuppressVariableDeclaration(factory, list, node);
         }
 
         private static bool IsEmptyForStatement(ForStatementSyntax forStatement) =>
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             && forStatement.Condition == null
             && forStatement.Incrementors.Count == 0;
 
-        private void SuppressVariableDeclaration(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        private void SuppressVariableDeclaration(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (node.IsKind(SyntaxKind.FieldDeclaration) || node.IsKind(SyntaxKind.EventDeclaration) ||
                 node.IsKind(SyntaxKind.EventFieldDeclaration) || node.IsKind(SyntaxKind.LocalDeclarationStatement) ||
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     var firstToken = node.GetFirstToken(includeZeroWidth: true);
                     var lastToken = node.GetLastToken(includeZeroWidth: true);
 
-                    list.Add(FormattingOperations.CreateSuppressOperation(firstToken, lastToken, SuppressOption.NoSpacing));
+                    list.Add(factory.CreateSuppressOperation(firstToken, lastToken, SuppressOption.NoSpacing));
                 }
             }
         }

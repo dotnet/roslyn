@@ -18,17 +18,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
     {
         public static readonly TypingFormattingRule Instance = new();
 
-        public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
-            if (TryAddSuppressionOnMissingCloseBraceCase(list, node))
+            if (TryAddSuppressionOnMissingCloseBraceCase(factory, list, node))
             {
                 return;
             }
 
-            base.AddSuppressOperations(list, node, in nextOperation);
+            base.AddSuppressOperations(factory, list, node, in nextOperation);
         }
 
-        private static bool TryAddSuppressionOnMissingCloseBraceCase(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        private static bool TryAddSuppressionOnMissingCloseBraceCase(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = node.GetBracePair();
             if (!bracePair.IsValidBracePair())
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             // suppress wrapping on whole construct that owns braces and also brace pair itself if 
             // it is on same line
-            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, endToken);
-            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.Item1, endToken);
+            AddSuppressWrappingIfOnSingleLineOperation(factory, list, firstTokenOfNode, endToken);
+            AddSuppressWrappingIfOnSingleLineOperation(factory, list, bracePair.Item1, endToken);
 
             return true;
         }

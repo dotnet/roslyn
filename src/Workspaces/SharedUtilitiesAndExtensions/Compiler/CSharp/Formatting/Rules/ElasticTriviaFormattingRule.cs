@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Elastic trivia Formatting Rule";
 
-        public override void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            AddPropertyDeclarationSuppressOperations(list, node);
+            AddPropertyDeclarationSuppressOperations(factory, list, node);
 
-            AddInitializerSuppressOperations(list, node);
+            AddInitializerSuppressOperations(factory, list, node);
         }
 
-        private static void AddPropertyDeclarationSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        private static void AddPropertyDeclarationSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             if (node is BasePropertyDeclarationSyntax basePropertyDeclaration && basePropertyDeclaration.AccessorList != null &&
                 basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) &&
@@ -43,23 +43,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 var (firstToken, lastToken) = basePropertyDeclaration.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
 
-                list.Add(FormattingOperations.CreateSuppressOperation(firstToken, lastToken, SuppressOption.NoWrapping | SuppressOption.IgnoreElasticWrapping));
+                list.Add(factory.CreateSuppressOperation(firstToken, lastToken, SuppressOption.NoWrapping | SuppressOption.IgnoreElasticWrapping));
             }
         }
 
-        private static void AddInitializerSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode node)
+        private static void AddInitializerSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode node)
         {
             var initializer = GetInitializerNode(node);
             var lastTokenOfType = GetLastTokenOfType(node);
             if (initializer != null && lastTokenOfType != null)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, lastTokenOfType.Value, initializer.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, lastTokenOfType.Value, initializer.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);
                 return;
             }
 
             if (node is AnonymousObjectCreationExpressionSyntax anonymousCreationNode)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, anonymousCreationNode.NewKeyword, anonymousCreationNode.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);
+                AddSuppressWrappingIfOnSingleLineOperation(factory, list, anonymousCreationNode.NewKeyword, anonymousCreationNode.CloseBraceToken, SuppressOption.IgnoreElasticWrapping);
                 return;
             }
         }

@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return New FormattingContext(Me, tokenStream)
         End Function
 
-        Protected Overrides Function CreateNodeOperations(cancellationToken As CancellationToken) As NodeOperations
+        Protected Overrides Function CreateNodeOperations(factory As OperationFactory, cancellationToken As CancellationToken) As NodeOperations
             ' ignore all node operations for structured trivia since it is not possible for this to have any impact currently.
             Return NodeOperations.Empty
         End Function

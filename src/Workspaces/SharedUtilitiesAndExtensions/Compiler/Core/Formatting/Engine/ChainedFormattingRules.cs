@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             _getAdjustSpacesOperationRules = FilterToRulesImplementingMethod(_formattingRules, nameof(AbstractFormattingRule.GetAdjustSpacesOperation));
         }
 
-        public void AddSuppressOperations(SegmentedList<SuppressOperation> list, SyntaxNode currentNode)
+        public void AddSuppressOperations(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode currentNode)
         {
-            var action = new NextSuppressOperationAction(_addSuppressOperationsRules, index: 0, currentNode, list);
+            var action = new NextSuppressOperationAction(factory, _addSuppressOperationsRules, index: 0, currentNode, list);
             action.Invoke();
         }
 

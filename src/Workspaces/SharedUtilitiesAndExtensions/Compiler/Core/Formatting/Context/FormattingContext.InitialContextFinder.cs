@@ -147,11 +147,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // starting from given token, move up to root until the first meaningful
                 // operation has found
                 var list = new SegmentedList<SuppressOperation>();
+                var operationFactory = new OperationFactory(_tokenStream);
 
                 var currentIndentationNode = startNode;
                 while (currentIndentationNode != null)
                 {
-                    _formattingRules.AddSuppressOperations(list, currentIndentationNode);
+                    _formattingRules.AddSuppressOperations(operationFactory, list, currentIndentationNode);
 
                     list.RemoveAll(Predicate);
                     if (list.Count > 0)
