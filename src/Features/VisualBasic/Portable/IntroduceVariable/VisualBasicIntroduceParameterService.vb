@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicIntroduceParameterService
-        Inherits AbstractIntroduceParameterService(Of VisualBasicIntroduceParameterService, ExpressionSyntax, MethodBlockSyntax)
+        Inherits AbstractIntroduceParameterService(Of VisualBasicIntroduceParameterService, ExpressionSyntax, MethodBlockSyntax, InvocationExpressionSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -95,28 +95,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Next
 
             Return currentSolution
-        End Function
-
-        Private Shared Async Function FindCallSitesAsync(document As SemanticDocument, methodSymbol As IMethodSymbol,
-            cancellationToken As CancellationToken) As Task(Of ImmutableDictionary(Of Document, List(Of InvocationExpressionSyntax)))
-
-            Dim methodCallSites = New Dictionary(Of Document, List(Of InvocationExpressionSyntax))
-            Dim progress = New StreamingProgressCollector()
-
-            Await SymbolFinder.FindReferencesAsync(methodSymbol, document.Document.Project.Solution, progress, Nothing, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(False)
-            Dim referencedSymbols = progress.GetReferencedSymbols()
-            Dim referencedLocations = referencedSymbols.SelectMany(Function(referencedSymbol) referencedSymbol.Locations).Distinct().ToImmutableArray()
-
-            Dim list = New List(Of InvocationExpressionSyntax)
-            For Each refLocation In referencedLocations
-                If Not methodCallSites.TryGetValue(refLocation.Document, list) Then
-                    list = New List(Of InvocationExpressionSyntax)
-                    methodCallSites.Add(refLocation.Document, list)
-                End If
-                list.Add(DirectCast(refLocation.Location.FindNode(cancellationToken).Parent, InvocationExpressionSyntax))
-            Next
-
-            Return methodCallSites.ToImmutableDictionary()
         End Function
 
         Private Shared Function TieExpressionToParameters(expression As ExpressionSyntax, methodSymbol As IMethodSymbol) As Dictionary(Of IParameterSymbol, IdentifierNameSyntax)

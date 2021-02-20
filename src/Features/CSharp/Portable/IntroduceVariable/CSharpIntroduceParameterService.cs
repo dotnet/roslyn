@@ -31,7 +31,7 @@ using Microsoft.CodeAnalysis.Simplification;
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpIntroduceParameterService : AbstractIntroduceParameterService<CSharpIntroduceParameterService, ExpressionSyntax, MethodDeclarationSyntax>
+    internal partial class CSharpIntroduceParameterService : AbstractIntroduceParameterService<CSharpIntroduceParameterService, ExpressionSyntax, MethodDeclarationSyntax, InvocationExpressionSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return currentSolution;
         }
 
-        private static async Task<ImmutableDictionary<Document, List<InvocationExpressionSyntax>>> FindCallSitesAsync(
+        /*private static async Task<ImmutableDictionary<Document, List<InvocationExpressionSyntax>>> FindCallSitesAsync(
             SemanticDocument document,
             IMethodSymbol methodSymbol,
             CancellationToken cancellationToken)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             }
 
             return methodCallSites.ToImmutableDictionary();
-        }
+        }*/
 
         /// <summary>
         /// Ties the identifiers within the expression back to their associated parameter

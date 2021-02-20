@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -28,10 +29,11 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal abstract partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax> : CodeRefactoringProvider
-        where TService : AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax>
+    internal abstract partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax, TInvocationExpressionSyntax> : CodeRefactoringProvider
+        where TService : AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax, TInvocationExpressionSyntax>
         where TExpressionSyntax : SyntaxNode
         where TMethodDeclarationSyntax : SyntaxNode
+        where TInvocationExpressionSyntax : SyntaxNode
     {
         protected const string ExpressionAnnotationKind = nameof(ExpressionAnnotationKind);
         protected abstract Task<Solution> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken);
@@ -179,6 +181,33 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 document, newExpression, parameterNameSyntax, document, innermostCommonBlock, allOccurrences, cancellationToken);
             var newRoot = document.Root.ReplaceNode(innermostCommonBlock, newInnerMostBlock);
             return document.Document.WithSyntaxRoot(newRoot);
+        }
+
+        protected static async Task<ImmutableDictionary<Document, List<TInvocationExpressionSyntax>>> FindCallSitesAsync(
+            SemanticDocument document,
+            IMethodSymbol methodSymbol,
+            CancellationToken cancellationToken)
+        {
+            var methodCallSites = new Dictionary<Document, List<TInvocationExpressionSyntax>>();
+            var progress = new StreamingProgressCollector();
+
+            await SymbolFinder.FindReferencesAsync(
+                methodSymbol, document.Document.Project.Solution, progress: progress,
+                documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
+            var referencedSymbols = progress.GetReferencedSymbols();
+            var referencedLocations = referencedSymbols.SelectMany(referencedSymbol => referencedSymbol.Locations).Distinct().ToImmutableArray();
+
+            foreach (var refLocation in referencedLocations)
+            {
+                if (!methodCallSites.TryGetValue(refLocation.Document, out var list))
+                {
+                    list = new List<TInvocationExpressionSyntax>();
+                    methodCallSites.Add(refLocation.Document, list);
+                }
+                list.Add((TInvocationExpressionSyntax)(refLocation.Location.FindNode(cancellationToken).Parent));
+            }
+
+            return methodCallSites.ToImmutableDictionary();
         }
 
         private (string title, ImmutableArray<CodeAction> actions) AddActions(SemanticDocument semanticDocument, TExpressionSyntax expression)
