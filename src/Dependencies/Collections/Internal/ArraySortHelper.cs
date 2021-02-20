@@ -8,11 +8,6 @@
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
 
-#if CODE_STYLE
-#pragma warning disable CS8602
-#pragma warning disable CS8604
-#endif
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
