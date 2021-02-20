@@ -41,35 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override async Task<Solution> IntroduceParameterAsync(SemanticDocument document, ExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken)
         {
-            var parameterName = GetNewParameterName(document, expression, cancellationToken);
-
-            var annotatedExpression = new SyntaxAnnotation(ExpressionAnnotationKind);
-
-            var annotatedSemanticDocument = await GetAnnotatedSemanticDocumentAsync(document, annotatedExpression, expression, cancellationToken).ConfigureAwait(false);
-            var annotatedExpressionWithinDocument = (ExpressionSyntax)annotatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode();
-            var methodSymbolInfo = GetMethodSymbolFromExpression(annotatedSemanticDocument, annotatedExpressionWithinDocument, cancellationToken);
-            var methodCallSites = await FindCallSitesAsync(annotatedSemanticDocument, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
-
-            var updatedCallSitesSolution = await RewriteCallSitesAsync(annotatedExpressionWithinDocument, methodCallSites, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
-
-            if (updatedCallSitesSolution == null)
-            {
-                updatedCallSitesSolution = annotatedSemanticDocument.Document.Project.Solution;
-            }
-
-            var updatedCallSitesDocument = await SemanticDocument.CreateAsync(updatedCallSitesSolution.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(false);
-
-            annotatedExpressionWithinDocument = (ExpressionSyntax)updatedCallSitesDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode();
-
-            var updatedSolutionWithParameter = await AddParameterToMethodHeaderAsync(updatedCallSitesDocument, annotatedExpressionWithinDocument, parameterName, cancellationToken).ConfigureAwait(false);
-            var updatedSemanticDocument = await SemanticDocument.CreateAsync(updatedSolutionWithParameter.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(false);
-
-            var newExpression = (ExpressionSyntax)updatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode();
-            var documentWithUpdatedMethodBody = ConvertExpressionWithNewParameter(updatedSemanticDocument, newExpression, parameterName, allOccurrences, cancellationToken);
-            return documentWithUpdatedMethodBody.Project.Solution;
+            return await AbstractIntroduceParameterAsync(document, expression, allOccurrences, trampoline, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Solution> RewriteCallSitesAsync(ExpressionSyntax expression, ImmutableDictionary<Document, List<InvocationExpressionSyntax>> callSites,
+        protected override async Task<Solution> RewriteCallSitesAsync(ExpressionSyntax expression, ImmutableDictionary<Document, List<InvocationExpressionSyntax>> callSites,
          IMethodSymbol methodSymbol, CancellationToken cancellationToken)
         {
             var mappingDictionary = TieExpressionToParameters(expression, methodSymbol);
@@ -119,33 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
             return currentSolution;
         }
-
-        /*private static async Task<ImmutableDictionary<Document, List<InvocationExpressionSyntax>>> FindCallSitesAsync(
-            SemanticDocument document,
-            IMethodSymbol methodSymbol,
-            CancellationToken cancellationToken)
-        {
-            var methodCallSites = new Dictionary<Document, List<InvocationExpressionSyntax>>();
-            var progress = new StreamingProgressCollector();
-
-            await SymbolFinder.FindReferencesAsync(
-                methodSymbol, document.Document.Project.Solution, progress: progress,
-                documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
-            var referencedSymbols = progress.GetReferencedSymbols();
-            var referencedLocations = referencedSymbols.SelectMany(referencedSymbol => referencedSymbol.Locations).Distinct().ToImmutableArray();
-
-            foreach (var refLocation in referencedLocations)
-            {
-                if (!methodCallSites.TryGetValue(refLocation.Document, out var list))
-                {
-                    list = new List<InvocationExpressionSyntax>();
-                    methodCallSites.Add(refLocation.Document, list);
-                }
-                list.Add((InvocationExpressionSyntax)(refLocation.Location.FindNode(cancellationToken).Parent));
-            }
-
-            return methodCallSites.ToImmutableDictionary();
-        }*/
 
         /// <summary>
         /// Ties the identifiers within the expression back to their associated parameter

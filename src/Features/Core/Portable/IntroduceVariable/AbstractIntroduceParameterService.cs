@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected const string ExpressionAnnotationKind = nameof(ExpressionAnnotationKind);
         protected abstract Task<Solution> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken);
         protected abstract bool ExpressionWithinParameterizedMethod(TExpressionSyntax expression);
+        protected abstract Task<Solution> RewriteCallSitesAsync(TExpressionSyntax expression, ImmutableDictionary<Document, List<TInvocationExpressionSyntax>> callSites, IMethodSymbol methodSymbol, CancellationToken cancellationToken);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -96,6 +97,36 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
             return null;
 
+        }
+
+        protected async Task<Solution> AbstractIntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken)
+        {
+            var parameterName = GetNewParameterName(document, expression, cancellationToken);
+
+            var annotatedExpression = new SyntaxAnnotation(ExpressionAnnotationKind);
+
+            var annotatedSemanticDocument = await GetAnnotatedSemanticDocumentAsync(document, annotatedExpression, expression, cancellationToken).ConfigureAwait(false);
+            var annotatedExpressionWithinDocument = (TExpressionSyntax)annotatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode();
+            var methodSymbolInfo = GetMethodSymbolFromExpression(annotatedSemanticDocument, annotatedExpressionWithinDocument, cancellationToken);
+            var methodCallSites = await FindCallSitesAsync(annotatedSemanticDocument, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
+
+            var updatedCallSitesSolution = await RewriteCallSitesAsync(annotatedExpressionWithinDocument, methodCallSites, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
+
+            if (updatedCallSitesSolution == null)
+            {
+                updatedCallSitesSolution = annotatedSemanticDocument.Document.Project.Solution;
+            }
+
+            var updatedCallSitesDocument = await SemanticDocument.CreateAsync(updatedCallSitesSolution.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(false);
+
+            annotatedExpressionWithinDocument = (TExpressionSyntax)updatedCallSitesDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode();
+
+            var updatedSolutionWithParameter = await AddParameterToMethodHeaderAsync(updatedCallSitesDocument, annotatedExpressionWithinDocument, parameterName, cancellationToken).ConfigureAwait(false);
+            var updatedSemanticDocument = await SemanticDocument.CreateAsync(updatedSolutionWithParameter.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(false);
+
+            var newExpression = (TExpressionSyntax)updatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode();
+            var documentWithUpdatedMethodBody = ConvertExpressionWithNewParameter(updatedSemanticDocument, newExpression, parameterName, allOccurrences, cancellationToken);
+            return documentWithUpdatedMethodBody.Project.Solution;
         }
 
         protected static Task<Solution> AddParameterToMethodHeaderAsync(SemanticDocument document, TExpressionSyntax expression, string parameterName, CancellationToken cancellationToken)

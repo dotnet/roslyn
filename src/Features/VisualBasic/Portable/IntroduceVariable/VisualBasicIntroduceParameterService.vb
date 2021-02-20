@@ -25,30 +25,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         End Sub
 
         Protected Overrides Async Function IntroduceParameterAsync(document As SemanticDocument, expression As ExpressionSyntax, allOccurrences As Boolean, trampoline As Boolean, cancellationToken As Threading.CancellationToken) As Task(Of Solution)
-            Dim parameterName = GetNewParameterName(document, expression, cancellationToken)
-            Dim annotatedExpression = New SyntaxAnnotation(ExpressionAnnotationKind)
-            Dim annotatedSemanticDocument = Await GetAnnotatedSemanticDocumentAsync(document, annotatedExpression, expression, cancellationToken).ConfigureAwait(False)
-            Dim annotatedExpressionWithinDocument = DirectCast(annotatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode(), ExpressionSyntax)
-            Dim methodSymbolInfo = GetMethodSymbolFromExpression(annotatedSemanticDocument, annotatedExpressionWithinDocument, cancellationToken)
-            Dim methodCallSites = Await FindCallSitesAsync(annotatedSemanticDocument, methodSymbolInfo, cancellationToken).ConfigureAwait(False)
-            Dim updatedCallSitesSolution = Await RewriteCallSitesAsync(annotatedExpressionWithinDocument, methodCallSites, methodSymbolInfo, cancellationToken).ConfigureAwait(False)
-
-            If updatedCallSitesSolution Is Nothing Then
-                updatedCallSitesSolution = annotatedSemanticDocument.Document.Project.Solution
-            End If
-
-            Dim updatedCallSitesDocument = Await SemanticDocument.CreateAsync(updatedCallSitesSolution.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(False)
-
-            annotatedExpressionWithinDocument = DirectCast(updatedCallSitesDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode(), ExpressionSyntax)
-            Dim updatedSolutionWithParameter = Await AddParameterToMethodHeaderAsync(updatedCallSitesDocument, annotatedExpressionWithinDocument, parameterName, cancellationToken).ConfigureAwait(False)
-            Dim updatedSemanticDocument = Await SemanticDocument.CreateAsync(updatedSolutionWithParameter.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(False)
-
-            Dim newExpression = DirectCast(updatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode(), ExpressionSyntax)
-            Dim documentWithUpdatedMethodBody = ConvertExpressionWithNewParameter(updatedSemanticDocument, newExpression, parameterName, allOccurrences, cancellationToken)
-            Return documentWithUpdatedMethodBody.Project.Solution
+            Return Await AbstractIntroduceParameterAsync(document, expression, allOccurrences, trampoline, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Shared Async Function RewriteCallSitesAsync(expression As ExpressionSyntax, callSites As ImmutableDictionary(Of Document, List(Of InvocationExpressionSyntax)),
+        Protected Overrides Async Function RewriteCallSitesAsync(expression As ExpressionSyntax, callSites As ImmutableDictionary(Of Document, List(Of InvocationExpressionSyntax)),
                                                             methodSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of Solution)
             Dim mappingDictionary = TieExpressionToParameters(expression, methodSymbol)
             expression = expression.TrackNodes(mappingDictionary.Values)
