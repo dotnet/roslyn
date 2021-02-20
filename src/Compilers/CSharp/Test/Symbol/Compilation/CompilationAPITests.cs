@@ -750,6 +750,30 @@ namespace A.B {
                 );
         }
 
+
+        [Fact]
+        public void TypeDeclarationWithInvalidKindTest()
+        {
+            SyntaxKind kind = SyntaxKind.EnumDeclaration;
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                SyntaxFactory.TypeDeclaration(
+                    kind,
+                    default(SyntaxList<AttributeListSyntax>),
+                    default(SyntaxTokenList),
+                    SyntaxFactory.Token(kind),
+                    default(SyntaxToken),
+                    typeParameterList: null,
+                    baseList: null,
+                    default(SyntaxList<TypeParameterConstraintClauseSyntax>),
+                    SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                    default(SyntaxList<MemberDeclarationSyntax>),
+                    SyntaxFactory.Token(SyntaxKind.CloseBraceToken),
+                    default(SyntaxToken));
+            });
+        }
+
         [Fact]
         public void SyntreeAPITest()
         {
