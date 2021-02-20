@@ -79,9 +79,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                         .Do(n =>
                             {
                                 _formattingRules.AddIndentBlockOperations(list, n);
-                                foreach (var element in list)
-                                    operations.Add(element);
-
+                                operations.AddRange(list);
                                 list.Clear();
                             });
 
