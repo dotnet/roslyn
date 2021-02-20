@@ -48,9 +48,9 @@ namespace BuildValidator
                 new Option<string>(
                     "--sourcePath", "Path to sources to use in rebuild"
                 ) { IsRequired = true },
-                new Option<string[]?>(
-                    "--referencesPaths", "Additional paths to referenced assemblies"
-                ),
+                new Option<string>(
+                    "--referencesPath", "Path to referenced assemblies (can be specified zero or more times)"
+                ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
                 new Option<bool>(
                     "--verbose", "Output verbose log information"
                 ),
@@ -64,18 +64,20 @@ namespace BuildValidator
                     "--debugPath", "Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled."
                 )
             };
+            var res = rootCommand.Parse(args);
+            
             rootCommand.Handler = CommandHandler.Create<string[], string, string[]?, bool, bool, bool, string>(HandleCommand);
             return rootCommand.Invoke(args);
         }
 
-        static int HandleCommand(string[] assembliesPath, string sourcePath, string[]? referencesPaths, bool verbose, bool quiet, bool debug, string? debugPath)
+        static int HandleCommand(string[] assembliesPath, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)
         {
             // If user provided a debug path then assume we should write debug outputs.
             debug |= debugPath is object;
             debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
-            referencesPaths ??= Array.Empty<string>();
+            referencesPath ??= Array.Empty<string>();
 
-            var options = new Options(assembliesPath, referencesPaths, sourcePath, verbose, quiet, debug, debugPath);
+            var options = new Options(assembliesPath, referencesPath, sourcePath, verbose, quiet, debug, debugPath);
 
             // TODO: remove the DemoLoggerProvider, update this dependency,
             // and move to the built in logger.

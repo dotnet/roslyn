@@ -30,10 +30,6 @@ namespace BuildValidator
         public LocalReferenceResolver(Options options, ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
-            foreach (var directoryInfo in GetRefAssembliesDirectories())
-            {
-                _indexDirectories.Add(directoryInfo);
-            }
             foreach (var path in options.AssembliesPaths)
             {
                 _indexDirectories.Add(new DirectoryInfo(path));
@@ -60,16 +56,6 @@ namespace BuildValidator
             }
 
             return new DirectoryInfo(nugetPackageDirectory);
-        }
-
-        public static DirectoryInfo[] GetRefAssembliesDirectories()
-        {
-            // TODO: Don't hardcode the paths here. 
-            return new[]
-            {
-                new DirectoryInfo(@"C:\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref"),
-                new DirectoryInfo(@"C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref")
-            };
         }
 
         public string GetReferencePath(MetadataReferenceInfo referenceInfo)

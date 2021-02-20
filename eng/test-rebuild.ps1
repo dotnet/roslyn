@@ -34,12 +34,15 @@ try {
     Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -configuration:$configuration -pack -binaryLog }
   }
 
+  $dotnetInstallDir = (InitializeDotNetCli -install:$true)
   $rebuildArgs = ("--verbose" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis/$configuration/netcoreapp3.1`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis/$configuration`"" +
   " --assembliesPath $ArtifactsDir/obj/csc/$configuration/netcoreapp3.1" +
-  " --debugPath `"$ArtifactsDir\BuildValidator`"" +
+  " --debugPath `"$ArtifactsDir/BuildValidator`"" +
   " --sourcePath `"$RepoRoot`"" +
-  " --referencesPaths `"$ArtifactsDir\bin`"")
+  " --referencesPath `"$ArtifactsDir/bin`"" +
+  " --referencesPath `"$dotnetInstallDir/packs/Microsoft.AspNetCore.App.Ref`"" +
+  " --referencesPath `"$dotnetInstallDir/packs/Microsoft.NETCore.App.Ref`"")
   Exec-Console "$ArtifactsDir/bin/BuildValidator/$configuration/net472/BuildValidator.exe" $rebuildArgs
 
   exit 0
