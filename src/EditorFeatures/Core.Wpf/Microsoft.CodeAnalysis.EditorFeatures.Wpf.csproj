@@ -8,6 +8,8 @@
     <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <!-- https://github.com/dotnet/wpf/issues/1718 -->
+    <EmbedUntrackedSources>false</EmbedUntrackedSources>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>

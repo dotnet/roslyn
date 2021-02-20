@@ -8,6 +8,8 @@
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <!-- https://github.com/dotnet/wpf/issues/1718 -->
+    <EmbedUntrackedSources>false</EmbedUntrackedSources>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
