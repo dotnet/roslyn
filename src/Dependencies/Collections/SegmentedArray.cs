@@ -333,10 +333,10 @@ namespace Microsoft.CodeAnalysis.Collections
 #pragma warning disable IDE0051 // Remove unused private members (will be used in follow-up)
         private static AlignedSegmentEnumerable<T> GetSegmentsAligned<T>(SegmentedArray<T> first, int firstOffset, SegmentedArray<T> second, int secondOffset, int length)
             => new(first, firstOffset, second, secondOffset, length);
+#pragma warning restore IDE0051 // Remove unused private members
 
         private static UnalignedSegmentEnumerable<T> GetSegmentsUnaligned<T>(SegmentedArray<T> first, int firstOffset, SegmentedArray<T> second, int secondOffset, int length)
             => new(first, firstOffset, second, secondOffset, length);
-#pragma warning restore IDE0051 // Remove unused private members
 
         private readonly struct AlignedSegmentEnumerable<T>
         {
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 var secondSegment = _secondSegments[initialSecondSegment];
                 var remainingInFirstSegment = firstSegment.Length - firstOffset;
                 var remainingInSecondSegment = secondSegment.Length - secondOffset;
-                var currentSegmentLength = Math.Min(Math.Min(remainingInFirstSegment, remainingInSecondSegment), _length);
+                var currentSegmentLength = Math.Min(Math.Min(remainingInFirstSegment, remainingInSecondSegment), _length - _completed);
                 _current = (firstSegment.AsMemory().Slice(firstOffset, currentSegmentLength), secondSegment.AsMemory().Slice(secondOffset, currentSegmentLength));
                 _completed += currentSegmentLength;
                 return true;
