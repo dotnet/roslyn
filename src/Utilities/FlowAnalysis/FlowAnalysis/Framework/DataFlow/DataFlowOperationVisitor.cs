@@ -187,10 +187,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 Debug.Assert(_currentBasicBlock != null);
                 return _currentBasicBlock!;
             }
-            private set
-            {
-                _currentBasicBlock = value;
-            }
+            private set => _currentBasicBlock = value;
         }
         protected ControlFlowConditionKind FlowBranchConditionKind { get; private set; }
         protected PointsToAbstractValue ThisOrMePointsToAbstractValue { get; }
@@ -805,17 +802,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return ValueDomain.UnknownOrMayBeValue;
         }
 
-        protected virtual void ProcessReturnValue(IOperation? returnValueOperation)
+        protected virtual void ProcessReturnValue(IOperation? returnValue)
         {
-            if (returnValueOperation != null)
+            if (returnValue != null)
             {
-                _returnValueOperations?.Add(returnValueOperation);
+                _returnValueOperations?.Add(returnValue);
 
-                _ = GetAbstractValueForReturnOperation(returnValueOperation, out var implicitTaskPointsToValueOpt);
+                _ = GetAbstractValueForReturnOperation(returnValue, out var implicitTaskPointsToValueOpt);
                 if (implicitTaskPointsToValueOpt != null)
                 {
                     Debug.Assert(implicitTaskPointsToValueOpt.Kind == PointsToAbstractValueKind.KnownLocations);
-                    SetTaskWrappedValue(implicitTaskPointsToValueOpt, GetCachedAbstractValue(returnValueOperation));
+                    SetTaskWrappedValue(implicitTaskPointsToValueOpt, GetCachedAbstractValue(returnValue));
                 }
             }
         }

@@ -68,6 +68,114 @@ namespace Analyzer.Utilities
             return Comparer.GetHashCode(k);
         }
 
+        public bool IsEmpty => _root == null;
+
+        public void Remove(K key)
+        {
+            _root = Remove(_root, GetHashCode(key));
+        }
+
+        private AvlNode? Remove(AvlNode? currentNode, int hashCode)
+        {
+            if (currentNode == null)
+            {
+                return null;
+            }
+
+            var hc = currentNode.HashCode;
+
+            if (hc > hashCode)
+            {
+                currentNode.Left = Remove(currentNode.Left, hashCode);
+            }
+            else if (hc < hashCode)
+            {
+                currentNode.Right = Remove(currentNode.Right, hashCode);
+            }
+            else
+            {
+                // node with only one child or no child  
+                if ((currentNode.Left == null) || (currentNode.Right == null))
+                {
+                    AvlNode? temp = null;
+                    if (temp == currentNode.Left)
+                        temp = currentNode.Right;
+                    else
+                        temp = currentNode.Left;
+
+                    // No child case  
+                    if (temp == null)
+                    {
+                        currentNode = null;
+                    }
+                    else // One child case  
+                    {
+                        currentNode = temp;
+                    }
+                }
+                else
+                {
+                    // node with two children; get the smallest in the right subtree  
+                    AvlNode temp = MinValueNode(currentNode.Right);
+
+                    // Copy the smallest in the right successor's data to this node  
+                    currentNode.HashCode = temp.HashCode;
+                    currentNode.Value = temp.Value;
+                    currentNode.Key = temp.Key;
+
+                    // Delete the smallest in the right successor  
+                    currentNode.Right = Remove(currentNode.Right, temp.HashCode);
+                }
+            }
+
+            if (currentNode == null)
+                return null;
+
+            currentNode.Balance = (sbyte)(Height(currentNode.Left) - Height(currentNode.Right));
+
+            AvlNode rotated;
+            var balance = currentNode.Balance;
+
+            if (balance == -2)
+            {
+                rotated = currentNode.Right!.Balance < 0 ?
+                    LeftSimple(currentNode) :
+                    LeftComplex(currentNode);
+            }
+            else if (balance == 2)
+            {
+                rotated = currentNode.Left!.Balance > 0 ?
+                    RightSimple(currentNode) :
+                    RightComplex(currentNode);
+            }
+            else
+            {
+                return currentNode;
+            }
+
+            return rotated;
+        }
+
+        private static AvlNode MinValueNode(AvlNode node)
+        {
+            AvlNode current = node;
+
+            while (current.Left != null)
+                current = current.Left;
+
+            return current;
+        }
+
+        private static int Height(AvlNode? node)
+        {
+            if (node == null) return 0;
+
+            int a = Height(node.Left);
+            int b = Height(node.Right);
+
+            return 1 + Math.Max(a, b);
+        }
+
         public bool TryGetValue(K key, [MaybeNullWhen(returnValue: false)] out V value)
         {
             if (_root != null)
@@ -97,10 +205,7 @@ namespace Analyzer.Utilities
                 return value;
             }
 
-            set
-            {
-                this.Insert(GetHashCode(key), key, value, add: false);
-            }
+            set => this.Insert(GetHashCode(key), key, value, add: false);
         }
 
         public bool ContainsKey(K key)
@@ -119,7 +224,7 @@ namespace Analyzer.Utilities
 #pragma warning restore CA1822
         private abstract class Node
         {
-            public readonly K Key;
+            public K Key;
             public V Value;
 
             protected Node(K key, V value)
@@ -162,7 +267,7 @@ namespace Analyzer.Utilities
         // Balance is also here for better packing of AvlNode on 64bit
         private abstract class HashedNode : Node
         {
-            public readonly int HashCode;
+            public int HashCode;
             public sbyte Balance;
 
             protected HashedNode(int hashCode, K key, V value)

@@ -198,7 +198,7 @@ The 'helpLinkUri' value is used to show information when this diagnostic in the 
 
 ## RS1016: Code fix providers should provide FixAll support
 
-A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.
+A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at <https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md> for further details.
 
 |Item|Value|
 |-|-|
@@ -412,6 +412,18 @@ The diagnostic description should be one or multiple sentences ending with a pun
 |CodeFix|True|
 ---
 
+## RS1034: Prefer 'IsKind' for checking syntax kinds
+
+Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.
+
+|Item|Value|
+|-|-|
+|Category|MicrosoftCodeAnalysisPerformance|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|True|
+---
+
 ## [RS2000](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Add analyzer diagnostic IDs to analyzer release
 
 All supported analyzer diagnostic IDs should be part of an analyzer release.
@@ -510,7 +522,7 @@ Invalid entry in analyzer release file.
 
 ## [RS2008](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Enable analyzer release tracking
 
-Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.
+Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at <https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md>.
 
 |Item|Value|
 |-|-|

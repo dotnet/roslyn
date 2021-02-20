@@ -32,11 +32,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 
     internal readonly struct TestAccessor
     {
-        private readonly TestClass _testClass;
+        private readonly TestClass _instance;
 
-        internal TestAccessor(TestClass testClass)
+        internal TestAccessor(TestClass instance)
         {
-            _testClass = testClass;
+            _instance = instance;
         }
     }
 }";
@@ -67,11 +67,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 
     internal readonly struct TestAccessor
     {
-        private readonly TestStruct _testStruct;
+        private readonly TestStruct _instance;
 
-        internal TestAccessor(TestStruct testStruct)
+        internal TestAccessor(TestStruct instance)
         {
-            _testStruct = testStruct;
+            _instance = instance;
         }
     }
 }";
@@ -102,11 +102,11 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 
     internal readonly struct TestAccessor
     {
-        private readonly TestRecord _testRecord;
+        private readonly TestRecord _instance;
 
-        internal TestAccessor(TestRecord testRecord)
+        internal TestAccessor(TestRecord instance)
         {
-            _testRecord= testRecord;
+            _instance = instance;
         }
     }
 }";
@@ -162,10 +162,10 @@ End Class";
     End Function
 
     Friend Structure TestAccessor
-        Private ReadOnly _testClass As TestClass
+        Private ReadOnly _instance As TestClass
 
-        Friend Sub New(testClass As TestClass)
-            _testClass = testClass
+        Friend Sub New(instance As TestClass)
+            _instance = instance
         End Sub
     End Structure
 End Class";
@@ -194,10 +194,10 @@ End Structure";
     End Function
 
     Friend Structure TestAccessor
-        Private ReadOnly _testStructure As TestStructure
+        Private ReadOnly _instance As TestStructure
 
-        Friend Sub New(testStructure As TestStructure)
-            _testStructure = testStructure
+        Friend Sub New(instance As TestStructure)
+            _instance = instance
         End Sub
     End Structure
 End Structure";
