@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 Next
             Next
 
-            Return variableCount = parameterCount
+            Return variablesInExpression.Any() And methodExpression.BlockStatement.ParameterList.Parameters.Any() And variableCount = parameterCount
         End Function
 
         Protected Overrides Function RewriteCore(Of TNode As SyntaxNode)(node As TNode, replacementNode As SyntaxNode, matches As ISet(Of ExpressionSyntax)) As TNode
