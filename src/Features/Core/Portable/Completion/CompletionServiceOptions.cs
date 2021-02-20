@@ -37,6 +37,12 @@ namespace Microsoft.CodeAnalysis.Completion
             = new(nameof(CompletionServiceOptions), nameof(ExpandedCompletionState), defaultValue: false);
 
         /// <summary>
+        /// For testing only. Changing the default value in actual product might cause perf issues.
+        /// </summary>
+        public static readonly Option2<bool> UsePartialSemanticForImportCompletion
+            = new(nameof(CompletionServiceOptions), nameof(UsePartialSemanticForImportCompletion), defaultValue: true);
+
+        /// <summary>
         /// Indicates if the completion should be disallowed to add imports.
         /// </summary>
         public static readonly Option2<bool> DisallowAddingImports

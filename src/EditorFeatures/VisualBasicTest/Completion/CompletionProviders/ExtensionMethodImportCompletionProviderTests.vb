@@ -18,12 +18,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Private Property TimeoutInMilliseconds As Integer = -1
 
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
+        Private Property UsePartialSemantic As Boolean = False
 
         Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
             Return options _
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
                 .WithChangedOption(CompletionServiceOptions.ExpandedCompletionState, IsExpandedCompletion) _
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds)
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds) _
+                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, UsePartialSemantic)
         End Function
 
         Protected Overrides Function GetComposition() As TestComposition
