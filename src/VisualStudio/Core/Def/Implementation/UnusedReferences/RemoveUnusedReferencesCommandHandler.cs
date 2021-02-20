@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 }
 
                 if (solution is null ||
-                    projectFilePath is null ||
+                    projectFilePath is not string { Length: > 0 } ||
                     referenceUpdates.IsEmpty)
                 {
                     MessageDialog.Show(ServicesVSResources.Remove_Unused_References, ServicesVSResources.No_unused_references_were_found, MessageDialogCommandSet.Ok);

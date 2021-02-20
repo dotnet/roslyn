@@ -100,11 +100,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
             var packagesPath = projectAssets.Project?.Restore?.PackagesPath ?? string.Empty;
 
-            foreach (var target in projectAssets.Targets!.Values)
+            RoslynDebug.AssertNotNull(projectAssets.Targets);
+            RoslynDebug.AssertNotNull(projectAssets.Libraries);
+
+            foreach (var target in projectAssets.Targets.Values)
             {
                 var key = target.Keys.FirstOrDefault(library => library.Split('/')[0] == referenceName);
                 if (key is null ||
-                    !projectAssets.Libraries!.TryGetValue(key, out var library))
+                    !projectAssets.Libraries.TryGetValue(key, out var library))
                 {
                     continue;
                 }
