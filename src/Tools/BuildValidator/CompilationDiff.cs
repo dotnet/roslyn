@@ -196,7 +196,7 @@ namespace BuildValidator
                                     var rebuildSourceFileInfos = rebuildReader.GetSourceFileInfos(rebuildReader.GetEncoding());
                                     foreach (var info in rebuildSourceFileInfos)
                                     {
-                                        if (info.EmbeddedCompressedHash is {} hash)
+                                        if (info.EmbeddedCompressedHash is { } hash)
                                         {
                                             var hashString = BitConverter.ToString(hash).Replace("-", "");
                                             logger.LogInformation($@"""{info.SourceFilePath}"" - {hashString}");

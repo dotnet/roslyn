@@ -64,8 +64,6 @@ namespace BuildValidator
                     "--debugPath", "Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled."
                 )
             };
-            var res = rootCommand.Parse(args);
-            
             rootCommand.Handler = CommandHandler.Create<string[], string, string[]?, bool, bool, bool, string>(HandleCommand);
             return rootCommand.Invoke(args);
         }
@@ -79,9 +77,8 @@ namespace BuildValidator
 
             var options = new Options(assembliesPath, referencesPath, sourcePath, verbose, quiet, debug, debugPath);
 
-            // TODO: remove the DemoLoggerProvider, update this dependency,
-            // and move to the built in logger.
-            var loggerFactory = LoggerFactory.Create(builder => 
+            // TODO: remove the DemoLoggerProvider or convert it to something more permanent
+            var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder.SetMinimumLevel((options.Verbose, options.Quiet) switch
                 {
