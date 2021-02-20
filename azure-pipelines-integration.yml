@@ -18,10 +18,7 @@ jobs:
 - job: VS_Integration
   pool:
     name: NetCorePublic-Pool
-    queue: BuildPool.Windows.VS2019.Pre.Scouting.Open
-# One this integration test fix has flowed in to master-vs-deps, we can update the queueName variable, and revert this change.
-# Tracked by https://github.com/dotnet/roslyn/issues/51312
-#    queue: $(queueName)
+    queue: $(queueName)
   strategy:
     maxParallel: 4
     matrix:
