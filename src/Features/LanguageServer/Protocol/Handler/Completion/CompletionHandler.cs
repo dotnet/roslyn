@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionOptions = documentOptions
                 .WithChangedOption(CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude)
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, false)
-                .WithChangedOption(CompletionServiceOptions.ExpandedCompletionState, null)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, false)
                 .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
             return completionOptions;
         }

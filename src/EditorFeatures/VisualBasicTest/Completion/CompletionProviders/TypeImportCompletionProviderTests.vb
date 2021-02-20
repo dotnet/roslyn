@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
             Return options _
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.ExpandedCompletionState, IsExpandedCompletion) _
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, UsePartialSemantic)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion) _
+                .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic)
         End Function
 
         Protected Overrides Function GetComposition() As TestComposition

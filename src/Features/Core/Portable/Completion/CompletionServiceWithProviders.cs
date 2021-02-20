@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionTrigger trigger,
             OptionSet options)
         {
-            if (options.GetOption(CompletionServiceOptions.ExpandedCompletionState) is true)
+            if (options.GetOption(CompletionServiceOptions.IsExpandedCompletion))
             {
                 providers = providers.WhereAsArray(p => p.IsExpandItemProvider);
             }

@@ -9,32 +9,10 @@ namespace Microsoft.CodeAnalysis.Completion
     internal static class CompletionServiceOptions
     {
         /// <summary>
-        /// Indicates the requested state of the expanded completion, which corresponding to the expander button in VS.
-        /// This value take effect only when <see cref="CompletionOptions.ShowItemsFromUnimportedNamespaces"/> is set to <see langword="false"/>,
-        /// except when controlling timeout of long running request, in which case it might affect wheter timeout will be applied.
-        /// <list type="bullet">
-        ///     <item>
-        ///         <term><see langword="true"/></term>
-        ///         <description>Explicitly requesting expanded completion. We will not timeout and cancel import completion.</description>
-        ///     </item>
-        ///     <item>
-        ///         <term><see langword="false"/></term>
-        ///         <description>
-        ///         Not explicitly requesting expanded completion, but asking for its availability.
-        ///         We might cancel completion even if <see cref="CompletionOptions.ShowItemsFromUnimportedNamespaces"/> is set to <see langword="true"/>.
-        ///         </description>
-        ///     </item>
-        ///     <item>
-        ///         <term><see langword="null"/></term>
-        ///         <description>
-        ///         Not explicitly requesting expanded completion nor its availability.
-        ///         We might cancel completion even if <see cref="CompletionOptions.ShowItemsFromUnimportedNamespaces"/> is set to <see langword="true"/>.
-        ///         </description>
-        ///     </item>
-        /// </list>
+        /// Indicates if the completion is trigger by toggle the expander.
         /// </summary>
-        public static readonly Option2<bool?> ExpandedCompletionState
-            = new(nameof(CompletionServiceOptions), nameof(ExpandedCompletionState), defaultValue: false);
+        public static readonly Option2<bool> IsExpandedCompletion
+            = new(nameof(CompletionServiceOptions), nameof(IsExpandedCompletion), defaultValue: false);
 
         /// <summary>
         /// For testing only. Changing the default value in actual product might cause perf issues.

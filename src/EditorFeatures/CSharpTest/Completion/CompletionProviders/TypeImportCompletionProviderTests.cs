@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             return options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.ExpandedCompletionState, IsExpandedCompletion)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
                 .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, DisallowAddingImports)
                 .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
                 .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic);

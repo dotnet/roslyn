@@ -58,11 +58,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
     }
 }";
             using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var solution = testLspServer.TestWorkspace.CurrentSolution;
 
             // Make sure the unimported types option is on by default.
-            testLspServer.TestWorkspace.SetOptions(testLspServer.TestWorkspace.CurrentSolution.Options
+            solution = solution.WithOptions(solution.Options
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true)
-                .WithChangedOption(CompletionServiceOptions.ExpandedCompletionState, true));
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, true));
 
             var completionParams = CreateCompletionParams(
                 locations["caret"].Single(),
