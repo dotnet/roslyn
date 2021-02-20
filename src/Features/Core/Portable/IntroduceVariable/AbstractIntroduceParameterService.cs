@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
@@ -27,10 +28,12 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal abstract partial class AbstractIntroduceParameterService<TService, TExpressionSyntax> : CodeRefactoringProvider
-        where TService : AbstractIntroduceParameterService<TService, TExpressionSyntax>
+    internal abstract partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax> : CodeRefactoringProvider
+        where TService : AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax>
         where TExpressionSyntax : SyntaxNode
+        where TMethodDeclarationSyntax : SyntaxNode
     {
+        protected const string ExpressionAnnotationKind = nameof(ExpressionAnnotationKind);
         protected abstract Task<Solution> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken);
         protected abstract bool ExpressionWithinParameterizedMethod(TExpressionSyntax expression);
 
@@ -91,6 +94,91 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
             return null;
 
+        }
+
+        protected static Task<Solution> AddParameterToMethodHeaderAsync(SemanticDocument document, TExpressionSyntax expression, string parameterName, CancellationToken cancellationToken)
+        {
+            var invocationDocument = document.Document;
+            var methodExpression = expression.FirstAncestorOrSelf<TMethodDeclarationSyntax>(node => node is TMethodDeclarationSyntax, true);
+            var semanticModel = document.SemanticModel;
+            var symbolInfo = (IMethodSymbol)semanticModel.GetDeclaredSymbol(methodExpression, cancellationToken);
+            var syntaxFacts = invocationDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+            var parameterType = semanticModel.GetTypeInfo(expression, cancellationToken).Type ?? document.SemanticModel.Compilation.ObjectType;
+            var refKind = syntaxFacts.GetRefKindOfArgument(expression);
+
+            return AddParameterService.Instance.AddParameterAsync(
+                invocationDocument,
+                symbolInfo,
+                parameterType,
+                refKind,
+                parameterName,
+                null,
+                false,
+                cancellationToken,
+                true);
+        }
+
+        protected static string GetNewParameterName(SemanticDocument document, TExpressionSyntax expression, CancellationToken cancellationToken)
+        {
+            var invocationDocument = document.Document;
+            var semanticModel = document.SemanticModel;
+            var semanticFacts = invocationDocument.GetRequiredLanguageService<ISemanticFactsService>();
+            return semanticFacts.GenerateNameForExpression(
+                    semanticModel, expression, capitalize: false, cancellationToken: cancellationToken);
+        }
+
+        protected static IMethodSymbol GetMethodSymbolFromExpression(SemanticDocument annotatedSemanticDocument, TExpressionSyntax annotatedExpression, CancellationToken cancellationToken)
+        {
+            var methodExpression = annotatedExpression.FirstAncestorOrSelf<TMethodDeclarationSyntax>(node => node is TMethodDeclarationSyntax, true);
+            return (IMethodSymbol)annotatedSemanticDocument.SemanticModel.GetDeclaredSymbol(methodExpression, cancellationToken);
+        }
+
+        protected static async Task<SemanticDocument> GetAnnotatedSemanticDocumentAsync(SemanticDocument document, SyntaxAnnotation annotatedExpression,
+            TExpressionSyntax expression, CancellationToken cancellationToken)
+        {
+            var expressionWithAnnotation = expression.WithAdditionalAnnotations(annotatedExpression);
+            var newDocument = document.Document.WithSyntaxRoot(document.Root.ReplaceNode(expression, expressionWithAnnotation));
+            return await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Rewrites the expression with the new parameter
+        /// </summary>
+        /// <param name="document"> The document after changing the method header </param>
+        /// <param name="newExpression"> The annotated expression </param>
+        /// <param name="parameterName"> The parameter name that was added to the method header </param>
+        /// <param name="allOccurrences"> Checks if we want to change all occurrences of the expression or just the original expression </param>
+        /// <returns></returns>
+        protected Document ConvertExpressionWithNewParameter(
+            SemanticDocument document,
+            TExpressionSyntax newExpression,
+            string parameterName,
+            bool allOccurrences,
+            CancellationToken cancellationToken)
+        {
+            var generator = SyntaxGenerator.GetGenerator(document.Document);
+            var parameterNameSyntax = (TExpressionSyntax)generator.IdentifierName(parameterName);
+            var block = (TMethodDeclarationSyntax)newExpression.Ancestors().FirstOrDefault(s => s is TMethodDeclarationSyntax);
+            SyntaxNode scope = block;
+
+            var matches = FindMatches(document, newExpression, document, scope, allOccurrences, cancellationToken);
+            SyntaxNode innermostCommonBlock = null;
+
+            if (matches.Count > 1)
+            {
+                innermostCommonBlock = matches.FindInnermostCommonNode();
+            }
+            else
+            {
+                innermostCommonBlock = matches.Single().Parent;
+            }
+
+            var newExpressionCopy = newExpression;
+
+            var newInnerMostBlock = Rewrite(
+                document, newExpression, parameterNameSyntax, document, innermostCommonBlock, allOccurrences, cancellationToken);
+            var newRoot = document.Root.ReplaceNode(innermostCommonBlock, newInnerMostBlock);
+            return document.Document.WithSyntaxRoot(newRoot);
         }
 
         private (string title, ImmutableArray<CodeAction> actions) AddActions(SemanticDocument semanticDocument, TExpressionSyntax expression)

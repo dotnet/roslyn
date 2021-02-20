@@ -6,13 +6,9 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroduceParameter
@@ -42,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                 @"using System;
                 class TestClass
                 {
-                    void M(int x, int y, int z, {|Rename:int v|}) 
+                    void M(int x, int y, int z, int {|Rename:v|}) 
                     {
                         int m = v;
                     }
@@ -90,9 +86,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                 @"using System;
                 class TestClass
                 {
-                    void M(int x, int y, int z, {|Rename:int v|})
+                    void M(int x, int y, int z, int {|Rename:v|})
                     {
                         int m = v;
+                    }
+
+                    void M1(int x, int y, int z) 
+                    {
+                        M(z, y, x, z * y* x);
+                    }
+                }";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestHighlightIncompleteExpressionCaseWithSingleMethodCall()
+        {
+            var code =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z)
+                    {
+                        int m = 5 * [|x * y * z|];
                     }
 
                     void M1(int x, int y, int z) 
@@ -101,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                     }
                 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -127,19 +144,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                 @"using System;
                 class TestClass
                 {
-                    void M(int x, int y, int z, {|Rename:int v|})
+                    void M(int x, int y, int z, int {|Rename:v|})
                     {
                         int m = v;
                     }
 
                     void M1(int x, int y, int z) 
                     {
-                        M(a + b, 5, x);
-                        M(z, y, x);
+                        M(a + b, 5, x, (a + b)* 5* x);
+                        M(z, y, x, z * y* x);
                     }
                 }";
 
             await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionAllOccurrences()
+        {
+            var code =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z)
+                    {
+                        int m = [|x * y * z|];
+                        int f = x * y * z;
+                    }
+
+                    void M1(int x, int y, int z) 
+                    {
+                        M(a + b, 5, x);
+                    }
+                }";
+
+            var expected =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z, int {|Rename:v|})
+                    {
+                        int m = v;
+                        int f = v;
+                    }
+
+                    void M1(int x, int y, int z) 
+                    {
+                        M(a + b, 5, x, (a + b)* 5* x);
+                    }
+                }";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
     }
 }

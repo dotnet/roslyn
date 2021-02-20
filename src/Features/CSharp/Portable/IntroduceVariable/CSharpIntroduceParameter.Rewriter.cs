@@ -39,22 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return base.Visit(node);
             }
 
-            public override SyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
-            {
-                var newNode = base.VisitParenthesizedExpression(node);
-                if (node != newNode &&
-                    newNode.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenthesizedExpression))
-                {
-                    var innerExpression = parenthesizedExpression.OpenParenToken.GetNextToken().Parent;
-                    if (innerExpression.HasAnnotation(_replacementAnnotation))
-                    {
-                        return newNode.WithAdditionalAnnotations(Simplifier.Annotation);
-                    }
-                }
-
-                return newNode;
-            }
-
             public static SyntaxNode Visit(SyntaxNode node, SyntaxNode replacementNode, ISet<ExpressionSyntax> matches)
                 => new Rewriter(replacementNode, matches).Visit(node);
         }

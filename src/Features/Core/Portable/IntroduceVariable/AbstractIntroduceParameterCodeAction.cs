@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal partial class AbstractIntroduceParameterService<TService, TExpressionSyntax>
+    internal partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax>
     {
         internal abstract class AbstractIntroduceParameterCodeAction : CodeAction
         {
