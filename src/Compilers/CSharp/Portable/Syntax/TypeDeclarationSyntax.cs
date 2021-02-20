@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.InterfaceKeyword;
                 case SyntaxKind.RecordDeclaration:
                     return SyntaxKind.RecordKeyword;
+                // PROTOTYPE(record-structs): update for record structs
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

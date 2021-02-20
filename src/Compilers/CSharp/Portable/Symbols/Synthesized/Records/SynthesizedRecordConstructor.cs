@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -11,9 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SynthesizedRecordConstructor(
              SourceMemberContainerTypeSymbol containingType,
-             RecordDeclarationSyntax syntax) :
+             TypeDeclarationSyntax syntax) :
              base(containingType, syntax.Identifier.GetLocation(), syntax, isIterator: false)
         {
+            Debug.Assert(syntax.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration);
+
             this.MakeFlags(
                 MethodKind.Constructor,
                 containingType.IsAbstract ? DeclarationModifiers.Protected : DeclarationModifiers.Public,
@@ -22,17 +25,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isNullableAnalysisEnabled: false); // IsNullableAnalysisEnabled uses containing type instead.
         }
 
-        internal RecordDeclarationSyntax GetSyntax()
+        internal TypeDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
-            return (RecordDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
+            return (TypeDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
-        protected override ParameterListSyntax GetParameterList() => GetSyntax().ParameterList!;
+        protected override ParameterListSyntax GetParameterList()
+        {
+            return GetSyntax() switch
+            {
+                RecordDeclarationSyntax record => record.ParameterList!,
+                RecordStructDeclarationSyntax recordStruct => recordStruct.ParameterList!,
+                _ => throw ExceptionUtilities.Unreachable
+            };
+        }
 
         protected override CSharpSyntaxNode? GetInitializer()
         {
-            return GetSyntax().PrimaryConstructorBaseType;
+            return GetSyntax() switch
+            {
+                RecordDeclarationSyntax record => record.PrimaryConstructorBaseType,
+                RecordStructDeclarationSyntax => null,
+                _ => throw ExceptionUtilities.Unreachable
+            };
         }
 
         protected override bool AllowRefOrOut => false;

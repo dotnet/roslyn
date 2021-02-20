@@ -54,8 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(node.Parent is ConstructorInitializerSyntax || node.Parent is PrimaryConstructorBaseTypeSyntax);
                     break;
                 case SyntaxKind.RecordDeclaration:
-                    // PROTOTYPE(record-structs): update for record structs
                     Debug.Assert(((RecordDeclarationSyntax)node).ParameterList is object);
+                    break;
+                case SyntaxKind.RecordStructDeclaration:
+                    Debug.Assert(((RecordStructDeclarationSyntax)node).ParameterList is object);
                     break;
                 default:
                     Debug.Assert(node is ExpressionSyntax);
@@ -396,7 +398,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(record-structs): update for record structs
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
             Debug.Assert(node.ParameterList is object);
@@ -405,6 +406,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitNodeToBind(baseWithArguments);
             }
+        }
+
+        public override void VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
+        {
+            Debug.Assert(node.ParameterList is object);
         }
 
         private void CollectVariablesFromDeconstruction(

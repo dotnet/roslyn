@@ -81,9 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PrimaryConstructorBaseType:
                     return true;
 
-                // PROTOTYPE(record-structs): update for record structs
                 case SyntaxKind.RecordDeclaration:
                     return ((RecordDeclarationSyntax)syntax).ParameterList is object;
+
+                case SyntaxKind.RecordStructDeclaration:
+                    return ((RecordStructDeclarationSyntax)syntax).ParameterList is object;
 
                 default:
                     return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);

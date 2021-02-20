@@ -1142,15 +1142,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new WithParametersBinder(method.Parameters, nextBinder);
                 }
 
-                // PROTOTYPE(record-structs): update for record structs
-                if (memberSyntax is RecordDeclarationSyntax { ParameterList: { ParameterCount: > 0 } } recordDeclSyntax)
+                if (memberSyntax is RecordDeclarationSyntax { ParameterList: { ParameterCount: > 0 } }
+                    or RecordStructDeclarationSyntax { ParameterList: { ParameterCount: > 0 } })
                 {
                     Binder outerBinder = VisitCore(memberSyntax);
-                    SourceNamedTypeSymbol recordType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember(recordDeclSyntax);
+                    SourceNamedTypeSymbol recordType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((TypeDeclarationSyntax)memberSyntax);
                     var primaryConstructor = recordType.GetMembersUnordered().OfType<SynthesizedRecordConstructor>().SingleOrDefault();
 
-                    if (primaryConstructor.SyntaxRef.SyntaxTree == recordDeclSyntax.SyntaxTree &&
-                        primaryConstructor.GetSyntax() == recordDeclSyntax)
+                    if (primaryConstructor.SyntaxRef.SyntaxTree == memberSyntax.SyntaxTree &&
+                        primaryConstructor.GetSyntax() == memberSyntax)
                     {
                         return new WithParametersBinder(primaryConstructor.Parameters, nextBinder);
                     }

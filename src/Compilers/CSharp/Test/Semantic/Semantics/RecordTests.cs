@@ -796,6 +796,7 @@ partial class C
         [Fact]
         public void PartialRecord_ParametersInScopeOfBothParts()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c = new C(2);
 System.Console.Write((c.P1, c.P2));
@@ -836,6 +837,7 @@ public partial record class C
         [Fact]
         public void PartialRecord_DuplicateMemberNames()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 public partial record C(int X)
 {
@@ -875,6 +877,7 @@ public partial record C
         [Fact]
         public void RecordInsideGenericType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c = new C<int>.Nested(2);
 System.Console.Write(c.T);
@@ -892,6 +895,7 @@ public class C<T>
         [Fact]
         public void RecordProperties_01()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int X, int Y)
@@ -928,11 +932,22 @@ record C(int X, int Y)
   IL_001c:  ret
 }
 ");
+
+            var c = verifier.Compilation.GlobalNamespace.GetTypeMember("C");
+            var x = (IPropertySymbol)c.GetMember("X");
+            Assert.Equal("System.Int32 C.X.get", x.GetMethod.ToTestDisplayString());
+            Assert.Equal("void modreq(System.Runtime.CompilerServices.IsExternalInit) C.X.init", x.SetMethod.ToTestDisplayString());
+            Assert.True(x.SetMethod!.IsInitOnly);
+
+            var xBackingField = (IFieldSymbol)c.GetMember("<X>k__BackingField");
+            Assert.Equal("System.Int32 C.<X>k__BackingField", xBackingField.ToTestDisplayString());
+            Assert.True(xBackingField.IsReadOnly);
         }
 
         [Fact]
         public void RecordProperties_02()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int X, int Y)
@@ -967,6 +982,7 @@ record C(int X, int Y)
         [Fact]
         public void RecordProperties_03()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int X, int Y)
@@ -992,6 +1008,7 @@ record C(int X, int Y)
         [Fact]
         public void RecordProperties_04()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int X, int Y)
@@ -1017,6 +1034,7 @@ record C(int X, int Y)
         [Fact, WorkItem(48947, "https://github.com/dotnet/roslyn/issues/48947")]
         public void RecordProperties_05()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C(int X, int X)
 {
@@ -1121,6 +1139,7 @@ record class C(int X, int X)
         [Fact]
         public void RecordProperties_06()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C(int X, int Y)
 {
@@ -1173,6 +1192,7 @@ record C(int X, int Y)
         [Fact]
         public void RecordProperties_07()
         {
+            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C1(object P, object get_P);
 record C2(object get_P, object P);");
@@ -1189,6 +1209,7 @@ record C2(object get_P, object P);");
         [Fact]
         public void RecordProperties_08()
         {
+            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C1(object O1)
 {
@@ -1201,6 +1222,7 @@ record C1(object O1)
         [Fact]
         public void RecordProperties_09()
         {
+            // PROTOTYPE(record-structs): ported
             var src =
 @"record C(object P1, object P2, object P3, object P4)
 {
@@ -1229,6 +1251,7 @@ record C1(object O1)
         [Fact]
         public void RecordProperties_10()
         {
+            // PROTOTYPE(record-structs): ported
             var src =
 @"record C(object P)
 {
@@ -1500,6 +1523,7 @@ public unsafe record C
         [Fact, WorkItem(48584, "https://github.com/dotnet/roslyn/issues/48584")]
         public void RecordProperties_11_UnreadPositionalParameter()
         {
+            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C1(object O1, object O2, object O3) // 1, 2
 {
@@ -1549,6 +1573,7 @@ record C5(object O7) : Base((System.Func<object, object>)(_ => (O7 = 42) )) // 4
         [Fact, WorkItem(48584, "https://github.com/dotnet/roslyn/issues/48584")]
         public void RecordProperties_11_UnreadPositionalParameter_InRefOut()
         {
+            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C1(object O1, object O2, object O3) // 1
 {
@@ -1734,6 +1759,7 @@ class Program
         [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
         public void StaticCtor()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int x)
 {
@@ -1755,6 +1781,7 @@ record R(int x)
         [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
         public void StaticCtor_ParameterlessPrimaryCtor()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R()
 {
@@ -1769,6 +1796,7 @@ record R()
         [Fact, WorkItem(50170, "https://github.com/dotnet/roslyn/issues/50170")]
         public void StaticCtor_CopyCtor()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R()
 {
@@ -13731,6 +13759,7 @@ record A(int X)
         [Fact]
         public void Deconstruct_Simple()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -13788,6 +13817,7 @@ record B(int X, int Y)
         [Fact]
         public void Deconstruct_PositionalAndNominalProperty()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -13821,6 +13851,7 @@ record B(int X)
         [Fact]
         public void Deconstruct_Nested()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -13884,6 +13915,7 @@ record C(B B, int Z)
         [Fact]
         public void Deconstruct_PropertyCollision()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -13923,6 +13955,7 @@ record B(int X, int Y)
         [Fact]
         public void Deconstruct_MethodCollision_01()
         {
+            // PROTOTYPE(record-structs): ported
             var source = @"
 record B(int X, int Y)
 {
@@ -14078,6 +14111,7 @@ record C(int X, int Y)
         [Fact]
         public void Deconstruct_FieldCollision()
         {
+            // PROTOTYPE(record-structs): ported
             var source = @"
 using System;
 
@@ -14239,6 +14273,7 @@ record C(int X) : B
         [Fact]
         public void Deconstruct_Empty()
         {
+            // PROTOTYPE(record-structs): ported
             var source = @"
 record C
 {
@@ -14557,6 +14592,7 @@ record C(int X, int Y)
         [Fact]
         public void Deconstruct_Conversion_02()
         {
+            // PROTOTYPE(record-structs): ported
             var source = @"
 #nullable enable
 using System;
@@ -14652,6 +14688,7 @@ record C(Derived X, Base Y)
         [Fact]
         public void Deconstruct_Empty_WithParameterList()
         {
+            // PROTOTYPE(record-structs): ported
             var source = @"
 record C()
 {
@@ -14685,6 +14722,7 @@ record C()
         [Fact]
         public void Deconstruct_Empty_WithParameterList_UserDefined_01()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -14852,6 +14890,7 @@ record C()
         [Fact]
         public void Deconstruct_UserDefined()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -14934,6 +14973,7 @@ record B(int X, int Y)
         [Fact]
         public void Deconstruct_UserDefined_DifferentSignature_02()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"using System;
 
@@ -15127,6 +15167,7 @@ record B(int X, int Y) : A(X)
         [InlineData("internal protected")]
         public void Deconstruct_UserDefined_Accessibility_07(string accessibility)
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 $@"
 record A(int X)
@@ -24091,6 +24132,7 @@ class A<T>
         [Fact]
         public void InterfaceImplementation()
         {
+            // PROTOTYPE(record-structs): ported
             var source = @"
 interface I
 {
@@ -24119,6 +24161,7 @@ record R(int P1) : I
         [Fact]
         public void Initializers_01()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 
@@ -24158,6 +24201,7 @@ record C(int X)
         [Fact]
         public void Initializers_02()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C(int X)
 {
@@ -24189,6 +24233,7 @@ record C(int X)
         [Fact]
         public void Initializers_03()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C(int X)
 {
@@ -24220,6 +24265,7 @@ record C(int X)
         [Fact]
         public void Initializers_04()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 
@@ -24290,6 +24336,7 @@ record C(int X) : Base(() => 100 + X++)
         [Fact]
         public void SynthesizedRecordPointerProperty()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int P1, int* P2, delegate*<int> P3);";
 
@@ -24348,6 +24395,7 @@ record R(ref int P1, out int P2) : Base(P2 = 1);
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_In()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(in int P1);
 
@@ -24395,6 +24443,7 @@ record R(this int i);
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberModifiers_Params()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(params int[] Array);
 
@@ -24425,6 +24474,7 @@ public class C
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int P = 42)
 {
@@ -24444,6 +24494,7 @@ record R(int P = 42)
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue_AndPropertyWithInitializer()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int P = 1)
 {
@@ -24481,6 +24532,7 @@ record R(int P = 1)
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue_AndPropertyWithoutInitializer()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int P = 42)
 {
@@ -24515,6 +24567,7 @@ record R(int P = 42)
         [Fact, WorkItem(45008, "https://github.com/dotnet/roslyn/issues/45008")]
         public void PositionalMemberDefaultValue_AndPropertyWithInitializer_CopyingParameter()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(int P = 42)
 {
@@ -25103,6 +25156,7 @@ class C
         [Fact]
         public void RecordWithConstraints_NullableWarning()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record R<T>(T P) where T : class;
@@ -25133,6 +25187,7 @@ public class C
         [Fact]
         public void RecordWithConstraints_ConstraintError()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R<T>(T P) where T : class;
 record R2<T>(T P) where T : class { }
@@ -25217,6 +25272,7 @@ abstract record C
         [Fact]
         public void CyclicBases4()
         {
+            // PROTOTYPE(record-structs): ported
             var text =
 @"
 record A<T> : B<A<T>> { }
@@ -25335,6 +25391,7 @@ public partial record C3 : Base<(int a, int b)> { }
         [Fact]
         public void CS0267ERR_PartialMisplaced()
         {
+            // PROTOTYPE(record-structs): ported
             var test = @"
 partial public record C  // CS0267
 {
@@ -25395,6 +25452,7 @@ class C<T, U>
         [Fact]
         public void SealedStaticRecord()
         {
+            // PROTOTYPE(record-structs): ported
             var source = @"
 sealed static record R;
 ";
@@ -25408,6 +25466,7 @@ sealed static record R;
         [Fact]
         public void CS0513ERR_AbstractInConcreteClass02()
         {
+            // PROTOTYPE(record-structs): ported
             var text = @"
 record C
 {
@@ -25479,6 +25538,7 @@ public record D : B {}
         [Fact]
         public void CS0574ERR_BadDestructorName()
         {
+            // PROTOTYPE(record-structs): ported
             var test = @"
 namespace x
 {
@@ -25538,6 +25598,7 @@ public partial record C1
         [Fact]
         public void StaticRecordWithConstructorAndDestructor()
         {
+            // PROTOTYPE(record-structs): ported
             var text = @"
 static record R(int I)
 {
@@ -25556,6 +25617,7 @@ static record R(int I)
         [Fact]
         public void RecordWithPartialMethodExplicitImplementation()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"record R
 {
@@ -27213,6 +27275,7 @@ interface I1 {}
         [WorkItem(46657, "https://github.com/dotnet/roslyn/issues/46657")]
         public void CanDeclareIteratorInRecord()
         {
+            // PROTOTYPE(record-structs): ported
             var source = @"
 using System.Collections.Generic;
 
@@ -27513,6 +27576,7 @@ public sealed class Hamster : Document
         [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for I1</param>

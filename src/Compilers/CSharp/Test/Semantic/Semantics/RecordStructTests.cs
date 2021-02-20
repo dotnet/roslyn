@@ -337,7 +337,7 @@ record struct Point { }
 record struct Point(int x, int y);
 ";
 
-            var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,13): error CS1514: { expected
                 // struct Point(int x, int y);
@@ -368,21 +368,21 @@ record struct Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 21)
                 );
 
-            comp = CreateCompilation(src2, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct Point { }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(2, 8)
                 );
 
-            comp = CreateCompilation(src3, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,8): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // record struct Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(2, 8)
                 );
 
-            comp = CreateCompilation(src1, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src1, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,13): error CS1514: { expected
                 // struct Point(int x, int y);
@@ -413,10 +413,10 @@ record struct Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "int y").WithArguments("y").WithLocation(2, 21)
                 );
 
-            comp = CreateCompilation(src2, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src3, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
+            comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
         }
 
@@ -463,14 +463,14 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 31)
                 );
 
-            comp = CreateCompilation(src2, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(new[] { src2, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     record struct Point { }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(4, 12)
                 );
 
-            comp = CreateCompilation(src3, parseOptions: TestOptions.Regular9);
+            comp = CreateCompilation(new[] { src3, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     record struct Point(int x, int y);
@@ -964,7 +964,7 @@ partial interface C5 { }
         }
 
         [Fact]
-        public void PartialRecordStruct_OnlyOnePartialHasParameterList()
+        public void PartialRecord_OnlyOnePartialHasParameterList()
         {
             var src = @"
 partial record struct S(int i);
@@ -976,10 +976,89 @@ partial record struct S2();
 partial record struct S3();
 partial record struct S3();
 ";
-            // PROTOTYPE(record-structs): missing diagnostics (the check is done by noteRecordParameters which isn't hooked up yet)
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (3,24): error CS8863: Only a single record partial declaration may have a parameter list
+                // partial record struct S(int i);
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "(int i)").WithLocation(3, 24),
+                // (6,25): error CS8863: Only a single record partial declaration may have a parameter list
+                // partial record struct S2();
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(6, 25),
+                // (9,25): error CS8863: Only a single record partial declaration may have a parameter list
+                // partial record struct S3();
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(9, 25)
                 );
+        }
+
+        [Fact]
+        public void PartialRecord_ParametersInScopeOfBothParts()
+        {
+            var src = @"
+var c = new C(2);
+System.Console.Write((c.P1, c.P2));
+
+public partial record struct C(int X)
+{
+    public int P1 { get; set; } = X;
+}
+public partial record struct C
+{
+    public int P2 { get; set; } = X;
+}
+";
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, expectedOutput: "(2, 2)", verify: Verification.Skipped /* init-only */)
+                .VerifyDiagnostics(
+                    // (5,30): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'C'. To specify an ordering, all instance fields must be in the same declaration.
+                    // public partial record struct C(int X)
+                    Diagnostic(ErrorCode.WRN_SequentialOnPartialClass, "C").WithArguments("C").WithLocation(5, 30)
+                    );
+        }
+
+        [Fact]
+        public void PartialRecord_DuplicateMemberNames()
+        {
+            var src = @"
+public partial record struct C(int X)
+{
+    public void M(int i) { }
+}
+public partial record struct C
+{
+    public void M(string s) { }
+}
+";
+            var comp = CreateCompilation(src);
+            var expectedMemberNames = new string[]
+            {
+                ".ctor",
+                "<X>k__BackingField",
+                "get_X",
+                "set_X",
+                "X",
+                "M",
+                "M",
+                "Deconstruct",
+                ".ctor",
+            };
+            AssertEx.Equal(expectedMemberNames, comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol().MemberNames);
+        }
+
+        [Fact]
+        public void RecordInsideGenericType()
+        {
+            var src = @"
+var c = new C<int>.Nested(2);
+System.Console.Write(c.T);
+
+public class C<T>
+{
+    public record struct Nested(T T);
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped /* init-only */);
         }
 
         [Fact]
@@ -989,9 +1068,17 @@ partial record struct S3();
 record struct R(ref int P1, out int P2);
 ";
 
-            // PROTOTYPE(record-structs): missing diagnostics
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0177: The out parameter 'P2' must be assigned to before control leaves the current method
+                // record struct R(ref int P1, out int P2);
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "R").WithArguments("P2").WithLocation(2, 15),
+                // (2,17): error CS0631: ref and out are not valid in this context
+                // record struct R(ref int P1, out int P2);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "ref").WithLocation(2, 17),
+                // (2,29): error CS0631: ref and out are not valid in this context
+                // record struct R(ref int P1, out int P2);
+                Diagnostic(ErrorCode.ERR_IllegalRefParam, "out").WithLocation(2, 29)
                 );
         }
 
@@ -1002,16 +1089,17 @@ record struct R(ref int P1, out int P2);
 record struct R(this int i);
 ";
 
-            // PROTOTYPE(record-structs): missing diagnostic
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
+                // (2,17): error CS0027: Keyword 'this' is not available in the current context
+                // record struct R(this int i);
+                Diagnostic(ErrorCode.ERR_ThisInBadContext, "this").WithLocation(2, 17)
                 );
         }
 
         [Fact, WorkItem(45591, "https://github.com/dotnet/roslyn/issues/45591")]
         public void Clone_DisallowedInSource()
         {
-            // PROTOTYPE(record-structs): ported
             var src = @"
 record struct C1(string Clone); // 1
 record struct C2
@@ -1049,9 +1137,11 @@ record struct C9 : System.ICloneable
 }
 ";
 
-            // PROTOTYPE(record-structs): missing diagnostic on #1
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
+                // (2,25): error CS8859: Members named 'Clone' are disallowed in records.
+                // record struct C1(string Clone); // 1
+                Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(2, 25),
                 // (5,12): error CS8859: Members named 'Clone' are disallowed in records.
                 //     string Clone; // 2
                 Diagnostic(ErrorCode.ERR_CloneDisallowedInRecord, "Clone").WithLocation(5, 12),
@@ -1106,9 +1196,27 @@ unsafe record struct C( // 1
             // PROTOTYPE(record-structs): missing diagnostics (checked by synthesized equals)
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
+                // (6,22): error CS0721: 'C2': static types cannot be used as parameters
+                // unsafe record struct C( // 1
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C2").WithLocation(6, 22),
                 // (11,5): error CS1536: Invalid parameter type 'void'
                 //     void P5, // 5
-                Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5)
+                Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
+                // (12,8): error CS0722: 'C2': static types cannot be used as return types
+                //     C2 P6, // 6, 7
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
+                // (12,8): error CS0721: 'C2': static types cannot be used as parameters
+                //     C2 P6, // 6, 7
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "P6").WithArguments("C2").WithLocation(12, 8),
+                // (13,5): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //     System.ArgIterator P7, // 8
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(13, 5),
+                // (14,5): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     System.TypedReference P8, // 9
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 5),
+                // (15,5): error CS8345: Field or auto-implemented property cannot be of type 'RefLike' unless it is an instance member of a ref struct.
+                //     RefLike P9); // 10
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "RefLike").WithArguments("RefLike").WithLocation(15, 5)
                 );
         }
 
@@ -1236,21 +1344,20 @@ unsafe record struct C(int* P1, int*[] P2, C<int*[]> P3)
     }
 }
 ";
-            // PROTOTYPE(record-structs): missing primary constructor
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugExe);
-            //comp.VerifyEmitDiagnostics(
-            //    // (4,22): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
-            //    // unsafe record C(int* P1, int*[] P2, C<int*[]> P3)
-            //    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P1").WithArguments("P1").WithLocation(4, 22),
-            //    // (4,33): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
-            //    // unsafe record C(int* P1, int*[] P2, C<int*[]> P3)
-            //    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(4, 33),
-            //    // (4,47): warning CS8907: Parameter 'P3' is unread. Did you forget to use it to initialize the property with that name?
-            //    // unsafe record C(int* P1, int*[] P2, C<int*[]> P3)
-            //    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P3").WithArguments("P3").WithLocation(4, 47)
-            //    );
+            comp.VerifyEmitDiagnostics(
+                // (4,29): warning CS8907: Parameter 'P1' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe record struct C(int* P1, int*[] P2, C<int*[]> P3)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P1").WithArguments("P1").WithLocation(4, 29),
+                // (4,40): warning CS8907: Parameter 'P2' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe record struct C(int* P1, int*[] P2, C<int*[]> P3)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P2").WithArguments("P2").WithLocation(4, 40),
+                // (4,54): warning CS8907: Parameter 'P3' is unread. Did you forget to use it to initialize the property with that name?
+                // unsafe record struct C(int* P1, int*[] P2, C<int*[]> P3)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P3").WithArguments("P3").WithLocation(4, 54)
+                );
 
-            //CompileAndVerify(comp, expectedOutput: "P1 P2 P3 RAN", verify: Verification.Skipped /* pointers */);
+            CompileAndVerify(comp, expectedOutput: "P1 P2 P3 RAN", verify: Verification.Skipped /* pointers */);
         }
 
         [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
@@ -1292,6 +1399,1821 @@ public unsafe record C
                 );
         }
 
-        // PROTOTYPE(record-structs): test `in` and `params` in positional parameters
+        [Fact]
+        public void RecordProperties_01()
+        {
+            var src = @"
+using System;
+record struct C(int X, int Y)
+{
+    int Z = 345;
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.Write(c.X);
+        Console.Write(c.Y);
+        Console.Write(c.Z);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"12345").VerifyDiagnostics();
+
+            verifier.VerifyIL("C..ctor(int, int)", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int C.<X>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""int C.<Y>k__BackingField""
+  IL_000e:  ldarg.0
+  IL_000f:  ldc.i4     0x159
+  IL_0014:  stfld      ""int C.Z""
+  IL_0019:  ret
+}
+");
+
+            var c = verifier.Compilation.GlobalNamespace.GetTypeMember("C");
+            Assert.False(c.IsReadOnly);
+            var x = (IPropertySymbol)c.GetMember("X");
+            Assert.Equal("readonly System.Int32 C.X.get", x.GetMethod.ToTestDisplayString());
+            Assert.Equal("void C.X.set", x.SetMethod.ToTestDisplayString());
+            Assert.False(x.SetMethod!.IsInitOnly);
+
+            var xBackingField = (IFieldSymbol)c.GetMember("<X>k__BackingField");
+            Assert.Equal("System.Int32 C.<X>k__BackingField", xBackingField.ToTestDisplayString());
+            Assert.False(xBackingField.IsReadOnly);
+        }
+
+        [Fact]
+        public void RecordProperties_01_Readonly()
+        {
+            var src = @"
+using System;
+readonly record struct C(int X, int Y)
+{
+    readonly int Z = 345;
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.Write(c.X);
+        Console.Write(c.Y);
+        Console.Write(c.Z);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"12345").VerifyDiagnostics();
+
+            var c = verifier.Compilation.GlobalNamespace.GetTypeMember("C");
+            Assert.True(c.IsReadOnly);
+            var x = (IPropertySymbol)c.GetMember("X");
+            Assert.Equal("System.Int32 C.X.get", x.GetMethod.ToTestDisplayString());
+            Assert.Equal("void modreq(System.Runtime.CompilerServices.IsExternalInit) C.X.init", x.SetMethod.ToTestDisplayString());
+            Assert.True(x.SetMethod!.IsInitOnly);
+
+            var xBackingField = (IFieldSymbol)c.GetMember("<X>k__BackingField");
+            Assert.Equal("System.Int32 C.<X>k__BackingField", xBackingField.ToTestDisplayString());
+            Assert.True(xBackingField.IsReadOnly);
+        }
+
+        [Fact]
+        public void RecordProperties_01_ReadonlyMismatch()
+        {
+            var src = @"
+readonly record struct C(int X)
+{
+    public int X { get; set; } = X; // 1
+}
+record struct C2(int X)
+{
+    public int X { get; init; } = X;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,16): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                //     public int X { get; set; } = X; // 1
+                Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "X").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        public void RecordProperties_02()
+        {
+            var src = @"
+using System;
+record struct C(int X, int Y)
+{
+    public C(int a, int b)
+    {
+    }
+
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c.Y);
+    }
+
+    private int X1 = X;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,12): error CS0111: Type 'C' already defines a member called 'C' with the same parameter types
+                //     public C(int a, int b)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("C", "C").WithLocation(5, 12),
+                // (5,12): error CS8862: A constructor declared in a record with parameter list must have 'this' constructor initializer.
+                //     public C(int a, int b)
+                Diagnostic(ErrorCode.ERR_UnexpectedOrMissingConstructorInitializerInRecord, "C").WithLocation(5, 12),
+                // (11,21): error CS0121: The call is ambiguous between the following methods or properties: 'C.C(int, int)' and 'C.C(int, int)'
+                //         var c = new C(1, 2);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "C").WithArguments("C.C(int, int)", "C.C(int, int)").WithLocation(11, 21)
+                );
+        }
+
+        [Fact]
+        public void RecordProperties_03()
+        {
+            var src = @"
+using System;
+record struct C(int X, int Y)
+{
+    public int X { get; }
+
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.WriteLine(c.X);
+        Console.WriteLine(c.Y);
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (3,15): error CS0843: Auto-implemented property 'C.X' must be fully assigned before control is returned to the caller.
+                // record struct C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "C").WithArguments("C.X").WithLocation(3, 15),
+                // (3,21): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(int X, int Y)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(3, 21)
+                );
+        }
+
+        [Fact]
+        public void RecordProperties_03_InitializedWithY()
+        {
+            var src = @"
+using System;
+record struct C(int X, int Y)
+{
+    public int X { get; } = Y;
+
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.Write(c.X);
+        Console.Write(c.Y);
+    }
+}";
+            CompileAndVerify(src, expectedOutput: "22")
+                .VerifyDiagnostics(
+                    // (3,21): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                    // record struct C(int X, int Y)
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(3, 21)
+                    );
+        }
+
+        [Fact]
+        public void RecordProperties_04()
+        {
+            var src = @"
+using System;
+record struct C(int X, int Y)
+{
+    public int X { get; } = 3;
+
+    public static void Main()
+    {
+        var c = new C(1, 2);
+        Console.Write(c.X);
+        Console.Write(c.Y);
+    }
+}";
+            CompileAndVerify(src, expectedOutput: "32")
+                .VerifyDiagnostics(
+                    // (3,21): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                    // record struct C(int X, int Y)
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(3, 21)
+                    );
+        }
+
+        [Fact]
+        public void RecordProperties_05()
+        {
+            var src = @"
+record struct C(int X, int X)
+{
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,28): error CS0100: The parameter name 'X' is a duplicate
+                // record struct C(int X, int X)
+                Diagnostic(ErrorCode.ERR_DuplicateParamName, "X").WithArguments("X").WithLocation(2, 28),
+                // (2,28): error CS0102: The type 'C' already contains a definition for 'X'
+                // record struct C(int X, int X)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(2, 28)
+                );
+
+            var expectedMembers = new[]
+            {
+                "System.Int32 C.X { get; set; }",
+                "System.Int32 C.X { get; set; }"
+            };
+            AssertEx.Equal(expectedMembers,
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
+
+            var expectedMemberNames = new[] {
+                ".ctor",
+                "<X>k__BackingField",
+                "get_X",
+                "set_X",
+                "X",
+                "<X>k__BackingField",
+                "get_X",
+                "set_X",
+                "X",
+                "Deconstruct",
+                ".ctor"
+            };
+            AssertEx.Equal(expectedMemberNames, comp.GetMember<NamedTypeSymbol>("C").GetPublicSymbol().MemberNames);
+        }
+
+        [Fact]
+        public void RecordProperties_06()
+        {
+            var src = @"
+record struct C(int X, int Y)
+{
+    public void get_X() { }
+    public void set_X() { }
+    int get_Y(int value) => value;
+    int set_Y(int value) => value;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS0082: Type 'C' already reserves a member called 'get_X' with the same parameter types
+                // record struct C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_MemberReserved, "X").WithArguments("get_X", "C").WithLocation(2, 21),
+                // (2,28): error CS0082: Type 'C' already reserves a member called 'set_Y' with the same parameter types
+                // record struct C(int X, int Y)
+                Diagnostic(ErrorCode.ERR_MemberReserved, "Y").WithArguments("set_Y", "C").WithLocation(2, 28)
+                );
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "C..ctor(System.Int32 X, System.Int32 Y)",
+                "System.Int32 C.<X>k__BackingField",
+                "readonly System.Int32 C.X.get",
+                "void C.X.set",
+                "System.Int32 C.X { get; set; }",
+                "System.Int32 C.<Y>k__BackingField",
+                "readonly System.Int32 C.Y.get",
+                "void C.Y.set",
+                "System.Int32 C.Y { get; set; }",
+                "void C.get_X()",
+                "void C.set_X()",
+                "System.Int32 C.get_Y(System.Int32 value)",
+                "System.Int32 C.set_Y(System.Int32 value)",
+                "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                "C..ctor()",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void RecordProperties_07()
+        {
+            var comp = CreateCompilation(@"
+record struct C1(object P, object get_P);
+record struct C2(object get_P, object P);");
+            comp.VerifyDiagnostics(
+                // (2,25): error CS0102: The type 'C1' already contains a definition for 'get_P'
+                // record struct C1(object P, object get_P);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C1", "get_P").WithLocation(2, 25),
+                // (3,39): error CS0102: The type 'C2' already contains a definition for 'get_P'
+                // record struct C2(object get_P, object P);
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C2", "get_P").WithLocation(3, 39)
+                );
+        }
+
+        [Fact]
+        public void RecordProperties_08()
+        {
+            var comp = CreateCompilation(@"
+record struct C1(object O1)
+{
+    public object O1 { get; } = O1;
+    public object O2 { get; } = O1;
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RecordProperties_09()
+        {
+            var src = @"
+record struct C(object P1, object P2, object P3, object P4)
+{
+    class P1 { }
+    object P2 = 2;
+    int P3(object o) => 3;
+    int P4<T>(T t) => 4;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,24): error CS0102: The type 'C' already contains a definition for 'P1'
+                // record struct C(object P1, object P2, object P3, object P4)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(2, 24),
+                // (5,12): error CS0102: The type 'C' already contains a definition for 'P2'
+                //     object P2 = 2;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(5, 12),
+                // (6,9): error CS0102: The type 'C' already contains a definition for 'P3'
+                //     int P3(object o) => 3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(6, 9),
+                // (7,9): error CS0102: The type 'C' already contains a definition for 'P4'
+                //     int P4<T>(T t) => 4;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P4").WithArguments("C", "P4").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void RecordProperties_10()
+        {
+            var src = @"
+record struct C(object P)
+{
+    const int P = 4;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS0102: The type 'C' already contains a definition for 'P'
+                //     const int P = 4;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("C", "P").WithLocation(4, 15)
+                );
+        }
+
+        [Fact]
+        public void RecordProperties_11_UnreadPositionalParameter()
+        {
+            var comp = CreateCompilation(@"
+record struct C1(object O1, object O2, object O3) // 1, 2
+{
+    public object O1 { get; init; }
+    public object O2 { get; init; } = M(O2);
+    public object O3 { get; init; } = M(O3 = null);
+    private static object M(object o) => o;
+}
+");
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0843: Auto-implemented property 'C1.O1' must be fully assigned before control is returned to the caller.
+                // record struct C1(object O1, object O2, object O3) // 1, 2
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "C1").WithArguments("C1.O1").WithLocation(2, 15),
+                // (2,25): warning CS8907: Parameter 'O1' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C1(object O1, object O2, object O3) // 1, 2
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O1").WithArguments("O1").WithLocation(2, 25),
+                // (2,47): warning CS8907: Parameter 'O3' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C1(object O1, object O2, object O3) // 1, 2
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O3").WithArguments("O3").WithLocation(2, 47)
+                );
+        }
+
+        [Fact]
+        public void RecordProperties_11_UnreadPositionalParameter_InRefOut()
+        {
+            var comp = CreateCompilation(@"
+record struct C1(object O1, object O2, object O3) // 1
+{
+    public object O1 { get; init; } = MIn(in O1);
+    public object O2 { get; init; } = MRef(ref O2);
+    public object O3 { get; init; } = MOut(out O3);
+
+    static object MIn(in object o) => o;
+    static object MRef(ref object o) => o;
+    static object MOut(out object o) => throw null;
+}
+");
+            comp.VerifyDiagnostics(
+                // (2,47): warning CS8907: Parameter 'O3' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C1(object O1, object O2, object O3) // 1
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "O3").WithArguments("O3").WithLocation(2, 47)
+                );
+        }
+
+        [Fact]
+        public void RecordProperties_SelfContainedStruct()
+        {
+            var comp = CreateCompilation(@"
+record struct C(C c);
+");
+            comp.VerifyDiagnostics(
+                // (2,19): error CS0523: Struct member 'C.c' of type 'C' causes a cycle in the struct layout
+                // record struct C(C c);
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "c").WithArguments("C.c", "C").WithLocation(2, 19)
+                );
+        }
+
+        [Fact]
+        public void RecordProperties_PropertyInValueTuple()
+        {
+            var corlib_cs = @"
+namespace System
+{
+    public class Object { }
+    public class ValueType
+    {
+        public bool X { get; set; }
+    }
+    public class Attribute { }
+    public struct Void { }
+    public struct Boolean { }
+}
+";
+            var corlibRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+
+            var src = @"
+record struct C(bool X)
+{
+    bool M()
+    {
+        return X;
+    }
+}
+";
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview, references: new[] { corlibRef });
+            comp.VerifyEmitDiagnostics(
+                // (2,22): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(bool X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 22)
+                );
+
+            Assert.Null(comp.GlobalNamespace.GetTypeMember("C").GetMember("X"));
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var x = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+            Assert.Equal("System.Boolean System.ValueType.X { get; set; }", model.GetSymbolInfo(x!).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void RecordProperties_PropertyInValueTuple_Static()
+        {
+            var corlib_cs = @"
+namespace System
+{
+    public class Object { }
+    public class ValueType
+    {
+        public static bool X { get; set; }
+    }
+    public class Attribute { }
+    public struct Void { }
+    public struct Boolean { }
+    public class Exception { }
+}
+";
+            var corlibRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+
+            var src = @"
+record struct C(bool X)
+{
+    bool M()
+    {
+        return X;
+    }
+}
+";
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview, references: new[] { corlibRef });
+            comp.VerifyEmitDiagnostics(
+                // (2,22): error CS8866: Record member 'System.ValueType.X' must be a readable instance property of type 'bool' to match positional parameter 'X'.
+                // record struct C(bool X)
+                Diagnostic(ErrorCode.ERR_BadRecordMemberForPositionalParameter, "X").WithArguments("System.ValueType.X", "bool", "X").WithLocation(2, 22),
+                // (2,22): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(bool X)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 22)
+                );
+        }
+
+        [Fact]
+        public void RecordProperties_PropertyInValueTuple_Readonly()
+        {
+            var corlib_cs = @"
+namespace System
+{
+    public class Object { }
+    public class ValueType
+    {
+        public bool X { get; set; }
+    }
+    public class Attribute { }
+    public struct Void { }
+    public struct Boolean { }
+}
+";
+            var corlibRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+
+            var src = @"
+readonly record struct C(bool X)
+{
+    bool M()
+    {
+        return X;
+    }
+}
+";
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview, references: new[] { corlibRef });
+            comp.VerifyEmitDiagnostics(
+                // (2,31): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // readonly record struct C(bool X);
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 31)
+                );
+
+            Assert.Null(comp.GlobalNamespace.GetTypeMember("C").GetMember("X"));
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var x = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+            Assert.Equal("System.Boolean System.ValueType.X { get; set; }", model.GetSymbolInfo(x!).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void StaticCtor()
+        {
+            var src = @"
+System.Console.Write(""static ctor"");
+
+record struct R(int x);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "static ctor");
+        }
+
+        [Fact]
+        public void StaticCtor_ParameterlessPrimaryCtor()
+        {
+            var src = @"
+record struct R()
+{
+    static R() { }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void StaticCtor_CopyCtor()
+        {
+            var src = @"
+record struct R()
+{
+    static R(R r) { }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,12): error CS0132: 'R.R(R)': a static constructor must be parameterless
+                //     static R(R r) { }
+                Diagnostic(ErrorCode.ERR_StaticConstParam, "R").WithArguments("R.R(R)").WithLocation(4, 12)
+                );
+        }
+
+        [Fact]
+        public void InterfaceImplementation_NotReadonly()
+        {
+            var source = @"
+I r = new R(42);
+r.P2 = 43;
+r.P3 = 44;
+System.Console.Write((r.P1, r.P2, r.P3));
+
+interface I
+{
+    int P1 { get; set; }
+    int P2 { get; set; }
+    int P3 { get; set; }
+}
+record struct R(int P1) : I
+{
+    public int P2 { get; set; } = 0;
+    int I.P3 { get; set; } = 0;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(42, 43, 44)", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void InterfaceImplementation_Readonly()
+        {
+            var source = @"
+I r = new R(42) { P2 = 43 };
+System.Console.Write((r.P1, r.P2));
+
+interface I
+{
+    int P1 { get; init; }
+    int P2 { get; init; }
+}
+readonly record struct R(int P1) : I
+{
+    public int P2 { get; init; } = 0;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(42, 43)", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void InterfaceImplementation_Readonly_PrivateImplementation()
+        {
+            var source = @"
+I r = new R(42) { P2 = 43, P3 = 44 };
+System.Console.Write((r.P1, r.P2, r.P3));
+
+interface I
+{
+    int P1 { get; init; }
+    int P2 { get; init; }
+    int P3 { get; init; }
+}
+readonly record struct R(int P1) : I
+{
+    public int P2 { get; init; } = 0;
+    int I.P3 { get; init; } = 0; // not practically initializable
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,28): error CS0117: 'R' does not contain a definition for 'P3'
+                // I r = new R(42) { P2 = 43, P3 = 44 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "P3").WithArguments("R", "P3").WithLocation(2, 28)
+                );
+        }
+
+        [Fact]
+        public void Initializers_01()
+        {
+            var src = @"
+using System;
+
+record struct C(int X)
+{
+    int Z = X + 1;
+
+    public static void Main()
+    {
+        var c = new C(1);
+        Console.WriteLine(c.Z);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"2").VerifyDiagnostics();
+
+            var comp = CreateCompilation(src);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+
+            var recordDeclaration = tree.GetRoot().DescendantNodes().OfType<RecordStructDeclarationSyntax>().Single();
+            Assert.Equal("C", recordDeclaration.Identifier.ValueText);
+            Assert.Null(model.GetOperation(recordDeclaration));
+        }
+
+        [Fact]
+        public void Initializers_02()
+        {
+            var src = @"
+record struct C(int X)
+{
+    static int Z = X + 1;
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,20): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                //     static int Z = X + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 20)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Property, symbol!.Kind);
+            Assert.Equal("System.Int32 C.X { get; set; }", symbol.ToTestDisplayString());
+            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_03()
+        {
+            var src = @"
+record struct C(int X)
+{
+    const int Z = X + 1;
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.X'
+                //     const int Z = X + 1;
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "X").WithArguments("C.X").WithLocation(4, 19)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("= X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Property, symbol!.Kind);
+            Assert.Equal("System.Int32 C.X { get; set; }", symbol.ToTestDisplayString());
+            Assert.Equal("C", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 C.Z", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void Initializers_04()
+        {
+            var src = @"
+using System;
+
+record struct C(int X)
+{
+    Func<int> Z = () => X + 1;
+
+    public static void Main()
+    {
+        var c = new C(1);
+        Console.WriteLine(c.Z());
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"2").VerifyDiagnostics();
+
+            var comp = CreateCompilation(src);
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var x = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "X").First();
+            Assert.Equal("() => X + 1", x.Parent!.Parent!.ToString());
+
+            var symbol = model.GetSymbolInfo(x).Symbol;
+            Assert.Equal(SymbolKind.Parameter, symbol!.Kind);
+            Assert.Equal("System.Int32 X", symbol.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 X)", symbol.ContainingSymbol.ToTestDisplayString());
+            Assert.Equal("lambda expression", model.GetEnclosingSymbol(x.SpanStart).ToTestDisplayString());
+            Assert.Contains(symbol, model.LookupSymbols(x.SpanStart, name: "X"));
+            Assert.Contains("X", model.LookupNames(x.SpanStart));
+        }
+
+        [Fact]
+        public void SynthesizedRecordPointerProperty()
+        {
+            var src = @"
+record struct R(int P1, int* P2, delegate*<int> P3);";
+
+            var comp = CreateCompilation(src);
+            var p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P1");
+            Assert.False(p.HasPointerType);
+
+            p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P2");
+            Assert.True(p.HasPointerType);
+
+            p = comp.GlobalNamespace.GetTypeMember("R").GetMember<SourcePropertySymbolBase>("P3");
+            Assert.True(p.HasPointerType);
+        }
+
+        [Fact]
+        public void PositionalMemberModifiers_In()
+        {
+            var src = @"
+var r = new R(42);
+int i = 43;
+var r2 = new R(in i);
+System.Console.Write((r.P1, r2.P1));
+
+record struct R(in int P1);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)", verify: Verification.Skipped /* init-only */);
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").Constructors.ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "R..ctor(in System.Int32 P1)",
+                "R..ctor()"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void PositionalMemberModifiers_Params()
+        {
+            var src = @"
+var r = new R(42, 43);
+var r2 = new R(new[] { 44, 45 });
+System.Console.Write((r.Array[0], r.Array[1], r2.Array[0], r2.Array[1]));
+
+record struct R(params int[] Array);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(42, 43, 44, 45)", verify: Verification.Skipped /* init-only */);
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("R").Constructors.ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "R..ctor(params System.Int32[] Array)",
+                "R..ctor()"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Fact]
+        public void PositionalMemberDefaultValue()
+        {
+            var src = @"
+var r = new R(); // This uses the parameterless contructor
+System.Console.Write(r.P);
+
+record struct R(int P = 42);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void PositionalMemberDefaultValue_PassingOneArgument()
+        {
+            var src = @"
+var r = new R(41);
+System.Console.Write(r.O);
+System.Console.Write("" "");
+System.Console.Write(r.P);
+
+record struct R(int O, int P = 42);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "41 42", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void PositionalMemberDefaultValue_AndPropertyWithInitializer()
+        {
+            var src = @"
+var r = new R(0);
+System.Console.Write(r.P);
+
+record struct R(int O, int P = 1)
+{
+    public int P { get; init; } = 42;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,28): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct R(int O, int P = 1)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(5, 28)
+                );
+            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+
+            verifier.VerifyIL("R..ctor(int, int)", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int R.<O>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldc.i4.s   42
+  IL_000a:  stfld      ""int R.<P>k__BackingField""
+  IL_000f:  ret
+}");
+        }
+
+        [Fact]
+        public void PositionalMemberDefaultValue_AndPropertyWithoutInitializer()
+        {
+            var src = @"
+record struct R(int P = 42)
+{
+    public int P { get; init; }
+
+    public static void Main()
+    {
+        var r = new R();
+        System.Console.Write(r.P);
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (2,15): error CS0843: Auto-implemented property 'R.P' must be fully assigned before control is returned to the caller.
+                // record struct R(int P = 42)
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "R").WithArguments("R.P").WithLocation(2, 15),
+                // (2,21): warning CS8907: Parameter 'P' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct R(int P = 42)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(2, 21)
+                );
+        }
+
+        [Fact]
+        public void PositionalMemberDefaultValue_AndPropertyWithInitializer_CopyingParameter()
+        {
+            var src = @"
+var r = new R(0);
+System.Console.Write(r.P);
+
+record struct R(int O, int P = 42)
+{
+    public int P { get; init; } = P;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+
+            verifier.VerifyIL("R..ctor(int, int)", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int R.<O>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""int R.<P>k__BackingField""
+  IL_000e:  ret
+}");
+        }
+
+        [Fact]
+        public void RecordWithConstraints_NullableWarning()
+        {
+            var src = @"
+#nullable enable
+var r = new R<string?>(""R"");
+var r2 = new R2<string?>(""R2"");
+System.Console.Write((r.P, r2.P));
+
+record struct R<T>(T P) where T : class;
+record struct R2<T>(T P) where T : class { }
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (3,15): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // var r = new R<string?>("R");
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("R<T>", "T", "string?").WithLocation(3, 15),
+                // (4,17): warning CS8634: The type 'string?' cannot be used as type parameter 'T' in the generic type or method 'R2<T>'. Nullability of type argument 'string?' doesn't match 'class' constraint.
+                // var r2 = new R2<string?>("R2");
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("R2<T>", "T", "string?").WithLocation(4, 17)
+                );
+            CompileAndVerify(comp, expectedOutput: "(R, R2)", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void RecordWithConstraints_ConstraintError()
+        {
+            var src = @"
+record struct R<T>(T P) where T : class;
+record struct R2<T>(T P) where T : class { }
+
+public class C
+{
+    public static void Main()
+    {
+        _ = new R<int>(1);
+        _ = new R2<int>(2);
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (9,19): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'R<T>'
+                //         _ = new R<int>(1);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("R<T>", "T", "int").WithLocation(9, 19),
+                // (10,20): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'R2<T>'
+                //         _ = new R2<int>(2);
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("R2<T>", "T", "int").WithLocation(10, 20)
+                );
+        }
+
+        [Fact]
+        public void CyclicBases4()
+        {
+            var text =
+@"
+record struct A<T> : B<A<T>> { }
+record struct B<T> : A<B<T>>
+{
+    A<T> F() { return null; }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (3,22): error CS0527: Type 'A<B<T>>' in interface list is not an interface
+                // record struct B<T> : A<B<T>>
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "A<B<T>>").WithArguments("A<B<T>>").WithLocation(3, 22),
+                // (2,22): error CS0527: Type 'B<A<T>>' in interface list is not an interface
+                // record struct A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "B<A<T>>").WithArguments("B<A<T>>").WithLocation(2, 22)
+                );
+        }
+
+        [Fact]
+        public void PartialClassWithDifferentTupleNamesInImplementedInterfaces()
+        {
+            var source = @"
+public interface I<T> { }
+public partial record C1 : I<(int a, int b)> { }
+public partial record C1 : I<(int notA, int notB)> { }
+
+public partial record C2 : I<(int a, int b)> { }
+public partial record C2 : I<(int, int)> { }
+
+public partial record C3 : I<(int a, int b)> { }
+public partial record C3 : I<(int a, int b)> { }
+
+public partial record C4 : I<(int a, int b)> { }
+public partial record C4 : I<(int b, int a)> { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,23): error CS8140: 'I<(int notA, int notB)>' is already listed in the interface list on type 'C1' with different tuple element names, as 'I<(int a, int b)>'.
+                // public partial record C1 : I<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C1").WithArguments("I<(int notA, int notB)>", "I<(int a, int b)>", "C1").WithLocation(3, 23),
+                // (6,23): error CS8140: 'I<(int, int)>' is already listed in the interface list on type 'C2' with different tuple element names, as 'I<(int a, int b)>'.
+                // public partial record C2 : I<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C2").WithArguments("I<(int, int)>", "I<(int a, int b)>", "C2").WithLocation(6, 23),
+                // (12,23): error CS8140: 'I<(int b, int a)>' is already listed in the interface list on type 'C4' with different tuple element names, as 'I<(int a, int b)>'.
+                // public partial record C4 : I<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, "C4").WithArguments("I<(int b, int a)>", "I<(int a, int b)>", "C4").WithLocation(12, 23)
+                );
+        }
+
+        [Fact]
+        public void CS0267ERR_PartialMisplaced()
+        {
+            var test = @"
+partial public record struct C  // CS0267
+{
+}
+";
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial public record struct C  // CS0267
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void SealedStaticRecord()
+        {
+            var source = @"
+sealed static record struct R;
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,29): error CS0106: The modifier 'sealed' is not valid for this item
+                // sealed static record struct R;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("sealed").WithLocation(2, 29),
+                // (2,29): error CS0106: The modifier 'static' is not valid for this item
+                // sealed static record struct R;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("static").WithLocation(2, 29)
+                );
+        }
+
+        [Fact]
+        public void CS0513ERR_AbstractInConcreteClass02()
+        {
+            var text = @"
+record struct C
+{
+    public abstract event System.Action E;
+    public abstract int this[int x] { get; set; }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (5,25): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract int this[int x] { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(5, 25),
+                // (4,41): error CS0106: The modifier 'abstract' is not valid for this item
+                //     public abstract event System.Action E;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("abstract").WithLocation(4, 41)
+                );
+        }
+
+        [Fact]
+        public void CS0574ERR_BadDestructorName()
+        {
+            var test = @"
+public record struct iii
+{
+    ~iiii(){}
+}
+";
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (4,6): error CS0574: Name of destructor must match name of type
+                //     ~iiii(){}
+                Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(4, 6),
+                // (4,6): error CS0575: Only class types can contain destructors
+                //     ~iiii(){}
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "iiii").WithArguments("iii.~iii()").WithLocation(4, 6)
+                );
+        }
+
+        [Fact]
+        public void StaticRecordWithConstructorAndDestructor()
+        {
+            var text = @"
+static record struct R(int I)
+{
+    R() : this(0) { }
+    ~R() { }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.VerifyDiagnostics(
+                // (2,22): error CS0106: The modifier 'static' is not valid for this item
+                // static record struct R(int I)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("static").WithLocation(2, 22),
+                // (4,5): error CS0568: Structs cannot contain explicit parameterless constructors
+                //     R() : this(0) { }
+                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "R").WithLocation(4, 5),
+                // (5,6): error CS0575: Only class types can contain destructors
+                //     ~R() { }
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "R").WithArguments("R.~R()").WithLocation(5, 6)
+                );
+        }
+
+        [Fact]
+        public void RecordWithPartialMethodExplicitImplementation()
+        {
+            var source =
+@"record struct R
+{
+    partial void M();
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,18): error CS0751: A partial method must be declared within a partial type
+                //     partial void M();
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 18)
+                );
+        }
+
+        [Fact]
+        public void RecordWithPartialMethodRequiringBody()
+        {
+            var source =
+@"partial record struct R
+{
+    public partial int M();
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,24): error CS8795: Partial method 'R.M()' must have an implementation part because it has accessibility modifiers.
+                //     public partial int M();
+                Diagnostic(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, "M").WithArguments("R.M()").WithLocation(3, 24)
+                );
+        }
+
+        [Fact]
+        public void CanDeclareIteratorInRecord()
+        {
+            var source = @"
+using System.Collections.Generic;
+
+foreach(var i in new X(42).GetItems())
+{
+    System.Console.Write(i);
+}
+
+public record struct X(int a)
+{
+    public IEnumerable<int> GetItems() { yield return a; yield return a + 1; }
+}";
+
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void ParameterlessConstructor()
+        {
+            var src = @"
+record struct C()
+{
+    int Property { get; set; } = 42;
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void XmlDoc()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for I1</param>
+public record struct C(int I1);
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview));
+            comp.VerifyDiagnostics();
+
+            var cMember = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(
+@"<member name=""T:C"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", cMember.GetDocumentationCommentXml());
+            var constructor = cMember.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
+            Assert.Equal(
+@"<member name=""M:C.#ctor(System.Int32)"">
+    <summary>Summary</summary>
+    <param name=""I1"">Description for I1</param>
+</member>
+", constructor.GetDocumentationCommentXml());
+
+            Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
+
+            var property = cMember.GetMembers("I1").Single();
+            Assert.Equal("", property.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void Deconstruct_Simple()
+        {
+            var source =
+@"using System;
+
+record struct B(int X, int Y)
+{
+    public static void Main()
+    {
+        M(new B(1, 2));
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("B.Deconstruct", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""readonly int B.X.get""
+  IL_0007:  stind.i4
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  call       ""readonly int B.Y.get""
+  IL_000f:  stind.i4
+  IL_0010:  ret
+}");
+
+            var deconstruct = ((CSharpCompilation)verifier.Compilation).GetMember<MethodSymbol>("B.Deconstruct");
+            Assert.Equal(2, deconstruct.ParameterCount);
+
+            Assert.Equal(RefKind.Out, deconstruct.Parameters[0].RefKind);
+            Assert.Equal("X", deconstruct.Parameters[0].Name);
+
+            Assert.Equal(RefKind.Out, deconstruct.Parameters[1].RefKind);
+            Assert.Equal("Y", deconstruct.Parameters[1].Name);
+
+            Assert.True(deconstruct.ReturnsVoid);
+            Assert.False(deconstruct.IsVirtual);
+            Assert.False(deconstruct.IsStatic);
+            Assert.Equal(Accessibility.Public, deconstruct.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void Deconstruct_PositionalAndNominalProperty()
+        {
+            var source =
+@"using System;
+
+record struct B(int X)
+{
+    public int Y { get; init; } = 0;
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X)",
+                verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Nested()
+        {
+            var source =
+@"using System;
+
+record struct B(int X, int Y);
+
+record struct C(B B, int Z)
+{
+    public static void Main()
+    {
+        M(new C(new B(1, 2), 3));
+    }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(B(int x, int y), int z):
+                Console.Write(x);
+                Console.Write(y);
+                Console.Write(z);
+                break;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: "123");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("B.Deconstruct", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""readonly int B.X.get""
+  IL_0007:  stind.i4
+  IL_0008:  ldarg.2
+  IL_0009:  ldarg.0
+  IL_000a:  call       ""readonly int B.Y.get""
+  IL_000f:  stind.i4
+  IL_0010:  ret
+}");
+
+            verifier.VerifyIL("C.Deconstruct", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""readonly B C.B.get""
+  IL_0007:  stobj      ""B""
+  IL_000c:  ldarg.2
+  IL_000d:  ldarg.0
+  IL_000e:  call       ""readonly int C.Z.get""
+  IL_0013:  stind.i4
+  IL_0014:  ret
+}");
+        }
+
+        [Fact]
+        public void Deconstruct_PropertyCollision()
+        {
+            var source =
+@"using System;
+
+record struct B(int X, int Y)
+{
+    public int X => 3;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "32");
+            verifier.VerifyDiagnostics(
+                // (3,21): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct B(int X, int Y)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(3, 21)
+                );
+
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_MethodCollision_01()
+        {
+            var source = @"
+record struct B(int X, int Y)
+{
+    public int X() => 3;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new B(1, 2));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,16): error CS0102: The type 'B' already contains a definition for 'X'
+                //     public int X() => 3;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("B", "X").WithLocation(4, 16)
+                );
+
+            Assert.Equal(
+                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)",
+                comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_FieldCollision()
+        {
+            var source = @"
+using System;
+
+record struct C(int X)
+{
+    int X = 0;
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(0));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0102: The type 'C' already contains a definition for 'X'
+                //     int X = 0;
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "X").WithArguments("C", "X").WithLocation(6, 9),
+                // (6,9): warning CS0414: The field 'C.X' is assigned but its value is never used
+                //     int X = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("C.X").WithLocation(6, 9));
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.Int32 X)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Empty()
+        {
+            var source = @"
+record struct C
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //             case C():
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
+                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
+                //             case C():
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
+
+            Assert.Null(comp.GetMember("C.Deconstruct"));
+        }
+
+        [Fact]
+        public void Deconstruct_Conversion_02()
+        {
+            var source = @"
+#nullable enable
+using System;
+
+record struct C(string? X, string Y)
+{
+    public string X { get; init; } = null!;
+    public string? Y { get; init; } = string.Empty;
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C(var x, string y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C(""a"", ""b""));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,25): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(string? X, string Y)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(5, 25),
+                // (5,35): warning CS8907: Parameter 'Y' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct C(string? X, string Y)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "Y").WithArguments("Y").WithLocation(5, 35)
+                );
+
+            Assert.Equal(
+                "void C.Deconstruct(out System.String? X, out System.String Y)",
+                comp.GetMember("C.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact]
+        public void Deconstruct_Empty_WithParameterList()
+        {
+            var source = @"
+record struct C()
+{
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                break;
+        }
+    }
+
+    static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //             case C():
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
+                // (8,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'C', with 0 out parameters and a void return type.
+                //             case C():
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("C", "0").WithLocation(8, 19));
+
+            Assert.Null(comp.GetMember("C.Deconstruct"));
+        }
+
+        [Fact]
+        public void Deconstruct_Empty_WithParameterList_UserDefined_01()
+        {
+            var source =
+@"using System;
+
+record struct C()
+{
+    public void Deconstruct()
+    {
+    }
+
+    static void M(C c)
+    {
+        switch (c)
+        {
+            case C():
+                Console.Write(12);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new C());
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined()
+        {
+            var source =
+@"using System;
+
+record struct B(int X, int Y)
+{
+    public void Deconstruct(out int X, out int Y)
+    {
+        X = this.X + 1;
+        Y = this.Y + 2;
+    }
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x, int y):
+                Console.Write(x);
+                Console.Write(y);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(0, 0));
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_DifferentSignature_02()
+        {
+            var source =
+@"using System;
+
+record struct B(int X)
+{
+    public int Deconstruct(out int a) => throw null;
+
+    static void M(B b)
+    {
+        switch (b)
+        {
+            case B(int x):
+                Console.Write(x);
+                break;
+        }
+    }
+
+    public static void Main()
+    {
+        M(new B(1));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,16): error CS8874: Record member 'B.Deconstruct(out int)' must return 'void'.
+                //     public int Deconstruct(out int a) => throw null;
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Deconstruct").WithArguments("B.Deconstruct(out int)", "void").WithLocation(5, 16),
+                // (11,19): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'B', with 1 out parameters and a void return type.
+                //             case B(int x):
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int x)").WithArguments("B", "1").WithLocation(11, 19));
+
+            Assert.Equal("System.Int32 B.Deconstruct(out System.Int32 a)", comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("private")]
+        [InlineData("internal")]
+        public void Deconstruct_UserDefined_Accessibility_07(string accessibility)
+        {
+            var source =
+$@"
+record struct A(int X)
+{{
+    { accessibility } void Deconstruct(out int a)
+        => throw null;
+}}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,11): error CS8873: Record member 'A.Deconstruct(out int)' must be public.
+                //      void Deconstruct(out int a)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Deconstruct").WithArguments("A.Deconstruct(out int)").WithLocation(4, 11 + accessibility.Length)
+                );
+        }
+
+        [Fact]
+        public void Deconstruct_UserDefined_Static_08()
+        {
+            var source =
+@"
+record struct A(int X)
+{
+    public static void Deconstruct(out int a)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS8877: Record member 'A.Deconstruct(out int)' may not be static.
+                //     public static void Deconstruct(out int a)
+                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "Deconstruct").WithArguments("A.Deconstruct(out int)").WithLocation(4, 24)
+                );
+        }
     }
 }

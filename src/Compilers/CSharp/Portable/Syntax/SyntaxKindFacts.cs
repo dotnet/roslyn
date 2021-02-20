@@ -795,6 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceKeyword:
                     return SyntaxKind.InterfaceDeclaration;
                 case SyntaxKind.RecordKeyword:
+                    // PROTOTYPE(record-structs): anything we can do? 
                     return SyntaxKind.RecordDeclaration;
                 default:
                     return SyntaxKind.None;

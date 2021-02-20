@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.CompilationUnit:
                 case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     return binder.BindMethodBody(node, diagnostics);
             }
 
@@ -270,7 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, PrimaryConstructorBaseTypeSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
             if (MemberSymbol is SynthesizedRecordConstructor primaryCtor &&
-                Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == primaryCtor.GetSyntax().PrimaryConstructorBaseType)
+                primaryCtor.GetSyntax() is RecordDeclarationSyntax recordDecl &&
+                Root.FindToken(position).Parent?.AncestorsAndSelf().OfType<PrimaryConstructorBaseTypeSyntax>().FirstOrDefault() == recordDecl.PrimaryConstructorBaseType)
             {
                 var binder = this.GetEnclosingBinder(position);
                 if (binder != null)

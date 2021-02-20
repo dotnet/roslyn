@@ -158,7 +158,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.ExpressionBody, enclosing);
         }
 
-        // PROTOTYPE(record-structs): update for record structs
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
             Debug.Assert(node.ParameterList is object);
@@ -166,6 +165,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
             AddToMap(node, enclosing);
             Visit(node.PrimaryConstructorBaseType, enclosing);
+        }
+
+        public override void VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
+        {
+            Debug.Assert(node.ParameterList is object);
+
+            Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
+            AddToMap(node, enclosing);
         }
 
         public override void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
