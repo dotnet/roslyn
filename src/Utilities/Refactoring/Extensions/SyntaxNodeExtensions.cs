@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Analyzer.Utilities.Extensions
 {
-    internal static class SyntaxNodeExtensions
+    internal static partial class SyntaxNodeExtensions
     {
         /// <summary>
         /// Look inside a trivia list for a skipped token that contains the given position.

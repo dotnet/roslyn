@@ -56,6 +56,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringCompatExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxNodeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Index.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IsExternalInit.cs" />
