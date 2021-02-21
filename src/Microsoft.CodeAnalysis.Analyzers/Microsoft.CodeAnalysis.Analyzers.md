@@ -412,6 +412,18 @@ The diagnostic description should be one or multiple sentences ending with a pun
 |CodeFix|True|
 ---
 
+## RS1034: Prefer 'IsKind' for checking syntax kinds
+
+Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.
+
+|Item|Value|
+|-|-|
+|Category|MicrosoftCodeAnalysisPerformance|
+|Enabled|True|
+|Severity|Warning|
+|CodeFix|True|
+---
+
 ## [RS2000](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Add analyzer diagnostic IDs to analyzer release
 
 All supported analyzer diagnostic IDs should be part of an analyzer release.

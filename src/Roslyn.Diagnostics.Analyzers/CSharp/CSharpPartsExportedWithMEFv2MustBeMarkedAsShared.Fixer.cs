@@ -3,6 +3,7 @@
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Diagnostics.Analyzers;
 
 namespace Roslyn.Diagnostics.CSharp.Analyzers
@@ -11,7 +12,7 @@ namespace Roslyn.Diagnostics.CSharp.Analyzers
     /// RS0023: Parts exported with MEFv2 must be marked as Shared
     /// </summary>
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
-    public class CSharpPartsExportedWithMEFv2MustBeMarkedAsSharedFixer : PartsExportedWithMEFv2MustBeMarkedAsSharedFixer
+    public class CSharpPartsExportedWithMEFv2MustBeMarkedAsSharedFixer : PartsExportedWithMEFv2MustBeMarkedAsSharedFixer<TypeDeclarationSyntax>
     {
     }
 }

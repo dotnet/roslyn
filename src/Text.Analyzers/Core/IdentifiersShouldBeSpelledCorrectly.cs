@@ -182,10 +182,10 @@ namespace Text.Analyzers
         //ImmutableArray.Create(AssemblyRule, NamespaceRule, TypeRule, MemberRule, MemberParameterRule, DelegateParameterRule, TypeTypeParameterRule, MethodTypeParameterRule, AssemblyMoreMeaningfulNameRule, NamespaceMoreMeaningfulNameRule, TypeMoreMeaningfulNameRule, MemberMoreMeaningfulNameRule, MemberParameterMoreMeaningfulNameRule, DelegateParameterMoreMeaningfulNameRule, TypeTypeParameterMoreMeaningfulNameRule, MethodTypeParameterMoreMeaningfulNameRule);
 
 #pragma warning disable RS1025 // Configure generated code analysis
-        public override void Initialize(AnalysisContext analysisContext)
+        public override void Initialize(AnalysisContext context)
 #pragma warning restore RS1025 // Configure generated code analysis
         {
-            analysisContext.EnableConcurrentExecution();
+            context.EnableConcurrentExecution();
 
             // TODO: Configure generated code analysis.
             //analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
