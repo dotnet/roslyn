@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -1006,7 +1007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    DirectCast(syntaxRefs.Single().GetSyntax(), TypeStatementSyntax).Modifiers.Any(SyntaxKind.PartialKeyword)
         End Function
 
-        Protected Overrides Function GetSymbolForEdit(model As SemanticModel, node As SyntaxNode, editKind As EditKind, editMap As Dictionary(Of SyntaxNode, EditKind), cancellationToken As CancellationToken) As ISymbol
+        Protected Overrides Function GetSymbolForEdit(model As SemanticModel, node As SyntaxNode, editKind As EditKind, editMap As IReadOnlyDictionary(Of SyntaxNode, EditKind), cancellationToken As CancellationToken) As ISymbol
             ' Avoid duplicate semantic edits - don't return symbols for statements within blocks.
             Select Case node.Kind()
                 Case SyntaxKind.OperatorStatement,
@@ -1059,7 +1060,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     ' 1) variable declarator update (an initializer is changes)
                     ' 2) modified identifier update (an array bound changes)
                     ' Handle the first one here. 
-                    If editKind = EditKind.Update AndAlso node.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
+                    If editKind = editKind.Update AndAlso node.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
                         ' If multiple fields are defined by this declaration pick the first one.
                         ' We want to analyze the associated initializer just once. Any of the fields is good.
                         node = DirectCast(node, VariableDeclaratorSyntax).Names.First()
@@ -1158,7 +1159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
-        Protected Overrides Sub ReportLocalFunctionsDeclarationRudeEdits(bodyMatch As Match(Of SyntaxNode), diagnostics As List(Of RudeEditDiagnostic))
+        Protected Overrides Sub ReportLocalFunctionsDeclarationRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), bodyMatch As Match(Of SyntaxNode))
             ' VB has no local functions so we don't have anything to report
         End Sub
 #End Region
@@ -1764,7 +1765,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Private Structure EditClassifier
 
             Private ReadOnly _analyzer As VisualBasicEditAndContinueAnalyzer
-            Private ReadOnly _diagnostics As List(Of RudeEditDiagnostic)
+            Private ReadOnly _diagnostics As ArrayBuilder(Of RudeEditDiagnostic)
             Private ReadOnly _match As Match(Of SyntaxNode)
             Private ReadOnly _oldNode As SyntaxNode
             Private ReadOnly _newNode As SyntaxNode
@@ -1772,7 +1773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private ReadOnly _span As TextSpan?
 
             Public Sub New(analyzer As VisualBasicEditAndContinueAnalyzer,
-                           diagnostics As List(Of RudeEditDiagnostic),
+                           diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
                            oldNode As SyntaxNode,
                            newNode As SyntaxNode,
                            kind As EditKind,
@@ -2831,7 +2832,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
         End Structure
 
-        Friend Overrides Sub ReportSyntacticRudeEdits(diagnostics As List(Of RudeEditDiagnostic),
+        Friend Overrides Sub ReportTopLevelSyntacticRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
                                                       match As Match(Of SyntaxNode),
                                                       edit As Edit(Of SyntaxNode),
                                                       editMap As Dictionary(Of SyntaxNode, EditKind))
@@ -2865,7 +2866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             classifier.ClassifyEdit()
         End Sub
 
-        Friend Overrides Sub ReportMemberUpdateRudeEdits(diagnostics As List(Of RudeEditDiagnostic), newMember As SyntaxNode, span As TextSpan?)
+        Friend Overrides Sub ReportMemberUpdateRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newMember As SyntaxNode, span As TextSpan?)
             Dim classifier = New EditClassifier(Me, diagnostics, Nothing, newMember, EditKind.Update, span:=span)
 
             classifier.ClassifyMemberBodyRudeUpdate(
@@ -2879,7 +2880,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
 
 #Region "Semantic Rude Edits"
-        Friend Overrides Sub ReportInsertedMemberSymbolRudeEdits(diagnostics As List(Of RudeEditDiagnostic), newSymbol As ISymbol)
+        Friend Overrides Sub ReportInsertedMemberSymbolRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), newSymbol As ISymbol)
             ' CLR doesn't support adding P/Invokes.
 
             ' VB needs to check if the type doesn't contain methods with DllImport attribute.
@@ -2892,7 +2893,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
         End Sub
 
-        Private Shared Sub ReportDllImportInsertRudeEdit(diagnostics As List(Of RudeEditDiagnostic), member As ISymbol)
+        Private Shared Sub ReportDllImportInsertRudeEdit(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), member As ISymbol)
             If member.IsKind(SymbolKind.Method) AndAlso
                DirectCast(member, IMethodSymbol).GetDllImportData() IsNot Nothing Then
 
@@ -2939,7 +2940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return result
         End Function
 
-        Friend Overrides Sub ReportEnclosingExceptionHandlingRudeEdits(diagnostics As List(Of RudeEditDiagnostic),
+        Friend Overrides Sub ReportEnclosingExceptionHandlingRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
                                                                        exceptionHandlingEdits As IEnumerable(Of Edit(Of SyntaxNode)),
                                                                        oldStatement As SyntaxNode,
                                                                        newStatementSpan As TextSpan)
@@ -3023,7 +3024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
         End Sub
 
-        Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As List(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
+        Friend Overrides Sub ReportStateMachineSuspensionPointRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), oldNode As SyntaxNode, newNode As SyntaxNode)
             ' TODO: changes around suspension points (foreach, lock, using, etc.)
 
             If newNode.IsKind(SyntaxKind.AwaitExpression) Then
@@ -3134,7 +3135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "Rude Edits around Active Statement"
 
-        Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As List(Of RudeEditDiagnostic),
+        Friend Overrides Sub ReportOtherRudeEditsAroundActiveStatement(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
                                                                        match As Match(Of SyntaxNode),
                                                                        oldActiveStatement As SyntaxNode,
                                                                        newActiveStatement As SyntaxNode,
@@ -3165,7 +3166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return Nothing
         End Function
 
-        Private Sub ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics As List(Of RudeEditDiagnostic),
+        Private Sub ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics As ArrayBuilder(Of RudeEditDiagnostic),
                                                                             match As Match(Of SyntaxNode),
                                                                             oldActiveStatement As SyntaxNode,
                                                                             newActiveStatement As SyntaxNode)

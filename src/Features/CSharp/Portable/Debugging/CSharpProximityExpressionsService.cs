@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             try
             {
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                return Do(tree, position, cancellationToken);
+                return GetProximityExpressions(tree, position, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
@@ -100,6 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             }
         }
 
+        public static IList<string> GetProximityExpressions(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => new Worker(syntaxTree, position).Do(cancellationToken);
+
+        [Obsolete($"Use {nameof(GetProximityExpressions)}.")]
         private static IList<string> Do(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
             => new Worker(syntaxTree, position).Do(cancellationToken);
 
@@ -109,12 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             bool includeDeclarations)
         {
             new RelevantExpressionsCollector(includeDeclarations, expressions).Visit(statement);
-        }
-
-        internal static class TestAccessor
-        {
-            public static IList<string> Do(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken = default)
-                => CSharpProximityExpressionsService.Do(syntaxTree, position, cancellationToken);
         }
     }
 }

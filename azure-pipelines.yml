@@ -213,3 +213,38 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
+- job: Correctness_Rebuild
+  pool:
+    vmImage: windows-2019
+  timeoutInMinutes: 90
+  steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - task: PowerShell@2
+      displayName: Restore
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
+
+    - task: PowerShell@2 
+      displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -configuration Debug -prepareMachine -ci -build -bootstrap -publish -binaryLog -skipDocumentation
+
+    - script: .\artifacts\bin\BuildValidator\Debug\net472\BuildValidator.exe --assembliesPath .\artifacts\obj\Microsoft.CodeAnalysis --debugPath .\artifacts\BuildValidator --sourcePath .
+      displayName: Run BuildValidator
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish BuildValidator debug outputs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/BuildValidator'
+        ArtifactName: 'BuildValidator_DebugOut'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Rebuild
+        configuration: Debug
