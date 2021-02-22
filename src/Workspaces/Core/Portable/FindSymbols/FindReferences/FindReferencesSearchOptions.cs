@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             new(
                 associatePropertyReferencesWithSpecificAccessor: false,
                 cascade: true,
-                parallel: true);
+                @explicit: true);
 
         /// <summary>
         /// When searching for property, associate specific references we find to the relevant
@@ -39,43 +39,43 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool Cascade { get; }
 
         /// <summary>
-        /// Whether or not we should perform the find operation in parallel.  This can produce results more quickly, but
-        /// at the cost of more system resources.
+        /// Whether or not this find ref operation was explicitly invoked or not.  If explicit invoked, the find
+        /// references operation may use more resources to get the results faster.
         /// </summary>
         /// <remarks>
         /// Features that run automatically should consider setting this to <see langword="false"/> to avoid
         /// unnecessarily impacting the user while they are doing other work.
         /// </remarks>
         [DataMember(Order = 2)]
-        public bool Parallel { get; }
+        public bool Explicit { get; }
 
         public FindReferencesSearchOptions(
             bool associatePropertyReferencesWithSpecificAccessor,
             bool cascade,
-            bool parallel)
+            bool @explicit)
         {
             AssociatePropertyReferencesWithSpecificAccessor = associatePropertyReferencesWithSpecificAccessor;
             Cascade = cascade;
-            Parallel = parallel;
+            Explicit = @explicit;
         }
 
         public FindReferencesSearchOptions With(
             Optional<bool> associatePropertyReferencesWithSpecificAccessor = default,
             Optional<bool> cascade = default,
-            Optional<bool> parallel = default)
+            Optional<bool> @explicit = default)
         {
             var newAssociatePropertyReferencesWithSpecificAccessor = associatePropertyReferencesWithSpecificAccessor.HasValue ? associatePropertyReferencesWithSpecificAccessor.Value : AssociatePropertyReferencesWithSpecificAccessor;
             var newCascade = cascade.HasValue ? cascade.Value : Cascade;
-            var newParallel = parallel.HasValue ? parallel.Value : Parallel;
+            var newExplicit = @explicit.HasValue ? @explicit.Value : Explicit;
 
             if (newAssociatePropertyReferencesWithSpecificAccessor == AssociatePropertyReferencesWithSpecificAccessor &&
                 newCascade == Cascade &&
-                newParallel == Parallel)
+                newExplicit == Explicit)
             {
                 return this;
             }
 
-            return new FindReferencesSearchOptions(newAssociatePropertyReferencesWithSpecificAccessor, newCascade, newParallel);
+            return new FindReferencesSearchOptions(newAssociatePropertyReferencesWithSpecificAccessor, newCascade, newExplicit);
         }
 
         /// <summary>

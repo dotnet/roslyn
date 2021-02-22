@@ -255,19 +255,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Optional uiVisibleOnly As Boolean = False,
                 Optional options As FindReferencesSearchOptions = Nothing) As Task
 
-            Await TestAPI(definition, host, parallel:=False, searchSingleFileOnly, uiVisibleOnly, options)
-            Await TestAPI(definition, host, parallel:=True, searchSingleFileOnly, uiVisibleOnly, options)
+            Await TestAPI(definition, host, explicit:=False, searchSingleFileOnly, uiVisibleOnly, options)
+            Await TestAPI(definition, host, explicit:=True, searchSingleFileOnly, uiVisibleOnly, options)
         End Function
 
         Private Async Function TestAPI(
                 definition As XElement,
                 host As TestHost,
-                parallel As Boolean,
+                explicit As Boolean,
                 searchSingleFileOnly As Boolean,
                 uiVisibleOnly As Boolean,
                 options As FindReferencesSearchOptions) As Task
             options = If(options, FindReferencesSearchOptions.Default)
-            options = options.With(parallel:=parallel)
+            options = options.With(explicit:=explicit)
             Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host))
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
