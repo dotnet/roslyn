@@ -397,15 +397,12 @@ namespace Microsoft.CodeAnalysis.Collections
                     return false;
                 }
 
-                var segmentLength = _firstSegments[0].Length;
                 if (_completed == 0)
                 {
-                    var initialFirstSegment = _firstOffset / segmentLength;
-                    var initialFirstSegmentStart = initialFirstSegment * segmentLength;
-                    var initialSecondSegment = _secondOffset / segmentLength;
-                    var initialSecondSegmentStart = initialSecondSegment * segmentLength;
-                    var offset = _firstOffset - initialFirstSegmentStart;
-                    Debug.Assert(offset == (_secondOffset - initialSecondSegmentStart), "Aligned views must start at the same segment offset");
+                    var initialFirstSegment = _firstOffset >> SegmentedArrayHelper.GetSegmentShift<T>();
+                    var initialSecondSegment = _secondOffset >> SegmentedArrayHelper.GetSegmentShift<T>();
+                    var offset = _firstOffset & SegmentedArrayHelper.GetOffsetMask<T>();
+                    Debug.Assert(offset == (_secondOffset & SegmentedArrayHelper.GetOffsetMask<T>()), "Aligned views must start at the same segment offset");
 
                     var firstSegment = _firstSegments[initialFirstSegment];
                     var secondSegment = _secondSegments[initialSecondSegment];
@@ -417,9 +414,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
                 else
                 {
-                    var firstSegment = _firstSegments[(_completed + _firstOffset) / segmentLength];
-                    var secondSegment = _secondSegments[(_completed + _secondOffset) / segmentLength];
-                    var currentSegmentLength = Math.Min(segmentLength, _length - _completed);
+                    var firstSegment = _firstSegments[(_completed + _firstOffset) >> SegmentedArrayHelper.GetSegmentShift<T>()];
+                    var secondSegment = _secondSegments[(_completed + _secondOffset) >> SegmentedArrayHelper.GetSegmentShift<T>()];
+                    var currentSegmentLength = Math.Min(SegmentedArrayHelper.GetSegmentSize<T>(), _length - _completed);
                     _current = (firstSegment.AsMemory().Slice(0, currentSegmentLength), secondSegment.AsMemory().Slice(0, currentSegmentLength));
                     _completed += currentSegmentLength;
                     return true;
@@ -486,13 +483,10 @@ namespace Microsoft.CodeAnalysis.Collections
                     return false;
                 }
 
-                var segmentLength = Math.Max(_firstSegments[0].Length, _secondSegments[0].Length);
-                var initialFirstSegment = (_completed + _firstOffset) / segmentLength;
-                var initialFirstSegmentStart = initialFirstSegment * segmentLength;
-                var initialSecondSegment = (_completed + _secondOffset) / segmentLength;
-                var initialSecondSegmentStart = initialSecondSegment * segmentLength;
-                var firstOffset = _completed + _firstOffset - initialFirstSegmentStart;
-                var secondOffset = _completed + _secondOffset - initialSecondSegmentStart;
+                var initialFirstSegment = (_completed + _firstOffset) >> SegmentedArrayHelper.GetSegmentShift<T>();
+                var initialSecondSegment = (_completed + _secondOffset) >> SegmentedArrayHelper.GetSegmentShift<T>();
+                var firstOffset = (_completed + _firstOffset) & SegmentedArrayHelper.GetOffsetMask<T>();
+                var secondOffset = (_completed + _secondOffset) & SegmentedArrayHelper.GetOffsetMask<T>();
 
                 var firstSegment = _firstSegments[initialFirstSegment];
                 var secondSegment = _secondSegments[initialSecondSegment];
@@ -580,12 +574,10 @@ namespace Microsoft.CodeAnalysis.Collections
                     return false;
                 }
 
-                var segmentLength = _segments[0].Length;
                 if (_completed == 0)
                 {
-                    var firstSegment = _offset / segmentLength;
-                    var firstSegmentStart = firstSegment * segmentLength;
-                    var offset = _offset - firstSegmentStart;
+                    var firstSegment = _offset >> SegmentedArrayHelper.GetSegmentShift<T>();
+                    var offset = _offset & SegmentedArrayHelper.GetOffsetMask<T>();
 
                     var segment = _segments[firstSegment];
                     var remainingInSegment = segment.Length - offset;
@@ -595,8 +587,8 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
                 else
                 {
-                    var segment = _segments[(_completed + _offset) / segmentLength];
-                    _current = segment.AsMemory().Slice(0, Math.Min(segmentLength, _length - _completed));
+                    var segment = _segments[(_completed + _offset) >> SegmentedArrayHelper.GetSegmentShift<T>()];
+                    _current = segment.AsMemory().Slice(0, Math.Min(SegmentedArrayHelper.GetSegmentSize<T>(), _length - _completed));
                     _completed += _current.Length;
                     return true;
                 }
@@ -631,12 +623,10 @@ namespace Microsoft.CodeAnalysis.Collections
                         return false;
                     }
 
-                    var segmentLength = _segments[0].Length;
                     if (_completed == 0)
                     {
-                        var firstSegment = _offset / segmentLength;
-                        var firstSegmentStart = firstSegment * segmentLength;
-                        var offset = _offset - firstSegmentStart;
+                        var firstSegment = _offset >> SegmentedArrayHelper.GetSegmentShift<T>();
+                        var offset = _offset & SegmentedArrayHelper.GetOffsetMask<T>();
 
                         var segment = _segments[firstSegment];
                         var remainingInSegment = segment.Length - offset;
@@ -646,8 +636,8 @@ namespace Microsoft.CodeAnalysis.Collections
                     }
                     else
                     {
-                        var segment = _segments[(_completed + _offset) / segmentLength];
-                        _current = segment.AsMemory().Slice(0, Math.Min(segmentLength, _length - _completed));
+                        var segment = _segments[(_completed + _offset) >> SegmentedArrayHelper.GetSegmentShift<T>()];
+                        _current = segment.AsMemory().Slice(0, Math.Min(SegmentedArrayHelper.GetSegmentSize<T>(), _length - _completed));
                         _completed += _current.Length;
                         return true;
                     }
