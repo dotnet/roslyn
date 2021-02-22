@@ -31,9 +31,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         /// <summary>
         /// Scheduler to run our tasks on.  If we're in <see cref="FindReferencesSearchOptions.Parallel"/> mode, we'll
-        /// run all our tasks concurrently.  Otherwise, we will run them serially.
+        /// run all our tasks concurrently.  Otherwise, we will run them serially using <see cref="s_exclusiveScheduler"/>
         /// </summary>
         private readonly TaskScheduler _scheduler;
+        private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
 
         public FindReferencesSearchEngine(
             Solution solution,
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // If we're running in parallel, just defer to the threadpool to execute all our work in parallel.  If we're
             // running serially, then use a ConcurrentExclusiveSchedulerPair as that's the most built-in way in the TPL
             // to get a sheduler that can execute in that fashion.
-            _scheduler = _options.Parallel ? TaskScheduler.Default : new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
+            _scheduler = _options.Parallel ? TaskScheduler.Default : s_exclusiveScheduler;
         }
 
         public async Task FindReferencesAsync(ISymbol symbol)
