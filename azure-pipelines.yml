@@ -227,7 +227,7 @@ jobs:
         filePath: eng/build.ps1
         arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
 
-    - powershell: .\eng\test-rebuild.ps1
+    - powershell: .\eng\test-rebuild.ps1 -ci
       displayName: Run BuildValidator
 
     - task: PublishBuildArtifacts@1
