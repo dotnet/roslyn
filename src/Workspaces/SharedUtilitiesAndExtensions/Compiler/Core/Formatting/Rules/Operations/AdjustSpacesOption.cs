@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     internal enum AdjustSpacesOption
     {
         /// <summary>
-        /// Sentinal value for <see cref="AdjustSpacesOperation.None"/>.
+        /// Sentinel value for <see cref="AdjustSpacesOperation.None"/>.
         /// </summary>
         None,
 
