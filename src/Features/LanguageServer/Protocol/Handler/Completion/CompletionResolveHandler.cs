@@ -82,57 +82,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var description = await completionService.GetDescriptionAsync(document, selectedItem, cancellationToken).ConfigureAwait(false);
 
-            var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
-            LSP.CompletionItem resolvedCompletionItem;
-            if (lspVSClientCapability)
+            if (completionItem is LSP.VSCompletionItem vsCompletionItem)
             {
-                resolvedCompletionItem = CloneVSCompletionItem(completionItem);
-                ((LSP.VSCompletionItem)resolvedCompletionItem).Description = new ClassifiedTextElement(description.TaggedParts
+                vsCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts
                     .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
-            }
-            else
-            {
-                resolvedCompletionItem = RoslynCompletionItem.From(completionItem);
-                ((RoslynCompletionItem)resolvedCompletionItem).Description = description.TaggedParts.Select(
-                    tp => new RoslynTaggedText { Tag = tp.Tag, Text = tp.Text }).ToArray();
             }
 
             // We compute the TextEdit resolves for override and partial method completions here.
-            // Lazily resolving TextEdits is a supported hack in VS, but when the hack is removed
+            // Lazily resolving TextEdits is technically a violation of the LSP spec, but is
+            // currently supported by the VS client anyway. Once the VS client adheres to the spec,
             // this logic will need to change and VS will need to provide official support for
             // TextEdit resolution in some form.
-            if (resolvedCompletionItem.InsertText == null && resolvedCompletionItem.TextEdit == null)
+            if (completionItem.InsertText == null && completionItem.TextEdit == null)
             {
-                var snippetsSupported = context.ClientCapabilities?.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
+                var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
 
-                resolvedCompletionItem.TextEdit = await GenerateTextEditAsync(
+                completionItem.TextEdit = await GenerateTextEditAsync(
                     document, completionService, selectedItem, snippetsSupported, cancellationToken).ConfigureAwait(false);
             }
 
-            resolvedCompletionItem.Detail = description.TaggedParts.GetFullText();
-            return resolvedCompletionItem;
-        }
-
-        private static LSP.VSCompletionItem CloneVSCompletionItem(LSP.CompletionItem completionItem)
-        {
-            return new LSP.VSCompletionItem
-            {
-                AdditionalTextEdits = completionItem.AdditionalTextEdits,
-                Command = completionItem.Command,
-                CommitCharacters = completionItem.CommitCharacters,
-                Data = completionItem.Data,
-                Detail = completionItem.Detail,
-                Documentation = completionItem.Documentation,
-                FilterText = completionItem.FilterText,
-                Icon = completionItem is LSP.VSCompletionItem vsCompletionItem ? vsCompletionItem.Icon : null,
-                InsertText = completionItem.InsertText,
-                InsertTextFormat = completionItem.InsertTextFormat,
-                Kind = completionItem.Kind,
-                Label = completionItem.Label,
-                SortText = completionItem.SortText,
-                TextEdit = completionItem.TextEdit,
-                Preselect = completionItem.Preselect
-            };
+            completionItem.Detail = description.TaggedParts.GetFullText();
+            return completionItem;
         }
 
         private static async Task<LSP.TextEdit> GenerateTextEditAsync(
@@ -159,7 +129,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // caretPosition is the absolute position of the caret in the document.
                     // We want the position relative to the start of the snippet.
                     var relativeCaretPosition = caretPosition.Value - completionChangeSpan.Start;
-                    newText = newText?.Insert(relativeCaretPosition, "$0");
+
+                    // Technically, the caret could be placed outside the bounds of the text
+                    // being inserted. This situation is currently unsupported in LSP, so in
+                    // these cases we won't move the caret.
+                    if (relativeCaretPosition > 0 && relativeCaretPosition <= newText?.Length)
+                    {
+                        newText = newText?.Insert(relativeCaretPosition, "$0");
+                    }
                 }
             }
 

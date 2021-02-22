@@ -96,8 +96,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // We also check against the CompletionOption for test purposes only.
             Contract.ThrowIfNull(context.Solution);
             var featureFlagService = context.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-            var returnTextEdits = featureFlagService.IsExperimentEnabled("Roslyn.LSP.Completion") ||
-                completionOptions.GetOption(CompletionOptions.UseLSPPrototypeBehavior, document.Project.Language);
+            var returnTextEdits = featureFlagService.IsExperimentEnabled(WellKnownExperimentNames.LSPCompletion) ||
+                completionOptions.GetOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, document.Project.Language);
 
             SourceText? documentText = null;
             TextSpan? defaultSpan = null;
@@ -214,15 +214,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 var completionItem = new TCompletionItem
                 {
-                    TextEdit = returnTextEdits
-                        ? textEdit
-                        : null,
-                    InsertText = returnTextEdits || isOverrideOrPartialMethodCompletion
-                        ? null
-                        : item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText,
-                    InsertTextFormat = isOverrideOrPartialMethodCompletion && clientName == "RazorCSharp"
-                        ? LSP.InsertTextFormat.Snippet
-                        : LSP.InsertTextFormat.Plaintext,
                     Label = completeDisplayText,
                     SortText = item.SortText,
                     FilterText = item.FilterText,
@@ -237,6 +228,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     },
                     Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
                 };
+
+                // Override and partial method completions are always populated in the resolve handler, so we
+                // leave both TextEdit and InsertText unpopulated in these cases.
+                if (isOverrideOrPartialMethodCompletion)
+                {
+                    // Razor C# is currently the only language client that supports LSP.InsertTextFormat.Snippet.
+                    if (clientName == ProtocolConstants.RazorCSharp)
+                    {
+                        completionItem.InsertTextFormat = LSP.InsertTextFormat.Snippet;
+                    }
+                }
+                // If the feature flag is on, always return a TextEdit.
+                else if (returnTextEdits)
+                {
+                    completionItem.TextEdit = textEdit;
+                }
+                // If the feature flag is off, return an InsertText.
+                else
+                {
+                    completionItem.InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText;
+                }
 
                 var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache);
                 if (commitCharacters != null)

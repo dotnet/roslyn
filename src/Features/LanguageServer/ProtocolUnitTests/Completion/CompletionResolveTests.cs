@@ -74,8 +74,63 @@ class B : A
 
             var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(
                 testLspServer, completionItem, clientCapabilities).ConfigureAwait(false);
+
             Assert.NotNull(results.TextEdit);
             Assert.Null(results.InsertText);
+            Assert.Equal(@"public override void M()
+    {
+        throw new System.NotImplementedException();
+    }", results.TextEdit.NewText);
+        }
+
+        [Fact]
+        public async Task TestResolveOverridesCompletionItem_SnippetsEnabledAsync()
+        {
+            var markup =
+@"abstract class A
+{
+    public abstract void M();
+}
+
+class B : A
+{
+    override {|caret:|}
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var tags = new string[] { "Method", "Public" };
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), LSP.VSCompletionInvokeKind.Explicit, "\0", LSP.CompletionTriggerKind.Invoked);
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var completionItem = await CreateCompletionItemAsync(
+                label: "M()", LSP.CompletionItemKind.Method, tags, completionParams, document,
+                commitCharacters: CompletionRules.Default.DefaultCommitCharacters).ConfigureAwait(false);
+
+            // Explicitly enable snippets. This allows us to set the cursor with $0. Currently only applies to C# in Razor docs.
+            var clientCapabilities = new LSP.VSClientCapabilities
+            {
+                SupportsVisualStudioExtensions = true,
+                TextDocument = new LSP.TextDocumentClientCapabilities
+                {
+                    Completion = new CompletionSetting
+                    {
+                        CompletionItem = new CompletionItemSetting
+                        {
+                            SnippetSupport = true
+                        }
+                    }
+                }
+            };
+
+            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(
+                testLspServer, completionItem, clientCapabilities).ConfigureAwait(false);
+
+            Assert.NotNull(results.TextEdit);
+            Assert.Null(results.InsertText);
+            Assert.Equal(@"public override void M()
+    {
+        throw new System.NotImplementedException();$0
+    }", results.TextEdit.NewText);
         }
 
         private static async Task<object> RunResolveCompletionItemAsync(TestLspServer testLspServer, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)

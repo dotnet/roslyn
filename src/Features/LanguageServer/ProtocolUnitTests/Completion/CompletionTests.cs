@@ -208,7 +208,7 @@ class A
             var document = solution.Projects.First().Documents.First();
 
             // Set to use prototype completion behavior (i.e. feature flag).
-            var options = solution.Workspace.Options.WithChangedOption(CompletionOptions.UseLSPPrototypeBehavior, LanguageNames.CSharp, true);
+            var options = solution.Workspace.Options.WithChangedOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, LanguageNames.CSharp, true);
             Assert.True(solution.Workspace.TryApplyChanges(solution.WithOptions(options)));
 
             var textEdit = GenerateTextEdit(@"\\A", startLine: 5, startChar: 19, endLine: 5, endChar: 19);
@@ -245,7 +245,7 @@ class A
             var document = solution.Projects.First().Documents.First();
 
             // Set to use prototype completion behavior (i.e. feature flag).
-            var options = solution.Workspace.Options.WithChangedOption(CompletionOptions.UseLSPPrototypeBehavior, LanguageNames.CSharp, true);
+            var options = solution.Workspace.Options.WithChangedOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, LanguageNames.CSharp, true);
             Assert.True(solution.Workspace.TryApplyChanges(solution.WithOptions(options)));
 
             var textEdit = GenerateTextEdit(@"\A", startLine: 5, startChar: 20, endLine: 5, endChar: 21);
@@ -282,7 +282,7 @@ class A
             var document = solution.Projects.First().Documents.First();
 
             // Set to use prototype completion behavior (i.e. feature flag).
-            var options = solution.Workspace.Options.WithChangedOption(CompletionOptions.UseLSPPrototypeBehavior, LanguageNames.CSharp, true);
+            var options = solution.Workspace.Options.WithChangedOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, LanguageNames.CSharp, true);
             Assert.True(solution.Workspace.TryApplyChanges(solution.WithOptions(options)));
 
             var textEdit = GenerateTextEdit(@"\\A", startLine: 5, startChar: 23, endLine: 5, endChar: 25);
