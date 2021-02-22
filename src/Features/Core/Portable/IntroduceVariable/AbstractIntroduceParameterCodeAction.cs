@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax, TInvocationExpressionSyntax>
+    internal partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax>
     {
         internal abstract class AbstractIntroduceParameterCodeAction : CodeAction
         {
@@ -85,16 +85,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         formatString = FeaturesResources.Introduce_parameter_for_0;
                     }
                 }
+
                 return string.Format(formatString, nodeString);
-            }
-
-            protected ITypeSymbol GetExpressionType(
-                CancellationToken cancellationToken)
-            {
-                var semanticModel = _semanticDocument.SemanticModel;
-                var typeInfo = semanticModel.GetTypeInfo(_expression, cancellationToken);
-
-                return typeInfo.Type ?? typeInfo.ConvertedType ?? semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
             }
         }
     }

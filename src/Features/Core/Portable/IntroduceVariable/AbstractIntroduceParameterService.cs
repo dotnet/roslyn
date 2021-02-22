@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddParameter;
@@ -19,8 +17,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -29,11 +25,17 @@ using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal abstract partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax, TInvocationExpressionSyntax> : CodeRefactoringProvider
-        where TService : AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax, TInvocationExpressionSyntax>
+    internal abstract partial class AbstractIntroduceParameterService<
+        TService,
+        TExpressionSyntax,
+        TMethodDeclarationSyntax,
+        TInvocationExpressionSyntax,
+        TIdentifierNameSyntax> : CodeRefactoringProvider
+        where TService : AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax>
         where TExpressionSyntax : SyntaxNode
         where TMethodDeclarationSyntax : SyntaxNode
         where TInvocationExpressionSyntax : SyntaxNode
+        where TIdentifierNameSyntax : SyntaxNode
     {
         protected const string ExpressionAnnotationKind = nameof(ExpressionAnnotationKind);
         protected abstract Task<Solution> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken);
@@ -57,34 +59,19 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         public async Task<CodeAction> IntroduceParameterAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
             var expression = await document.TryGetRelevantNodeAsync<TExpressionSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
             if (expression == null || CodeRefactoringHelpers.IsNodeUnderselected(expression, textSpan))
             {
                 return null;
             }
 
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
             var expressionType = semanticDocument.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            if (expressionType is IErrorTypeSymbol)
+            if (expressionType is null or IErrorTypeSymbol)
             {
                 return null;
             }
-
-            var containingType = expression.AncestorsAndSelf()
-                .Select(n => semanticDocument.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
-                .OfType<INamedTypeSymbol>()
-                .FirstOrDefault();
-
-            containingType ??= semanticDocument.SemanticModel.Compilation.ScriptClass;
-
-            if (containingType == null || containingType.TypeKind == TypeKind.Interface)
-            {
-                return null;
-            }
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             if (expression != null)
             {
@@ -95,11 +82,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return new CodeActionWithNestedActions(title, actions, isInlinable: true);
                 }
             }
-            return null;
 
+            return null;
         }
 
-        public async Task<Solution> AbstractIntroduceParameterForRefactoringAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken)
+        public async Task<Solution> IntroduceParameterForRefactoringAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken)
         {
             var parameterName = GetNewParameterName(document, expression, cancellationToken);
 
@@ -129,7 +116,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return documentWithUpdatedMethodBody.Project.Solution;
         }
 
-        public async Task<Solution> AbstractIntroduceParameterForTrampolineAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken)
+        /// <summary>
+        /// Will be the method in which a new function is introduced that calls upon the updated method so that all refactorings are coalesced to one location
+        /// </summary>
+        /// <param name="document"></param>
+        /// <param name="expression"></param>
+        /// <param name="allOccurrences"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<Solution> IntroduceParameterForTrampolineAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken)
         {
             var parameterName = GetNewParameterName(document, expression, cancellationToken);
 
@@ -148,7 +143,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected static Task<Solution> AddParameterToMethodHeaderAsync(SemanticDocument document, TExpressionSyntax expression, string parameterName, CancellationToken cancellationToken)
         {
             var invocationDocument = document.Document;
-            var methodExpression = expression.FirstAncestorOrSelf<TMethodDeclarationSyntax>(node => node is TMethodDeclarationSyntax, true);
+            var methodExpression = expression.FirstAncestorOrSelf<TMethodDeclarationSyntax>(node => node is TMethodDeclarationSyntax, ascendOutOfTrivia: true);
             var semanticModel = document.SemanticModel;
             var symbolInfo = (IMethodSymbol)semanticModel.GetDeclaredSymbol(methodExpression, cancellationToken);
             var syntaxFacts = invocationDocument.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -161,10 +156,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 parameterType,
                 refKind,
                 parameterName,
-                null,
-                false,
-                cancellationToken,
-                true);
+                newParameterIndex: null,
+                fixAllReferences: false,
+                cancellationToken);
         }
 
         protected static string GetNewParameterName(SemanticDocument document, TExpressionSyntax expression, CancellationToken cancellationToken)
@@ -206,7 +200,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document.Document);
-            var parameterNameSyntax = (TExpressionSyntax)generator.IdentifierName(parameterName);
+            var parameterNameSyntax = (TIdentifierNameSyntax)generator.IdentifierName(parameterName);
             var block = (TMethodDeclarationSyntax)newExpression.Ancestors().FirstOrDefault(s => s is TMethodDeclarationSyntax);
             SyntaxNode scope = block;
 
@@ -349,7 +343,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         protected TNode Rewrite<TNode>(
             SemanticDocument originalDocument,
             TExpressionSyntax expressionInOriginal,
-            TExpressionSyntax variableName,
+            TIdentifierNameSyntax variableName,
             SemanticDocument currentDocument,
             TNode withinNodeInCurrent,
             bool allOccurrences,
@@ -362,6 +356,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // Parenthesize the variable, and go and replace anything we find with it.
             // NOTE: we do not want elastic trivia as we want to just replace the existing code 
             // as is, while preserving the trivia there.  We do not want to update it.
+            var syntaxFacts = originalDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var expressionToken = syntaxFacts.GetIdentifierOfIdentifierName(variableName);
+            var updatedExpressionToken = expressionToken.WithAdditionalAnnotations(RenameAnnotation.Create());
+            variableName = variableName.ReplaceToken(expressionToken, updatedExpressionToken);
+
             var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false)
                                          .WithAdditionalAnnotations(Formatter.Annotation);
 

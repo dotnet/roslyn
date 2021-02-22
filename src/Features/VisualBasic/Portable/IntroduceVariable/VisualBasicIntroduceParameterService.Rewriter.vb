@@ -22,10 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Public Overrides Function Visit(node As SyntaxNode) As SyntaxNode
                 Dim expression = TryCast(node, ExpressionSyntax)
                 If expression IsNot Nothing AndAlso _matches.Contains(expression) Then
-                    Return _replacementNode _
-                        .WithLeadingTrivia(expression.GetLeadingTrivia()) _
-                        .WithTrailingTrivia(expression.GetTrailingTrivia()) _
-                        .WithAdditionalAnnotations(_replacementAnnotation)
+                    Return _replacementNode.WithTriviaFrom(expression).WithAdditionalAnnotations(_replacementAnnotation)
                 End If
 
                 Return MyBase.Visit(node)

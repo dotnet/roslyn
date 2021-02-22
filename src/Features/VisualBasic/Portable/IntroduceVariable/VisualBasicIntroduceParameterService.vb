@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicIntroduceParameterService
-        Inherits AbstractIntroduceParameterService(Of VisualBasicIntroduceParameterService, ExpressionSyntax, MethodBlockSyntax, InvocationExpressionSyntax)
+        Inherits AbstractIntroduceParameterService(Of VisualBasicIntroduceParameterService, ExpressionSyntax, MethodBlockSyntax, InvocationExpressionSyntax, IdentifierNameSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -26,16 +26,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         Protected Overrides Async Function IntroduceParameterAsync(document As SemanticDocument, expression As ExpressionSyntax, allOccurrences As Boolean, trampoline As Boolean, cancellationToken As Threading.CancellationToken) As Task(Of Solution)
             If Not trampoline Then
-                Return Await AbstractIntroduceParameterForRefactoringAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(False)
+                Return Await IntroduceParameterForRefactoringAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(False)
             Else
-                Return Await AbstractIntroduceParameterForTrampolineAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(False)
+                Return Await IntroduceParameterForTrampolineAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(False)
             End If
 
         End Function
 
         Protected Overrides Async Function RewriteCallSitesAsync(expression As ExpressionSyntax, callSites As ImmutableDictionary(Of Document, List(Of InvocationExpressionSyntax)),
                                                             methodSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of Solution)
-            Dim mappingDictionary = TieExpressionToParameters(expression, methodSymbol)
+            Dim mappingDictionary = MapExpressionToParameters(expression, methodSymbol)
             expression = expression.TrackNodes(mappingDictionary.Values)
             Dim identifiers = expression.DescendantNodes().OfType(Of IdentifierNameSyntax)
 
@@ -70,7 +70,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                         newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(value), parenthesizedArgumentExpression)
                     Next
 
-                    Dim allArguments = invocationExpression.ArgumentList.Arguments.Add(SyntaxFactory.SimpleArgument(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)))
+                    Dim allArguments =
+                        invocationExpression.ArgumentList.Arguments.Add(SyntaxFactory.SimpleArgument(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)))
                     editor.ReplaceNode(invocationExpression, editor.Generator.InvocationExpression(invocationExpression.Expression, allArguments))
                 Next
 
@@ -82,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return currentSolution
         End Function
 
-        Private Shared Function TieExpressionToParameters(expression As ExpressionSyntax, methodSymbol As IMethodSymbol) As Dictionary(Of IParameterSymbol, IdentifierNameSyntax)
+        Private Shared Function MapExpressionToParameters(expression As ExpressionSyntax, methodSymbol As IMethodSymbol) As Dictionary(Of IParameterSymbol, IdentifierNameSyntax)
 
             Dim nameToParameterDict = New Dictionary(Of IParameterSymbol, IdentifierNameSyntax)
             Dim variablesInExpression = expression.DescendantNodes().OfType(Of IdentifierNameSyntax)

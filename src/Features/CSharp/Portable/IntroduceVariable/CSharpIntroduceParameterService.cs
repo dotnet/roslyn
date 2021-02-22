@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -31,7 +29,12 @@ using Microsoft.CodeAnalysis.Simplification;
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpIntroduceParameterService : AbstractIntroduceParameterService<CSharpIntroduceParameterService, ExpressionSyntax, MethodDeclarationSyntax, InvocationExpressionSyntax>
+    internal partial class CSharpIntroduceParameterService : AbstractIntroduceParameterService<
+        CSharpIntroduceParameterService,
+        ExpressionSyntax,
+        MethodDeclarationSyntax,
+        InvocationExpressionSyntax,
+        IdentifierNameSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -43,26 +46,26 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             if (!trampoline)
             {
-                return await AbstractIntroduceParameterForRefactoringAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(false);
+                return await IntroduceParameterForRefactoringAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(false);
 
             }
             else
             {
-                return await AbstractIntroduceParameterForTrampolineAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(false);
+                return await IntroduceParameterForTrampolineAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        protected override async Task<Solution> RewriteCallSitesAsync(ExpressionSyntax expression, ImmutableDictionary<Document, List<InvocationExpressionSyntax>> callSites,
+        protected override async Task<Solution?> RewriteCallSitesAsync(ExpressionSyntax expression, ImmutableDictionary<Document, List<InvocationExpressionSyntax>> callSites,
          IMethodSymbol methodSymbol, CancellationToken cancellationToken)
         {
-            var mappingDictionary = TieExpressionToParameters(expression, methodSymbol);
-            expression = expression.TrackNodes(mappingDictionary.Values);
-            var identifiers = expression.DescendantNodes().Where(node => node is IdentifierNameSyntax);
-
             if (!callSites.Keys.Any())
             {
                 return null;
             }
+
+            var mappingDictionary = MapExpressionToParameters(expression, methodSymbol);
+            expression = expression.TrackNodes(mappingDictionary.Values);
+            var identifiers = expression.DescendantNodes().Where(node => node is IdentifierNameSyntax);
 
             var firstCallSite = callSites.Keys.First();
 
@@ -83,15 +86,17 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     foreach (var argument in invocationArguments)
                     {
                         var associatedParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, argument, cancellationToken);
-                        var parenthesizedArgumentExpression = generator.AddParentheses(argument.Expression, false);
                         if (!mappingDictionary.TryGetValue(associatedParameter, out var value))
                         {
                             continue;
                         }
 
+                        var parenthesizedArgumentExpression = generator.AddParentheses(argument.Expression, includeElasticTrivia: false);
                         newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(value), parenthesizedArgumentExpression);
                     }
-                    var allArguments = invocationExpression.ArgumentList.Arguments.Add(SyntaxFactory.Argument(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)));
+
+                    var allArguments =
+                        invocationExpression.ArgumentList.Arguments.Add(SyntaxFactory.Argument(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)));
                     editor.ReplaceNode(invocationExpression, editor.Generator.InvocationExpression(invocationExpression.Expression, allArguments));
                 }
 
@@ -109,10 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         /// <param name="expression"> The expression containing identifiers we are tying back to the parameters </param>
         /// <param name="methodSymbol"> The method containing the expression </param>
         /// <returns></returns>
-        private static Dictionary<IParameterSymbol, IdentifierNameSyntax> TieExpressionToParameters(ExpressionSyntax expression, IMethodSymbol methodSymbol)
+        private static Dictionary<IParameterSymbol, IdentifierNameSyntax> MapExpressionToParameters(ExpressionSyntax expression, IMethodSymbol methodSymbol)
         {
             var nameToParameterDict = new Dictionary<IParameterSymbol, IdentifierNameSyntax>();
-            var variablesInExpression = expression.DescendantNodes().Where(node => node is IdentifierNameSyntax);
+            var variablesInExpression = expression.DescendantNodes().OfType<IdentifierNameSyntax>();
 
             foreach (var variable in variablesInExpression)
             {
@@ -130,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override bool ExpressionWithinParameterizedMethod(ExpressionSyntax expression)
         {
-            var methodExpression = expression.FirstAncestorOrSelf<MethodDeclarationSyntax>(node => node is MethodDeclarationSyntax, true);
-            var variablesInExpression = expression.DescendantNodes().Where(node => node is IdentifierNameSyntax);
+            var methodExpression = expression.FirstAncestorOrSelf<MethodDeclarationSyntax>(node => node is MethodDeclarationSyntax, ascendOutOfTrivia: true);
+            var variablesInExpression = expression.DescendantNodes().OfType<IdentifierNameSyntax>();
             var variableCount = 0;
             var parameterCount = 0;
 

@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -80,8 +79,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             string parameterName,
             int? newParameterIndex,
             bool fixAllReferences,
-            CancellationToken cancellationToken,
-            bool offerRename = false)
+            CancellationToken cancellationToken)
         {
             var solution = invocationDocument.Project.Solution;
 
@@ -130,14 +128,6 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     if (method.MethodKind == MethodKind.ReducedExtension && insertionIndex < existingParameters.Count)
                     {
                         insertionIndex++;
-                    }
-
-                    if (offerRename)
-                    {
-                        var paramToken = syntaxFacts.GetIdentifierOfParameter(parameterDeclaration);
-                        var newParamToken = paramToken.WithAdditionalAnnotations(RenameAnnotation.Create());
-                        parameterDeclaration = parameterDeclaration.ReplaceToken(paramToken, newParamToken);
-                        //parameterDeclaration = parameterDeclaration.WithAdditionalAnnotations(RenameAnnotation.Create());
                     }
 
                     AddParameter(syntaxFacts, editor, methodNode, insertionIndex, parameterDeclaration, cancellationToken);

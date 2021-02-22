@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                 @"using System;
                 class TestClass
                 {
-                    void M(int x, int y, int z, int {|Rename:v|}) 
+                    void M(int x, int y, int z, int v) 
                     {
-                        int m = v;
+                        int m = {|Rename:v|};
                     }
                 }";
 
@@ -86,9 +86,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                 @"using System;
                 class TestClass
                 {
-                    void M(int x, int y, int z, int {|Rename:v|})
+                    void M(int x, int y, int z, int v)
                     {
-                        int m = v;
+                        int m = {|Rename:v|};
                     }
 
                     void M1(int x, int y, int z) 
@@ -144,9 +144,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                 @"using System;
                 class TestClass
                 {
-                    void M(int x, int y, int z, int {|Rename:v|})
+                    void M(int x, int y, int z, int v)
                     {
-                        int m = v;
+                        int m = {|Rename:v|};
                     }
 
                     void M1(int x, int y, int z) 
@@ -182,10 +182,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                 @"using System;
                 class TestClass
                 {
-                    void M(int x, int y, int z, int {|Rename:v|})
+                    void M(int x, int y, int z, int v)
                     {
-                        int m = v;
-                        int f = v;
+                        int m = {|Rename:v|};
+                        int f = {|Rename:v|};
                     }
 
                     void M1(int x, int y, int z) 
@@ -214,9 +214,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                 @"using System;
                 class TestClass
                 {
-                    void M(int x, int y, int z, int {|Rename:v|}) 
+                    void M(int x, int y, int z, int v) 
                     {
-                        int m = v;
+                        int m = {|Rename:v|};
                     }
                 }";
 
@@ -245,9 +245,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                 @"using System;
                 class TestClass
                 {
-                    void M(int x, int y, int z, int {|Rename:v|})
+                    void M(int x, int y, int z, int v)
                     {
-                        int m = v;
+                        int m = {|Rename:v|};
                     }
 
                     void M1(int x, int y, int z) 

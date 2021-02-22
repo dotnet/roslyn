@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
 End Class"
             Dim expected =
 "Class Program
-    Sub M(x As Integer, y As Integer, z As Integer, {|Rename:v|} As Integer)
-        Dim num As Integer = v
+    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
+        Dim num As Integer = {|Rename:v|}
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=0)
@@ -50,8 +50,8 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Sub M(x As Integer, y As Integer, z As Integer, {|Rename:v|} As Integer)
-        Dim num As Integer = v
+    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
+        Dim num As Integer = {|Rename:v|}
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
@@ -107,8 +107,8 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Sub M(x As Integer, y As Integer, z As Integer, {|Rename:v|} As Integer)
-        Dim num As Integer = v
+    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
+        Dim num As Integer = {|Rename:v|}
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
@@ -134,16 +134,16 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Sub M(x As Integer, y As Integer, z As Integer, {|Rename:v|} As Integer)
-        Dim num2 As Integer = v
-        Dim num As Integer = v
+    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
+        Dim num2 As Integer = {|Rename:v|}
+        Dim num As Integer = {|Rename:v|}
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
         M(z, y, x, z * y* x)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=3)
+            Await TestInRegularAndScriptAsync(source, expected, index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -156,8 +156,8 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Sub M(x As Integer, y As Integer, z As Integer, {|Rename:v|} As Integer)
-        Dim num As Integer = v
+    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
+        Dim num As Integer = {|Rename:v|}
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
@@ -177,8 +177,8 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Sub M(x As Integer, y As Integer, z As Integer, {|Rename:v|} As Integer)
-        Dim num As Integer = v
+    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
+        Dim num As Integer = {|Rename:v|}
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)

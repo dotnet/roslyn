@@ -1461,6 +1461,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, ParameterSyntax).Identifier.Identifier
         End Function
 
+        Public Function GetIdentifierOfIdentifierName(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfIdentifierName
+            Return DirectCast(node, IdentifierNameSyntax).Identifier
+        End Function
+
         Public Function IsLocalFunctionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunctionStatement
             ' VB does not have local functions
             Return False
@@ -2438,6 +2442,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsVerbatimInterpolatedStringExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVerbatimInterpolatedStringExpression
             Return False
         End Function
-
     End Class
 End Namespace
