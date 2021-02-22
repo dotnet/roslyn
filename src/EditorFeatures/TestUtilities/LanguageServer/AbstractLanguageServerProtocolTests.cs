@@ -386,7 +386,7 @@ namespace Roslyn.Test.Utilities
         private static RequestExecutionQueue CreateRequestQueue(TestWorkspace workspace)
         {
             var registrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
-            return new RequestExecutionQueue(registrationService, "Tests", "TestClient");
+            return new RequestExecutionQueue(NoOpLspLogger.Instance, registrationService, serverName: "Tests", "TestClient");
         }
 
         private static string GetDocumentFilePathFromName(string documentName)

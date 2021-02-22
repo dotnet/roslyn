@@ -98,7 +98,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
                     if (analysisScope != BackgroundAnalysisScope.FullSolution)
+                    {
+                        context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
                         return;
+                    }
                 }
 
                 // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
@@ -107,8 +110,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
                     // Each handler treats those as separate worlds that they are responsible for.
-                    if (!context.IsTracking(document.GetURI()))
-                        result.Add(document);
+                    if (context.IsTracking(document.GetURI()))
+                    {
+                        context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                        continue;
+                    }
+
+                    result.Add(document);
                 }
             }
         }
