@@ -9232,11 +9232,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <target state="translated">Gömülü birlikte çalışma türü '{0}' ile eşleşen birlikte çalışma türü bulunamıyor. Bir derleme başvurunuz mu eksik?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Başvuruya göre dönüş türü 'ref {0}' desteklenmiyor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">'{1}' öğesinde depolanan '{0}' modül adı dosya adıyla eşleşmelidir.</target>

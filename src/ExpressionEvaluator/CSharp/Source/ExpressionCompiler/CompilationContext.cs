@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     alias);
 
                                 // Skip pseudo-variables with errors.
-                                if (local.GetUseSiteDiagnostic()?.Severity == DiagnosticSeverity.Error)
+                                if (local.HasUseSiteError)
                                 {
                                     continue;
                                 }
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var local = method.LocalsForBinding[localIndex];
-                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type);
+                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, new BindingDiagnosticBag(diagnostics)), type: local.Type);
                 properties = default;
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
@@ -595,14 +595,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static BoundStatement? BindExpression(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics, out ResultProperties resultProperties)
         {
             var flags = DkmClrCompilationResultFlags.None;
+            var bindingDiagnostics = new BindingDiagnosticBag(diagnostics);
 
             // In addition to C# expressions, the native EE also supports
             // type names which are bound to a representation of the type
             // (but not System.Type) that the user can expand to see the
             // base type. Instead, we only allow valid C# expressions.
             var expression = IsDeconstruction(syntax)
-                ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, diagnostics, resultIsUsedOverride: true)
-                : binder.BindRValueWithoutTargetType(syntax, diagnostics);
+                ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, bindingDiagnostics, resultIsUsedOverride: true)
+                : binder.BindRValueWithoutTargetType(syntax, bindingDiagnostics);
             if (diagnostics.HasAnyErrors())
             {
                 resultProperties = default;
@@ -628,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 expression = binder.CreateReturnConversion(
                     syntax,
-                    diagnostics,
+                    bindingDiagnostics,
                     expression,
                     RefKind.None,
                     binder.Compilation.GetSpecialType(SpecialType.System_Object));
@@ -673,20 +674,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static BoundStatement BindStatement(Binder binder, StatementSyntax syntax, DiagnosticBag diagnostics, out ResultProperties properties)
         {
             properties = new ResultProperties(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
-            return binder.BindStatement(syntax, diagnostics);
+            return binder.BindStatement(syntax, new BindingDiagnosticBag(diagnostics));
         }
 
         private static bool IsAssignableExpression(Binder binder, BoundExpression expression)
         {
-            var diagnostics = DiagnosticBag.GetInstance();
-            var result = binder.CheckValueKind(expression.Syntax, expression, Binder.BindValueKind.Assignable, checkingReceiver: false, diagnostics);
-            diagnostics.Free();
+            var result = binder.CheckValueKind(expression.Syntax, expression, Binder.BindValueKind.Assignable, checkingReceiver: false, BindingDiagnosticBag.Discarded);
             return result;
         }
 
         private static BoundStatement? BindAssignment(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
-            var expression = binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
+            var expression = binder.BindValue(syntax, new BindingDiagnosticBag(diagnostics), Binder.BindValueKind.RValue);
             if (diagnostics.HasAnyErrors())
             {
                 return null;
@@ -1030,9 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     continue;
                                 }
 
-                                var unusedDiagnostics = DiagnosticBag.GetInstance();
-                                var aliasSymbol = (AliasSymbol)binder.BindNamespaceAliasSymbol(externAliasSyntax, unusedDiagnostics);
-                                unusedDiagnostics.Free();
+                                var aliasSymbol = (AliasSymbol)binder.BindNamespaceAliasSymbol(externAliasSyntax, BindingDiagnosticBag.Discarded);
 
                                 if (aliasSymbol is null)
                                 {
@@ -1103,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (alias == null)
             {
-                usingsBuilder.Add(new NamespaceOrTypeAndUsingDirective(targetSymbol, usingDirective: null));
+                usingsBuilder.Add(new NamespaceOrTypeAndUsingDirective(targetSymbol, usingDirective: null, dependencies: default));
             }
             else
             {

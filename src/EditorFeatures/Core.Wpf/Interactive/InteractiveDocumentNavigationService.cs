@@ -7,6 +7,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
         {
-            if (workspace is not InteractiveWorkspace interactiveWorkspace)
+            if (workspace is not InteractiveWindowWorkspace interactiveWorkspace)
             {
                 Debug.Fail("InteractiveDocumentNavigationService called with incorrect workspace!");
                 return false;

@@ -314,7 +314,13 @@ namespace Roslyn.Test.Utilities
     public class NoIOperationValidation : ExecutionCondition
     {
         public override bool ShouldSkip => CompilationExtensions.EnableVerifyIOperation;
-        public override string SkipReason => "Test not supported in TEST_IOPERATION_INTERFACE";
+        public override string SkipReason => "Test not supported in ROSLYN_TEST_IOPERATION";
+    }
+
+    public class NoUsedAssembliesValidation : ExecutionCondition
+    {
+        public override bool ShouldSkip => CompilationExtensions.EnableVerifyUsedAssemblies;
+        public override string SkipReason => "Test not supported in ROSLYN_TEST_USEDASSEMBLIES";
     }
 
     public class OSVersionWin8 : ExecutionCondition

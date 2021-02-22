@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <remarks></remarks>
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
-        Private _lazyUseSiteErrorInfo As DiagnosticInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
         Public Sub New(retargetingModule As RetargetingModuleSymbol, underlyingField As FieldSymbol)
 
@@ -229,12 +229,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            If _lazyUseSiteErrorInfo Is ErrorFactory.EmptyErrorInfo Then
-                _lazyUseSiteErrorInfo = CalculateUseSiteErrorInfo()
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
+            Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+
+            If Not _lazyCachedUseSiteInfo.IsInitialized Then
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, CalculateUseSiteInfo())
             End If
 
-            Return _lazyUseSiteErrorInfo
+            Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
         ''' <remarks>
