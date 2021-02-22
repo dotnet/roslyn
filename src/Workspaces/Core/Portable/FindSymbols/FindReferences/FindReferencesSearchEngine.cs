@@ -52,10 +52,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             _progressTracker = progress.ProgressTracker;
 
-            // If we're running in parallel, just defer to the threadpool to execute all our work in parallel.  If we're
-            // running serially, then use a ConcurrentExclusiveSchedulerPair as that's the most built-in way in the TPL
-            // to get a sheduler that can execute in that fashion.
-            _scheduler = _options.Parallel ? TaskScheduler.Default : new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
+            // If we're an explicit invocation, just defer to the threadpool to execute all our work in parallel to get
+            // things done as quickly as possible.  If we're running implicitly, then use a
+            // ConcurrentExclusiveSchedulerPair's exclusive scheduler as that's the most built-in way in the TPL to get
+            // will run things serially.
+            _scheduler = _options.Explicit ? TaskScheduler.Default : new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
         }
 
         public async Task FindReferencesAsync(ISymbol symbol)

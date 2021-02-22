@@ -26,10 +26,11 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
-        // Do not perform the finding operation in parallel.  We're running ephemerally in the BG and do not want to
-        // saturate the system with work that then slows the user down.
+        // Set ourselves as an implicit invocation of FindReferences.  This will cause the finding operation to operate
+        // in serial, not parallel.  We're running ephemerally in the BG and do not want to saturate the system with
+        // work that then slows the user down.
         private static readonly FindReferencesSearchOptions s_nonParallelSearch =
-            FindReferencesSearchOptions.Default.With(parallel: false);
+            FindReferencesSearchOptions.Default.With(@explicit: false);
 
         private static async Task<T?> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
