@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Features that run automatically should consider setting this to <see langword="false"/> to avoid
         /// unnecessarily impacting the user while they are doing other work.
         /// </remarks>
-        [DataMember(Order = 1)]
+        [DataMember(Order = 2)]
         public bool Parallel { get; }
 
         public FindReferencesSearchOptions(
