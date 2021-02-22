@@ -900,8 +900,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             Debug.Assert(!newActiveStatementSpans.IsDefault);
             Debug.Assert(newActiveStatementSpans.IsEmpty || oldActiveStatements.Length == newActiveStatementSpans.Length);
-            Debug.Assert(oldActiveStatements.Length == newActiveStatements.Count);
-            Debug.Assert(oldActiveStatements.Length == newExceptionRegions.Count);
+            Debug.Assert(oldActiveStatements.IsEmpty || oldActiveStatements.Length == newActiveStatements.Count);
+            Debug.Assert(newActiveStatements.Count == newExceptionRegions.Count);
 
             syntaxMap = null;
 
