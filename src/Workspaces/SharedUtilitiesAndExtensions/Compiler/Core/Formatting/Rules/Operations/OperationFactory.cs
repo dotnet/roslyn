@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// create suppress region around the given text span
         /// </summary>
-        public readonly SuppressOperation SuppressOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, SuppressOption option) 
+        public readonly SuppressOperation SuppressOperation(SyntaxToken startToken, SyntaxToken endToken, TextSpan textSpan, SuppressOption option)
         {
             Contract.ThrowIfTrue(startToken.RawKind == 0);
             Contract.ThrowIfTrue(endToken.RawKind == 0);

@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return;
 
             // Local functions
-            static void ProcessTriviaList(OperationFactory factory, SegmentedList< SuppressOperation> list, SyntaxTriviaList triviaList)
+            static void ProcessTriviaList(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxTriviaList triviaList)
             {
                 foreach (var trivia in triviaList)
                 {
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            static void ProcessTrivia(OperationFactory factory, SegmentedList< SuppressOperation> list, SyntaxTrivia trivia)
+            static void ProcessTrivia(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxTrivia trivia)
             {
                 if (!(trivia.HasStructure))
                 {
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 ProcessStructuredTrivia(factory, list, trivia.GetStructure()!);
             }
 
-            static void ProcessStructuredTrivia(OperationFactory factory, SegmentedList< SuppressOperation> list, SyntaxNode structure)
+            static void ProcessStructuredTrivia(OperationFactory factory, SegmentedList<SuppressOperation> list, SyntaxNode structure)
             {
                 if (!(structure is PragmaWarningDirectiveTriviaSyntax pragmaWarningDirectiveTrivia))
                 {

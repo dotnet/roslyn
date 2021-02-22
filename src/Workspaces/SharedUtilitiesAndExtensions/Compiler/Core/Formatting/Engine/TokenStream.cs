@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public TokenData GetPreviousTokenData(TokenData tokenData)
         {
             if (tokenData.IndexInStream > 0 && tokenData.IndexInStream < this.TokenCount)
-            { 
+            {
                 return new TokenData(this, tokenData.IndexInStream - 1, _tokens[tokenData.IndexInStream - 1]);
             }
 
