@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
                 foreach (var (project, documentMap) in projectToDocumentMap)
-                    tasks.Add(Task.Factory.StartNew(() => ProcessProjectAsync(project, documentMap), _cancellationToken, TaskCreationOptions.None, _scheduler));
+                    tasks.Add(Task.Factory.StartNew(() => ProcessProjectAsync(project, documentMap), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }

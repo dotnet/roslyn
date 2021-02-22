@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var (symbol, finder) in projectQueue)
                     {
                         tasks.Add(Task.Factory.StartNew(() =>
-                            DetermineDocumentsToSearchAsync(project, symbol, finder), _cancellationToken, TaskCreationOptions.None, _scheduler));
+                            DetermineDocumentsToSearchAsync(project, symbol, finder), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                     }
                 }
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         _cancellationToken.ThrowIfCancellationRequested();
 
                         await Task.WhenAll(symbolTasks).ConfigureAwait(false);
-                    }, _cancellationToken, TaskCreationOptions.None, _scheduler));
+                    }, _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                 }
 
                 await Task.WhenAll(finderTasks).ConfigureAwait(false);
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     Contract.ThrowIfNull(child);
                     _cancellationToken.ThrowIfCancellationRequested();
                     symbolTasks.Add(Task.Factory.StartNew(
-                        () => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken, TaskCreationOptions.None, _scheduler));
+                        () => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                 }
             }
         }

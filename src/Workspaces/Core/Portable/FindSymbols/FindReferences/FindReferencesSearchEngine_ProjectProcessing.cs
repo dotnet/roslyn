@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     foreach (var (document, documentQueue) in documentMap)
                     {
                         if (document.Project == project)
-                            documentTasks.Add(Task.Factory.StartNew(() => ProcessDocumentQueueAsync(document, documentQueue), _cancellationToken, TaskCreationOptions.None, _scheduler));
+                            documentTasks.Add(Task.Factory.StartNew(() => ProcessDocumentQueueAsync(document, documentQueue), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                     }
 
                     await Task.WhenAll(documentTasks).ConfigureAwait(false);
