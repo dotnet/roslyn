@@ -60,6 +60,7 @@ param (
   [switch]$testVsi,
   [switch][Alias('test')]$testDesktop,
   [switch]$testCoreClr,
+  [switch]$testCompilerOnly = $false,
   [switch]$testIOperation,
   [switch]$testUsedAssemblies,
   [switch]$sequential,
@@ -94,6 +95,7 @@ function Print-Usage() {
   Write-Host "  -test64                   Run units tests in the 64-bit runner"
   Write-Host "  -testDesktop              Run Desktop unit tests (short: -test)"
   Write-Host "  -testCoreClr              Run CoreClr unit tests"
+  Write-Host "  -testCompilerOnly         Run only the compiler unit tests"
   Write-Host "  -testVsi                  Run all integration tests"
   Write-Host "  -testIOperation           Run extra checks to validate IOperations"
   Write-Host "  -testUsedAssemblies       Run extra checks to validate used assemblies feature"
@@ -327,6 +329,21 @@ function GetIbcDropName() {
     return $drop.Name
 }
 
+function GetCompilerTestAssembliesIncludePaths() {
+  $assemblies = " --include '^Microsoft\.CodeAnalysis\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
+  $assemblies += " --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
+  return $assemblies
+}
+
 # Core function for running our unit / integration tests tests
 function TestUsingRunTests() {
 
@@ -366,13 +383,22 @@ function TestUsingRunTests() {
   if ($testCoreClr) {
     $args += " --tfm net5.0"
     $args += " --tfm netcoreapp3.1"
-    $args += " --include '\.UnitTests'"
     $args += " --timeout 90"
+    if ($testCompilerOnly) {
+      $args += GetCompilerTestAssembliesIncludePaths
+    } else {
+      $args += " --include '\.UnitTests'"
+    }
   }
-  elseif ($testDesktop -or $testIOperation) {
+  elseif ($testDesktop -or ($testIOperation -and -not $testCoreClr)) {
     $args += " --tfm net472"
-    $args += " --include '\.UnitTests'"
     $args += " --timeout 90"
+
+    if ($testCompilerOnly) {
+      $args += GetCompilerTestAssembliesIncludePaths
+    } else {
+      $args += " --include '\.UnitTests'"
+    }
 
     if (-not $test32) {
       $args += " --exclude '\.InteractiveHost'"
