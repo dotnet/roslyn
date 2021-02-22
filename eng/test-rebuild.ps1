@@ -16,7 +16,7 @@ function Print-Usage() {
   Write-Host "Usage: test-rebuild.ps1"
   Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
   Write-Host "  -ci                       Set when running on CI server"
-  Write-Host "  -noBuild                  If set, skips building before running the rebuild"
+  Write-Host "  -noBuild                  If set, skips running a bootstrap build before running the rebuild"
   Write-Host "  -help                     Print help and exit"
 }
 
