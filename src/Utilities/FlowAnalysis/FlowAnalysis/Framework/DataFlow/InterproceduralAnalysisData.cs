@@ -64,31 +64,57 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public Func<IOperation, AnalysisEntity?> GetAnalysisEntityForFlowCapture { get; }
         public Func<ISymbol, ImmutableStack<IOperation>?> GetInterproceduralCallStackForOwningSymbol { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(InitialAnalysisData.GetHashCodeOrDefault());
-            AddHashCodeParts(InvocationInstanceOpt, addPart);
-            AddHashCodeParts(ThisOrMeInstanceForCallerOpt, addPart);
-            addPart(HashUtilities.Combine(ArgumentValuesMap));
-            addPart(HashUtilities.Combine(CapturedVariablesMap));
-            addPart(HashUtilities.Combine(AddressSharedEntities));
-            addPart(HashUtilities.Combine(CallStack));
-            addPart(HashUtilities.Combine(MethodsBeingAnalyzed));
+            hashCode.Add(InitialAnalysisData.GetHashCodeOrDefault());
+            AddHashCodeParts(InvocationInstanceOpt, ref hashCode);
+            AddHashCodeParts(ThisOrMeInstanceForCallerOpt, ref hashCode);
+            hashCode.Add(HashUtilities.Combine(ArgumentValuesMap));
+            hashCode.Add(HashUtilities.Combine(CapturedVariablesMap));
+            hashCode.Add(HashUtilities.Combine(AddressSharedEntities));
+            hashCode.Add(HashUtilities.Combine(CallStack));
+            hashCode.Add(HashUtilities.Combine(MethodsBeingAnalyzed));
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>> obj)
+        {
+            var other = (InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>)obj;
+            return InitialAnalysisData.GetHashCodeOrDefault() == other.InitialAnalysisData.GetHashCodeOrDefault()
+                && EqualsByHashCodeParts(InvocationInstanceOpt, other.InvocationInstanceOpt)
+                && EqualsByHashCodeParts(ThisOrMeInstanceForCallerOpt, other.ThisOrMeInstanceForCallerOpt)
+                && HashUtilities.Combine(ArgumentValuesMap) == HashUtilities.Combine(other.ArgumentValuesMap)
+                && HashUtilities.Combine(CapturedVariablesMap) == HashUtilities.Combine(other.CapturedVariablesMap)
+                && HashUtilities.Combine(AddressSharedEntities) == HashUtilities.Combine(other.AddressSharedEntities)
+                && HashUtilities.Combine(CallStack) == HashUtilities.Combine(other.CallStack)
+                && HashUtilities.Combine(MethodsBeingAnalyzed) == HashUtilities.Combine(other.MethodsBeingAnalyzed);
         }
 
         private static void AddHashCodeParts(
-            (AnalysisEntity? InstanceOpt, PointsToAbstractValue PointsToValue)? instanceAndPointsToValueOpt,
-            Action<int> addPart)
+            (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? instanceAndPointsToValue,
+            ref RoslynHashCode hashCode)
         {
-            if (instanceAndPointsToValueOpt.HasValue)
+            if (instanceAndPointsToValue.HasValue)
             {
-                addPart(instanceAndPointsToValueOpt.Value.InstanceOpt.GetHashCodeOrDefault());
-                addPart(instanceAndPointsToValueOpt.Value.PointsToValue.GetHashCode());
+                hashCode.Add(instanceAndPointsToValue.Value.Instance.GetHashCodeOrDefault());
+                hashCode.Add(instanceAndPointsToValue.Value.PointsToValue.GetHashCode());
             }
             else
             {
-                addPart(0);
+                hashCode.Add(0);
             }
+        }
+
+        private static bool EqualsByHashCodeParts(
+            (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? left,
+            (AnalysisEntity? Instance, PointsToAbstractValue PointsToValue)? right)
+        {
+            if (left is null)
+                return right is null;
+            else if (right is null)
+                return false;
+
+            return left.Value.Instance.GetHashCodeOrDefault() == right.Value.Instance.GetHashCodeOrDefault()
+                && left.Value.PointsToValue.GetHashCode() == right.Value.PointsToValue.GetHashCode();
         }
     }
 }

@@ -80,9 +80,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 InterproceduralAnalysisPredicateOpt);
         }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {
-            addPart(PointsToAnalysisKind.GetHashCode());
+            hashCode.Add(PointsToAnalysisKind.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToAbstractValue> obj)
+        {
+            var other = (PointsToAnalysisContext)obj;
+            return PointsToAnalysisKind.GetHashCode() == other.PointsToAnalysisKind.GetHashCode();
         }
     }
 }

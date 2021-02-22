@@ -82,10 +82,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.SanitizingMethods,
-                HashUtilities.Combine(this.SanitizingInstanceMethods,
-                HashUtilities.Combine(StringComparer.Ordinal.GetHashCode(this.FullTypeName),
-                this.IsConstructorSanitizing.GetHashCode())));
+            var hashCode = new RoslynHashCode();
+            HashUtilities.Combine(this.SanitizingMethods, ref hashCode);
+            HashUtilities.Combine(this.SanitizingInstanceMethods, ref hashCode);
+            hashCode.Add(StringComparer.Ordinal.GetHashCode(this.FullTypeName));
+            hashCode.Add(this.IsConstructorSanitizing.GetHashCode());
+            return hashCode.ToHashCode();
         }
 
         public override bool Equals(object obj)

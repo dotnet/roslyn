@@ -107,7 +107,10 @@ namespace Analyzer.Utilities
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(HashUtilities.Combine(_names), HashUtilities.Combine(_symbols));
+            var hashCode = new RoslynHashCode();
+            HashUtilities.Combine(_names, ref hashCode);
+            HashUtilities.Combine(_symbols, ref hashCode);
+            return hashCode.ToHashCode();
         }
     }
 }

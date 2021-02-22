@@ -74,8 +74,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 InterproceduralAnalysisPredicateOpt);
         }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue> obj)
+        {
+            return true;
         }
     }
 }
