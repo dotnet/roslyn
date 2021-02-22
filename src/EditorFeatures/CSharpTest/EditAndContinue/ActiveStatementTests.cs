@@ -12,6 +12,8 @@ using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
@@ -10526,6 +10528,62 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active);
+        }
+
+        #endregion
+
+        #region Partial Types
+
+        [Fact]
+        public void InsertDeleteMethod_Inactive()
+        {
+            // Moving inactive method declaration in a file with active statements.
+
+            var srcA1 = "partial class C { void F1() { <AS:0>System.Console.WriteLine(1);</AS:0> } }";
+            var srcB1 = "partial class C { void F2() { } }";
+            var srcA2 = "partial class C { void F1() { <AS:0>System.Console.WriteLine(1);</AS:0> } void F2() { } }";
+            var srcB2 = "partial class C { }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcA1, srcA2),
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F2")),
+                        }),
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcB1, srcB2))
+                });
+        }
+
+        [Fact, WorkItem(51177, "https://github.com/dotnet/roslyn/issues/51177")]
+        public void InsertDeleteMethod_Active()
+        {
+            // Moving active method declaration in a file with active statements.
+            // TODO: this is currently a rude edit
+
+            var srcA1 = "partial class C { }";
+            var srcB1 = "partial class C { void F() { <AS:0>System.Console.WriteLine(1);</AS:0> } }";
+            var srcA2 = "partial class C { void F() { System.Console.WriteLine(1); } }";
+            var srcB2 = "partial class C { }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcA1, srcA2),
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F")),
+                        }),
+                    DocumentResults(
+                        activeStatements: GetActiveStatements(srcB1, srcB2),
+                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", "method 'F()'") })
+                });
         }
 
         #endregion
