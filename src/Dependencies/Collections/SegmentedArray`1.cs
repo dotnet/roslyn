@@ -7,7 +7,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
@@ -119,28 +118,7 @@ namespace Microsoft.CodeAnalysis.Collections
             [MethodImpl(SegmentedArrayHelper.FastPathMethodImplOptions)]
             get
             {
-#if NET
-                if (typeof(T).IsValueType)
-                {
-                    // Direct indexing is faster because it avoids more null checks
-                    return ref _items[index >> SegmentShift][index & OffsetMask];
-                }
-                else
-                {
-                    // Operate on a local copy of the structure since this method uses unsafe operations based on
-                    // validation at the start of the method.
-                    var self = this;
-
-                    // MemoryMarshal.GetArrayDataReference is faster because it avoids array variance checks
-                    if ((uint)index >= (uint)self.Length)
-                        ThrowHelper.ThrowIndexOutOfRangeException();
-
-                    var segment = Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(self._items), index >> SegmentShift);
-                    return ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(segment), index & OffsetMask);
-                }
-#else
                 return ref _items[index >> SegmentShift][index & OffsetMask];
-#endif
             }
         }
 
