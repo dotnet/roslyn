@@ -29,6 +29,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly CancellationToken _cancellationToken;
         private readonly FindReferencesSearchOptions _options;
 
+        /// <summary>
+        /// Scheduler to run our tasks on.  If we're in <see cref="FindReferencesSearchOptions.Parallel"/> mode, we'll
+        /// run all our tasks concurrently.  Otherwise, we will run them serially.
+        /// </summary>
+        private readonly TaskScheduler _scheduler;
+
         public FindReferencesSearchEngine(
             Solution solution,
             IImmutableSet<Document>? documents,
@@ -45,6 +51,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _options = options;
 
             _progressTracker = progress.ProgressTracker;
+
+            var pair = new ConcurrentExclusiveSchedulerPair();
+            _scheduler = _options.Parallel ? pair.ConcurrentScheduler : pair.ExclusiveScheduler;
         }
 
         public async Task FindReferencesAsync(ISymbol symbol)
@@ -87,7 +96,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
                 foreach (var (project, documentMap) in projectToDocumentMap)
-                    tasks.Add(Task.Run(() => ProcessProjectAsync(project, documentMap), _cancellationToken));
+                    tasks.Add(Task.Factory.StartNew(() => ProcessProjectAsync(project, documentMap), _cancellationToken, TaskCreationOptions.None, _scheduler));
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }

@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     foreach (var (symbol, finder) in projectQueue)
                     {
-                        tasks.Add(Task.Run(() =>
-                            DetermineDocumentsToSearchAsync(project, symbol, finder), _cancellationToken));
+                        tasks.Add(Task.Factory.StartNew(() =>
+                            DetermineDocumentsToSearchAsync(project, symbol, finder), _cancellationToken, TaskCreationOptions.None, _scheduler));
                     }
                 }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using var _ = ArrayBuilder<Task>.GetInstance(out var finderTasks);
                 foreach (var f in _finders)
                 {
-                    finderTasks.Add(Task.Run(async () =>
+                    finderTasks.Add(Task.Factory.StartNew(async () =>
                     {
                         using var _ = ArrayBuilder<Task>.GetInstance(out var symbolTasks);
 
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         _cancellationToken.ThrowIfCancellationRequested();
 
                         await Task.WhenAll(symbolTasks).ConfigureAwait(false);
-                    }, _cancellationToken));
+                    }, _cancellationToken, TaskCreationOptions.None, _scheduler));
                 }
 
                 await Task.WhenAll(finderTasks).ConfigureAwait(false);
@@ -177,7 +177,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     Contract.ThrowIfNull(child);
                     _cancellationToken.ThrowIfCancellationRequested();
-                    symbolTasks.Add(Task.Run(() => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken));
+                    symbolTasks.Add(Task.Factory.StartNew(
+                        () => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken, TaskCreationOptions.None, _scheduler));
                 }
             }
         }
