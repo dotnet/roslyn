@@ -2455,6 +2455,35 @@ namespace Microsoft.CodeAnalysis
             Stream? metadataPEStream = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            return Emit(
+                peStream,
+                pdbStream,
+                xmlDocumentationStream,
+                win32Resources,
+                manifestResources,
+                options,
+                debugEntryPoint,
+                sourceLinkStream,
+                embeddedTexts,
+                metadataPEStream,
+                pdbOptionsBlobReader: null,
+                cancellationToken);
+        }
+
+        internal EmitResult Emit(
+            Stream peStream,
+            Stream? pdbStream,
+            Stream? xmlDocumentationStream,
+            Stream? win32Resources,
+            IEnumerable<ResourceDescription>? manifestResources,
+            EmitOptions? options,
+            IMethodSymbol? debugEntryPoint,
+            Stream? sourceLinkStream,
+            IEnumerable<EmbeddedText>? embeddedTexts,
+            Stream? metadataPEStream,
+            BlobReader? pdbOptionsBlobReader,
+            CancellationToken cancellationToken)
+        {
             if (peStream == null)
             {
                 throw new ArgumentNullException(nameof(peStream));
@@ -2549,6 +2578,7 @@ namespace Microsoft.CodeAnalysis
                 debugEntryPoint,
                 sourceLinkStream,
                 embeddedTexts,
+                pdbOptionsBlobReader,
                 testData: null,
                 cancellationToken: cancellationToken);
         }
@@ -2568,6 +2598,7 @@ namespace Microsoft.CodeAnalysis
             IMethodSymbol? debugEntryPoint,
             Stream? sourceLinkStream,
             IEnumerable<EmbeddedText>? embeddedTexts,
+            BlobReader? pdbOptionsBlobReader,
             CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
@@ -2648,6 +2679,7 @@ namespace Microsoft.CodeAnalysis
                         new SimpleEmitStreamProvider(peStream),
                         (metadataPEStream != null) ? new SimpleEmitStreamProvider(metadataPEStream) : null,
                         (pdbStream != null) ? new SimpleEmitStreamProvider(pdbStream) : null,
+                        pdbOptionsBlobReader,
                         testData?.SymWriterFactory,
                         diagnostics,
                         emitOptions: options,
@@ -2809,6 +2841,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider peStreamProvider,
             EmitStreamProvider? metadataPEStreamProvider,
             EmitStreamProvider? pdbStreamProvider,
+            BlobReader? pdbOptionsBlobReader,
             Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
             DiagnosticBag diagnostics,
             EmitOptions emitOptions,
@@ -2882,6 +2915,7 @@ namespace Microsoft.CodeAnalysis
                         getPortablePdbStream,
                         nativePdbWriter,
                         pePdbFilePath,
+                        pdbOptionsBlobReader,
                         emitOptions.EmitMetadataOnly,
                         emitOptions.IncludePrivateMembers,
                         deterministic,
@@ -2963,6 +2997,7 @@ namespace Microsoft.CodeAnalysis
             Func<Stream?>? getPortablePdbStreamOpt,
             Cci.PdbWriter? nativePdbWriterOpt,
             string? pdbPathOpt,
+            BlobReader? pdbOptionsBlobReader,
             bool metadataOnly,
             bool includePrivateMembers,
             bool isDeterministic,
@@ -2980,6 +3015,7 @@ namespace Microsoft.CodeAnalysis
                 getPeStream,
                 getPortablePdbStreamOpt,
                 nativePdbWriterOpt,
+                pdbOptionsBlobReader,
                 pdbPathOpt,
                 metadataOnly,
                 deterministicPrimaryOutput,
@@ -3002,6 +3038,7 @@ namespace Microsoft.CodeAnalysis
                     getMetadataPeStreamOpt,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
+                    pdbOptionsBlobReader: null,
                     pdbPathOpt: null,
                     metadataOnly: true,
                     isDeterministic: true,
@@ -3057,6 +3094,7 @@ namespace Microsoft.CodeAnalysis
                         metadataStream,
                         ilStream,
                         (nativePdbWriterOpt == null) ? pdbStream : null,
+                        pdbOptionsBlobReader: null,
                         out MetadataSizes metadataSizes);
 
                     writer.GetMethodTokens(updatedMethods);

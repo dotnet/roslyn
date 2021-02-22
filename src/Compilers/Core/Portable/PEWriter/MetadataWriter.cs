@@ -1697,7 +1697,7 @@ namespace Microsoft.Cci
             };
         }
 
-        public void WriteMetadataAndIL(PdbWriter nativePdbWriterOpt, Stream metadataStream, Stream ilStream, Stream portablePdbStreamOpt, out MetadataSizes metadataSizes)
+        public void WriteMetadataAndIL(PdbWriter nativePdbWriterOpt, Stream metadataStream, Stream ilStream, Stream portablePdbStreamOpt, BlobReader? pdbOptionsBlobReader, out MetadataSizes metadataSizes)
         {
             Debug.Assert(nativePdbWriterOpt == null ^ portablePdbStreamOpt == null);
 
@@ -1724,6 +1724,7 @@ namespace Microsoft.Cci
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceDataBuilder,
+                pdbOptionsBlobReader,
                 out Blob mvidFixup,
                 out Blob mvidStringFixup);
 
@@ -1779,6 +1780,7 @@ namespace Microsoft.Cci
             BlobBuilder ilBuilder,
             BlobBuilder mappedFieldDataBuilder,
             BlobBuilder managedResourceDataBuilder,
+            BlobReader? pdbOptionsBlobReader,
             out Blob mvidFixup,
             out Blob mvidStringFixup)
         {
@@ -1805,7 +1807,7 @@ namespace Microsoft.Cci
                     EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
 
-                EmbedCompilationOptions(module);
+                EmbedCompilationOptions(pdbOptionsBlobReader, module);
                 EmbedMetadataReferenceInformation(module);
             }
 
