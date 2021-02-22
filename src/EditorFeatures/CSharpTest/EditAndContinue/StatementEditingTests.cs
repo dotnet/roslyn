@@ -17,6 +17,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class StatementEditingTests : EditingTestBase
     {
         #region Strings
@@ -6813,7 +6814,8 @@ class Program
             edits.VerifyEdits(
                 "Update [void M() { void local() { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "local", CSharpFeaturesResources.local_function));
         }
 
         [Fact]
@@ -6827,7 +6829,8 @@ class Program
             edits.VerifyEdits(
                 "Update [void M() { void local(int b) { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ChangingLambdaParameters, "local", CSharpFeaturesResources.local_function));
         }
 
         [Fact]
@@ -7000,9 +7003,8 @@ interface I
                 "Insert [A]@3");
 
             // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7018,9 +7020,8 @@ interface I
                 "Delete [A]@3");
 
             // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7034,9 +7035,7 @@ interface I
             edits.VerifyEdits("Reorder [B]@6 -> @3");
 
             // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics();
+            GetTopEdits(edits).VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -7054,9 +7053,7 @@ interface I
                 "Delete [B]@6");
 
             // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(
+            GetTopEdits(edits).VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.attribute),
                 Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
         }
@@ -7075,10 +7072,8 @@ interface I
                 "Insert [B]@6",
                 "Delete [B]@6");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[B]", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "[B]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7091,10 +7086,8 @@ interface I
 
             edits.VerifyEdits("Update [[return: A]]@2 -> [[A]]@2");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7107,10 +7100,8 @@ interface I
 
             edits.VerifyEdits("Update [[A]]@2 -> [[return: A]]@2");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Update, "return:", CSharpFeaturesResources.attribute_target));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "return:", CSharpFeaturesResources.attribute_target));
         }
 
         [Fact]
@@ -7125,10 +7116,8 @@ interface I
                 "Insert [[return: A]]@2",
                 "Insert [A]@11");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[return: A]", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "[return: A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7143,10 +7132,8 @@ interface I
                 "Delete [[return: A]]@2",
                 "Delete [A]@11");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7159,10 +7146,7 @@ interface I
 
             edits.VerifyEdits("Reorder [B]@14 -> @11");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics();
+            GetTopEdits(edits).VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -7177,10 +7161,8 @@ interface I
                 "Insert [[A]]@9",
                 "Insert [A]@10");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7195,10 +7177,8 @@ interface I
                 "Delete [[A]]@9",
                 "Delete [A]@10");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "int i", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "int i", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7211,10 +7191,7 @@ interface I
 
             edits.VerifyEdits("Reorder [B]@13 -> @10");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics();
+            GetTopEdits(edits).VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -7229,10 +7206,8 @@ interface I
                 "Insert [[A]]@9",
                 "Insert [A]@10");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7247,10 +7222,8 @@ interface I
                 "Delete [[A]]@9",
                 "Delete [A]@10");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "T", FeaturesResources.attribute));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "T", FeaturesResources.attribute));
         }
 
         [Fact]
@@ -7263,10 +7236,7 @@ interface I
 
             edits.VerifyEdits("Reorder [B]@13 -> @10");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics();
+            GetTopEdits(edits).VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -7280,10 +7250,8 @@ interface I
                 "Insert [<A>]@8",
                 "Insert [A]@9");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "<A>", FeaturesResources.type_parameter));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "<A>", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7297,10 +7265,8 @@ interface I
                 "Update [<A>]@8 -> [<A,B>]@8",
                 "Insert [B]@11");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.type_parameter));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7314,10 +7280,8 @@ interface I
                 "Delete [<A>]@8",
                 "Delete [A]@9");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.type_parameter));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7331,10 +7295,8 @@ interface I
                 "Update [<A,B>]@8 -> [<B>]@8",
                 "Delete [A]@9");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.type_parameter));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7347,10 +7309,8 @@ interface I
             edits.VerifyEdits(
                 "Update [A]@9 -> [B]@9");
 
-            // Get top edits so we can validate rude edits
-            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
-
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7363,7 +7323,8 @@ interface I
             edits.VerifyEdits(
                 "Reorder [B]@11 -> @9");
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter));
+            GetTopEdits(edits).VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter));
         }
 
         [Fact]
@@ -7377,10 +7338,11 @@ interface I
                 "Reorder [B]@11 -> @9",
                 "Update [A]@9 -> [C]@11");
 
-            edits.VerifyRudeDiagnostics(
+            GetTopEdits(edits).VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.type_parameter));
         }
+
         #endregion
 
         #region Queries
@@ -8908,13 +8870,9 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                new[] { edits },
-                ActiveStatementsDescription.Empty,
-                expectedDiagnostics: new[]
-                {
-                    Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")
-                });
+            edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.Mscorlib40AndSystemCore },
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "static IEnumerable<int> F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute"));
         }
 
         [Fact]
@@ -8944,7 +8902,8 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            CSharpEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(new[] { edits });
+            edits.VerifySemanticDiagnostics(
+                targetFrameworks: new[] { TargetFramework.Mscorlib40AndSystemCore });
         }
 
         #endregion
