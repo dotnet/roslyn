@@ -38,9 +38,6 @@
     <WindowsAppContainer>false</WindowsAppContainer>
 
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
-
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

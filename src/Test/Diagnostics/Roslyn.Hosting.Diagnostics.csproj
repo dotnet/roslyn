@@ -6,8 +6,6 @@
     <RootNamespace>Roslyn.Hosting.Diagnostics</RootNamespace>
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
-    <!-- https://github.com/dotnet/wpf/issues/1718 -->
-    <EmbedUntrackedSources>false</EmbedUntrackedSources>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

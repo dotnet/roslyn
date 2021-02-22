@@ -10,8 +10,6 @@
     <UseWpf>true</UseWpf>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <ApplyNgenOptimization>partial</ApplyNgenOptimization>
-    <!-- https://github.com/dotnet/wpf/issues/1718 -->
-    <EmbedUntrackedSources>false</EmbedUntrackedSources>
 
     <!-- Vsix -->
     <CreateVsixContainer>false</CreateVsixContainer>
