@@ -196,5 +196,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
 
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionWithNoMethodCallTrampoline()
+        {
+            var code =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z) 
+                    {
+                        int m = [|x * y * z;|]
+                    }
+                }";
+
+            var expected =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z, int {|Rename:v|}) 
+                    {
+                        int m = v;
+                    }
+                }";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionWithSingleMethodCallTrampoline()
+        {
+            var code =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z)
+                    {
+                        int m = [|x * y * z|];
+                    }
+
+                    void M1(int x, int y, int z) 
+                    {
+                        M(z, y, x);
+                    }
+                }";
+
+            var expected =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z, int {|Rename:v|})
+                    {
+                        int m = v;
+                    }
+
+                    void M1(int x, int y, int z) 
+                    {
+                        M(z, y, x);
+                    }
+                }";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
     }
 }

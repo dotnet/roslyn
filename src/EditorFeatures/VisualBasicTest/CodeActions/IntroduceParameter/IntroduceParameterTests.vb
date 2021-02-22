@@ -145,6 +145,48 @@ End Class"
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=3)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestSimpleExpressionWithNoMethodCallsTrampoline() As Task
+            Dim source =
+"Class Program
+    Sub M(x As Integer, y As Integer, z As Integer)
+        Dim num As Integer = [|x * y * z|]
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Sub M(x As Integer, y As Integer, z As Integer, {|Rename:v|} As Integer)
+        Dim num As Integer = v
+    End Sub
+End Class"
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestSimpleExpressionWithSingleMethodCallTrampoline() As Task
+            Dim source =
+"Class Program
+    Sub M(x As Integer, y As Integer, z As Integer)
+        Dim num As Integer = [|x * y * z|]
+    End Sub
+
+    Sub M1(x As Integer, y As Integer, z As Integer)
+        M(z, y, x)
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Sub M(x As Integer, y As Integer, z As Integer, {|Rename:v|} As Integer)
+        Dim num As Integer = v
+    End Sub
+
+    Sub M1(x As Integer, y As Integer, z As Integer)
+        M(z, y, x)
+    End Sub
+End Class"
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+        End Function
     End Class
 End Namespace
 

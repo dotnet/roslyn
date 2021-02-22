@@ -41,7 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override async Task<Solution> IntroduceParameterAsync(SemanticDocument document, ExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken)
         {
-            return await AbstractIntroduceParameterAsync(document, expression, allOccurrences, trampoline, cancellationToken).ConfigureAwait(false);
+            if (!trampoline)
+            {
+                return await AbstractIntroduceParameterForRefactoringAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(false);
+
+            }
+            else
+            {
+                return await AbstractIntroduceParameterForTrampolineAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         protected override async Task<Solution> RewriteCallSitesAsync(ExpressionSyntax expression, ImmutableDictionary<Document, List<InvocationExpressionSyntax>> callSites,

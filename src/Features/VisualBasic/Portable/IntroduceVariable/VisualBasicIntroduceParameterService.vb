@@ -25,7 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         End Sub
 
         Protected Overrides Async Function IntroduceParameterAsync(document As SemanticDocument, expression As ExpressionSyntax, allOccurrences As Boolean, trampoline As Boolean, cancellationToken As Threading.CancellationToken) As Task(Of Solution)
-            Return Await AbstractIntroduceParameterAsync(document, expression, allOccurrences, trampoline, cancellationToken).ConfigureAwait(False)
+            If Not trampoline Then
+                Return Await AbstractIntroduceParameterForRefactoringAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(False)
+            Else
+                Return Await AbstractIntroduceParameterForTrampolineAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(False)
+            End If
+
         End Function
 
         Protected Overrides Async Function RewriteCallSitesAsync(expression As ExpressionSyntax, callSites As ImmutableDictionary(Of Document, List(Of InvocationExpressionSyntax)),
