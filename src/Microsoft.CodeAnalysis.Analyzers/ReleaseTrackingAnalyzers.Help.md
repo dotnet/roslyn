@@ -33,6 +33,7 @@ Consider the following example:
     ## Release 1.0
 
     ### New Rules
+
     Rule ID | Category | Severity | Notes
     --------|----------|----------|--------------------
     CA1000  |  Design  |  Warning | CA1000_AnalyzerName, [Documentation](CA1000_Documentation_Link)
@@ -43,16 +44,19 @@ Consider the following example:
     ## Release 2.0
 
     ### New Rules
+
     Rule ID | Category | Severity | Notes
     --------|----------|----------|--------------------
     CA4000  |  Design  |  Warning | CA4000_AnalyzerName, [Documentation](CA4000_Documentation_Link)
 
     ### Removed Rules
+
     Rule ID | Category | Severity | Notes
     --------|----------|----------|--------------------
     CA3000  |  Usage   |  Disable | CA3000_AnalyzerName, [Documentation](CA3000_Documentation_Link)
 
     ### Changed Rules
+
     Rule ID | Category | Severity | Notes
     --------|----------|----------|--------------------
     CA2000  | Security | Disabled | CA2000_AnalyzerName, [Documentation](CA2000_Documentation_Link)
@@ -62,6 +66,7 @@ Consider the following example:
 
     ```md
     ### New Rules
+
     Rule ID | Category | Severity | Notes
     --------|----------|----------|--------------------
     CA5000  | Security |  Warning | CA5000_AnalyzerName
@@ -82,6 +87,7 @@ When the next release is shipped, say version '3.0', a new release section for 3
     ## Release 1.0
 
     ### New Rules
+
     Rule ID | Category | Severity | Notes
     --------|----------|----------|--------------------
     CA1000  |  Design  |  Warning | CA1000_AnalyzerName, [Documentation](CA1000_Documentation_Link)
@@ -92,16 +98,19 @@ When the next release is shipped, say version '3.0', a new release section for 3
     ## Release 2.0
 
     ### New Rules
+
     Rule ID | Category | Severity | Notes
     --------|----------|----------|--------------------
     CA4000  |  Design  |  Warning | CA4000_AnalyzerName, [Documentation](CA4000_Documentation_Link)
 
     ### Removed Rules
+
     Rule ID | Category | Severity | Notes
     --------|----------|----------|--------------------
     CA3000  |  Usage   |  Disable | CA3000_AnalyzerName, [Documentation](CA3000_Documentation_Link)
 
     ### Changed Rules
+
     Rule ID | Category | Severity | Notes
     --------|----------|----------|--------------------
     CA2000  | Security | Disabled | CA2000_AnalyzerName, [Documentation](CA2000_Documentation_Link)
@@ -110,6 +119,7 @@ When the next release is shipped, say version '3.0', a new release section for 3
     ## Release 3.0
 
     ### New Rules
+
     Rule ID | Category | Severity | Notes
     --------|----------|----------|--------------------
     CA5000  | Security |  Warning | CA5000_AnalyzerName

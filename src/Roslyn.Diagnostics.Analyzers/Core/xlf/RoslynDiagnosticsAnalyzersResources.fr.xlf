@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="AddSharedAttribute">
+        <source>Add 'Shared' attribute</source>
+        <target state="new">Add 'Shared' attribute</target>
+        <note>{Locked="Shared"}</note>
+      </trans-unit>
       <trans-unit id="ApplyTraitToContainingType">
         <source>Apply trait to containing type</source>
         <target state="new">Apply trait to containing type</target>
@@ -25,21 +30,6 @@
       <trans-unit id="AvoidOptSuffixForNullableEnableCodeTitle">
         <source>Avoid the 'Opt' suffix</source>
         <target state="translated">Éviter le suffixe 'Opt'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesMessage">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Éviter plusieurs lignes vides</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BlankLinesTitle">
-        <source>Avoid multiple blank lines</source>
-        <target state="translated">Éviter plusieurs lignes vides</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="BracePlacementMessage">
-        <source>Braces must not have blank lines between them</source>
-        <target state="translated">Les accolades ne doivent pas contenir de lignes vides</target>
         <note />
       </trans-unit>
       <trans-unit id="CreateTestAccessorDescription">
@@ -117,6 +107,16 @@
         <target state="translated">Impossible d'affecter une valeur à partir d'une référence au type non copiable '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyDescription">
+        <source>Auto-properties always copy values, so they cannot be declared with non-copyable types.</source>
+        <target state="new">Auto-properties always copy values, so they cannot be declared with non-copyable types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoAutoPropertyMessage">
+        <source>Auto-property '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="new">Auto-property '{1}' cannot have non-copyable type '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="DoNotCopyValueNoBoxingDescription">
         <source>Do not box non-copyable value types.</source>
         <target state="translated">N'effectue pas de conversion boxing des types valeur non copiables.</target>
@@ -125,6 +125,16 @@
       <trans-unit id="DoNotCopyValueNoBoxingMessage">
         <source>Do not box non-copyable type '{0}'</source>
         <target state="translated">Ne pas effectuer de conversion boxing du type non copiable '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeDescription">
+        <source>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</source>
+        <target state="new">A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotCopyValueNoFieldOfCopyableTypeMessage">
+        <source>Copyable field '{1}' cannot have non-copyable type '{0}'</source>
+        <target state="new">Copyable field '{1}' cannot have non-copyable type '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotCopyValueNoReturnValueFromReferenceDescription">
@@ -287,16 +297,6 @@
         <target state="translated">Les méthodes de test asynchrones ne nécessitent pas le suffixe 'Async'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_blank_lines_between_braces">
-        <source>Remove blank lines between braces</source>
-        <target state="translated">Supprimer les lignes vides entre les accolades</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_extra_blank_lines">
-        <source>Remove extra blank lines</source>
-        <target state="translated">Supprimer les lignes vides supplémentaires</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TemporaryArrayAsRefDescription">
         <source>Instance of TemporaryArray&lt;T&gt;.AsRef() must be a 'using' variable.</source>
         <target state="translated">L'instance de TemporaryArray&lt;T&gt;.AsRef() doit être une variable 'using'.</target>
@@ -450,11 +450,6 @@
       <trans-unit id="PartsExportedWithMEFv2MustBeMarkedAsSharedMessage">
         <source>'{0}' is exported with MEFv2 and hence must be marked with 'SharedAttribute'</source>
         <target state="translated">'{0}' est exporté avec MEFv2 et doit donc être marqué avec 'SharedAttribute'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WrapStatementsMessage">
-        <source>Statements must be placed on their own line</source>
-        <target state="translated">Les instructions doivent être placées sur leur propre ligne</target>
         <note />
       </trans-unit>
     </body>
