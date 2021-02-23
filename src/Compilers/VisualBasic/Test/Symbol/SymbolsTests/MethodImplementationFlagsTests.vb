@@ -38,7 +38,7 @@ End Class
                                                            Assert.Equal(MethodImplAttributes.NoInlining, noInliningMethod.MethodImplementationFlags)
                                                        End Sub
 
-            CompileAndVerify(src, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(src, sourceSymbolValidator:=validator, symbolValidator:=validator, useLatestFramework:=True)
         End Sub
 
         <Fact>
@@ -110,7 +110,7 @@ End Class
                                                            Assert.Equal(MethodImplAttributes.NoOptimization Or MethodImplAttributes.AggressiveInlining, noOptAggressiveInliningMethod.MethodImplementationFlags)
                                                        End Sub
 
-            CompileAndVerify(src, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(src, sourceSymbolValidator:=validator, symbolValidator:=validator, useLatestFramework:=True)
         End Sub
 
         <Fact>
