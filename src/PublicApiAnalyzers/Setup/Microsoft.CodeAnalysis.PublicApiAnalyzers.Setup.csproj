@@ -9,6 +9,9 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <PublishWindowsPdb>false</PublishWindowsPdb>
     <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+
+    <!-- Work around PerformanceSensitiveAttribute.cs cannot resolve ValueTask<TResult>. -->
+    <NoWarn>$(NoWarn);CS1574</NoWarn>
   </PropertyGroup>
   
   <ItemGroup>

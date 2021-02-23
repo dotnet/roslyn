@@ -4,5 +4,8 @@
     <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
     <RootNamespace>OtherDll</RootNamespace>
     <NonShipping>true</NonShipping>
+
+    <!-- Work around PerformanceSensitiveAttribute.cs cannot resolve ValueTask<TResult>. -->
+    <NoWarn>$(NoWarn);CS1574</NoWarn>
   </PropertyGroup>
 </Project>
