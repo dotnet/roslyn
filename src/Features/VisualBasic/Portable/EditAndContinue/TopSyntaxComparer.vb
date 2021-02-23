@@ -11,38 +11,95 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
         Friend Shared ReadOnly Instance As TopSyntaxComparer = New TopSyntaxComparer()
 
+        Private ReadOnly _oldRoot As SyntaxNode
+        Private ReadOnly _newRoot As SyntaxNode
+        Private ReadOnly _oldRootChildren As IEnumerable(Of SyntaxNode)
+        Private ReadOnly _newRootChildren As IEnumerable(Of SyntaxNode)
+
         Private Sub New()
+        End Sub
+
+        Public Sub New(oldRoot As SyntaxNode, newRoot As SyntaxNode, oldRootChildren As IEnumerable(Of SyntaxNode), newRootChildren As IEnumerable(Of SyntaxNode))
+            ' explicitly listed roots And all their children must be labeled:
+            Debug.Assert(HasLabel(oldRoot))
+            Debug.Assert(HasLabel(newRoot))
+            Debug.Assert(oldRootChildren.All(Function(n) HasLabel(n)))
+            Debug.Assert(newRootChildren.All(Function(n) HasLabel(n)))
+
+            _oldRoot = oldRoot
+            _newRoot = newRoot
+            _oldRootChildren = oldRootChildren
+            _newRootChildren = newRootChildren
+
+            ' the virtual parent of root children must be the respective root
+            Dim parent As SyntaxNode = Nothing
+            Debug.Assert(Not TryGetParent(oldRoot, parent))
+            Debug.Assert(Not TryGetParent(newRoot, parent))
+            Debug.Assert(oldRootChildren.All(Function(node) TryGetParent(node, parent) AndAlso parent Is oldRoot))
+            Debug.Assert(newRootChildren.All(Function(node) TryGetParent(node, parent) AndAlso parent Is newRoot))
         End Sub
 
 #Region "Tree Traversal"
 
         Protected Overrides Function TryGetParent(node As SyntaxNode, ByRef parent As SyntaxNode) As Boolean
-            Dim parentNode = node.Parent
-            parent = parentNode
-            Return parentNode IsNot Nothing
+            If node Is _oldRoot OrElse node Is _newRoot Then
+                parent = Nothing
+                Return False
+            End If
+
+            parent = node.Parent
+            While parent IsNot Nothing AndAlso Not HasLabel(parent)
+                parent = parent.Parent
+            End While
+
+            Return parent IsNot Nothing
         End Function
 
         Protected Overrides Function GetChildren(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
-            Debug.Assert(GetLabel(node) <> IgnoredNode)
+            Debug.Assert(HasLabel(node))
+
+            If node Is _oldRoot Then
+                Return _oldRootChildren
+            End If
+
+            If node Is _newRoot Then
+                Return _newRootChildren
+            End If
+
             Return If(HasChildren(node), EnumerateChildren(node), Nothing)
         End Function
 
-        Private Iterator Function EnumerateChildren(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
+        Private Shared Iterator Function EnumerateChildren(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
             For Each child In node.ChildNodesAndTokens()
                 Dim childNode = child.AsNode()
-                If childNode IsNot Nothing AndAlso GetLabel(childNode) <> IgnoredNode Then
+                If childNode IsNot Nothing AndAlso HasLabel(childNode) Then
                     Yield childNode
                 End If
             Next
         End Function
 
-        Protected Overrides Iterator Function GetDescendants(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
+        Protected Overrides Function GetDescendants(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
+            Dim rootChildren = If(node Is _oldRoot, _oldRootChildren, If(node Is _newRoot, _newRootChildren, Nothing))
+            Return If(rootChildren IsNot Nothing, EnumerateDescendants(rootChildren), EnumerateDescendants(node))
+        End Function
+
+        Private Shared Iterator Function EnumerateDescendants(nodes As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SyntaxNode)
+            For Each node In nodes
+                Yield node
+
+                For Each descendant In EnumerateDescendants(node)
+                    Yield descendant
+                Next
+            Next
+        End Function
+
+        Private Shared Iterator Function EnumerateDescendants(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
             For Each descendant In node.DescendantNodesAndTokens(
                 descendIntoChildren:=AddressOf HasChildren,
                 descendIntoTrivia:=False)
 
                 Dim descendantNode = descendant.AsNode()
-                If descendantNode IsNot Nothing AndAlso GetLabel(descendantNode) <> IgnoredNode Then
+                If descendantNode IsNot Nothing AndAlso HasLabel(descendantNode) Then
                     Yield descendantNode
                 End If
             Next
@@ -107,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             ParameterList                    ' tied to parent
             Parameter                        ' tied to parent
-            FieldOrParameterName             ' tied to grandparent (FieldDeclaration or ParameterList)
+            FieldOrParameterName             ' tied to grand-grandparent (type or method declaration)
             SimpleAsClause                   ' tied to parent
 
             AttributeList                    ' tied to parent
@@ -152,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return 1
 
                 Case Label.FieldOrParameterName
-                    Return 2 ' FieldDeclaration or ParameterList
+                    Return 3 ' type or method declaration
 
                 Case Else
                     Return 0
@@ -332,6 +389,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Shared Function HasLabel(kind As SyntaxKind, ignoreVariableDeclarations As Boolean) As Boolean
             Dim isLeaf As Boolean
             Return Classify(kind, isLeaf, ignoreVariableDeclarations) <> Label.Ignored
+        End Function
+
+        Friend Shared Function HasLabel(node As SyntaxNode) As Boolean
+            Return HasLabel(node.Kind, ignoreVariableDeclarations:=False)
         End Function
 
         Protected Overrides ReadOnly Property LabelCount As Integer

@@ -900,36 +900,28 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var service = CreateEditAndContinueService(workspace);
 
             StartDebuggingSession(service);
-            StartEditSession(service, loadedModules: new MockManagedEditAndContinueDebuggerService()
-            {
-                IsEditAndContinueAvailable = _ => new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotSupportedForClr64Version, "*message*")
-            });
+            StartEditSession(service);
 
             // add a source file:
-            var documentB = project.AddDocument("file2.cs", SourceText.From(sourceB), filePath: sourceFileB.Path);
+            var documentB = project.AddDocument("file2.cs", SourceText.From(sourceB, Encoding.UTF8), filePath: sourceFileB.Path);
             workspace.ChangeSolution(documentB.Project.Solution);
+            documentB = workspace.CurrentSolution.GetDocument(documentB.Id);
 
             var diagnostics2 = await service.GetDocumentDiagnosticsAsync(documentB, s_noDocumentActiveSpans, CancellationToken.None).ConfigureAwait(false);
-            AssertEx.Equal(
-                new[] { "ENC0071: " + string.Format(FeaturesResources.Adding_a_new_file_will_prevent_the_debug_session_from_continuing) },
-                diagnostics2.Select(d => $"{d.Id}: {d.GetMessage()}"));
+            Assert.Empty(diagnostics2);
 
             Assert.True(await service.HasChangesAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
             var (updates, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal(ManagedModuleUpdateStatus.Blocked, updates.Status);
-            Assert.Empty(updates.Updates);
-            AssertEx.Equal(new[] { $"{project.Id} Error ENC2010: {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, project.Name, "*message*")}" }, InspectDiagnostics(emitDiagnostics));
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
 
-            EndEditSession(service, documentsWithRudeEdits: ImmutableArray.Create(documentB.Id));
+            EndEditSession(service);
             EndDebuggingSession(service);
 
             AssertEx.Equal(new[]
             {
                 "Debugging_EncSession: SessionId=1|SessionCount=1|EmptySessionCount=0",
-                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=1",
-                "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC2010",
-                "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=71|RudeEditSyntaxKind=0|RudeEditBlocking=True"
+                "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0"
             }, _telemetryLog);
         }
 
