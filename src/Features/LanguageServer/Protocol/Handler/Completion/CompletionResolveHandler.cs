@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.LanguageServer.CustomProtocol;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
