@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // Server GC runs processor-affinitized threads with high priority. To avoid interfering with other
                 // applications while still allowing efficient out-of-process execution, slightly reduce the process
                 // priority when using server GC.
-                Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+                Process.GetCurrentProcess().TrySetPriorityClass(ProcessPriorityClass.BelowNormal);
             }
 
             // this is the very first service which will be called from client (VS)
