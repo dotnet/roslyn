@@ -75,24 +75,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            var stringBuilder = new StringBuilder();
-            CompletionItem? selectedItem = null;
-
             // Find the matching completion item in the completion list
-            foreach (var item in list.Items)
-            {
-                stringBuilder.Append(item.DisplayTextPrefix);
-                stringBuilder.Append(item.DisplayText);
-                stringBuilder.Append(item.DisplayTextSuffix);
-
-                if (stringBuilder.ToString() == completionItem.Label)
-                {
-                    selectedItem = item;
-                    break;
-                }
-
-                stringBuilder.Clear();
-            }
+            var selectedItem = list.Items.FirstOrDefault(
+                i => data.DisplayText == i.DisplayText &&
+                completionItem.Label.StartsWith(i.DisplayTextPrefix) &&
+                completionItem.Label.EndsWith(i.DisplayTextSuffix));
 
             if (selectedItem == null)
             {

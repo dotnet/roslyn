@@ -246,6 +246,7 @@ namespace Roslyn.Test.Utilities
             string? insertText = null,
             string? sortText = null,
             string? filterText = null,
+            string? displayText = null,
             int resultId = 0)
         {
             var position = await document.GetPositionFromLinePositionAsync(
@@ -264,6 +265,7 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Data = JObject.FromObject(new CompletionResolveData()
                 {
+                    DisplayText = displayText ?? label,
                     TextDocument = request.TextDocument,
                     Position = request.Position,
                     CompletionTrigger = completionTrigger,

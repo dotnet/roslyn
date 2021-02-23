@@ -230,6 +230,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         TextDocument = request.TextDocument,
                         Position = request.Position,
+                        DisplayText = item.DisplayText,
                         CompletionTrigger = completionTrigger,
                         ResultId = resultId,
                     },
