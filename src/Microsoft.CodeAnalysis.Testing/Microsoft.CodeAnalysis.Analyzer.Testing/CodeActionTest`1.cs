@@ -65,13 +65,15 @@ namespace Microsoft.CodeAnalysis.Testing
                 || state.MarkupHandling != null
                 || state.Sources.Any()
                 || state.AdditionalFiles.Any()
+                || state.AnalyzerConfigFiles.Any()
                 || state.AdditionalFilesFactories.Any();
         }
 
         protected static bool HasAnyChange(SolutionState oldState, SolutionState newState)
         {
             return !oldState.Sources.SequenceEqual(newState.Sources, SourceFileEqualityComparer.Instance)
-                || !oldState.AdditionalFiles.SequenceEqual(newState.AdditionalFiles, SourceFileEqualityComparer.Instance);
+                || !oldState.AdditionalFiles.SequenceEqual(newState.AdditionalFiles, SourceFileEqualityComparer.Instance)
+                || !oldState.AnalyzerConfigFiles.SequenceEqual(newState.AnalyzerConfigFiles, SourceFileEqualityComparer.Instance);
         }
 
         protected static CodeAction? TryGetCodeActionToApply(ImmutableArray<CodeAction> actions, int? codeActionIndex, string? codeActionEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, IVerifier verifier)
