@@ -11,6 +11,10 @@ namespace Analyzer.Utilities.Lightup
 {
     internal static class LightupHelpers
     {
+        internal static Func<TOperation, TProperty> CreateOperationPropertyAccessor<TOperation, TProperty>(Type? type, string propertyName, TProperty fallbackResult)
+            where TOperation : IOperation
+            => CreatePropertyAccessor<TOperation, TProperty>(type, "operation", propertyName, fallbackResult);
+
         internal static Func<TSyntax, TProperty> CreateSyntaxPropertyAccessor<TSyntax, TProperty>(Type? type, string propertyName, TProperty fallbackResult)
             where TSyntax : SyntaxNode
             => CreatePropertyAccessor<TSyntax, TProperty>(type, "syntax", propertyName, fallbackResult);
