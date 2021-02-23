@@ -38,13 +38,20 @@ namespace Microsoft.CodeAnalysis.Storage
 
     internal readonly struct CloudCacheContainerKey
     {
+        /// <remarks>
+        /// We use <see cref="StringComparer.Ordinal"/> here to match what the platform does internally.  If we do this
+        /// they do not need to copy the values from us to them and can instead just point directly at our dictionary
+        /// instance.
+        /// </remarks>
+        private static readonly ImmutableSortedDictionary<string, string?> s_empty = ImmutableSortedDictionary.Create<string, string?>(StringComparer.Ordinal);
+
         public readonly string Component;
         public readonly ImmutableSortedDictionary<string, string?> Dimensions;
 
         public CloudCacheContainerKey(string component, ImmutableSortedDictionary<string, string?>? dimensions = null)
         {
             Component = component;
-            Dimensions = dimensions ?? ImmutableSortedDictionary<string, string?>.Empty;
+            Dimensions = dimensions ?? s_empty;
         }
     }
 }
