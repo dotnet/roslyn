@@ -234,6 +234,28 @@ function InstallDotNet {
   }
 }
 
+function with_retries {
+  local maxRetries=5
+  local retries=1
+  echo "Trying to run '$@' for maximum of $maxRetries attempts."
+  while [[ $((retries++)) -le $maxRetries ]]; do
+    "$@"
+
+    if [[ $? == 0 ]]; then
+      echo "Ran '$@' successfully."
+      return 0
+    fi
+
+    timeout=$((3**$retries-1))
+    echo "Failed to execute '$@'. Waiting $timeout seconds before next attempt ($retries out of $maxRetries)." 1>&2
+    sleep $timeout
+  done
+
+  echo "Failed to execute '$@' for $maxRetries times." 1>&2
+
+  return 1
+}
+
 function GetDotNetInstallScript {
   local root=$1
   local install_script="$root/dotnet-install.sh"
@@ -246,13 +268,22 @@ function GetDotNetInstallScript {
 
     # Use curl if available, otherwise use wget
     if command -v curl > /dev/null; then
+      # first, try directly, if this fails we will retry with verbose logging
       curl "$install_script_url" -sSL --retry 10 --create-dirs -o "$install_script" || {
-        local exit_code=$?
-        Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to acquire dotnet install script (exit code '$exit_code')."
-        ExitWithExitCode $exit_code
+        if command -v openssl &> /dev/null
+        then
+          echo "Curl failed; dumping some information about dotnet.microsoft.com for later investigation"
+          echo | openssl s_client -showcerts -servername dotnet.microsoft.com  -connect dotnet.microsoft.com:443
+        fi
+        echo "Will now retry the same URL with verbose logging."
+        with_retries curl "$install_script_url" -sSL --verbose --retry 10 --create-dirs -o "$install_script" || {
+          local exit_code=$?
+          Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to acquire dotnet install script (exit code '$exit_code')."
+          ExitWithExitCode $exit_code
+        }
       }
-    else 
-      wget -q -O "$install_script" "$install_script_url" || {
+    else
+      with_retries wget -v -O "$install_script" "$install_script_url" || {
         local exit_code=$?
         Write-PipelineTelemetryError -category 'InitializeToolset' "Failed to acquire dotnet install script (exit code '$exit_code')."
         ExitWithExitCode $exit_code
@@ -267,7 +298,7 @@ function InitializeBuildTool {
   if [[ -n "${_InitializeBuildTool:-}" ]]; then
     return
   fi
-  
+
   InitializeDotNetCli $restore
 
   # return values
