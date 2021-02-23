@@ -437,6 +437,16 @@
         <target state="translated">함수 포인터는 명명된 인수를 사용하여 호출할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_GlobalUsingInNamespace">
+        <source>A global using directive cannot be used in a namespace declaration.</source>
+        <target state="new">A global using directive cannot be used in a namespace declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingOutOfOrder">
+        <source>A global using directive must precede all non-global using directives.</source>
+        <target state="new">A global using directive must precede all non-global using directives.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">goto는 동일한 블록 내의 using 선언 앞 위치로 이동할 수 없습니다.</target>
@@ -965,6 +975,11 @@
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">대상으로 형식화된 개체 만들기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUsingGlobal">
+        <source>global using directive</source>
+        <target state="new">global using directive</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">

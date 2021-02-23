@@ -437,6 +437,16 @@
         <target state="translated">Non è possibile chiamare un puntatore a funzione con argomenti denominati.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_GlobalUsingInNamespace">
+        <source>A global using directive cannot be used in a namespace declaration.</source>
+        <target state="new">A global using directive cannot be used in a namespace declaration.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_GlobalUsingOutOfOrder">
+        <source>A global using directive must precede all non-global using directives.</source>
+        <target state="new">A global using directive must precede all non-global using directives.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_GoToBackwardJumpOverUsingVar">
         <source>A goto cannot jump to a location before a using declaration within the same block.</source>
         <target state="translated">Un'istruzione goto non può passare a una posizione che precede una dichiarazione using all'interno dello stesso blocco.</target>
@@ -965,6 +975,11 @@
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">creazione di oggetti con tipo di destinazione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUsingGlobal">
+        <source>global using directive</source>
+        <target state="new">global using directive</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
