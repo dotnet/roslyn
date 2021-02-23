@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.LanguageServices.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -865,7 +866,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var info = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create(), solutionFile.Path);
 
-            var workspace = new AdhocWorkspace();
+            var workspace = new AdhocWorkspace(VisualStudioTestCompositions.LanguageServices.GetHostServices());
             workspace.AddSolution(info);
 
             var solution = workspace.CurrentSolution;

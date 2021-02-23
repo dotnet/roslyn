@@ -6,6 +6,7 @@ using System;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks;
 using Microsoft.ServiceHub.Framework;
@@ -13,6 +14,7 @@ using Microsoft.ServiceHub.Framework.Services;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Cache;
 using Microsoft.VisualStudio.Cache.SQLite;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Roslyn.Utilities;
 
@@ -20,11 +22,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
     internal class TestCloudCacheServiceProvider : ICloudCacheServiceProvider
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly string _relativePathBase;
 
-        public TestCloudCacheServiceProvider(string relativePathBase)
+        public TestCloudCacheServiceProvider(IThreadingContext threadingContext, string relativePathBase)
         {
             Console.WriteLine($"Instantiated {nameof(TestCloudCacheServiceProvider)}");
+            _threadingContext = threadingContext;
             _relativePathBase = relativePathBase;
         }
 
@@ -47,62 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var pool = new SqliteConnectionPool();
             var activeContext = await pool.ActivateContextAsync(someContext, default);
             var cacheService = new CacheService(activeContext, serviceBroker, authorizationServiceClient, pool);
-            return new TestCloudCacheService(cacheService);
-        }
-
-        private class TestCloudCacheService : ICloudCacheService
-        {
-            private readonly ICacheService _cacheService;
-
-            public TestCloudCacheService(ICacheService cacheService)
-            {
-                _cacheService = cacheService;
-            }
-
-            private static CacheItemKey Convert(CloudCacheItemKey key)
-                => new(Convert(key.ContainerKey), key.ItemName) { Version = key.Version };
-
-            private static CacheContainerKey Convert(CloudCacheContainerKey containerKey)
-                => new(containerKey.Component, containerKey.Dimensions);
-
-            public void Dispose()
-            {
-                if (_cacheService is IAsyncDisposable asyncDisposable)
-                {
-                    asyncDisposable.DisposeAsync().AsTask().Wait();
-                }
-                else if (_cacheService is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-            }
-
-            public ValueTask DisposeAsync()
-            {
-                if (_cacheService is IAsyncDisposable asyncDisposable)
-                {
-                    return asyncDisposable.DisposeAsync();
-                }
-                else if (_cacheService is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                    return ValueTaskFactory.CompletedTask;
-                }
-
-                return ValueTaskFactory.CompletedTask;
-            }
-
-            public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
-                => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);
-
-            public ValueTask<string> GetRelativePathBaseAsync(CancellationToken cancellationToken)
-                => _cacheService.GetRelativePathBaseAsync(cancellationToken);
-
-            public Task SetItemAsync(CloudCacheItemKey key, PipeReader reader, bool shareable, CancellationToken cancellationToken)
-                => _cacheService.SetItemAsync(Convert(key), reader, shareable, cancellationToken);
-
-            public Task<bool> TryGetItemAsync(CloudCacheItemKey key, PipeWriter writer, CancellationToken cancellationToken)
-                => _cacheService.TryGetItemAsync(Convert(key), writer, cancellationToken);
+            return new VisualStudioCloudCacheService(_threadingContext, cacheService);
         }
     }
 }
