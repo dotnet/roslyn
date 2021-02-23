@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             Sources.AddRange(sourceState.Sources);
             AdditionalFiles.AddRange(sourceState.AdditionalFiles);
+            AnalyzerConfigFiles.AddRange(sourceState.AnalyzerConfigFiles);
             AdditionalFilesFactories.AddRange(sourceState.AdditionalFilesFactories);
             AdditionalProjectReferences.AddRange(sourceState.AdditionalProjectReferences);
         }
@@ -64,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Testing
         public SourceFileList Sources { get; }
 
         public SourceFileCollection AdditionalFiles { get; } = new SourceFileCollection();
+
+        public SourceFileCollection AnalyzerConfigFiles { get; } = new SourceFileCollection();
 
         public List<Func<IEnumerable<(string filename, SourceText content)>>> AdditionalFilesFactories { get; } = new List<Func<IEnumerable<(string filename, SourceText content)>>>();
 
