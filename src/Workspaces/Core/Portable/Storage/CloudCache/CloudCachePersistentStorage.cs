@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Storage
             using var bytes = s_byteArrayPool.GetPooledObject();
             checksum.WriteTo(bytes.Object);
 
-            return await _cacheService.CheckExistsAsync(new CloudCacheItemKey(containerKey.Value, name, bytes.Object.AsMemory()), cancellationToken).ConfigureAwait(false);
+            return await _cacheService.CheckExistsAsync(new CloudCacheItemKey(containerKey.Value, name, bytes.Object), cancellationToken).ConfigureAwait(false);
         }
 
         public override Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 using var bytes = s_byteArrayPool.GetPooledObject();
                 checksum.WriteTo(bytes.Object);
 
-                return await ReadStreamAsync(new CloudCacheItemKey(containerKey.Value, name, bytes.Object.AsMemory()), cancellationToken).ConfigureAwait(false);
+                return await ReadStreamAsync(new CloudCacheItemKey(containerKey.Value, name, bytes.Object), cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 using var bytes = s_byteArrayPool.GetPooledObject();
                 checksum.WriteTo(bytes.Object);
 
-                return await WriteStreamAsync(new CloudCacheItemKey(containerKey.Value, name, bytes.Object.AsMemory()), stream, cancellationToken).ConfigureAwait(false);
+                return await WriteStreamAsync(new CloudCacheItemKey(containerKey.Value, name, bytes.Object), stream, cancellationToken).ConfigureAwait(false);
             }
         }
 
