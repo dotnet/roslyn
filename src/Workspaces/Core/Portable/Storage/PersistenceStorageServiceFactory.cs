@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
                     return provider == null
                         ? NoOpPersistentStorageService.Instance
-                        : new CloudCachePersistentStorageService(provider, locationService, mustSucceed);
+                        : new CloudCachePersistentStorageService(provider, locationService);
             }
 #endif
 

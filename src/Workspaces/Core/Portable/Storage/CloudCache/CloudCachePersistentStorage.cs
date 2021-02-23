@@ -34,11 +34,6 @@ namespace Microsoft.CodeAnalysis.Storage
         /// </summary>
         private readonly ICloudCacheService _cacheService;
 
-        /// <summary>
-        /// Optional boolean controlling if we fail over gracefully or fail fast.  For local testing purposes.
-        /// </summary>
-        private readonly bool _mustSucceed;
-
         private readonly ConditionalWeakTable<ProjectState, ProjectCacheContainerKey>.CreateValueCallback _projectToContainerKeyCallback;
 
         public CloudCachePersistentStorage(
@@ -46,13 +41,11 @@ namespace Microsoft.CodeAnalysis.Storage
             ICloudCacheService cacheService,
             string workingFolderPath,
             string relativePathBase,
-            string databaseFilePath,
-            bool mustSucceed)
+            string databaseFilePath)
             : base(workingFolderPath, relativePathBase, databaseFilePath)
         {
             _cacheService = cacheService;
-            _mustSucceed = mustSucceed;
-            _projectToContainerKeyCallback = ps => new(mustSucceed, relativePathBase, ProjectKey.ToProjectKey(solutionKey, ps));
+            _projectToContainerKeyCallback = ps => new(relativePathBase, ProjectKey.ToProjectKey(solutionKey, ps));
         }
 
         public override void Dispose()
@@ -70,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Storage
             var state = projectKey.ProjectState;
             return state != null
                 ? s_projectToContainerKey.GetValue(state, _projectToContainerKeyCallback).ContainerKey
-                : ProjectCacheContainerKey.CreateProjectContainerKey(_mustSucceed, this.SolutionFilePath, projectKey);
+                : ProjectCacheContainerKey.CreateProjectContainerKey(this.SolutionFilePath, projectKey);
         }
 
         /// <summary>
@@ -83,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Storage
             var documentState = documentKey.DocumentState;
             return projectState != null && documentState != null
                 ? s_projectToContainerKey.GetValue(projectState, _projectToContainerKeyCallback).GetValue(documentState)
-                : ProjectCacheContainerKey.CreateDocumentContainerKey(_mustSucceed, this.SolutionFilePath, documentKey);
+                : ProjectCacheContainerKey.CreateDocumentContainerKey(this.SolutionFilePath, documentKey);
         }
 
         public override Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
@@ -100,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Storage
             // If we failed to get a container key (for example, because teh client is referencing a file not under the
             // solution folder) then we can't proceed.
             if (containerKey == null)
-                return _mustSucceed ? throw new InvalidOperationException("Could not create container key") : false;
+                return false;
 
             using var bytes = s_byteArrayPool.GetPooledObject();
             checksum.WriteTo(bytes.Object);
@@ -122,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Storage
             // If we failed to get a container key (for example, because teh client is referencing a file not under the
             // solution folder) then we can't proceed.
             if (containerKey == null)
-                return _mustSucceed ? throw new InvalidOperationException("Could not create container key") : null;
+                return null;
 
             if (checksum == null)
             {
@@ -176,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Storage
             // If we failed to get a container key (for example, because teh client is referencing a file not under the
             // solution folder) then we can't proceed.
             if (containerKey == null)
-                return _mustSucceed ? throw new InvalidOperationException("Could not create container key") : false;
+                return false;
 
             if (checksum == null)
             {

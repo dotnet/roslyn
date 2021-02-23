@@ -18,9 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var provider = new TestCloudCacheServiceProvider(
                 exportProvider.GetExports<IThreadingContext>().Single().Value, relativePathBase);
 
-            // `mustSucceed: false` is intentional.  Our tests do actually validate that if you pass invalid paths
-            // around that the db fails.
-            return new CloudCachePersistentStorageService(provider, locationService, mustSucceed: false);
+            return new CloudCachePersistentStorageService(provider, locationService);
         }
     }
 }

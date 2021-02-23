@@ -160,9 +160,16 @@ namespace Microsoft.CodeAnalysis.Storage
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
             // try to create it again.  If we can't create it the second time, then there's nothing
             // we can do and we have to store things in memory.
-            return await TryCreatePersistentStorageAsync(workspace, solutionKey, workingFolderPath, cancellationToken).ConfigureAwait(false) ??
-                   await TryCreatePersistentStorageAsync(workspace, solutionKey, workingFolderPath, cancellationToken).ConfigureAwait(false) ??
-                   NoOpPersistentStorage.Instance;
+            var result = await TryCreatePersistentStorageAsync(workspace, solutionKey, workingFolderPath, cancellationToken).ConfigureAwait(false) ??
+                         await TryCreatePersistentStorageAsync(workspace, solutionKey, workingFolderPath, cancellationToken).ConfigureAwait(false);
+
+            if (result != null)
+                return result;
+
+            if (workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed))
+                throw new InvalidOperationException($"{nameof(CreatePersistentStorageAsync)} failed");
+
+            return NoOpPersistentStorage.Instance;
         }
 
         private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(

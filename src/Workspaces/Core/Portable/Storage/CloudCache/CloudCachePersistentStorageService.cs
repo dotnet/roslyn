@@ -16,14 +16,12 @@ namespace Microsoft.CodeAnalysis.Storage
     {
         private const string StorageExtension = "CloudCache";
         private readonly ICloudCacheServiceProvider _provider;
-        private readonly bool _mustSucceed;
 
         public CloudCachePersistentStorageService(
-            ICloudCacheServiceProvider provider, IPersistentStorageLocationService locationService, bool mustSucceed)
+            ICloudCacheServiceProvider provider, IPersistentStorageLocationService locationService)
             : base(locationService)
         {
             _provider = provider;
-            _mustSucceed = mustSucceed;
         }
 
         protected override string GetDatabaseFilePath(string workingFolderPath)
@@ -44,14 +42,9 @@ namespace Microsoft.CodeAnalysis.Storage
             var cacheService = await _provider.CreateCacheAsync(cancellationToken).ConfigureAwait(false);
             var relativePathBase = await cacheService.GetRelativePathBaseAsync(cancellationToken).ConfigureAwait(false);
             if (string.IsNullOrEmpty(relativePathBase))
-            {
-                if (_mustSucceed)
-                    throw new InvalidOperationException("RelativePathBase was empty");
-
                 return null;
-            }
 
-            return new CloudCachePersistentStorage(solutionKey, cacheService, workingFolderPath, relativePathBase, databaseFilePath, _mustSucceed);
+            return new CloudCachePersistentStorage(solutionKey, cacheService, workingFolderPath, relativePathBase, databaseFilePath);
         }
     }
 }

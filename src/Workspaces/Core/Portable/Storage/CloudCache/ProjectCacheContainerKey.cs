@@ -31,35 +31,35 @@ namespace Microsoft.CodeAnalysis.Storage
         private readonly ConditionalWeakTable<TextDocumentState, StrongBox<CloudCacheContainerKey?>> _documentToContainerKey = new();
         private readonly ConditionalWeakTable<TextDocumentState, StrongBox<CloudCacheContainerKey?>>.CreateValueCallback _documentToContainerKeyCallback;
 
-        public ProjectCacheContainerKey(bool mustSucceed, string relativePathBase, ProjectKey projectKey)
+        public ProjectCacheContainerKey(string relativePathBase, ProjectKey projectKey)
         {
-            ContainerKey = CreateProjectContainerKey(mustSucceed, relativePathBase, projectKey);
+            ContainerKey = CreateProjectContainerKey(relativePathBase, projectKey);
 
             _documentToContainerKeyCallback = ds => new(CreateDocumentContainerKey(
-                mustSucceed, relativePathBase, DocumentKey.ToDocumentKey(projectKey, ds)));
+                relativePathBase, DocumentKey.ToDocumentKey(projectKey, ds)));
         }
 
         public CloudCacheContainerKey? GetValue(TextDocumentState state)
             => _documentToContainerKey.GetValue(state, _documentToContainerKeyCallback).Value;
 
         public static CloudCacheContainerKey? CreateProjectContainerKey(
-            bool mustSucceed, string relativePathBase, ProjectKey projectKey)
+            string relativePathBase, ProjectKey projectKey)
         {
             // Creates a container key for this project.  THe container key is a mix of the project's name, relative
             // file path (to the solution), and optional parse options.
 
             // If we don't have a valid solution path, we can't store anything.
             if (string.IsNullOrEmpty(relativePathBase))
-                return mustSucceed ? throw new InvalidOperationException($"{nameof(relativePathBase)} is empty") : null;
+                return null;
 
             // We have to have a file path for this project
             if (string.IsNullOrEmpty(projectKey.FilePath))
-                return mustSucceed ? throw new InvalidOperationException($"{nameof(projectKey.FilePath)} is empty") : null;
+                return null;
 
             // The file path has to be relative to the solution path.
             var relativePath = PathUtilities.GetRelativePath(relativePathBase, projectKey.FilePath!);
             if (relativePath == projectKey.FilePath)
-                return mustSucceed ? throw new InvalidOperationException($"'{projectKey.FilePath}' wasn't relative to '{relativePathBase}'") : null;
+                return null;
 
             var dimensions = EmptyDimensions
                 .Add($"{nameof(ProjectKey)}.{nameof(ProjectKey.Name)}", projectKey.Name)
@@ -70,23 +70,22 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         public static CloudCacheContainerKey? CreateDocumentContainerKey(
-            bool mustSucceed,
             string relativePathBase,
             DocumentKey documentKey)
         {
             // See if we can get a project key for this info.  If not, we def can't get a doc key.
-            var projectContinerKey = CreateProjectContainerKey(mustSucceed, relativePathBase, documentKey.Project);
+            var projectContinerKey = CreateProjectContainerKey(relativePathBase, documentKey.Project);
             if (projectContinerKey == null)
                 return null;
 
             // We have to have a file path for this document
             if (string.IsNullOrEmpty(documentKey.FilePath))
-                return mustSucceed ? throw new InvalidOperationException($"{nameof(documentKey.FilePath)} is empty") : null;
+                return null;
 
             // The file path has to be relative to the solution path.
             var relativePath = PathUtilities.GetRelativePath(relativePathBase, documentKey.FilePath!);
             if (relativePath == documentKey.FilePath)
-                return mustSucceed ? throw new InvalidOperationException($"'{documentKey.FilePath}' wasn't relative to '{relativePathBase}'") : null;
+                return null;
 
             var dimensions = projectContinerKey.Value.Dimensions
                 .Add($"{nameof(DocumentKey)}.{nameof(DocumentKey.Name)}", documentKey.Name)
