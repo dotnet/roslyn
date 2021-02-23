@@ -427,6 +427,11 @@
         <target state="translated">Modificatore di riferimento non corrispondente tra '{0}' e il puntatore a funzione '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">Non è possibile chiamare un puntatore a funzione con argomenti denominati.</target>
@@ -1001,6 +1006,11 @@
         <source>Record defines 'Equals' but not 'GetHashCode'.</source>
         <target state="translated">Il record definisce 'Equals' ma non 'GetHashCode'.</target>
         <note>'GetHashCode' and 'Equals' are not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction">
+        <source>Mixed declarations and expressions in deconstruction</source>
+        <target state="new">Mixed declarations and expressions in deconstruction</target>
+        <note />
       </trans-unit>
       <trans-unit id="WRN_RecordNamedDisallowed">
         <source>Types and aliases should not be named 'record'.</source>
@@ -9222,11 +9232,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">Il tipo di interoperabilità corrispondente al tipo di interoperabilità incorporato '{0}' non è stato trovato. Probabilmente manca un riferimento all'assembly.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Il tipo restituito per riferimento 'ref {0}' non è supportato.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">Il nome modulo '{0}' memorizzato in '{1}' deve corrispondere al relativo nome di file.</target>
@@ -10505,11 +10510,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_ThrowMisplaced">
         <source>A throw expression is not allowed in this context.</source>
         <target state="translated">Un'espressione throw non è consentita in questo contesto.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MixedDeconstructionUnsupported">
-        <source>A deconstruction cannot mix declarations and expressions on the left-hand-side.</source>
-        <target state="translated">Nella parte sinistra di una decostruzione non è possibile combinare dichiarazioni ed espressioni.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeclarationExpressionNotPermitted">

@@ -42,6 +42,11 @@
         <target state="translated">Evidenziazioni del documento</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="new">Edit and Continue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
         <source>Encapsulate field refactoring</source>
         <target state="translated">Refactoring di Incapsula campo</target>
@@ -70,6 +75,11 @@
       <trans-unit id="FeatureName_NavigateToSearch">
         <source>Navigate to</source>
         <target state="translated">Passa a</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="new">Navigation bar</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">

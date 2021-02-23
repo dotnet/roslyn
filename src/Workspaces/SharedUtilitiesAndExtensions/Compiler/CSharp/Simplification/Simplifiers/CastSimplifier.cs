@@ -524,16 +524,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     return false;
                 }
 
-                var oppositeType = castType.SpecialType == SpecialType.System_IntPtr ? SpecialType.System_UIntPtr : SpecialType.System_IntPtr;
-
                 // Given (nuint)(nint)myIntPtr we would normally suggest removing the (nint) cast as being identity
                 // but it is required as a means to get from IntPtr to nuint, and vice versa from UIntPtr to nint,
-                // so we check for an identity cast from [U]IntPtr to n[u]int, and a parent cast to the opposite.
+                // so we check for an identity cast from [U]IntPtr to n[u]int and then to a number type.
                 if (castedExpressionType.SpecialType == castType.SpecialType &&
                     !castedExpressionType.IsNativeIntegerType &&
                     castType.IsNativeIntegerType &&
-                    parentCastType.IsNativeIntegerType &&
-                    parentCastType.SpecialType == oppositeType)
+                    parentCastType.IsNumericType())
                 {
                     return true;
                 }

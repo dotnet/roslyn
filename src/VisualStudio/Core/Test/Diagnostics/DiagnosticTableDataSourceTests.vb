@@ -7,8 +7,8 @@ Imports System.Threading
 Imports System.Windows
 Imports System.Windows.Controls
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Shared
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -17,7 +17,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 Imports Microsoft.VisualStudio.Shell.TableControl
 Imports Microsoft.VisualStudio.Shell.TableManager
 Imports Roslyn.Test.Utilities

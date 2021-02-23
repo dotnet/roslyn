@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Not inProgress.Any() OrElse inProgress.Head.ContainingSymbol Is ContainingSymbol)
 
             If _lazyConstraintTypes.IsDefault Then
-                Dim diagnostics = DiagnosticBag.GetInstance()
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 Dim constraints = GetDeclaredConstraints(diagnostics)
                 Dim reportConflicts = DirectConstraintConflictKind.DuplicateTypeConstraint Or
                     If(ReportRedundantConstraints(), DirectConstraintConflictKind.RedundantConstraint, DirectConstraintConflictKind.None)
@@ -115,12 +115,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     For Each diagnostic In diagnosticsBuilder
                         Dim loc = GetLocation(diagnostic)
                         Debug.Assert(loc.IsInSource)
-                        diagnostics.Add(diagnostic.DiagnosticInfo, loc)
+                        diagnostics.Add(diagnostic.UseSiteInfo, loc)
                     Next
 
                     CheckConstraintTypeConstraints(constraints, diagnostics)
                     Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
-                    sourceModule.AddDiagnostics(diagnostics, CompilationStage.Declare)
+                    sourceModule.AddDeclarationDiagnostics(diagnostics)
                 End If
 
                 diagnosticsBuilder.Free()
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Protected MustOverride ReadOnly Property ContainerTypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
-        Protected MustOverride Overloads Function GetDeclaredConstraints(diagnostics As DiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
+        Protected MustOverride Overloads Function GetDeclaredConstraints(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
 
         ''' <summary>
         ''' True if the redundant type parameter constraints should be reported as
@@ -164,18 +164,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' constraints are not checked when binding ConstraintTypes since ConstraintTypes
         ''' has not been set on I(Of T) at that point.
         ''' </summary>
-        Private Shared Sub CheckConstraintTypeConstraints(constraints As ImmutableArray(Of TypeParameterConstraint), diagnostics As DiagnosticBag)
+        Private Sub CheckConstraintTypeConstraints(constraints As ImmutableArray(Of TypeParameterConstraint), diagnostics As BindingDiagnosticBag)
+            Dim containingAssembly As AssemblySymbol = Me.ContainingAssembly
+
             For Each constraint In constraints
                 Dim constraintType = constraint.TypeConstraint
                 If constraintType IsNot Nothing Then
                     Dim location = constraint.LocationOpt
                     Debug.Assert(location IsNot Nothing)
 
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    constraintType.AddUseSiteDiagnostics(useSiteDiagnostics)
+                    Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, containingAssembly)
+                    constraintType.AddUseSiteInfo(useSiteInfo)
 
-                    If Not diagnostics.Add(location, useSiteDiagnostics) Then
-                        constraintType.CheckAllConstraints(location, diagnostics)
+                    If Not diagnostics.Add(location, useSiteInfo) Then
+                        constraintType.CheckAllConstraints(location, diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, containingAssembly))
                     End If
                 End If
             Next
@@ -269,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Protected Overrides Function GetDeclaredConstraints(diagnostics As DiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
+        Protected Overrides Function GetDeclaredConstraints(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
             Dim variance As VarianceKind
             Dim constraints As ImmutableArray(Of TypeParameterConstraint) = Nothing
             _container.BindTypeParameterConstraints(Me, variance, constraints, diagnostics)
@@ -337,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Protected Overrides Function GetDeclaredConstraints(diagnostics As DiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
+        Protected Overrides Function GetDeclaredConstraints(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of TypeParameterConstraint)
             Dim syntax = DirectCast(_syntaxRef.GetSyntax(), TypeParameterSyntax)
             Return _container.BindTypeParameterConstraints(syntax, diagnostics)
         End Function

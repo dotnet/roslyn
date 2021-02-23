@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As BindingDiagnosticBag) As BoundNode
             Return _parentSemanticModel.Bind(binder, node, diagnostics)
         End Function
 

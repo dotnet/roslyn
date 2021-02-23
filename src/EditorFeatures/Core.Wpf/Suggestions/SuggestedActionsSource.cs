@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (_workspaceStatusService != null)
                 {
-                    using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesWpfResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
+                    using (operationContext?.AddScope(allowCancellation: true, description: EditorFeaturesResources.Gathering_Suggestions_Waiting_for_the_solution_to_fully_load))
                     {
                         // This needs to run under threading context otherwise, we can deadlock on VS
                         ThreadingContext.JoinableTaskFactory.Run(() => _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken));
@@ -200,10 +201,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var workspace = document.Project.Solution.Workspace;
                     var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
-                    var selectionOpt = TryGetCodeRefactoringSelection(range);
+                    var selection = TryGetCodeRefactoringSelection(range);
 
                     Func<string, IDisposable?> addOperationScope =
-                        description => operationContext?.AddScope(allowCancellation: true, string.Format(EditorFeaturesWpfResources.Gathering_Suggestions_0, description));
+                        description => operationContext?.AddScope(allowCancellation: true, string.Format(EditorFeaturesResources.Gathering_Suggestions_0, description));
 
                     // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
@@ -212,9 +213,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         document, range, addOperationScope, cancellationToken);
                     var refactorings = GetRefactorings(
                         supportsFeatureService, requestedActionCategories, workspace,
-                        document, selectionOpt, addOperationScope, cancellationToken);
+                        document, selection, addOperationScope, cancellationToken);
 
-                    var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selectionOpt);
+                    var filteredSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(fixes, refactorings, selection);
                     if (!filteredSets.HasValue)
                     {
                         return null;
@@ -224,6 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
+            [return: NotNullIfNotNull("unifiedSuggestedActionSet")]
             private SuggestedActionSet? ConvertToSuggestedActionSet(UnifiedSuggestedActionSet? unifiedSuggestedActionSet)
             {
                 // May be null in cases involving CodeFixSuggestedActions since FixAllFlavors may be null.
@@ -324,20 +326,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
                 Document document,
-                TextSpan? selectionOpt,
+                TextSpan? selection,
                 Func<string, IDisposable?> addOperationScope,
                 CancellationToken cancellationToken)
             {
                 this.AssertIsForeground();
 
-                if (!selectionOpt.HasValue)
+                if (!selection.HasValue)
                 {
                     // this is here to fail test and see why it is failed.
                     Trace.WriteLine("given range is not current");
                     return ImmutableArray<UnifiedSuggestedActionSet>.Empty;
                 }
-
-                var selection = selectionOpt.Value;
 
                 if (!workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) ||
                     _owner._codeRefactoringService == null ||
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                    workspace, _owner._codeRefactoringService, document, selection, isBlocking: true,
+                    workspace, _owner._codeRefactoringService, document, selection.Value, isBlocking: true,
                     addOperationScope, filterOutsideSelection, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // Next, before we do any async work, acquire the user's selection, directly grabbing
                 // it from the UI thread if htat's what we're on. That way we don't have any reentrancy
-                // blocking concerns if VS wants to block on this call (for example, if the user 
+                // blocking concerns if VS wants to block on this call (for example, if the user
                 // explicitly invokes the 'show smart tag' command).
                 //
                 // This work must happen on the UI thread as it needs to access the _textView's mutable
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 //         thread VS will kick us off and then immediately block to get the results so
                 //         that they can expand the lightbulb.  In this case we cannot do BG work first,
                 //         then call back into the UI thread to try to get the user selection.  This will
-                //         deadlock as the UI thread is blocked on us.  
+                //         deadlock as the UI thread is blocked on us.
                 //
                 // There are two solution to '2'.  Either introduce reentrancy (which we really don't
                 // like to do), or just ensure that we acquire and get the users selection up front.
