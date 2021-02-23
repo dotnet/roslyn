@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -97,138 +99,66 @@ namespace Microsoft.CodeAnalysis
         }
 
         public IEnumerable<DocumentId> GetAddedDocuments()
-        {
-            foreach (var id in _newProject.DocumentIds)
-            {
-                if (!_oldProject.ContainsDocument(id))
-                {
-                    yield return id;
-                }
-            }
-        }
+            => _newProject.State.DocumentStates.GetAddedStateIds(_oldProject.State.DocumentStates);
 
         public IEnumerable<DocumentId> GetAddedAdditionalDocuments()
-        {
-            foreach (var id in _newProject.AdditionalDocumentIds)
-            {
-                if (!_oldProject.ContainsAdditionalDocument(id))
-                {
-                    yield return id;
-                }
-            }
-        }
+            => _newProject.State.AdditionalDocumentStates.GetAddedStateIds(_oldProject.State.AdditionalDocumentStates);
 
         public IEnumerable<DocumentId> GetAddedAnalyzerConfigDocuments()
-        {
-            foreach (var doc in _newProject.AnalyzerConfigDocuments)
-            {
-                if (!_oldProject.ContainsAnalyzerConfigDocument(doc.Id))
-                {
-                    yield return doc.Id;
-                }
-            }
-        }
+            => _newProject.State.AnalyzerConfigDocumentStates.GetAddedStateIds(_oldProject.State.AnalyzerConfigDocumentStates);
 
         /// <summary>
         /// Get Documents with any changes, including textual and non-textual changes
         /// </summary>
-        /// <returns></returns>
         public IEnumerable<DocumentId> GetChangedDocuments()
             => GetChangedDocuments(onlyGetDocumentsWithTextChanges: false, ignoreUnchangeableDocuments: false);
 
         /// <summary>
-        /// Get Changed Documents:
-        /// When onlyGetDocumentsWithTextChanges is true, only get documents with text changes (we only check text source, not actual content);
-        /// otherwise get documents with any changes i.e. DocumentState changes:
-        /// <see cref="DocumentState.ParseOptions"/>, <see cref="DocumentState.SourceCodeKind"/>, <see cref="TextDocumentState.FilePath"/>
+        /// Get changed documents.
+        /// When <paramref name="onlyGetDocumentsWithTextChanges"/> is true, only get documents with text changes (we only check text source, not actual content);
+        /// otherwise get documents with any changes i.e. <see cref="ParseOptions"/>, <see cref="SourceCodeKind"/> and file path.
         /// </summary>
-        /// <param name="onlyGetDocumentsWithTextChanges"></param>
-        /// <returns></returns>
         public IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges)
             => GetChangedDocuments(onlyGetDocumentsWithTextChanges, ignoreUnchangeableDocuments: false);
 
         internal IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges, bool ignoreUnchangeableDocuments)
         {
-            foreach (var id in _newProject.DocumentIds)
+            foreach (var newState in _newProject.State.DocumentStates.States)
             {
-                var newState = _newProject.GetDocumentState(id)!;
-                var oldState = _oldProject.GetDocumentState(id);
-
-                if (oldState != null)
+                var oldState = _oldProject.State.DocumentStates.GetState(newState.Id);
+                if (oldState == null)
                 {
-                    if (onlyGetDocumentsWithTextChanges)
-                    {
-                        if (newState.HasTextChanged(oldState, ignoreUnchangeableDocuments))
-                            yield return id;
-                    }
-                    else
-                    {
-                        if (newState != oldState)
-                            yield return id;
-                    }
+                    // document was removed
+                    continue;
                 }
+
+                if (newState == oldState)
+                {
+                    continue;
+                }
+
+                if (onlyGetDocumentsWithTextChanges && !newState.HasTextChanged(oldState, ignoreUnchangeableDocuments))
+                {
+                    continue;
+                }
+
+                yield return newState.Id;
             }
         }
 
         public IEnumerable<DocumentId> GetChangedAdditionalDocuments()
-        {
-            // if the document states are different then there is a change.
-            foreach (var id in _newProject.AdditionalDocumentIds)
-            {
-                var newState = _newProject.GetAdditionalDocumentState(id);
-                var oldState = _oldProject.GetAdditionalDocumentState(id);
-                if (oldState != null && newState != oldState)
-                {
-                    yield return id;
-                }
-            }
-        }
+            => _newProject.State.AdditionalDocumentStates.GetChangedStateIds(_oldProject.State.AdditionalDocumentStates);
 
         public IEnumerable<DocumentId> GetChangedAnalyzerConfigDocuments()
-        {
-            // if the document states are different then there is a change.
-            foreach (var doc in _newProject.AnalyzerConfigDocuments)
-            {
-                var newState = _newProject.GetAnalyzerConfigDocumentState(doc.Id);
-                var oldState = _oldProject.GetAnalyzerConfigDocumentState(doc.Id);
-                if (oldState != null && newState != oldState)
-                {
-                    yield return doc.Id;
-                }
-            }
-        }
+            => _newProject.State.AnalyzerConfigDocumentStates.GetChangedStateIds(_oldProject.State.AnalyzerConfigDocumentStates);
 
         public IEnumerable<DocumentId> GetRemovedDocuments()
-        {
-            foreach (var id in _oldProject.DocumentIds)
-            {
-                if (!_newProject.ContainsDocument(id))
-                {
-                    yield return id;
-                }
-            }
-        }
+            => _newProject.State.DocumentStates.GetRemovedStateIds(_oldProject.State.DocumentStates);
 
         public IEnumerable<DocumentId> GetRemovedAdditionalDocuments()
-        {
-            foreach (var id in _oldProject.AdditionalDocumentIds)
-            {
-                if (!_newProject.ContainsAdditionalDocument(id))
-                {
-                    yield return id;
-                }
-            }
-        }
+            => _newProject.State.AdditionalDocumentStates.GetRemovedStateIds(_oldProject.State.AdditionalDocumentStates);
 
         public IEnumerable<DocumentId> GetRemovedAnalyzerConfigDocuments()
-        {
-            foreach (var doc in _oldProject.AnalyzerConfigDocuments)
-            {
-                if (!_newProject.ContainsAnalyzerConfigDocument(doc.Id))
-                {
-                    yield return doc.Id;
-                }
-            }
-        }
+            => _newProject.State.AnalyzerConfigDocumentStates.GetRemovedStateIds(_oldProject.State.AnalyzerConfigDocumentStates);
     }
 }

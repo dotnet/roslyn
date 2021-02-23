@@ -186,13 +186,27 @@ namespace Microsoft.CodeAnalysis
         /// Gets the document in this solution with the specified document ID.
         /// </summary>
         public Document? GetDocument(DocumentId? documentId)
+            => GetProject(documentId?.ProjectId)?.GetDocument(documentId!);
+
+        /// <summary>
+        /// Gets a document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal async ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
         {
-            if (this.ContainsDocument(documentId))
+            var project = GetProject(documentId?.ProjectId);
+            if (project == null)
             {
-                return this.GetProject(documentId.ProjectId)!.GetDocument(documentId);
+                return null;
             }
 
-            return null;
+            Contract.ThrowIfNull(documentId);
+            var document = project.GetDocument(documentId);
+            if (document != null || !includeSourceGenerated)
+            {
+                return document;
+            }
+
+            return await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -518,7 +532,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
-            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
+            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds.ToImmutableArray());
             if (newState == _state)
             {
                 return this;
@@ -1638,7 +1652,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<DocumentId>.Empty;
             }
 
-            var documentState = projectState.GetDocumentState(documentId);
+            var documentState = projectState.DocumentStates.GetState(documentId);
             if (documentState == null)
             {
                 // this document no longer exist
