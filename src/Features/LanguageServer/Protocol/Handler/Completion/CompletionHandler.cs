@@ -217,6 +217,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 // The TextEdits for override and partial method completions are provided in the resolve handler.
                 // We do not provide them in this handler.
+                // HACK: We should not be accessing the completion item's properties directly.
+                // See https://github.com/dotnet/roslyn/issues/51396.
                 item.Properties.TryGetValue("Modifiers", out var modifier);
                 var isOverrideOrPartialMethodCompletion = modifier != null && (modifier.Contains("Override") || modifier.Contains("Partial"));
 

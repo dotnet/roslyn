@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Find the matching completion item in the completion list
             var selectedItem = list.Items.FirstOrDefault(
                 i => data.DisplayText == i.DisplayText &&
-                completionItem.Label.StartsWith(i.DisplayTextPrefix) &&
-                completionItem.Label.EndsWith(i.DisplayTextSuffix));
+                    completionItem.Label.StartsWith(i.DisplayTextPrefix) &&
+                    completionItem.Label.EndsWith(i.DisplayTextSuffix));
 
             if (selectedItem == null)
             {
@@ -111,7 +111,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return completionItem;
         }
 
-        private static async Task<LSP.TextEdit> GenerateTextEditAsync(
+        // Internal for testing
+        internal static async Task<LSP.TextEdit> GenerateTextEditAsync(
             Document document,
             CompletionService completionService,
             CompletionItem selectedItem,
@@ -124,6 +125,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 document, selectedItem, cancellationToken: cancellationToken).ConfigureAwait(false);
             var completionChangeSpan = completionChange.TextChange.Span;
             var newText = completionChange.TextChange.NewText;
+            Contract.ThrowIfNull(newText);
 
             // If snippets are supported, that means we can move the caret (represented by $0) to
             // a new location.
@@ -136,19 +138,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // We want the position relative to the start of the snippet.
                     var relativeCaretPosition = caretPosition.Value - completionChangeSpan.Start;
 
-                    // Technically, the caret could be placed outside the bounds of the text
+                    // The caret could technically be placed outside the bounds of the text
                     // being inserted. This situation is currently unsupported in LSP, so in
                     // these cases we won't move the caret.
-                    if (relativeCaretPosition > 0 && relativeCaretPosition <= newText?.Length)
+                    if (relativeCaretPosition >= 0 && relativeCaretPosition <= newText.Length)
                     {
-                        newText = newText?.Insert(relativeCaretPosition, "$0");
+                        newText = newText.Insert(relativeCaretPosition, "$0");
                     }
                 }
             }
 
             var textEdit = new LSP.TextEdit()
             {
-                NewText = newText ?? "",
+                NewText = newText,
                 Range = ProtocolConversions.TextSpanToRange(completionChangeSpan, documentText),
             };
 

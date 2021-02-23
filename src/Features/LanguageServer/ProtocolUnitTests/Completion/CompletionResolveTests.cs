@@ -4,10 +4,14 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
@@ -133,6 +137,35 @@ class B : A
     }", results.TextEdit.NewText);
         }
 
+        [Fact]
+        public async Task TestResolveOverridesCompletionItem_SnippetsEnabled_CaretOutOfSnippetScopeAsync()
+        {
+            var markup =
+@"abstract class A
+{
+    public abstract void M();
+}
+
+class B : A
+{
+    override {|caret:|}
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var tags = new string[] { "Method", "Public" };
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(), LSP.VSCompletionInvokeKind.Explicit, "\0", LSP.CompletionTriggerKind.Invoked);
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var selectedItem = CodeAnalysis.Completion.CompletionItem.Create(displayText: "M");
+            var textEdit = await CompletionResolveHandler.GenerateTextEditAsync(
+                document, new TestCaretOutOfScopeCompletionService(), selectedItem, snippetsSupported: true, CancellationToken.None).ConfigureAwait(false);
+
+            Assert.Equal(@"public override void M()
+    {
+        throw new System.NotImplementedException();
+    }", textEdit.NewText);
+        }
+
         private static async Task<object> RunResolveCompletionItemAsync(TestLspServer testLspServer, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName,
@@ -166,5 +199,33 @@ class B : A
                 new ClassifiedTextRun("whitespace", " "),
                 new ClassifiedTextRun("class name", className)
             };
+
+        private class TestCaretOutOfScopeCompletionService : CompletionService
+        {
+            public override string Language => LanguageNames.CSharp;
+
+            public override Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(
+                Document document,
+                int caretPosition,
+                CompletionTrigger trigger = default,
+                ImmutableHashSet<string> roles = null,
+                OptionSet options = null,
+                CancellationToken cancellationToken = default)
+                => Task.FromResult(CodeAnalysis.Completion.CompletionList.Empty);
+
+            public override Task<CompletionChange> GetChangeAsync(
+                Document document,
+                CodeAnalysis.Completion.CompletionItem item,
+                char? commitCharacter = null,
+                CancellationToken cancellationToken = default)
+            {
+                var textChange = new TextChange(span: new TextSpan(start: 77, length: 9), newText: @"public override void M()
+    {
+        throw new System.NotImplementedException();
+    }");
+
+                return Task.FromResult(CompletionChange.Create(textChange, newPosition: 0));
+            }
+        }
     }
 }
