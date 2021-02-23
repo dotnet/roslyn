@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         public async ValueTask<ICloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
         {
+            // Directly access VS' CacheService through their library and not as a brokered service. Then create our
+            // wrapper CloudCacheService directly on that instance.
             var authorizationServiceClient = new AuthorizationServiceClient(new AuthorizationServiceMock());
             var solutionService = new SolutionServiceMock();
             var fileSystem = new FileSystemServiceMock();
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var pool = new SqliteConnectionPool();
             var activeContext = await pool.ActivateContextAsync(someContext, default);
             var cacheService = new CacheService(activeContext, serviceBroker, authorizationServiceClient, pool);
+
             return new VisualStudioCloudCacheService(_threadingContext, cacheService);
         }
     }
