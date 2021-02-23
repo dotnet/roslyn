@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
                 state.DocumentationMode ?? DocumentationMode.Diagnose,
                 state.Sources.ToImmutableArray(),
                 state.AdditionalFiles.ToImmutableArray(),
+                state.AnalyzerConfigFiles.ToImmutableArray(),
                 state.AdditionalProjectReferences.ToImmutableArray(),
                 state.AdditionalReferences.ToImmutableArray(),
                 ImmutableArray<Diagnostic>.Empty)
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             DocumentationMode documentationMode,
             ImmutableArray<(string filename, SourceText content)> sources,
             ImmutableArray<(string filename, SourceText content)> additionalFiles,
+            ImmutableArray<(string filename, SourceText content)> analyzerConfigFiles,
             ImmutableArray<string> additionalProjectReferences,
             ImmutableArray<MetadataReference> additionalReferences,
             ImmutableArray<Diagnostic> additionalDiagnostics)
@@ -49,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             DocumentationMode = documentationMode;
             Sources = sources;
             AdditionalFiles = additionalFiles;
+            AnalyzerConfigFiles = analyzerConfigFiles;
             AdditionalProjectReferences = additionalProjectReferences;
             AdditionalReferences = additionalReferences;
             AdditionalDiagnostics = additionalDiagnostics;
@@ -69,6 +72,8 @@ namespace Microsoft.CodeAnalysis.Testing.Model
         public ImmutableArray<(string filename, SourceText content)> Sources { get; }
 
         public ImmutableArray<(string filename, SourceText content)> AdditionalFiles { get; }
+
+        public ImmutableArray<(string filename, SourceText content)> AnalyzerConfigFiles { get; }
 
         public ImmutableArray<string> AdditionalProjectReferences { get; }
 
@@ -105,6 +110,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             Optional<DocumentationMode> documentationMode = default,
             Optional<ImmutableArray<(string filename, SourceText content)>> sources = default,
             Optional<ImmutableArray<(string filename, SourceText content)>> additionalFiles = default,
+            Optional<ImmutableArray<(string filename, SourceText content)>> analyzerConfigFiles = default,
             Optional<ImmutableArray<string>> additionalProjectReferences = default,
             Optional<ImmutableArray<MetadataReference>> additionalReferences = default,
             Optional<ImmutableArray<Diagnostic>> additionalDiagnostics = default)
@@ -118,6 +124,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
                 GetValueOrDefault(documentationMode, DocumentationMode),
                 GetValueOrDefault(sources, Sources),
                 GetValueOrDefault(additionalFiles, AdditionalFiles),
+                GetValueOrDefault(analyzerConfigFiles, AnalyzerConfigFiles),
                 GetValueOrDefault(additionalProjectReferences, AdditionalProjectReferences),
                 GetValueOrDefault(additionalReferences, AdditionalReferences),
                 GetValueOrDefault(additionalDiagnostics, AdditionalDiagnostics));

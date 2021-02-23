@@ -123,6 +123,7 @@ Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.AdditionalDiagnostics
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.AdditionalFiles.get -> System.Collections.Immutable.ImmutableArray<(string filename, Microsoft.CodeAnalysis.Text.SourceText content)>
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.AdditionalProjectReferences.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.AdditionalReferences.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>
+Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.AnalyzerConfigFiles.get -> System.Collections.Immutable.ImmutableArray<(string filename, Microsoft.CodeAnalysis.Text.SourceText content)>
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.AssemblyName.get -> string
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.DocumentationMode.get -> Microsoft.CodeAnalysis.DocumentationMode
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.EvaluatedProjectState(Microsoft.CodeAnalysis.Testing.ProjectState state, Microsoft.CodeAnalysis.Testing.ReferenceAssemblies defaultReferenceAssemblies) -> void
@@ -146,6 +147,7 @@ Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalFiles.get -> Microsoft.Cod
 Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalFilesFactories.get -> System.Collections.Generic.List<System.Func<System.Collections.Generic.IEnumerable<(string filename, Microsoft.CodeAnalysis.Text.SourceText content)>>>
 Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalProjectReferences.get -> System.Collections.Generic.List<string>
 Microsoft.CodeAnalysis.Testing.ProjectState.AdditionalReferences.get -> Microsoft.CodeAnalysis.Testing.MetadataReferenceCollection
+Microsoft.CodeAnalysis.Testing.ProjectState.AnalyzerConfigFiles.get -> Microsoft.CodeAnalysis.Testing.SourceFileCollection
 Microsoft.CodeAnalysis.Testing.ProjectState.AssemblyName.get -> string
 Microsoft.CodeAnalysis.Testing.ProjectState.DocumentationMode.get -> Microsoft.CodeAnalysis.DocumentationMode?
 Microsoft.CodeAnalysis.Testing.ProjectState.DocumentationMode.set -> void

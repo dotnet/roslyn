@@ -1145,6 +1145,12 @@ namespace Microsoft.CodeAnalysis.Testing
                     var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
                     solution = solution.AddAdditionalDocument(documentId, newFileName, source, filePath: newFileName);
                 }
+
+                foreach (var (newFileName, source) in projectState.AnalyzerConfigFiles)
+                {
+                    var documentId = DocumentId.CreateNewId(additionalProjectId, debugName: newFileName);
+                    solution = solution.AddAnalyzerConfigDocument(documentId, newFileName, source, filePath: newFileName);
+                }
             }
 
             solution = solution.AddMetadataReferences(projectId, primaryProject.AdditionalReferences);
@@ -1159,6 +1165,12 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
                 solution = solution.AddAdditionalDocument(documentId, newFileName, source, filePath: newFileName);
+            }
+
+            foreach (var (newFileName, source) in primaryProject.AnalyzerConfigFiles)
+            {
+                var documentId = DocumentId.CreateNewId(projectId, debugName: newFileName);
+                solution = solution.AddAnalyzerConfigDocument(documentId, newFileName, source, filePath: newFileName);
             }
 
             solution = AddProjectReferences(solution, projectId, primaryProject.AdditionalProjectReferences.Select(name => projectIdMap[name]));
