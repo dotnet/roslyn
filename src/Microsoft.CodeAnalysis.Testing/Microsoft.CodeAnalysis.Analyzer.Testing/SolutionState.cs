@@ -140,6 +140,11 @@ namespace Microsoft.CodeAnalysis.Testing
                     result.AdditionalFiles.AddRange(baseState.AdditionalFiles);
                 }
 
+                if (AnalyzerConfigFiles.Count == 0)
+                {
+                    result.AnalyzerConfigFiles.AddRange(baseState.AnalyzerConfigFiles);
+                }
+
                 if (AdditionalProjects.Count == 0)
                 {
                     result.AdditionalProjects.AddRange(baseState.AdditionalProjects);
@@ -172,6 +177,7 @@ namespace Microsoft.CodeAnalysis.Testing
             result.InheritanceMode = StateInheritanceMode.Explicit;
             result.Sources.AddRange(Sources);
             result.AdditionalFiles.AddRange(AdditionalFiles);
+            result.AnalyzerConfigFiles.AddRange(AnalyzerConfigFiles);
             result.AdditionalProjects.AddRange(AdditionalProjects);
             result.AdditionalProjectReferences.AddRange(AdditionalProjectReferences);
             result.AdditionalReferences.AddRange(AdditionalReferences);
@@ -198,6 +204,11 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             if ((!willInherit || state.AdditionalFiles.Any()) && !ContentEqual(state.AdditionalFiles, baseState.AdditionalFiles))
+            {
+                return true;
+            }
+
+            if ((!willInherit || state.AnalyzerConfigFiles.Any()) && !ContentEqual(state.AnalyzerConfigFiles, baseState.AnalyzerConfigFiles))
             {
                 return true;
             }
@@ -241,8 +252,8 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <summary>
         /// Processes the markup syntax for this <see cref="SolutionState"/> according to the current
         /// <see cref="MarkupHandling"/>, and returns a new <see cref="SolutionState"/> with the
-        /// <see cref="ProjectState.Sources"/>, <see cref="ProjectState.AdditionalFiles"/>, and
-        /// <see cref="ExpectedDiagnostics"/> updated accordingly.
+        /// <see cref="ProjectState.Sources"/>, <see cref="ProjectState.AdditionalFiles"/>,
+        /// <see cref="ProjectState.AnalyzerConfigFiles"/>, and <see cref="ExpectedDiagnostics"/> updated accordingly.
         /// </summary>
         /// <param name="markupOptions">Additional options to apply during markup processing.</param>
         /// <param name="defaultDiagnostic">The diagnostic descriptor to use for markup spans without an explicit name,
@@ -265,7 +276,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var markupLocations = ImmutableDictionary<string, FileLinePositionSpan>.Empty;
             (var expected, var testSources) = ProcessMarkupSources(Sources, ExpectedDiagnostics, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
-            var (additionalExpected, additionalFiles) = ProcessMarkupSources(AdditionalFiles.Concat(AdditionalFilesFactories.SelectMany(factory => factory())), expected, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            var (additionalExpected1, additionalFiles) = ProcessMarkupSources(AdditionalFiles.Concat(AdditionalFilesFactories.SelectMany(factory => factory())), expected, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            var (additionalExpected, analyzerConfigFiles) = ProcessMarkupSources(AnalyzerConfigFiles, additionalExpected1, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
 
             var result = new SolutionState(Name, Language, DefaultPrefix, DefaultExtension);
             result.MarkupHandling = MarkupMode.None;
@@ -275,11 +287,13 @@ namespace Microsoft.CodeAnalysis.Testing
             result.DocumentationMode = DocumentationMode;
             result.Sources.AddRange(testSources);
             result.AdditionalFiles.AddRange(additionalFiles);
+            result.AnalyzerConfigFiles.AddRange(analyzerConfigFiles);
 
             foreach (var (projectName, projectState) in AdditionalProjects)
             {
                 var (correctedIntermediateDiagnostics, additionalProjectSources) = ProcessMarkupSources(projectState.Sources, additionalExpected, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
-                var (correctedDiagnostics, additionalProjectAdditionalFiles) = ProcessMarkupSources(projectState.AdditionalFiles.Concat(projectState.AdditionalFilesFactories.SelectMany(factory => factory())), correctedIntermediateDiagnostics, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+                var (correctedDiagnostics1, additionalProjectAdditionalFiles) = ProcessMarkupSources(projectState.AdditionalFiles.Concat(projectState.AdditionalFilesFactories.SelectMany(factory => factory())), correctedIntermediateDiagnostics, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+                var (correctedDiagnostics, additionalProjectAnalyzerConfigFiles) = ProcessMarkupSources(projectState.AnalyzerConfigFiles, correctedDiagnostics1, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
 
                 var processedProjectState = new ProjectState(projectState);
                 processedProjectState.Sources.Clear();
@@ -287,6 +301,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 processedProjectState.AdditionalFiles.Clear();
                 processedProjectState.AdditionalFilesFactories.Clear();
                 processedProjectState.AdditionalFiles.AddRange(additionalProjectAdditionalFiles);
+                processedProjectState.AnalyzerConfigFiles.Clear();
+                processedProjectState.AnalyzerConfigFiles.AddRange(additionalProjectAnalyzerConfigFiles);
 
                 result.AdditionalProjects.Add(projectName, processedProjectState);
                 additionalExpected = correctedDiagnostics;
