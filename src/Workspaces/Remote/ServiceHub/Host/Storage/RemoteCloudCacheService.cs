@@ -3,67 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Storage;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
-    internal class RemoteCloudCacheService : ICloudCacheService
+    internal class RemoteCloudCacheService : AbstractCloudCacheService
     {
-        private readonly ICacheService _cacheService;
-
         public RemoteCloudCacheService(ICacheService cacheService)
-            => _cacheService = cacheService;
-
-        private static CacheItemKey Convert(CloudCacheItemKey key)
-            => new(Convert(key.ContainerKey), key.ItemName) { Version = key.Version };
-
-        private static CacheContainerKey Convert(CloudCacheContainerKey containerKey)
-            => new(containerKey.Component, containerKey.Dimensions);
-
-        public void Dispose()
+            : base(cacheService)
         {
-            if (_cacheService is IAsyncDisposable asyncDisposable)
+        }
+
+        public override void Dispose()
+        {
+            if (this.CacheService is IAsyncDisposable asyncDisposable)
             {
                 asyncDisposable.DisposeAsync().AsTask().Wait();
             }
-            else if (_cacheService is IDisposable disposable)
+            else if (this.CacheService is IDisposable disposable)
             {
                 disposable.Dispose();
             }
         }
-
-        public ValueTask DisposeAsync()
-        {
-            if (_cacheService is IAsyncDisposable asyncDisposable)
-            {
-                return asyncDisposable.DisposeAsync();
-            }
-            else if (_cacheService is IDisposable disposable)
-            {
-                disposable.Dispose();
-                return ValueTaskFactory.CompletedTask;
-            }
-            else
-            {
-                return ValueTaskFactory.CompletedTask;
-            }
-        }
-
-        public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
-            => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);
-
-        public ValueTask<string> GetRelativePathBaseAsync(CancellationToken cancellationToken)
-            => _cacheService.GetRelativePathBaseAsync(cancellationToken);
-
-        public Task SetItemAsync(CloudCacheItemKey key, PipeReader reader, bool shareable, CancellationToken cancellationToken)
-            => _cacheService.SetItemAsync(Convert(key), reader, shareable, cancellationToken);
-
-        public Task<bool> TryGetItemAsync(CloudCacheItemKey key, PipeWriter writer, CancellationToken cancellationToken)
-            => _cacheService.TryGetItemAsync(Convert(key), writer, cancellationToken);
     }
 }

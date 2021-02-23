@@ -3,13 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.IO.Pipelines;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
@@ -17,61 +13,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
     /// Tiny wrappers that takes the platform <see cref="ICacheService"/> and wraps it to our own layers as an <see
     /// cref="ICloudCacheService"/>.
     /// </summary>
-    internal class VisualStudioCloudCacheService : ICloudCacheService
+    internal class VisualStudioCloudCacheService : AbstractCloudCacheService
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly ICacheService _cacheService;
 
         public VisualStudioCloudCacheService(IThreadingContext threadingContext, ICacheService cacheService)
+            : base(cacheService)
         {
             _threadingContext = threadingContext;
-            _cacheService = cacheService;
         }
 
-        private static CacheItemKey Convert(CloudCacheItemKey key)
-            => new(Convert(key.ContainerKey), key.ItemName) { Version = key.Version };
-
-        private static CacheContainerKey Convert(CloudCacheContainerKey containerKey)
-            => new(containerKey.Component, containerKey.Dimensions);
-
-        public void Dispose()
+        public override void Dispose()
         {
-            if (_cacheService is IAsyncDisposable asyncDisposable)
+            if (this.CacheService is IAsyncDisposable asyncDisposable)
             {
                 _threadingContext.JoinableTaskFactory.Run(
                     async () => await asyncDisposable.DisposeAsync().ConfigureAwait(false));
             }
-            else if (_cacheService is IDisposable disposable)
+            else if (this.CacheService is IDisposable disposable)
             {
                 disposable.Dispose();
             }
         }
-
-        public ValueTask DisposeAsync()
-        {
-            if (_cacheService is IAsyncDisposable asyncDisposable)
-            {
-                return asyncDisposable.DisposeAsync();
-            }
-            else if (_cacheService is IDisposable disposable)
-            {
-                disposable.Dispose();
-                return ValueTaskFactory.CompletedTask;
-            }
-
-            return ValueTaskFactory.CompletedTask;
-        }
-
-        public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
-            => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);
-
-        public ValueTask<string> GetRelativePathBaseAsync(CancellationToken cancellationToken)
-            => _cacheService.GetRelativePathBaseAsync(cancellationToken);
-
-        public Task SetItemAsync(CloudCacheItemKey key, PipeReader reader, bool shareable, CancellationToken cancellationToken)
-            => _cacheService.SetItemAsync(Convert(key), reader, shareable, cancellationToken);
-
-        public Task<bool> TryGetItemAsync(CloudCacheItemKey key, PipeWriter writer, CancellationToken cancellationToken)
-            => _cacheService.TryGetItemAsync(Convert(key), writer, cancellationToken);
     }
 }
