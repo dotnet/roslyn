@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\AuthorizationServiceMock.cs" Link="CloudCache\AuthorizationServiceMock.cs" />
+    <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\FileSystemServiceMock.cs" Link="CloudCache\FileSystemServiceMock.cs" />
   </ItemGroup>
 
   <ItemGroup>
