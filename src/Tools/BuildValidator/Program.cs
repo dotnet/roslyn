@@ -43,14 +43,14 @@ namespace BuildValidator
             var rootCommand = new RootCommand
             {
                 new Option<string>(
-                    "--assembliesPath", "Path to assemblies to rebuild"
-                ) { IsRequired = true },
+                    "--assembliesPath", "Path to assemblies to rebuild (can be specified one or more times)"
+                ) { IsRequired = true, Argument = { Arity = ArgumentArity.OneOrMore } },
                 new Option<string>(
                     "--sourcePath", "Path to sources to use in rebuild"
                 ) { IsRequired = true },
-                new Option<string[]?>(
-                    "--referencesPaths", "Additional paths to referenced assemblies"
-                ),
+                new Option<string>(
+                    "--referencesPath", "Path to referenced assemblies (can be specified zero or more times)"
+                ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
                 new Option<bool>(
                     "--verbose", "Output verbose log information"
                 ),
@@ -64,32 +64,30 @@ namespace BuildValidator
                     "--debugPath", "Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled."
                 )
             };
-            rootCommand.Handler = CommandHandler.Create<string, string, string[]?, bool, bool, bool, string>(HandleCommand);
+            rootCommand.Handler = CommandHandler.Create<string[], string, string[]?, bool, bool, bool, string>(HandleCommand);
             return rootCommand.Invoke(args);
         }
 
-        static int HandleCommand(string assembliesPath, string sourcePath, string[]? referencesPaths, bool verbose, bool quiet, bool debug, string? debugPath)
+        static int HandleCommand(string[] assembliesPath, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)
         {
             // If user provided a debug path then assume we should write debug outputs.
             debug |= debugPath is object;
             debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
-            referencesPaths ??= Array.Empty<string>();
+            referencesPath ??= Array.Empty<string>();
 
-            var options = new Options(assembliesPath, referencesPaths, sourcePath, verbose, quiet, debug, debugPath);
+            var options = new Options(assembliesPath, referencesPath, sourcePath, verbose, quiet, debug, debugPath);
 
-            // TODO: remove the DemoLoggerProvider, update this dependency,
-            // and move to the built in logger.
-            var loggerFactory = new LoggerFactory(
-                new[] { new ConsoleLoggerProvider(new ConsoleLoggerSettings()) },
-                new LoggerFilterOptions()
-                {
-                    MinLevel = options.Verbose ? LogLevel.Trace : LogLevel.Information
-                });
-
-            if (!options.Quiet)
+            // TODO: remove the DemoLoggerProvider or convert it to something more permanent
+            var loggerFactory = LoggerFactory.Create(builder =>
             {
-                loggerFactory.AddProvider(new DemoLoggerProvider());
-            }
+                builder.SetMinimumLevel((options.Verbose, options.Quiet) switch
+                {
+                    (_, true) => LogLevel.Error,
+                    (true, _) => LogLevel.Trace,
+                    _ => LogLevel.Information
+                });
+                builder.AddProvider(new DemoLoggerProvider());
+            });
 
             var logger = loggerFactory.CreateLogger<Program>();
             try
@@ -111,10 +109,11 @@ namespace BuildValidator
 
                 var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
 
-                var artifactsDir = new DirectoryInfo(options.AssembliesPath);
+                var artifactsDirs = options.AssembliesPaths.Select(path => new DirectoryInfo(path));
 
-                var filesToValidate = artifactsDir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
-                    .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
+                var filesToValidate = artifactsDirs.SelectMany(dir =>
+                        dir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
+                            .Concat(dir.EnumerateFiles("*.dll", SearchOption.AllDirectories)))
                     .Distinct(FileNameEqualityComparer.Instance);
 
                 var success = ValidateFiles(filesToValidate, buildConstructor, logger, options);
@@ -213,7 +212,7 @@ namespace BuildValidator
 
                 var compilation = buildConstructor.CreateCompilation(
                     optionsReader,
-                    Path.GetFileNameWithoutExtension(originalBinary.Name));
+                    originalBinary.Name);
 
                 var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), logger, options);
                 return compilationDiff;

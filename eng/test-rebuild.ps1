@@ -6,6 +6,7 @@
 param(
   [string]$configuration = "Debug",
   [switch]$ci = $false,
+  [switch]$noBuild = $false,
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -15,6 +16,7 @@ function Print-Usage() {
   Write-Host "Usage: test-rebuild.ps1"
   Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
   Write-Host "  -ci                       Set when running on CI server"
+  Write-Host "  -noBuild                  If set, skips running a bootstrap build before running the rebuild"
   Write-Host "  -help                     Print help and exit"
 }
 
@@ -27,9 +29,21 @@ try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
 
-  Write-Host "Building Roslyn"
-  Exec-Console (Join-Path $PSScriptRoot "build.ps1") "-restore -build -ci:$ci -configuration:$configuration -pack -binaryLog"
-  Exec-Console "artifacts\bin\BuildValidator\$configuration\net472\BuildValidator.exe" "--assembliesPath '$ArtifactsDir/obj/Microsoft.CodeAnalysis'"
+  if (-not $noBuild) {
+    Write-Host "Building Roslyn"
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -configuration:$configuration -pack -binaryLog }
+  }
+
+  $dotnetInstallDir = (InitializeDotNetCli -install:$true)
+  $rebuildArgs = ("--verbose" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis/$configuration`"" +
+  " --assembliesPath $ArtifactsDir/obj/csc/$configuration/netcoreapp3.1" +
+  " --debugPath `"$ArtifactsDir/BuildValidator`"" +
+  " --sourcePath `"$RepoRoot`"" +
+  " --referencesPath `"$ArtifactsDir/bin`"" +
+  " --referencesPath `"$dotnetInstallDir/packs/Microsoft.AspNetCore.App.Ref`"" +
+  " --referencesPath `"$dotnetInstallDir/packs/Microsoft.NETCore.App.Ref`"")
+  Exec-Console "$ArtifactsDir/bin/BuildValidator/$configuration/net472/BuildValidator.exe" $rebuildArgs
 
   exit 0
 }
