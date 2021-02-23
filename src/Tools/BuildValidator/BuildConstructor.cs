@@ -38,7 +38,7 @@ namespace BuildValidator
             _logger = logger;
         }
 
-        public Compilation CreateCompilation(CompilationOptionsReader compilationOptionsReader, string name)
+        public Compilation CreateCompilation(CompilationOptionsReader compilationOptionsReader, string fileName)
         {
             var pdbCompilationOptions = compilationOptionsReader.GetMetadataCompilationOptions();
             if (pdbCompilationOptions.Length == 0)
@@ -62,8 +62,8 @@ namespace BuildValidator
             {
                 var compilation = language switch
                 {
-                    LanguageNames.CSharp => CreateCSharpCompilation(name, compilationOptionsReader, sources, metadataReferences),
-                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(name, compilationOptionsReader, sources, metadataReferences),
+                    LanguageNames.CSharp => CreateCSharpCompilation(fileName, compilationOptionsReader, sources, metadataReferences),
+                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(fileName, compilationOptionsReader, sources, metadataReferences),
                     _ => throw new InvalidDataException($"{language} is not a known language")
                 };
 
@@ -88,7 +88,10 @@ namespace BuildValidator
                 {
                     var sourceFileInfo = resolvedSource.SourceFileInfo;
                     var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
-                    _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash}");
+                    var embeddedCompressedHash = sourceFileInfo.EmbeddedCompressedHash is { } compressedHash
+                        ? ("[uncompressed]" + BitConverter.ToString(compressedHash).Replace("-", ""))
+                        : null;
+                    _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash} - {embeddedCompressedHash}");
                 }
             }
         }
@@ -129,20 +132,20 @@ namespace BuildValidator
 
         #region CSharp
         private Compilation CreateCSharpCompilation(
-            string assemblyName,
+            string fileName,
             CompilationOptionsReader optionsReader,
             ImmutableArray<ResolvedSource> sources,
             ImmutableArray<MetadataReference> metadataReferences)
         {
-            var (compilationOptions, parseOptions) = CreateCSharpCompilationOptions(optionsReader, assemblyName);
+            var (compilationOptions, parseOptions) = CreateCSharpCompilationOptions(optionsReader, fileName);
             return CSharpCompilation.Create(
-                assemblyName,
+                Path.GetFileNameWithoutExtension(fileName),
                 syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s.SourceText, options: parseOptions, path: s.SourceFileInfo.SourceFilePath)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
         }
 
-        private (CSharpCompilationOptions, CSharpParseOptions) CreateCSharpCompilationOptions(CompilationOptionsReader optionsReader, string assemblyName)
+        private (CSharpCompilationOptions, CSharpParseOptions) CreateCSharpCompilationOptions(CompilationOptionsReader optionsReader, string fileName)
         {
             using var scope = _logger.BeginScope("Options");
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
@@ -175,9 +178,7 @@ namespace BuildValidator
                 optionsReader.GetOutputKind(),
                 reportSuppressedDiagnostics: false,
 
-                // TODO: can't rely on the implicity moduleName here. In the case of .NET Core EXE the output name will
-                // end with .dll but the inferred name will be .exe
-                moduleName: assemblyName + ".dll",
+                moduleName: fileName,
                 mainTypeName: optionsReader.GetMainTypeName(),
                 scriptClassName: null,
                 usings: null,
@@ -213,10 +214,10 @@ namespace BuildValidator
             return (compilationOptions, parseOptions);
         }
 
-        private static (OptimizationLevel, bool) GetOptimizationLevel(string optimizationLevel)
+        private static (OptimizationLevel, bool) GetOptimizationLevel(string? optimizationLevel)
             => optimizationLevel switch
             {
-                "debug" => (OptimizationLevel.Debug, false),
+                null or "debug" => (OptimizationLevel.Debug, false),
                 "debug-plus" => (OptimizationLevel.Debug, true),
                 "release" => (OptimizationLevel.Release, false),
                 _ => throw new InvalidDataException($"Optimization \"{optimizationLevel}\" level not recognized")
@@ -226,14 +227,14 @@ namespace BuildValidator
 
         #region Visual Basic
         private Compilation CreateVisualBasicCompilation(
-            string assemblyName,
+            string fileName,
             CompilationOptionsReader optionsReader,
             ImmutableArray<ResolvedSource> sources,
             ImmutableArray<MetadataReference> metadataReferences)
         {
             var compilationOptions = CreateVisualBasicCompilationOptions(optionsReader);
             return VisualBasicCompilation.Create(
-                assemblyName,
+                Path.GetFileNameWithoutExtension(fileName),
                 syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s.SourceText, options: compilationOptions.ParseOptions, path: s.DisplayPath)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
@@ -244,7 +245,7 @@ namespace BuildValidator
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
             var langVersionString = pdbCompilationOptions.GetUniqueOption("language-version");
-            var optimization = pdbCompilationOptions.GetUniqueOption("optimization");
+            pdbCompilationOptions.TryGetUniqueOption("optimization", out var optimization);
             pdbCompilationOptions.TryGetUniqueOption("define", out var define);
             pdbCompilationOptions.TryGetUniqueOption("strict", out var strict);
             pdbCompilationOptions.TryGetUniqueOption("checked", out var checkedString);
