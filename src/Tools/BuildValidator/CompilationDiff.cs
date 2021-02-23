@@ -30,9 +30,7 @@ namespace BuildValidator
         public string OriginalPath { get; }
         public ImmutableArray<Diagnostic> Diagnostics { get; }
 
-        private CompilationDiff(
-            string originalPath,
-            bool? areEqual)
+        private CompilationDiff(string originalPath, bool? areEqual)
         {
             AreEqual = areEqual;
             OriginalPath = originalPath;
@@ -42,6 +40,11 @@ namespace BuildValidator
         {
             Diagnostics = diagnostics;
             OriginalPath = originalPath;
+        }
+
+        public static CompilationDiff CreatePlaceholder(FileInfo originalBinaryPath)
+        {
+            return new CompilationDiff(originalBinaryPath.FullName, areEqual: null);
         }
 
         public static unsafe CompilationDiff Create(
