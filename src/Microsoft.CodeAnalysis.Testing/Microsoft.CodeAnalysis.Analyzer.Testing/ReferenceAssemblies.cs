@@ -364,7 +364,9 @@ namespace Microsoft.CodeAnalysis.Testing
                         var nearestRefItems = refItems.Single(x => x.TargetFramework == nearestRef);
                         foreach (var item in nearestRefItems.Items)
                         {
-                            if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase))
+                            if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(Path.GetExtension(item), ".exe", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(Path.GetExtension(item), ".winmd", StringComparison.OrdinalIgnoreCase))
                             {
                                 continue;
                             }
@@ -377,7 +379,9 @@ namespace Microsoft.CodeAnalysis.Testing
                         var nearestLibItems = libItems.Single(x => x.TargetFramework == nearestLib);
                         foreach (var item in nearestLibItems.Items)
                         {
-                            if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase))
+                            if (!string.Equals(Path.GetExtension(item), ".dll", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(Path.GetExtension(item), ".exe", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(Path.GetExtension(item), ".winmd", StringComparison.OrdinalIgnoreCase))
                             {
                                 continue;
                             }
@@ -411,6 +415,14 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".dll")));
                     }
+                    else if (File.Exists(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".exe")))
+                    {
+                        resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".exe")));
+                    }
+                    else if (File.Exists(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".winmd")))
+                    {
+                        resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".winmd")));
+                    }
                 }
 
                 // Prefer assemblies from the reference assembly package to ones otherwise provided
@@ -429,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     var facadesPath = Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, "Facades");
                     if (Directory.Exists(facadesPath))
                     {
-                        foreach (var path in Directory.GetFiles(facadesPath, "*.dll"))
+                        foreach (var path in Directory.GetFiles(facadesPath, "*.dll").Concat(Directory.GetFiles(facadesPath, "*.exe")).Concat(Directory.GetFiles(facadesPath, "*.winmd")))
                         {
                             resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == Path.GetFileNameWithoutExtension(path));
                             resolvedAssemblies.Add(Path.GetFullPath(path));
@@ -442,6 +454,16 @@ namespace Microsoft.CodeAnalysis.Testing
                         {
                             resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == assembly);
                             resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".dll")));
+                        }
+                        else if (File.Exists(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".exe")))
+                        {
+                            resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == assembly);
+                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".exe")));
+                        }
+                        else if (File.Exists(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".winmd")))
+                        {
+                            resolvedAssemblies.RemoveWhere(existingAssembly => Path.GetFileNameWithoutExtension(existingAssembly) == assembly);
+                            resolvedAssemblies.Add(Path.GetFullPath(Path.Combine(referenceAssemblyInstalledPath!, ReferenceAssemblyPath!, assembly + ".winmd")));
                         }
                     }
                 }
