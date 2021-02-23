@@ -22,27 +22,39 @@ To reference prerelease packages, add a **NuGet.Config** file to your solution d
 * C#
   * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest
   * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.MSTest
+  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.MSTest
+  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest
 * Visual Basic
   * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.MSTest
   * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest
+  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.MSTest
+  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest
 
 ### NUnit
 
 * C#
   * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.NUnit
   * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.NUnit
+  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.NUnit
+  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.NUnit
 * Visual Basic
   * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.NUnit
   * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.NUnit
+  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.NUnit
+  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.NUnit
 
 ### xUnit.net
 
 * C#
   * Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit
   * Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit
+  * Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit
+  * Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit
 * Visual Basic
   * Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.XUnit
   * Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit
+  * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit
+  * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit
 
 ## Verifier overview
 
