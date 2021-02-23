@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         /// <param name="kind">The type of edit.</param>
         /// <param name="oldSymbol">
-        /// The symbol from the earlier compilation, or null if the edit represents an addition.
+        /// The symbol from the earlier compilation, or null if the edit represents an addition or an update of the symbol from the previous compilation that exactly matches <paramref name="newSymbol"/>.
         /// </param>
         /// <param name="newSymbol">
         /// The symbol from the later compilation, or null if the edit represents a deletion.
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </exception>
         public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false)
         {
-            if (oldSymbol == null && kind != SemanticEditKind.Insert)
+            if (oldSymbol == null && kind is not (SemanticEditKind.Insert or SemanticEditKind.Update))
             {
                 throw new ArgumentNullException(nameof(oldSymbol));
             }

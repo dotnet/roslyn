@@ -4,8 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
@@ -14,6 +17,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace BuildValidator
 {
@@ -24,7 +28,9 @@ namespace BuildValidator
     /// </summary>
     class Program
     {
-        private static ILogger? s_logger;
+        const int ExitSuccess = 0;
+        const int ExitFailure = 1;
+
         private static readonly Regex[] s_ignorePatterns = new Regex[]
         {
             new Regex(@"\\runtimes?\\"),
@@ -32,105 +38,150 @@ namespace BuildValidator
             new Regex(@"\.resources?\.")
         };
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            Options options;
-            try
+            var rootCommand = new RootCommand
             {
-                options = Options.Create(args);
-            }
-            catch (InvalidDataException)
-            {
-                PrintHelp();
-                return;
-            }
-
-            var loggerFactory = new LoggerFactory(Enumerable.Empty<ILoggerProvider>(), new LoggerFilterOptions()
-            {
-                MinLevel = options.Verbose ? LogLevel.Trace : LogLevel.Information
-            });
-
-            if (options.ConsoleOutput)
-            {
-                loggerFactory.AddConsole();
-            }
-
-            s_logger = loggerFactory.CreateLogger<Program>();
-
-            var sourceResolver = new LocalSourceResolver(loggerFactory);
-            var referenceResolver = new LocalReferenceResolver(loggerFactory);
-
-            var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver);
-
-            var artifactsDir = LocalReferenceResolver.GetArtifactsDirectory();
-            var thisCompilerVersion = options.IgnoreCompilerVersion
-                ? null
-                : typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-
-            var filesToValidate = artifactsDir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
-                .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
-                .Distinct(FileNameEqualityComparer.Instance);
-
-            ValidateFiles(filesToValidate, buildConstructor, thisCompilerVersion);
+                new Option<string>(
+                    "--assembliesPath", "Path to assemblies to rebuild (can be specified one or more times)"
+                ) { IsRequired = true, Argument = { Arity = ArgumentArity.OneOrMore } },
+                new Option<string>(
+                    "--sourcePath", "Path to sources to use in rebuild"
+                ) { IsRequired = true },
+                new Option<string>(
+                    "--referencesPath", "Path to referenced assemblies (can be specified zero or more times)"
+                ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
+                new Option<bool>(
+                    "--verbose", "Output verbose log information"
+                ),
+                new Option<bool>(
+                    "--quiet", "Do not output log information to console"
+                ),
+                new Option<bool>(
+                    "--debug", "Output debug info when rebuild is not equal to the original"
+                ),
+                new Option<string?>(
+                    "--debugPath", "Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled."
+                )
+            };
+            rootCommand.Handler = CommandHandler.Create<string[], string, string[]?, bool, bool, bool, string>(HandleCommand);
+            return rootCommand.Invoke(args);
         }
 
-        private static void ValidateFiles(IEnumerable<FileInfo> files, BuildConstructor buildConstructor, string? thisCompilerVersion)
+        static int HandleCommand(string[] assembliesPath, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)
+        {
+            // If user provided a debug path then assume we should write debug outputs.
+            debug |= debugPath is object;
+            debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
+            referencesPath ??= Array.Empty<string>();
+
+            var options = new Options(assembliesPath, referencesPath, sourcePath, verbose, quiet, debug, debugPath);
+
+            // TODO: remove the DemoLoggerProvider or convert it to something more permanent
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.SetMinimumLevel((options.Verbose, options.Quiet) switch
+                {
+                    (_, true) => LogLevel.Error,
+                    (true, _) => LogLevel.Trace,
+                    _ => LogLevel.Information
+                });
+                builder.AddProvider(new DemoLoggerProvider());
+            });
+
+            var logger = loggerFactory.CreateLogger<Program>();
+            try
+            {
+                var fullDebugPath = Path.GetFullPath(debugPath);
+                logger.LogInformation($@"Using debug folder: ""{fullDebugPath}""");
+                Directory.Delete(debugPath, recursive: true);
+                logger.LogInformation($@"Cleaned debug folder: ""{fullDebugPath}""");
+            }
+            catch (IOException)
+            {
+                // no-op
+            }
+
+            try
+            {
+                var sourceResolver = new LocalSourceResolver(options, loggerFactory);
+                var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
+
+                var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
+
+                var artifactsDirs = options.AssembliesPaths.Select(path => new DirectoryInfo(path));
+
+                var filesToValidate = artifactsDirs.SelectMany(dir =>
+                        dir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
+                            .Concat(dir.EnumerateFiles("*.dll", SearchOption.AllDirectories)))
+                    .Distinct(FileNameEqualityComparer.Instance);
+
+                var success = ValidateFiles(filesToValidate, buildConstructor, logger, options);
+                Console.Out.Flush();
+                return success ? ExitSuccess : ExitFailure;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, ex.Message);
+                throw;
+            }
+        }
+
+        // TODO: it feels like "logger" and "options" should be instance variables of something
+        private static bool ValidateFiles(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, ILogger logger, Options options)
         {
             var assembliesCompiled = new List<CompilationDiff>();
-
-            foreach (var file in files)
+            foreach (var file in originalBinaries)
             {
-                var compilationDiff = ValidateFile(file, buildConstructor, thisCompilerVersion);
+                var compilationDiff = ValidateFile(file, buildConstructor, logger, options);
 
                 if (compilationDiff is null)
                 {
+                    logger.LogInformation($"Ignoring {file.FullName}");
                     continue;
                 }
 
                 assembliesCompiled.Add(compilationDiff);
             }
 
-            var sb = new StringBuilder();
+            bool success = true;
 
-            sb.AppendLine("====================");
-            sb.AppendLine("Summary:");
-            sb.AppendLine();
-            sb.AppendLine("Successful Tests:");
-
-            foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == true))
+            using var summary = logger.BeginScope("Summary");
+            using (logger.BeginScope("Successful rebuilds"))
             {
-                sb.AppendLine($"\t{diff.OriginalPath}");
-            }
-
-            sb.AppendLine();
-
-            sb.AppendLine("Failed Tests:");
-            foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == false))
-            {
-                sb.AppendLine($"\t{diff.OriginalPath}");
-            }
-
-            sb.AppendLine();
-            sb.AppendLine("Error Cases:");
-            foreach (var diff in assembliesCompiled.Where(a => !a.AreEqual.HasValue))
-            {
-                sb.AppendLine($"\t{diff.OriginalPath}");
-                if (diff.Exception != null)
+                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == true))
                 {
-                    sb.AppendLine($"\tException: {diff.Exception.Message}");
+                    logger.LogInformation($"\t{diff.OriginalPath}");
                 }
             }
-            sb.AppendLine("====================");
 
-            s_logger.LogInformation(sb.ToString());
+            using (logger.BeginScope("Rebuilds with output differences"))
+            {
+                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == false))
+                {
+                    // TODO: can we include the path to any diff artifacts?
+                    logger.LogWarning($"\t{diff.OriginalPath}");
+                    success = false;
+                }
+            }
+
+            using (logger.BeginScope("Rebuilds with compilation errors"))
+            {
+                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == null))
+                {
+                    logger.LogError($"{diff.OriginalPath} had {diff.Diagnostics.Length} diagnostics.");
+                    success = false;
+                }
+            }
+
+            return success;
         }
 
-        private static CompilationDiff? ValidateFile(FileInfo file, BuildConstructor buildConstructor, string? thisCompilerVersion)
+        private static CompilationDiff? ValidateFile(FileInfo originalBinary, BuildConstructor buildConstructor, ILogger logger, Options options)
         {
-
-            if (s_ignorePatterns.Any(r => r.IsMatch(file.FullName)))
+            if (s_ignorePatterns.Any(r => r.IsMatch(originalBinary.FullName)))
             {
-                s_logger.LogTrace($"Ignoring {file.FullName}");
+                logger.LogTrace($"Ignoring {originalBinary.FullName}");
                 return null;
             }
 
@@ -139,48 +190,55 @@ namespace BuildValidator
             try
             {
                 // Find the embedded pdb
-                using var fileStream = file.OpenRead();
-                using var peReader = new PEReader(fileStream);
+                using var originalBinaryStream = originalBinary.OpenRead();
+                using var originalPeReader = new PEReader(originalBinaryStream);
 
-                var pdbOpened = peReader.TryOpenAssociatedPortablePdb(
-                    peImagePath: file.FullName,
+                var pdbOpened = originalPeReader.TryOpenAssociatedPortablePdb(
+                    peImagePath: originalBinary.FullName,
                     filePath => File.Exists(filePath) ? File.OpenRead(filePath) : null,
                     out pdbReaderProvider,
                     out var pdbPath);
 
                 if (!pdbOpened || pdbReaderProvider is null)
                 {
-                    s_logger.LogError($"Could not find pdb for {file.FullName}");
+                    logger.LogError($"Could not find pdb for {originalBinary.FullName}");
                     return null;
                 }
 
-                s_logger.LogInformation($"Compiling {file.FullName} with pdb {pdbPath ?? "[embedded]"}");
+                using var _ = logger.BeginScope($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
 
-                var reader = pdbReaderProvider.GetMetadataReader();
+                var pdbReader = pdbReaderProvider.GetMetadataReader();
+                var optionsReader = new CompilationOptionsReader(logger, pdbReader, originalPeReader);
 
-                // TODO: Check compilation version using the PEReader
+                var compilation = buildConstructor.CreateCompilation(
+                    optionsReader,
+                    originalBinary.Name);
 
-                var compilation = buildConstructor.CreateCompilation(reader, file.Name);
-                return CompilationDiff.Create(file, compilation);
-            }
-            catch (Exception e)
-            {
-                s_logger.LogError(e, file.FullName);
-                return CompilationDiff.Create(file, e);
+                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), logger, options);
+                return compilationDiff;
+
+                IMethodSymbol? getDebugEntryPoint()
+                {
+                    if (optionsReader.GetMainTypeName() is { } mainTypeName &&
+                        optionsReader.GetMainMethodName() is { } mainMethodName)
+                    {
+                        var typeSymbol = compilation.GetTypeByMetadataName(mainTypeName);
+                        if (typeSymbol is object)
+                        {
+                            var methodSymbols = typeSymbol
+                                .GetMembers(mainMethodName)
+                                .OfType<IMethodSymbol>();
+                            return methodSymbols.FirstOrDefault();
+                        }
+                    }
+
+                    return null;
+                }
             }
             finally
             {
                 pdbReaderProvider?.Dispose();
             }
-        }
-
-        private static void PrintHelp()
-        {
-            Console.WriteLine("Usage: BuildValidator [options]");
-            Console.WriteLine("Options:");
-            Console.WriteLine("/verbose                 Output verbose log information");
-            Console.WriteLine("/quiet                   Do not output log information to console");
-            Console.WriteLine("/ignorecompilerversion   Do not verify compiler version that assemblies were generated with");
         }
     }
 }

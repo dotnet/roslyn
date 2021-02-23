@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnusedReferences
@@ -26,22 +25,32 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
         };
 
         public static async Task<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(
-            Project project,
+            Solution solution,
+            string projectFilePath,
             ImmutableArray<ReferenceInfo> references,
             CancellationToken cancellationToken)
         {
-            // Create a lookup of used assembly paths
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (compilation is null)
-            {
-                return ImmutableArray<ReferenceInfo>.Empty;
-            }
+            var projects = solution.Projects
+                .Where(project => projectFilePath.Equals(project.FilePath, System.StringComparison.OrdinalIgnoreCase));
 
-            var usedAssemblyReferences = compilation.GetUsedAssemblyReferences(cancellationToken);
-            HashSet<string> usedAssemblyFilePaths = new(usedAssemblyReferences
-                .OfType<PortableExecutableReference>()
-                .Select(reference => reference.FilePath)
-                .WhereNotNull());
+            HashSet<string> usedAssemblyFilePaths = new();
+
+            foreach (var project in projects)
+            {
+                // Create a lookup of used assembly paths
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                if (compilation is null)
+                {
+                    continue;
+                }
+
+                var usedAssemblyReferences = compilation.GetUsedAssemblyReferences(cancellationToken);
+
+                usedAssemblyFilePaths.AddRange(usedAssemblyReferences
+                    .OfType<PortableExecutableReference>()
+                    .Select(reference => reference.FilePath)
+                    .WhereNotNull());
+            }
 
             return GetUnusedReferences(usedAssemblyFilePaths, references);
         }
@@ -192,16 +201,17 @@ namespace Microsoft.CodeAnalysis.UnusedReferences
                 .ToImmutableArray();
         }
 
-        public static async Task<Project> UpdateReferencesAsync(
-            Project project,
+        public static async Task<Solution> UpdateReferencesAsync(
+            Solution solution,
+            string projectFilePath,
             ImmutableArray<ReferenceUpdate> referenceUpdates,
             CancellationToken cancellationToken)
         {
-            var referenceCleanupService = project.Solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
+            var referenceCleanupService = solution.Workspace.Services.GetRequiredService<IReferenceCleanupService>();
 
-            await ApplyReferenceUpdatesAsync(referenceCleanupService, project.FilePath!, referenceUpdates, cancellationToken).ConfigureAwait(true);
+            await ApplyReferenceUpdatesAsync(referenceCleanupService, projectFilePath, referenceUpdates, cancellationToken).ConfigureAwait(true);
 
-            return project.Solution.Workspace.CurrentSolution.GetRequiredProject(project.Id);
+            return solution.Workspace.CurrentSolution;
         }
 
         internal static async Task ApplyReferenceUpdatesAsync(

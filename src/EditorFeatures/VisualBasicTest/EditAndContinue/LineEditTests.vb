@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
+    <UseExportProvider>
     Public Class LineEditTests
         Inherits EditingTestBase
 

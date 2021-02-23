@@ -1857,6 +1857,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return MyBase.GetNodeWithoutLeadingBlankLines(node)
         End Function
 
+        Public Function IsConversionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConversionExpression
+            Return node.Kind = SyntaxKind.CTypeExpression
+        End Function
+
         Public Function IsCastExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsCastExpression
             Return node.Kind = SyntaxKind.DirectCastExpression
         End Function

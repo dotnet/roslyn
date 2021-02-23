@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
@@ -14,7 +15,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <CombinatorialData>
         Public Async Function AddingASingleSourceFileRaisesDocumentAdded(addInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
 
                 Using If(addInBatch, project.CreateBatchScope(), Nothing)
@@ -32,7 +34,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WpfFact>
         Public Async Function AddingTwoDocumentsInBatchRaisesProjectChanged() As Task
             Using environment = New TestEnvironment()
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
 
                 Using project.CreateBatchScope()
@@ -52,7 +55,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <CombinatorialData>
         Public Async Function AddingASingleAdditionalFileInABatchRaisesDocumentAdded(addInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
 
                 Using If(addInBatch, project.CreateBatchScope(), Nothing)
@@ -71,7 +75,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <CombinatorialData>
         Public Async Function AddingASingleMetadataReferenceRaisesProjectChanged(addInBatch As Boolean) As Task
             Using environment = New TestEnvironment()
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
 
                 Using If(addInBatch, project.CreateBatchScope(), Nothing)
@@ -90,7 +95,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         <WorkItem(34309, "https://github.com/dotnet/roslyn/issues/34309")>
         Public Async Function StartingAndEndingBatchWithNoChangesDoesNothing() As Task
             Using environment = New TestEnvironment()
-                Dim project = environment.ProjectFactory.CreateAndAddToWorkspace("Project", LanguageNames.CSharp)
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
                 Dim workspaceChangeEvents = New WorkspaceChangeWatcher(environment)
                 Dim startingSolution = environment.Workspace.CurrentSolution
 
