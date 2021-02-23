@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     [Export]
     [Shared]
-    internal sealed class SQLiteConnectionPoolService : IDisposable, IAsyncDisposable
+    internal sealed class SQLiteConnectionPoolService : IDisposable
     {
         private const string LockFile = "db.lock";
 
@@ -72,12 +72,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
                 _connectionPools.Clear();
             }
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            Dispose();
-            return ValueTaskFactory.CompletedTask;
         }
 
         public ReferenceCountedDisposable<SQLiteConnectionPool>? TryOpenDatabase(

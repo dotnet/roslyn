@@ -8,15 +8,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal sealed partial class VisualStudioRuleSetManager
     {
-        private sealed class RuleSetFile : IRuleSetFile, IDisposable, IAsyncDisposable
+        private sealed class RuleSetFile : IRuleSetFile, IDisposable
         {
             private readonly VisualStudioRuleSetManager _ruleSetManager;
             private readonly object _gate = new();
@@ -150,12 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 RemoveFromRuleSetManagerAndDisconnectFileTrackers();
                 _disposalCancellationSource.Cancel();
                 _disposalCancellationSource.Dispose();
-            }
-
-            public ValueTask DisposeAsync()
-            {
-                Dispose();
-                return ValueTaskFactory.CompletedTask;
             }
 
             private void RemoveFromRuleSetManagerAndDisconnectFileTrackers()
