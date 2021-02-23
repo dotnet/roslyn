@@ -62,12 +62,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Index.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IsExternalInit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IMethodSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\IOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\ITypeSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\IUsingDeclarationOperationWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\IUsingOperationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\LightupHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\NullableContextExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Lightup\OperationWrapperHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildItemOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKind.cs" />
