@@ -34,12 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             IClassificationService classificationService,
             ClassificationTypeMap typeMap)
         {
-            // Let LSP handle semantic classification when running in the LSP editor.
-            if (spanToTag.SnapshotSpan.Snapshot.TextBuffer.IsInLspEditorContext())
-            {
-                return;
-            }
-
             var document = spanToTag.Document;
             if (document == null)
             {

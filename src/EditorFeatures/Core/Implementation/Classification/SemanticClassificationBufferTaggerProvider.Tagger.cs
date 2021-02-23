@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -138,6 +139,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 var firstSpan = spans.First();
                 var snapshot = firstSpan.Snapshot;
                 Debug.Assert(snapshot.TextBuffer == _subjectBuffer);
+
+                // The LSP client will handle producing tags when running under the LSP editor.
+                // Our tagger implementation should return nothing to prevent conflicts.
+                if (snapshot.TextBuffer.IsInLspEditorContext())
+                {
+                    return Array.Empty<ITagSpan<IClassificationTag>>();
+                }
 
                 // We want to classify from the start of the first requested span to the end of the 
                 // last requested span.
