@@ -59,17 +59,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 serverCapabilities = _defaultCapabilitiesProvider.GetCapabilities();
             }
 
-            serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions
-            {
-                Change = TextDocumentSyncKind.Incremental,
-                OpenClose = true,
-            };
             serverCapabilities.SupportsDiagnosticRequests = Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
 
-            // When using the lsp editor, set this to false to allow LSP to power goto.
-            // Otherwise set to true to disable LSP for goto
-            serverCapabilities.DisableGoToWorkspaceSymbols = !isLspEditorEnabled;
+            // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.
             serverCapabilities.WorkspaceSymbolProvider = true;
+            // This capability prevents NavigateTo (cntrl+,) from using LSP symbol search when the server also supports WorkspaceSymbolProvider.
+            // Since WorkspaceSymbolProvider=true always to allow cntrl+Q VS search to function, we set DisableGoToWorkspaceSymbols=true
+            // when not running the experimental LSP editor.  This ensures NavigateTo uses the existing editor APIs.
+            // However, when the experimental LSP editor is enabled we want LSP to power NavigateTo, so we set DisableGoToWorkspaceSymbols=false.
+            serverCapabilities.DisableGoToWorkspaceSymbols = !isLspEditorEnabled;
 
             return serverCapabilities;
         }
