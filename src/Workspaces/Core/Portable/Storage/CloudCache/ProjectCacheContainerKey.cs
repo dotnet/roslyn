@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.Storage
         /// </summary>
         public readonly CloudCacheContainerKey? ContainerKey;
 
+        /// <summary>
+        /// Cache from document green nodes to the container keys we've computed for it. We can avoid computing these
+        /// container keys when called repeatedly for the same documents.
+        /// </summary>
         private readonly ConditionalWeakTable<TextDocumentState, StrongBox<CloudCacheContainerKey?>> _documentToContainerKey = new();
         private readonly ConditionalWeakTable<TextDocumentState, StrongBox<CloudCacheContainerKey?>>.CreateValueCallback _documentToContainerKeyCallback;
 
