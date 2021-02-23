@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public Position Position { get; set; }
 
-        public string CompleteDisplayText { get; set; }
-
         public CompletionTrigger CompletionTrigger { get; set; }
 
         /// <summary>

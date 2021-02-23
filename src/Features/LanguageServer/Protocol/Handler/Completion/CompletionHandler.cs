@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -85,7 +86,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var lspVSClientCapability = context.ClientCapabilities?.HasVisualStudioLspCapability() == true;
+            var lspVSClientCapability = context.ClientCapabilities.HasVisualStudioLspCapability() == true;
+            var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>>();
 
             // Cache the completion list so we can avoid recomputation in the resolve handler
@@ -107,21 +109,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // We want to compute the document's text just once.
                 documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
+                // We use the first item in the completion list as our comparison point for span
+                // and range for optimization when generating the TextEdits later on.
                 var completionChange = await completionService.GetChangeAsync(
                     document, list.Items.First(), cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                // If possible, we want to compute the item's range just once as well.
+                // If possible, we want to compute the item's span and range just once.
                 // Individual items can override this range later.
                 defaultSpan = completionChange.TextChange.Span;
                 defaultRange = ProtocolConversions.TextSpanToRange(defaultSpan.Value, documentText);
             }
 
+            var stringBuilder = new StringBuilder();
             using var _ = ArrayBuilder<LSP.CompletionItem>.GetInstance(out var lspCompletionItems);
             foreach (var item in list.Items)
             {
                 var lspCompletionItem = await CreateLSPCompletionItemAsync(
                     request, document, item, resultId, lspVSClientCapability, completionTrigger, commitCharactersRuleCache,
-                    completionService, context.ClientName, returnTextEdits, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
+                    completionService, context.ClientName, returnTextEdits, snippetsSupported, stringBuilder, documentText,
+                    defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                 lspCompletionItems.Add(lspCompletionItem);
             }
 
@@ -159,6 +165,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionService completionService,
                 string? clientName,
                 bool returnTextEdits,
+                bool snippetsSupported,
+                StringBuilder stringBuilder,
                 SourceText? documentText,
                 TextSpan? defaultSpan,
                 LSP.Range? defaultRange,
@@ -168,8 +176,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     var vsCompletionItem = await CreateCompletionItemAsync<LSP.VSCompletionItem>(
                         request, document, item, resultId, completionTrigger, commitCharacterRulesCache,
-                        completionService, clientName, returnTextEdits, documentText, defaultSpan,
-                        defaultRange, cancellationToken).ConfigureAwait(false);
+                        completionService, clientName, returnTextEdits, snippetsSupported, stringBuilder,
+                        documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                     vsCompletionItem.Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId());
                     return vsCompletionItem;
                 }
@@ -177,8 +185,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     var roslynCompletionItem = await CreateCompletionItemAsync<LSP.CompletionItem>(
                         request, document, item, resultId, completionTrigger, commitCharacterRulesCache,
-                        completionService, clientName, returnTextEdits, documentText, defaultSpan,
-                        defaultRange, cancellationToken).ConfigureAwait(false);
+                        completionService, clientName, returnTextEdits, snippetsSupported, stringBuilder,
+                        documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                     return roslynCompletionItem;
                 }
             }
@@ -193,24 +201,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 CompletionService completionService,
                 string? clientName,
                 bool returnTextEdits,
+                bool snippetsSupported,
+                StringBuilder stringBuilder,
                 SourceText? documentText,
                 TextSpan? defaultSpan,
                 LSP.Range? defaultRange,
                 CancellationToken cancellationToken) where TCompletionItem : LSP.CompletionItem, new()
             {
-                var completeDisplayText = item.DisplayTextPrefix + item.DisplayText + item.DisplayTextSuffix;
+                // Generate display text
+                stringBuilder.Append(item.DisplayTextPrefix);
+                stringBuilder.Append(item.DisplayText);
+                stringBuilder.Append(item.DisplayTextSuffix);
+                var completeDisplayText = stringBuilder.ToString();
+                stringBuilder.Clear();
 
                 // The TextEdits for override and partial method completions are provided in the resolve handler.
                 // We do not provide them in this handler.
                 item.Properties.TryGetValue("Modifiers", out var modifier);
                 var isOverrideOrPartialMethodCompletion = modifier != null && (modifier.Contains("Override") || modifier.Contains("Partial"));
-
-                LSP.TextEdit? textEdit = null;
-                if (returnTextEdits && !isOverrideOrPartialMethodCompletion)
-                {
-                    textEdit = await GenerateTextEdit(
-                        document, item, completionService, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
-                }
 
                 var completionItem = new TCompletionItem
                 {
@@ -222,7 +230,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         TextDocument = request.TextDocument,
                         Position = request.Position,
-                        CompleteDisplayText = completeDisplayText,
                         CompletionTrigger = completionTrigger,
                         ResultId = resultId,
                     },
@@ -234,7 +241,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (isOverrideOrPartialMethodCompletion)
                 {
                     // Razor C# is currently the only language client that supports LSP.InsertTextFormat.Snippet.
-                    if (clientName == ProtocolConstants.RazorCSharp)
+                    // We can enable it for regular C# once LSP is used for local completion.
+                    if (snippetsSupported && clientName == ProtocolConstants.RazorCSharp)
                     {
                         completionItem.InsertTextFormat = LSP.InsertTextFormat.Snippet;
                     }
@@ -242,6 +250,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // If the feature flag is on, always return a TextEdit.
                 else if (returnTextEdits)
                 {
+                    var textEdit = await GenerateTextEdit(
+                        document, item, completionService, documentText, defaultSpan, defaultRange, cancellationToken).ConfigureAwait(false);
                     completionItem.TextEdit = textEdit;
                 }
                 // If the feature flag is off, return an InsertText.

@@ -264,7 +264,6 @@ namespace Roslyn.Test.Utilities
                 Kind = kind,
                 Data = JObject.FromObject(new CompletionResolveData()
                 {
-                    CompleteDisplayText = label,
                     TextDocument = request.TextDocument,
                     Position = request.Position,
                     CompletionTrigger = completionTrigger,

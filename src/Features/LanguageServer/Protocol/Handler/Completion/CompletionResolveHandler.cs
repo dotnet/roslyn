@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -74,7 +75,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            var selectedItem = list.Items.FirstOrDefault(i => i.DisplayTextPrefix + i.DisplayText + i.DisplayTextSuffix == data.CompleteDisplayText);
+            var stringBuilder = new StringBuilder();
+            CompletionItem? selectedItem = null;
+
+            // Find the matching completion item in the completion list
+            foreach (var item in list.Items)
+            {
+                stringBuilder.Append(item.DisplayTextPrefix);
+                stringBuilder.Append(item.DisplayText);
+                stringBuilder.Append(item.DisplayTextSuffix);
+
+                if (stringBuilder.ToString() == completionItem.Label)
+                {
+                    selectedItem = item;
+                    break;
+                }
+
+                stringBuilder.Clear();
+            }
+
             if (selectedItem == null)
             {
                 return completionItem;
