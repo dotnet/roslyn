@@ -2691,25 +2691,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     HandlePossibleThrowingOperation(operation);
                 }
 
-                if (_pendingArgumentsToPostProcess.Any(arg => arg.Parent == operation))
+                var pendingArguments = _pendingArgumentsToPostProcess.ExtractAll(static (arg, operation) => arg.Parent == operation, operation);
+                foreach (IArgumentOperation argumentOperation in pendingArguments)
                 {
-                    var pendingArguments = _pendingArgumentsToPostProcess.Where(arg => arg.Parent == operation).ToImmutableArray();
-                    foreach (IArgumentOperation argumentOperation in pendingArguments)
+                    bool isEscaped;
+                    if (_pendingArgumentsToReset.Remove(argumentOperation))
                     {
-                        bool isEscaped;
-                        if (_pendingArgumentsToReset.Remove(argumentOperation))
-                        {
-                            PostProcessEscapedArgument(argumentOperation);
-                            isEscaped = true;
-                        }
-                        else
-                        {
-                            isEscaped = false;
-                        }
-
-                        PostProcessArgument(argumentOperation, isEscaped);
-                        _pendingArgumentsToPostProcess.Remove(argumentOperation);
+                        PostProcessEscapedArgument(argumentOperation);
+                        isEscaped = true;
                     }
+                    else
+                    {
+                        isEscaped = false;
+                    }
+
+                    PostProcessArgument(argumentOperation, isEscaped);
                 }
 
                 return value;
