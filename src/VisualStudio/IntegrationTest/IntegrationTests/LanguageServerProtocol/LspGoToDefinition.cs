@@ -8,10 +8,15 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Roslyn.Test.Utilities;
+using Roslyn.VisualStudio.IntegrationTests.CSharp;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.LanguageServerProtocol
 {
+    /// <summary>
+    /// A set of LSP specific goto definition tests.
+    /// These tests test behavior that only applies to the LSP version of goto definition.
+    /// </summary>
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class LspGoToDefinition : AbstractEditorTest
     {
@@ -22,6 +27,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.LanguageServerProtocol
         {
         }
 
+        /// <summary>
+        /// This test corresponds to the <see cref="CSharpGoToDefinition.GoToDefinitionWithMultipleResults"/> test.
+        /// The non-LSP version will not work due to feature parity issues with the multiple results window, mainly
+        /// different naming and grouping functionality.
+        /// </summary>
         [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void GoToDefinitionWithMultipleLSP()
         {
