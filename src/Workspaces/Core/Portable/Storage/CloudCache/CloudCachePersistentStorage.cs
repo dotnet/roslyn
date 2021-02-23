@@ -193,21 +193,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private async Task<bool> WriteStreamAsync(CloudCacheItemKey key, Stream stream, CancellationToken cancellationToken)
         {
-            // From: https://dev.azure.com/devdiv/DevDiv/_wiki/wikis/DevDiv.wiki/12664/VS-Cache-Service
-            var pipe = new Pipe();
-            var addItemTask = _cacheService.SetItemAsync(key, pipe.Reader, shareable: false, cancellationToken);
-            try
-            {
-                await stream.CopyToAsync(pipe.Writer, cancellationToken).ConfigureAwait(false);
-                await pipe.Writer.CompleteAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                await pipe.Writer.CompleteAsync(ex).ConfigureAwait(false);
-                throw;
-            }
-
-            await addItemTask.ConfigureAwait(false);
+            await _cacheService.SetItemAsync(key, PipeReader.Create(stream), shareable: false, cancellationToken).ConfigureAwait(false);
             return true;
         }
     }
