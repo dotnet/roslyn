@@ -250,12 +250,6 @@ namespace Microsoft.CodeAnalysis.Completion
                 return diff;
             }
 
-            var preselectionDiff = ComparePreselection(item1, item2);
-            if (preselectionDiff != 0)
-            {
-                return preselectionDiff;
-            }
-
             // At this point we have two items which we're matching in a rather similar fashion.
             // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
             // "Table" and "table:=" and the user types 't' and we are in a case insensitive 
