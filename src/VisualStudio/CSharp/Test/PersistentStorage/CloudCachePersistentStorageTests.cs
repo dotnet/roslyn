@@ -4,10 +4,8 @@
 
 using System;
 using System.IO.Pipelines;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
@@ -17,7 +15,6 @@ using Microsoft.ServiceHub.Framework.Services;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Cache;
 using Microsoft.VisualStudio.Cache.SQLite;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Roslyn.Utilities;
 
