@@ -41,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeMetricsAnalysisContext.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\nuget\PerformanceSensitiveAnalyzers\PerformanceSensitiveAttribute.cs" Link="PerformanceSensitiveAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AdditionalFileProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BoundedCacheWithFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Debug.cs" />
