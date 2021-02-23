@@ -26,6 +26,12 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
+        // Set ourselves as an implicit invocation of FindReferences.  This will cause the finding operation to operate
+        // in serial, not parallel.  We're running ephemerally in the BG and do not want to saturate the system with
+        // work that then slows the user down.
+        private static readonly FindReferencesSearchOptions s_nonParallelSearch =
+            FindReferencesSearchOptions.Default.With(@explicit: false);
+
         private static async Task<T?> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,
             int searchCap, CancellationToken cancellationToken) where T : struct
@@ -49,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CodeLens
             using var progress = new CodeLensFindReferencesProgress(symbol, syntaxNode, searchCap, cancellationToken);
             try
             {
-                await SymbolFinder.FindReferencesAsync(symbol, solution, progress, null,
-                    progress.CancellationToken).ConfigureAwait(false);
+                await SymbolFinder.FindReferencesAsync(
+                    symbol, solution, progress, documents: null, s_nonParallelSearch, progress.CancellationToken).ConfigureAwait(false);
 
                 return await onResults(progress).ConfigureAwait(false);
             }
