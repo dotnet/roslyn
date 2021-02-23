@@ -39,36 +39,36 @@ try {
   " --assembliesPath `"$ArtifactsDir/obj/AnalyzerRunner/$configuration/netcoreapp3.1`"" +
   " --assembliesPath `"$ArtifactsDir/obj/AnalyzerRunner/$configuration/net5.0`"" +
   " --assembliesPath `"$ArtifactsDir/obj/BuildValidator/$configuration/netcoreapp3.1`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/CodeStyleConfigFileGenerator/`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/CodeStyleConfigFileGenerator`"" +
   " --assembliesPath `"$ArtifactsDir/obj/csc/$configuration/netcoreapp3.1`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/CSharpResultProvider.NetFX20/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/CSharpSyntaxGenerator/`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/CSharpResultProvider.NetFX20`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/CSharpSyntaxGenerator`"" +
   " --assembliesPath `"$ArtifactsDir/obj/csi/$configuration/netcoreapp3.1`"" +
   " --assembliesPath `"$ArtifactsDir/obj/IdeCoreBenchmarks/$configuration/netcoreapp3.1`"" +
   " --assembliesPath `"$ArtifactsDir/obj/IdeCoreBenchmarks/$configuration/net5.0`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CodeStyle/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CodeStyle.Fixes/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Compiler.Test.Resources/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.CodeStyle/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.ExpressionCompiler/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.Features/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.Workspaces/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.EditorFeatures.Text/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ExpressionCompiler/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ExternalAccess.Debugger/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ExternalAccess.Razor/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Remote.Razor.ServiceHub/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Remote.Workspaces/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ResultProvider/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Scripting/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Scripting.TestUtilities/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.TestSourceGenerator/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Workspaces/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/PrepareTests/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/RunTests/`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CodeStyle`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CodeStyle.Fixes`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Compiler.Test.Resources`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.CodeStyle`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.ExpressionCompiler`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.Features`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.Workspaces`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.EditorFeatures.Text`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ExpressionCompiler`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ExternalAccess.Debugger`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ExternalAccess.Razor`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Remote.Razor.ServiceHub`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Remote.Workspaces`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ResultProvider`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Scripting`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Scripting.TestUtilities`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.TestSourceGenerator`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Workspaces`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/PrepareTests`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/RunTests`"" +
   " --assembliesPath `"$ArtifactsDir/obj/vbc/$configuration/netcoreapp3.1`"" +
   " --assembliesPath `"$ArtifactsDir/obj/VBCSCompiler/$configuration/netcoreapp3.1`"" +
 
