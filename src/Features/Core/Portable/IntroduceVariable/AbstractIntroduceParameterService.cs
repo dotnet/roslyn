@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
     {
         protected const string ExpressionAnnotationKind = nameof(ExpressionAnnotationKind);
         protected abstract Task<Solution> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken);
-        protected abstract bool ExpressionWithinParameterizedMethod(TExpressionSyntax expression);
-        protected abstract Task<Solution> RewriteCallSitesAsync(TExpressionSyntax expression, ImmutableDictionary<Document, List<TInvocationExpressionSyntax>> callSites, IMethodSymbol methodSymbol, CancellationToken cancellationToken);
+        //protected abstract bool ExpressionWithinParameterizedMethod(SemanticDocument semanticDocument, TExpressionSyntax expression, CancellationToken cancellationToken);
+        protected abstract Task<Solution> RewriteCallSitesAsync(SemanticDocument semanticDocument, TExpressionSyntax expression, ImmutableDictionary<Document, List<TInvocationExpressionSyntax>> callSites, IMethodSymbol methodSymbol, CancellationToken cancellationToken);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             if (expression != null)
             {
-                var (title, actions) = AddActions(semanticDocument, expression);
+                var (title, actions) = AddActions(semanticDocument, expression, cancellationToken);
 
                 if (actions.Length > 0)
                 {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var methodSymbolInfo = GetMethodSymbolFromExpression(annotatedSemanticDocument, annotatedExpressionWithinDocument, cancellationToken);
             var methodCallSites = await FindCallSitesAsync(annotatedSemanticDocument, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
 
-            var updatedCallSitesSolution = await RewriteCallSitesAsync(annotatedExpressionWithinDocument, methodCallSites, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
+            var updatedCallSitesSolution = await RewriteCallSitesAsync(annotatedSemanticDocument, annotatedExpressionWithinDocument, methodCallSites, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
 
             if (updatedCallSitesSolution == null)
             {
@@ -251,10 +251,48 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return methodCallSites.ToImmutableDictionary();
         }
 
-        private (string title, ImmutableArray<CodeAction> actions) AddActions(SemanticDocument semanticDocument, TExpressionSyntax expression)
+        /// <summary>
+        /// Ties the identifiers within the expression back to their associated parameter
+        /// </summary>
+        /// <param name="expression"> The expression containing identifiers we are tying back to the parameters </param>
+        /// <returns></returns>
+        public static Dictionary<IParameterSymbol, TIdentifierNameSyntax> MapExpressionToParameters(SemanticDocument document, TExpressionSyntax expression, CancellationToken cancellationToken)
+        {
+            var nameToParameterDict = new Dictionary<IParameterSymbol, TIdentifierNameSyntax>();
+            var variablesInExpression = expression.DescendantNodes().OfType<TIdentifierNameSyntax>();
+            var semanticModel = document.SemanticModel;
+
+            foreach (var variable in variablesInExpression)
+            {
+                var symbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
+                if (symbol != null && symbol is IParameterSymbol parameterSymbol)
+                {
+                    nameToParameterDict.Add(parameterSymbol, variable);
+                }
+            }
+            return nameToParameterDict;
+        }
+
+        private static bool ExpressionWithinParameterizedMethod(SemanticDocument semanticDocument, TExpressionSyntax expression, CancellationToken cancellationToken)
+        {
+            var variablesInExpression = expression.DescendantNodes().OfType<TIdentifierNameSyntax>();
+            var semanticModel = semanticDocument.SemanticModel;
+
+            foreach (var variable in variablesInExpression)
+            {
+                var parameterSymbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
+                if (parameterSymbol == null || parameterSymbol is not IParameterSymbol)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private (string title, ImmutableArray<CodeAction> actions) AddActions(SemanticDocument semanticDocument, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var actionsBuilder = new ArrayBuilder<CodeAction>();
-            if (ExpressionWithinParameterizedMethod(expression))
+            if (ExpressionWithinParameterizedMethod(semanticDocument, expression, cancellationToken))
             {
                 actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, false, false));
                 actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, false, true));

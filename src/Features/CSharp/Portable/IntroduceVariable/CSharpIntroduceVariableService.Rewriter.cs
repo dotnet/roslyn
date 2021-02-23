@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 _matches = matches;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            public override SyntaxNode? Visit(SyntaxNode? node)
             {
                 if (node is ExpressionSyntax expression &&
                     _matches.Contains(expression))

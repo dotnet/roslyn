@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             }
         }
 
-        protected override async Task<Solution?> RewriteCallSitesAsync(ExpressionSyntax expression, ImmutableDictionary<Document, List<InvocationExpressionSyntax>> callSites,
+        protected override async Task<Solution?> RewriteCallSitesAsync(SemanticDocument semanticDocument, ExpressionSyntax expression, ImmutableDictionary<Document, List<InvocationExpressionSyntax>> callSites,
          IMethodSymbol methodSymbol, CancellationToken cancellationToken)
         {
             if (!callSites.Keys.Any())
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return null;
             }
 
-            var mappingDictionary = MapExpressionToParameters(expression, methodSymbol);
+            var mappingDictionary = MapExpressionToParameters(semanticDocument, expression, cancellationToken);
             expression = expression.TrackNodes(mappingDictionary.Values);
             var identifiers = expression.DescendantNodes().Where(node => node is IdentifierNameSyntax);
 
@@ -73,86 +73,46 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             foreach (var keyValuePair in callSites)
             {
                 var document = currentSolution.GetDocument(keyValuePair.Key.Id);
-                var invocationExpressionList = keyValuePair.Value;
-                var generator = SyntaxGenerator.GetGenerator(document);
-                var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-                var invocationSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var editor = new SyntaxEditor(await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false), generator);
-
-                foreach (var invocationExpression in invocationExpressionList)
+                if (document != null)
                 {
-                    var newArgumentExpression = expression;
-                    var invocationArguments = invocationExpression.ArgumentList.Arguments;
-                    foreach (var argument in invocationArguments)
+                    var invocationExpressionList = keyValuePair.Value;
+                    var generator = SyntaxGenerator.GetGenerator(document);
+                    var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+                    var invocationSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    if (root != null)
                     {
-                        var associatedParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, argument, cancellationToken);
-                        if (!mappingDictionary.TryGetValue(associatedParameter, out var value))
+                        var editor = new SyntaxEditor(root, generator);
+
+                        foreach (var invocationExpression in invocationExpressionList)
                         {
-                            continue;
+                            var newArgumentExpression = expression;
+                            var invocationArguments = invocationExpression.ArgumentList.Arguments;
+                            foreach (var argument in invocationArguments)
+                            {
+                                var associatedParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, argument, cancellationToken);
+                                if (!mappingDictionary.TryGetValue(associatedParameter, out var value))
+                                {
+                                    continue;
+                                }
+
+                                var parenthesizedArgumentExpression = generator.AddParentheses(argument.Expression, includeElasticTrivia: false);
+                                newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(value), parenthesizedArgumentExpression);
+                            }
+
+                            var allArguments =
+                                invocationExpression.ArgumentList.Arguments.Add(SyntaxFactory.Argument(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)));
+                            editor.ReplaceNode(invocationExpression, editor.Generator.InvocationExpression(invocationExpression.Expression, allArguments));
                         }
 
-                        var parenthesizedArgumentExpression = generator.AddParentheses(argument.Expression, includeElasticTrivia: false);
-                        newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(value), parenthesizedArgumentExpression);
+                        var newRoot = editor.GetChangedRoot();
+                        document = document.WithSyntaxRoot(newRoot);
+                        currentSolution = document.Project.Solution;
                     }
-
-                    var allArguments =
-                        invocationExpression.ArgumentList.Arguments.Add(SyntaxFactory.Argument(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)));
-                    editor.ReplaceNode(invocationExpression, editor.Generator.InvocationExpression(invocationExpression.Expression, allArguments));
                 }
-
-                var newRoot = editor.GetChangedRoot();
-                document = document.WithSyntaxRoot(newRoot);
-                currentSolution = document.Project.Solution;
             }
 
             return currentSolution;
-        }
-
-        /// <summary>
-        /// Ties the identifiers within the expression back to their associated parameter
-        /// </summary>
-        /// <param name="expression"> The expression containing identifiers we are tying back to the parameters </param>
-        /// <param name="methodSymbol"> The method containing the expression </param>
-        /// <returns></returns>
-        private static Dictionary<IParameterSymbol, IdentifierNameSyntax> MapExpressionToParameters(ExpressionSyntax expression, IMethodSymbol methodSymbol)
-        {
-            var nameToParameterDict = new Dictionary<IParameterSymbol, IdentifierNameSyntax>();
-            var variablesInExpression = expression.DescendantNodes().OfType<IdentifierNameSyntax>();
-
-            foreach (var variable in variablesInExpression)
-            {
-                foreach (var parameter in methodSymbol.Parameters)
-                {
-                    if ((string)((IdentifierNameSyntax)variable).Identifier.Value == parameter.Name)
-                    {
-                        nameToParameterDict.Add(parameter, (IdentifierNameSyntax)variable);
-                        break;
-                    }
-                }
-            }
-            return nameToParameterDict;
-        }
-
-        protected override bool ExpressionWithinParameterizedMethod(ExpressionSyntax expression)
-        {
-            var methodExpression = expression.FirstAncestorOrSelf<MethodDeclarationSyntax>(node => node is MethodDeclarationSyntax, ascendOutOfTrivia: true);
-            var variablesInExpression = expression.DescendantNodes().OfType<IdentifierNameSyntax>();
-            var variableCount = 0;
-            var parameterCount = 0;
-
-            foreach (var variable in variablesInExpression)
-            {
-                variableCount++;
-                foreach (var parameter in methodExpression.ParameterList.Parameters)
-                {
-                    if ((string)((IdentifierNameSyntax)variable).Identifier.Value == (string)parameter.Identifier.Value)
-                    {
-                        parameterCount++;
-                        break;
-                    }
-                }
-            }
-            return variablesInExpression.Any() && methodExpression.ParameterList.Parameters.Any() && variableCount == parameterCount;
         }
 
         protected override TNode RewriteCore<TNode>(

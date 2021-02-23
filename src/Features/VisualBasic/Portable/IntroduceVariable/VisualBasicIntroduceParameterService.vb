@@ -33,9 +33,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         End Function
 
-        Protected Overrides Async Function RewriteCallSitesAsync(expression As ExpressionSyntax, callSites As ImmutableDictionary(Of Document, List(Of InvocationExpressionSyntax)),
+        Protected Overrides Async Function RewriteCallSitesAsync(semanticDocument As SemanticDocument, expression As ExpressionSyntax, callSites As ImmutableDictionary(Of Document, List(Of InvocationExpressionSyntax)),
                                                             methodSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of Solution)
-            Dim mappingDictionary = MapExpressionToParameters(expression, methodSymbol)
+            Dim mappingDictionary = MapExpressionToParameters(semanticDocument, expression, cancellationToken)
             expression = expression.TrackNodes(mappingDictionary.Values)
             Dim identifiers = expression.DescendantNodes().OfType(Of IdentifierNameSyntax)
 
@@ -81,42 +81,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Next
 
             Return currentSolution
-        End Function
-
-        Private Shared Function MapExpressionToParameters(expression As ExpressionSyntax, methodSymbol As IMethodSymbol) As Dictionary(Of IParameterSymbol, IdentifierNameSyntax)
-
-            Dim nameToParameterDict = New Dictionary(Of IParameterSymbol, IdentifierNameSyntax)
-            Dim variablesInExpression = expression.DescendantNodes().OfType(Of IdentifierNameSyntax)
-
-            For Each variable In variablesInExpression
-                For Each parameter In methodSymbol.Parameters
-                    If variable.Identifier.ValueText = parameter.Name Then
-                        nameToParameterDict.Add(parameter, variable)
-                        Exit For
-                    End If
-                Next
-            Next
-
-            Return nameToParameterDict
-        End Function
-
-        Protected Overrides Function ExpressionWithinParameterizedMethod(expression As ExpressionSyntax) As Boolean
-            Dim methodExpression = expression.FirstAncestorOrSelf(Of MethodBlockSyntax)()
-            Dim variablesInExpression = expression.DescendantNodes().OfType(Of IdentifierNameSyntax)
-            Dim variableCount = 0
-            Dim parameterCount = 0
-
-            For Each variable In variablesInExpression
-                variableCount += 1
-                For Each parameter In methodExpression.BlockStatement.ParameterList.Parameters
-                    If variable.Identifier.Value Is parameter.Identifier.Identifier.Value Then
-                        parameterCount += 1
-                        Exit For
-                    End If
-                Next
-            Next
-
-            Return variablesInExpression.Any() And methodExpression.BlockStatement.ParameterList.Parameters.Any() And variableCount = parameterCount
         End Function
 
         Protected Overrides Function RewriteCore(Of TNode As SyntaxNode)(node As TNode, replacementNode As SyntaxNode, matches As ISet(Of ExpressionSyntax)) As TNode
