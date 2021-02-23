@@ -5495,27 +5495,13 @@ class Goo<T>
 }
 ";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
                 // [Goo<int>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2));
-        }
 
-        [Fact]
-        public void AttributeContainsGenericWithGenericAttributeFeature()
-        {
-            string source = @"
-[Goo<int>]
-class G
-{
-}
-class Goo<T>
-{
-}
-";
-
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0616: 'Goo<T>' is not an attribute class
                 // [Goo<int>]
@@ -5566,7 +5552,7 @@ class Goo<T>
 }
 ";
 
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular9);
 
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
@@ -7129,7 +7115,7 @@ public class Test
 }";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, null, options: opt, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(source, null, options: opt, parseOptions: TestOptions.Regular9);
 
             compilation.VerifyDiagnostics(
                 // (3,16): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
@@ -7208,7 +7194,7 @@ public class Test
 	}
 }";
 
-            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
                 // (2,2): error CS0404: Cannot apply attribute class 'Gen<T>' because it is generic
@@ -7217,27 +7203,8 @@ public class Test
                 // (3,2): error CS0404: Cannot apply attribute class 'Gen2<T>' because it is generic
                 // [Gen2]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Gen2").WithArguments("Gen2<T>"));
-        }
 
-        [Fact]
-        public void GenericAttributeTypeFromILSourceWithGenericAttribute()
-        {
-            var ilSource = @"
-.class public Gen<T> { }
-.class public Gen2<T> extends [mscorlib] System.Attribute { }
-";
-            var csharpSource = @"
-[Gen]
-[Gen2]
-public class Test
-{
-	public static int Main()
-	{
-		return 1;
-	}
-}";
-
-            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyDiagnostics(
                 // (2,2): error CS0305: Using the generic type 'Gen<T>' requires 1 type arguments
@@ -8118,7 +8085,7 @@ public class C<T, U> : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
 
                 // NOTE: Dev11 reports ERR_AttributeCantBeGeneric for these, but this makes more sense.
@@ -8262,7 +8229,7 @@ public class C<T> : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (5,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias]
@@ -8277,28 +8244,8 @@ public class C<T> : Attribute
                 // (12,21): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
                 // public class C<T> : Attribute
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "Attribute").WithArguments("System.Attribute"));
-        }
 
-        [Fact]
-        public void AliasedGenericAttributeType_SourceWithGenericAttributeFeature()
-        {
-            var source = @"
-using System;
-using Alias = C<int>;
-
-[Alias]
-[Alias<>]
-[Alias<int>]
-class Test
-{
-}
-
-public class C<T> : Attribute
-{
-}
-";
-
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                 // (6,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                 // [Alias<>]
@@ -8339,7 +8286,7 @@ class Test
 
             // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
             // attribute at emit-time.
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias]
@@ -8350,39 +8297,10 @@ class Test
                 // (6,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias<int>]
                 Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Alias<int>").WithArguments("C<int>").WithLocation(6, 2));
-        }
-
-        [Fact]
-        public void AliasedGenericAttributeType_MetadataWithGenericAttributeFeature()
-        {
-            var il = @"
-.class public auto ansi beforefieldinit C`1<T>
-       extends [mscorlib]System.Attribute
-{
-  .method public hidebysig specialname rtspecialname 
-          instance void  .ctor() cil managed
-  {
-    ldarg.0
-    call       instance void [mscorlib]System.Attribute::.ctor()
-    ret
-  }
-}
-";
-
-            var source = @"
-using Alias = C<int>;
-
-[Alias]
-[Alias<>]
-[Alias<int>]
-class Test
-{
-}
-";
 
             // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
             // attribute at emit-time.
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.RegularPreview);
+            comp = CreateCompilationWithILAndMscorlib40(source, il, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
                     // (5,2): error CS0307: The using alias 'Alias' cannot be used with type arguments
                     // [Alias<>]
@@ -8418,7 +8336,7 @@ public class Outer<T>
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
             // (5,2): error CS0404: Cannot apply attribute class 'Outer<int>.Inner' because it is generic
             // [InnerAlias]
@@ -8426,10 +8344,44 @@ public class Outer<T>
             // (8,17): error CS0404: Cannot apply attribute class 'Outer<int>.Inner' because it is generic
             //     [OuterAlias.Inner]
             Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Inner").WithArguments("Outer<int>.Inner"));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                    // (5,2): error CS0616: 'Outer<int>.Inner' is not an attribute class
+                    // [InnerAlias]
+                    Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "InnerAlias").WithArguments("Outer<int>.Inner").WithLocation(5, 2),
+                    // (8,17): error CS0616: 'Outer<int>.Inner' is not an attribute class
+                    //     [OuterAlias.Inner]
+                    Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Inner").WithArguments("Outer<int>.Inner").WithLocation(8, 17));
         }
 
         [Fact]
-        public void AliasedGenericAttributeType_NestedWithGenericAttributeFeature()
+        public void NestedWithGenericAttributeFeature()
+        {
+            var source = @"
+[Outer<int>.Inner]
+class Test
+{
+    [Outer<int>.Inner]
+    static void Main()
+    {
+    }
+}
+
+public class Outer<T>
+{
+    public class Inner : System.Attribute
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AliasedGenericAttributeType_NestedWithGenericAttributeFeature_IsAttribute()
         {
             var source = @"
 using InnerAlias = Outer<int>.Inner;
@@ -8446,21 +8398,13 @@ class Test
 
 public class Outer<T>
 {
-    // Not a subtype of Attribute, since that wouldn't compile.
-    public class Inner 
+    public class Inner : System.Attribute
     {
     }
 }
 ";
-
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                    // (5,2): error CS0616: 'Outer<int>.Inner' is not an attribute class
-                    // [InnerAlias]
-                    Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "InnerAlias").WithArguments("Outer<int>.Inner").WithLocation(5, 2),
-                    // (8,17): error CS0616: 'Outer<int>.Inner' is not an attribute class
-                    //     [OuterAlias.Inner]
-                    Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Inner").WithArguments("Outer<int>.Inner").WithLocation(8, 17));
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(687816, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/687816")]
@@ -9481,6 +9425,191 @@ namespace System.Runtime.InteropServices
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "F").WithLocation(9, 28)
             );
         }
+
+        [Fact]
+        public void VerifyGenericAttributeExistenceDoesNotAffectBindingOfNonGenericUsage()
+        {
+            var lib_cs = @"
+public class A<T> : System.Attribute {}
+public class A : System.Attribute {}
+";
+
+            var source = @"
+[A]
+public class C
+{
+}";
+
+            var libRef = CreateCompilation(lib_cs, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+        }
+
+        [Fact]
+        public void VerifyGenericAttributeExistenceDoesNotAffectBindingOfNonGenericUsage_2()
+        {
+            var source = @"
+class A<T> : System.Attribute {}
+class A : System.Attribute {}
+
+[A]
+public class C
+{
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,14): error CS0698: A generic type cannot derive from 'Attribute' because it is an attribute class
+                // class A<T> : System.Attribute {}
+                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute").WithLocation(2, 14)
+                );
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+        }
+
+        [Fact]
+        public void VerifyGenericAttributeExistenceDoesNotAffectBindingOfNonGenericUsage_3()
+        {
+            var lib_cs = @"
+public class AAttribute<T> : System.Attribute {}
+public class AAttribute : System.Attribute {}
+";
+
+            var source = @"
+[A]
+public class C
+{
+}";
+
+            var libRef = CreateCompilation(lib_cs, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+        }
+
+        [Fact]
+        public void VerifyGenericAttributeExistenceDoesNotAffectBindingOfNonGenericUsage_4()
+        {
+            var lib_cs = @"
+public class AAttribute<T> : System.Attribute {}
+public class A<T> : System.Attribute {}
+public class A : System.Attribute {}
+";
+
+            var source = @"
+[A]
+public class C
+{
+}";
+
+            var libRef = CreateCompilation(lib_cs, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+        }
+
+        [Fact]
+        public void VerifyGenericAttributeExistenceDoesNotAffectBindingOfNonGenericUsage_5()
+        {
+            var lib_cs = @"
+public class AAttribute<T> : System.Attribute {}
+public class A<T> : System.Attribute {}
+public class AAttribute : System.Attribute {}
+";
+
+            var source = @"
+[A]
+public class C
+{
+}";
+
+            var libRef = CreateCompilation(lib_cs, parseOptions: TestOptions.RegularPreview).EmitToImageReference();
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, references: new[] { libRef });
+            comp.VerifyDiagnostics();
+            Assert.False(comp.GlobalNamespace.GetTypeMember("C").GetAttributes().Single().AttributeClass.IsGenericType);
+        }
+
+        [Fact]
+        public void MetadataForUsingGenericAttribute()
+        {
+            var source = @"
+public class A<T> : System.Attribute {}
+public class C
+{
+    [A<int>]
+    public void M() { }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = (MethodSymbol)module.ContainingAssembly.GlobalNamespace.GetMember("C.M");
+                var attribute = m.GetAttributes().Single();
+                Assert.Equal("A<System.Int32>", attribute.AttributeClass.ToTestDisplayString());
+                Assert.Equal("A<System.Int32>..ctor()", attribute.AttributeConstructor.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void AmbiguityWithGenericAttribute()
+        {
+            var source = @"
+public class AAttribute<T> : System.Attribute {}
+public class A<T> : System.Attribute {}
+
+[A<int>]
+public class C
+{
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'; use either '@A<>' or 'A<>Attribute'
+                // [A<int>]
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (2,30): error CS0698: A generic type cannot derive from 'Attribute' because it is an attribute class
+                // public class AAttribute<T> : System.Attribute {}
+                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute").WithLocation(2, 30),
+                // (3,21): error CS0698: A generic type cannot derive from 'Attribute' because it is an attribute class
+                // public class A<T> : System.Attribute {}
+                Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute").WithLocation(3, 21),
+                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'; use either '@A<>' or 'A<>Attribute'
+                // [A<int>]
+                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2)
+                );
+        }
+
         #endregion
     }
 }

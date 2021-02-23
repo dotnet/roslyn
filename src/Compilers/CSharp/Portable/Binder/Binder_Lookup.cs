@@ -475,12 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // single viable lookup symbol only found without Attribute suffix, return result.
                 if (!Compilation.LanguageVersion.AllowGenericAttributes())
                 {
-                    var noAliasSymbolWithoutSuffix = (NamedTypeSymbol)UnwrapAliasNoDiagnostics(symbolWithoutSuffix);
-                    if (noAliasSymbolWithoutSuffix.IsGenericType)
-                    {
-                        var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, noAliasSymbolWithoutSuffix);
-                        result.SetFrom(GenerateNonViableAttributeTypeResult(noAliasSymbolWithoutSuffix, diagInfo, diagnose));
-                    }
+                    setResultWhenGeneric(symbolWithoutSuffix);
                 }
                 useSiteInfo.MergeAndClear(ref attributeTypeWithoutSuffixViabilityUseSiteInfo);
             }
@@ -490,13 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!Compilation.LanguageVersion.AllowGenericAttributes())
                 {
-                    var noAliasSymbolWithSuffix = (NamedTypeSymbol)UnwrapAliasNoDiagnostics(symbolWithSuffix);
-                    if (noAliasSymbolWithSuffix.IsGenericType)
-                    {
-                        var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, noAliasSymbolWithSuffix);
-                        result.SetFrom(GenerateNonViableAttributeTypeResult(noAliasSymbolWithSuffix, diagInfo, diagnose));
-                    }
-                    else
+                    if (!setResultWhenGeneric(symbolWithSuffix))
                     {
                         // Single viable lookup symbol only found with Attribute suffix, return resultWithSuffix.
                         result.SetFrom(resultWithSuffix);
@@ -515,21 +504,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (symbolWithoutSuffix != null)
                     {
-                        var noAliasSymbolWithoutSuffix = UnwrapAliasNoDiagnostics(symbolWithoutSuffix);
-                        if (noAliasSymbolWithoutSuffix.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)noAliasSymbolWithoutSuffix).IsGenericType)
-                        {
-                            var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, noAliasSymbolWithoutSuffix);
-                            result.SetFrom(GenerateNonViableAttributeTypeResult(noAliasSymbolWithoutSuffix, diagInfo, diagnose));
-                        }
+                        setResultWhenGeneric(symbolWithoutSuffix);
                     }
-                    else if (symbolWithSuffix != null && symbolWithSuffix.Kind == SymbolKind.NamedType)
+                    else if (symbolWithSuffix != null)
                     {
-                        var noAliasSymbolWithSuffix = UnwrapAliasNoDiagnostics(symbolWithSuffix);
-                        if (noAliasSymbolWithSuffix.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)noAliasSymbolWithSuffix).IsGenericType)
-                        {
-                            var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, noAliasSymbolWithSuffix);
-                            result.SetFrom(GenerateNonViableAttributeTypeResult(noAliasSymbolWithSuffix, diagInfo, diagnose));
-                        }
+                        setResultWhenGeneric(symbolWithSuffix);
                     }
                 }
 
@@ -559,6 +538,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             resultWithSuffix?.Free();
+
+            bool setResultWhenGeneric(Symbol symbol)
+            {
+                var noAliasSymbol = UnwrapAliasNoDiagnostics(symbol);
+                if (noAliasSymbol is NamedTypeSymbol { IsGenericType: true })
+                {
+                    var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_AttributeCantBeGeneric, noAliasSymbol);
+                    result.SetFrom(GenerateNonViableAttributeTypeResult(noAliasSymbol, diagInfo, diagnose));
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private bool IsAmbiguousResult(LookupResult result, out Symbol resultSymbol)
