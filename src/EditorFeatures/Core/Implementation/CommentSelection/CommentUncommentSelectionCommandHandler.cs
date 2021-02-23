@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -78,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// </summary>
         internal override Task<CommentSelectionResult> CollectEditsAsync(
             Document document, ICommentSelectionService service, ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans,
-            Operation operation, CancellationToken cancellationToken)
+            Operation operation, IEditorOptions editorOptions, CancellationToken cancellationToken)
         {
             var spanTrackingList = ArrayBuilder<CommentTrackingSpan>.GetInstance();
             var textChanges = ArrayBuilder<TextChange>.GetInstance();

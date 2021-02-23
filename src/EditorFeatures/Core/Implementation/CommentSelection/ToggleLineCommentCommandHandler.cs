@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         protected override string GetMessage(ValueTuple command) => EditorFeaturesResources.Toggling_line_comment;
 
         internal override async Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
-            ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
+            ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, IEditorOptions editorOptions, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CommandHandler_ToggleLineComment, KeyValueLogMessage.Create(LogType.UserAction, m =>
             {
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 var commentInfo = await service.GetInfoAsync(document, selectedSpans.First().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
                 if (commentInfo.SupportsSingleLineComment)
                 {
-                    return ToggleLineComment(commentInfo, selectedSpans);
+                    return ToggleLineComment(commentInfo, selectedSpans, editorOptions);
                 }
 
                 return s_emptyCommentSelectionResult;
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         private static CommentSelectionResult ToggleLineComment(CommentSelectionInfo commentInfo,
-            NormalizedSnapshotSpanCollection selectedSpans)
+            NormalizedSnapshotSpanCollection selectedSpans, IEditorOptions editorOptions)
         {
             var textChanges = ArrayBuilder<TextChange>.GetInstance();
             var trackingSpans = ArrayBuilder<CommentTrackingSpan>.GetInstance();
@@ -88,13 +89,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 span => span,
                 span => GetLinesFromSelectedSpan(span).ToImmutableArray());
 
+            var isMultiCaret = selectedSpans.Count > 1;
+
             Operation operation;
             // If any of the lines are uncommented, add comments.
             if (linesInSelections.Values.Any(lines => SelectionHasUncommentedLines(lines, commentInfo)))
             {
                 foreach (var selection in linesInSelections)
                 {
-                    CommentLines(selection.Key, selection.Value, textChanges, trackingSpans, commentInfo);
+                    CommentLines(selection.Key, selection.Value, editorOptions, isMultiCaret, textChanges, trackingSpans, commentInfo);
                 }
 
                 operation = Operation.Comment;
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             {
                 foreach (var selection in linesInSelections)
                 {
-                    UncommentLines(selection.Value, textChanges, trackingSpans, commentInfo);
+                    UncommentLines(selection.Key, selection.Value, editorOptions, isMultiCaret, textChanges, trackingSpans, commentInfo);
                 }
 
                 operation = Operation.Uncomment;
@@ -112,8 +115,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             return new CommentSelectionResult(textChanges, trackingSpans, operation);
         }
 
-        private static void UncommentLines(ImmutableArray<ITextSnapshotLine> commentedLines, ArrayBuilder<TextChange> textChanges,
-            ArrayBuilder<CommentTrackingSpan> trackingSpans, CommentSelectionInfo commentInfo)
+        private static void UncommentLines(
+            SnapshotSpan selectedSpan,
+            ImmutableArray<ITextSnapshotLine> commentedLines,
+            IEditorOptions editorOptions,
+            bool isMultiCaret,
+            ArrayBuilder<TextChange> textChanges,
+            ArrayBuilder<CommentTrackingSpan> trackingSpans,
+            CommentSelectionInfo commentInfo)
         {
             foreach (var line in commentedLines)
             {
@@ -126,11 +135,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 }
             }
 
-            trackingSpans.Add(new CommentTrackingSpan(TextSpan.FromBounds(commentedLines.First().Start, commentedLines.Last().End)));
+            var commentTrackingSpan = GetNewSelection(selectedSpan, editorOptions, isMultiCaret);
+            trackingSpans.Add(commentTrackingSpan);
         }
 
-        private static void CommentLines(SnapshotSpan selectedSpan, ImmutableArray<ITextSnapshotLine> linesInSelection,
-            ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> trackingSpans, CommentSelectionInfo commentInfo)
+        private static void CommentLines(
+            SnapshotSpan selectedSpan,
+            ImmutableArray<ITextSnapshotLine> linesInSelection,
+            IEditorOptions editorOptions,
+            bool isMultiCaret,
+            ArrayBuilder<TextChange> textChanges,
+            ArrayBuilder<CommentTrackingSpan> trackingSpans,
+            CommentSelectionInfo commentInfo)
         {
             var indentation = DetermineSmallestIndent(selectedSpan, linesInSelection.First(), linesInSelection.Last());
             foreach (var line in linesInSelection)
@@ -141,8 +157,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 }
             }
 
-            trackingSpans.Add(new CommentTrackingSpan(
-                TextSpan.FromBounds(linesInSelection.First().Start, linesInSelection.Last().End)));
+            var commentTrackingSpan = GetNewSelection(selectedSpan, editorOptions, isMultiCaret);
+            trackingSpans.Add(commentTrackingSpan);
+        }
+
+        private static CommentTrackingSpan GetNewSelection(SnapshotSpan selectedSpan, IEditorOptions editorOptions, bool isMultiCaret)
+        {
+            // If the span is just the caret location without a selection move the caret
+            // down to the next line at the same column (or end of line).
+            // We bail in multi caret scenarios as the next line could already be modified as part of this comment operation.
+            if (selectedSpan.IsEmpty && !isMultiCaret)
+            {
+                selectedSpan.End.GetLineAndCharacter(out var caretLineNumber, out var caretOffset);
+                var caretLine = selectedSpan.Snapshot.GetLineFromLineNumber(caretLineNumber);
+
+                var nextLineNumber = caretLineNumber + 1;
+                if (nextLineNumber < selectedSpan.Snapshot.LineCount)
+                {
+                    // Get the column in the line of the current caret location.
+                    var caretColumn = caretLine.GetColumnFromLineOffset(caretOffset, editorOptions);
+
+                    var nextLine = selectedSpan.Snapshot.GetLineFromLineNumber(nextLineNumber);
+                    // Compute the correct offset location from the column in the previous line.
+                    var offsetInNextLine = nextLine.GetLineOffsetFromColumn(caretColumn, editorOptions);
+                    var position = selectedSpan.Snapshot.GetPosition(nextLineNumber, offsetInNextLine);
+                    return new CommentTrackingSpan(TextSpan.FromBounds(position, position));
+                }
+                else
+                {
+                    return new CommentTrackingSpan(TextSpan.FromBounds(caretLine.End, caretLine.End));
+                }
+            }
+
+            // In selection or any multi-caret scenarios, leave the selection unchanged.
+            return new CommentTrackingSpan(selectedSpan.Span.ToTextSpan());
         }
 
         private static List<ITextSnapshotLine> GetLinesFromSelectedSpan(SnapshotSpan span)
