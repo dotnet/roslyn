@@ -10582,7 +10582,7 @@ class C
                         }),
                     DocumentResults(
                         activeStatements: GetActiveStatements(srcB1, srcB2),
-                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", "method 'F()'") })
+                        diagnostics: new[] { Diagnostic(RudeEditKind.DeleteActiveStatement, "partial class C", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
                 });
         }
 
