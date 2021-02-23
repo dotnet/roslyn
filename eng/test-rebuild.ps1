@@ -36,14 +36,16 @@ try {
 
   $dotnetInstallDir = (InitializeDotNetCli -install:$true)
   $rebuildArgs = ("--verbose" +
-  " --assembliesPath `"$ArtifactsDir/obj/AnalyzerRunner/`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/BuildValidator/`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/AnalyzerRunner/$configuration/netcoreapp3.1`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/AnalyzerRunner/$configuration/net5.0`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/BuildValidator/$configuration/netcoreapp3.1`"" +
   " --assembliesPath `"$ArtifactsDir/obj/CodeStyleConfigFileGenerator/`"" +
   " --assembliesPath `"$ArtifactsDir/obj/csc/$configuration/netcoreapp3.1`"" +
   " --assembliesPath `"$ArtifactsDir/obj/CSharpResultProvider.NetFX20/`"" +
   " --assembliesPath `"$ArtifactsDir/obj/CSharpSyntaxGenerator/`"" +
   " --assembliesPath `"$ArtifactsDir/obj/csi/$configuration/netcoreapp3.1`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/IdeCoreBenchmarks/`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/IdeCoreBenchmarks/$configuration/netcoreapp3.1`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/IdeCoreBenchmarks/$configuration/net5.0`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis/`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CodeStyle/`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CodeStyle.Fixes/`"" +
