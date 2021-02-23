@@ -215,11 +215,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return true;
             }
 
-            if (currentNode is MethodDeclarationSyntax method &&
-                (method.Modifiers.Any(SyntaxKind.AbstractKeyword) || method.Modifiers.Any(SyntaxKind.ExternKeyword) ||
-                method.IsParentKind(SyntaxKind.InterfaceDeclaration)))
+            if (currentNode is MethodDeclarationSyntax method)
             {
-                return true;
+                if (method.Modifiers.Any(SyntaxKind.AbstractKeyword) || method.Modifiers.Any(SyntaxKind.ExternKeyword) ||
+                    method.IsParentKind(SyntaxKind.InterfaceDeclaration))
+                {
+                    return true;
+                }
             }
 
             return false;
