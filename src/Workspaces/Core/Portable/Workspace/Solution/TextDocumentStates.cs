@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<DocumentId> GetChangedStateIds(TextDocumentStates<TState> oldStates)
         {
-            foreach (var (id, _) in _map)
+            foreach (var id in _ids)
             {
                 if (oldStates._map.TryGetValue(id, out var oldState) && oldState != _map[id])
                 {
