@@ -191,22 +191,16 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets a document or a source generated document in this solution with the specified document ID.
         /// </summary>
-        internal async ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+        internal ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
         {
             var project = GetProject(documentId?.ProjectId);
             if (project == null)
             {
-                return null;
+                return default;
             }
 
             Contract.ThrowIfNull(documentId);
-            var document = project.GetDocument(documentId);
-            if (document != null || !includeSourceGenerated)
-            {
-                return document;
-            }
-
-            return await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+            return project.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken);
         }
 
         /// <summary>

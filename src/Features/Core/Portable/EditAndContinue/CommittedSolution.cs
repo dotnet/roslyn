@@ -171,20 +171,30 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             throw ExceptionUtilities.Unreachable;
                     }
                 }
+            }
 
-                // Document may have been added to the workspace after the committed solution snapshot was taken,
-                // but the document may have been compiled into the baseline DLL/PDB.
-                document = committedDocument ?? currentDocument;
-                if (document == null)
+            if (committedDocument == null)
+            {
+                var sourceGeneratedDocument = await _solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+                if (sourceGeneratedDocument != null)
                 {
-                    // Document has been deleted.
-                    return (null, DocumentState.None);
+                    // source generated files are never out-of-date:
+                    return (sourceGeneratedDocument, DocumentState.MatchesBuildOutput);
                 }
+            }
 
-                if (!PathUtilities.IsAbsolute(document.FilePath))
-                {
-                    return (null, DocumentState.DesignTimeOnly);
-                }
+            // Document may have been added to the workspace after the committed solution snapshot was taken,
+            // but the document may have been compiled into the baseline DLL/PDB.
+            document = committedDocument ?? currentDocument;
+            if (document == null)
+            {
+                // Document has been deleted.
+                return (null, DocumentState.None);
+            }
+
+            if (!PathUtilities.IsAbsolute(document.FilePath))
+            {
+                return (null, DocumentState.DesignTimeOnly);
             }
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

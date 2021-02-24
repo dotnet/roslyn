@@ -242,6 +242,20 @@ namespace Microsoft.CodeAnalysis
             => ImmutableHashMapExtensions.GetOrAdd(ref _idToAnalyzerConfigDocumentMap, documentId, s_tryCreateAnalyzerConfigDocumentFunction, this);
 
         /// <summary>
+        /// Gets a document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal async ValueTask<Document?> GetDocumentAsync(DocumentId documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
+        {
+            var document = GetDocument(documentId);
+            if (document != null || !includeSourceGenerated)
+            {
+                return document;
+            }
+
+            return await GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Gets all source generated documents in this project.
         /// </summary>
         public async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)

@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     ImmutableArray<LinePositionSpan> exceptionRegions;
 
                     // Can't calculate exception regions for active statements in out-of-sync documents.
-                    var primaryDocument = solution.GetDocument(activeStatement.PrimaryDocumentId);
+                    var primaryDocument = await solution.GetDocumentAsync(activeStatement.PrimaryDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                     var (baseDocument, _) = await DebuggingSession.LastCommittedSolution.GetDocumentAndStateAsync(activeStatement.PrimaryDocumentId, primaryDocument, cancellationToken).ConfigureAwait(false);
                     if (baseDocument != null)
                     {
@@ -445,6 +445,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return false;
                 }
 
+                // TODO: source generated files?
                 var projects = (sourceFilePath == null) ? solution.Projects :
                     from documentId in solution.GetDocumentIdsWithFilePath(sourceFilePath)
                     select solution.GetDocument(documentId)!.Project;

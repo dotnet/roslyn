@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<DocumentId> GetAddedStateIds(TextDocumentStates<TState> oldStates)
         {
-            foreach (var (id, _) in _map)
+            foreach (var id in _ids)
             {
                 if (!oldStates._map.ContainsKey(id))
                 {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<DocumentId> GetRemovedStateIds(TextDocumentStates<TState> oldStates)
         {
-            foreach (var (id, _) in oldStates._map)
+            foreach (var id in oldStates._ids)
             {
                 if (!_map.ContainsKey(id))
                 {
