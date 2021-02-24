@@ -1,3 +1,5 @@
+# Separate pipeline from normal integration CI to allow branches to change legs
+
 # Branches that trigger a build on commit
 trigger:
 - master
