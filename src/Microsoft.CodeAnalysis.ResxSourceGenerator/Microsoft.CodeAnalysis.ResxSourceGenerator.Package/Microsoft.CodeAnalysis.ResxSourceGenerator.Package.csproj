@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <ReleaseTrackingOptOut>true</ReleaseTrackingOptOut>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Microsoft.CodeAnalysis.ResxSourceGenerator</PackageId>
+    <PackageVersion>1.0.0.0</PackageVersion>
+    <Authors>sharwell</Authors>
+    <PackageLicenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</PackageLicenseUrl>
+    <PackageProjectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</PackageProjectUrl>
+    <PackageIconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</PackageIconUrl>
+    <RepositoryUrl>http://REPOSITORY_URL_HERE_OR_DELETE_THIS_LINE</RepositoryUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Description>Microsoft.CodeAnalysis.ResxSourceGenerator</Description>
+    <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
+    <Copyright>Copyright</Copyright>
+    <PackageTags>Microsoft.CodeAnalysis.ResxSourceGenerator, analyzers</PackageTags>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.ResxSourceGenerator\Microsoft.CodeAnalysis.ResxSourceGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <Target Name="_AddAnalyzersToOutput">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)\Microsoft.CodeAnalysis.ResxSourceGenerator.dll" PackagePath="analyzers/dotnet/cs" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.dll" PackagePath="analyzers/dotnet/cs" />
+
+      <TfmSpecificPackageFile Include="$(OutputPath)\Microsoft.CodeAnalysis.ResxSourceGenerator.dll" PackagePath="analyzers/dotnet/vb" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.dll" PackagePath="analyzers/dotnet/vb" />
+    </ItemGroup>
+  </Target>
+
+</Project>

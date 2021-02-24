@@ -8,10 +8,10 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' &gt;= '3.3'">
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' == '3.9.0-5.final' OR '$(MicrosoftCodeAnalysisVersion)' &gt;= '3.3'">
     <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_OR_BETTER</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' &gt;= '3.7'">
+  <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' == '' OR '$(MicrosoftCodeAnalysisVersion)' == '3.9.0-5.final' OR '$(MicrosoftCodeAnalysisVersion)' &gt;= '3.7'">
     <DefineConstants>$(DefineConstants),CODEANALYSIS_V3_7_OR_BETTER</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' != '1.2.1'">

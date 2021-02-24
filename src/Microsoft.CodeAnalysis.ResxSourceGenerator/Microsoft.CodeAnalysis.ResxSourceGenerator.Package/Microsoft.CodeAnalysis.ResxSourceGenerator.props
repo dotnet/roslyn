@@ -1,0 +1,13 @@
+<Project>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="RootNamespace" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="GenerateSource" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RelativeDir" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="OmitGetResourceString" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="AsConstants" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="IncludeDefaultValues" />
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="EmitFormatMethods" />
+  </ItemGroup>
+
+</Project>

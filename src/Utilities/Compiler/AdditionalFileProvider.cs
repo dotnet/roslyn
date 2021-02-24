@@ -30,14 +30,14 @@ namespace Analyzer.Utilities
         /// <param name="options">Options passed to a <see cref="DiagnosticAnalyzer"/>.</param>
         /// <returns>An instance of <see cref="AdditionalFileProvider"/>.</returns>
         public static AdditionalFileProvider FromOptions(AnalyzerOptions options)
-            => new AdditionalFileProvider(options.AdditionalFiles);
+            => new(options.AdditionalFiles);
 
         /// <summary>
         /// Returns the first additional file whose name is the specified <paramref name="fileName"/>.
         /// </summary>
         /// <param name="fileName">Name of the file, including extension, to return.</param>
         /// <returns>An additional file or <c>null</c> if no file can be found.</returns>
-        public AdditionalText GetFile(string fileName)
+        public AdditionalText? GetFile(string fileName)
             => _additionalFiles.FirstOrDefault(x => Path.GetFileName(x.Path).Equals(fileName, StringComparison.OrdinalIgnoreCase));
 
         /// <summary>

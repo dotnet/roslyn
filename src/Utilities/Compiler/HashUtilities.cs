@@ -54,8 +54,12 @@ namespace Analyzer.Utilities
                        set.Count,
                        currentKey);
 
-        internal static int Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary) => Combine(dictionary, 0);
+        internal static int Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary)
+            where TKey : notnull
+            => Combine(dictionary, 0);
+
         internal static int Combine<TKey, TValue>(ImmutableDictionary<TKey, TValue> dictionary, int currentKey)
+            where TKey : notnull
             => Combine(dictionary.Select(kvp => Combine(kvp.Key.GetHashCodeOrDefault(), kvp.Value.GetHashCodeOrDefault())).Order(),
                        dictionary.Count,
                        currentKey);
