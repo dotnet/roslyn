@@ -488,12 +488,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                             var project = this.Workspace.CurrentSolution.GetProject(symbolListItem.ProjectId);
                             if (project != null)
                             {
-                                // Note: we kick of FindReferencesAsync in a 'fire and forget' manner.
-                                // We don't want to block the UI thread while we compute the references,
-                                // and the references will be asynchronously added to the FindReferences
-                                // window as they are computed.  The user also knows something is happening
-                                // as the window, with the progress-banner will pop up immediately.
-                                _ = FindReferencesAsync(_streamingPresenter, symbolListItem, project);
+                                // Note: we kick of FindReferencesAsync in a 'fire and forget' manner. We don't want to
+                                // block the UI thread while we compute the references, and the references will be
+                                // asynchronously added to the FindReferences window as they are computed.  The user
+                                // also knows something is happening as the window, with the progress-banner will pop up
+                                // immediately.
+                                _ = FindReferencesAsync(_streamingPresenter, symbolListItem, project, CancellationToken.None);
                                 return true;
                             }
                         }
@@ -506,31 +506,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         private async Task FindReferencesAsync(
-            IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project)
+            IStreamingFindUsagesPresenter presenter, SymbolListItem symbolListItem, Project project, CancellationToken cancellationToken)
         {
             try
             {
-                // Let the presented know we're starting a search.  It will give us back
-                // the context object that the FAR service will push results into.
-                var context = presenter.StartSearch(
-                    EditorFeaturesResources.Find_References, supportsReferences: true);
+                // Let the presented know we're starting a search.  It will give us back the context object that the FAR
+                // service will push results into.
+                var context = presenter.StartSearch(EditorFeaturesResources.Find_References, supportsReferences: true, cancellationToken);
 
-                var cancellationToken = context.CancellationToken;
-
-                // Kick off the work to do the actual finding on a BG thread.  That way we don'
-                // t block the calling (UI) thread too long if we happen to do our work on this
-                // thread.
-                await Task.Run(async () =>
+                try
                 {
-                    await FindReferencesAsync(symbolListItem, project, context).ConfigureAwait(false);
-                }, cancellationToken).ConfigureAwait(false);
-
-                // Note: we don't need to put this in a finally.  The only time we might not hit
-                // this is if cancellation or another error gets thrown.  In the former case,
-                // that means that a new search has started.  We don't care about telling the
-                // context it has completed.  In the latter case something wrong has happened
-                // and we don't want to run any more code in this particular context.
-                await context.OnCompletedAsync().ConfigureAwait(false);
+                    // Kick off the work to do the actual finding on a BG thread.  That way we don'
+                    // t block the calling (UI) thread too long if we happen to do our work on this
+                    // thread.
+                    await Task.Run(async () =>
+                    {
+                        await FindReferencesAsync(symbolListItem, project, context).ConfigureAwait(false);
+                    }, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await context.OnCompletedAsync().ConfigureAwait(false);
+                }
             }
             catch (OperationCanceledException)
             {

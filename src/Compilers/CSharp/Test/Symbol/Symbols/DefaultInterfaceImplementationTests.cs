@@ -43590,7 +43590,7 @@ namespace System
 }
 ";
 
-            AssertRuntimeFeatureTrue(source);
+            AssertRuntimeFeatureFalse(source);
         }
 
         [Fact]
@@ -60138,6 +60138,97 @@ interface IC
                 //     sealed ref int PC { set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IC.PC.set").WithLocation(14, 25)
                 );
+        }
+
+        [Fact, WorkItem(50491, "https://github.com/dotnet/roslyn/issues/50491")]
+        public void RuntimeFeatureAsInterface_01()
+        {
+            var source1 =
+@"
+namespace System.Runtime.CompilerServices
+{
+    public static partial interface RuntimeFeature
+    {
+        public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+
+    }
+}
+";
+            var compilation1 = CreateEmptyCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+            compilation1.VerifyDiagnostics(
+                // (4,37): error CS0106: The modifier 'static' is not valid for this item
+                //     public static partial interface RuntimeFeature
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "RuntimeFeature").WithArguments("static").WithLocation(4, 37),
+                // (6,22): error CS0518: Predefined type 'System.String' is not defined or imported
+                //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string").WithArguments("System.String").WithLocation(6, 22),
+                // (6,29): error CS8701: Target runtime doesn't support default interface implementation.
+                //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "DefaultImplementationsOfInterfaces").WithLocation(6, 29)
+                );
+
+            Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+        }
+
+        [Fact, WorkItem(50491, "https://github.com/dotnet/roslyn/issues/50491")]
+        public void RuntimeFeatureAsInterface_02()
+        {
+            var source1 =
+@"
+namespace System.Runtime.CompilerServices
+{
+    public partial interface RuntimeFeature
+    {
+        public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+
+    }
+}
+";
+            var compilation1 = CreateEmptyCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular);
+            compilation1.VerifyDiagnostics(
+                // (6,22): error CS0518: Predefined type 'System.String' is not defined or imported
+                //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string").WithArguments("System.String").WithLocation(6, 22),
+                // (6,29): error CS8701: Target runtime doesn't support default interface implementation.
+                //         public const string DefaultImplementationsOfInterfaces = nameof(DefaultImplementationsOfInterfaces);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "DefaultImplementationsOfInterfaces").WithLocation(6, 29)
+                );
+
+            Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+        }
+
+        [Fact, WorkItem(50491, "https://github.com/dotnet/roslyn/issues/50491")]
+        public void RuntimeFeatureAsInterface_03()
+        {
+            var source1 =
+@"
+namespace System.Runtime.CompilerServices
+{
+    public partial interface RuntimeFeature
+    {
+        public const string DefaultImplementationsOfInterfaces = ""Test"";
+    }
+}
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.WriteLine(System.Runtime.CompilerServices.RuntimeFeature.DefaultImplementationsOfInterfaces);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            CompileAndVerify(compilation1,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "Test",
+                verify: VerifyOnMonoOrCoreClr);
         }
     }
 }

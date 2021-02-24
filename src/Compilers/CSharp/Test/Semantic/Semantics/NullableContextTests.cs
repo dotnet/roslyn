@@ -61,7 +61,7 @@ class C
     void M() {{}}
 }}";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypes(globalContext));
+            var comp = CreateCompilation(source, options: WithNullable(globalContext));
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -93,7 +93,7 @@ partial class C
     void M2();
 }";
 
-            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
 
             var syntaxTree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(syntaxTree1);
@@ -126,12 +126,12 @@ partial class C
         [Fact]
         public void NullableContextFlags()
         {
-            AssertEnabledForInheritence(NullableContext.Disabled, warningsEnabled: false, annotationsEnabled: false);
-            AssertEnabledForInheritence(NullableContext.WarningsEnabled, warningsEnabled: true, annotationsEnabled: false);
-            AssertEnabledForInheritence(NullableContext.AnnotationsEnabled, warningsEnabled: false, annotationsEnabled: true);
-            AssertEnabledForInheritence(NullableContext.Enabled, warningsEnabled: true, annotationsEnabled: true);
+            AssertEnabledForInheritance(NullableContext.Disabled, warningsEnabled: false, annotationsEnabled: false);
+            AssertEnabledForInheritance(NullableContext.WarningsEnabled, warningsEnabled: true, annotationsEnabled: false);
+            AssertEnabledForInheritance(NullableContext.AnnotationsEnabled, warningsEnabled: false, annotationsEnabled: true);
+            AssertEnabledForInheritance(NullableContext.Enabled, warningsEnabled: true, annotationsEnabled: true);
 
-            void AssertEnabledForInheritence(NullableContext context, bool warningsEnabled, bool annotationsEnabled)
+            void AssertEnabledForInheritance(NullableContext context, bool warningsEnabled, bool annotationsEnabled)
             {
                 Assert.Equal(warningsEnabled, context.WarningsEnabled());
                 Assert.Equal(annotationsEnabled, context.AnnotationsEnabled());
@@ -2136,10 +2136,7 @@ class Program
     {
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/50160: Debug.Assert() failure in MemberSemanticModel.GetSnapshotManager().
-#if !DEBUG
             VerifySpeculativeSemanticModel(source, null, "string", Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated);
-#endif
         }
 
         [Theory]
