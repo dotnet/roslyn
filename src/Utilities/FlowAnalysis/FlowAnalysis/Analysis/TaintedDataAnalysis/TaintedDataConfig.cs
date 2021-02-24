@@ -203,7 +203,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     return ZipSlipSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
 
                 case SinkKind.HardcodedEncryptionKey:
-                    return HardcodedBytesSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
+                    return HardcodedSymmetricAlgorithmKeysSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
 
                 case SinkKind.HardcodedCertificate:
                     return HardcodedCertificateSources.SourceInfos.AddRange(HardcodedBytesSources.SourceInfos).AddRange(StringTranferSources.SourceInfos);
