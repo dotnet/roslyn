@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     [UseExportProvider]
     public class ProjectCacheHostServiceFactoryTests
     {
-        private void Test(Action<IProjectCacheHostService, ProjectId, ICachedObjectOwner, ObjectReference<object>> action)
+        private static void Test(Action<IProjectCacheHostService, ProjectId, ICachedObjectOwner, ObjectReference<object>> action)
         {
             // Putting cacheService.CreateStrongReference in a using statement
             // creates a temporary local that isn't collected in Debug builds
@@ -188,7 +190,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 cache.CacheObjectIfCachingEnabledForKey(ProjectId.CreateNewId(), (object)null, compilations[i]);
             }
 
+#pragma warning disable IDE0059 // Unnecessary assignment of a value - testing weak reference to compilations
             compilations = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             weakFirst.AssertReleased();
             weakLast.AssertHeld();
@@ -217,9 +221,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             // When we cache 3 again, 1 should stay in the cache
             cache.CacheObjectIfCachingEnabledForKey(key, owner, comp3);
+#pragma warning disable IDE0059 // Unnecessary assignment of a value - testing weak references to compilations
             comp1 = null;
             comp2 = null;
             comp3 = null;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
 
             weak3.AssertHeld();
             weak1.AssertHeld();
@@ -230,16 +236,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private class Owner : ICachedObjectOwner
         {
             object ICachedObjectOwner.CachedObject { get; set; }
-        }
-
-        private static void CollectGarbage()
-        {
-            for (var i = 0; i < 10; i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-            }
         }
 
         private class MockHostServices : HostServices

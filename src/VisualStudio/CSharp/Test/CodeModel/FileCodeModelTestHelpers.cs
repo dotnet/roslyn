@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
-using static Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CodeModelTestHelpers;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using static Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CodeModelTestHelpers;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 {
@@ -25,9 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         // finalizer complaining we didn't clean it up. Catching AVs is of course not safe, but this is balancing
         // "probably not crash" as an improvement over "will crash when the finalizer throws."
         [HandleProcessCorruptedStateExceptions]
-        public static Tuple<TestWorkspace, EnvDTE.FileCodeModel> CreateWorkspaceAndFileCodeModel(string file)
+        public static (TestWorkspace workspace, VisualStudioWorkspace extraWorkspaceToDisposeButNotUse, EnvDTE.FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModel(string file)
         {
-            var workspace = TestWorkspace.CreateCSharp(file, exportProvider: VisualStudioTestExportProvider.Factory.CreateExportProvider());
+            var workspace = TestWorkspace.CreateCSharp(file, composition: VisualStudioTestCompositions.LanguageServices);
 
             try
             {
@@ -57,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
                 var codeModel = FileCodeModel.Create(state, null, document, new MockTextManagerAdapter()).Handle;
 
-                return Tuple.Create(workspace, (EnvDTE.FileCodeModel)codeModel);
+                return (workspace, visualStudioWorkspaceMock, codeModel);
             }
             catch
             {

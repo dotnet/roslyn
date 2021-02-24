@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             }
         }
 
-        private void UpdateLocation(
+        private static void UpdateLocation(
             SemanticModel semanticModel, INamedTypeSymbol interfaceType,
             SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
             Location location, CancellationToken cancellationToken)
@@ -100,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (identifierName == null || !syntaxFacts.IsIdentifierName(identifierName))
                 return;
 
-            var node = syntaxFacts.IsNameOfMemberAccessExpression(identifierName) || syntaxFacts.IsMemberBindingExpression(identifierName.Parent)
+            var node = syntaxFacts.IsNameOfSimpleMemberAccessExpression(identifierName) || syntaxFacts.IsNameOfMemberBindingExpression(identifierName)
                 ? identifierName.Parent
                 : identifierName;
 
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (syntaxFacts.IsInvocationExpression(node.Parent))
                 node = node.Parent;
 
-            var operation = semanticModel.GetOperation(node);
+            var operation = semanticModel.GetOperation(node, cancellationToken);
             var instance = operation switch
             {
                 IMemberReferenceOperation memberReference => memberReference.Instance,

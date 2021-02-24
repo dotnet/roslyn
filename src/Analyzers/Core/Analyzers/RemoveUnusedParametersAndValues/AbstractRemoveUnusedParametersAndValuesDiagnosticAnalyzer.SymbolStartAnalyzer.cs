@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -219,6 +221,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     return false;
                 }
 
+                // Ignore parameters of record primary constructors since they map to public properties
+                // TODO: Remove this when implicit operations are synthesised: https://github.com/dotnet/roslyn/issues/47829 
+                if (method.IsConstructor() &&
+                    _compilationAnalyzer.IsRecordDeclaration(method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()))
+                {
+                    return false;
+                }
+
                 // Ignore event handler methods "Handler(object, MyEventArgs)"
                 // as event handlers are required to match this signature
                 // regardless of whether or not the parameters are used.
@@ -249,7 +259,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 // without disabling the diagnostic completely.
                 // We ignore parameter names that start with an underscore and are optionally followed by an integer,
                 // such as '_', '_1', '_2', etc.
-                if (IsSymbolWithSpecialDiscardName(parameter))
+                if (parameter.IsSymbolWithSpecialDiscardName())
                 {
                     return false;
                 }

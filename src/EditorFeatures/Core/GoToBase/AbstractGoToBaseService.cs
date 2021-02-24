@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
@@ -16,20 +17,20 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
         public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var symbolAndSolutionOpt = await FindUsagesHelpers.GetRelevantSymbolAndSolutionAtPositionAsync(
+            var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
 
-            if (symbolAndSolutionOpt == null)
+            if (symbolAndProjectOpt == null)
             {
                 await context.ReportMessageAsync(
                     EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret).ConfigureAwait(false);
                 return;
             }
 
-            var (symbol, solution) = symbolAndSolutionOpt.Value;
+            var (symbol, project) = symbolAndProjectOpt.Value;
 
-            var bases = FindBaseHelpers.FindBases(
-                symbol, solution, cancellationToken);
+            var solution = project.Solution;
+            var bases = await FindBaseHelpers.FindBasesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
             await context.SetSearchTitleAsync(
                 string.Format(EditorFeaturesResources._0_bases,

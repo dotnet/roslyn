@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -18,8 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     public abstract class RecommenderTests : TestBase
     {
+        protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
+
         protected string keywordText;
-        internal Func<int, CSharpSyntaxContext, Task<IEnumerable<RecommendedKeyword>>> RecommendKeywordsAsync;
+        internal Func<int, CSharpSyntaxContext, Task<ImmutableArray<RecommendedKeyword>>> RecommendKeywordsAsync;
 
         internal async Task VerifyWorkerAsync(string markup, bool absent, CSharpParseOptions options = null, int? matchPriority = null)
         {
@@ -53,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             var compilation = CSharpCompilation.Create(
                 "test",
                 syntaxTrees: new[] { tree },
-                references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
+                references: new[] { TestMetadata.Net451.mscorlib });
 
             if (tree.IsInNonUserCode(position, CancellationToken.None) && !absent)
             {
@@ -189,16 +195,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             }
         }
 
-        protected string AddInsideMethod(string text)
+        protected static string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
         {
-            return
-@"class C
-{
-  void F()
-  {
-    " + text +
-@"  }
-}";
+            if (topLevelStatement)
+            {
+                return returnType switch
+                {
+                    "void" => text,
+                    "int" => text,
+                    _ => throw new ArgumentException("Unsupported return type", nameof(returnType)),
+                };
+            }
+
+            var builder = new StringBuilder();
+            if (isAsync && returnType != "void")
+            {
+                builder.AppendLine("using System.Threading.Tasks;");
+            }
+
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.Append("  ");
+
+            if (isAsync)
+            {
+                builder.Append("async ");
+                if (returnType == "void")
+                {
+                    builder.Append("Task");
+                }
+                else
+                {
+                    builder.Append($"Task<{returnType}>");
+                }
+            }
+            else
+            {
+                builder.Append(returnType);
+            }
+
+            builder.AppendLine(" F()");
+            builder.AppendLine("  {");
+            builder.Append("    ").Append(text);
+            builder.AppendLine("  }");
+            builder.Append("}");
+
+            return builder.ToString();
         }
     }
 }

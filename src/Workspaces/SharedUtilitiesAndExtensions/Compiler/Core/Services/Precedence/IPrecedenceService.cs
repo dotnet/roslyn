@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.Precedence
 {
-    interface IPrecedenceService
+    internal interface IPrecedenceService
     {
         /// <summary>
         /// Returns the precedence of the given expression, mapped down to one of the 

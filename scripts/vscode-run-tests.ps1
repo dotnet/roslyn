@@ -1,13 +1,18 @@
 param (
   [Parameter(Mandatory = $true)][string]$filePath,
-  [Parameter(Mandatory = $false)][string]$framework,
-  [Parameter(Mandatory = $false)][string]$filter
+  [string]$msbuildEngine = "vs",
+  [string]$framework = $null,
+  [string]$filter = ""
 )
 
 Set-StrictMode -version 3.0
 $ErrorActionPreference = "Stop"
 
 . (Join-Path $PSScriptRoot "../eng/build-utils.ps1")
+
+# Run a build
+. (Join-Path $PSScriptRoot "./vscode-build.ps1") -filePath $filePath -framework $framework -msbuildEngine $msbuildEngine
+Write-Output ""
 
 $fileInfo = Get-ItemProperty $filePath
 $projectFileInfo = Get-ProjectFile $fileInfo
@@ -23,9 +28,9 @@ if ($projectFileInfo) {
   $resultsPath = Resolve-Path (New-Item -ItemType Directory -Force -Path $resultsPath) -Relative
 
   # Remove old run logs with the same prefix
-  Remove-Item (Join-Path $resultsPath "$logFilePrefix*.html")
+  Remove-Item (Join-Path $resultsPath "$logFilePrefix*.html") -ErrorAction SilentlyContinue
 
-  $invocation = "$dotnetPath test $projectDir" + $filterArg + $frameworkArg + " --logger `"html;LogFilePrefix=$logfilePrefix`" --results-directory $resultsPath"
+  $invocation = "& `"$dotnetPath`" test $projectDir" + $filterArg + $frameworkArg + " --logger `"html;LogFilePrefix=$logfilePrefix`" --results-directory $resultsPath --no-build"
   Write-Output "> $invocation"
   Invoke-Expression $invocation
 

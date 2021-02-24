@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -236,6 +236,26 @@ End Namespace
 </Workspace>
 
             Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpRangeVariableUseInSourceGeneratedDocument(kind As TestKind) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+class C
+{
+    void M()
+    {
+        var q = from $${|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|x|];
+    }
+}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
         End Function
 
     End Class

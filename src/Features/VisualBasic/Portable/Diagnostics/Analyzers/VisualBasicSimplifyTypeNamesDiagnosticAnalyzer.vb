@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 codeBlock.IsKind(SyntaxKind.DelegateFunctionStatement)
         End Function
 
-        Protected Overrides Sub AnalyzeCodeBlock(context As CodeBlockAnalysisContext)
+        Protected Overrides Function AnalyzeCodeBlock(context As CodeBlockAnalysisContext) As ImmutableArray(Of Diagnostic)
             Dim semanticModel = context.SemanticModel
             Dim cancellationToken = context.CancellationToken
 
@@ -43,16 +43,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=Nothing, cancellationToken)
             simplifier.Visit(context.CodeBlock)
-            If Not simplifier.HasDiagnostics Then
-                Return
-            End If
+            Return simplifier.Diagnostics
+        End Function
 
-            For Each diagnostic In simplifier.Diagnostics
-                context.ReportDiagnostic(diagnostic)
-            Next
-        End Sub
-
-        Protected Overrides Sub AnalyzeSemanticModel(context As SemanticModelAnalysisContext, codeBlockIntervalTree As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector))
+        Protected Overrides Function AnalyzeSemanticModel(context As SemanticModelAnalysisContext, codeBlockIntervalTree As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)) As ImmutableArray(Of Diagnostic)
             Dim semanticModel = context.SemanticModel
             Dim cancellationToken = context.CancellationToken
 
@@ -62,14 +56,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
             Dim simplifier As New TypeSyntaxSimplifierWalker(Me, semanticModel, optionSet, ignoredSpans:=codeBlockIntervalTree, cancellationToken)
             simplifier.Visit(root)
-            If Not simplifier.HasDiagnostics Then
-                Return
-            End If
-
-            For Each diagnostic In simplifier.Diagnostics
-                context.ReportDiagnostic(diagnostic)
-            Next
-        End Sub
+            Return simplifier.Diagnostics
+        End Function
 
         Private Shared Function IsNodeKindInteresting(node As SyntaxNode) As Boolean
             Return s_kindsOfInterest.Contains(node.Kind)

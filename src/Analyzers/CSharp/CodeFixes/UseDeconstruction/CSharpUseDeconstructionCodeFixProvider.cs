@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 : CreateDeclarationExpression(tupleType, typeNode);
         }
 
-        private DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
+        private static DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
             => SyntaxFactory.DeclarationExpression(
                 typeNode, SyntaxFactory.ParenthesizedVariableDesignation(
                     SyntaxFactory.SeparatedList<VariableDesignationSyntax>(tupleType.TupleElements.Select(

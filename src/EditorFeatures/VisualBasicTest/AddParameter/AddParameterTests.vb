@@ -680,7 +680,6 @@ End Class
             Await TestInRegularAndScriptAsync(code, fixCascading, index:=1)
         End Function
 
-
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestInvocationRecursion() As Task

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
     {
-        private const int MaxResults = 3;
+        private const int MaxResults = 5;
 
         private readonly IPackageInstallerService _packageInstallerService;
         private readonly ISymbolSearchService _symbolSearchService;
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var installerService = GetPackageInstallerService(document);
             var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
-                ? installerService.GetPackageSources()
+                ? installerService.TryGetPackageSources()
                 : ImmutableArray<PackageSource>.Empty;
 
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(

@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundUserDefinedConversion
+    Partial Friend Class BoundUserDefinedConversion
 
         Public ReadOnly Property Operand As BoundExpression
             Get

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _service = service;
             }
 
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
             {
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 

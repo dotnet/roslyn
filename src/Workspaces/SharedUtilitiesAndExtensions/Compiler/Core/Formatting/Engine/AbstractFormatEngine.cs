@@ -2,14 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly SyntaxNode _commonRoot;
         private readonly SyntaxToken _token1;
         private readonly SyntaxToken _token2;
-        private readonly string _language;
 
         protected readonly TextSpan SpanToFormat;
 
@@ -78,15 +77,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             // get span and common root
             this.SpanToFormat = GetSpanToFormat();
             _commonRoot = token1.GetCommonRoot(token2) ?? throw ExceptionUtilities.Unreachable;
-            if (token1 == default)
-            {
-                _language = token2.Language;
-            }
-            else
-            {
-                _language = token1.Language;
-            }
         }
+
+        internal abstract ISyntaxFacts SyntaxFacts { get; }
 
         protected abstract AbstractTriviaDataFactory CreateTriviaFactory();
         protected abstract AbstractFormattingResult CreateFormattingResult(TokenStream tokenStream);
@@ -137,11 +130,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             cancellationToken.ThrowIfCancellationRequested();
 
             // iterating tree is very expensive. do it once and cache it to list
-            List<SyntaxNode> nodeIterator;
+            SegmentedList<SyntaxNode> nodeIterator;
             using (Logger.LogBlock(FunctionId.Formatting_IterateNodes, cancellationToken))
             {
                 const int magicLengthToNodesRatio = 5;
-                var result = new List<SyntaxNode>(Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
+                var result = new SegmentedList<SyntaxNode>(Math.Max(this.SpanToFormat.Length / magicLengthToNodesRatio, 4));
 
                 foreach (var node in _commonRoot.DescendantNodesAndSelf(this.SpanToFormat))
                 {
@@ -189,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return new NodeOperations(indentBlockOperation, suppressOperation, anchorIndentationOperations, alignmentOperation);
         }
 
-        private List<T> AddOperations<T>(List<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
+        private static List<T> AddOperations<T>(SegmentedList<SyntaxNode> nodes, Action<List<T>, SyntaxNode> addOperations, CancellationToken cancellationToken)
         {
             var operations = new List<T>();
             var list = new List<T>();
@@ -207,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return operations;
         }
 
-        private TokenPairWithOperations[] CreateTokenOperation(
+        private SegmentedArray<TokenPairWithOperations> CreateTokenOperation(
             TokenStream tokenStream,
             CancellationToken cancellationToken)
         {
@@ -216,16 +209,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             using (Logger.LogBlock(FunctionId.Formatting_CollectTokenOperation, cancellationToken))
             {
                 // pre-allocate list once. this is cheaper than re-adjusting list as items are added.
-                var list = new TokenPairWithOperations[tokenStream.TokenCount - 1];
+                var list = new SegmentedArray<TokenPairWithOperations>(tokenStream.TokenCount - 1);
 
-                foreach (var pair in tokenStream.TokenIterator)
+                foreach (var (index, currentToken, nextToken) in tokenStream.TokenIterator)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var spaceOperation = _formattingRules.GetAdjustSpacesOperation(pair.Item2, pair.Item3);
-                    var lineOperation = _formattingRules.GetAdjustNewLinesOperation(pair.Item2, pair.Item3);
+                    var spaceOperation = _formattingRules.GetAdjustSpacesOperation(currentToken, nextToken);
+                    var lineOperation = _formattingRules.GetAdjustNewLinesOperation(currentToken, nextToken);
 
-                    list[pair.Item1] = new TokenPairWithOperations(tokenStream, pair.Item1, spaceOperation, lineOperation);
+                    list[index] = new TokenPairWithOperations(tokenStream, index, spaceOperation, lineOperation);
                 }
 
                 return list;
@@ -235,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void ApplyTokenOperations(
             FormattingContext context,
             NodeOperations nodeOperations,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedArray<TokenPairWithOperations> tokenOperations,
             CancellationToken cancellationToken)
         {
             var applier = new OperationApplier(context, _formattingRules);
@@ -333,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return TextSpan.FromBounds(startPosition, endPosition);
         }
 
-        private void ApplySpecialOperations(
+        private static void ApplySpecialOperations(
             FormattingContext context, NodeOperations nodeOperationsCollector, OperationApplier applier, CancellationToken cancellationToken)
         {
             // apply alignment operation
@@ -361,9 +354,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private void ApplyAnchorOperations(
+        private static void ApplyAnchorOperations(
             FormattingContext context,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedArray<TokenPairWithOperations> tokenOperations,
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
@@ -408,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return false;
         }
 
-        private SyntaxToken FindCorrectBaseTokenOfRelativeIndentBlockOperation(IndentBlockOperation operation, TokenStream tokenStream)
+        private static SyntaxToken FindCorrectBaseTokenOfRelativeIndentBlockOperation(IndentBlockOperation operation, TokenStream tokenStream)
         {
             if (operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine))
             {
@@ -418,9 +411,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             return operation.BaseToken;
         }
 
-        private void ApplySpaceAndWrappingOperations(
+        private static void ApplySpaceAndWrappingOperations(
             FormattingContext context,
-            TokenPairWithOperations[] tokenOperations,
+            SegmentedArray<TokenPairWithOperations> tokenOperations,
             OperationApplier applier,
             CancellationToken cancellationToken)
         {
@@ -477,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private void BuildContext(
+        private static void BuildContext(
             FormattingContext context,
             NodeOperations nodeOperations,
             CancellationToken cancellationToken)

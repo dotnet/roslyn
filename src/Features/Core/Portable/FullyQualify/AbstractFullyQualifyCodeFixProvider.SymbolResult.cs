@@ -15,17 +15,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
         {
             public readonly INamespaceOrTypeSymbol Symbol;
             public readonly int Weight;
+            public readonly INamespaceOrTypeSymbol? OriginalSymbol;
             public readonly IReadOnlyList<string> NameParts;
 
             public SymbolResult(INamespaceOrTypeSymbol symbol, int weight)
+                : this(symbol, weight, originalSymbol: null)
+            {
+            }
+
+            private SymbolResult(INamespaceOrTypeSymbol symbol, int weight, INamespaceOrTypeSymbol? originalSymbol)
             {
                 Symbol = symbol;
                 Weight = weight;
                 NameParts = INamespaceOrTypeSymbolExtensions.GetNameParts(symbol);
+                OriginalSymbol = originalSymbol;
             }
 
-            public override bool Equals(object obj)
-                => Equals((SymbolResult)obj);
+            public override bool Equals(object? obj)
+                => obj is SymbolResult result && Equals(result);
 
             public bool Equals(SymbolResult other)
                 => Equals(Symbol, other.Symbol);
@@ -34,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                 => Symbol.GetHashCode();
 
             public SymbolResult WithSymbol(INamespaceOrTypeSymbol other)
-                => new SymbolResult(other, Weight);
+                => new(other, Weight, Symbol);
 
             public int CompareTo(SymbolResult other)
             {

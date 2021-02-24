@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -95,10 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   // (3,25): error CS1002: ; expected
                   //     const double d1 = 0endOfDirective.Span;
                   Diagnostic(ErrorCode.ERR_SemicolonExpected, "ndOfDirective").WithLocation(3, 25),
-                  // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                  // (3,43): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                   //     const double d1 = 0endOfDirective.Span;
                   Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43),
-                  // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                  // (3,43): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                   //     const double d1 = 0endOfDirective.Span;
                   Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43)
                 );
@@ -368,22 +370,10 @@ int x = 0;
 
             ParserErrorMessageTests.ParseAndValidate(test,// (1,8): error CS1002: ; expected
                                                           // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, @"\u005C"),
-    // (1,14): error CS0116: A namespace does not directly contain members such as fields or methods
-    // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "u0065"),
-    // (1,22): error CS0116: A namespace does not directly contain members such as fields or methods
-    // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "System"),
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, @"\u005C").WithLocation(1, 8),
     // (1,8): error CS1056: Unexpected character '\u005C'
     // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u005C"),
-    // (1,20): error CS1022: Type or namespace definition, or end-of-file expected
-    // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_EOFExpected, "="),
-    // (1,28): error CS1022: Type or namespace definition, or end-of-file expected
-    // using S\u005Cu0065 = System;
-    Diagnostic(ErrorCode.ERR_EOFExpected, ";"));
+    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u005C").WithLocation(1, 8));
         }
 
         [Fact, WorkItem(536882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536882")]

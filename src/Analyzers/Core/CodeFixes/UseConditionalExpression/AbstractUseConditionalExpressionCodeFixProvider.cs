@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -154,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             return false;
         }
 
-        private TExpressionSyntax MakeRef(SyntaxGeneratorInternal generator, bool isRef, TExpressionSyntax syntaxNode)
+        private static TExpressionSyntax MakeRef(SyntaxGeneratorInternal generator, bool isRef, TExpressionSyntax syntaxNode)
             => isRef ? (TExpressionSyntax)generator.RefExpression(syntaxNode) : syntaxNode;
 
         /// <summary>

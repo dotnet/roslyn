@@ -1,10 +1,13 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PersistentStorage;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
@@ -14,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Host
         public string SolutionFilePath { get; }
 
         public string DatabaseFile { get; }
-        public string DatabaseDirectory => Path.GetDirectoryName(DatabaseFile);
+        public string DatabaseDirectory => Path.GetDirectoryName(DatabaseFile) ?? throw ExceptionUtilities.UnexpectedValue(DatabaseFile);
 
         protected AbstractPersistentStorage(
             string workingFolderPath,
@@ -33,26 +36,43 @@ namespace Microsoft.CodeAnalysis.Host
 
         public abstract void Dispose();
 
-        public abstract Task<Checksum> ReadChecksumAsync(string name, CancellationToken cancellationToken);
-        public abstract Task<Checksum> ReadChecksumAsync(Project project, string name, CancellationToken cancellationToken);
-        public abstract Task<Checksum> ReadChecksumAsync(Document document, string name, CancellationToken cancellationToken);
+        public abstract Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken);
+        public abstract Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken);
+        public abstract Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken);
 
-        public abstract Task<Stream> ReadStreamAsync(string name, Checksum checksum, CancellationToken cancellationToken);
-        public abstract Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken);
-        public abstract Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken);
+        public abstract Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, string name, Checksum checksum, CancellationToken cancellationToken);
+        public abstract Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, string name, Checksum checksum, CancellationToken cancellationToken);
+        public abstract Task<Stream?> ReadStreamAsync(ProjectKey projectKey, string name, Checksum? checksum, CancellationToken cancellationToken);
+        public abstract Task<Stream?> ReadStreamAsync(DocumentKey documentKey, string name, Checksum? checksum, CancellationToken cancellationToken);
+        public abstract Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken);
+        public abstract Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken);
 
-        public abstract Task<bool> WriteStreamAsync(string name, Stream stream, Checksum checksum, CancellationToken cancellationToken);
-        public abstract Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken);
-        public abstract Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken);
+        public Task<bool> ChecksumMatchesAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
+            => ChecksumMatchesAsync(ProjectKey.ToProjectKey(project), name, checksum, cancellationToken);
 
-        public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
+        public Task<bool> ChecksumMatchesAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
+            => ChecksumMatchesAsync(DocumentKey.ToDocumentKey(document), name, checksum, cancellationToken);
+
+        public Task<Stream?> ReadStreamAsync(Project project, string name, Checksum? checksum, CancellationToken cancellationToken)
+            => ReadStreamAsync(ProjectKey.ToProjectKey(project), name, checksum, cancellationToken);
+
+        public Task<Stream?> ReadStreamAsync(Document document, string name, Checksum? checksum, CancellationToken cancellationToken)
+            => ReadStreamAsync(DocumentKey.ToDocumentKey(document), name, checksum, cancellationToken);
+
+        public Task<Stream?> ReadStreamAsync(string name, CancellationToken cancellationToken)
             => ReadStreamAsync(name, checksum: null, cancellationToken);
 
-        public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
+        public Task<Stream?> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
             => ReadStreamAsync(project, name, checksum: null, cancellationToken);
 
-        public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
+        public Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
             => ReadStreamAsync(document, name, checksum: null, cancellationToken);
+
+        public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => WriteStreamAsync(ProjectKey.ToProjectKey(project), name, stream, checksum, cancellationToken);
+
+        public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => WriteStreamAsync(DocumentKey.ToDocumentKey(document), name, stream, checksum, cancellationToken);
 
         public Task<bool> WriteStreamAsync(string name, Stream stream, CancellationToken cancellationToken)
             => WriteStreamAsync(name, stream, checksum: null, cancellationToken);

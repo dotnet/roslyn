@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -184,6 +182,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
             return Previous.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory);
+        }
+
+        public override BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            return Previous.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory);
         }
 
         public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)

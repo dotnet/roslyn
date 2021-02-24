@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,10 +61,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     _longValue = BitConverter.DoubleToInt64Bits(f);
                     _searchKind = SearchKind.NumericLiterals;
                     break;
-                case decimal d: // unsupported
+                case decimal _: // unsupported
                     _searchKind = SearchKind.None;
                     break;
-                case char c:
+                case char _:
                     _longValue = IntegerUtilities.ToInt64(value);
                     _searchKind = SearchKind.CharacterLiterals;
                     break;
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _cancellationToken.ThrowIfCancellationRequested();
 
                 var documentTasks = new List<Task>();
-                foreach (var document in project.Documents)
+                foreach (var document in await project.GetAllRegularAndSourceGeneratedDocumentsAsync(_cancellationToken).ConfigureAwait(false))
                 {
                     documentTasks.Add(ProcessDocumentAsync(document));
                 }

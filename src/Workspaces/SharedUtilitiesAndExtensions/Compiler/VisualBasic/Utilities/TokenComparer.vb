@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return s = s_systemNamespace
         End Function
 
-        Private Function CompareWorker(x As SyntaxToken, y As SyntaxToken) As Integer
+        Private Shared Function CompareWorker(x As SyntaxToken, y As SyntaxToken) As Integer
             ' By using 'ValueText' we get the value that is normalized.  i.e.
             ' [class] will be 'class', and unicode escapes will be converted
             ' to actual unicode.  This allows sorting to work properly across

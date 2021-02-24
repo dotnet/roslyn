@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -32,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             : base(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
                    LanguageNames.CSharp,
                    IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForLambdaExpressions,
                    UseExpressionBodyTitle,
                    UseExpressionBodyTitle)
         {
@@ -73,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             var body = declaration.Body as BlockSyntax;
 
             return body.TryConvertToExpressionBody(
-                declaration.Kind(), options, conversionPreference,
+                options, conversionPreference,
                 out expression, out semicolon);
         }
 

@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _trackingPoints = trackingPoints;
         }
 
-        public abstract bool TryNavigateTo(int index, bool previewTab);
+        public abstract bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken);
         public abstract bool TryGetValue(int index, string columnName, out object content);
 
         public int VersionNumber
@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab)
+        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab, bool activate, CancellationToken cancellationToken)
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
@@ -156,16 +156,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return false;
             }
 
-            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab);
-            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options))
-            {
-                return true;
-            }
-
-            return false;
+            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab)
+                                           .WithChangedOption(NavigationOptions.ActivateTab, activate);
+            return navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options, cancellationToken);
         }
 
-        protected bool TryNavigateToItem(int index, bool previewTab)
+        protected bool TryNavigateToItem(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
         {
             var item = GetItem(index);
             var documentId = item?.DocumentId;
@@ -195,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 position = item.GetOriginalPosition();
             }
 
-            return TryNavigateTo(workspace, documentId, position, previewTab);
+            return TryNavigateTo(workspace, documentId, position, previewTab, activate, cancellationToken);
         }
 
         protected static string GetFileName(string original, string mapped)
@@ -227,7 +223,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         // we don't use these
+#pragma warning disable IDE0060 // Remove unused parameter - Implements interface method for sub-type
         public object Identity(int index)
+#pragma warning restore IDE0060 // Remove unused parameter
             => null;
 
         public void StartCaching()

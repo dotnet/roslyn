@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("Hi"));
 
             var path = new SyntaxPath(node);
-            Assert.False(path.TryResolve(SyntaxFactory.ParseExpression("Goo()"), out SyntaxNode recovered));
+            Assert.False(path.TryResolve(SyntaxFactory.ParseExpression("Goo()"), out SyntaxNode _));
         }
 
         [Fact]
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var path = new SyntaxPath(((InvocationExpressionSyntax)root).ArgumentList.Arguments.Last());
 
             var root2 = SyntaxFactory.ParseExpression("Goo(a)");
-            Assert.False(path.TryResolve(root2, out SyntaxNode recovered));
+            Assert.False(path.TryResolve(root2, out SyntaxNode _));
         }
 
         [Fact]
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var path = new SyntaxPath(((InvocationExpressionSyntax)root).ArgumentList.Arguments.First().Expression);
 
             var root2 = SyntaxFactory.ParseExpression("Goo(3)");
-            Assert.False(path.TryResolve(root2, out SyntaxNode recovered));
+            Assert.False(path.TryResolve(root2, out SyntaxNode _));
         }
 
         [Fact]
@@ -254,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             tree = WithReplaceFirst(tree, "class", "struct");
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out SyntaxNode n1));
-            Assert.False(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode n2));
+            Assert.False(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode _));
 
             Assert.Equal(SyntaxKind.ClassDeclaration, n1.Kind());
             Assert.Equal("D", ((TypeDeclarationSyntax)n1).Identifier.ValueText);
@@ -284,8 +286,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             tree = WithReplaceFirst(tree, "class", "struct");
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out SyntaxNode n1));
-            Assert.False(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode n2));
-            Assert.False(path3.TryResolve(tree, CancellationToken.None, out SyntaxNode n3));
+            Assert.False(path2.TryResolve(tree, CancellationToken.None, out SyntaxNode _));
+            Assert.False(path3.TryResolve(tree, CancellationToken.None, out SyntaxNode _));
 
             Assert.Equal(SyntaxKind.ClassDeclaration, n1.Kind());
             Assert.Equal("D", ((TypeDeclarationSyntax)n1).Identifier.ValueText);

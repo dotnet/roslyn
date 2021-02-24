@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
                 declaration.Span);
         }
 
-        private async Task<Document> MoveDeclarationNearReferenceAsync(
+        private static async Task<Document> MoveDeclarationNearReferenceAsync(
             Document document, SyntaxNode statement, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -86,16 +88,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
         private class ActiveProjectCacheManager
         {
-            private readonly IDocumentTrackingService _documentTrackingService;
             private readonly ProjectCacheService _projectCacheService;
-            private readonly object _guard = new object();
+            private readonly object _guard = new();
 
             private ProjectId _mostRecentActiveProjectId;
             private IDisposable _mostRecentCache;
 
             public ActiveProjectCacheManager(IDocumentTrackingService documentTrackingService, ProjectCacheService projectCacheService)
             {
-                _documentTrackingService = documentTrackingService;
                 _projectCacheService = projectCacheService;
 
                 if (documentTrackingService != null)

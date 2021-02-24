@@ -18,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicWinForms(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicWinForms), WellKnownProjectTemplates.WinFormsApplication)
+        public BasicWinForms(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicWinForms), WellKnownProjectTemplates.WinFormsApplication)
         {
         }
 

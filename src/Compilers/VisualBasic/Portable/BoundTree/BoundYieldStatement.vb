@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundYieldStatement
+    Partial Friend Class BoundYieldStatement
 
         ''' <summary>
         ''' Suppresses RValue validation when constructing the node. 

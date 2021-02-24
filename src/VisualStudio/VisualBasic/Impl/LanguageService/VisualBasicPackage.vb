@@ -11,6 +11,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
+Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell
@@ -19,6 +20,21 @@ Imports Task = System.Threading.Tasks.Task
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
+    ' The option page configuration is duplicated in PackageRegistration.pkgdef.
+    '
+    ' VB option pages tree
+    '   Basic
+    '     General (from editor)
+    '     Scroll Bars (from editor)
+    '     Tabs (from editor)
+    '     Advanced
+    '     Code Style (category)
+    '       General
+    <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
+    <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
+    <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
+    <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
+    <ProvideLanguageEditorOptionPage(GetType(IntelliSenseOptionPage), "Basic", Nothing, "IntelliSense", "#112", 312)>
     <Guid(Guids.VisualBasicPackageIdString)>
     Friend NotInheritable Class VisualBasicPackage
         Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
@@ -42,10 +58,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             _comAggregate = Interop.ComAggregate.CreateAggregatedObject(Me)
         End Sub
 
-        Protected Overrides Function CreateWorkspace() As VisualStudioWorkspaceImpl
-            Return Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)
-        End Function
-
         Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
             Try
                 Await MyBase.InitializeAsync(cancellationToken, progress).ConfigureAwait(True)
@@ -53,22 +65,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
                 RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
 
-                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
                 RegisterService(Of IVbTempPECompilerFactory)(
                     Async Function(ct)
+                        Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
                         Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
                         Return New TempPECompilerFactory(workspace)
                     End Function)
-            Catch ex As Exception When FatalError.ReportUnlessCanceled(ex)
+            Catch ex As Exception When FatalError.ReportAndPropagateUnlessCanceled(ex)
+                Throw ExceptionUtilities.Unreachable
             End Try
         End Function
 
         Protected Overrides Async Function RegisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
+            Dim workspace As VisualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
+
             Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
             Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
             If objectManager IsNot Nothing Then
-                Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel, Workspace)
+                Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel, workspace)
 
                 If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(Me._libraryManager, Me._libraryManagerCookie)) Then
                     Me._libraryManagerCookie = 0

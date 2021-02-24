@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -83,6 +85,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract AssemblyIdentity Identity { get; }
 
         AssemblyIdentity IAssemblySymbolInternal.Identity => Identity;
+
+        IAssemblySymbolInternal IAssemblySymbolInternal.CorLibrary => CorLibrary;
 
         /// <summary>
         /// Assembly version pattern with wildcards represented by <see cref="ushort.MaxValue"/>,
@@ -382,6 +386,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new MissingMetadataTypeSymbol.TopLevel(forwardingModule, ref emittedName, diagnosticInfo);
         }
 
+        internal abstract IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes();
+
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
         /// </summary>
@@ -422,7 +428,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsDefaultInterfaceImplementation
         {
-            get => !(GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is null);
+            get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
+        }
+
+        private bool RuntimeSupportsFeature(SpecialMember feature)
+        {
+            Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
+            return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
+                   GetSpecialTypeMember(feature) is object;
+        }
+
+        internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
+            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention);
+
+        /// <summary>
+        /// True if the target runtime support covariant returns of methods declared in classes.
+        /// </summary>
+        internal bool RuntimeSupportsCovariantReturnsOfClasses
+        {
+            get
+            {
+                // check for the runtime feature indicator and the required attribute.
+                return
+                    RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) &&
+                    GetSpecialType(SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute) is { TypeKind: TypeKind.Class };
+            }
         }
 
         /// <summary>

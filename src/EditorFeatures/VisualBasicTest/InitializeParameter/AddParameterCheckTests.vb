@@ -58,6 +58,46 @@ class C
 end class")
         End Function
 
+        <WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestOnByRefParameter() As Task
+            Await TestInRegularAndScript1Async(
+"
+class C
+    public sub new([||]byref s as string)
+    end sub
+end class",
+"
+class C
+    public sub new(byref s as string)
+        If s Is Nothing Then
+            Throw New System.ArgumentNullException(NameOf(s))
+        End If
+    end sub
+end class")
+        End Function
+
+        <WorkItem(47030, "https://github.com/dotnet/roslyn/issues/47030")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestOnOutByRefParameter() As Task
+            Await TestInRegularAndScript1Async(
+"
+Imports System.Runtime.InteropServices
+class C
+    public sub new([||]<Out> byref s as string)
+    end sub
+end class",
+"
+Imports System.Runtime.InteropServices
+class C
+    public sub new(<Out> byref s as string)
+        If s Is Nothing Then
+            Throw New System.ArgumentNullException(NameOf(s))
+        End If
+    end sub
+end class")
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestNotOnValueType() As Task
             Await TestMissingInRegularAndScriptAsync(

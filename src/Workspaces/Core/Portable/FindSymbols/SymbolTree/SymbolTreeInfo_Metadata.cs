@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
+        public static MetadataId GetMetadataIdNoThrow(PortableExecutableReference reference)
         {
             try
             {
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static Task<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution, PortableExecutableReference reference,
             bool loadOnly, CancellationToken cancellationToken)
         {
@@ -77,7 +79,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
         /// Note:  will never return null;
         /// </summary>
-        public static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum checksum,
@@ -194,9 +197,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution,
                 checksum,
                 loadOnly,
-                createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference, cancellationToken),
+                createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(solution, checksum, filePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(solution, checksum, filePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfFalse(result != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
             return result;
@@ -204,10 +207,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Task<SymbolTreeInfo> CreateMetadataSymbolTreeInfoAsync(
             Solution solution, Checksum checksum,
-            PortableExecutableReference reference,
-            CancellationToken cancellationToken)
+            PortableExecutableReference reference)
         {
-            var creator = new MetadataInfoCreator(solution, checksum, reference, cancellationToken);
+            var creator = new MetadataInfoCreator(solution, checksum, reference);
             return Task.FromResult(creator.Create());
         }
 
@@ -219,7 +221,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly Solution _solution;
             private readonly Checksum _checksum;
             private readonly PortableExecutableReference _reference;
-            private readonly CancellationToken _cancellationToken;
 
             private readonly OrderPreservingMultiDictionary<string, string> _inheritanceMap;
             private readonly OrderPreservingMultiDictionary<MetadataNode, MetadataNode> _parentToChildren;
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private readonly List<MetadataDefinition> _allTypeDefinitions;
 
             // Map from node represents extension method to list of possible parameter type info.
-            // We can have more than one if there's multiple methods with same name but different target type.
+            // We can have more than one if there's multiple methods with same name but different receiver type.
             // e.g.
             //
             //      public static bool AnotherExtensionMethod1(this int x);
@@ -242,12 +243,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private bool _containsExtensionsMethod;
 
             public MetadataInfoCreator(
-                Solution solution, Checksum checksum, PortableExecutableReference reference, CancellationToken cancellationToken)
+                Solution solution, Checksum checksum, PortableExecutableReference reference)
             {
                 _solution = solution;
                 _checksum = checksum;
                 _reference = reference;
-                _cancellationToken = cancellationToken;
                 _metadataReader = null;
                 _allTypeDefinitions = new List<MetadataDefinition>();
                 _containsExtensionsMethod = false;
@@ -309,24 +309,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
                 }
 
-                var simpleMap = new MultiDictionary<string, ExtensionMethodInfo>();
-                var complexBuilder = ArrayBuilder<ExtensionMethodInfo>.GetInstance();
-                var unsortedNodes = GenerateUnsortedNodes(complexBuilder, simpleMap);
+                var extensionMethodsMap = new MultiDictionary<string, ExtensionMethodInfo>();
+                var unsortedNodes = GenerateUnsortedNodes(extensionMethodsMap);
 
                 return CreateSymbolTreeInfo(
-                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, simpleMap, complexBuilder.ToImmutableAndFree());
+                    _solution, _checksum, _reference.FilePath, unsortedNodes, _inheritanceMap, extensionMethodsMap);
             }
 
             public void Dispose()
             {
                 // Return all the metadata nodes back to the pool so that they can be
                 // used for the next PEReference we read.
-                foreach (var kvp in _parentToChildren)
+                foreach (var (_, children) in _parentToChildren)
                 {
-                    foreach (var child in kvp.Value)
-                    {
+                    foreach (var child in children)
                         MetadataNode.Free(child);
-                    }
                 }
 
                 MetadataNode.Free(_rootNode);
@@ -343,10 +340,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     LookupMetadataDefinitions(globalNamespace, definitionMap);
 
-                    foreach (var kvp in definitionMap)
-                    {
-                        GenerateMetadataNodes(_rootNode, kvp.Key, kvp.Value);
-                    }
+                    foreach (var (name, definitions) in definitionMap)
+                        GenerateMetadataNodes(_rootNode, name, definitions);
                 }
                 finally
                 {
@@ -375,17 +370,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         if (definition.Kind == MetadataDefinitionKind.Member)
                         {
-                            // We need to support having multiple methods with same name but different target type.
-                            _extensionMethodToParameterTypeInfo.Add(childNode, definition.TargetTypeInfo);
+                            // We need to support having multiple methods with same name but different receiver type.
+                            _extensionMethodToParameterTypeInfo.Add(childNode, definition.ReceiverTypeInfo);
                         }
 
                         LookupMetadataDefinitions(definition, definitionMap);
                     }
 
-                    foreach (var kvp in definitionMap)
-                    {
-                        GenerateMetadataNodes(childNode, kvp.Key, kvp.Value);
-                    }
+                    foreach (var (name, definitions) in definitionMap)
+                        GenerateMetadataNodes(childNode, name, definitions);
                 }
                 finally
                 {
@@ -413,6 +406,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
             {
                 // Only bother looking for extension methods in static types.
+                // Note this check means we would ignore extension methods declared in assemblies
+                // compiled from VB code, since a module in VB is compiled into class with 
+                // "sealed" attribute but not "abstract". 
+                // Although this can be addressed by checking custom attributes,
+                // we believe this is not a common scenario to warrant potential perf impact.
                 if ((typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
                     (typeDefinition.Attributes & TypeAttributes.Sealed) != 0)
                 {
@@ -433,7 +431,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             method.GetParameters().Count > 0 &&
                             method.GetCustomAttributes().Count > 0)
                         {
-                            // Decode method signature to get the target type name (i.e. type name for the first parameter)
+                            // Decode method signature to get the receiver type name (i.e. type name for the first parameter)
                             var blob = _metadataReader.GetBlobReader(method.Signature);
                             var decoder = new SignatureDecoder<ParameterTypeInfo, object>(ParameterTypeInfoProvider.Instance, _metadataReader, genericContext: null);
                             var signature = decoder.DecodeMethodSignature(ref blob);
@@ -682,14 +680,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private MetadataNode GetOrCreateChildNode(
                MetadataNode currentNode, string simpleName)
             {
-                foreach (var childNode in _parentToChildren[currentNode])
+                if (_parentToChildren.TryGetValue(currentNode, static (childNode, simpleName) => childNode.Name == simpleName, simpleName, out var childNode))
                 {
-                    if (childNode.Name == simpleName)
-                    {
-                        // Found an existing child node.  Just return that and all 
-                        // future parts off of it.
-                        return childNode;
-                    }
+                    // Found an existing child node.  Just return that and all 
+                    // future parts off of it.
+                    return childNode;
                 }
 
                 // Couldn't find a child node with this name.  Make a new node for
@@ -699,18 +694,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return newChildNode;
             }
 
-            private ImmutableArray<BuilderNode> GenerateUnsortedNodes(ArrayBuilder<ExtensionMethodInfo> complexBuilder, MultiDictionary<string, ExtensionMethodInfo> simpleTypeNameToMethodMap)
+            private ImmutableArray<BuilderNode> GenerateUnsortedNodes(MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap)
             {
                 var unsortedNodes = ArrayBuilder<BuilderNode>.GetInstance();
                 unsortedNodes.Add(BuilderNode.RootNode);
 
-                AddUnsortedNodes(unsortedNodes, simpleTypeNameToMethodMap, complexBuilder, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionsMethod ? "" : null);
+                AddUnsortedNodes(unsortedNodes, receiverTypeNameToMethodMap, parentNode: _rootNode, parentIndex: 0, fullyQualifiedContainerName: _containsExtensionsMethod ? "" : null);
                 return unsortedNodes.ToImmutableAndFree();
             }
 
             private void AddUnsortedNodes(ArrayBuilder<BuilderNode> unsortedNodes,
-                MultiDictionary<string, ExtensionMethodInfo> simpleBuilder,
-                ArrayBuilder<ExtensionMethodInfo> complexBuilder,
+                MultiDictionary<string, ExtensionMethodInfo> receiverTypeNameToMethodMap,
                 MetadataNode parentNode,
                 int parentIndex,
                 string fullyQualifiedContainerName)
@@ -725,18 +719,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         foreach (var parameterTypeInfo in _extensionMethodToParameterTypeInfo[child])
                         {
-                            if (parameterTypeInfo.IsComplexType)
+                            // We do not differentiate array of different kinds for simplicity.
+                            // e.g. int[], int[][], int[,], etc. are all represented as int[] in the index.
+                            // similar for complex receiver types, "[]" means it's an array type, "" otherwise.
+                            var parameterTypeName = (parameterTypeInfo.IsComplexType, parameterTypeInfo.IsArray) switch
                             {
-                                complexBuilder.Add(new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
-                            }
-                            else
-                            {
-                                simpleBuilder.Add(parameterTypeInfo.Name, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
-                            }
+                                (true, true) => Extensions.ComplexArrayReceiverTypeName,                          // complex array type, e.g. "T[,]"
+                                (true, false) => Extensions.ComplexReceiverTypeName,                              // complex non-array type, e.g. "T"
+                                (false, true) => parameterTypeInfo.Name + Extensions.ArrayReceiverTypeNameSuffix, // simple array type, e.g. "int[][,]"
+                                (false, false) => parameterTypeInfo.Name                                          // simple non-array type, e.g. "int"
+                            };
+
+                            receiverTypeNameToMethodMap.Add(parameterTypeName, new ExtensionMethodInfo(fullyQualifiedContainerName, child.Name));
                         }
                     }
 
-                    AddUnsortedNodes(unsortedNodes, simpleBuilder, complexBuilder, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
+                    AddUnsortedNodes(unsortedNodes, receiverTypeNameToMethodMap, child, childIndex, Concat(fullyQualifiedContainerName, child.Name));
                 }
 
                 static string Concat(string containerName, string name)
@@ -793,17 +791,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             /// <summary>
             /// Only applies to member kind. Represents the type info of the first parameter.
             /// </summary>
-            public ParameterTypeInfo TargetTypeInfo { get; }
+            public ParameterTypeInfo ReceiverTypeInfo { get; }
 
             public NamespaceDefinition Namespace { get; private set; }
             public TypeDefinition Type { get; private set; }
 
-            public MetadataDefinition(MetadataDefinitionKind kind, string name, ParameterTypeInfo targetTypeInfo = default)
+            public MetadataDefinition(MetadataDefinitionKind kind, string name, ParameterTypeInfo receiverTypeInfo = default)
                 : this()
             {
                 Kind = kind;
                 Name = name;
-                TargetTypeInfo = targetTypeInfo;
+                ReceiverTypeInfo = receiverTypeInfo;
             }
 
             public static MetadataDefinition Create(

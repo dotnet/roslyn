@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -122,8 +124,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
-                if (!service.ValidateTypeToGenerateIn(
-                        document.Project.Solution, TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
+                if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
                 {
                     return false;
                 }
@@ -131,6 +132,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
 
                 return CanGenerateLocal() || CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken);
+            }
+
+            internal bool CanGeneratePropertyOrField()
+            {
+                return ContainingType is { IsImplicitClass: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointTypeName };
             }
 
             internal bool CanGenerateLocal()
@@ -142,7 +148,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             internal bool CanGenerateParameter()
             {
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
-                return ContainingMethod != null && !IsInMemberContext && !IsConstant;
+                // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
+                return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
+                    && !IsInMemberContext && !IsConstant;
             }
 
             private bool TryInitializeExplicitInterface(
@@ -248,7 +256,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!service.TryDetermineTypeToGenerateIn(semanticDocument, ContainingType, SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
+                if (!TryDetermineTypeToGenerateIn(semanticDocument, ContainingType, SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
                     out var typeToGenerateIn, out var isStatic))
                 {
                     return false;
@@ -268,7 +276,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 IsInConstructor = DetermineIsInConstructor(semanticDocument, simpleName);
                 IsInMemberContext =
                     simpleName != SimpleNameOrMemberAccessExpressionOpt ||
-                    syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
+                    syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
 
                 ContainingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(IdentifierToken.SpanStart, cancellationToken);
 
@@ -338,7 +346,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         if (syntaxFacts.IsSimpleAssignmentStatement(siblingNode))
                         {
                             syntaxFacts.GetPartsOfAssignmentStatement(
-                                siblingNode, out var left, out var right);
+                                siblingNode, out var left, out _);
 
                             var symbol = semanticDocument.SemanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
                             if (symbol?.Kind == symbolKind &&
@@ -353,10 +361,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return null;
             }
 
-            private bool FieldIsReadOnly(ISymbol symbol)
+            private static bool FieldIsReadOnly(ISymbol symbol)
                 => symbol is IFieldSymbol field && field.IsReadOnly;
 
-            private int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
+            private static int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
             {
                 var index = 0;
                 foreach (var child in children)
@@ -415,11 +423,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var enclosingMethodSymbol = semanticDocument.SemanticModel.GetEnclosingSymbol<IMethodSymbol>(SimpleNameOrMemberAccessExpressionOpt.SpanStart, cancellationToken);
                 if (enclosingMethodSymbol != null && enclosingMethodSymbol.TypeParameters != null && enclosingMethodSymbol.TypeParameters.Length != 0)
                 {
-                    var combinedTypeParameters = new List<ITypeParameterSymbol>();
+                    using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var combinedTypeParameters);
                     combinedTypeParameters.AddRange(availableTypeParameters);
                     combinedTypeParameters.AddRange(enclosingMethodSymbol.TypeParameters);
-                    LocalType = inferredType.RemoveUnavailableTypeParameters(
-                    compilation, combinedTypeParameters);
+                    LocalType = inferredType.RemoveUnavailableTypeParameters(compilation, combinedTypeParameters);
                 }
                 else
                 {

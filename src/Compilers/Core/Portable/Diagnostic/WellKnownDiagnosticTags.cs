@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
@@ -50,5 +48,11 @@ namespace Microsoft.CodeAnalysis
         /// specified by the 'DiagnosticId' property on 'ObsoleteAttribute'.
         /// </summary>
         public const string CustomObsolete = nameof(CustomObsolete);
+
+        /// <summary>
+        /// Indicates that the diagnostic is a compilation end diagnostic reported
+        /// from a compilation end action.
+        /// </summary>
+        public const string CompilationEnd = nameof(CompilationEnd);
     }
 }

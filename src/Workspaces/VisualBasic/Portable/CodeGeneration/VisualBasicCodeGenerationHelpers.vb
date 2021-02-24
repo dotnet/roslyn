@@ -114,7 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AfterDeclaration(Of TDeclaration As SyntaxNode)(
-            declarationList As SyntaxList(Of TDeclaration),
             options As CodeGenerationOptions,
             [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
 
@@ -130,9 +129,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function BeforeDeclaration(Of TDeclaration As SyntaxNode)(
-            declarationList As SyntaxList(Of TDeclaration),
             options As CodeGenerationOptions,
-             [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
+            [next] As Func(Of SyntaxList(Of TDeclaration), TDeclaration)) As Func(Of SyntaxList(Of TDeclaration), TDeclaration)
 
             options = If(options, CodeGenerationOptions.Default)
 
@@ -153,8 +151,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional after As Func(Of SyntaxList(Of TDeclaration), TDeclaration) = Nothing,
             Optional before As Func(Of SyntaxList(Of TDeclaration), TDeclaration) = Nothing) As SyntaxList(Of TDeclaration)
 
-            after = AfterDeclaration(declarationList, options, after)
-            before = BeforeDeclaration(declarationList, options, before)
+            after = AfterDeclaration(options, after)
+            before = BeforeDeclaration(options, before)
 
             Dim index = GetInsertionIndex(
                 declarationList, declaration, options, availableIndices,

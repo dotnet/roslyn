@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                                             .OrderByDescending(f => f).ToList();
             var existingConstants = orderedExistingConstants.ToSet();
 
-            if (LooksLikeFlagsEnum(enumType, orderedExistingConstants))
+            if (LooksLikeFlagsEnum(orderedExistingConstants))
             {
                 if (orderedExistingConstants.Count == 0)
                 {
@@ -108,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 _ => false,
             };
 
-        private static bool LooksLikeFlagsEnum(INamedTypeSymbol enumType, List<IComparable> existingConstants)
+        private static bool LooksLikeFlagsEnum(List<IComparable> existingConstants)
         {
             if (existingConstants.Count >= 1 &&
                IntegerUtilities.HasOneBitSet(existingConstants[0]) &&

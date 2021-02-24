@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename
 {
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Rename
                 ImmutableArray<ReferenceLocation> implicitLocations,
                 ImmutableArray<ISymbol> referencedSymbols)
             {
+                Contract.ThrowIfNull(locations);
                 this.Locations = locations;
                 this.ImplicitLocations = implicitLocations;
                 this.ReferencedSymbols = referencedSymbols;

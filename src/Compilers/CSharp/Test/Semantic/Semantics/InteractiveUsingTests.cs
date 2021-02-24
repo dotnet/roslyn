@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -487,7 +489,7 @@ t = typeof(File); // global using exposed
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void ConsumePreviousSubmissionUsings_Valid()
         {
             const string libSource = @"
@@ -534,7 +536,7 @@ namespace NOuter
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void ConsumePreviousSubmissionUsings_Invalid()
         {
             const string libSource = @"

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -59,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // lazy binding
         private readonly NameSyntax? _aliasTargetName;
         private readonly bool _isExtern;
-        private DiagnosticBag? _aliasTargetDiagnostics;
+        private BindingDiagnosticBag? _aliasTargetDiagnostics;
 
         private AliasSymbol(Binder binder, NamespaceOrTypeSymbol target, SyntaxToken aliasName, ImmutableArray<Location> locations)
         {
@@ -267,11 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // the target is not yet bound. If it is an ordinary alias, bind the target
                 // symbol. If it is an extern alias then find the target in the list of metadata references.
-                var newDiagnostics = DiagnosticBag.GetInstance();
+                var newDiagnostics = BindingDiagnosticBag.GetInstance();
 
                 NamespaceOrTypeSymbol symbol = this.IsExtern ?
                     ResolveExternAliasTarget(newDiagnostics) :
-                    ResolveAliasTarget(_binder, _aliasTargetName, newDiagnostics, basesBeingResolved);
+                    ResolveAliasTarget(_aliasTargetName, newDiagnostics, basesBeingResolved);
 
                 if ((object?)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
                 {
@@ -295,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _aliasTarget!;
         }
 
-        internal DiagnosticBag AliasTargetDiagnostics
+        internal BindingDiagnosticBag AliasTargetDiagnostics
         {
             get
             {
@@ -305,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void CheckConstraints(DiagnosticBag diagnostics)
+        internal void CheckConstraints(BindingDiagnosticBag diagnostics)
         {
             var target = this.Target as TypeSymbol;
             if ((object?)target != null && _locations.Length > 0)
@@ -316,22 +314,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private NamespaceSymbol ResolveExternAliasTarget(DiagnosticBag diagnostics)
+        private NamespaceSymbol ResolveExternAliasTarget(BindingDiagnosticBag diagnostics)
         {
             NamespaceSymbol? target;
             if (!_binder.Compilation.GetExternAliasTarget(_aliasName.ValueText, out target))
             {
-                diagnostics.Add(ErrorCode.ERR_BadExternAlias, _aliasName.GetLocation(), _aliasName.ValueText);
+                diagnostics.Add(ErrorCode.ERR_BadExternAlias, _aliasName.GetLocation(), _aliasName.ValueText!);
             }
 
             RoslynDebug.Assert(target is object);
+            RoslynDebug.Assert(target.IsGlobalNamespace);
 
             return target;
         }
 
-        private static NamespaceOrTypeSymbol ResolveAliasTarget(Binder binder, NameSyntax? syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
+        private NamespaceOrTypeSymbol ResolveAliasTarget(NameSyntax? syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
         {
-            var declarationBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
+            var declarationBinder = _binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
             return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
         }
 

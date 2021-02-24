@@ -255,6 +255,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Return Me.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
         End Function
 
+        Friend Overrides Iterator Function GetAllTopLevelForwardedTypes() As IEnumerable(Of NamedTypeSymbol)
+            For Each underlying As NamedTypeSymbol In UnderlyingAssembly.GetAllTopLevelForwardedTypes()
+                Yield Me.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName)
+            Next
+        End Function
+
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return _underlyingAssembly.GetMetadata()
         End Function

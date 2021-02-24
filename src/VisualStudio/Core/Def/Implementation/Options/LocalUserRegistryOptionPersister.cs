@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -25,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// <summary>
         /// An object to gate access to <see cref="_registryKey"/>.
         /// </summary>
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly RegistryKey _registryKey;
 
         [ImportingConstructor]
@@ -138,7 +140,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             if (!TryGetKeyPathAndName(optionKey.Option, out var path, out var key))
             {
-                value = null;
                 return false;
             }
 
@@ -167,6 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     {
                         subKey.SetValue(key, (int)value, RegistryValueKind.DWord);
                     }
+
                     return true;
                 }
                 else

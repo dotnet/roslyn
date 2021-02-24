@@ -1,3 +1,2 @@
-const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.RemarksDocumentationComments = "RemarksDocumentationComments" -> string
-const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.ReturnsDocumentationComments = "ReturnsDocumentationComments" -> string
-const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.ValueDocumentationComments = "ValueDocumentationComments" -> string
+const Microsoft.CodeAnalysis.TextTags.Record = "Record" -> string
+static Microsoft.CodeAnalysis.Completion.CompletionChange.Create(Microsoft.CodeAnalysis.Text.TextChange textChange, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextChange> textChanges, int? newPosition = null, bool includesCommitCharacter = false) -> Microsoft.CodeAnalysis.Completion.CompletionChange

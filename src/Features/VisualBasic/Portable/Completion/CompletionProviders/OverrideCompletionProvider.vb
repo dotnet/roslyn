@@ -51,17 +51,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return syntaxTree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken)
         End Function
 
-
         Public Overrides Function FindStartingToken(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Return token.GetPreviousTokenIfTouchingWord(position)
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options)
         End Function
 
-        Friend Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.SpaceTriggerChar
+        Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.SpaceTriggerChar
 
         Public Overrides Function TryDetermineModifiers(startToken As SyntaxToken,
                                                         text As SourceText, startLine As Integer,
@@ -179,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return members.WhereAsArray(Function(m) Not m.IsKind(SymbolKind.Event))
         End Function
 
-        Private Function OverridesObjectMethod(method As IMethodSymbol) As Boolean
+        Private Shared Function OverridesObjectMethod(method As IMethodSymbol) As Boolean
             Dim overriddenMember = method
             Do While overriddenMember.OverriddenMethod IsNot Nothing
                 overriddenMember = overriddenMember.OverriddenMethod

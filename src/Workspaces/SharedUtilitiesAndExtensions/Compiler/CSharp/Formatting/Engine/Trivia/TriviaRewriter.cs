@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -57,28 +55,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var tuple = GetTrailingAndLeadingTrivia(pair, cancellationToken);
+                var (trailingTrivia, leadingTrivia) = GetTrailingAndLeadingTrivia(pair, cancellationToken);
 
                 if (pair.Key.Item1.RawKind != 0)
                 {
-                    _trailingTriviaMap.Add(pair.Key.Item1, tuple.Item1);
+                    _trailingTriviaMap.Add(pair.Key.Item1, trailingTrivia);
                 }
 
                 if (pair.Key.Item2.RawKind != 0)
                 {
-                    _leadingTriviaMap.Add(pair.Key.Item2, tuple.Item2);
+                    _leadingTriviaMap.Add(pair.Key.Item2, leadingTrivia);
                 }
             }
         }
 
-        private ValueTuple<SyntaxTriviaList, SyntaxTriviaList> GetTrailingAndLeadingTrivia(
+        private (SyntaxTriviaList trailingTrivia, SyntaxTriviaList leadingTrivia) GetTrailingAndLeadingTrivia(
             KeyValuePair<ValueTuple<SyntaxToken, SyntaxToken>,
             TriviaData> pair,
             CancellationToken cancellationToken)
         {
             if (pair.Key.Item1.RawKind == 0)
             {
-                return ValueTuple.Create(default(SyntaxTriviaList), GetLeadingTriviaAtBeginningOfTree(pair.Key, pair.Value, cancellationToken));
+                return (default(SyntaxTriviaList), GetLeadingTriviaAtBeginningOfTree(pair.Key, pair.Value, cancellationToken));
             }
 
             if (pair.Value is TriviaDataWithList csharpTriviaData)
@@ -98,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var width = trailingTrivia.GetFullWidth();
             var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(text.Substring(width));
 
-            return ValueTuple.Create(trailingTrivia, leadingTrivia);
+            return (trailingTrivia, leadingTrivia);
         }
 
         private TextSpan GetTextSpan(ValueTuple<SyntaxToken, SyntaxToken> pair)
@@ -116,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return TextSpan.FromBounds(pair.Item1.Span.End, pair.Item2.SpanStart);
         }
 
-        private int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
+        private static int GetFirstEndOfLineIndexOrRightBeforeComment(SyntaxTriviaList triviaList)
         {
             for (var i = 0; i < triviaList.Count; i++)
             {

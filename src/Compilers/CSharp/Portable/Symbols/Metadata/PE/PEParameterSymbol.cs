@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -603,9 +605,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     bool isCallerLineNumber = HasCallerLineNumberAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref discardedUseSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerLineNumber);
                 }
@@ -622,10 +624,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     bool isCallerFilePath = !HasCallerLineNumberAttribute
                         && HasCallerFilePathAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerFilePath);
                 }
@@ -642,11 +644,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 bool value;
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     bool isCallerMemberName = !HasCallerLineNumberAttribute
                         && !HasCallerFilePathAttribute
                         && HasCallerMemberNameAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }
@@ -928,6 +930,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+        public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
+        {
+            return other is NativeIntegerParameterSymbol nps ?
+                nps.Equals(this, compareKind) :
+                base.Equals(other, compareKind);
         }
     }
 }

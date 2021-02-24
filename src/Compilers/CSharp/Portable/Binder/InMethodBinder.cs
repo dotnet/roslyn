@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol _methodSymbol;
         private SmallDictionary<string, Symbol> _lazyDefinitionMap;
         private TypeWithAnnotations.Boxed _iteratorElementType;
-        private readonly static TypeWithAnnotations.Boxed SentinelElementType = new TypeWithAnnotations.Boxed(default);
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
             : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
@@ -76,19 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool IsNestedFunctionBinder => _methodSymbol.MethodKind == MethodKind.LocalFunction;
 
-        internal void MakeIterator()
-        {
-            if (_iteratorElementType == null)
-            {
-                _iteratorElementType = SentinelElementType;
-            }
-        }
-
         internal override bool IsDirectlyInIterator
         {
             get
             {
-                return _iteratorElementType != null;
+                return _methodSymbol.IsIterator;
             }
         }
 
@@ -116,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void ValidateYield(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        protected override void ValidateYield(YieldStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
         }
 
@@ -137,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
-            if (_iteratorElementType == SentinelElementType)
+            if (_iteratorElementType is null)
             {
                 TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
                 if (elementType.IsDefault)
@@ -145,14 +138,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementType = TypeWithAnnotations.Create(CreateErrorType());
                 }
 
-                Interlocked.CompareExchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(elementType), SentinelElementType);
+                Interlocked.CompareExchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(elementType), null);
             }
 
             return _iteratorElementType.Value;
         }
 
         internal static TypeWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
-            RefKind refKind, TypeSymbol returnType, Location errorLocation, DiagnosticBag diagnostics)
+            RefKind refKind, TypeSymbol returnType, Location errorLocation, BindingDiagnosticBag diagnostics)
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
@@ -164,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var objectType = compilation.GetSpecialType(SpecialType.System_Object);
                         if (diagnostics != null)
                         {
-                            ReportUseSiteDiagnostics(objectType, diagnostics, errorLocation);
+                            ReportUseSite(objectType, diagnostics, errorLocation);
                         }
                         return TypeWithAnnotations.Create(objectType);
 
@@ -200,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(result.IsClear);
 
@@ -224,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameterSymbol in parameterMap[name])
             {
-                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
+                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteInfo));
             }
         }
 
@@ -242,11 +235,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        private static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, BindingDiagnosticBag diagnostics)
         {
-            var oldLocation = parameter.Locations[0];
+#if DEBUG
+            var locations = parameter.Locations;
+            Debug.Assert(!locations.IsEmpty || parameter.IsImplicitlyDeclared);
+            var oldLocation = locations.FirstOrNone();
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
+#endif 
             SymbolKind parameterKind = parameter.Kind;
 
             // Quirk of the way we represent lambda parameters.                
@@ -319,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
+        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, BindingDiagnosticBag diagnostics)
         {
             var parameters = _methodSymbol.Parameters;
             var typeParameters = _methodSymbol.TypeParameters;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return base.VisitTrivia(trivia);
             }
 
-            private bool IsBeginningOrEndOfDocumentComment(SyntaxTrivia trivia)
+            private static bool IsBeginningOrEndOfDocumentComment(SyntaxTrivia trivia)
             {
                 var currentParent = trivia.Token.Parent;
 

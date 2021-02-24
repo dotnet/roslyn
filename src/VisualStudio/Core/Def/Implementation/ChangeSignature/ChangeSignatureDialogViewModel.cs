@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -37,30 +36,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         // This can be changed to ParameterViewModel if we will allow adding 'params' parameter.
         private readonly ExistingParameterViewModel? _paramsParameter;
-        private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
+        private readonly HashSet<ParameterViewModel> _disabledParameters = new();
 
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
-
-        private readonly Dictionary<string, List<ParameterViewModel>> _parameterNameOverlapMap = new Dictionary<string, List<ParameterViewModel>>();
 
         /// <summary>
         /// The document where the symbol we are changing signature is defined.
         /// </summary>
         private readonly Document _document;
-        private readonly int _insertPosition;
+        private readonly int _positionForTypeBinding;
 
         internal ChangeSignatureDialogViewModel(
             ParameterConfiguration parameters,
             ISymbol symbol,
             Document document,
-            int insertPosition,
+            int positionForTypeBinding,
             IClassificationFormatMap classificationFormatMap,
             ClassificationTypeMap classificationTypeMap)
         {
             _originalParameterConfiguration = parameters;
             _document = document;
-            _insertPosition = insertPosition;
+            _positionForTypeBinding = positionForTypeBinding;
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
@@ -146,9 +143,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         public AddParameterDialogViewModel CreateAddParameterDialogViewModel()
-            => new AddParameterDialogViewModel(_document, _insertPosition);
+            => new(_document, _positionForTypeBinding);
 
-        List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
+        private List<ParameterViewModel> CreateParameterViewModels(ImmutableArray<Parameter> parameters, ref int initialIndex)
         {
             var list = new List<ParameterViewModel>();
             foreach (ExistingParameter existingParameter in parameters)
@@ -305,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 selectedIndex: -1);
         }
 
-        private static readonly SymbolDisplayFormat s_symbolDeclarationDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_symbolDeclarationDisplayFormat = new(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions:
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
@@ -319,7 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 SymbolDisplayMemberOptions.IncludeModifiers |
                 SymbolDisplayMemberOptions.IncludeRef);
 
-        private static readonly SymbolDisplayFormat s_parameterDisplayFormat = new SymbolDisplayFormat(
+        private static readonly SymbolDisplayFormat s_parameterDisplayFormat = new(
             genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
             miscellaneousOptions:
                 SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
@@ -493,7 +490,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             NotifyPropertyChanged(nameof(SignaturePreviewAutomationText));
         }
 
-        internal bool TrySubmit()
+        internal bool CanSubmit([NotNullWhen(false)] out string? message)
         {
             var canSubmit = AllParameters.Any(p => p.IsRemoved) ||
                 AllParameters.Any(p => p is AddedParameterViewModel) ||
@@ -502,7 +499,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             if (!canSubmit)
             {
-                _notificationService.SendNotification(ServicesVSResources.You_must_change_the_signature, severity: NotificationSeverity.Information);
+                message = ServicesVSResources.You_must_change_the_signature;
+                return false;
+            }
+
+            message = null;
+            return true;
+        }
+
+        internal bool TrySubmit()
+        {
+            if (!CanSubmit(out var message))
+            {
+                _notificationService.SendNotification(message, severity: NotificationSeverity.Information);
                 return false;
             }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -47,15 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary> A not-null collection of synthesized methods generated for the current source type. </summary>
         protected readonly TypeCompilationState CompilationState;
 
-        protected readonly DiagnosticBag Diagnostics;
+        protected readonly BindingDiagnosticBag Diagnostics;
         protected readonly VariableSlotAllocator slotAllocatorOpt;
 
         private readonly Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderMap;
 
-        protected MethodToClassRewriter(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        protected MethodToClassRewriter(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
+            Debug.Assert(diagnostics.DiagnosticBag != null);
 
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
@@ -129,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     newLocals,
                     (BoundExpression)this.Visit(node.ExceptionSourceOpt),
                     this.VisitType(node.ExceptionTypeOpt),
+                    (BoundStatementList)this.Visit(node.ExceptionFilterPrologueOpt),
                     (BoundExpression)this.Visit(node.ExceptionFilterOpt),
                     (BoundBlock)this.Visit(node.Body),
                     node.IsSynthesizedAsyncCatchAll);
@@ -145,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
-        public override abstract BoundNode VisitScope(BoundScope node);
+        public abstract override BoundNode VisitScope(BoundScope node);
 
         public override BoundNode VisitSequence(BoundSequence node)
         {
@@ -190,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
             BoundStatement body = (BoundStatement)this.Visit(node.Body);
             Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
-            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, node.AwaitOpt, node.DisposeMethodOpt);
+            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, node.AwaitOpt, node.PatternDisposeInfoOpt);
         }
 
         private Conversion RewriteConversion(Conversion conversion)
@@ -252,8 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 node.Expanded,
                 node.InvokedAsExtensionMethod,
                 node.ArgsToParamsOpt,
+                node.DefaultArguments,
                 node.ResultKind,
-                node.BinderOpt,
                 rewrittenType);
         }
 
@@ -298,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //  add the method to module
             if (this.CompilationState.Emitting)
             {
-                this.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapper);
+                this.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapper.GetCciAdapter());
             }
 
             Debug.Assert(wrapper.SynthesizesLoweredBoundBody);
@@ -480,9 +484,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewritten.ArgumentRefKindsOpt,
                     rewritten.Expanded,
                     rewritten.ArgsToParamsOpt,
+                    rewritten.DefaultArguments,
                     rewritten.ConstantValueOpt,
                     rewritten.InitializerExpressionOpt,
-                    rewritten.BinderOpt,
                     rewritten.Type);
             }
 
@@ -504,6 +508,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             method = VisitMethodSymbol(method);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(rewrittenArgument, method, node.IsExtensionMethod, type);
+        }
+
+        public override BoundNode VisitFunctionPointerLoad(BoundFunctionPointerLoad node)
+        {
+            return node.Update(VisitMethodSymbol(node.TargetMethod), VisitType(node.Type));
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
@@ -611,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ResultKind, receiverType, node.BinderOpt, type);
+            return node.Update(member, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, type);
         }
 
         public override BoundNode VisitReadOnlySpanFromArray(BoundReadOnlySpanFromArray node)
@@ -674,6 +683,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return default;
                 }
             }
+
+            internal override bool IsIterator => false;
         }
     }
 }

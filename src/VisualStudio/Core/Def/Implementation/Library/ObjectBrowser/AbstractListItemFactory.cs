@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,34 +23,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
     internal abstract class AbstractListItemFactory
     {
         private static readonly SymbolDisplayFormat s_searchFormat =
-            new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly);
+            new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly);
 
         private static readonly SymbolDisplayFormat s_simplePredefinedTypeDisplay =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes);
 
         private static readonly SymbolDisplayFormat s_simpleNormalTypeDisplay =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         private static readonly SymbolDisplayFormat s_simplePredefinedTypeFullName =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         private static readonly SymbolDisplayFormat s_simpleNormalTypeFullName =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
         private static readonly SymbolDisplayFormat s_predefinedTypeDisplay =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
         private static readonly SymbolDisplayFormat s_normalTypeDisplay =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
@@ -184,10 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             ImmutableArray<ObjectListItem>.Builder builder)
             where TSymbol : class, ISymbol
         {
-            var editorBrowsableAttributeConstructor = EditorBrowsableHelpers.GetSpecialEditorBrowsableAttributeConstructor(compilation);
-            var typeLibFuncAttributeConstructors = EditorBrowsableHelpers.GetSpecialTypeLibFuncAttributeConstructors(compilation);
-            var typeLibTypeAttributeConstructors = EditorBrowsableHelpers.GetSpecialTypeLibTypeAttributeConstructors(compilation);
-            var typeLibVarAttributeConstructors = EditorBrowsableHelpers.GetSpecialTypeLibVarAttributeConstructors(compilation);
+            var editorBrowsableInfo = new EditorBrowsableHelpers.EditorBrowsableInfo(compilation);
 
             foreach (var symbol in symbols)
             {
@@ -197,13 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 }
 
                 var hideAdvancedMembers = false;
-                var isHidden = !symbol.IsEditorBrowsable(
-                    hideAdvancedMembers,
-                    compilation,
-                    editorBrowsableAttributeConstructor,
-                    typeLibFuncAttributeConstructors,
-                    typeLibTypeAttributeConstructors,
-                    typeLibVarAttributeConstructors);
+                var isHidden = !symbol.IsEditorBrowsable(hideAdvancedMembers, compilation, editorBrowsableInfo);
 
                 builder.Add(listItemCreator(symbol, projectId, isHidden));
             }
@@ -261,7 +254,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             var builder = ImmutableArray.CreateBuilder<ObjectListItem>();
 
-            if (parentListItem is ProjectListItem parentProjectItem)
+            if (parentListItem is ProjectListItem)
             {
                 builder.Add(new FolderListItem(parentListItem.ProjectId, ServicesVSResources.Project_References));
             }
@@ -386,16 +379,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 if (member.IsOverride)
                 {
-                    var overriddenMember = member.OverriddenMember();
-                    while (overriddenMember != null)
+                    for (var overriddenMember = member.GetOverriddenMember(); overriddenMember != null; overriddenMember = overriddenMember.GetOverriddenMember())
                     {
-                        if (overriddenMembers == null)
-                        {
-                            overriddenMembers = new HashSet<ISymbol>();
-                        }
-
+                        overriddenMembers ??= new();
                         overriddenMembers.Add(overriddenMember);
-                        overriddenMember = overriddenMember.OverriddenMember();
                     }
                 }
             }
@@ -601,7 +588,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             return false;
         }
 
-        public ImmutableArray<ObjectListItem> GetProjectListItems(Solution solution, string languageName, uint listFlags, CancellationToken cancellationToken)
+        public ImmutableArray<ObjectListItem> GetProjectListItems(Solution solution, string languageName, uint listFlags)
         {
             var projectIds = solution.ProjectIds;
             if (!projectIds.Any())

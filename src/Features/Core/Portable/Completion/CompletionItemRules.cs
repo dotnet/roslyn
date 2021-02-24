@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The rule used when no rule is specified when constructing a <see cref="CompletionItem"/>.
         /// </summary>
         public static CompletionItemRules Default =
-            new CompletionItemRules(
+            new(
                 filterCharacterRules: default,
                 commitCharacterRules: default,
                 enterKeyRule: EnterKeyRule.Default,

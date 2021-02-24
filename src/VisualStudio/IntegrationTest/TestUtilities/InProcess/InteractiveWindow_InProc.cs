@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +12,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -21,6 +25,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </remarks>
     internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc
     {
+        private static readonly Func<string, string, bool> s_contains = (expected, actual) => actual.Contains(expected);
+        private static readonly Func<string, string, bool> s_endsWith = (expected, actual) => actual.EndsWith(expected);
+
         private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
@@ -45,6 +52,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             CloseWindow();
 
             _interactiveWindow = AcquireInteractiveWindow();
+
+            Contract.ThrowIfNull(_interactiveWindow);
         }
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
@@ -60,16 +69,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public bool IsInitializing
-            => _interactiveWindow.IsInitializing;
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
 
         public string GetReplText()
-            => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText();
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer.CurrentSnapshot.GetText());
 
         protected override bool HasActiveTextView()
-            => _interactiveWindow.TextView is object;
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView) is object;
 
         protected override IWpfTextView GetActiveTextView()
-            => _interactiveWindow.TextView;
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView);
 
         /// <summary>
         /// Gets the contents of the REPL window without the prompt text.
@@ -101,8 +110,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             var replText = GetReplTextWithoutPrompt();
             var lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+            if (lastPromptIndex > 0)
+                replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
 
-            replText = replText.Substring(lastPromptIndex, replText.Length - lastPromptIndex);
             var lastSubmissionIndex = replText.LastIndexOf(NewLineFollowedByReplSubmissionText);
 
             if (lastSubmissionIndex > 0)
@@ -148,7 +158,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 firstNewLineIndex = replText.IndexOf(Environment.NewLine, lastSubmissionTextIndex);
             }
 
-            string lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
+            var lastReplInputWithReplSubmissionText = (firstNewLineIndex <= 0) ? replText : replText.Substring(0, firstNewLineIndex);
 
             return lastReplInputWithReplSubmissionText.Replace(ReplSubmissionText, string.Empty);
         }
@@ -192,48 +202,49 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForReplPrompt()
-            => WaitForPredicate(GetReplText, value => value.EndsWith(ReplPromptText));
+            => WaitForPredicate(GetReplText, ReplPromptText, s_endsWith);
 
         public void WaitForReplOutput(string outputText)
-            => WaitForPredicate(GetReplText, value => value.EndsWith(outputText + Environment.NewLine + ReplPromptText));
+            => WaitForPredicate(GetReplText, outputText + Environment.NewLine + ReplPromptText, s_endsWith);
 
         public void ClearScreen()
-        {
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ClearScreen);
-        }
+            => ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ClearScreen);
 
         public void InsertCode(string text)
-        {
-            _interactiveWindow.InsertCode(text);
-        }
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.InsertCode(text));
 
         public void WaitForLastReplOutput(string outputText)
-            => WaitForPredicate(GetLastReplOutput, value => value.Contains(outputText));
+            => WaitForPredicate(GetLastReplOutput, outputText, s_contains);
 
         public void WaitForLastReplOutputContains(string outputText)
-            => WaitForPredicate(GetLastReplOutput, value => value.Contains(outputText));
+            => WaitForPredicate(GetLastReplOutput, outputText, s_contains);
 
         public void WaitForLastReplInputContains(string outputText)
-            => WaitForPredicate(GetLastReplInput, value => value.Contains(outputText));
+            => WaitForPredicate(GetLastReplInput, outputText, s_contains);
 
-        private void WaitForPredicate(Func<string> getValue, Func<string, bool> isExpectedValue)
+        private void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer)
         {
             var beginTime = DateTime.UtcNow;
-            string value;
-            while (!isExpectedValue(value = getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
+            while (!valueComparer(expectedValue, getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
             {
                 Thread.Sleep(50);
             }
 
-            if (!isExpectedValue(value = getValue()))
+            var actualValue = getValue();
+            if (!valueComparer(expectedValue, getValue()))
             {
-                throw new Exception($"Unable to find expected content in REPL within {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. Actual content:{Environment.NewLine}[[{value}]]");
+                throw new Exception(
+                    $"Unable to find expected content in REPL within {_timeoutInMilliseconds} milliseconds and no exceptions were thrown.{Environment.NewLine}" +
+                    $"Expected:{Environment.NewLine}" +
+                    $"[[{expectedValue}]]" +
+                    $"Actual:{Environment.NewLine}" +
+                    $"[[{actualValue}]]");
             }
         }
 
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
-            return _interactiveWindow.TextView.TextBuffer;
+            return InvokeOnUIThread(cancellationToken => _interactiveWindow.TextView.TextBuffer);
         }
     }
 }

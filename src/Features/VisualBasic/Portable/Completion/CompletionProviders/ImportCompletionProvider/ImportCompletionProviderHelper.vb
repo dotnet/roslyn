@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
     Friend NotInheritable Class ImportCompletionProviderHelper
 
-        Public Shared Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableArray(Of String)
+        Public Shared Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel) As ImmutableArray(Of String)
             Dim builder = ArrayBuilder(Of String).GetInstance()
 
             ' Get namespaces from import directives
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             ' Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
             ' reach outside of the span And ended up with "node not within syntax tree" error from the speculative model.
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-            Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
+            Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
         End Function
     End Class
 End Namespace

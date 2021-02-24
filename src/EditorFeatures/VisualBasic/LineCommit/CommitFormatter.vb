@@ -52,7 +52,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 spanToFormat = spanToFormat.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
                 dirtyRegion = dirtyRegion.TranslateTo(currentSnapshot, SpanTrackingMode.EdgeInclusive)
 
-                Dim document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+                ' Use frozen partial semantics here.  We're operating on the UI thread, and we don't want to block the
+                ' user indefinitely while getting full semantics for this projects (which can require building all
+                ' projects we depend on).
+                Dim document = currentSnapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken)
                 If document Is Nothing Then
                     Return
                 End If
@@ -63,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 Dim textSpanToFormat = spanToFormat.Span.ToTextSpan()
-                If AbortForDiagnostics(document, textSpanToFormat, cancellationToken) Then
+                If AbortForDiagnostics(document, cancellationToken) Then
                     Return
                 End If
 
@@ -109,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End Using
         End Sub
 
-        Private Function AbortForDiagnostics(document As Document, textSpanToFormat As TextSpan, cancellationToken As CancellationToken) As Boolean
+        Private Shared Function AbortForDiagnostics(document As Document, cancellationToken As CancellationToken) As Boolean
             Const UnterminatedStringId = "BC30648"
 
             Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
@@ -123,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return diagnostics.Any()
         End Function
 
-        Private Function GetCommitFormattingCleanupProvider(
+        Private Shared Function GetCommitFormattingCleanupProvider(
             document As Document,
             documentOptions As DocumentOptionSet,
             spanToFormat As SnapshotSpan,
@@ -143,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                  Function(r, spans, w, c) Format(r, spans, w, documentOptions, rules, c))
         End Function
 
-        Private Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
+        Private Shared Async Function FormatAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -156,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Await Formatter.FormatAsync(document, spans, options, rules, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
+        Private Shared Function Format(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of AbstractFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
@@ -174,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Formatter.Format(root, spans, workspace, options, rules, cancellationToken)
         End Function
 
-        Private Function GetFormattingRules(
+        Private Shared Function GetFormattingRules(
             document As Document,
             documentOptions As DocumentOptionSet,
             spanToFormat As SnapshotSpan,
@@ -236,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Return Formatter.GetDefaultFormattingRules(document)
         End Function
 
-        Private Function GetNumberOfIndentOperations(document As Document,
+        Private Shared Function GetNumberOfIndentOperations(document As Document,
                                                      documentOptions As DocumentOptionSet,
                                                      SyntaxTree As SyntaxTree,
                                                      Span As SnapshotSpan,

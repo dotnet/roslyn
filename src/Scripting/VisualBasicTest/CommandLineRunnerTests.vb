@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 >", runner.Console.Out.ToString())
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/46720")>
         Public Sub TestReferenceDirective()
             Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithCorlib("
 public Class C1

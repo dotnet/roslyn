@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
     {
         public UseSimpleUsingStatementDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId,
+                   EnforceOnBuildValues.UseSimpleUsingStatement,
                    CSharpCodeStyleOptions.PreferSimpleUsingStatement,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_simple_using_statement), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -130,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
                 properties: null));
         }
 
-        private bool CausesVariableCollision(
+        private static bool CausesVariableCollision(
             SemanticModel semanticModel, BlockSyntax parentBlock,
             UsingStatementSyntax outermostUsing, UsingStatementSyntax innermostUsing,
             CancellationToken cancellationToken)

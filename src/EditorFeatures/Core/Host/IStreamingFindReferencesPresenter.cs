@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.CodeAnalysis.Editor.Host
@@ -28,17 +32,16 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// It can also show messages about no references being found at the end of the search.
         /// If false, the presenter will not group by definitions, and will show the definition
         /// items in isolation.</param>
-        FindUsagesContext StartSearch(string title, bool supportsReferences);
+        /// <param name="cancellationToken">External cancellation token controlling whether finding shoudl be canceled
+        /// or not.  This will be combined with a cancellation token owned by the <see cref="FindUsagesContext"/>.
+        /// Callers should consider <see cref="FindUsagesContext.CancellationToken"/> to be the source of truth for
+        /// cancellation from that point on.</param>
+        FindUsagesContext StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken);
 
         /// <summary>
         /// Call this method to display the Containing Type, Containing Member, or Kind columns
         /// </summary>
-        /// <param name="title"></param>
-        /// <param name="supportsReferences"></param>
-        /// <param name="includeContainingTypeAndMemberColumns"></param>
-        /// <param name="includeKindColumn"></param>
-        /// /// <returns></returns>
-        FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn);
+        FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken);
 
         /// <summary>
         /// Clears all the items from the presenter.
@@ -54,17 +57,27 @@ namespace Microsoft.CodeAnalysis.Editor.Host
         /// </summary>
         public static async Task<bool> TryNavigateToOrPresentItemsAsync(
             this IStreamingFindUsagesPresenter presenter,
-            Workspace workspace, string title, ImmutableArray<DefinitionItem> items)
+            IThreadingContext threadingContext,
+            Workspace workspace,
+            string title,
+            ImmutableArray<DefinitionItem> items,
+            CancellationToken cancellationToken)
         {
+            // Can only navigate or present items on UI thread.
+            await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             // Ignore any definitions that we can't navigate to.
-            var definitions = items.WhereAsArray(d => d.CanNavigateTo(workspace));
+            var definitions = items.WhereAsArray(d => d.CanNavigateTo(workspace, cancellationToken));
 
             // See if there's a third party external item we can navigate to.  If so, defer 
             // to that item and finish.
             var externalItems = definitions.WhereAsArray(d => d.IsExternal);
             foreach (var item in externalItems)
             {
-                if (item.TryNavigateTo(workspace, isPreview: true))
+                // If we're directly going to a location we need to activate the preview so
+                // that focus follows to the new cursor position. This behavior is expected
+                // because we are only going to navigate once successfully
+                if (item.TryNavigateTo(workspace, showInPreviewTab: true, activateTab: true, cancellationToken))
                 {
                     return true;
                 }
@@ -79,26 +92,27 @@ namespace Microsoft.CodeAnalysis.Editor.Host
             if (nonExternalItems.Length == 1 &&
                 nonExternalItems[0].SourceSpans.Length <= 1)
             {
-                // There was only one location to navigate to.  Just directly go to that location.
-                return nonExternalItems[0].TryNavigateTo(workspace, isPreview: true);
+                // There was only one location to navigate to.  Just directly go to that location. If we're directly
+                // going to a location we need to activate the preview so that focus follows to the new cursor position.
+
+                return nonExternalItems[0].TryNavigateTo(workspace, showInPreviewTab: true, activateTab: true, cancellationToken);
             }
 
             if (presenter != null)
             {
-                // We have multiple definitions, or we have definitions with multiple locations.
-                // Present this to the user so they can decide where they want to go to.
-                var context = presenter.StartSearch(title, supportsReferences: false);
-                foreach (var definition in nonExternalItems)
+                // We have multiple definitions, or we have definitions with multiple locations. Present this to the
+                // user so they can decide where they want to go to.  If we cancel this will trigger the context to
+                // cancel as well.
+                var context = presenter.StartSearch(title, supportsReferences: false, cancellationToken);
+                try
                 {
-                    await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
+                    foreach (var definition in nonExternalItems)
+                        await context.OnDefinitionFoundAsync(definition).ConfigureAwait(false);
                 }
-
-                // Note: we don't need to put this in a finally.  The only time we might not hit
-                // this is if cancellation or another error gets thrown.  In the former case,
-                // that means that a new search has started.  We don't care about telling the
-                // context it has completed.  In the latter case something wrong has happened
-                // and we don't want to run any more code code in this particular context.
-                await context.OnCompletedAsync().ConfigureAwait(false);
+                finally
+                {
+                    await context.OnCompletedAsync().ConfigureAwait(false);
+                }
             }
 
             return true;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 return node switch
                 {
-                    AccessorDeclarationSyntax access => false,
+                    AccessorDeclarationSyntax _ => false,
                     MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
                     ParenthesizedLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
                     SimpleLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,

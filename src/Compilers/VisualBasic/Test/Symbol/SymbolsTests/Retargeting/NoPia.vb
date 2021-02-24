@@ -226,7 +226,7 @@ End Class
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(New Object() {
                     compilation1,
                     compilation2,
-                    MscorlibRef
+                    TestMetadata.Net40.mscorlib
                 })
             Dim localTypes1 = assemblies(0).Modules(0)
             Dim localTypes2 = assemblies(1).Modules(0)

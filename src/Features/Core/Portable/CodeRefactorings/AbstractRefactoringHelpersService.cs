@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private async Task<(SyntaxToken tokenToRightOrIn, SyntaxToken tokenToLeft, int location)> GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
+        private static async Task<(SyntaxToken tokenToRightOrIn, SyntaxToken tokenToLeft, int location)> GetTokensToRightOrInToLeftAndUpdatedLocationAsync(
             Document document,
             SyntaxNode root,
             TextSpan selectionTrimmed,
@@ -231,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // there could be multiple (n) tokens to the left if first n-1 are Empty -> iterate over all of them
             while (tokenToLeft != default)
             {
-                SyntaxNode? leftNode = tokenToLeft.Parent!;
+                var leftNode = tokenToLeft.Parent!;
                 do
                 {
                     // Consider either a Node that is:
@@ -257,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         {
             if (tokenToRightOrIn != default)
             {
-                SyntaxNode? rightNode = tokenToRightOrIn.Parent!;
+                var rightNode = tokenToRightOrIn.Parent!;
                 do
                 {
                     // Consider either a Node that is:
@@ -293,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private void AddRelevantNodesForSelection<TSyntaxNode>(ISyntaxFactsService syntaxFacts, SyntaxNode root, TextSpan selectionTrimmed, ArrayBuilder<TSyntaxNode> relevantNodesBuilder, CancellationToken cancellationToken) where TSyntaxNode : SyntaxNode
         {
-            SyntaxNode? selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
+            var selectionNode = root.FindNode(selectionTrimmed, getInnermostNodeForTie: true);
             var prevNode = selectionNode;
             do
             {
@@ -348,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // `var a = b;` | `var a = b`;
             if (syntaxFacts.IsLocalDeclarationStatement(node) || syntaxFacts.IsLocalDeclarationStatement(node.Parent))
             {
-                var localDeclarationStatement = syntaxFacts.IsLocalDeclarationStatement(node) ? node : node.Parent;
+                var localDeclarationStatement = syntaxFacts.IsLocalDeclarationStatement(node) ? node : node.Parent!;
 
                 // Check if there's only one variable being declared, otherwise following transformation
                 // would go through which isn't reasonable since we can't say the first one specifically
@@ -483,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var token = root.FindTokenOnRightOfPosition(position, true);
 
             // traverse upwards and add all parents if of correct type
-            SyntaxNode? ancestor = token.Parent;
+            var ancestor = token.Parent;
             while (ancestor != null)
             {
                 if (ancestor is TSyntaxNode correctTypeNode)
@@ -503,11 +501,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         return;
                     }
                 }
+
                 ancestor = ancestor.Parent;
             }
         }
 
-        void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(IEnumerable<SyntaxNode> nodes, ArrayBuilder<TSyntaxNode> resultBuilder, CancellationToken cancellationToken)
+        private static void AddNonHiddenCorrectTypeNodes<TSyntaxNode>(IEnumerable<SyntaxNode> nodes, ArrayBuilder<TSyntaxNode> resultBuilder, CancellationToken cancellationToken)
             where TSyntaxNode : SyntaxNode
         {
             var correctTypeNonHiddenNodes = nodes.OfType<TSyntaxNode>().Where(n => !n.OverlapsHiddenPosition(cancellationToken));

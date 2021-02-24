@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class ActiveStatementTests
@@ -1349,7 +1350,6 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-
         <Fact>
         Public Sub InstancePropertyAsNewInitializer_Update()
             Dim src1 = "
@@ -2295,7 +2295,6 @@ Class C
     Dim b As Integer = 1
 End Class
 "
-
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
@@ -5616,7 +5615,7 @@ Module C
 End Module"
 
             Dim active = GetActiveStatements(src1, src2)
-            Extensions.VerifyUnchangedDocument(src2, active)
+            EditAndContinueValidation.VerifyUnchangedDocument(src2, active)
         End Sub
 
         <Fact>
@@ -5650,10 +5649,8 @@ Module C
 End Module"
 
             Dim active = GetActiveStatements(src1, src2)
-            Extensions.VerifyUnchangedDocument(src2, active)
+            EditAndContinueValidation.VerifyUnchangedDocument(src2, active)
         End Sub
-
-
 
 #End Region
 

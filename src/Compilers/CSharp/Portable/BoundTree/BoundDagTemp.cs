@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -30,16 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int GetHashCode()
         {
             return Hash.Combine(this.Type.GetHashCode(), Hash.Combine(this.Source?.GetHashCode() ?? 0, this.Index));
-        }
-
-        public static bool operator ==(BoundDagTemp left, BoundDagTemp right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(BoundDagTemp left, BoundDagTemp right)
-        {
-            return !left.Equals(right);
         }
     }
 }

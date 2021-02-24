@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             editor.ReplaceNode(getMethodDeclaration, newProperty);
         }
 
-        public SyntaxNode ConvertMethodsToProperty(
+        public static SyntaxNode ConvertMethodsToProperty(
             DocumentOptionSet documentOptions, ParseOptions parseOptions,
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             return propertyDeclaration;
         }
 
-        public PropertyDeclarationSyntax ConvertMethodsToPropertyWorker(
+        public static PropertyDeclarationSyntax ConvertMethodsToPropertyWorker(
             DocumentOptionSet documentOptions, ParseOptions parseOptions,
             SemanticModel semanticModel, SyntaxGenerator generator, GetAndSetMethods getAndSetMethods,
             string propertyName, bool nameChanged)
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             return property.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        private SyntaxToken GetPropertyName(SyntaxToken identifier, string propertyName, bool nameChanged)
+        private static SyntaxToken GetPropertyName(SyntaxToken identifier, string propertyName, bool nameChanged)
         {
             return nameChanged
                 ? SyntaxFactory.Identifier(propertyName)
@@ -352,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         public void ReplaceSetReference(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged)
             => ReplaceInvocation(editor, nameToken, propertyName, nameChanged, s_replaceSetReferenceInvocation);
 
-        public void ReplaceInvocation(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged,
+        public static void ReplaceInvocation(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged,
             Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> replace)
         {
             if (nameToken.Kind() != SyntaxKind.IdentifierToken)

@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1801,6 +1804,34 @@ class C
                 );
         }
 
+        [Fact]
+        public void SemanticModel_02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.IDisposable i = null;
+
+        using (i)
+        {
+            int x;
+            x = 1;
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(node).Type.SpecialType);
+        }
 
         #region help method
 

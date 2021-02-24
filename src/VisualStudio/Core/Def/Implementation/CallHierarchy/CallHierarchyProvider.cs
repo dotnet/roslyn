@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -105,9 +107,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     finders.Add(new CallToOverrideFinder(symbol, project.Id, _asyncListener, this));
                 }
 
-                if (symbol.OverriddenMember() != null)
+                if (symbol.GetOverriddenMember() != null)
                 {
-                    finders.Add(new BaseMemberFinder(symbol.OverriddenMember(), project.Id, _asyncListener, this));
+                    finders.Add(new BaseMemberFinder(symbol.GetOverriddenMember(), project.Id, _asyncListener, this));
                 }
 
                 var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);

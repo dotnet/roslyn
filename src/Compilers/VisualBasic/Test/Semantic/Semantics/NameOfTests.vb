@@ -2339,7 +2339,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
 
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
@@ -2416,7 +2416,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
 
             AssertTheseDiagnostics(comp,
 <expected>
@@ -3227,7 +3227,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
 
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
@@ -3635,6 +3635,33 @@ BC30469: Reference to a non-shared member requires an object reference.
         X = NameOf(C(Of Integer).MyInstance.Length)
                    ~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(23019, "https://github.com/dotnet/roslyn/issues/23019")>
+        Public Sub NameOfInAsync()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Sub Main()
+        M().GetAwaiter().GetResult()
+    End Sub
+    Async Function M() As Task
+        Console.WriteLine(NameOf(M))
+        Await Task.CompletedTask
+    End Function
+End Module
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilation(compilationDef, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+M
+]]>).VerifyDiagnostics()
         End Sub
     End Class
 End Namespace

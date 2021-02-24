@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             End If
         End Sub
 
-        Private Sub AddChangeSignatureIndentOperation(list As List(Of IndentBlockOperation), node As SyntaxNode)
+        Private Shared Sub AddChangeSignatureIndentOperation(list As List(Of IndentBlockOperation), node As SyntaxNode)
             If node.Parent IsNot Nothing Then
                 Dim firstToken As SyntaxToken = node.GetFirstToken()
                 Dim lastToken As SyntaxToken = node.GetLastToken()

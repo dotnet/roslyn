@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -237,8 +239,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             var builder = ImmutableDictionary.CreateBuilder<DocumentId, ImmutableArray<ComplexifiedSpan>>();
 
             foreach (var (docId, spans) in _documentToComplexifiedSpansMap)
+            {
                 builder.Add(docId, spans.SelectAsArray(
                     s => new ComplexifiedSpan(s.OriginalSpan, s.NewSpan, s.ModifiedSubSpans.ToImmutableArray())));
+            }
 
             return builder.ToImmutable();
         }

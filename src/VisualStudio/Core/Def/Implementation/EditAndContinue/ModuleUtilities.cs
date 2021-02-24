@@ -4,112 +4,98 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Threading;
+using System.Collections.ObjectModel;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.Symbols;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Roslyn.Utilities;
+
+using EnC = Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     internal static class ModuleUtilities
     {
-        internal static bool TryGetModuleInfo(this DkmClrModuleInstance module, out DebuggeeModuleInfo info)
+        internal static EnC.SourceSpan ToSourceSpan(this DkmTextSpan span)
         {
-            Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
-
-            IntPtr metadataPtr;
-            uint metadataSize;
-            try
+            // ignore invalid/unsupported spans - they might come from stack frames of non-managed languages
+            if (span.StartLine <= 0 || span.EndLine <= 0)
             {
-                metadataPtr = module.GetBaselineMetaDataBytesPtr(out metadataSize);
-            }
-            catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
-            {
-                info = null;
-                return false;
+                return default;
             }
 
-            var symReader = module.GetSymUnmanagedReader() as ISymUnmanagedReader5;
-            if (symReader == null)
+            // C++ produces spans without columns
+            if (span.StartColumn == 0 && span.EndColumn == 0)
             {
-                info = null;
-                return false;
+                return new(span.StartLine - 1, 0, span.EndLine - 1, 0);
             }
 
-            var metadata = ModuleMetadata.CreateFromMetadata(metadataPtr, (int)metadataSize);
-            info = new DebuggeeModuleInfo(metadata, symReader);
-            return true;
+            // ignore invalid/unsupported spans - they might come from stack frames of non-managed languages
+            if (span.StartColumn <= 0 || span.EndColumn <= 0)
+            {
+                return default;
+            }
+
+            return new(span.StartLine - 1, span.StartColumn - 1, span.EndLine - 1, span.EndColumn - 1);
         }
 
-        internal static ManagedModuleUpdate ToModuleUpdate(this Deltas delta)
+        internal static DkmTextSpan ToDebuggerSpan(this EnC.SourceSpan span, int lineDelta = 0)
+            => new(
+                StartLine: span.StartLine + lineDelta + 1,
+                EndLine: span.EndLine + lineDelta + 1,
+                StartColumn: span.StartColumn + 1,
+                EndColumn: span.EndColumn + 1);
+
+        internal static EnC.ManagedActiveStatementDebugInfo ToActiveStatementDebugInfo(this ActiveStatementDebugInfo info)
+            => new EnC.ManagedActiveStatementDebugInfo(
+                new EnC.ManagedInstructionId(new EnC.ManagedMethodId(info.InstructionId.MethodId.ModuleId, info.InstructionId.MethodId.Token, info.InstructionId.MethodId.Version), info.InstructionId.ILOffset),
+                info.DocumentNameOpt,
+                info.TextSpan.ToSourceSpan(),
+                (EnC.ActiveStatementFlags)info.Flags);
+
+        internal static DkmManagedModuleUpdate ToModuleUpdate(this EnC.ManagedModuleUpdate delta)
         {
-            var sequencePointUpdates = delta.LineEdits.SelectAsArray(documentChanges => new SequencePointsUpdate(
-                fileName: documentChanges.SourceFilePath,
-                lineUpdates: documentChanges.Deltas.SelectAsArray(lineChange => new SourceLineUpdate(lineChange.OldLine, lineChange.NewLine))));
+            var sequencePointUpdates = delta.SequencePoints.SelectAsArray(documentChanges => DkmSequencePointsUpdate.Create(
+                FileName: documentChanges.FileName,
+                LineUpdates: documentChanges.LineUpdates.SelectAsArray(lineChange => DkmSourceLineUpdate.Create(lineChange.OldLine, lineChange.NewLine)).ToReadOnlyCollection()));
 
-            TextManager.Interop.TextSpan toDebuggerSpan(LinePositionSpan span, int lineDelta)
-                => new TextManager.Interop.TextSpan()
-                {
-                    // the debugger expects these to be 0-based
-                    iStartLine = span.Start.Line + lineDelta,
-                    iStartIndex = span.Start.Character,
-                    iEndLine = span.End.Line + lineDelta,
-                    iEndIndex = span.End.Character,
-                };
+            var activeStatementUpdates = delta.ActiveStatements.SelectAsArray(activeStatement => DkmActiveStatementUpdate.Create(
+                ThreadId: Guid.Empty, // no longer needed
+                MethodId: new DkmClrMethodId(Token: activeStatement.Method.Token, Version: (uint)activeStatement.Method.Version),
+                ILOffset: activeStatement.ILOffset,
+                NewSpan: activeStatement.NewSpan.ToDebuggerSpan()));
 
-            var activeStatementUpdates = delta.ActiveStatementsInUpdatedMethods.SelectAsArray(activeStatement => new ActiveStatementUpdate(
-                threadId: activeStatement.ThreadId,
-                methodToken: activeStatement.OldInstructionId.MethodId.Token,
-                methodVersion: activeStatement.OldInstructionId.MethodId.Version,
-                ilOffset: activeStatement.OldInstructionId.ILOffset,
-                newSpan: toDebuggerSpan(activeStatement.NewSpan, 0)));
-
-            var exceptionRegions = delta.NonRemappableRegions.SelectAsArray(
-                predicate: regionInfo => regionInfo.Region.IsExceptionRegion,
-                selector: regionInfo => new ExceptionRegionUpdate(
-                   methodToken: regionInfo.Method.Token,
-                   methodVersion: regionInfo.Method.Version,
-                   newSpan: toDebuggerSpan(regionInfo.Region.Span, regionInfo.Region.LineDelta),
+            var exceptionRegions = delta.ExceptionRegions.SelectAsArray(regionInfo => DkmExceptionRegionUpdate.Create(
+                   new DkmClrMethodId(Token: regionInfo.Method.Token, Version: (uint)regionInfo.Method.Version),
+                   NewSpan: regionInfo.NewSpan.ToDebuggerSpan(regionInfo.Delta),
                    // The range span is the new span. Deltas are inverse.
                    //   old = new + delta
                    //   new = old – delta
-                   delta: -regionInfo.Region.LineDelta));
+                   Delta: -regionInfo.Delta));
 
-            return new ManagedModuleUpdate(
-                delta.Mvid,
-                delta.IL.Value,
-                delta.Metadata.Bytes,
-                delta.Pdb.Stream,
-                sequencePointUpdates,
-                delta.Pdb.UpdatedMethods,
-                activeStatementUpdates,
-                exceptionRegions);
+            return DkmManagedModuleUpdate.Create(
+                delta.Module,
+                delta.ILDelta.ToReadOnlyCollection(),
+                delta.MetadataDelta.ToReadOnlyCollection(),
+                delta.PdbDelta.ToReadOnlyCollection(),
+                sequencePointUpdates.ToReadOnlyCollection(),
+                delta.UpdatedMethods.ToReadOnlyCollection(),
+                activeStatementUpdates.ToReadOnlyCollection(),
+                exceptionRegions.ToReadOnlyCollection());
         }
 
-        internal static ManagedModuleUpdateStatus ToModuleUpdateStatus(this SolutionUpdateStatus status)
-        {
-            switch (status)
+        internal static ReadOnlyCollection<T> ToReadOnlyCollection<T>(this ImmutableArray<T> array)
+            => new(array.DangerousGetUnderlyingArray());
+
+        internal static ManagedModuleUpdateStatus ToModuleUpdateStatus(this EnC.ManagedModuleUpdateStatus status)
+            => status switch
             {
-                case SolutionUpdateStatus.None:
-                    return ManagedModuleUpdateStatus.None;
-
-                case SolutionUpdateStatus.Ready:
-                    return ManagedModuleUpdateStatus.Ready;
-
-                case SolutionUpdateStatus.Blocked:
-                    return ManagedModuleUpdateStatus.Blocked;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(status);
-            }
-        }
+                EnC.ManagedModuleUpdateStatus.None => ManagedModuleUpdateStatus.None,
+                EnC.ManagedModuleUpdateStatus.Ready => ManagedModuleUpdateStatus.Ready,
+                EnC.ManagedModuleUpdateStatus.Blocked => ManagedModuleUpdateStatus.Blocked,
+                _ => throw ExceptionUtilities.UnexpectedValue(status),
+            };
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -20,7 +22,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
 
             var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell));
             ErrorHandler.ThrowOnFailure(shell.IsPackageInstalled(s_compilerPackage, out var installed));

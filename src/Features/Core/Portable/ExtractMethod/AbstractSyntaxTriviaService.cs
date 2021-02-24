@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return CreateResult(rootWithAnnotation, annotations, triviaList);
         }
 
-        private SyntaxNode ReplaceTokens(
+        private static SyntaxNode ReplaceTokens(
             SyntaxNode root,
             IEnumerable<SyntaxToken> oldTokens,
             Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken)
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return new Result(root, _endOfLineKind, annotations, triviaList);
         }
 
-        private Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
+        private static Dictionary<SyntaxToken, SyntaxToken> CreateOldToNewTokensMap(
             Dictionary<TriviaLocation, SyntaxToken> tokens,
             Dictionary<TriviaLocation, SyntaxAnnotation> annotations)
         {
@@ -92,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             return map;
         }
 
-        private Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> GetTriviaAtEdges(Dictionary<TriviaLocation, SyntaxToken> tokens, TextSpan textSpan)
+        private static Dictionary<TriviaLocation, IEnumerable<SyntaxTrivia>> GetTriviaAtEdges(Dictionary<TriviaLocation, SyntaxToken> tokens, TextSpan textSpan)
         {
             var triviaAtBeginning = SplitTrivia(tokens[TriviaLocation.BeforeBeginningOfSpan], tokens[TriviaLocation.AfterBeginningOfSpan], t => t.FullSpan.End <= textSpan.Start);
             var triviaAtEnd = SplitTrivia(tokens[TriviaLocation.BeforeEndOfSpan], tokens[TriviaLocation.AfterEndOfSpan], t => t.FullSpan.Start < textSpan.End);

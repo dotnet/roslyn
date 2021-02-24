@@ -580,8 +580,6 @@ end class</element>
             Await CheckAsync(initial, final)
         End Function
 
-
-
         <WorkItem(537614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537614")>
         <Fact>
         Public Async Function TestWhitespaceBetweenMethods1() As Task
@@ -941,10 +939,6 @@ End Namespace</element>
         <Trait(Traits.Feature, Traits.Features.Organizing)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub TestOrganizingCommandsDisabledInSubmission()
-            Dim exportProvider = ExportProviderCache _
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
-                .CreateExportProvider()
-
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
@@ -954,14 +948,14 @@ End Namespace</element>
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
-                exportProvider:=exportProvider)
+                composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                 ' Force initialization.
                 workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
-                Dim handler = New OrganizeDocumentCommandHandler(exportProvider.GetExportedValue(Of IThreadingContext)())
+                Dim handler = New OrganizeDocumentCommandHandler(workspace.ExportProvider.GetExportedValue(Of IThreadingContext)())
 
                 Dim state = handler.GetCommandState(New SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)

@@ -7,8 +7,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
 {
-    // an unresolved but parsed representation of an RQ Name
-    internal abstract class UnresolvedRQNode
+    internal abstract class RQNode
     {
         protected abstract string RQKeyword { get; }
 

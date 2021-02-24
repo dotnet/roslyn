@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -28,26 +29,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 IFindAllReferencesWindow findReferencesWindow,
                 ImmutableArray<ITableColumnDefinition> customColumns,
                 bool includeContainingTypeAndMemberColumns,
-                bool includeKindColumn)
-                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
+                bool includeKindColumn,
+                CancellationToken cancellationToken)
+                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken)
             {
             }
 
             // We should never be called in a context where we get references.
-            protected override Task OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
-                => throw new InvalidOperationException();
-
-            // We should never be called in a context where we get references.
-            protected override Task OnExternalReferenceFoundWorkerAsync(ExternalReferenceItem reference)
+            protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference)
                 => throw new InvalidOperationException();
 
             // Nothing to do on completion.
             protected override Task OnCompletedAsyncWorkerAsync()
                 => Task.CompletedTask;
 
-            protected override async Task OnDefinitionFoundWorkerAsync(DefinitionItem definition)
+            protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition)
             {
-                var definitionBucket = GetOrCreateDefinitionBucket(definition);
+                var definitionBucket = GetOrCreateDefinitionBucket(definition, expandedByDefault: true);
 
                 using var _ = ArrayBuilder<Entry>.GetInstance(out var entries);
 
@@ -97,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
             }
 
-            private async Task<Entry> TryCreateEntryAsync(
+            private async Task<Entry?> TryCreateEntryAsync(
                 RoslynDefinitionBucket definitionBucket, DefinitionItem definition)
             {
                 var documentSpan = definition.SourceSpans[0];

@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -28,10 +31,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             private bool _pendingLineBreak;
             private bool _pendingSingleSpace;
 
-            private static readonly TaggedText s_spacePart = new TaggedText(TextTags.Space, " ");
-            private static readonly TaggedText s_newlinePart = new TaggedText(TextTags.LineBreak, "\r\n");
+            private static readonly TaggedText s_spacePart = new(TextTags.Space, " ");
+            private static readonly TaggedText s_newlinePart = new(TextTags.LineBreak, "\r\n");
 
-            internal readonly List<TaggedText> Builder = new List<TaggedText>();
+            internal readonly List<TaggedText> Builder = new();
 
             /// <summary>
             /// Defines the containing lists for the current formatting state. The last item in the list is the
@@ -52,7 +55,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             /// </item>
             /// </list>
             /// </summary>
-            private readonly List<(DocumentationCommentListType type, int index, bool renderedItem)> _listStack = new List<(DocumentationCommentListType type, int index, bool renderedItem)>();
+            private readonly List<(DocumentationCommentListType type, int index, bool renderedItem)> _listStack = new();
 
             /// <summary>
             /// The top item of the stack indicates the hyperlink to apply to text rendered at the current location. It
@@ -60,14 +63,14 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             /// (typically shown as a tooltip for the link). This stack is never empty; when no hyperlink applies to the
             /// current scope, the top item of the stack will be a default tuple instance.
             /// </summary>
-            private readonly Stack<(string target, string hint)> _navigationTargetStack = new Stack<(string target, string hint)>();
+            private readonly Stack<(string target, string hint)> _navigationTargetStack = new();
 
             /// <summary>
             /// Tracks the style for text. The top item of the stack is the current style to apply (the merged result of
             /// all containing styles). This stack is never empty; when no style applies to the current scope, the top
             /// item of the stack will be <see cref="TaggedTextStyle.None"/>.
             /// </summary>
-            private readonly Stack<TaggedTextStyle> _styleStack = new Stack<TaggedTextStyle>();
+            private readonly Stack<TaggedTextStyle> _styleStack = new();
 
             public FormatterState()
             {
@@ -76,6 +79,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
 
             internal SemanticModel SemanticModel { get; set; }
+            internal ISymbol TypeResolutionSymbol { get; set; }
             internal int Position { get; set; }
 
             public bool AtBeginning
@@ -128,7 +132,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                     return;
                 }
 
-                var (type, index, renderedItem) = _listStack[_listStack.Count - 1];
+                var (type, index, renderedItem) = _listStack[^1];
                 if (renderedItem)
                 {
                     // Mark the end of the previous list item
@@ -136,7 +140,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 }
 
                 // The next list item has an incremented index, and has not yet been rendered to Builder.
-                _listStack[_listStack.Count - 1] = (type, index + 1, renderedItem: false);
+                _listStack[^1] = (type, index + 1, renderedItem: false);
                 MarkLineBreak();
             }
 
@@ -147,7 +151,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                     return;
                 }
 
-                if (_listStack[_listStack.Count - 1].renderedItem)
+                if (_listStack[^1].renderedItem)
                 {
                     Builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
                 }
@@ -277,14 +281,15 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return state.GetText();
         }
 
-        public IEnumerable<TaggedText> Format(string rawXmlText, SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
+        public IEnumerable<TaggedText> Format(string rawXmlText, ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format, CancellationToken cancellationToken)
         {
-            if (rawXmlText == null)
+            if (rawXmlText is null)
             {
-                return null;
+                return SpecializedCollections.EmptyEnumerable<TaggedText>();
             }
+            //symbol = symbol.OriginalDefinition;
 
-            var state = new FormatterState() { SemanticModel = semanticModel, Position = position, Format = format };
+            var state = new FormatterState() { SemanticModel = semanticModel, Position = position, Format = format, TypeResolutionSymbol = symbol };
 
             // In case the XML is a fragment (that is, a series of elements without a parent)
             // wrap it up in a single tag. This makes parsing it much, much easier.
@@ -323,7 +328,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 {
                     foreach (var attribute in element.Attributes())
                     {
-                        AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName, SymbolDisplayPartKind.Text);
+                        AppendTextFromAttribute(state, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName, SymbolDisplayPartKind.Text);
                     }
 
                     return;
@@ -343,7 +348,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 var kind = name == DocumentationCommentXmlNames.ParameterReferenceElementName ? SymbolDisplayPartKind.ParameterName : SymbolDisplayPartKind.TypeParameterName;
                 foreach (var attribute in element.Attributes())
                 {
-                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.NameAttributeName, kind);
+                    AppendTextFromAttribute(state, attribute, attributeNameToParse: DocumentationCommentXmlNames.NameAttributeName, kind);
                 }
 
                 return;
@@ -455,13 +460,21 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return null;
         }
 
-        private static void AppendTextFromAttribute(FormatterState state, XElement element, XAttribute attribute, string attributeNameToParse, SymbolDisplayPartKind kind)
+        private static void AppendTextFromAttribute(FormatterState state, XAttribute attribute, string attributeNameToParse, SymbolDisplayPartKind kind)
         {
             var attributeName = attribute.Name.LocalName;
             if (attributeNameToParse == attributeName)
             {
-                state.AppendParts(
-                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText(state.Style));
+                if (kind == SymbolDisplayPartKind.TypeParameterName)
+                {
+                    state.AppendParts(
+                        TypeParameterRefToSymbolDisplayParts(attribute.Value, state.TypeResolutionSymbol, state.Position, state.SemanticModel, state.Format).ToTaggedText(state.Style));
+                }
+                else
+                {
+                    state.AppendParts(
+                        CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText(state.Style));
+                }
             }
             else
             {
@@ -502,11 +515,32 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 new SymbolDisplayPart(kind, symbol: null, text: TrimCrefPrefix(crefValue)));
         }
 
+        internal static IEnumerable<SymbolDisplayPart> TypeParameterRefToSymbolDisplayParts(
+            string crefValue, ISymbol typeResolutionSymbol, int position, SemanticModel semanticModel, SymbolDisplayFormat format)
+        {
+            if (semanticModel != null)
+            {
+                var typeParameterIndex = typeResolutionSymbol.OriginalDefinition.GetAllTypeParameters().IndexOf(tp => tp.Name == crefValue);
+                if (typeParameterIndex >= 0)
+                {
+                    var typeArgs = typeResolutionSymbol.GetAllTypeArguments();
+                    if (typeArgs.Length > typeParameterIndex)
+                    {
+                        return typeArgs[typeParameterIndex].ToMinimalDisplayParts(semanticModel, position, format);
+                    }
+                }
+            }
+
+            // if any of that fails fall back to just displaying the raw text
+            return SpecializedCollections.SingletonEnumerable(
+                new SymbolDisplayPart(SymbolDisplayPartKind.TypeParameterName, symbol: null, text: TrimCrefPrefix(crefValue)));
+        }
+
         private static string TrimCrefPrefix(string value)
         {
             if (value.Length >= 2 && value[1] == ':')
             {
-                value = value.Substring(startIndex: 2);
+                value = value[2..];
             }
 
             return value;

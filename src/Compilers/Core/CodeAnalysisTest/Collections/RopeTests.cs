@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Xunit;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 {
     public class RopeTests
     {
-        private static string[] longStrings = new[]
+        private static readonly string[] longStrings = new[]
         {
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.  ",
             "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.  ",
@@ -18,16 +20,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.  ",
             // So true
         };
-        private static Rope[] longRopes = longStrings.Select(s => Rope.ForString(s)).ToArray();
+        private static readonly Rope[] longRopes = longStrings.Select(s => Rope.ForString(s)).ToArray();
 
-        private static string[] shortStrings = new[]
+        private static readonly string[] shortStrings = new[]
         {
             "abcd", "efgh", "ijkl", "mnop", "qrst", "uvwx", "yz01", "2345", "6789"
         };
-        private static Rope[] shortRopes = shortStrings.Select(s => Rope.ForString(s)).ToArray();
+        private static readonly Rope[] shortRopes = shortStrings.Select(s => Rope.ForString(s)).ToArray();
 
-        private static Rope[] someRopes = shortRopes.Concat(longRopes).ToArray();
-        private static string[] someStrings = shortStrings.Concat(longStrings).ToArray();
+        private static readonly Rope[] someRopes = shortRopes.Concat(longRopes).ToArray();
+        private static readonly string[] someStrings = shortStrings.Concat(longStrings).ToArray();
 
         [Fact]
         public void Empty()

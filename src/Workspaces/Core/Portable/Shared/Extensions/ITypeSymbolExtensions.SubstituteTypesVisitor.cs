@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,6 +46,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
                 => VisitType(symbol);
+
+            public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/43890): also visit the underlying types of
+                // the parameters and return value
+                return VisitType(symbol);
+            }
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {

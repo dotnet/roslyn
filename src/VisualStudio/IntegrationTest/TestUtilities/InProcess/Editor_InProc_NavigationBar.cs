@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +40,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             int FindItem(ComboBox comboBox)
             {
-                for (int i = 0; i < comboBox.Items.Count; i++)
+                for (var i = 0; i < comboBox.Items.Count; i++)
                 {
                     if (comboBox.Items[i].ToString() == itemText)
                     {
@@ -72,7 +74,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             ExpandNavigationBar(comboboxIndex);
             _sendKeys.Send(VirtualKey.Home);
-            for (int i = 0; i < itemIndex; i++)
+            for (var i = 0; i < itemIndex; i++)
             {
                 _sendKeys.Send(VirtualKey.Down);
             }
@@ -86,7 +88,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private List<ComboBox> GetNavigationBarComboBoxes(IWpfTextView textView)
         {
             var margin = GetNavbar(textView);
-            List<ComboBox> combos = margin.GetFieldValue<List<ComboBox>>("_combos");
+            var combos = margin.GetFieldValue<List<ComboBox>>("_combos");
             return combos;
         }
 

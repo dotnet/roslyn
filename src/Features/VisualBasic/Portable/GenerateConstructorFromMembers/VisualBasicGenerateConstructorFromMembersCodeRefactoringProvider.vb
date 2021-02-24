@@ -29,6 +29,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructorFromMembers
             MyBase.New(pickMembersService_forTesting)
         End Sub
 
+        Protected Overrides Function ContainingTypesOrSelfHasUnsafeKeyword(containingType As INamedTypeSymbol) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function ToDisplayString(parameter As IParameterSymbol, format As SymbolDisplayFormat) As String
             Return SymbolDisplay.ToDisplayString(parameter, format)
         End Function

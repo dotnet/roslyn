@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private static readonly ImmutableArray<DiagnosticDescriptor> s_descriptors;
 
         // descriptors for diagnostics reported by the debugger:
-        private static Dictionary<int, DiagnosticDescriptor> s_lazyModuleDiagnosticDescriptors;
+        private static Dictionary<ManagedEditAndContinueAvailabilityStatus, DiagnosticDescriptor> s_lazyModuleDiagnosticDescriptors;
         private static readonly object s_moduleDiagnosticDescriptorsGuard;
 
         static EditAndContinueDiagnosticDescriptors()
@@ -133,10 +136,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             AddRudeEdit(RudeEditKind.InsertIntoInterface, nameof(FeaturesResources.Adding_0_into_an_interface_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InsertLocalFunctionIntoInterfaceMethod, nameof(FeaturesResources.Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.InternalError, nameof(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error));
+            // TODO: remove (https://github.com/dotnet/roslyn/issues/43099)
             AddRudeEdit(RudeEditKind.SwitchExpressionUpdate, nameof(FeaturesResources.Modifying_0_which_contains_a_switch_expression_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ChangingFromAsynchronousToSynchronous, nameof(FeaturesResources.Changing_0_from_asynchronous_to_synchronous_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ChangingStateMachineShape, nameof(FeaturesResources.Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine));
             AddRudeEdit(RudeEditKind.ComplexQueryExpression, nameof(FeaturesResources.Modifying_0_which_contains_an_Aggregate_Group_By_or_Join_query_clauses_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.MemberBodyInternalError, nameof(FeaturesResources.Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error));
+            AddRudeEdit(RudeEditKind.MemberBodyTooBig, nameof(FeaturesResources.Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements));
+            AddRudeEdit(RudeEditKind.SourceFileTooBig, nameof(FeaturesResources.Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big));
 
             // VB specific
             AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing));
@@ -170,19 +177,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static DiagnosticDescriptor GetDescriptor(EditAndContinueErrorCode errorCode)
             => s_descriptors[GetDescriptorIndex(errorCode)];
 
-        internal static DiagnosticDescriptor GetModuleDiagnosticDescriptor(int errorCode)
+        internal static DiagnosticDescriptor GetModuleDiagnosticDescriptor(ManagedEditAndContinueAvailabilityStatus status)
         {
             lock (s_moduleDiagnosticDescriptorsGuard)
             {
-                if (s_lazyModuleDiagnosticDescriptors == null)
-                {
-                    s_lazyModuleDiagnosticDescriptors = new Dictionary<int, DiagnosticDescriptor>();
-                }
+                s_lazyModuleDiagnosticDescriptors ??= new Dictionary<ManagedEditAndContinueAvailabilityStatus, DiagnosticDescriptor>();
 
-                if (!s_lazyModuleDiagnosticDescriptors.TryGetValue(errorCode, out var descriptor))
+                if (!s_lazyModuleDiagnosticDescriptors.TryGetValue(status, out var descriptor))
                 {
-                    s_lazyModuleDiagnosticDescriptors.Add(errorCode, descriptor = new DiagnosticDescriptor(
-                        $"ENC{ModuleDiagnosticBaseId + errorCode:D4}",
+                    s_lazyModuleDiagnosticDescriptors.Add(status, descriptor = new DiagnosticDescriptor(
+                        $"ENC{ModuleDiagnosticBaseId + (int)status:D4}",
                         s_encLocString,
                         s_encDisallowedByProjectLocString,
                         DiagnosticCategory.EditAndContinue,

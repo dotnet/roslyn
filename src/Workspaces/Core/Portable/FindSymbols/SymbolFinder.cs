@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -156,7 +159,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
             if (project != null && project.SupportsCompilation)
             {
-                var symbolId = symbol.GetSymbolKey();
+                var symbolId = symbol.GetSymbolKey(cancellationToken);
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var result = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 
@@ -209,11 +212,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(compilation));
             }
 
-            var key = symbol.GetSymbolKey();
+            var key = symbol.GetSymbolKey(cancellationToken);
 
             // We may be talking about different compilations.  So do not try to resolve locations.
             var result = new HashSet<TSymbol>();
-            var resolution = key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken);
+            var resolution = key.Resolve(compilation, cancellationToken: cancellationToken);
             foreach (var current in resolution.OfType<TSymbol>())
             {
                 result.Add(current);
@@ -243,10 +246,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // GetDocument will return null for locations in #load'ed trees. TODO:  Remove this check and add logic
                 // to fetch the #load'ed tree's Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
-                // TODO: the assert is also commented out because generated syntax trees won't have a document until
-                // https://github.com/dotnet/roslyn/issues/42823 is fixed
                 if (originalDocument == null)
+                {
+                    Debug.Assert(solution.Workspace.Kind == WorkspaceKind.Interactive || solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
                     continue;
+                }
 
                 foreach (var linkedDocumentId in originalDocument.GetLinkedDocumentIds())
                 {

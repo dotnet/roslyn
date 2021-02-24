@@ -5,8 +5,7 @@
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
-#nullable enable
-
+using System.Threading;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -110,17 +109,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingField.GetAttributes();
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _underlyingField.GetUseSiteDiagnostic();
+            return _underlyingField.GetUseSiteInfo();
         }
 
-        public override sealed int GetHashCode()
+        internal override bool RequiresCompletion => _underlyingField.RequiresCompletion;
+
+        internal override bool HasComplete(CompletionPart part) => _underlyingField.HasComplete(part);
+
+        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        {
+            _underlyingField.ForceComplete(locationOpt, cancellationToken);
+        }
+
+        public sealed override int GetHashCode()
         {
             return Hash.Combine(_containingTuple.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override sealed bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             var other = obj as TupleFieldSymbol;
 
@@ -282,15 +290,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _cannotUse = cannotUse;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (_cannotUse)
             {
-                return new CSDiagnosticInfo(ErrorCode.ERR_TupleInferredNamesNotAvailable, _name,
-                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureInferredTupleNames.RequiredVersion()));
+                return new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_TupleInferredNamesNotAvailable, _name,
+                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureInferredTupleNames.RequiredVersion())));
             }
 
-            return base.GetUseSiteDiagnostic();
+            return base.GetUseSiteInfo();
         }
 
         public override string Name

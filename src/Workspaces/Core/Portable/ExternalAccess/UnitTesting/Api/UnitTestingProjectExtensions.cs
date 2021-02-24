@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
 {
     internal static class UnitTestingProjectExtensions
     {
-        public static string GetDebugName(this ProjectId projectId)
+        public static string? GetDebugName(this ProjectId projectId)
             => projectId.DebugName;
 
         public static Task<bool> HasSuccessfullyLoadedAsync(this Project project, CancellationToken cancellationToken)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -565,7 +567,7 @@ class C
                 G(out a);
                 break;
             }
-            F(a); // Error - we don't consider enumerating values for integral types to be exhaustive
+            F(a); // OK - we consider enumerating values for integral types to be exhaustive
         }
 
         if (f) { int a; switch (val) { default: goto case 0; case 0: goto default; } F(a); } // Unreachable
@@ -590,10 +592,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(83, 64),
                 // (86,88): error CS0165: Use of unassigned local variable 'a'
                 //         if (f) { int a; switch (f && G(out a)) { case false: No(); break; case true: F(a); break; } } // Error
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(86, 88),
-                // (118,15): error CS0165: Use of unassigned local variable 'a'
-                //             F(a); // Error - we don't consider enumerating values for integral types to be exhaustive
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(118, 15)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(86, 88)
                 );
         }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -60,14 +62,14 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 property.Span);
         }
 
-        internal bool IsValidAutoProperty(IPropertySymbol propertySymbol)
+        internal static bool IsValidAutoProperty(IPropertySymbol propertySymbol)
         {
             var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
             var field = fields.FirstOrDefault(f => propertySymbol.Equals(f.AssociatedSymbol));
             return field != null;
         }
 
-        private async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
+        private static async Task<SyntaxNode> GetPropertyAsync(CodeRefactoringContext context)
         {
             var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
             if (!(containingProperty?.Parent is TTypeDeclarationNode))

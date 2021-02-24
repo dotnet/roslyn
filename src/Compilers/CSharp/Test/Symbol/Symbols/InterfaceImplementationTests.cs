@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -861,7 +862,7 @@ class DeclaringClass2 : NonDeclaringClass2, Interface
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_30319.mscorlib,
+                    TestMetadata.Net451.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL,
                 });
 
@@ -934,9 +935,9 @@ public class Derived : Base, Interface
             Assert.Same(baseClassPropertyGetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertyGetter));
             Assert.Same(baseClassPropertySetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertySetter));
 
-            Assert.True(((Cci.IMethodDefinition)baseClassMethod).IsVirtual);
-            Assert.True(((Cci.IMethodDefinition)baseClassPropertyGetter).IsVirtual);
-            Assert.True(((Cci.IMethodDefinition)baseClassPropertySetter).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)baseClassMethod.GetCciAdapter()).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)baseClassPropertyGetter.GetCciAdapter()).IsVirtual);
+            Assert.True(((Cci.IMethodDefinition)baseClassPropertySetter.GetCciAdapter()).IsVirtual);
 
             Assert.False(derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None).Any());
         }
@@ -1003,9 +1004,9 @@ public class Derived : Base, Interface
             Assert.Same(baseClassPropertyGetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertyGetter));
             Assert.Same(baseClassPropertySetter, derivedClass.FindImplementationForInterfaceMember(interfacePropertySetter));
 
-            Assert.False(((Cci.IMethodDefinition)baseClassMethod).IsVirtual);
-            Assert.False(((Cci.IMethodDefinition)baseClassPropertyGetter).IsVirtual);
-            Assert.False(((Cci.IMethodDefinition)baseClassPropertySetter).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)baseClassMethod.GetCciAdapter()).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)baseClassPropertyGetter.GetCciAdapter()).IsVirtual);
+            Assert.False(((Cci.IMethodDefinition)baseClassPropertySetter.GetCciAdapter()).IsVirtual);
 
             // GetSynthesizedExplicitImplementations doesn't guarantee order, so sort to make the asserts easier to write.
 
@@ -2497,6 +2498,266 @@ class OneToOneUnicodeComparer : StringComparer
             var implementation = derivedType.FindImplementationForInterfaceMember(baseType.Interfaces().Single().GetMember("GetHashCode"));
 
             Assert.Equal("System.Int32 StringComparer.GetHashCode(System.String obj)", implementation.ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_01(bool useCompilationReference)
+        {
+            var source0 =
+@"#nullable enable
+public struct S<T>
+{
+}
+public interface I
+{
+    S<object?> F();
+}";
+            var source1 =
+@"#nullable enable
+public class A<T> : I where T : class
+{
+    public S<T?> F() => throw null;
+    S<object?> I.F() => default;
+}";
+            var source2A =
+@"#nullable enable
+class B<T> : A<T>, I where T : class
+{
+}";
+            var source2B =
+@"#nullable disable
+class B<T> : A<T>, I where T : class
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main()
+    {
+        object o = ((I)new B<string>()).F();
+        System.Console.WriteLine(o);
+    }
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2A, source3, "B", "I.F", "S`1[System.Object]", "S<System.Object?> A<T>.I.F()");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "S`1[System.Object]", "S<System.Object?> A<T>.I.F()");
+        }
+
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        [Theory]
+        [InlineData("dynamic", "dynamic", "dynamic", "System.Object", true)]
+        [InlineData("dynamic", "dynamic", "dynamic", "System.Object", false)]
+        [InlineData("dynamic", "object", "System.Object", "System.Object", true)]
+        [InlineData("dynamic", "object", "System.Object", "System.Object", false)]
+        [InlineData("object", "dynamic", "dynamic", "System.Object", true)]
+        [InlineData("object", "dynamic", "dynamic", "System.Object", false)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", "System.ValueTuple`2[System.Int32,System.Int32]", true)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", "System.ValueTuple`2[System.Int32,System.Int32]", false)]
+        [InlineData("nint", "nint", "nint", "System.IntPtr", true)]
+        [InlineData("nint", "nint", "nint", "System.IntPtr", false)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", true)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", "System.IntPtr", false)]
+        [InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", true)]
+        [InlineData("System.IntPtr", "nint", "nint", "System.IntPtr", false)]
+        public void ExplicitImplementationInBaseType_02(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, string expectedOutput, bool useCompilationReference)
+        {
+            var source0 =
+$@"public struct S<T>
+{{
+}}
+public interface I
+{{
+    S<{interfaceTypeArg}> F();
+}}";
+            var source1 =
+$@"public class A<T> : I
+{{
+    public S<T> F() => throw null;
+    S<{baseTypeArg}> I.F() => default;
+}}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main()
+    {
+        object o = ((I)new B<string>()).F();
+        System.Console.WriteLine(o);
+    }
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", $"S`1[{expectedOutput}]", $"S<{expectedTypeArg}> A<T>.I.F()");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        public void ExplicitImplementationInBaseType_03(bool useCompilationReference)
+        {
+            var source0 =
+@"#nullable enable
+public struct S<T>
+{
+}
+public interface I
+{
+    void F(S<object?> s);
+}";
+            var source1 =
+@"#nullable enable
+public class A<T> : I
+{
+    public void F(S<T> s) => throw null;
+    void I.F(S<object?> s) { }
+}";
+            var source2A =
+@"#nullable enable
+class B<T> : A<T>, I
+{
+}";
+            var source2B =
+@"#nullable disable
+class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main()
+    {
+        ((I)new B<string>()).F(default);
+        System.Console.WriteLine(1);
+    }
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2A, source3, "B", "I.F", "1", "void A<T>.I.F(S<System.Object?> s)");
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2B, source3, "B", "I.F", "1", "void A<T>.I.F(S<System.Object?> s)");
+        }
+
+        [WorkItem(46494, "https://github.com/dotnet/roslyn/issues/46494")]
+        [Theory]
+        [InlineData("dynamic", "dynamic", "dynamic", true)]
+        [InlineData("dynamic", "dynamic", "dynamic", false)]
+        [InlineData("dynamic", "object", "System.Object", true)]
+        [InlineData("dynamic", "object", "System.Object", false)]
+        [InlineData("object", "dynamic", "dynamic", true)]
+        [InlineData("object", "dynamic", "dynamic", false)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", true)]
+        [InlineData("(int X, int Y)", "(int X, int Y)", "(System.Int32 X, System.Int32 Y)", false)]
+        [InlineData("nint", "nint", "nint", true)]
+        [InlineData("nint", "nint", "nint", false)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", true)]
+        [InlineData("nint", "System.IntPtr", "System.IntPtr", false)]
+        [InlineData("System.IntPtr", "nint", "nint", true)]
+        [InlineData("System.IntPtr", "nint", "nint", false)]
+        public void ExplicitImplementationInBaseType_04(string interfaceTypeArg, string baseTypeArg, string expectedTypeArg, bool useCompilationReference)
+        {
+            var source0 =
+$@"public struct S<T>
+{{
+}}
+public interface I
+{{
+    void F(S<{interfaceTypeArg}> s);
+}}";
+            var source1 =
+$@"public class A<T> : I
+{{
+    public void F(S<T> s) => throw null;
+    void I.F(S<{baseTypeArg}> s) {{ }}
+}}";
+            var source2 =
+@"class B<T> : A<T>, I
+{
+}";
+            var source3 =
+@"class Program
+{
+    static void Main()
+    {
+        ((I)new B<string>()).F(default);
+        System.Console.WriteLine(1);
+    }
+}";
+            ExplicitImplementationInBaseType(useCompilationReference, source0, source1, source2, source3, "B", "I.F", "1", $"void A<T>.I.F(S<{expectedTypeArg}> s)");
+        }
+
+        private void ExplicitImplementationInBaseType(
+            bool useCompilationReference,
+            string source0,
+            string source1,
+            string source2,
+            string source3,
+            string derivedTypeName,
+            string interfaceMemberName,
+            string expectedOutput,
+            string expectedImplementingMember)
+        {
+            var comp = CreateCompilation(source0);
+            var ref0 = AsReference(comp, useCompilationReference);
+
+            comp = CreateCompilation(source1, references: new[] { ref0 });
+            var ref1 = AsReference(comp, useCompilationReference);
+
+            comp = CreateCompilation(new[] { source2, source3 }, references: new[] { ref0, ref1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            var derivedType = comp.GetMember<SourceNamedTypeSymbol>(derivedTypeName);
+            Assert.True(derivedType.GetSynthesizedExplicitImplementations(cancellationToken: default).IsEmpty);
+
+            var interfaceMember = comp.GetMember<MethodSymbol>(interfaceMemberName);
+            var implementingMember = derivedType.FindImplementationForInterfaceMember(interfaceMember);
+            Assert.Equal(expectedImplementingMember, implementingMember.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")]
+        public void Issue50713_1()
+        {
+            var text1 = @"
+public interface I1
+{
+    void M();
+}
+
+public interface I2 : I1
+{
+    new void M();
+}
+";
+
+            var comp1 = CreateCompilation(text1);
+            comp1.VerifyDiagnostics();
+
+            var i1M = comp1.GetMember("I1.M");
+            var i2 = comp1.GetMember<NamedTypeSymbol>("I2");
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1M));
+        }
+
+        [Fact]
+        [WorkItem(50713, "https://github.com/dotnet/roslyn/issues/50713")]
+        public void Issue50713_2()
+        {
+            var text0 = @"
+public interface I1
+{
+    void M();
+}
+
+public interface I2 : I1
+{
+    new void M();
+}
+";
+            var comp0 = CreateCompilation(text0);
+
+            var comp1 = CreateCompilation("", references: new[] { comp0.EmitToImageReference() });
+
+            var i1M = comp1.GetMember("I1.M");
+            var i2 = comp1.GetMember<NamedTypeSymbol>("I2");
+            Assert.Null(i2.FindImplementationForInterfaceMember(i1M));
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -148,7 +146,6 @@ namespace Microsoft.CodeAnalysis
         /// deterministically use <see cref="AssemblyMetadata.CreateFromStream(Stream, PEStreamOptions)"/> 
         /// to create an <see cref="IDisposable"/> metadata object and 
         /// <see cref="AssemblyMetadata.GetReference(DocumentationProvider, ImmutableArray{string}, bool, string, string)"/> to get a reference to it.
-        /// to get a reference to it.
         /// </para>
         /// </remarks>
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>

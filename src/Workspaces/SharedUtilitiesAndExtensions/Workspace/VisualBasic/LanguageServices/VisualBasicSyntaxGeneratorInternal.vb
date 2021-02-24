@@ -22,11 +22,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Sub New()
         End Sub
 
-        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
-            Get
-                Return VisualBasicSyntaxFacts.Instance
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
+        Friend Overrides Function EndOfLine(text As String) As SyntaxTrivia
+            Return SyntaxFactory.EndOfLine(text)
+        End Function
 
         Friend Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As SyntaxToken, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
             Return SyntaxFactory.LocalDeclarationStatement(
@@ -115,5 +115,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 SyntaxFactory.Token(SyntaxKind.ColonToken),
                 SyntaxFactory.InterpolatedStringTextToken(format, format))
         End Function
+
+        Friend Overrides Function TypeParameterList(typeParameterNames As IEnumerable(Of String)) As SyntaxNode
+            Return SyntaxFactory.TypeParameterList(
+                SyntaxFactory.SeparatedList(Of TypeParameterSyntax)(
+                    typeParameterNames.Select(Function(n) SyntaxFactory.TypeParameter(n))))
+        End Function
+
+#Region "Patterns"
+
+        Friend Overrides Function SupportsPatterns(options As ParseOptions) As Boolean
+            Return False
+        End Function
+
+        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, isToken As SyntaxToken, pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function ConstantPattern(expression As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function DeclarationPattern(type As INamedTypeSymbol, name As String) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function AndPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function NotPattern(pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function OrPattern(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function ParenthesizedPattern(pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function TypePattern(type As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+#End Region
     End Class
 End Namespace

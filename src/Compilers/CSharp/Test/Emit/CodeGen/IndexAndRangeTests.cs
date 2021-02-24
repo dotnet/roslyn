@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1913,7 +1915,7 @@ class C
     }
 }";
             // cover case in ConvertToArrayIndex
-            var comp = CreateCompilationWithIndex(source, WithNonNullTypesTrue(TestOptions.DebugExe));
+            var comp = CreateCompilationWithIndex(source, WithNullableEnable(TestOptions.DebugExe));
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "211");
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -24,14 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // from it the nodes that describe the method symbols. We then compare the description of
             // the symbols given to the comment that follows the call.
 
-            var mscorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319_17626.mscorlib).GetReference(display: "mscorlib");
+            var mscorlibRef = AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib).GetReference(display: "mscorlib");
             var references = new[] { mscorlibRef }.Concat(additionalRefs ?? Array.Empty<MetadataReference>());
 
             var compilation = CreateEmptyCompilation(source, references, TestOptions.ReleaseDll);
 
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
-            var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+            var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), new BindingDiagnosticBag(diagnostics));
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
             var results = string.Join("\n", tree.PreorderTraversal().Select(edge => edge.Value)
                 .Where(x => x.Text == "method" && x.Value != null)
@@ -46,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3))
                 .ToArray());
 
-            AssertEx.Equal(expected, results);
+            AssertEx.EqualOrDiff(expected, results);
         }
     }
 }

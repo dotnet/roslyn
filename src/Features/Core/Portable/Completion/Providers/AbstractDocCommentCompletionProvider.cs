@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ImmutableArray<string> s_topLevelSingleUseTagNames = ImmutableArray.Create(SummaryElementName, RemarksElementName, ExampleElementName, CompletionListElementName);
 
         private static readonly Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)> s_tagMap =
-            new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)>
+            new Dictionary<string, (string tagOpen, string textBeforeCaret, string textAfterCaret, string tagClose)>()
             {
                 //                                        tagOpen                                  textBeforeCaret       $$  textAfterCaret                            tagClose
                 { ExceptionElementName,              ($"<{ExceptionElementName}",              $" {CrefAttributeName}=\"",  "\"",                                      null) },
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected AbstractDocCommentCompletionProvider(CompletionItemRules defaultRules)
         {
-            this.defaultRules = defaultRules ?? throw new ArgumentNullException(nameof(defaultRules)); ;
+            this.defaultRules = defaultRules ?? throw new ArgumentNullException(nameof(defaultRules));
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -199,11 +202,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract IEnumerable<string> GetKeywordNames();
 
-        protected IEnumerable<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
+        protected ImmutableArray<CompletionItem> GetTopLevelItems(ISymbol symbol, TSyntax syntax)
         {
-            var items = new List<CompletionItem>();
+            using var _1 = ArrayBuilder<CompletionItem>.GetInstance(out var items);
+            using var _2 = PooledHashSet<string>.GetInstance(out var existingTopLevelTags);
 
-            var existingTopLevelTags = new HashSet<string>(GetExistingTopLevelElementNames(syntax));
+            existingTopLevelTags.AddAll(GetExistingTopLevelElementNames(syntax));
 
             items.AddRange(s_topLevelSingleUseTagNames.Except(existingTopLevelTags).Select(GetItem));
             items.AddRange(s_topLevelRepeatableTagNames.Select(GetItem));
@@ -234,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            return items;
+            return items.ToImmutable();
         }
 
         protected IEnumerable<CompletionItem> GetItemTagItems()
@@ -253,10 +257,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return names.Select(name => CreateCompletionItem(FormatParameter(tagName, name)));
         }
 
-        private string FormatParameter(string kind, string name)
+        private static string FormatParameter(string kind, string name)
             => $"{kind} {NameAttributeName}=\"{name}\"";
 
-        private string FormatParameterRefTag(string kind, string name)
+        private static string FormatParameterRefTag(string kind, string name)
             => $"<{kind} {NameAttributeName}=\"{name}\"/>";
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = null, CancellationToken cancellationToken = default)
@@ -282,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var replacementText = beforeCaretText;
             var newPosition = replacementSpan.Start + beforeCaretText.Length;
 
-            if (commitChar.HasValue && !char.IsWhiteSpace(commitChar.Value) && commitChar.Value != replacementText[replacementText.Length - 1])
+            if (commitChar.HasValue && !char.IsWhiteSpace(commitChar.Value) && commitChar.Value != replacementText[^1])
             {
                 // include the commit character
                 replacementText += commitChar.Value;
@@ -327,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly CharacterSetModificationRule WithoutQuoteRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '"');
         private static readonly CharacterSetModificationRule WithoutSpaceRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ');
 
-        internal static readonly ImmutableArray<CharacterSetModificationRule> FilterRules = ImmutableArray.Create(
+        protected static readonly ImmutableArray<CharacterSetModificationRule> FilterRules = ImmutableArray.Create(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '!', '-', '['));
 
         private CompletionItemRules GetCompletionItemRules(string displayText)

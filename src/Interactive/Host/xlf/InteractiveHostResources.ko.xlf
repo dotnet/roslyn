@@ -9,12 +9,12 @@
       </trans-unit>
       <trans-unit id="Cannot_resolve_reference_0">
         <source>Cannot resolve reference '{0}'.</source>
-        <target state="translated">{0}' 참조를 확인할 수 없습니다.</target>
+        <target state="translated">'{0}' 참조를 확인할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
-        <source>Failed to create a remote process for interactive code execution.</source>
-        <target state="translated">대화형 코드 실행에 대한 원격 프로세스를 만들지 못했습니다.</target>
+        <source>Failed to create a remote process for interactive code execution: '{0}'</source>
+        <target state="translated">대화형 코드 실행에 대한 원격 프로세스를 만들지 못했습니다. '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_initialize_remote_interactive_process">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Loading_context_from_0">
         <source>Loading context from '{0}'.</source>
-        <target state="translated">{0}'에서 컨텍스트를 로드하는 중입니다.</target>
+        <target state="translated">'{0}'에서 컨텍스트를 로드하는 중입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Searched_in_directories_colon">

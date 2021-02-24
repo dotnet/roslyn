@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -42,6 +40,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
         protected AbstractSimplifyConditionalDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId,
+                   EnforceOnBuildValues.SimplifyConditionalExpression,
                    CodeStyleOptions2.PreferSimplifiedBooleanExpressions,
                    new LocalizableResourceString(nameof(AnalyzersResources.Simplify_conditional_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Conditional_expression_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))

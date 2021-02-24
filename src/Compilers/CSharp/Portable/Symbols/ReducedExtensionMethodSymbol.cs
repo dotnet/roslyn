@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -41,24 +40,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(method.ParameterCount > 0);
             Debug.Assert((object)receiverType != null);
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.DiscardedDependecies;
 
-            method = InferExtensionMethodTypeArguments(method, receiverType, compilation, ref useSiteDiagnostics);
+            method = InferExtensionMethodTypeArguments(method, receiverType, compilation, ref useSiteInfo);
             if ((object)method == null)
             {
                 return null;
             }
 
             var conversions = new TypeConversions(method.ContainingAssembly.CorLibrary);
-            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteDiagnostics);
+            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo);
             if (!conversion.Exists)
             {
                 return null;
             }
 
-            if (useSiteDiagnostics != null)
+            if (useSiteInfo.Diagnostics != null)
             {
-                foreach (var diag in useSiteDiagnostics)
+                foreach (var diag in useSiteInfo.Diagnostics)
                 {
                     if (diag.Severity == DiagnosticSeverity.Error)
                     {
@@ -110,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// are not satisfied, the return value is null.
         /// </summary>
         /// <param name="compilation">Compilation used to check constraints.  The latest language version is assumed if this is null.</param>
-        private static MethodSymbol InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, CSharpCompilation compilation, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static MethodSymbol InferExtensionMethodTypeArguments(MethodSymbol method, TypeSymbol thisType, CSharpCompilation compilation, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(method.IsExtensionMethod);
             Debug.Assert((object)thisType != null);
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 conversions,
                 method,
                 arguments.AsImmutable(),
-                useSiteDiagnostics: ref useSiteDiagnostics);
+                useSiteInfo: ref useSiteInfo);
 
             if (typeArgs.IsDefault)
             {
@@ -198,21 +197,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder,
+            var success = method.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo)),
+                                                  substitution, typeParams, typeArgsForConstraintsCheck, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
+                                                  ref useSiteDiagnosticsBuilder,
                                                   ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
             diagnosticsBuilder.Free();
             notInferredTypeParameters.Free();
 
             if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
             {
-                if (useSiteDiagnostics == null)
-                {
-                    useSiteDiagnostics = new HashSet<DiagnosticInfo>();
-                }
-
                 foreach (var diag in useSiteDiagnosticsBuilder)
                 {
-                    useSiteDiagnostics.Add(diag.DiagnosticInfo);
+                    useSiteInfo.Add(diag.UseSiteInfo);
                 }
             }
 
@@ -437,6 +433,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _reducedFrom.ObsoleteAttributeData; }
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
+            => _reducedFrom.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+
         public override Accessibility DeclaredAccessibility
         {
             get { return _reducedFrom.DeclaredAccessibility; }
@@ -527,6 +526,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsDeclaredReadOnly => false;
 
+        internal override bool IsInitOnly => false;
+
         internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0].RefKind == RefKind.In;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
@@ -570,6 +571,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
 
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {

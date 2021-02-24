@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -10,19 +12,34 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateTypeTests
 {
     public partial class GenerateTypeTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public GenerateTypeTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new GenerateTypeCodeFixProvider());
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> codeActions)
             => FlattenActions(codeActions);
+
+        // TODO: Requires WPF due to IInlineRenameService dependency (https://github.com/dotnet/roslyn/issues/46153)
+        protected override TestComposition GetComposition()
+            => EditorTestCompositions.EditorFeaturesWpf
+                .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+                .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
         #region Generate Class
 
@@ -106,7 +123,6 @@ public class Employee
 }",
 index: 1);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task NegativeTestGenerateClassFromConstructorConstraint()
@@ -2864,6 +2880,40 @@ class B
 index: 1);
         }
 
+        [WorkItem(49924, "https://github.com/dotnet/roslyn/issues/49924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        public async Task GenerateCorrectFieldNaming()
+        {
+            var options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+
+            await TestInRegularAndScriptAsync(
+    @"class Class
+{
+    void M(int i)
+    {
+        D d = new [|D|](i);
+    }
+}",
+    @"class Class
+{
+    void M(int i)
+    {
+        D d = new D(i);
+    }
+}
+
+internal class D
+{
+    private int _i;
+
+    public D(int i)
+    {
+        _i = i;
+    }
+}",
+    index: 1, options: options.FieldNamesAreCamelCaseWithUnderscorePrefix);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
         public async Task GenerateWithCallToProperty1()
         {
@@ -3365,8 +3415,7 @@ expectedDocumentName: "Bar.cs");
     {
         [|Bar|] b;
     }
-}",
-index: 1);
+}");
         }
 
         [WorkItem(539674, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539674")]
@@ -3997,10 +4046,14 @@ class A
 
         [WorkItem(540766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540766")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestMissingOnInvalidGlobalCode()
+        public async Task TestOnInvalidGlobalCode()
         {
-            await TestMissingAsync(
-@"[|a|] test ");
+            await TestInRegularAndScriptAsync(
+@"[|a|] test ",
+@"[|a|] test internal class a
+{
+}",
+index: 1);
         }
 
         [WorkItem(539985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539985")]
@@ -5399,6 +5452,37 @@ internal class SampleType : Exception
     }
 }",
 index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [WorkItem(45808, "https://github.com/dotnet/roslyn/issues/45808")]
+        public async Task TestGenerateUnsafe()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    unsafe void M(int* x)
+    {
+        new [|D|](x);
+    }
+}",
+@"class C
+{
+    unsafe void M(int* x)
+    {
+        new D(x);
+    }
+}
+
+internal class D
+{
+    private unsafe int* x;
+
+    public unsafe D(int* x)
+    {
+        this.x = x;
+    }
+}", index: 1);
         }
     }
 }

@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnTy
             If lambdaHeader IsNot Nothing Then
                 Dim rewrittenLambdaHeader = AsyncOrIteratorFunctionReturnTypeFixer.RewriteLambdaHeader(lambdaHeader, semanticModel, cancellationToken)
                 context.RegisterFixes(
-                    Await GetCodeActions(document, lambdaHeader, rewrittenLambdaHeader, semanticModel, cancellationToken).ConfigureAwait(False),
+                    Await GetCodeActionsAsync(document, lambdaHeader, rewrittenLambdaHeader, cancellationToken).ConfigureAwait(False),
                     context.Diagnostics)
                 Return
             End If
@@ -64,18 +64,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectFunctionReturnTy
             If methodStatement IsNot Nothing Then
                 Dim rewrittenMethodStatement = AsyncOrIteratorFunctionReturnTypeFixer.RewriteMethodStatement(methodStatement, semanticModel, cancellationToken)
                 context.RegisterFixes(
-                    Await GetCodeActions(document, methodStatement, rewrittenMethodStatement, semanticModel, cancellationToken).ConfigureAwait(False),
+                    Await GetCodeActionsAsync(document, methodStatement, rewrittenMethodStatement, cancellationToken).ConfigureAwait(False),
                     context.Diagnostics)
                 Return
             End If
         End Function
 
-        Private Function GetNodeToFix(Of T As SyntaxNode)(token As SyntaxToken, span As TextSpan) As T
+        Private Shared Function GetNodeToFix(Of T As SyntaxNode)(token As SyntaxToken, span As TextSpan) As T
             Return token.GetAncestors(Of T)() _
                 .FirstOrDefault(Function(c) c.Span.IntersectsWith(span))
         End Function
 
-        Private Async Function GetCodeActions(document As Document, node As SyntaxNode, rewrittenNode As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
+        Private Shared Async Function GetCodeActionsAsync(document As Document, node As SyntaxNode, rewrittenNode As SyntaxNode, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of CodeAction))
             If rewrittenNode IsNot node Then
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(node, rewrittenNode)

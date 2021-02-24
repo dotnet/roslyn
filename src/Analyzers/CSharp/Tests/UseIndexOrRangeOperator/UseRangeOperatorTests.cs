@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -151,24 +152,22 @@ class C
 
             // Adding a dependency with internal definitions of Index and Range should not break the feature
             var source1 = "namespace System { internal struct Index { } internal struct Range { } }";
-            var dependencyReferences = await ReferenceAssemblies.NetStandard.NetStandard20.ResolveAsync(null, CancellationToken.None);
 
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
-                TestCode = source,
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
+                    Sources = { source },
+                    AdditionalProjects =
                     {
-                        var dependencyProject = solution.AddProject("DependencyProject", "DependencyProject", LanguageNames.CSharp)
-                            .WithCompilationOptions(solution.GetProject(projectId).CompilationOptions)
-                            .WithParseOptions(solution.GetProject(projectId).ParseOptions)
-                            .WithMetadataReferences(dependencyReferences)
-                            .AddDocument("Test0.cs", source1, filePath: "Test0.cs").Project;
-
-                        return dependencyProject.Solution.AddProjectReference(projectId, new ProjectReference(dependencyProject.Id));
+                        ["DependencyProject"] =
+                        {
+                            ReferenceAssemblies = ReferenceAssemblies.NetStandard.NetStandard20,
+                            Sources = { source1 },
+                        },
                     },
+                    AdditionalProjectReferences = { "DependencyProject" },
                 },
                 FixedCode = fixedSource,
             }.RunAsync();
@@ -193,6 +192,98 @@ class C
     void Goo(string s, int bar, int baz)
     {
         var v = s[bar..^baz];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestSubstringOneArgument()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s.Substring([|1|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[1..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestSliceOneArgument()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s.Slice([|1|]);
+    }
+}";
+            var fixedSource =
+@"
+using System;
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s[1..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionOneArgument()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s, int bar)
+    {
+        var v = s.Substring([|bar|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s, int bar)
+    {
+        var v = s[bar..];
     }
 }";
 
@@ -343,7 +434,6 @@ class C
         s[1..^1] = default;
     }
 }";
-
             await new VerifyCS.Test
             {
                 ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
@@ -417,6 +507,38 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestFixAllInvocationToElementAccess2()
+        {
+            // Note: once the IOp tree has support for range operators, this should 
+            // simplify even further.
+            var source =
+@"
+class C
+{
+    void Goo(string s, string t)
+    {
+        var v = t.Substring([|s.Substring([|1|])[0]|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s, string t)
+    {
+        var v = t[s[1..][0]..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
         public async Task TestWithTypeWithActualSliceMethod1()
         {
             var source =
@@ -470,6 +592,447 @@ class C
     {
         var v = s[1..^1];
     }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestWritableType()
+        {
+            var source =
+@"
+using System;
+struct S { 
+    public ref S Slice(int start, int length) => throw null; 
+    public int Length { get; } 
+    public S this[System.Range r] { get => default; } 
+}
+
+class C
+{
+    void Goo(S s)
+    {
+        s.Slice(1, s.Length - 2) = default;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestReturnByRef()
+        {
+            var source =
+@"
+struct S { public ref S Slice(int start, int length) => throw null; public int Length { get; } public S this[System.Range r] { get => throw null; } }
+class C
+{
+    void Goo(S s)
+    {
+        var x = s.Slice([|1, s.Length - 2|]);
+    }
+}";
+            var fixedSource =
+@"
+struct S { public ref S Slice(int start, int length) => throw null; public int Length { get; } public S this[System.Range r] { get => throw null; } }
+class C
+{
+    void Goo(S s)
+    {
+        var x = s[1..^1];
+    }
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestIntWritableType()
+        {
+            var source =
+@"
+using System;
+struct S { 
+    public ref S Slice(int start, int length) => throw null;
+    public int Length { get; }
+    public S this[int r] { get => default; }
+}
+
+class C
+{
+    void Goo(S s)
+    {
+        s.Slice([|1, s.Length - 2|]) = default;
+    }
+}";
+            var fixedSource =
+@"
+using System;
+struct S { 
+    public ref S Slice(int start, int length) => throw null;
+    public int Length { get; }
+    public S this[int r] { get => default; }
+}
+
+class C
+{
+    void Goo(S s)
+    {
+        s[1..^1] = default;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(43202, "https://github.com/dotnet/roslyn/issues/43202")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestReadWriteProperty()
+        {
+            var source =
+@"
+using System;
+struct S { 
+    public ref S Slice(int start, int length) => throw null;
+    public int Length { get; }
+    public S this[System.Range r] { get => default; set { } }
+}
+
+class C
+{
+    void Goo(S s)
+    {
+        s.Slice([|1, s.Length - 2|]) = default;
+    }
+}";
+            var fixedSource =
+@"
+using System;
+struct S { 
+    public ref S Slice(int start, int length) => throw null;
+    public int Length { get; }
+    public S this[System.Range r] { get => default; set { } }
+}
+
+class C
+{
+    void Goo(S s)
+    {
+        s[1..^1] = default;
+    }
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestWithTypeWithActualSliceMethod3()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s.Slice([|1|]);
+    }
+}";
+            var fixedSource =
+@"
+using System;
+class C
+{
+    void Goo(Span<int> s)
+    {
+        var v = s[1..];
+    }
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(36997, "https://github.com/dotnet/roslyn/issues/36997")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionWithAddOperatorArgument()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s, int bar)
+    {
+        var v = s.Substring([|bar + 1|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s, int bar)
+    {
+        var v = s[(bar + 1)..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionWithElementAccessShouldNotAddParentheses()
+        {
+            var source =
+@"
+class C
+{
+    void Goo(string s, int[] bar)
+    {
+        _ = s.Substring([|bar[0]|]);
+    }
+}";
+            var fixedSource =
+@"
+class C
+{
+    void Goo(string s, int[] bar)
+    {
+        _ = s[bar[0]..];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionWithNullConditionalAccess()
+        {
+            var source =
+@"
+#nullable enable
+public class Test
+{
+    public string? M(string? arg)
+        => arg?.Substring([|42|]);
+}";
+            var fixedSource =
+@"
+#nullable enable
+public class Test
+{
+    public string? M(string? arg)
+        => arg?[42..];
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestExpressionWithNullConditionalAccessWithPropertyAccess()
+        {
+            var source =
+@"
+public class Test
+{
+    public int? M(string arg)
+        => arg?.Substring([|42|]).Length;
+}";
+            var fixedSource =
+@"
+public class Test
+{
+    public int? M(string arg)
+        => arg?[42..].Length;
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(47183, "https://github.com/dotnet/roslyn/issues/47183")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        [InlineData(
+            "c.Prop.Substring([|42|])",
+            "c.Prop[42..]")]
+        [InlineData(
+            "c.Prop.Substring([|1, c.Prop.Length - 2|])",
+            "c.Prop[1..^1]")]
+        [InlineData(
+            "c?.Prop.Substring([|42|])",
+            "c?.Prop[42..]")]
+        [InlineData(
+            "c.Prop?.Substring([|42|])",
+            "c.Prop?[42..]")]
+        [InlineData(
+            "c?.Prop?.Substring([|42|])",
+            "c?.Prop?[42..]")]
+        public async Task TestExpressionWithNullConditionalAccessVariations(string subStringCode, string rangeCode)
+        {
+            var source =
+@$"
+public class C
+{{
+    public string Prop {{ get; set; }}
+}}
+public class Test
+{{
+    public object M(C c)
+        => { subStringCode };
+}}";
+            var fixedSource =
+@$"
+public class C
+{{
+    public string Prop {{ get; set; }}
+}}
+public class Test
+{{
+    public object M(C c)
+        => { rangeCode };
+}}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestStringMethod()
+        {
+            var source =
+@"
+namespace System
+{
+    public class Object {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public struct Int32 {}
+    public struct Index
+    {
+        public int GetOffset(int length) => 0;
+        public static implicit operator Index(int value) => default;
+    }
+    public struct Range
+    {
+        public Range(Index start, Index end) {}
+        public Index Start => default;
+        public Index End => default;
+    }
+    public class String : Object
+    {
+        public int Length => 0;
+        public string Substring(int start, int length) => this;
+
+        string Foo(int x) => Substring([|1, x - 1|]);
+    }
+}";
+            var fixedSource =
+@"
+namespace System
+{
+    public class Object {}
+    public class ValueType : Object {}
+    public struct Void {}
+    public struct Int32 {}
+    public struct Index
+    {
+        public int GetOffset(int length) => 0;
+        public static implicit operator Index(int value) => default;
+    }
+    public struct Range
+    {
+        public Range(Index start, Index end) {}
+        public Index Start => default;
+        public Index End => default;
+    }
+    public class String : Object
+    {
+        public int Length => 0;
+        public string Substring(int start, int length) => this;
+
+        string Foo(int x) => this[1..x];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = new ReferenceAssemblies("nostdlib"),
+                TestCode = source,
+                FixedCode = fixedSource,
+            }.RunAsync();
+        }
+
+        [WorkItem(38055, "https://github.com/dotnet/roslyn/issues/38055")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestSliceOnThis()
+        {
+            var source =
+@"
+class C
+{
+    public int Length => 0;
+    public C Slice(int start, int length) => this;
+
+    public C Foo(int x) => Slice([|1, x - 1|]);
+}";
+            var fixedSource =
+@"
+class C
+{
+    public int Length => 0;
+    public C Slice(int start, int length) => this;
+
+    public C Foo(int x) => this[1..x];
 }";
 
             await new VerifyCS.Test

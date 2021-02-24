@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
         }
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var noLocals = ImmutableArray<LocalSymbol>.Empty;
             var initializerInvocation = MethodCompiler.BindImplicitConstructorInitializer(this, diagnostics, compilationState.Compilation);

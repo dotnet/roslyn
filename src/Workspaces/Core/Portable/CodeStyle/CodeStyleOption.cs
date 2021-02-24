@@ -2,16 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Xml.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     /// <inheritdoc cref="CodeStyleOption2{T}"/>
     public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
+        static CodeStyleOption()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(CodeStyleOption<T>), ReadFrom);
+        }
+
         private readonly CodeStyleOption2<T> _codeStyleOptionImpl;
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.Silent);
+        public static CodeStyleOption<T> Default => new(default, NotificationOption.Silent);
 
         internal CodeStyleOption(CodeStyleOption2<T> codeStyleOptionImpl)
             => _codeStyleOptionImpl = codeStyleOptionImpl;
@@ -27,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             set => _codeStyleOptionImpl.Value = value;
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => _codeStyleOptionImpl.ShouldReuseInSerialization;
         object ICodeStyleOption.Value => this.Value;
         NotificationOption2 ICodeStyleOption.Notification => _codeStyleOptionImpl.Notification;
         ICodeStyleOption ICodeStyleOption.WithValue(object value) => new CodeStyleOption<T>((T)value, Notification);
@@ -46,7 +55,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         public XElement ToXElement() => _codeStyleOptionImpl.ToXElement();
 
         public static CodeStyleOption<T> FromXElement(XElement element)
-            => new CodeStyleOption<T>(CodeStyleOption2<T>.FromXElement(element));
+            => new(CodeStyleOption2<T>.FromXElement(element));
+
+        void IObjectWritable.WriteTo(ObjectWriter writer)
+            => _codeStyleOptionImpl.WriteTo(writer);
+
+        internal static CodeStyleOption<object> ReadFrom(ObjectReader reader)
+            => new(CodeStyleOption2<T>.ReadFrom(reader));
 
         public bool Equals(CodeStyleOption<T> other)
             => _codeStyleOptionImpl.Equals(other?._codeStyleOptionImpl);

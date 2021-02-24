@@ -13,37 +13,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
-        private readonly ConcurrentDictionary<string, int> _stringToIdMap = new ConcurrentDictionary<string, int>();
-
-        private bool TryFetchStringTable(SqlConnection connection)
-        {
-            try
-            {
-                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_string_table))
-                {
-                    var statement = resettableStatement.Statement;
-                    while (statement.Step() == Result.ROW)
-                    {
-                        var id = statement.GetInt32At(columnIndex: 0);
-                        var value = statement.GetStringAt(columnIndex: 1);
-
-                        // Note that TryAdd won't overwrite an existing string->id pair.  That's what
-                        // we want.  we don't want the strings we've allocated from the DB to be what
-                        // we hold onto.  We'd rather hold onto the strings we get from sources like
-                        // the workspaces.  This helps avoid unnecessary string instance duplication.
-                        _stringToIdMap.TryAdd(value, id);
-                    }
-                }
-
-                return true;
-            }
-            catch (SqlException e) when (e.Result == Result.BUSY || e.Result == Result.LOCKED)
-            {
-                // Couldn't get access to sql database to fetch the string table.  
-                // Try again later.
-                return false;
-            }
-        }
+        private readonly ConcurrentDictionary<string, int> _stringToIdMap = new();
 
         private int? TryGetStringId(SqlConnection connection, string value)
         {
@@ -88,7 +58,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // values.
             try
             {
-                stringId = connection.RunInTransaction(s_insertStringIntoDataBase, (self: this, connection, value));
+                stringId = connection.RunInTransaction(
+                    static t => t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value),
+                    (self: this, connection, value));
 
                 Contract.ThrowIfTrue(stringId == null);
                 return stringId;
@@ -108,9 +80,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             return null;
         }
-
-        private static readonly Func<(SQLitePersistentStorage self, SqlConnection connection, string value), int> s_insertStringIntoDataBase =
-            t => t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value);
 
         private int InsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
         {

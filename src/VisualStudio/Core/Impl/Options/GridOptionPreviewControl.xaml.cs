@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -68,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return;
             }
 
-            BrowserHelper.StartBrowser(e.Uri);
+            VisualStudioNavigateToLinkService.StartBrowser(e.Uri);
             e.Handled = true;
         }
 
@@ -133,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         File.WriteAllText(filePath, editorconfig.ToString());
                     });
                 }
-            };
+            }
         }
 
         private static string GetInitialDirectory()
