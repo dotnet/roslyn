@@ -34,25 +34,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
 
             public bool SupportsCodeFixes(ITextBuffer textBuffer)
             {
-                // Disable code fix entry points when running under the LSP editor.
-                // The LSP client will handle displaying lightbulbs.
-                if (textBuffer.IsInLspEditorContext())
-                {
-                    return false;
-                }
-
                 return SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
             }
 
             public bool SupportsRefactorings(ITextBuffer textBuffer)
             {
-                // Disable code fix entry points when running under the LSP editor.
-                // The LSP client will handle displaying lightbulbs.
-                if (textBuffer.IsInLspEditorContext())
-                {
-                    return false;
-                }
-
                 return SupportsRefactoringsWorker(GetContainedDocumentId(textBuffer));
             }
 
