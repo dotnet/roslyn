@@ -6,16 +6,31 @@
 
 using System.Collections.Immutable;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.TestHelpers;
 using KeyValuePair = Roslyn.Utilities.KeyValuePairUtil;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class SyntaxTreeTests
+    public class SyntaxTreeTests : ParsingTests
     {
+        public SyntaxTreeTests(ITestOutputHelper output) : base(output) { }
+
+        protected SyntaxTree UsingTree(string text, CSharpParseOptions options, params DiagnosticDescription[] expectedErrors)
+        {
+            var tree = base.UsingTree(text, options);
+
+            var actualErrors = tree.GetDiagnostics();
+            actualErrors.Verify(expectedErrors);
+
+            return tree;
+        }
+
         // Diagnostic options on syntax trees are now obsolete
 #pragma warning disable CS0618
         [Fact]
@@ -226,6 +241,557 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(string.Empty, oldTree.WithFilePath(null).FilePath);
             Assert.Equal(string.Empty, SyntaxFactory.ParseSyntaxTree("", path: null).FilePath);
             Assert.Equal(string.Empty, CSharpSyntaxTree.Create((CSharpSyntaxNode)oldTree.GetRoot(), path: null).FilePath);
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_01()
+        {
+            var test = "global using ns1;";
+
+            UsingTree(test, TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_02()
+        {
+            var test = "global using ns1;";
+
+            UsingTree(test, TestOptions.Regular9,
+                // (1,1): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // global using ns1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using ns1;").WithArguments("global using directive").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_03()
+        {
+            var test = "namespace ns { global using ns1; }";
+
+            UsingTree(test, TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.GlobalKeyword);
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ns1");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_04()
+        {
+            var test = "namespace ns { global using ns1; }";
+
+            UsingTree(test, TestOptions.Regular9,
+                // (1,16): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // namespace ns { global using ns1; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using ns1;").WithArguments("global using directive").WithLocation(1, 16)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.GlobalKeyword);
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ns1");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_05()
+        {
+            var test = "global using static ns1;";
+
+            UsingTree(test, TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_06()
+        {
+            var test = "global using static ns1;";
+
+            UsingTree(test, TestOptions.Regular9,
+                // (1,1): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // global using static ns1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using static ns1;").WithArguments("global using directive").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.StaticKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_07()
+        {
+            var test = "namespace ns { global using static ns1; }";
+
+            UsingTree(test, TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.GlobalKeyword);
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ns1");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_08()
+        {
+            var test = "namespace ns { global using static ns1; }";
+
+            UsingTree(test, TestOptions.Regular9,
+                // (1,16): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // namespace ns { global using static ns1; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using static ns1;").WithArguments("global using directive").WithLocation(1, 16)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.GlobalKeyword);
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.StaticKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ns1");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_09()
+        {
+            var test = "global using alias = ns1;";
+
+            UsingTree(test, TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "alias");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_10()
+        {
+            var test = "global using alias = ns1;";
+
+            UsingTree(test, TestOptions.Regular9,
+                // (1,1): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // global using alias = ns1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using alias = ns1;").WithArguments("global using directive").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.NameEquals);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "alias");
+                        }
+                        N(SyntaxKind.EqualsToken);
+                    }
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_11()
+        {
+            var test = "namespace ns { global using alias = ns1; }";
+
+            UsingTree(test, TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.GlobalKeyword);
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.NameEquals);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "alias");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                        }
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ns1");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_12()
+        {
+            var test = "namespace ns { global using alias = ns1; }";
+
+            UsingTree(test, TestOptions.Regular9,
+                // (1,16): error CS8652: The feature 'global using directive' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // namespace ns { global using alias = ns1; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "global using alias = ns1;").WithArguments("global using directive").WithLocation(1, 16)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.UsingDirective);
+                    {
+                        N(SyntaxKind.GlobalKeyword);
+                        N(SyntaxKind.UsingKeyword);
+                        N(SyntaxKind.NameEquals);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "alias");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                        }
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ns1");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_13()
+        {
+            var test = @"
+namespace ns {}
+global using ns1;
+";
+
+            UsingTree(test, TestOptions.RegularPreview,
+                // (3,1): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                // global using ns1;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "global using ns1;").WithLocation(3, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_14()
+        {
+            var test = @"
+global using ns1;
+extern alias a;
+";
+
+            UsingTree(test, TestOptions.RegularPreview,
+                // (3,1): error CS0439: An extern alias declaration must precede all other elements defined in the namespace
+                // extern alias a;
+                Diagnostic(ErrorCode.ERR_ExternAfterElements, "extern").WithLocation(3, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_15()
+        {
+            var test = @"
+namespace ns2
+{
+    namespace ns {}
+    global using ns1;
+}
+";
+
+            UsingTree(test, TestOptions.RegularPreview,
+                // (5,5): error CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations
+                //     global using ns1;
+                Diagnostic(ErrorCode.ERR_UsingAfterElements, "global using ns1;").WithLocation(5, 5)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns2");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NamespaceDeclaration);
+                    {
+                        N(SyntaxKind.NamespaceKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ns");
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_16()
+        {
+            var test = @"
+global using ns1;
+namespace ns {}
+";
+
+            UsingTree(test, TestOptions.RegularPreview);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
     }
 }

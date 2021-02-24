@@ -36,6 +36,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _children;
         }
 
+        public virtual bool HasGlobalUsings
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         public virtual bool HasUsings
         {
             get
