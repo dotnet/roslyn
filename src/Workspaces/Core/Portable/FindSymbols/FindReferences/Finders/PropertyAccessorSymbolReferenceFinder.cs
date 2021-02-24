@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // defer to the Property finder to find these docs and combine them with the result.
                 var propertyDocuments = await ReferenceFinders.Property.DetermineDocumentsToSearchAsync(
                     property, project, documents,
-                    options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
+                    options.With(associatePropertyReferencesWithSpecificAccessor: false),
                     cancellationToken).ConfigureAwait(false);
 
                 result = result.AddRange(propertyDocuments);
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             {
                 var propertyReferences = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
                     property, document, semanticModel,
-                    options.WithAssociatePropertyReferencesWithSpecificAccessor(false),
+                    options.With(associatePropertyReferencesWithSpecificAccessor: false),
                     cancellationToken).ConfigureAwait(false);
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();

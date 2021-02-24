@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -15,7 +13,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static readonly FindReferencesSearchOptions Default =
             new(
                 associatePropertyReferencesWithSpecificAccessor: false,
-                cascade: true);
+                cascade: true,
+                @explicit: true);
 
         /// <summary>
         /// When searching for property, associate specific references we find to the relevant
@@ -39,19 +38,45 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         [DataMember(Order = 1)]
         public bool Cascade { get; }
 
+        /// <summary>
+        /// Whether or not this find ref operation was explicitly invoked or not.  If explicit invoked, the find
+        /// references operation may use more resources to get the results faster.
+        /// </summary>
+        /// <remarks>
+        /// Features that run automatically should consider setting this to <see langword="false"/> to avoid
+        /// unnecessarily impacting the user while they are doing other work.
+        /// </remarks>
+        [DataMember(Order = 2)]
+        public bool Explicit { get; }
+
         public FindReferencesSearchOptions(
             bool associatePropertyReferencesWithSpecificAccessor,
-            bool cascade)
+            bool cascade,
+            bool @explicit)
         {
             AssociatePropertyReferencesWithSpecificAccessor = associatePropertyReferencesWithSpecificAccessor;
             Cascade = cascade;
+            Explicit = @explicit;
         }
 
-        public FindReferencesSearchOptions WithAssociatePropertyReferencesWithSpecificAccessor(bool associatePropertyReferencesWithSpecificAccessor)
-            => new(associatePropertyReferencesWithSpecificAccessor, Cascade);
+        public FindReferencesSearchOptions With(
+            Optional<bool> associatePropertyReferencesWithSpecificAccessor = default,
+            Optional<bool> cascade = default,
+            Optional<bool> @explicit = default)
+        {
+            var newAssociatePropertyReferencesWithSpecificAccessor = associatePropertyReferencesWithSpecificAccessor.HasValue ? associatePropertyReferencesWithSpecificAccessor.Value : AssociatePropertyReferencesWithSpecificAccessor;
+            var newCascade = cascade.HasValue ? cascade.Value : Cascade;
+            var newExplicit = @explicit.HasValue ? @explicit.Value : Explicit;
 
-        public FindReferencesSearchOptions WithCascade(bool cascade)
-            => new(AssociatePropertyReferencesWithSpecificAccessor, cascade);
+            if (newAssociatePropertyReferencesWithSpecificAccessor == AssociatePropertyReferencesWithSpecificAccessor &&
+                newCascade == Cascade &&
+                newExplicit == Explicit)
+            {
+                return this;
+            }
+
+            return new FindReferencesSearchOptions(newAssociatePropertyReferencesWithSpecificAccessor, newCascade, newExplicit);
+        }
 
         /// <summary>
         /// For IDE features, if the user starts searching on an accessor, then we want to give
@@ -59,6 +84,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// then associate everything with the property.
         /// </summary>
         public static FindReferencesSearchOptions GetFeatureOptionsForStartingSymbol(ISymbol symbol)
-            => Default.WithAssociatePropertyReferencesWithSpecificAccessor(symbol.IsPropertyAccessor());
+            => Default.With(associatePropertyReferencesWithSpecificAccessor: symbol.IsPropertyAccessor());
     }
 }
