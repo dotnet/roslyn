@@ -967,6 +967,11 @@
         <target state="translated">대상으로 형식화된 개체 만들기</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">'{1}' 형식을 포함하는 '{0}' 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
@@ -5027,11 +5032,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
         <target state="translated">오버로드된 시프트 연산자의 첫 번째 피연산자는 포함하는 형식과 동일한 형식이어야 하며 두 번째 피연산자는 정수 형식이어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">구조체는 매개 변수가 없는 명시적 생성자를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

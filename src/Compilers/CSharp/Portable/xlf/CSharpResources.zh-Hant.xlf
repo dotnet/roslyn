@@ -967,6 +967,11 @@
         <target state="translated">建立具目標類型的物件</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">包含類型 '{1}' 的組件 '{0}' 參考了 .NET Framework，此情形不受支援。</target>
@@ -5028,11 +5033,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
         <target state="translated">多載移位 (Shift) 運算子的第一個運算元的類型必須和包含類型相同，而第二個運算元的類型必須是 int</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">結構無法包含明確無參數的建構函式</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

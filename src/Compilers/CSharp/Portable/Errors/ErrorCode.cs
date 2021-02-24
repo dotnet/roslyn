@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadBinaryOperatorSignature = 563,
         ERR_BadShiftOperatorSignature = 564,
         ERR_InterfacesCantContainConversionOrEqualityOperators = 567,
-        ERR_StructsCantContainDefaultConstructor = 568,
+        //ERR_StructsCantContainDefaultConstructor = 568,
         ERR_CantOverrideBogusMethod = 569,
         ERR_BindToBogus = 570,
         ERR_CantCallSpecialMethod = 571,

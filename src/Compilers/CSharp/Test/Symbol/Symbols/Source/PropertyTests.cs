@@ -78,7 +78,6 @@ class C : Base
     // (13,25): error CS8080: "Auto-implemented properties must override all accessors of the overridden property."
     //     public override int P1 { get; }
     Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithArguments("C.P1").WithLocation(13, 25)
-
                 );
         }
 
@@ -121,30 +120,28 @@ struct S
     }
 }
 
-").VerifyDiagnostics(
-    // (24,12): error CS0568: Structs cannot contain explicit parameterless constructors
-    //     public S()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S").WithLocation(24, 12),
-    // (9,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
-    //         Ps = 3;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("C.Ps").WithLocation(9, 9),
-    // (27,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
-    //         Ps = 5;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("S.Ps").WithLocation(27, 9),
-    // (14,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
-    //         P = 10;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(14, 9),
-    // (15,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
-    //         C.Ps = 1;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "C.Ps").WithArguments("C.Ps").WithLocation(15, 9),
-    // (32,9): error CS0200: Property or indexer 'S.P' cannot be assigned to -- it is read only
-    //         P = 10;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("S.P").WithLocation(32, 9),
-    // (33,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
-    //         S.Ps = 1;
-    Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "S.Ps").WithArguments("S.Ps").WithLocation(33, 9)
-
-    );
+", parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (9,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
+                //         Ps = 3;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("C.Ps").WithLocation(9, 9),
+                // (14,9): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
+                //         P = 10;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(14, 9),
+                // (15,9): error CS0200: Property or indexer 'C.Ps' cannot be assigned to -- it is read only
+                //         C.Ps = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "C.Ps").WithArguments("C.Ps").WithLocation(15, 9),
+                // (24,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public S()
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("parameterless struct constructors").WithLocation(24, 12),
+                // (27,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
+                //         Ps = 5;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "Ps").WithArguments("S.Ps").WithLocation(27, 9),
+                // (32,9): error CS0200: Property or indexer 'S.P' cannot be assigned to -- it is read only
+                //         P = 10;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("S.P").WithLocation(32, 9),
+                // (33,9): error CS0200: Property or indexer 'S.Ps' cannot be assigned to -- it is read only
+                //         S.Ps = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "S.Ps").WithArguments("S.Ps").WithLocation(33, 9));
         }
 
         [Fact]

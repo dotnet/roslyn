@@ -967,6 +967,11 @@
         <target state="translated">creación de objetos con tipo de destino</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">El ensamblado "{0}" que contiene el tipo "{1}" hace referencia a .NET Framework, lo cual no se admite.</target>
@@ -5028,11 +5033,6 @@ Si se utiliza una clase de este tipo como clase base y si la clase derivada defi
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
         <target state="translated">El primer operando de un operador de desplazamiento sobrecargado debe tener el mismo tipo que el tipo contenedor, y el tipo del segundo operando debe ser int</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">Los structs no pueden contener constructores explícitos sin parámetros</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

@@ -10632,13 +10632,15 @@ interface IA
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
             comp.VerifyDiagnostics(
-    // (5,16): error CS0568: Structs cannot contain explicit parameterless constructors
-    //         public S1() {}
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S1").WithLocation(5, 16),
-    // (9,13): error CS0568: Structs cannot contain explicit parameterless constructors
-    //             S2() { }
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(9, 13)
-   );
+                // (5,16): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         public S1() {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("parameterless struct constructors").WithLocation(5, 16),
+                // (9,13): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //             S2() { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("parameterless struct constructors").WithLocation(9, 13));
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

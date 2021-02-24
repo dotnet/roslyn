@@ -967,6 +967,11 @@
         <target state="translated">hedeflenen türde nesne oluşturma</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">'{1}' türünü içeren '{0}' bütünleştirilmiş kodu, desteklenmeyen .NET Framework'e başvuruyor.</target>
@@ -5028,11 +5033,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
         <target state="translated">Tekrar yüklenen kaydırma işlecinin ilk işleneninin türü kapsayan tür ile aynı, ikinci işlenenin türü de tamsayı olmalıdır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">Yapı birimleri parametresi olmayan açık oluşturucular içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

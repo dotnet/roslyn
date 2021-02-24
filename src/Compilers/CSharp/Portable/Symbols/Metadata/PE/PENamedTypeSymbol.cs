@@ -979,6 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var method = (MethodSymbol)members[index];
 
                     // Don't emit the default value type constructor - the runtime handles that
+                    // PROTOTYPE: Test with explicit parameterless constructor, including private constructor.
                     if (!method.IsDefaultValueTypeConstructor())
                     {
                         yield return method;
@@ -1846,8 +1847,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var module = moduleSymbol.Module;
             var map = PooledDictionary<MethodDefinitionHandle, PEMethodSymbol>.GetInstance();
 
-            // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used 
-            var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
+            // For ordinary struct types we import private members so that we can report appropriate
+            // errors if a private parameterless constructor or an embeddable structure is used.
+            var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None);
 
             try
             {

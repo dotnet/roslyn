@@ -181,15 +181,14 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-    // (10,12): error CS0568: Structs cannot contain explicit parameterless constructors
-    //     public S2()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S2").WithLocation(10, 12),
-    // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
-    //     static void Goo(S2 s = new S2())
-    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28)
-);
+                // (10,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public S2()
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("parameterless struct constructors").WithLocation(10, 12),
+                // (26,28): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void Goo(S2 s = new S2())
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new S2()").WithArguments("s").WithLocation(26, 28));
         }
 
         [Fact]

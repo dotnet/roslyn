@@ -967,6 +967,11 @@
         <target state="translated">target-typed オブジェクトの作成</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParameterlessStructConstructors">
+        <source>parameterless struct constructors</source>
+        <target state="new">parameterless struct constructors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">型 '{1}' を含むアセンブリ '{0}' が .NET Framework を参照しています。これはサポートされていません。</target>
@@ -5028,11 +5033,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
         <target state="translated">オーバーロードされた shift 演算子の最初のオペランドはそれを含む型と同じ型、2 番目のオペランドの型は int でなければなりません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_StructsCantContainDefaultConstructor">
-        <source>Structs cannot contain explicit parameterless constructors</source>
-        <target state="translated">構造体に明示的なパラメーターのないコンストラクターを含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

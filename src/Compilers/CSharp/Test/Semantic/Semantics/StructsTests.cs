@@ -7,9 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -570,7 +568,6 @@ public class mem033
                 );
         }
 
-
         [WorkItem(545498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545498")]
         [Fact]
         public void StructMemberNullableTypeCausesCycle()
@@ -605,15 +602,14 @@ public struct X1
     {
     }
 }
-
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-    // (11,5): error CS0568: Structs cannot contain explicit parameterless constructors
-    //     X1()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X1").WithLocation(11, 5),
-    // (4,13): error CS0568: Structs cannot contain explicit parameterless constructors
-    //     private X()
-    Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "X").WithLocation(4, 13)
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,13): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     private X()
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "X").WithArguments("parameterless struct constructors").WithLocation(4, 13),
+                // (11,5): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     X1()
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "X1").WithArguments("parameterless struct constructors").WithLocation(11, 5)
                 );
         }
 
@@ -633,7 +629,7 @@ public struct X1
             // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
             //     public int I {get { throw null; } set {} } = 9;
             Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
-);
+            );
         }
     }
 }

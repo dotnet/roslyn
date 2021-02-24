@@ -3374,13 +3374,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (m.MethodKind == MethodKind.Constructor && m.ParameterCount == 0)
                     {
+                        var location = m.Locations[0];
                         if (isEnum)
                         {
-                            diagnostics.Add(ErrorCode.ERR_EnumsCantContainDefaultConstructor, m.Locations[0]);
+                            diagnostics.Add(ErrorCode.ERR_EnumsCantContainDefaultConstructor, location);
                         }
                         else
                         {
-                            diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, m.Locations[0]);
+                            MessageID.IDS_FeatureParameterlessStructConstructors.CheckFeatureAvailability(diagnostics, m.DeclaringCompilation, location);
                         }
                     }
                 }
