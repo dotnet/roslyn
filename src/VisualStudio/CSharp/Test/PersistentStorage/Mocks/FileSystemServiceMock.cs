@@ -28,7 +28,13 @@ internal class FileSystemServiceMock : IFileSystem
 
     public Task<Uri> ConvertLocalUriToRemoteUriAsync(Uri localUri, string remoteScheme, CancellationToken cancellationToken) => throw new NotImplementedException();
 
+    public Task<Uri> ConvertRemoteFileNameToRemoteUriAsync(string fileName, CancellationToken cancellationToken) => throw new NotImplementedException();
+
+    public Task<Uri> ConvertRemoteFileNameToRemoteUriAsync(string fileName, string remoteScheme, CancellationToken cancellationToken) => throw new NotImplementedException();
+
     public Task<Uri> ConvertRemoteUriToLocalUriAsync(Uri remoteUri, CancellationToken cancellationToken) => Task.FromResult(remoteUri);
+
+    public Task<string> ConvertRemoteUriToRemoteFileNameAsync(Uri remoteUri, CancellationToken cancellationToken) => throw new NotImplementedException();
 
     public Task CopyAsync(Uri sourceUri, Uri destinationUri, bool overwrite, IProgress<OperationProgressData>? progress, CancellationToken cancellationToken) => throw new NotImplementedException();
 
