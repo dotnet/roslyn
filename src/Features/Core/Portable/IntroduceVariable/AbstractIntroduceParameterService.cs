@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
             }
-            return true;
+            return variablesInExpression.Any();
         }
 
         private (string title, ImmutableArray<CodeAction> actions) AddActions(SemanticDocument semanticDocument, TExpressionSyntax expression, CancellationToken cancellationToken)
