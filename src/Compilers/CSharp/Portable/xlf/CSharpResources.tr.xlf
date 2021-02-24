@@ -972,14 +972,14 @@
         <target state="translated">atılabilir değişkenler</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureGlobalUsing">
+        <source>global using directive</source>
+        <target state="new">global using directive</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
         <source>target-typed object creation</source>
         <target state="translated">hedeflenen türde nesne oluşturma</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_FeatureUsingGlobal">
-        <source>global using directive</source>
-        <target state="new">global using directive</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">

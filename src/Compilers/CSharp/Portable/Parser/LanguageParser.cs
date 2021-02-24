@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (globalToken != null)
             {
-                usingDirective = CheckFeatureAvailability(usingDirective, MessageID.IDS_FeatureUsingGlobal);
+                usingDirective = CheckFeatureAvailability(usingDirective, MessageID.IDS_FeatureGlobalUsing);
             }
 
             return usingDirective;
