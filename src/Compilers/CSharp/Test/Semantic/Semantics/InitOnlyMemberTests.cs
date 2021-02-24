@@ -4607,7 +4607,7 @@ class UsePia
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(50696, "https://github.com/dotnet/roslyn/issues/50696")]
         public void PickAmbiguousAttributeFromCorlib()
         {
             var corlib_cs = @"
@@ -4621,14 +4621,6 @@ namespace System
     public struct Void { }
     public class Attribute { }
 }
-
-//namespace System.Reflection
-//{
-//    public class AssemblyVersionAttribute : Attribute
-//    {
-//        public AssemblyVersionAttribute(String version) { }
-//    }
-//}
 ";
 
             string source = @"
@@ -4644,10 +4636,10 @@ public class C
                 .EmitToImageReference();
 
             var libWithIsExternalInitRef = CreateEmptyCompilation(IsExternalInitTypeDefinition, references: new[] { corlibWithoutIsExternalInitRef }, assemblyName: "libWithIsExternalInit")
-                .ToMetadataReference();
+                .EmitToImageReference();
 
             var libWithIsExternalInitRef2 = CreateEmptyCompilation(IsExternalInitTypeDefinition, references: new[] { corlibWithoutIsExternalInitRef }, assemblyName: "libWithIsExternalInit2")
-                .ToMetadataReference();
+                .EmitToImageReference();
 
             {
                 // attribute in source
@@ -4655,6 +4647,14 @@ public class C
                 comp.VerifyEmitDiagnostics();
                 var modifier = getUsedModifier(comp);
                 Assert.True(modifier.Modifier.IsInSource());
+            }
+
+            {
+                // attribute in library
+                var comp = CreateEmptyCompilation(new[] { source }, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef });
+                comp.VerifyEmitDiagnostics();
+                var modifier = getUsedModifier(comp);
+                Assert.Equal("libWithIsExternalInit", modifier.Modifier.ContainingAssembly.Name);
             }
 
             {
