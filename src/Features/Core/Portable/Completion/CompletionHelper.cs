@@ -250,6 +250,20 @@ namespace Microsoft.CodeAnalysis.Completion
                 return diff;
             }
 
+            // If two items match in case-insensitive manner, and we are in a case-insensitive language,
+            // then the preselected one is considered better, otherwise we will prefer the one matches
+            // case-sensitively. This is to make sure common items in VB like `True` and `False` are prioritized
+            // for selection when user types `t` and `f`.
+            // More details can be found in comments of https://github.com/dotnet/roslyn/issues/4892
+            if (!_isCaseSensitive)
+            {
+                var preselectionDiff = ComparePreselection(item1, item2);
+                if (preselectionDiff != 0)
+                {
+                    return preselectionDiff;
+                }
+            }
+
             // At this point we have two items which we're matching in a rather similar fashion.
             // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
             // "Table" and "table:=" and the user types 't' and we are in a case insensitive 
