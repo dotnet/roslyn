@@ -294,8 +294,8 @@ namespace Roslyn.Test.Utilities
                 }
             };
 
-        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
-            => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));
+        private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, ImmutableArray<string>? customTags = null)
+            => new CodeActionResolveData(uniqueIdentifier, customTags ?? ImmutableArray<string>.Empty, location.Range, CreateTextDocumentIdentifier(location.Uri));
 
         /// <summary>
         /// Creates an LSP server backed by a workspace instance with a solution containing the markup.
