@@ -70,45 +70,45 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var firstCallSite = callSites.Keys.First();
 
             var currentSolution = firstCallSite.Project.Solution;
-            foreach (var keyValuePair in callSites)
+            foreach (var grouping in callSites.GroupBy(kvp => kvp.Key.Project))
             {
-                var document = currentSolution.GetDocument(keyValuePair.Key.Id);
-                if (document != null)
+                var project = grouping.Key;
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                foreach (var keyValuePair in grouping)
                 {
+                    var document = keyValuePair.Key;
                     var invocationExpressionList = keyValuePair.Value;
                     var generator = SyntaxGenerator.GetGenerator(document);
                     var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-                    var invocationSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    if (root != null)
+                    var invocationSemanticModel = compilation.GetSemanticModel(await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+
+                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    var editor = new SyntaxEditor(root, generator);
+
+                    foreach (var invocationExpression in invocationExpressionList)
                     {
-                        var editor = new SyntaxEditor(root, generator);
-
-                        foreach (var invocationExpression in invocationExpressionList)
+                        var newArgumentExpression = expression;
+                        var invocationArguments = invocationExpression.ArgumentList.Arguments;
+                        foreach (var argument in invocationArguments)
                         {
-                            var newArgumentExpression = expression;
-                            var invocationArguments = invocationExpression.ArgumentList.Arguments;
-                            foreach (var argument in invocationArguments)
+                            var associatedParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, argument, cancellationToken);
+                            if (!mappingDictionary.TryGetValue(associatedParameter, out var value))
                             {
-                                var associatedParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, argument, cancellationToken);
-                                if (!mappingDictionary.TryGetValue(associatedParameter, out var value))
-                                {
-                                    continue;
-                                }
-
-                                var parenthesizedArgumentExpression = generator.AddParentheses(argument.Expression, includeElasticTrivia: false);
-                                newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(value), parenthesizedArgumentExpression);
+                                continue;
                             }
 
-                            var allArguments =
-                                invocationExpression.ArgumentList.Arguments.Add(SyntaxFactory.Argument(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)));
-                            editor.ReplaceNode(invocationExpression, editor.Generator.InvocationExpression(invocationExpression.Expression, allArguments));
+                            var parenthesizedArgumentExpression = generator.AddParentheses(argument.Expression, includeElasticTrivia: false);
+                            newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(value), parenthesizedArgumentExpression);
                         }
 
-                        var newRoot = editor.GetChangedRoot();
-                        document = document.WithSyntaxRoot(newRoot);
-                        currentSolution = document.Project.Solution;
+                        var allArguments =
+                            invocationExpression.ArgumentList.Arguments.Add(SyntaxFactory.Argument(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)));
+                        editor.ReplaceNode(invocationExpression, editor.Generator.InvocationExpression(invocationExpression.Expression, allArguments));
                     }
+
+                    var newRoot = editor.GetChangedRoot();
+                    var newDocument = document.WithSyntaxRoot(newRoot);
+                    currentSolution = newDocument.Project.Solution;
                 }
             }
 

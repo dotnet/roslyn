@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
@@ -15,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
     {
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly SyntaxAnnotation _replacementAnnotation = new SyntaxAnnotation();
+            private readonly SyntaxAnnotation _replacementAnnotation = new();
             private readonly SyntaxNode _replacementNode;
             private readonly ISet<ExpressionSyntax> _matches;
 
@@ -31,8 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                     _matches.Contains(expression))
                 {
                     return _replacementNode
-                        .WithLeadingTrivia(expression.GetLeadingTrivia())
-                        .WithTrailingTrivia(expression.GetTrailingTrivia())
+                        .WithTriviaFrom(expression)
                         .WithAdditionalAnnotations(_replacementAnnotation);
                 }
 
