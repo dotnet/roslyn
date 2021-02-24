@@ -215,8 +215,7 @@ jobs:
 
 - job: Correctness_Rebuild
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.Open
+    vmImage: 'windows-2019'
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
