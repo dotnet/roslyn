@@ -212,9 +212,8 @@ namespace BuildValidator
                         var ildasmOriginalOutputPath = Path.Combine(originalPath, assemblyName + ".il");
                         var ildasmRebuildOutputPath = Path.Combine(rebuildPath, assemblyName + ".il");
 
-                        // TODO: can we bundle ildasm in with the utility?
-                        Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{originalBinaryPath.FullName} /all /out={ildasmOriginalOutputPath}").WaitForExit();
-                        Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{rebuildAssemblyPath} /all /out={ildasmRebuildOutputPath}").WaitForExit();
+                        Process.Start(IldasmUtilities.IldasmPath, $@"{originalBinaryPath.FullName} /all /out={ildasmOriginalOutputPath}").WaitForExit();
+                        Process.Start(IldasmUtilities.IldasmPath, $@"{rebuildAssemblyPath} /all /out={ildasmRebuildOutputPath}").WaitForExit();
 
                         File.WriteAllText(Path.Combine(assemblyDebugPath, "compare-pe.mdv.ps1"), $@"code --diff (Join-Path $PSScriptRoot ""{originalPeMdvPath.Substring(assemblyDebugPath.Length)}"") (Join-Path $PSScriptRoot ""{rebuildPeMdvPath.Substring(assemblyDebugPath.Length)}"")");
                         File.WriteAllText(Path.Combine(assemblyDebugPath, "compare-pdb.mdv.ps1"), $@"code --diff (Join-Path $PSScriptRoot ""{originalPdbMdvPath.Substring(assemblyDebugPath.Length)}"") (Join-Path $PSScriptRoot ""{rebuildPdbMdvPath.Substring(assemblyDebugPath.Length)}"")");

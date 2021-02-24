@@ -26,4 +26,5 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
   </ItemGroup>
+  <Import Project="$(RepositoryEngineeringDir)targets\ILDAsm.targets" />
 </Project>
