@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis
 
             var languages = new string[additionalLanguages.Length + 1];
             languages[0] = firstLanguage;
-            for (int index = 0; index < additionalLanguages.Length; index++)
-                Array.Copy(additionalLanguages, sourceIndex: 0, languages, destinationIndex: 1, additionalLanguages.Length);
+            Array.Copy(additionalLanguages, sourceIndex: 0, languages, destinationIndex: 1, additionalLanguages.Length);
 
             this.Languages = languages;
         }
