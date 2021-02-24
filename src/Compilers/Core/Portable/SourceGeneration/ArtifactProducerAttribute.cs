@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis
     public sealed class ArtifactProducerAttribute : Attribute
     {
         /// <summary>
-        /// The source languages to which this generator applies. See <see cref="LanguageNames"/>.
+        /// The source languages to which this artifact producer applies. See <see cref="LanguageNames"/>.
         /// </summary>
         public string[] Languages { get; }
 
         /// <summary>
-        /// Attribute constructor used to specify the attached class is a source generator and indicate which language(s) it supports.
+        /// Attribute constructor used to specify the attached class is a artifact producer and indicate which language(s) it supports.
         /// </summary>
-        /// <param name="firstLanguage">One language to which the generator applies.</param>
-        /// <param name="additionalLanguages">Additional languages to which the generator applies. See <see cref="LanguageNames"/>.</param>
+        /// <param name="firstLanguage">One language to which the producer applies.</param>
+        /// <param name="additionalLanguages">Additional languages to which the producer applies. See <see cref="LanguageNames"/>.</param>
         public ArtifactProducerAttribute(string firstLanguage, params string[] additionalLanguages)
         {
             if (firstLanguage == null)
