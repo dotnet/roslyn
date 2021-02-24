@@ -27,17 +27,20 @@ namespace BuildValidator
         internal SourceHashAlgorithm HashAlgorithm { get; }
         internal byte[] Hash { get; }
         internal SourceText? EmbeddedText { get; }
+        internal byte[]? EmbeddedCompressedHash { get; }
 
         internal SourceFileInfo(
             string sourceFilePath,
             SourceHashAlgorithm hashAlgorithm,
             byte[] hash,
-            SourceText? embeddedText)
+            SourceText? embeddedText,
+            byte[]? embeddedCompressedHash)
         {
             SourceFilePath = sourceFilePath;
             HashAlgorithm = hashAlgorithm;
             Hash = hash;
             EmbeddedText = embeddedText;
+            EmbeddedCompressedHash = embeddedCompressedHash;
         }
     }
 
@@ -192,7 +195,7 @@ namespace BuildValidator
             return (typeName, methodName);
         }
 
-        private SourceText? ResolveEmbeddedSource(DocumentHandle document, SourceHashAlgorithm hashAlgorithm, Encoding encoding)
+        private (SourceText? embeddedText, byte[]? compressedHash) ResolveEmbeddedSource(DocumentHandle document, SourceHashAlgorithm hashAlgorithm, Encoding encoding)
         {
             byte[] bytes = (from handle in PdbReader.GetCustomDebugInformation(document)
                             let cdi = PdbReader.GetCustomDebugInformation(handle)
@@ -201,14 +204,18 @@ namespace BuildValidator
 
             if (bytes == null)
             {
-                return null;
+                return default;
             }
 
             int uncompressedSize = BitConverter.ToInt32(bytes, 0);
             var stream = new MemoryStream(bytes, sizeof(int), bytes.Length - sizeof(int));
 
+            byte[]? compressedHash = null;
             if (uncompressedSize != 0)
             {
+                using var algorithm = CryptographicHashProvider.TryGetAlgorithm(hashAlgorithm) ?? throw new InvalidOperationException();
+                compressedHash = algorithm.ComputeHash(bytes);
+
                 var decompressed = new MemoryStream(uncompressedSize);
 
                 using (var deflater = new DeflateStream(stream, CompressionMode.Decompress))
@@ -227,7 +234,8 @@ namespace BuildValidator
             using (stream)
             {
                 // todo: IVT and EncodedStringText.Create?
-                return SourceText.From(stream, encoding: encoding, checksumAlgorithm: hashAlgorithm, canBeEmbedded: true);
+                var embeddedText = SourceText.From(stream, encoding: encoding, checksumAlgorithm: hashAlgorithm, canBeEmbedded: true);
+                return (embeddedText, compressedHash);
             }
         }
 
@@ -293,7 +301,7 @@ namespace BuildValidator
                 var hash = PdbReader.GetBlobBytes(document.Hash);
                 var embeddedContent = ResolveEmbeddedSource(documentHandle, hashAlgorithm, encoding);
 
-                builder.Add(new SourceFileInfo(name, hashAlgorithm, hash, embeddedContent));
+                builder.Add(new SourceFileInfo(name, hashAlgorithm, hash, embeddedContent.embeddedText, embeddedContent.compressedHash));
             }
 
             return builder.MoveToImmutable();

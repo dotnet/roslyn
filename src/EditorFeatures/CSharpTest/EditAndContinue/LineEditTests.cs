@@ -9,10 +9,12 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class LineEditTests : EditingTestBase
     {
         #region Methods
@@ -1419,6 +1421,45 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyLineEdits(
                 new[] { new SourceLineUpdate(4, 3), new SourceLineUpdate(5, 3) },
+                Array.Empty<string>());
+        }
+
+        #endregion
+
+        #region Types
+
+        [Fact]
+        public void Type_Reorder1()
+        {
+            var src1 = @"
+class C
+{
+    static int F1() => 1;
+    static int F2() => 1;
+}
+
+class D
+{
+    static int G1() => 1;
+    static int G2() => 1;
+}
+";
+            var src2 = @"
+class D
+{
+    static int G1() => 1;
+    static int G2() => 1;
+}
+
+class C
+{
+    static int F1() => 1;
+    static int F2() => 1;
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyLineEdits(
+                new[] { new SourceLineUpdate(3, 9), new SourceLineUpdate(4, 10), new SourceLineUpdate(9, 3), new SourceLineUpdate(10, 4) },
                 Array.Empty<string>());
         }
 

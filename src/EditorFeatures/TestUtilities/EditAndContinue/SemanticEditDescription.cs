@@ -13,22 +13,27 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         public readonly SemanticEditKind Kind;
         public readonly Func<Compilation, ISymbol> SymbolProvider;
-        public readonly IEnumerable<KeyValuePair<TextSpan, TextSpan>> SyntaxMap;
-        public readonly bool PreserveLocalVariables;
-        public readonly int SyntaxTreeOrdinal;
+        public readonly Func<Compilation, ITypeSymbol>? PartialType;
+
+        /// <summary>
+        /// If specified the node mappings will be validated against the actual syntax map function.
+        /// </summary>
+        public readonly IEnumerable<KeyValuePair<TextSpan, TextSpan>>? SyntaxMap;
+
+        public readonly bool HasSyntaxMap;
 
         public SemanticEditDescription(
             SemanticEditKind kind,
             Func<Compilation, ISymbol> symbolProvider,
-            IEnumerable<KeyValuePair<TextSpan, TextSpan>> syntaxMap,
-            bool preserveLocalVariables,
-            int syntaxTreeOrdinal = 0)
+            Func<Compilation, ITypeSymbol>? partialType,
+            IEnumerable<KeyValuePair<TextSpan, TextSpan>>? syntaxMap,
+            bool hasSyntaxMap)
         {
             Kind = kind;
             SymbolProvider = symbolProvider;
             SyntaxMap = syntaxMap;
-            PreserveLocalVariables = preserveLocalVariables;
-            SyntaxTreeOrdinal = syntaxTreeOrdinal;
+            PartialType = partialType;
+            HasSyntaxMap = hasSyntaxMap;
         }
     }
 }

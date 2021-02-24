@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
-            Assert.Equal(expected, SegmentedArrayHelper.CalculateSegmentSize(elementSize));
+            Assert.Equal(expected, SegmentedArrayHelper.TestAccessor.CalculateSegmentSize(elementSize));
         }
 
         [Theory]
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
-            Assert.Equal(expected, SegmentedArrayHelper.CalculateSegmentShift(segmentSize));
+            Assert.Equal(expected, SegmentedArrayHelper.TestAccessor.CalculateSegmentShift(segmentSize));
         }
 
         [Theory]
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
-            Assert.Equal(expected, SegmentedArrayHelper.CalculateOffsetMask(segmentSize));
+            Assert.Equal(expected, SegmentedArrayHelper.TestAccessor.CalculateOffsetMask(segmentSize));
         }
     }
 }
