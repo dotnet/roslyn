@@ -66,6 +66,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
             => ImmutableArray<CodeAction>.Empty;
 
         /// <summary>
+        /// Gets custom tags for the CodeAction.
+        /// </summary>
+        public virtual ImmutableArray<string> CustomTags => ImmutableArray<string>.Empty;
+
+        /// <summary>
         /// The sequence of operations that define the code action.
         /// </summary>
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
@@ -358,22 +363,30 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal abstract class SimpleCodeAction : CodeAction
         {
-            public SimpleCodeAction(string title, string? equivalenceKey)
+            public SimpleCodeAction(
+                string title,
+                string? equivalenceKey,
+                ImmutableArray<string>? customTags = null)
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
+                CustomTags = customTags.GetValueOrDefault(base.CustomTags);
             }
 
             public sealed override string Title { get; }
             public sealed override string? EquivalenceKey { get; }
+            public sealed override ImmutableArray<string> CustomTags { get; }
         }
 
         internal class CodeActionWithNestedActions : SimpleCodeAction
         {
             public CodeActionWithNestedActions(
-                string title, ImmutableArray<CodeAction> nestedActions,
-                bool isInlinable, CodeActionPriority priority = CodeActionPriority.Medium)
-                : base(title, ComputeEquivalenceKey(nestedActions))
+                string title,
+                ImmutableArray<CodeAction> nestedActions,
+                bool isInlinable,
+                CodeActionPriority priority = CodeActionPriority.Medium,
+                ImmutableArray<string>? customTags = null)
+                : base(title, ComputeEquivalenceKey(nestedActions), customTags)
             {
                 Debug.Assert(nestedActions.Length > 0);
                 NestedCodeActions = nestedActions;
@@ -410,8 +423,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
-            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
-                : base(title, equivalenceKey)
+            public DocumentChangeAction(
+                string title,
+                Func<CancellationToken, Task<Document>> createChangedDocument,
+                string? equivalenceKey = null,
+                ImmutableArray<string>? customTags = null)
+                : base(title, equivalenceKey, customTags)
             {
                 _createChangedDocument = createChangedDocument;
             }
@@ -424,8 +441,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
-            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null)
-                : base(title, equivalenceKey)
+            public SolutionChangeAction(
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                string? equivalenceKey = null,
+                ImmutableArray<string>? customTags = null)
+                : base(title, equivalenceKey, customTags)
             {
                 _createChangedSolution = createChangedSolution;
             }
@@ -436,8 +457,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal class NoChangeAction : SimpleCodeAction
         {
-            public NoChangeAction(string title, string? equivalenceKey = null)
-                : base(title, equivalenceKey)
+            public NoChangeAction(
+                string title,
+                string? equivalenceKey = null,
+                ImmutableArray<string>? customTags = null)
+                : base(title, equivalenceKey, customTags)
             {
             }
 
