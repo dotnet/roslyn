@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
@@ -23,13 +24,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         /// </remarks>
         public string UniqueIdentifier { get; }
 
+        public ImmutableArray<string> CustomTags { get; }
+
         public LSP.Range Range { get; }
 
         public LSP.TextDocumentIdentifier TextDocument { get; }
 
-        public CodeActionResolveData(string uniqueIdentifier, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
+        public CodeActionResolveData(string uniqueIdentifier, ImmutableArray<string> customTags, LSP.Range range, LSP.TextDocumentIdentifier textDocument)
         {
             UniqueIdentifier = uniqueIdentifier;
+            CustomTags = customTags;
             Range = range;
             TextDocument = textDocument;
         }
