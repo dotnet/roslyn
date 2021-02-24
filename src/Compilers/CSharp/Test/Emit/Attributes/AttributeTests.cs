@@ -9604,9 +9604,9 @@ public class C
                 // (3,21): error CS0698: A generic type cannot derive from 'Attribute' because it is an attribute class
                 // public class A<T> : System.Attribute {}
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute").WithLocation(3, 21),
-                // (5,2): error CS1614: 'A<>' is ambiguous between 'A<T>' and 'AAttribute<T>'; use either '@A<>' or 'A<>Attribute'
+                // (5,2): error CS0404: Cannot apply attribute class 'A<T>' because it is generic
                 // [A<int>]
-                Diagnostic(ErrorCode.ERR_AmbiguousAttribute, "A<int>").WithArguments("A<>", "A<T>", "AAttribute<T>").WithLocation(5, 2)
+                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "A<int>").WithArguments("A<T>").WithLocation(5, 2)
                 );
         }
 
