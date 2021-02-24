@@ -12,6 +12,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
@@ -103,6 +104,7 @@ namespace BuildValidator
             if (sourceLinks.IsDefault)
             {
                 _logger.LogInformation("No source links found in pdb");
+                sourceLinks = ImmutableArray<SourceLink>.Empty;
             }
             else
             {
@@ -232,7 +234,7 @@ namespace BuildValidator
             ImmutableArray<ResolvedSource> sources,
             ImmutableArray<MetadataReference> metadataReferences)
         {
-            var compilationOptions = CreateVisualBasicCompilationOptions(optionsReader);
+            var compilationOptions = CreateVisualBasicCompilationOptions(optionsReader, fileName);
             return VisualBasicCompilation.Create(
                 Path.GetFileNameWithoutExtension(fileName),
                 syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s.SourceText, options: compilationOptions.ParseOptions, path: s.DisplayPath)).ToImmutableArray(),
@@ -240,22 +242,27 @@ namespace BuildValidator
                 options: compilationOptions);
         }
 
-        private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(CompilationOptionsReader optionsReader)
+        private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(CompilationOptionsReader optionsReader, string fileName)
         {
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
-            var langVersionString = pdbCompilationOptions.GetUniqueOption("language-version");
-            pdbCompilationOptions.TryGetUniqueOption("optimization", out var optimization);
-            pdbCompilationOptions.TryGetUniqueOption("define", out var define);
-            pdbCompilationOptions.TryGetUniqueOption("strict", out var strict);
-            pdbCompilationOptions.TryGetUniqueOption("checked", out var checkedString);
+            var langVersionString = pdbCompilationOptions.GetUniqueOption(CompilationOptionNames.LanguageVersion);
+            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
+            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Define, out var define);
+            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.GlobalNamespaces, out var globalNamespacesString);
+
+            IEnumerable<GlobalImport> globalImports = null;
+            if (!string.IsNullOrEmpty(globalNamespacesString))
+            {
+                globalImports = GlobalImport.Parse(globalNamespacesString.Split(';'));
+            }
 
             VB.LanguageVersion langVersion = default;
             VB.LanguageVersionFacts.TryParse(langVersionString, ref langVersion);
 
             var preprocessorSymbols = string.IsNullOrEmpty(define)
                 ? Array.Empty<KeyValuePair<string, object>>()
-                : define.Split(';')
+                : define.Split(',')
                     .Select(s => s.Split('='))
                     .Select(a => new KeyValuePair<string, object>(a[0], a[1]))
                     .ToArray();
@@ -263,26 +270,24 @@ namespace BuildValidator
             var parseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(langVersion)
                 .WithPreprocessorSymbols(preprocessorSymbols);
 
-            var (optimizationLevel, _) = GetOptimizationLevel(optimization);
+            var (optimizationLevel, plus) = GetOptimizationLevel(optimization);
+            var isChecked = OptionToBool(CompilationOptionNames.Checked) ?? false;
+            var embedVBRuntime = OptionToBool(CompilationOptionNames.EmbedRuntime) ?? false;
+            var rootNamespace = OptionToString(CompilationOptionNames.RootNamespaces) ?? null;
 
-            bool.TryParse(checkedString, out var isChecked);
-            bool.TryParse(strict, out var isStrict);
-
-            // TODO: rebuilding VB projects fails due to reference issues
-            // for example, core types like KeyValuePair are missing
-            return new VisualBasicCompilationOptions(
-                OutputKind.DynamicallyLinkedLibrary,
-                moduleName: null,
-                mainTypeName: null,
+            var compilationOptions = new VisualBasicCompilationOptions(
+                optionsReader.GetOutputKind(),
+                moduleName: fileName,
+                mainTypeName: optionsReader.GetMainTypeName(),
                 scriptClassName: "Script",
-                globalImports: null,
-                rootNamespace: null,
-                optionStrict: isStrict ? OptionStrict.On : OptionStrict.Off,
-                optionInfer: true,
-                optionExplicit: true,
-                optionCompareText: false,
+                globalImports: globalImports,
+                rootNamespace: rootNamespace,
+                optionStrict: OptionToEnum<OptionStrict>(CompilationOptionNames.OptionStrict) ?? OptionStrict.Off,
+                optionInfer: OptionToBool(CompilationOptionNames.OptionInfer) ?? false,
+                optionExplicit: OptionToBool(CompilationOptionNames.OptionExplicit) ?? false,
+                optionCompareText: OptionToBool(CompilationOptionNames.OptionCompareText) ?? false,
                 parseOptions: parseOptions,
-                embedVbCoreRuntime: false,
+                embedVbCoreRuntime: embedVBRuntime,
                 optimizationLevel: optimizationLevel,
                 checkOverflow: isChecked,
                 cryptoKeyContainer: null,
@@ -302,6 +307,14 @@ namespace BuildValidator
                 publicSign: false,
                 reportSuppressedDiagnostics: false,
                 metadataImportOptions: MetadataImportOptions.Public);
+            compilationOptions.DebugPlusMode = plus;
+
+            return compilationOptions;
+
+            string? OptionToString(string option) => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? value : null;
+            bool? OptionToBool(string option) => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? ToBool(value) : null;
+            T? OptionToEnum<T>(string option) where T : struct => pdbCompilationOptions.TryGetUniqueOption(option, out var value) && Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
+            bool? ToBool(string option) => bool.TryParse(option, out var value) ? value : null;
         }
         #endregion
     }

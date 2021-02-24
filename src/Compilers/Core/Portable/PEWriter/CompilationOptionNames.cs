@@ -28,7 +28,13 @@ namespace Microsoft.Cci
         public const string Unsafe = "unsafe";
         public const string Nullable = "nullable";
         public const string Define = "define";
-        public const string Strict = "strict";
         public const string SourceFileCount = "source-file-count";
+        public const string EmbedRuntime = "embed-runtime";
+        public const string GlobalNamespaces = "global-namespaces";
+        public const string RootNamespaces = "root-namespace";
+        public const string OptionStrict = "option-strict";
+        public const string OptionInfer = "option-infer";
+        public const string OptionExplicit = "option-explicit";
+        public const string OptionCompareText = "option-compare-text";
     }
 }
