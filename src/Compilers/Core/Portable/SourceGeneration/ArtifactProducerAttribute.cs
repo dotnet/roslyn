@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Attribute constructor used to specify the attached class is a artifact producer and indicate which language(s) it supports.
         /// </summary>
-        /// <param name="firstLanguage">One language to which the generator applies.</param>
+        /// <param name="firstLanguage">One language to which the producer applies.</param>
         /// <param name="additionalLanguages">Additional languages to which the generator applies. See <see cref="LanguageNames"/>.</param>
         public ArtifactProducerAttribute(string firstLanguage, params string[] additionalLanguages)
         {
