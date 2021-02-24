@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     public sealed class ArtifactProducerAttribute : Attribute
     {
         /// <summary>
-        /// The source languages to which this generator applies. See <see cref="LanguageNames"/>.
+        /// The source languages to which this artifact producer applies. See <see cref="LanguageNames"/>.
         /// </summary>
         public string[] Languages { get; }
 
