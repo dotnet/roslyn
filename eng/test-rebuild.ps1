@@ -38,7 +38,6 @@ try {
   $rebuildArgs = ("--verbose" +
   " --assembliesPath `"$ArtifactsDir/obj/AnalyzerRunner/$configuration/netcoreapp3.1`"" +
   " --assembliesPath `"$ArtifactsDir/obj/AnalyzerRunner/$configuration/net5.0`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/BuildValidator/$configuration/netcoreapp3.1`"" +
   " --assembliesPath `"$ArtifactsDir/obj/CodeStyleConfigFileGenerator`"" +
   " --assembliesPath `"$ArtifactsDir/obj/csc/$configuration/netcoreapp3.1`"" +
   " --assembliesPath `"$ArtifactsDir/obj/CSharpResultProvider.NetFX20`"" +
