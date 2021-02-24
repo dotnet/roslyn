@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
-            binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, name, arity, options, this);
+            binder.GetCandidateExtensionMethods(methods, name, arity, options, this);
 
             foreach (var method in methods)
             {
@@ -692,7 +692,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// </summary>
         internal virtual void GetCandidateExtensionMethods(
-            bool searchUsingsNotNamespace,
             ArrayBuilder<MethodSymbol> methods,
             string name,
             int arity,

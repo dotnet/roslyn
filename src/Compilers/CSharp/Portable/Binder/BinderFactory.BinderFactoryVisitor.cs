@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 NamespaceSymbol ns = ((NamespaceSymbol)container).GetNestedNamespace(name);
                 if ((object)ns == null) return outer;
-                return new InContainerBinder(ns, outer, node, inUsing: inUsing);
+                return new InContainerBinder(ns, new ImportsBinder(ns, outer, node, inUsing: inUsing));
             }
 
             public override Binder VisitCompilationUnit(CompilationUnitSyntax parent)
@@ -897,14 +897,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            result = new InContainerBinder(container: null, next: result, imports: compilation.GlobalImports);
+                            result = new ImportsBinder(container: null, next: result, imports: compilation.GlobalImports);
 
                             // NB: This binder has a full Imports object, but only the non-alias imports are
                             // ever consumed.  Aliases are actually checked in scriptClassBinder (below).
                             // Note: #loaded trees don't consume previous submission imports.
                             result = compilation.PreviousSubmission == null || !isSubmissionTree
-                                ? new InContainerBinder(result, basesBeingResolved => scriptClassBinder.GetImports(basesBeingResolved))
-                                : new InContainerBinder(result, basesBeingResolved =>
+                                ? new ImportsBinder(result, basesBeingResolved => scriptClassBinder.GetImports(basesBeingResolved))
+                                : new ImportsBinder(result, basesBeingResolved =>
                                     compilation.GetPreviousSubmissionImports().Concat(scriptClassBinder.GetImports(basesBeingResolved)));
                         }
 
@@ -915,7 +915,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             result = new HostObjectModelBinder(result);
                         }
 
-                        scriptClassBinder = new InContainerBinder(compilation.ScriptClass, result, compilationUnit, inUsing: inUsing);
+                        var scriptClass = compilation.ScriptClass;
+                        scriptClassBinder = new InContainerBinder(scriptClass, new ImportsBinder(scriptClass, result, compilationUnit, inUsing: inUsing));
                         result = scriptClassBinder;
                     }
                     else
@@ -925,7 +926,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //
                         // + global namespace with top-level imports
                         // 
-                        result = new InContainerBinder(compilation.GlobalNamespace, result, compilationUnit, inUsing: inUsing);
+                        var globalNamespace = compilation.GlobalNamespace;
+                        result = new InContainerBinder(globalNamespace, new ImportsBinder(globalNamespace, result, compilationUnit, inUsing: inUsing));
 
                         if (!inUsing &&
                             SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, compilationUnit, fallbackToMainEntryPoint: true) is SynthesizedSimpleProgramEntryPointSymbol simpleProgram)

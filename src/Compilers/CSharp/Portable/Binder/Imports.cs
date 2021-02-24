@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static Imports FromSyntax(
             CSharpSyntaxNode declarationSyntax,
-            InContainerBinder binder,
+            ImportsBinder binder,
             ConsList<TypeSymbol> basesBeingResolved,
             bool inUsing)
         {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
                             externAliases,
                             diagnostics: null);
-                    usingsBinder = new InContainerBinder(binder.Container, binder.Next, imports);
+                    usingsBinder = new InContainerBinder(binder.Container, new ImportsBinder(binder.Container, binder.Next, imports));
                 }
 
                 var uniqueUsings = SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<NamespaceOrTypeSymbol>();
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<AliasAndExternAliasDirective> BuildExternAliases(
             SyntaxList<ExternAliasDirectiveSyntax> syntaxList,
-            InContainerBinder binder,
+            ImportsBinder binder,
             DiagnosticBag diagnostics)
         {
             CSharpCompilation compilation = binder.Compilation;
