@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     internal interface IRegexNodeVisitor
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         void Visit(RegexNegativeLookaheadGroupingNode node);
         void Visit(RegexPositiveLookbehindGroupingNode node);
         void Visit(RegexNegativeLookbehindGroupingNode node);
-        void Visit(RegexNonBacktrackingGroupingNode node);
+        void Visit(RegexAtomicGroupingNode node);
         void Visit(RegexCaptureGroupingNode node);
         void Visit(RegexBalancingGroupingNode node);
         void Visit(RegexConditionalCaptureGroupingNode node);

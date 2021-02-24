@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Text.RegularExpressions;
 using Xunit;
 
@@ -3441,7 +3443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Test(@"@""(?>(\w)\1+).\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <NonBacktrackingGrouping>
+      <AtomicGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
         <GreaterThanToken>&gt;</GreaterThanToken>
@@ -3465,7 +3467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
           </OneOrMoreQuantifier>
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
-      </NonBacktrackingGrouping>
+      </AtomicGrouping>
       <Wildcard>
         <DotToken>.</DotToken>
       </Wildcard>
@@ -4363,7 +4365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <SimpleGrouping>
           <OpenParenToken>(</OpenParenToken>
           <Sequence>
-            <NonBacktrackingGrouping>
+            <AtomicGrouping>
               <OpenParenToken>(</OpenParenToken>
               <QuestionToken>?</QuestionToken>
               <GreaterThanToken>&gt;</GreaterThanToken>
@@ -4377,7 +4379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 </OneOrMoreQuantifier>
               </Sequence>
               <CloseParenToken>)</CloseParenToken>
-            </NonBacktrackingGrouping>
+            </AtomicGrouping>
             <ZeroOrOneQuantifier>
               <Text>
                 <TextToken>,</TextToken>
@@ -4449,7 +4451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
           <OptionsToken>n</OptionsToken>
           <ColonToken>:</ColonToken>
           <Sequence>
-            <NonBacktrackingGrouping>
+            <AtomicGrouping>
               <OpenParenToken>(</OpenParenToken>
               <QuestionToken>?</QuestionToken>
               <GreaterThanToken>&gt;</GreaterThanToken>
@@ -4463,7 +4465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 </OneOrMoreQuantifier>
               </Sequence>
               <CloseParenToken>)</CloseParenToken>
-            </NonBacktrackingGrouping>
+            </AtomicGrouping>
             <ZeroOrOneQuantifier>
               <Text>
                 <TextToken>,</TextToken>
@@ -4532,7 +4534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <SimpleGrouping>
           <OpenParenToken>(</OpenParenToken>
           <Sequence>
-            <NonBacktrackingGrouping>
+            <AtomicGrouping>
               <OpenParenToken>(</OpenParenToken>
               <QuestionToken>?</QuestionToken>
               <GreaterThanToken>&gt;</GreaterThanToken>
@@ -4546,7 +4548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 </OneOrMoreQuantifier>
               </Sequence>
               <CloseParenToken>)</CloseParenToken>
-            </NonBacktrackingGrouping>
+            </AtomicGrouping>
             <ZeroOrOneQuantifier>
               <Text>
                 <TextToken>,</TextToken>
@@ -4628,7 +4630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
               <WhitespaceTrivia> </WhitespaceTrivia>
             </Trivia>(</OpenParenToken>
           <Sequence>
-            <NonBacktrackingGrouping>
+            <AtomicGrouping>
               <OpenParenToken>
                 <Trivia>
                   <WhitespaceTrivia> </WhitespaceTrivia>
@@ -4645,7 +4647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 </OneOrMoreQuantifier>
               </Sequence>
               <CloseParenToken>)</CloseParenToken>
-            </NonBacktrackingGrouping>
+            </AtomicGrouping>
             <ZeroOrOneQuantifier>
               <Text>
                 <TextToken>
@@ -5131,7 +5133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         <SimpleGrouping>
           <OpenParenToken>(</OpenParenToken>
           <Sequence>
-            <NonBacktrackingGrouping>
+            <AtomicGrouping>
               <OpenParenToken>(</OpenParenToken>
               <QuestionToken>?</QuestionToken>
               <GreaterThanToken>&gt;</GreaterThanToken>
@@ -5145,7 +5147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 </OneOrMoreQuantifier>
               </Sequence>
               <CloseParenToken>)</CloseParenToken>
-            </NonBacktrackingGrouping>
+            </AtomicGrouping>
             <ZeroOrOneQuantifier>
               <Text>
                 <TextToken>,</TextToken>
@@ -5443,7 +5445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Test(@"@""(?>(\w)\1+).\b""", @"<Tree>
   <CompilationUnit>
     <Sequence>
-      <NonBacktrackingGrouping>
+      <AtomicGrouping>
         <OpenParenToken>(</OpenParenToken>
         <QuestionToken>?</QuestionToken>
         <GreaterThanToken>&gt;</GreaterThanToken>
@@ -5467,7 +5469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
           </OneOrMoreQuantifier>
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
-      </NonBacktrackingGrouping>
+      </AtomicGrouping>
       <Wildcard>
         <DotToken>.</DotToken>
       </Wildcard>

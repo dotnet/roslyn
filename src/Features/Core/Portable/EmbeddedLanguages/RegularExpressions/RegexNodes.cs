@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -993,12 +995,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```(?&gt;expr)``` node.
     /// </summary>
-    internal sealed class RegexNonBacktrackingGroupingNode : RegexQuestionGroupingNode
+    internal sealed class RegexAtomicGroupingNode : RegexQuestionGroupingNode
     {
-        public RegexNonBacktrackingGroupingNode(
+        public RegexAtomicGroupingNode(
             RegexToken openParenToken, RegexToken questionToken, RegexToken greaterThanToken,
             RegexExpressionNode expression, RegexToken closeParenToken)
-            : base(RegexKind.NonBacktrackingGrouping, openParenToken, questionToken, closeParenToken)
+            : base(RegexKind.AtomicGrouping, openParenToken, questionToken, closeParenToken)
         {
             Debug.Assert(greaterThanToken.Kind == RegexKind.GreaterThanToken);
             Debug.Assert(expression != null);

@@ -2,20 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using System;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests.Persistence;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
+using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Host.Mef;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -389,55 +391,6 @@ language: LanguageNames.CSharp);
 
             // prove constructing text did not introduce a new version
             Assert.Equal(currentVersion, actualVersion);
-        }
-
-        private AdhocWorkspace CreateWorkspaceWithRecoverableTrees(HostServices hostServices)
-        {
-            var ws = new AdhocWorkspace(hostServices, workspaceKind: "NotKeptAlive");
-            ws.TryApplyChanges(ws.CurrentSolution.WithOptions(ws.CurrentSolution.Options
-                .WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0)));
-            return ws;
-        }
-
-        [Fact]
-        public async Task TestUpdatedDocumentTextIsObservablyConstantAsync()
-        {
-            var hostServices = MefHostServices.Create(TestHost.Assemblies);
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(new AdhocWorkspace(hostServices));
-            await CheckUpdatedDocumentTextIsObservablyConstantAsync(CreateWorkspaceWithRecoverableTrees(hostServices));
-        }
-
-        private async Task CheckUpdatedDocumentTextIsObservablyConstantAsync(AdhocWorkspace ws)
-        {
-            var pid = ProjectId.CreateNewId();
-            var text = SourceText.From("public class C { }");
-            var version = VersionStamp.Create();
-            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, version)));
-            var projInfo = ProjectInfo.Create(
-                pid,
-                version: VersionStamp.Default,
-                name: "TestProject",
-                assemblyName: "TestProject.dll",
-                language: LanguageNames.CSharp,
-                documents: new[] { docInfo });
-
-            ws.AddProject(projInfo);
-            var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
-
-            // change document
-            var root = await doc.GetSyntaxRootAsync();
-            var newRoot = root.WithAdditionalAnnotations(new SyntaxAnnotation());
-            Assert.NotSame(root, newRoot);
-            var newDoc = doc.Project.Solution.WithDocumentSyntaxRoot(doc.Id, newRoot).GetDocument(doc.Id);
-            Assert.NotSame(doc, newDoc);
-
-            var newDocText = await newDoc.GetTextAsync();
-            var sameText = await newDoc.GetTextAsync();
-            Assert.Same(newDocText, sameText);
-
-            var newDocTree = await newDoc.GetSyntaxTreeAsync();
-            var treeText = newDocTree.GetText();
-            Assert.Same(newDocText, treeText);
         }
 
         [WorkItem(1174396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174396")]

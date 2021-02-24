@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 codeAction, showPreviewChangesDialog, fixAllContext.State, fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<CodeAction> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
+        private static async Task<CodeAction> GetFixAllCodeActionAsync(FixAllContext fixAllContext)
         {
             using (Logger.LogBlock(
                 FunctionId.CodeFixes_FixAllOccurrencesComputation,
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
         }
 
-        private async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
+        private static async Task<ImmutableArray<CodeActionOperation>> GetFixAllOperationsAsync(
             CodeAction codeAction, bool showPreviewChangesDialog,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
@@ -155,12 +157,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }),
                 cancellationToken))
             {
-                var previewService = workspace.Services.GetService<IPreviewDialogService>();
                 var glyph = languageOpt == null
                     ? Glyph.Assembly
                     : languageOpt == LanguageNames.CSharp
                         ? Glyph.CSharpProject
                         : Glyph.BasicProject;
+#if COCOA
+
+                var previewService = workspace.Services.GetService<IPreviewDialogService>();
+
+                // Until IPreviewDialogService is implemented, just execute all changes without user ability to pick and choose
+                if (previewService == null)
+                    return newSolution;
+#else
+
+                var previewService = workspace.Services.GetRequiredService<IPreviewDialogService>();
+
+#endif
 
                 var changedSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),
@@ -193,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (!foundApplyChanges)
                 {
-                    if (operation is ApplyChangesOperation applyChangesOperation)
+                    if (operation is ApplyChangesOperation)
                     {
                         foundApplyChanges = true;
                         result.Add(new ApplyChangesOperation(newSolution));

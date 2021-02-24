@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal static class SyntaxNodeExtensions
     {
-        public static bool IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList(this SyntaxNode node, bool includeOperators)
+        public static bool IsDelegateOrConstructorOrLocalFunctionOrMethodOrOperatorParameterList([NotNullWhen(true)] this SyntaxNode? node, bool includeOperators)
         {
             if (!node.IsKind(SyntaxKind.ParameterList))
             {

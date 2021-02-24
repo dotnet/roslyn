@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
     {
         public CSharpUseLocalFunctionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseLocalFunctionDiagnosticId,
+                   EnforceOnBuildValues.UseLocalFunction,
                    CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
@@ -168,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             }
         }
 
-        private bool CheckForPattern(
+        private static bool CheckForPattern(
             AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
         {
             // Look for:
@@ -183,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                    CheckForLocalDeclarationAndAssignment(anonymousFunction, out localDeclaration);
         }
 
-        private bool CheckForSimpleLocalDeclarationPattern(
+        private static bool CheckForSimpleLocalDeclarationPattern(
             AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
         {
             // Type t = <anonymous function>
@@ -202,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             return false;
         }
 
-        private bool CanReplaceAnonymousWithLocalFunction(
+        private static bool CanReplaceAnonymousWithLocalFunction(
             SemanticModel semanticModel, INamedTypeSymbol expressionTypeOpt, ISymbol local, BlockSyntax block,
             AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> referenceLocations, CancellationToken cancellationToken)
         {
@@ -286,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             return true;
         }
 
-        private bool CheckForCastedLocalDeclarationPattern(
+        private static bool CheckForCastedLocalDeclarationPattern(
             AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
         {
             // var t = (Type)(<anonymous function>)
@@ -312,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             return false;
         }
 
-        private bool CheckForLocalDeclarationAndAssignment(
+        private static bool CheckForLocalDeclarationAndAssignment(
             AnonymousFunctionExpressionSyntax anonymousFunction, out LocalDeclarationStatementSyntax localDeclaration)
         {
             // Type t = null;

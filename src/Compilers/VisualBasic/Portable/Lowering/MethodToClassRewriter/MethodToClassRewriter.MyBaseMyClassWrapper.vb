@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' register a new method
             If Me.CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                Me.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapperMethod)
+                Me.CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(containingType, wrapperMethod.GetCciAdapter())
             End If
 
             ' generate method body

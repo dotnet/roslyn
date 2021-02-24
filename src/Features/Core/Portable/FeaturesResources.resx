@@ -649,17 +649,20 @@ Do you want to continue?</value>
   <data name="Unknown_error_occurred" xml:space="preserve">
     <value>Unknown error occurred</value>
   </data>
+  <data name="No_valid_location_to_insert_method_call" xml:space="preserve">
+    <value>No valid location to insert method call.</value>
+  </data>
   <data name="Available" xml:space="preserve">
     <value>Available</value>
   </data>
   <data name="Not_Available" xml:space="preserve">
-    <value>Not Available</value>
+    <value>Not Available ⚠</value>
   </data>
   <data name="_0_1" xml:space="preserve">
     <value>    {0} - {1}</value>
   </data>
-  <data name="You_can_use_the_navigation_bar_to_switch_context" xml:space="preserve">
-    <value>You can use the navigation bar to switch context.</value>
+  <data name="You_can_use_the_navigation_bar_to_switch_contexts" xml:space="preserve">
+    <value>You can use the navigation bar to switch contexts.</value>
   </data>
   <data name="in_Source" xml:space="preserve">
     <value>in Source</value>
@@ -1129,9 +1132,6 @@ This version used in: {2}</value>
   <data name="Convert_to_full_property" xml:space="preserve">
     <value>Convert to full property</value>
   </data>
-  <data name="Generate_constructor_in_0_without_fields" xml:space="preserve">
-    <value>Generate constructor in '{0}' (without fields)</value>
-  </data>
   <data name="Warning_Method_overrides_symbol_from_metadata" xml:space="preserve">
     <value>Warning: Method overrides symbol from metadata</value>
   </data>
@@ -1202,7 +1202,18 @@ This version used in: {2}</value>
     <value>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</value>
   </data>
   <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
-    <value>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</value>
+    <value>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</value>
+    <comment>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</comment>
+  </data>
+  <data name="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big" xml:space="preserve">
+    <value>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</value>
+  </data>
+  <data name="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error" xml:space="preserve">
+    <value>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</value>
+    <comment>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</comment>
+  </data>
+  <data name="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_because_the_body_has_too_many_statements" xml:space="preserve">
+    <value>Modifying the body of '{0}' will prevent the debug session from continuing because the body has too many statements.</value>
   </data>
   <data name="Change_namespace_to_0" xml:space="preserve">
     <value>Change namespace to '{0}'</value>
@@ -1395,31 +1406,6 @@ This version used in: {2}</value>
   </data>
   <data name="ChangesDisallowedWhileStoppedAtException" xml:space="preserve">
     <value>Changes are not allowed while stopped at exception</value>
-  </data>
-  <data name="Dispose_objects_before_losing_scope" xml:space="preserve">
-    <value>Dispose objects before losing scope</value>
-  </data>
-  <data name="Disposable_object_created_by_0_is_never_disposed" xml:space="preserve">
-    <value>Disposable object created by '{0}' is never disposed</value>
-  </data>
-  <data name="Use_recommended_dispose_pattern" xml:space="preserve">
-    <value>Use recommended dispose pattern</value>
-  </data>
-  <data name="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally" xml:space="preserve">
-    <value>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</value>
-    <comment>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</comment>
-  </data>
-  <data name="UseRecommendedDisposePatternDescription" xml:space="preserve">
-    <value>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</value>
-  </data>
-  <data name="Disposable_fields_should_be_disposed" xml:space="preserve">
-    <value>Disposable fields should be disposed</value>
-  </data>
-  <data name="Disposable_field_0_is_never_disposed" xml:space="preserve">
-    <value>Disposable field '{0}' is never disposed</value>
-  </data>
-  <data name="DisposableFieldsShouldBeDisposedDescription" xml:space="preserve">
-    <value>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</value>
   </data>
   <data name="Wrap_and_align_call_chain" xml:space="preserve">
     <value>Wrap and align call chain</value>
@@ -1956,6 +1942,9 @@ If the "H" format specifier is used without other custom format specifiers, it's
   </data>
   <data name="Create_and_assign_remaining_as_properties" xml:space="preserve">
     <value>Create and assign remaining as properties</value>
+  </data>
+  <data name="Add_explicit_cast" xml:space="preserve">
+    <value>Add explicit cast</value>
   </data>
   <data name="Example" xml:space="preserve">
     <value>Example:</value>
@@ -2533,13 +2522,13 @@ If the RegexOptions parameter of a regular expression pattern matching method in
   <data name="Regex_no" xml:space="preserve">
     <value>no</value>
   </data>
-  <data name="Regex_nonbacktracking_subexpression_long" xml:space="preserve">
-    <value>This construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+  <data name="Regex_atomic_group_long" xml:space="preserve">
+    <value>Atomic groups (known in some other regular expression engines as a nonbacktracking subexpression, an atomic subexpression, or a once-only subexpression) disable backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
 
 This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</value>
   </data>
-  <data name="Regex_nonbacktracking_subexpression_short" xml:space="preserve">
-    <value>nonbacktracking subexpression</value>
+  <data name="Regex_atomic_group_short" xml:space="preserve">
+    <value>atomic group</value>
   </data>
   <data name="Regex_noncapturing_group_long" xml:space="preserve">
     <value>This construct does not capture the substring that is matched by a subexpression:
@@ -2745,9 +2734,78 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>inline options</value>
   </data>
   <data name="_0_cannot_be_null_or_empty" xml:space="preserve">
-    <value>'{0}' cannot be null or empty</value>
+    <value>'{0}' cannot be null or empty.</value>
   </data>
   <data name="_0_cannot_be_null_or_whitespace" xml:space="preserve">
-    <value>'{0}' cannot be null or whitespace</value>
+    <value>'{0}' cannot be null or whitespace.</value>
+  </data>
+  <data name="_0_is_not_null_here" xml:space="preserve">
+    <value>'{0}' is not null here.</value>
+  </data>
+  <data name="_0_may_be_null_here" xml:space="preserve">
+    <value>'{0}' may be null here.</value>
+  </data>
+  <data name="ChangeSignature_NewParameterInferValue" xml:space="preserve">
+    <value>&lt;infer&gt;</value>
+  </data>
+  <data name="Convert_type_to_0" xml:space="preserve">
+    <value>Convert type to '{0}'</value>
+  </data>
+  <data name="from_metadata" xml:space="preserve">
+    <value>from metadata</value>
+  </data>
+  <data name="symbol_cannot_be_a_namespace" xml:space="preserve">
+    <value>'symbol' cannot be a namespace.</value>
+  </data>
+  <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
+    <value>Document must be contained in the workspace that created this service</value>
+  </data>
+  <data name="Generate_constructor_in_0_with_fields" xml:space="preserve">
+    <value>Generate constructor in '{0}' (with fields)</value>
+  </data>
+  <data name="Generate_constructor_in_0_with_properties" xml:space="preserve">
+    <value>Generate constructor in '{0}' (with properties)</value>
+  </data>
+  <data name="Property_reference_cannot_be_updated" xml:space="preserve">
+    <value>Property reference cannot be updated</value>
+  </data>
+  <data name="Make_class_abstract" xml:space="preserve">
+    <value>Make class 'abstract'</value>
+  </data>
+  <data name="Inline_0" xml:space="preserve">
+    <value>Inline '{0}'</value>
+  </data>
+  <data name="Remove_async_modifier" xml:space="preserve">
+    <value>Remove 'async' modifier</value>
+  </data>
+  <data name="Extract_base_class" xml:space="preserve">
+    <value>Extract base class...</value>
+  </data>
+  <data name="Inline_and_keep_0" xml:space="preserve">
+    <value>Inline and keep '{0}'</value>
+  </data>
+  <data name="Pull_members_up_to_new_base_class" xml:space="preserve">
+    <value>Pull member(s) up to new base class...</value>
+  </data>
+  <data name="The_assembly_0_containing_type_1_references_NET_Framework" xml:space="preserve">
+    <value>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider</value>
+  </data>
+  <data name="Error_creating_instance_of_CodeFixProvider_0" xml:space="preserve">
+    <value>Error creating instance of CodeFixProvider '{0}'</value>
+  </data>
+  <data name="Removal_of_document_not_supported" xml:space="preserve">
+    <value>Removal of document not supported</value>
+  </data>
+  <data name="in_0_1_2" xml:space="preserve">
+    <value>in {0} ({1} - {2})</value>
+  </data>
+  <data name="_0_dash_1" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="Convert_to_record" xml:space="preserve">
+    <value>Convert to record</value>
   </data>
 </root>

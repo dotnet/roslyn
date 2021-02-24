@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                 Return OverloadResolution.MethodInvocationOverloadResolution(
                         methodGroup, arguments, argumentNames, binder, includeEliminatedCandidates:=includeEliminatedCandidates, lateBindingIsAllowed:=lateBindingIsAllowed, callerInfoOpt:=Nothing,
-                        useSiteDiagnostics:=Nothing)
+                        useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             End Function
         End Module
     End Namespace
@@ -3064,7 +3064,7 @@ End Class
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
                 syntaxTrees:={Parse(SemanticResourceUtil.OverloadResolutionTestSource), optionStrictOffTree},
-                references:={TestReferences.NetFx.v4_0_21006.mscorlib},
+                references:={TestMetadata.Net40.mscorlib},
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)

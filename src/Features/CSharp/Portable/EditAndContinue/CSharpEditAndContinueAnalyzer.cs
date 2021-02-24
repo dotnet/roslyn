@@ -15,46 +15,62 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    [ExportLanguageService(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
     internal sealed class CSharpEditAndContinueAnalyzer : AbstractEditAndContinueAnalyzer
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpEditAndContinueAnalyzer()
+        [ExportLanguageServiceFactory(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
+        internal sealed class Factory : ILanguageServiceFactory
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory()
+            {
+            }
+
+            public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            {
+                return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
+            }
+        }
+
+        // Public for testing purposes
+        public CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null)
+            : base(testFaultInjector)
         {
         }
 
         #region Syntax Analysis
 
-        private enum ConstructorPart
-        {
-            None = 0,
-            DefaultBaseConstructorCall = 1,
-        }
-
         private enum BlockPart
         {
-            None = 0,
-            OpenBrace = 1,
-            CloseBrace = 2,
+            OpenBrace = DefaultStatementPart,
+            CloseBrace = 1,
         }
 
         private enum ForEachPart
         {
-            None = 0,
-            ForEach = 1,
-            VariableDeclaration = 2,
-            In = 3,
-            Expression = 4,
+            ForEach = DefaultStatementPart,
+            VariableDeclaration = 1,
+            In = 2,
+            Expression = 3,
+        }
+
+        private enum SwitchExpressionPart
+        {
+            WholeExpression = DefaultStatementPart,
+
+            // An active statement that covers IL generated for the decision tree:
+            //   <governing-expression> [|switch { <arm>, ..., <arm> }|]
+            // This active statement is never a leaf active statement (does not correspond to a breakpoint span).
+            SwitchBody = 1,
         }
 
         /// <returns>
@@ -254,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override SyntaxNode FindStatementAndPartner(SyntaxNode declarationBody, TextSpan span, SyntaxNode? partnerDeclarationBody, out SyntaxNode? partner, out int statementPart)
         {
-            int position = span.Start;
+            var position = span.Start;
 
             SyntaxUtilities.AssertIsBody(declarationBody, allowLambda: false);
 
@@ -268,14 +284,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 // No need to special case property initializers here, the active statement always spans the initializer expression.
 
-                if (declarationBody.Parent!.Kind() == SyntaxKind.ConstructorDeclaration)
+                if (declarationBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
                 {
                     var constructor = (ConstructorDeclarationSyntax)declarationBody.Parent;
                     var partnerConstructor = (ConstructorDeclarationSyntax?)partnerDeclarationBody?.Parent;
 
                     if (constructor.Initializer == null || position < constructor.Initializer.ColonToken.SpanStart)
                     {
-                        statementPart = (int)ConstructorPart.DefaultBaseConstructorCall;
+                        statementPart = DefaultStatementPart;
                         partner = partnerConstructor;
                         return constructor;
                     }
@@ -302,116 +318,149 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 partner = null;
             }
 
-            while (node != declarationBody && !StatementSyntaxComparer.HasLabel(node) && !LambdaUtilities.IsLambdaBodyStatementOrExpression(node))
+            while (true)
             {
+                var isBody = node == declarationBody || LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
+
+                if (isBody || SyntaxComparer.Statement.HasLabel(node))
+                {
+                    switch (node.Kind())
+                    {
+                        case SyntaxKind.Block:
+                            statementPart = (int)GetStatementPart((BlockSyntax)node, position);
+                            return node;
+
+                        case SyntaxKind.ForEachStatement:
+                        case SyntaxKind.ForEachVariableStatement:
+                            Debug.Assert(!isBody);
+                            statementPart = (int)GetStatementPart((CommonForEachStatementSyntax)node, position);
+                            return node;
+
+                        case SyntaxKind.DoStatement:
+                            // The active statement of DoStatement node is the while condition,
+                            // which is lexically not the closest breakpoint span (the body is).
+                            // do { ... } [|while (condition);|]
+                            Debug.Assert(position == ((DoStatementSyntax)node).WhileKeyword.SpanStart);
+                            Debug.Assert(!isBody);
+                            goto default;
+
+                        case SyntaxKind.PropertyDeclaration:
+                            // The active span corresponding to a property declaration is the span corresponding to its initializer (if any),
+                            // not the span corresponding to the accessor.
+                            // int P { [|get;|] } = [|<initializer>|];
+                            Debug.Assert(position == ((PropertyDeclarationSyntax)node).Initializer!.SpanStart);
+                            goto default;
+
+                        case SyntaxKind.VariableDeclaration:
+                            // VariableDeclaration ::= TypeSyntax CommaSeparatedList(VariableDeclarator)
+                            // 
+                            // The compiler places sequence points after each local variable initialization.
+                            // The TypeSyntax is considered to be part of the first sequence span.
+                            Debug.Assert(!isBody);
+
+                            node = ((VariableDeclarationSyntax)node).Variables.First();
+
+                            if (partner != null)
+                            {
+                                partner = ((VariableDeclarationSyntax)partner).Variables.First();
+                            }
+
+                            statementPart = DefaultStatementPart;
+                            return node;
+
+                        case SyntaxKind.SwitchExpression:
+                            // An active statement that covers IL generated for the decision tree:
+                            //   <governing-expression> [|switch { <arm>, ..., <arm> }|]
+                            // This active statement is never a leaf active statement (does not correspond to a breakpoint span).
+
+                            var switchExpression = (SwitchExpressionSyntax)node;
+                            if (position == switchExpression.SwitchKeyword.SpanStart)
+                            {
+                                Debug.Assert(span.End == switchExpression.CloseBraceToken.Span.End);
+                                statementPart = (int)SwitchExpressionPart.SwitchBody;
+                                return node;
+                            }
+
+                            // The switch expression itself can be (a part of) an active statement associated with the containing node
+                            // For example, when it is used as a switch arm expression like so: 
+                            //   <expr> switch { <pattern> [|when <expr> switch { ... }|] ... }
+                            Debug.Assert(position == switchExpression.Span.Start);
+                            if (isBody)
+                            {
+                                goto default;
+                            }
+
+                            // ascend to parent node:
+                            break;
+
+                        case SyntaxKind.SwitchExpressionArm:
+                            // An active statement may occur in the when clause and in the arm expression:
+                            //   <constant-pattern> [|when <condition>|] => [|<expression>|]
+                            // The former is covered by when-clause node - it's a labeled node.
+                            // The latter isn't enclosed in a distinct labeled syntax node and thus needs to be covered 
+                            // by the arm node itself.
+                            Debug.Assert(position == ((SwitchExpressionArmSyntax)node).Expression.SpanStart);
+                            Debug.Assert(!isBody);
+                            goto default;
+
+                        default:
+                            statementPart = DefaultStatementPart;
+                            return node;
+                    }
+                }
+
                 node = node.Parent!;
                 if (partner != null)
                 {
                     partner = partner.Parent;
                 }
             }
-
-            switch (node.Kind())
-            {
-                case SyntaxKind.Block:
-                    statementPart = (int)GetStatementPart((BlockSyntax)node!, position);
-                    break;
-
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.ForEachVariableStatement:
-                    statementPart = (int)GetStatementPart((CommonForEachStatementSyntax)node!, position);
-                    break;
-
-                case SyntaxKind.VariableDeclaration:
-                    // VariableDeclaration ::= TypeSyntax CommaSeparatedList(VariableDeclarator)
-                    // 
-                    // The compiler places sequence points after each local variable initialization.
-                    // The TypeSyntax is considered to be part of the first sequence span.
-                    node = ((VariableDeclarationSyntax)node!).Variables.First();
-
-                    if (partner != null)
-                    {
-                        partner = ((VariableDeclarationSyntax)partner).Variables.First();
-                    }
-
-                    statementPart = 0;
-                    break;
-
-                default:
-                    statementPart = 0;
-                    break;
-            }
-
-            return node!;
         }
 
         private static BlockPart GetStatementPart(BlockSyntax node, int position)
             => position < node.OpenBraceToken.Span.End ? BlockPart.OpenBrace : BlockPart.CloseBrace;
 
         private static TextSpan GetActiveSpan(BlockSyntax node, BlockPart part)
-        {
-            switch (part)
+            => part switch
             {
-                case BlockPart.OpenBrace:
-                    return node.OpenBraceToken.Span;
-
-                case BlockPart.CloseBrace:
-                    return node.CloseBraceToken.Span;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(part);
-            }
-        }
+                BlockPart.OpenBrace => node.OpenBraceToken.Span,
+                BlockPart.CloseBrace => node.CloseBraceToken.Span,
+                _ => throw ExceptionUtilities.UnexpectedValue(part),
+            };
 
         private static ForEachPart GetStatementPart(CommonForEachStatementSyntax node, int position)
-        {
-            return position < node.OpenParenToken.SpanStart ? ForEachPart.ForEach :
-                   position < node.InKeyword.SpanStart ? ForEachPart.VariableDeclaration :
-                   position < node.Expression.SpanStart ? ForEachPart.In :
-                   ForEachPart.Expression;
-        }
+            => position < node.OpenParenToken.SpanStart ? ForEachPart.ForEach :
+               position < node.InKeyword.SpanStart ? ForEachPart.VariableDeclaration :
+               position < node.Expression.SpanStart ? ForEachPart.In :
+               ForEachPart.Expression;
 
         private static TextSpan GetActiveSpan(ForEachStatementSyntax node, ForEachPart part)
-        {
-            switch (part)
+            => part switch
             {
-                case ForEachPart.ForEach:
-                    return node.ForEachKeyword.Span;
-
-                case ForEachPart.VariableDeclaration:
-                    return TextSpan.FromBounds(node.Type.SpanStart, node.Identifier.Span.End);
-
-                case ForEachPart.In:
-                    return node.InKeyword.Span;
-
-                case ForEachPart.Expression:
-                    return node.Expression.Span;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(part);
-            }
-        }
+                ForEachPart.ForEach => node.ForEachKeyword.Span,
+                ForEachPart.VariableDeclaration => TextSpan.FromBounds(node.Type.SpanStart, node.Identifier.Span.End),
+                ForEachPart.In => node.InKeyword.Span,
+                ForEachPart.Expression => node.Expression.Span,
+                _ => throw ExceptionUtilities.UnexpectedValue(part),
+            };
 
         private static TextSpan GetActiveSpan(ForEachVariableStatementSyntax node, ForEachPart part)
-        {
-            switch (part)
+            => part switch
             {
-                case ForEachPart.ForEach:
-                    return node.ForEachKeyword.Span;
+                ForEachPart.ForEach => node.ForEachKeyword.Span,
+                ForEachPart.VariableDeclaration => TextSpan.FromBounds(node.Variable.SpanStart, node.Variable.Span.End),
+                ForEachPart.In => node.InKeyword.Span,
+                ForEachPart.Expression => node.Expression.Span,
+                _ => throw ExceptionUtilities.UnexpectedValue(part),
+            };
 
-                case ForEachPart.VariableDeclaration:
-                    return TextSpan.FromBounds(node.Variable.SpanStart, node.Variable.Span.End);
-
-                case ForEachPart.In:
-                    return node.InKeyword.Span;
-
-                case ForEachPart.Expression:
-                    return node.Expression.Span;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(part);
-            }
-        }
+        private static TextSpan GetActiveSpan(SwitchExpressionSyntax node, SwitchExpressionPart part)
+            => part switch
+            {
+                SwitchExpressionPart.WholeExpression => node.Span,
+                SwitchExpressionPart.SwitchBody => TextSpan.FromBounds(node.SwitchKeyword.SpanStart, node.CloseBraceToken.Span.End),
+                _ => throw ExceptionUtilities.UnexpectedValue(part),
+            };
 
         protected override bool AreEquivalent(SyntaxNode left, SyntaxNode right)
             => SyntaxFactory.AreEquivalent(left, right);
@@ -478,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var root = GetEncompassingAncestor(container);
 
-            SyntaxNode? current = node;
+            var current = node;
             while (current != root && current != null)
             {
                 if (LambdaUtilities.IsLambdaBodyStatementOrExpression(current, out var body))
@@ -495,18 +544,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         protected override IEnumerable<SyntaxNode> GetLambdaBodyExpressionsAndStatements(SyntaxNode lambdaBody)
             => SpecializedCollections.SingletonEnumerable(lambdaBody);
 
-        protected override SyntaxNode TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
+        protected override SyntaxNode? TryGetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
             => LambdaUtilities.TryGetCorrespondingLambdaBody(oldBody, newLambda);
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)
-            => TopSyntaxComparer.Instance.ComputeMatch(oldCompilationUnit, newCompilationUnit);
+            => SyntaxComparer.TopLevel.ComputeMatch(oldCompilationUnit, newCompilationUnit);
 
         protected override Match<SyntaxNode> ComputeBodyMatch(SyntaxNode oldBody, SyntaxNode newBody, IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>>? knownMatches)
         {
             SyntaxUtilities.AssertIsBody(oldBody, allowLambda: true);
             SyntaxUtilities.AssertIsBody(newBody, allowLambda: true);
 
-            if (oldBody is ExpressionSyntax || newBody is ExpressionSyntax)
+            if (oldBody is ExpressionSyntax || newBody is ExpressionSyntax || (oldBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement) && newBody.Parent.IsKind(SyntaxKind.LocalFunctionStatement)))
             {
                 Debug.Assert(oldBody is ExpressionSyntax || oldBody is BlockSyntax);
                 Debug.Assert(newBody is ExpressionSyntax || newBody is BlockSyntax);
@@ -533,7 +582,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return parent.IsKind(SyntaxKind.ArrowExpressionClause) && parent.Parent.IsKind(SyntaxKind.LocalFunctionStatement) ? parent.Parent : parent;
                 }
 
-                return new StatementSyntaxComparer(oldBody, newBody).ComputeMatch(GetMatchingRoot(oldBody), GetMatchingRoot(newBody), knownMatches);
+                var oldRoot = GetMatchingRoot(oldBody);
+                var newRoot = GetMatchingRoot(newBody);
+                return new SyntaxComparer(oldRoot, newRoot, GetChildNodes(oldRoot, oldBody), GetChildNodes(newRoot, newBody), compareStatementSyntax: true).ComputeMatch(oldRoot, newRoot, knownMatches);
             }
 
             if (oldBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration))
@@ -545,10 +596,63 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 RoslynDebug.Assert(newBody.Parent.IsKind(SyntaxKind.ConstructorDeclaration));
                 RoslynDebug.Assert(newBody.Parent is object);
 
-                return StatementSyntaxComparer.Default.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
+                return SyntaxComparer.Statement.ComputeMatch(oldBody.Parent, newBody.Parent, knownMatches);
             }
 
-            return StatementSyntaxComparer.Default.ComputeMatch(oldBody, newBody, knownMatches);
+            return SyntaxComparer.Statement.ComputeMatch(oldBody, newBody, knownMatches);
+        }
+
+        private static IEnumerable<SyntaxNode> GetChildNodes(SyntaxNode root, SyntaxNode body)
+        {
+            if (root is LocalFunctionStatementSyntax localFunc)
+            {
+                // local functions have multiple children we need to process for matches, but we won't automatically
+                // descend into them, assuming they're nested, so we override the default behaviour and return
+                // multiple children
+                foreach (var attributeList in localFunc.AttributeLists)
+                {
+                    yield return attributeList;
+                }
+
+                yield return localFunc.ReturnType;
+
+                if (localFunc.TypeParameterList is not null)
+                {
+                    yield return localFunc.TypeParameterList;
+                }
+
+                yield return localFunc.ParameterList;
+
+                if (localFunc.Body is not null)
+                {
+                    yield return localFunc.Body;
+                }
+                else if (localFunc.ExpressionBody is not null)
+                {
+                    // Skip the ArrowExpressionClause that is ExressionBody and just return the expression itself
+                    yield return localFunc.ExpressionBody.Expression;
+                }
+            }
+            else
+            {
+                yield return body;
+            }
+        }
+
+        protected override void ReportLocalFunctionsDeclarationRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> bodyMatch)
+        {
+            var bodyEditsForLambda = bodyMatch.GetTreeEdits();
+            var editMap = BuildEditMap(bodyEditsForLambda);
+            foreach (var edit in bodyEditsForLambda.Edits)
+            {
+                if (HasParentEdit(editMap, edit))
+                {
+                    return;
+                }
+
+                var classifier = new EditClassifier(this, diagnostics, edit.OldNode, edit.NewNode, edit.Kind, bodyMatch, classifyStatementSyntax: true);
+                classifier.ClassifyEdit();
+            }
         }
 
         protected override bool TryMatchActiveStatement(
@@ -595,24 +699,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             => SyntaxComparer.GetSequenceEdits(oldNodes, newNodes);
 
         internal override SyntaxNode EmptyCompilationUnit
-        {
-            get
-            {
-                return SyntaxFactory.CompilationUnit();
-            }
-        }
+            => SyntaxFactory.CompilationUnit();
 
+        // there are no experimental features at this time.
         internal override bool ExperimentalFeaturesEnabled(SyntaxTree tree)
-        {
-            // there are no experimental features at this time.
-            return false;
-        }
+            => false;
 
         protected override bool StateMachineSuspensionPointKindEquals(SyntaxNode suspensionPoint1, SyntaxNode suspensionPoint2)
             => (suspensionPoint1 is CommonForEachStatementSyntax) ? suspensionPoint2 is CommonForEachStatementSyntax : suspensionPoint1.RawKind == suspensionPoint2.RawKind;
 
         protected override bool StatementLabelEquals(SyntaxNode node1, SyntaxNode node2)
-            => StatementSyntaxComparer.GetLabelImpl(node1) == StatementSyntaxComparer.GetLabelImpl(node2);
+            => SyntaxComparer.Statement.GetLabel(node1) == SyntaxComparer.Statement.GetLabel(node2);
 
         protected override bool TryGetEnclosingBreakpointSpan(SyntaxNode root, int position, out TextSpan span)
             => BreakpointSpans.TryGetClosestBreakpointSpan(root, position, out span);
@@ -637,6 +734,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // The active statement of DoStatement node is the while condition,
                     // which is lexically not the closest breakpoint span (the body is).
                     // do { ... } [|while (condition);|]
+                    Debug.Assert(statementPart == DefaultStatementPart);
+
                     var doStatement = (DoStatementSyntax)node;
                     return BreakpointSpans.TryGetClosestBreakpointSpan(node, doStatement.WhileKeyword.SpanStart, out span);
 
@@ -644,6 +743,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // The active span corresponding to a property declaration is the span corresponding to its initializer (if any),
                     // not the span corresponding to the accessor.
                     // int P { [|get;|] } = [|<initializer>|];
+                    Debug.Assert(statementPart == DefaultStatementPart);
+
                     var propertyDeclaration = (PropertyDeclarationSyntax)node;
 
                     if (propertyDeclaration.Initializer != null &&
@@ -651,18 +752,34 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         return true;
                     }
-                    else
-                    {
-                        span = default;
-                        return false;
-                    }
+
+                    span = default;
+                    return false;
+
+                case SyntaxKind.SwitchExpression:
+                    span = GetActiveSpan((SwitchExpressionSyntax)node, (SwitchExpressionPart)statementPart);
+                    return true;
+
+                case SyntaxKind.SwitchExpressionArm:
+                    // An active statement may occur in the when clause and in the arm expression:
+                    //   <constant-pattern> [|when <condition>|] => [|<expression>|]
+                    // The former is covered by when-clause node - it's a labeled node.
+                    // The latter isn't enclosed in a distinct labeled syntax node and thus needs to be covered 
+                    // by the arm node itself.
+                    Debug.Assert(statementPart == DefaultStatementPart);
+
+                    span = ((SwitchExpressionArmSyntax)node).Expression.Span;
+                    return true;
 
                 default:
+                    // make sure all nodes that use statement parts are handled above:
+                    Debug.Assert(statementPart == DefaultStatementPart);
+
                     return BreakpointSpans.TryGetClosestBreakpointSpan(node, node.SpanStart, out span);
             }
         }
 
-        protected override IEnumerable<KeyValuePair<SyntaxNode, int>> EnumerateNearStatements(SyntaxNode statement)
+        protected override IEnumerable<(SyntaxNode statement, int statementPart)> EnumerateNearStatements(SyntaxNode statement)
         {
             var direction = +1;
             SyntaxNodeOrToken nodeOrToken = statement;
@@ -680,13 +797,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         yield break;
                     }
 
-                    if (parent.IsKind(SyntaxKind.Block))
+                    switch (parent.Kind())
                     {
-                        yield return KeyValuePairUtil.Create(parent, (int)(direction > 0 ? BlockPart.CloseBrace : BlockPart.OpenBrace));
-                    }
-                    else if (parent.IsKind(SyntaxKind.ForEachStatement))
-                    {
-                        yield return KeyValuePairUtil.Create(parent, (int)ForEachPart.ForEach);
+                        case SyntaxKind.Block:
+                            // The next sequence point hit after the last statement of a block is the closing brace:
+                            yield return (parent, (int)(direction > 0 ? BlockPart.CloseBrace : BlockPart.OpenBrace));
+                            break;
+
+                        case SyntaxKind.ForEachStatement:
+                        case SyntaxKind.ForEachVariableStatement:
+                            // The next sequence point hit after the body is the in keyword:
+                            //   [|foreach|] ([|variable-declaration|] [|in|] [|expression|]) [|<body>|]
+                            yield return (parent, (int)ForEachPart.In);
+                            break;
                     }
 
                     if (direction > 0)
@@ -702,14 +825,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         // We don't have any better place where to place the span than the initial field.
                         // Consider: in non-partial classes we could find a single constructor. 
                         // Otherwise, it would be confusing to select one arbitrarily.
-                        yield return KeyValuePairUtil.Create(statement, -1);
+                        yield return (statement, -1);
                     }
 
                     nodeOrToken = statement = parent;
                     fieldOrPropertyModifiers = SyntaxUtilities.TryGetFieldOrPropertyModifiers(statement);
                     direction = +1;
 
-                    yield return KeyValuePairUtil.Create(nodeOrToken.AsNode()!, 0);
+                    yield return (nodeOrToken.AsNode()!, DefaultStatementPart);
                 }
                 else
                 {
@@ -730,16 +853,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         }
                     }
 
-                    if (node.IsKind(SyntaxKind.Block))
+                    switch (node.Kind())
                     {
-                        yield return KeyValuePairUtil.Create(node, (int)(direction > 0 ? BlockPart.OpenBrace : BlockPart.CloseBrace));
-                    }
-                    else if (node.IsKind(SyntaxKind.ForEachStatement))
-                    {
-                        yield return KeyValuePairUtil.Create(node, (int)ForEachPart.ForEach);
+                        case SyntaxKind.Block:
+                            yield return (node, (int)(direction > 0 ? BlockPart.OpenBrace : BlockPart.CloseBrace));
+                            break;
+
+                        case SyntaxKind.ForEachStatement:
+                        case SyntaxKind.ForEachVariableStatement:
+                            yield return (node, (int)ForEachPart.ForEach);
+                            break;
                     }
 
-                    yield return KeyValuePairUtil.Create(node, 0);
+                    yield return (node, DefaultStatementPart);
                 }
             }
         }
@@ -754,10 +880,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             switch (oldStatement.Kind())
             {
                 case SyntaxKind.Block:
-                    Debug.Assert(statementPart != 0);
-
                     // closing brace of a using statement or a block that contains using local declarations:
-                    if (statementPart == 2)
+                    if (statementPart == (int)BlockPart.CloseBrace)
                     {
                         if (oldStatement.Parent.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? oldUsing))
                         {
@@ -771,15 +895,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return true;
 
                 case SyntaxKind.ConstructorDeclaration:
-                    Debug.Assert(statementPart != 0);
-
                     // The call could only change if the base type of the containing class changed.
                     return true;
 
                 case SyntaxKind.ForEachStatement:
                 case SyntaxKind.ForEachVariableStatement:
-                    Debug.Assert(statementPart != 0);
-
                     // only check the expression, edits in the body and the variable declaration are allowed:
                     return AreEquivalentActiveStatements((CommonForEachStatementSyntax)oldStatement, (CommonForEachStatementSyntax)newStatement);
 
@@ -886,8 +1006,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             List<SyntaxToken>? oldTokens = null;
             List<SyntaxToken>? newTokens = null;
 
-            StatementSyntaxComparer.GetLocalNames(oldNode, ref oldTokens);
-            StatementSyntaxComparer.GetLocalNames(newNode, ref newTokens);
+            SyntaxComparer.GetLocalNames(oldNode, ref oldTokens);
+            SyntaxComparer.GetLocalNames(newNode, ref newTokens);
 
             // A valid foreach statement declares at least one variable.
             RoslynDebug.Assert(oldTokens != null);
@@ -931,7 +1051,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 || ((TypeDeclarationSyntax)syntaxRefs.Single().GetSyntax()).Modifiers.Any(SyntaxKind.PartialKeyword);
         }
 
-        protected override ISymbol? GetSymbolForEdit(SemanticModel model, SyntaxNode node, EditKind editKind, Dictionary<SyntaxNode, EditKind> editMap, CancellationToken cancellationToken)
+        protected override ISymbol? GetSymbolForEdit(SemanticModel model, SyntaxNode node, EditKind editKind, IReadOnlyDictionary<SyntaxNode, EditKind> editMap, CancellationToken cancellationToken)
         {
             if (node.IsKind(SyntaxKind.Parameter))
             {
@@ -951,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // The only legitimate update of an indexer/property declaration is an update of its expression body.
                     // The expression body itself may have been updated, replaced with an explicit getter, or added to replace an explicit getter.
                     // In any case, the update is to the property getter symbol.
-                    var propertyOrIndexer = model.GetDeclaredSymbol(node, cancellationToken);
+                    var propertyOrIndexer = model.GetRequiredDeclaredSymbol(node, cancellationToken);
                     return ((IPropertySymbol)propertyOrIndexer).GetMethod;
                 }
             }
@@ -964,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return model.GetDeclaredSymbol(node, cancellationToken);
         }
 
-        protected override bool TryGetDeclarationBodyEdit(Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap, out SyntaxNode? oldBody, out SyntaxNode? newBody)
+        protected override bool TryGetDeclarationBodyEdit(Edit<SyntaxNode> edit, IReadOnlyDictionary<SyntaxNode, EditKind> editMap, out SyntaxNode? oldBody, out SyntaxNode? newBody)
         {
             // Detect a transition between a property/indexer with an expression body and with an explicit getter.
             // int P => old_body;              <->      int P { get { new_body } } 
@@ -992,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return base.TryGetDeclarationBodyEdit(edit, editMap, out oldBody, out newBody);
         }
 
-        private static bool IsGetterToExpressionBodyTransformation(EditKind editKind, SyntaxNode node, Dictionary<SyntaxNode, EditKind> editMap)
+        private static bool IsGetterToExpressionBodyTransformation(EditKind editKind, SyntaxNode node, IReadOnlyDictionary<SyntaxNode, EditKind> editMap)
         {
             if ((editKind == EditKind.Insert || editKind == EditKind.Delete) && node.IsKind(SyntaxKind.GetAccessorDeclaration))
             {
@@ -1017,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override bool IsNestedFunction(SyntaxNode node)
             => node is LambdaExpressionSyntax || node is LocalFunctionStatementSyntax;
 
-        internal override bool TryGetLambdaBodies(SyntaxNode node, out SyntaxNode body1, out SyntaxNode body2)
+        internal override bool TryGetLambdaBodies(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? body1, out SyntaxNode? body2)
             => LambdaUtilities.TryGetLambdaBodies(node, out body1, out body2);
 
         internal override SyntaxNode GetLambda(SyntaxNode lambdaBody)
@@ -1026,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         internal override IMethodSymbol GetLambdaExpressionSymbol(SemanticModel model, SyntaxNode lambdaExpression, CancellationToken cancellationToken)
         {
             var bodyExpression = LambdaUtilities.GetNestedFunctionBody(lambdaExpression);
-            return (IMethodSymbol)model.GetEnclosingSymbol(bodyExpression.SpanStart, cancellationToken);
+            return (IMethodSymbol)model.GetRequiredEnclosingSymbol(bodyExpression.SpanStart, cancellationToken);
         }
 
         internal override SyntaxNode? GetContainingQueryExpression(SyntaxNode node)
@@ -1080,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode oldLambdaBody,
             SemanticModel newModel,
             SyntaxNode newLambdaBody,
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             out bool hasErrors,
             CancellationToken cancellationToken)
         {
@@ -1272,21 +1392,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     }
 
                 case SyntaxKind.Parameter:
-                    // We ignore anonymous methods and lambdas, 
-                    // we only care about parameters of member declarations.
                     var parameter = (ParameterSyntax)node;
-                    return GetDiagnosticSpan(parameter.Modifiers, parameter.Type, parameter);
+                    // Lambda parameters don't have types or modifiers, so the parameter is the only node
+                    var startNode = parameter.Type ?? (SyntaxNode)parameter;
+                    return GetDiagnosticSpan(parameter.Modifiers, startNode, parameter);
 
                 case SyntaxKind.AttributeList:
                     var attributeList = (AttributeListSyntax)node;
-                    if (editKind == EditKind.Update)
-                    {
-                        return (attributeList.Target != null) ? attributeList.Target.Span : attributeList.Span;
-                    }
-                    else
-                    {
-                        return attributeList.Span;
-                    }
+                    return attributeList.Span;
 
                 case SyntaxKind.Attribute:
                     return node.Span;
@@ -1383,6 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.ExpressionStatement:
+                case SyntaxKind.EmptyStatement:
                 case SyntaxKind.GotoStatement:
                 case SyntaxKind.GotoCaseStatement:
                 case SyntaxKind.GotoDefaultStatement:
@@ -1462,6 +1576,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.SwitchExpression:
                     return ((SwitchExpressionSyntax)node).SwitchKeyword.Span;
+
+                case SyntaxKind.SwitchExpressionArm:
+                    return ((SwitchExpressionArmSyntax)node).EqualsGreaterThanToken.Span;
 
                 default:
                     return null;
@@ -1612,10 +1729,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return FeaturesResources.parameter;
 
                 case SyntaxKind.AttributeList:
-                    return (editKind == EditKind.Update) ? CSharpFeaturesResources.attribute_target : FeaturesResources.attribute;
+                    return FeaturesResources.attribute;
 
                 case SyntaxKind.Attribute:
                     return FeaturesResources.attribute;
+
+                case SyntaxKind.AttributeTargetSpecifier:
+                    return CSharpFeaturesResources.attribute_target;
 
                 // statement:
 
@@ -1764,21 +1884,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private readonly struct EditClassifier
         {
             private readonly CSharpEditAndContinueAnalyzer _analyzer;
-            private readonly List<RudeEditDiagnostic> _diagnostics;
+            private readonly ArrayBuilder<RudeEditDiagnostic> _diagnostics;
             private readonly Match<SyntaxNode>? _match;
             private readonly SyntaxNode? _oldNode;
             private readonly SyntaxNode? _newNode;
             private readonly EditKind _kind;
             private readonly TextSpan? _span;
+            private readonly bool _classifyStatementSyntax;
 
             public EditClassifier(
                 CSharpEditAndContinueAnalyzer analyzer,
-                List<RudeEditDiagnostic> diagnostics,
+                ArrayBuilder<RudeEditDiagnostic> diagnostics,
                 SyntaxNode? oldNode,
                 SyntaxNode? newNode,
                 EditKind kind,
                 Match<SyntaxNode>? match = null,
-                TextSpan? span = null)
+                TextSpan? span = null,
+                bool classifyStatementSyntax = false)
             {
                 RoslynDebug.Assert(oldNode != null || newNode != null);
 
@@ -1792,6 +1914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _kind = kind;
                 _span = span;
                 _match = match;
+                _classifyStatementSyntax = classifyStatementSyntax;
             }
 
             private void ReportError(RudeEditKind kind, SyntaxNode? spanNode = null, SyntaxNode? displayNode = null)
@@ -1851,6 +1974,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyMove()
             {
+                if (_newNode.IsKind(SyntaxKind.LocalFunctionStatement))
+                {
+                    return;
+                }
+
                 // We could perhaps allow moving a type declaration to a different namespace syntax node
                 // as long as it represents semantically the same namespace as the one of the original type declaration.
                 ReportError(RudeEditKind.Move);
@@ -1858,6 +1986,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             private void ClassifyReorder(SyntaxNode newNode)
             {
+                if (_newNode.IsKind(SyntaxKind.LocalFunctionStatement))
+                {
+                    return;
+                }
+
                 switch (newNode.Kind())
                 {
                     case SyntaxKind.GlobalStatement:
@@ -2016,18 +2149,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         ClassifyFieldInsert((VariableDeclarationSyntax)node);
                         return;
 
+                    case SyntaxKind.Parameter when !_classifyStatementSyntax:
+                        // Parameter inserts are allowed for local functions
+                        ReportError(RudeEditKind.Insert);
+                        return;
+
                     case SyntaxKind.EnumMemberDeclaration:
                     case SyntaxKind.TypeParameter:
                     case SyntaxKind.TypeParameterConstraintClause:
                     case SyntaxKind.TypeParameterList:
-                    case SyntaxKind.Parameter:
                     case SyntaxKind.Attribute:
                     case SyntaxKind.AttributeList:
                         ReportError(RudeEditKind.Insert);
                         return;
+                }
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                // When classifying statement syntax we could see potentially any node as an edit
+                if (!_classifyStatementSyntax)
+                {
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
                 }
             }
 
@@ -2215,14 +2355,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.TypeParameter:
                     case SyntaxKind.TypeParameterList:
-                    case SyntaxKind.Parameter:
-                    case SyntaxKind.ParameterList:
                     case SyntaxKind.TypeParameterConstraintClause:
                         ReportError(RudeEditKind.Delete);
                         return;
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
+                    case SyntaxKind.Parameter when !_classifyStatementSyntax:
+                    case SyntaxKind.ParameterList when !_classifyStatementSyntax:
+                        ReportError(RudeEditKind.Delete);
+                        return;
+                }
+
+                // When classifying statement syntax we could see potentially any node as an edit
+                if (!_classifyStatementSyntax)
+                {
+                    throw ExceptionUtilities.UnexpectedValue(oldNode.Kind());
                 }
             }
 
@@ -2332,7 +2478,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         ClassifyUpdate((TypeParameterSyntax)oldNode, (TypeParameterSyntax)newNode);
                         return;
 
-                    case SyntaxKind.Parameter:
+                    case SyntaxKind.Parameter when !_classifyStatementSyntax:
+                        // Parameter updates are allowed for local functions
                         ClassifyUpdate((ParameterSyntax)oldNode, (ParameterSyntax)newNode);
                         return;
 
@@ -2352,8 +2499,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     case SyntaxKind.AccessorList:
                         return;
 
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
+                }
+
+                // When classifying statement syntax we could see potentially any node as an edit
+                if (!_classifyStatementSyntax)
+                {
+                    throw ExceptionUtilities.UnexpectedValue(newNode.Kind());
                 }
             }
 
@@ -2523,7 +2674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     containingType: (TypeDeclarationSyntax?)newNode.Parent);
             }
 
-            private bool ClassifyMethodModifierUpdate(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers)
+            private static bool ClassifyMethodModifierUpdate(SyntaxTokenList oldModifiers, SyntaxTokenList newModifiers)
             {
                 // Ignore async keyword when matching modifiers.
                 // async checks are done in ComputeBodyMatch.
@@ -2801,7 +2952,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 if (!SyntaxFactory.AreEquivalent(oldNode.Target, newNode.Target))
                 {
-                    ReportError(RudeEditKind.Update);
+                    var spanNode = ((SyntaxNode?)newNode.Target) ?? newNode;
+                    ReportError(RudeEditKind.Update, spanNode: spanNode, displayNode: spanNode);
                     return;
                 }
 
@@ -2869,6 +3021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             return;
 
                         case SyntaxKind.SwitchExpression:
+                            // TODO: remove (https://github.com/dotnet/roslyn/issues/43099)
                             ReportError(RudeEditKind.SwitchExpressionUpdate, node, _newNode);
                             break;
                     }
@@ -2878,8 +3031,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             #endregion
         }
 
-        internal override void ReportSyntacticRudeEdits(
-            List<RudeEditDiagnostic> diagnostics,
+        internal override void ReportTopLevelSyntacticRudeEdits(
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             Edit<SyntaxNode> edit,
             Dictionary<SyntaxNode, EditKind> editMap)
@@ -2893,7 +3046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             classifier.ClassifyEdit();
         }
 
-        internal override void ReportMemberUpdateRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span)
+        internal override void ReportMemberUpdateRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span)
         {
             var classifier = new EditClassifier(this, diagnostics, oldNode: null, newMember, EditKind.Update, span: span);
 
@@ -2909,7 +3062,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         #region Semantic Rude Edits
 
-        internal override void ReportInsertedMemberSymbolRudeEdits(List<RudeEditDiagnostic> diagnostics, ISymbol newSymbol)
+        internal override void ReportInsertedMemberSymbolRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol newSymbol)
         {
             // We rejected all exported methods during syntax analysis, so no additional work is needed here.
         }
@@ -2925,7 +3078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             var result = new List<SyntaxNode>();
 
-            SyntaxNode? current = node;
+            var current = node;
             while (current != null)
             {
                 var kind = current.Kind();
@@ -2970,7 +3123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         internal override void ReportEnclosingExceptionHandlingRudeEdits(
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits,
             SyntaxNode oldStatement,
             TextSpan newStatementSpan)
@@ -3079,7 +3232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal override void ReportStateMachineSuspensionPointRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
+        internal override void ReportStateMachineSuspensionPointRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
         {
             // TODO: changes around suspension points (foreach, lock, using, etc.)
 
@@ -3097,7 +3250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal override void ReportStateMachineSuspensionPointDeletedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode deletedSuspensionPoint)
+        internal override void ReportStateMachineSuspensionPointDeletedRudeEdit(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode deletedSuspensionPoint)
         {
             // Handle deletion of await keyword from await foreach statement.
             if (deletedSuspensionPoint is CommonForEachStatementSyntax deletedForeachStatement &&
@@ -3131,7 +3284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             base.ReportStateMachineSuspensionPointDeletedRudeEdit(diagnostics, match, deletedSuspensionPoint);
         }
 
-        internal override void ReportStateMachineSuspensionPointInsertedRudeEdit(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode insertedSuspensionPoint, bool aroundActiveStatement)
+        internal override void ReportStateMachineSuspensionPointInsertedRudeEdit(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode insertedSuspensionPoint, bool aroundActiveStatement)
         {
             // Handle addition of await keyword to foreach statement.
             if (insertedSuspensionPoint is CommonForEachStatementSyntax insertedForEachStatement &&
@@ -3273,7 +3426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #region Rude Edits around Active Statement
 
         internal override void ReportOtherRudeEditsAroundActiveStatement(
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
@@ -3291,7 +3444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// exactly the same variables are emitted for the new switch as they were for the old one and their order didn't change either.
         /// This is guaranteed if none of the case clauses have changed.
         /// </summary>
-        private void ReportRudeEditsForSwitchWhenClauses(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
+        private void ReportRudeEditsForSwitchWhenClauses(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldActiveStatement, SyntaxNode newActiveStatement)
         {
             if (!oldActiveStatement.IsKind(SyntaxKind.WhenClause))
             {
@@ -3347,7 +3500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private void ReportRudeEditsForCheckedStatements(
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement,
             bool isNonLeaf)
@@ -3402,7 +3555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         private void ReportRudeEditsForAncestorsDeclaringInterStatementTemps(
-            List<RudeEditDiagnostic> diagnostics,
+            ArrayBuilder<RudeEditDiagnostic> diagnostics,
             Match<SyntaxNode> match,
             SyntaxNode oldActiveStatement,
             SyntaxNode newActiveStatement)

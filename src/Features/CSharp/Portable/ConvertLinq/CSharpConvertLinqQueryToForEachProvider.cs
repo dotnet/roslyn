@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -98,8 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     if (!documentUpdateInfo.Source.IsParentKind(SyntaxKind.Block) &&
                         documentUpdateInfo.Destinations.Length > 1)
-
+                    {
                         documentUpdateInfo = new DocumentUpdateInfo(documentUpdateInfo.Source, SyntaxFactory.Block(documentUpdateInfo.Destinations));
+                    }
+
                     return true;
                 }
 
@@ -252,7 +256,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 SyntaxNode currentNode = _source;
                 while (currentNode != null)
                 {
-                    if (currentNode is StatementSyntax) { return true; }
+                    if (currentNode is StatementSyntax)
+                    {
+                        return true;
+                    }
                     if (currentNode is ExpressionSyntax ||
                         currentNode is ArgumentSyntax ||
                         currentNode is ArgumentListSyntax ||

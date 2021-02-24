@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class LazyDiagnosticInfo : DiagnosticInfo
     {
-        private DiagnosticInfo _lazyInfo;
+        private DiagnosticInfo? _lazyInfo;
 
         protected LazyDiagnosticInfo()
             : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
@@ -25,6 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyInfo;
         }
 
-        protected abstract DiagnosticInfo ResolveInfo();
+        protected abstract DiagnosticInfo? ResolveInfo();
     }
 }

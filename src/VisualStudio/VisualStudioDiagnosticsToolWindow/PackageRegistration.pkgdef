@@ -5,6 +5,8 @@
 [$RootKey$\Menus]
 "{49e24138-9ee3-49e0-8ede-6b39f49303bf}"=", Menus.ctmenu, 1"
 
+// The option page configuration is duplicated on VisualStudioDiagnosticsWindowPackage type definition.
+
 [$RootKey$\ToolsOptionsPages\Roslyn\Diagnostics]
 @="#0"
 "Package"="{49e24138-9ee3-49e0-8ede-6b39f49303bf}"

@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
@@ -20,65 +24,65 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     {
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void DocumentationModeSetToDiagnoseIfProducingDocFile_CPS()
+        public async Task DocumentationModeSetToDiagnoseIfProducingDocFile_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: @"/doc:DocFile.xml");
+            using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", commandLineArguments: @"/doc:DocFile.xml");
             var parseOptions = environment.Workspace.CurrentSolution.Projects.Single().ParseOptions;
             Assert.Equal(DocumentationMode.Diagnose, parseOptions.DocumentationMode);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void DocumentationModeSetToParseIfNotProducingDocFile_CPS()
+        public async Task DocumentationModeSetToParseIfNotProducingDocFile_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: @"/doc:");
+            using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", commandLineArguments: @"/doc:");
             var parseOptions = environment.Workspace.CurrentSolution.Projects.Single().ParseOptions;
             Assert.Equal(DocumentationMode.Parse, parseOptions.DocumentationMode);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ProjectSettingsOptionAddAndRemove_CPS()
+        public async Task ProjectSettingsOptionAddAndRemove_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: @"/warnaserror:CS1111");
+            using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", commandLineArguments: @"/warnaserror:CS1111");
             var options = environment.GetUpdatedCompilationOptionOfSingleProject();
             Assert.Equal(expected: ReportDiagnostic.Error, actual: options.SpecificDiagnosticOptions["CS1111"]);
 
-            project.SetOptions(@"/warnaserror");
+            project.SetOptions(ImmutableArray.Create(@"/warnaserror"));
             options = environment.GetUpdatedCompilationOptionOfSingleProject();
             Assert.False(options.SpecificDiagnosticOptions.ContainsKey("CS1111"));
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ProjectOutputBinPathChange_CPS()
+        public async Task ProjectOutputBinPathChange_CPS()
         {
             var initialObjPath = @"C:\test.dll";
             var initialBinPath = initialObjPath;
 
             using var environment = new TestEnvironment();
-            using var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", commandLineArguments: $"/out:{initialObjPath}");
+            using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", commandLineArguments: $"/out:{initialObjPath}");
             Assert.Equal(initialObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(initialBinPath, project.BinOutputPath);
 
             // Change obj output folder from command line arguments - verify that objOutputPath changes, but binOutputPath is the same.
             var newObjPath = @"C:\NewFolder\test.dll";
-            project.SetOptions($"/out:{newObjPath}");
+            project.SetOptions(ImmutableArray.Create($"/out:{newObjPath}"));
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(initialBinPath, project.BinOutputPath);
 
             // Change output file name - verify that objOutputPath changes, but binOutputPath is the same.
             newObjPath = @"C:\NewFolder\test2.dll";
-            project.SetOptions($"/out:{newObjPath}");
+            project.SetOptions(ImmutableArray.Create($"/out:{newObjPath}"));
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(initialBinPath, project.BinOutputPath);
 
             // Change output file name and folder - verify that objOutputPath changes, but binOutputPath is the same.
             newObjPath = @"C:\NewFolder3\test3.dll";
-            project.SetOptions($"/out:{newObjPath}");
+            project.SetOptions(ImmutableArray.Create($"/out:{newObjPath}"));
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(initialBinPath, project.BinOutputPath);
 
@@ -98,42 +102,42 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void InvalidProjectOutputBinPaths_CPS1()
+        public async Task InvalidProjectOutputBinPaths_CPS1()
         {
             using var environment = new TestEnvironment();
-            using var project1 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", binOutputPath: null);
+            using var project1 = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", binOutputPath: null);
             // Null output path is allowed.
             Assert.Null(project1.BinOutputPath);
         }
 
         [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void InvalidProjectOutputBinPaths_CPS2()
+        public async Task InvalidProjectOutputBinPaths_CPS2()
         {
             using var environment = new TestEnvironment();
-            using var project2 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test2", binOutputPath: String.Empty);
+            using var project2 = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test2", binOutputPath: String.Empty);
             // Empty output path is not allowed, it gets reset to null.
             Assert.Null(project2.BinOutputPath);
         }
 
         [WpfFact, WorkItem(14520, "https://github.com/dotnet/roslyn/issues/14520")]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void InvalidProjectOutputBinPaths_CPS3()
+        public async Task InvalidProjectOutputBinPaths_CPS3()
         {
             using var environment = new TestEnvironment();
-            using var project3 = CSharpHelpers.CreateCSharpCPSProject(environment, "Test3", binOutputPath: "Test.dll");
+            using var project3 = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test3", binOutputPath: "Test.dll");
             // Non-rooted output path is not allowed, it gets reset to a temp rooted path.
             Assert.Equal(Path.Combine(Path.GetTempPath(), "Test.dll"), project3.BinOutputPath);
         }
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ProjectGuidSetter_CPS()
+        public async Task ProjectGuidSetter_CPS()
         {
             var initialGuid = Guid.NewGuid();
 
             using var environment = new TestEnvironment();
-            using IWorkspaceProjectContext projectContext = CSharpHelpers.CreateCSharpCPSProject(environment, "Test", initialGuid);
+            using IWorkspaceProjectContext projectContext = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", initialGuid);
             Assert.Equal(initialGuid, projectContext.Guid);
 
             var newGuid = Guid.NewGuid();
@@ -143,10 +147,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ProjectLastDesignTimeBuildSucceededSetter_CPS()
+        public async Task ProjectLastDesignTimeBuildSucceededSetter_CPS()
         {
             using var environment = new TestEnvironment();
-            using IWorkspaceProjectContext projectContext = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
+            using IWorkspaceProjectContext projectContext = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
             Assert.True(projectContext.LastDesignTimeBuildSucceeded);
 
             projectContext.LastDesignTimeBuildSucceeded = false;
@@ -155,10 +159,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ProjectDisplayNameSetter_CPS()
+        public async Task ProjectDisplayNameSetter_CPS()
         {
             using var environment = new TestEnvironment();
-            using IWorkspaceProjectContext project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
+            using IWorkspaceProjectContext project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
             Assert.Equal("Test", project.DisplayName);
             var initialProjectFilePath = project.ProjectFilePath;
 
@@ -171,10 +175,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void ProjectFilePathSetter_CPS()
+        public async Task ProjectFilePathSetter_CPS()
         {
             using var environment = new TestEnvironment();
-            using IWorkspaceProjectContext project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test");
+            using IWorkspaceProjectContext project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
             var initialProjectDisplayName = project.DisplayName;
             var initialProjectFilePath = project.ProjectFilePath;
             var newFilePath = Temp.CreateFile().Path;

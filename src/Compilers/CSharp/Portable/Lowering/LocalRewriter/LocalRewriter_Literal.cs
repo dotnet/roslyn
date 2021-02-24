@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -136,8 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundObjectCreationExpression(
                 syntax, ctor, arguments.ToImmutableAndFree(),
-                default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>),
-                constantValue, null, null, ctor.ContainingType);
+                argumentNamesOpt: default(ImmutableArray<string>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
+                argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
+                constantValueOpt: constantValue, initializerExpressionOpt: null, type: ctor.ContainingType);
         }
 
         private BoundExpression MakeDateTimeLiteral(SyntaxNode syntax, ConstantValue constantValue)
@@ -155,8 +154,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This is not a constant from C#'s perspective, so do not mark it as one.
             return new BoundObjectCreationExpression(
                 syntax, ctor, arguments.ToImmutableAndFree(),
-                default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>),
-                ConstantValue.NotAvailable, null, null, ctor.ContainingType);
+                argumentNamesOpt: default(ImmutableArray<string>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
+                argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
+                constantValueOpt: ConstantValue.NotAvailable, initializerExpressionOpt: null, type: ctor.ContainingType);
         }
     }
 }

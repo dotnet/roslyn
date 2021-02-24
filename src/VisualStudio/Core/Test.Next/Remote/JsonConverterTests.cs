@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-extern alias hub;
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -10,8 +10,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -19,7 +17,7 @@ using Microsoft.CodeAnalysis.TodoComments;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Roslyn.VisualStudio.Next.UnitTests.Remote
+namespace Microsoft.CodeAnalysis.Remote.UnitTests
 {
     public class JsonConverterTests
     {
@@ -63,18 +61,25 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestDiagnosticArguments()
         {
+            var projectId = ProjectId.CreateNewId("project");
             var arguments = new DiagnosticArguments(
-                forcedAnalysis: false,
                 reportSuppressedDiagnostics: true,
-                logAnalyzerExecutionTime: false,
-                projectId: ProjectId.CreateNewId("project"),
+                logPerformanceInfo: true,
+                getTelemetryInfo: true,
+                documentId: DocumentId.CreateNewId(projectId),
+                documentSpan: new TextSpan(0, 1),
+                documentAnalysisKind: AnalysisKind.Syntax,
+                projectId: projectId,
                 analyzerIds: new[] { "analyzer1", "analyzer2" });
 
             VerifyJsonSerialization(arguments, (x, y) =>
             {
-                if (x.ForcedAnalysis == y.ForcedAnalysis &&
-                    x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
-                    x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
+                if (x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
+                    x.LogPerformanceInfo == y.LogPerformanceInfo &&
+                    x.GetTelemetryInfo == y.GetTelemetryInfo &&
+                    x.DocumentId == y.DocumentId &&
+                    x.DocumentSpan == y.DocumentSpan &&
+                    x.DocumentAnalysisKind == y.DocumentAnalysisKind &&
                     x.ProjectId == y.ProjectId &&
                     x.AnalyzerIds.Length == y.AnalyzerIds.Length &&
                     x.AnalyzerIds.Except(y.AnalyzerIds).Count() == 0)
@@ -154,7 +159,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)
         {
             var serializer = new JsonSerializer();
-            serializer.Converters.Add(hub::Microsoft.CodeAnalysis.Remote.AggregateJsonConverter.Instance);
+            serializer.Converters.Add(AggregateJsonConverter.Instance);
 
             using (var writer = new StringWriter())
             {

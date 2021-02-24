@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -97,8 +99,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 parameterTypeSymbols = SubstituteTypeParameters(parameterTypeSymbols, invocationExpression);
             }
 
-            // For each type of b., return all suitable members.
+            // For each type of b., return all suitable members. Also, ensure we consider the actual type of the
+            // parameter the compiler inferred as it may have made a completely suitable inference for it.
             return parameterTypeSymbols
+                .Concat(parameter.Type)
                 .SelectMany(parameterTypeSymbol => GetSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false))
                 .ToImmutableArray();
         }

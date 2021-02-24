@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -154,7 +156,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private bool TryFindOutputFilePathInProjectIdSet(string outputFilePath, HashSet<ProjectId> set, out ProjectId result)
             => TryFindPathInProjectIdSet(outputFilePath, GetOutputFilePathById, set, out result);
 
-        private bool TryFindPathInProjectIdSet(string path, Func<ProjectId, string> getPathById, HashSet<ProjectId> set, out ProjectId result)
+        private static bool TryFindPathInProjectIdSet(string path, Func<ProjectId, string> getPathById, HashSet<ProjectId> set, out ProjectId result)
         {
             if (!string.IsNullOrEmpty(path))
             {

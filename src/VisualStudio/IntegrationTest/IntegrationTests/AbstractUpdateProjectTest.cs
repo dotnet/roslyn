@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -14,8 +16,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractUpdateProjectTest : AbstractIntegrationTest
     {
-        protected AbstractUpdateProjectTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper)
+        protected AbstractUpdateProjectTest(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory)
         {
         }
 

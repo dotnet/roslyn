@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// This is passed to <see cref="IOptionService.RegisterDocumentOptionsProvider(IDocumentOptionsProvider)"/> to activate it
     /// for a workspace. This instance then lives around for the lifetime of the workspace.
     /// </remarks>
-    interface IDocumentOptionsProvider
+    internal interface IDocumentOptionsProvider
     {
         /// <summary>
         /// Fetches a <see cref="IDocumentOptions"/> for the given document. Any asynchronous work (looking for config files, etc.)

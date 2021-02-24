@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
@@ -28,9 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
         {
-            if (PreviewUpdater.TextView == textView)
+            if (textView.Properties.TryGetProperty(typeof(PreviewUpdater.PreviewTagger), out PreviewUpdater.PreviewTagger tagger))
             {
-                return PreviewUpdater.Tagger as ITagger<T>;
+                return tagger as ITagger<T>;
             }
 
             return null;

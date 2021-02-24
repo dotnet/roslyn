@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using Microsoft.CodeAnalysis.CommandLine;
@@ -31,7 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
             ExitingTraceListener.Install();
 #endif
 
-            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run);
+            using var logger = new CompilerServerLogger();
+            return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, logger);
         }
 
         public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)

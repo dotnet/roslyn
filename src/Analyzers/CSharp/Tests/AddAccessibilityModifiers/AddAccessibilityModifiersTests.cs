@@ -4,19 +4,23 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers.CSharpAddAccessibilityModifiersDiagnosticAnalyzer,
-    Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers.CSharpAddAccessibilityModifiersCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAccessibilityModifiers
 {
+    using VerifyCS = CSharpCodeFixVerifier<
+        CSharpAddAccessibilityModifiersDiagnosticAnalyzer,
+        CSharpAddAccessibilityModifiersCodeFixProvider>;
+
     public class AddAccessibilityModifiersTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
         public async Task TestAllConstructs()
@@ -155,6 +159,42 @@ namespace Test
 {
     internal ref struct S1 { }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestRecords()
+        {
+            var source = @"
+record [|Record|]
+{
+    int [|field|];
+}
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}";
+            var fixedSource = @"
+internal record Record
+{
+    private int field;
+}
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit
+    {
+    }
+}";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.CSharp9,
+            };
+
+            await test.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
@@ -413,6 +453,52 @@ internal class Program
 internal class Program
 {
     private volatile int x;
+}
+");
+        }
+
+        [WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestAbstractMethod()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+public abstract class TestClass
+{
+    abstract string {|CS0621:[|Test|]|} { get; }
+}
+",
+@"
+public abstract class TestClass
+{
+    protected abstract string Test { get; }
+}
+");
+        }
+
+        [WorkItem(48899, "https://github.com/dotnet/roslyn/issues/48899")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        public async Task TestOverriddenMethod()
+        {
+            await VerifyCS.VerifyCodeFixAsync(@"
+public abstract class TestClass
+{
+    public abstract string Test { get; }
+}
+
+public class Derived : TestClass
+{
+    override string {|CS0507:{|CS0621:[|Test|]|}|} { get; }
+}
+",
+@"
+public abstract class TestClass
+{
+    public abstract string Test { get; }
+}
+
+public class Derived : TestClass
+{
+    public override string Test { get; }
 }
 ");
         }

@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+// We only include this file in the command line version for now which is the netcoreapp target
+#if NETCOREAPP
+
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -119,7 +123,7 @@ namespace CSharpSyntaxGenerator
             // between some fields (i.e. 'only one of these children can be non-null').  To make our
             // life easier, we just flatten all those nodes, grabbing all the nested `<Field>` nodes
             // and placing into a single linear list that we can then process.
-            FlattenChildren(tree);
+            TreeFlattening.FlattenChildren(tree);
 
             if (writeSignatures)
             {
@@ -135,69 +139,24 @@ namespace CSharpSyntaxGenerator
                     var outputInternalFile = Path.Combine(outputPath, $"{prefix}.Internal.Generated.cs");
                     var outputSyntaxFile = Path.Combine(outputPath, $"{prefix}.Syntax.Generated.cs");
 
-                    WriteToFile(tree, SourceWriter.WriteMain, outputMainFile);
-                    WriteToFile(tree, SourceWriter.WriteInternal, outputInternalFile);
-                    WriteToFile(tree, SourceWriter.WriteSyntax, outputSyntaxFile);
+                    WriteToFile(writer => SourceWriter.WriteMain(writer, tree), outputMainFile);
+                    WriteToFile(writer => SourceWriter.WriteInternal(writer, tree), outputInternalFile);
+                    WriteToFile(writer => SourceWriter.WriteSyntax(writer, tree), outputSyntaxFile);
                 }
                 if (writeTests)
                 {
-                    WriteToFile(tree, TestWriter.Write, outputFile);
+                    WriteToFile(writer => TestWriter.Write(writer, tree), outputFile);
                 }
             }
 
             return 0;
         }
 
-        private static void FlattenChildren(Tree tree)
-        {
-            foreach (var type in tree.Types)
-            {
-                switch (type)
-                {
-                    case AbstractNode node:
-                        FlattenChildren(node.Children, node.Fields, makeOptional: false);
-                        break;
-                    case Node node:
-                        FlattenChildren(node.Children, node.Fields, makeOptional: false);
-                        break;
-                }
-            }
-        }
-
-        private static void FlattenChildren(
-            List<TreeTypeChild> fieldsAndChoices, List<Field> fields, bool makeOptional)
-        {
-            foreach (var fieldOrChoice in fieldsAndChoices)
-            {
-                switch (fieldOrChoice)
-                {
-                    case Field field:
-                        if (makeOptional && !AbstractFileWriter.IsAnyNodeList(field.Type))
-                        {
-                            field.Optional = "true";
-                        }
-
-                        fields.Add(field);
-                        break;
-                    case Choice choice:
-                        // Children of choices are always optional (since the point is to
-                        // chose from one of them and leave out the rest).
-                        FlattenChildren(choice.Children, fields, makeOptional: true);
-                        break;
-                    case Sequence sequence:
-                        FlattenChildren(sequence.Children, fields, makeOptional);
-                        break;
-                    default:
-                        throw new InvalidOperationException("Unknown child type.");
-                }
-            }
-        }
-
-        private static void WriteToFile(Tree tree, Action<TextWriter, Tree> writeAction, string outputFile)
+        private static void WriteToFile(Action<TextWriter> writeAction, string outputFile)
         {
             var stringBuilder = new StringBuilder();
             var writer = new StringWriter(stringBuilder);
-            writeAction(writer, tree);
+            writeAction(writer);
 
             var text = stringBuilder.ToString();
             int length;
@@ -219,3 +178,5 @@ namespace CSharpSyntaxGenerator
         }
     }
 }
+
+#endif

@@ -7,7 +7,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal static class PredefinedCodeFixProviderNames
     {
         public const string AddDocCommentNodes = nameof(AddDocCommentNodes);
-        public const string AddAwait = nameof(AddAwait);
         public const string AddAsync = nameof(AddAsync);
         public const string AddParameter = nameof(AddParameter);
         public const string AddParenthesesAroundConditionalExpressionInInterpolatedString = nameof(AddParenthesesAroundConditionalExpressionInInterpolatedString);
@@ -21,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
+        public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
         public const string RemoveDocCommentNode = nameof(RemoveDocCommentNode);
         public const string AddMissingReference = nameof(AddMissingReference);
         public const string AddImport = nameof(AddImport);
@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string GenerateType = nameof(GenerateType);
         public const string ImplementAbstractClass = nameof(ImplementAbstractClass);
         public const string ImplementInterface = nameof(ImplementInterface);
-        public const string InsertMissingCast = nameof(InsertMissingCast);
         public const string MakeFieldReadonly = nameof(MakeFieldReadonly);
         public const string MakeStatementAsynchronous = nameof(MakeStatementAsynchronous);
         public const string MakeMethodSynchronous = nameof(MakeMethodSynchronous);
@@ -51,7 +50,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ReplaceDefaultLiteral = nameof(ReplaceDefaultLiteral);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string DeclareAsNullable = nameof(DeclareAsNullable);
+        public const string RemoveAsyncModifier = nameof(RemoveAsyncModifier);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
+        public const string RemoveUnnecessaryAttributeSuppressions = nameof(RemoveUnnecessaryAttributeSuppressions);
+        public const string RemoveUnnecessaryPragmaSuppressions = nameof(RemoveUnnecessaryPragmaSuppressions);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
         public const string RemoveUnusedValues = nameof(RemoveUnusedValues);
         public const string RemoveUnusedLocalFunction = nameof(RemoveUnusedLocalFunction);
@@ -63,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string Suppression = nameof(Suppression);
         public const string AddOverloads = nameof(AddOverloads);
         public const string AddNew = nameof(AddNew);
+        public const string RemoveNew = nameof(RemoveNew);
+        public const string UpdateLegacySuppressions = nameof(UpdateLegacySuppressions);
         public const string UnsealClass = nameof(UnsealClass);
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
@@ -73,5 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string PreferFrameworkType = nameof(PreferFrameworkType);
         public const string MakeStructFieldsWritable = nameof(MakeStructFieldsWritable);
         public const string AddExplicitCast = nameof(AddExplicitCast);
+        public const string RemoveIn = nameof(RemoveIn);
+        public const string SimplifyLinqExpression = nameof(SimplifyLinqExpression);
+        public const string ChangeNamespaceToMatchFolder = nameof(ChangeNamespaceToMatchFolder);
     }
 }

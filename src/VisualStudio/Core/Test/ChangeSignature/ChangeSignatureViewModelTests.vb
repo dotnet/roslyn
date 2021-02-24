@@ -69,7 +69,9 @@ class MyClass
             Assert.True(viewModel.TrySubmit)
 
             viewModel.MoveUp()
-            Assert.False(viewModel.TrySubmit)
+            Dim message As String = Nothing
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.You_must_change_the_signature, message)
 
             VerifyAlteredState(
                 viewModelTestState,
@@ -357,7 +359,12 @@ class Goo
             End If
 
             If canCommit IsNot Nothing Then
-                Assert.Equal(canCommit, viewModel.TrySubmit())
+                Dim message As String = Nothing
+                Assert.Equal(canCommit, viewModel.CanSubmit(message))
+
+                If canCommit.Value Then
+                    Assert.True(viewModel.TrySubmit())
+                End If
             End If
 
             If canMoveUp IsNot Nothing Then
@@ -396,7 +403,9 @@ class Goo
 
         Private Sub VerifyOpeningState(viewModel As ChangeSignatureDialogViewModel, openingSignatureDisplay As String)
             Assert.Equal(openingSignatureDisplay, viewModel.TEST_GetSignatureDisplayText())
-            Assert.False(viewModel.TrySubmit)
+            Dim message As String = Nothing
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.You_must_change_the_signature, message)
             Assert.False(viewModel.CanMoveUp)
         End Sub
 
@@ -463,7 +472,7 @@ class Goo
                     ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)).ToImmutableArray(), symbol.IsExtensionMethod(), selectedIndex:=0),
                     symbol,
                     workspaceDoc,
-                    insertPosition:=0,
+                    positionForTypeBinding:=0,
                     workspace.ExportProvider.GetExportedValue(Of IClassificationFormatMapService)().GetClassificationFormatMap("text"),
                     workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)())
                 Return New ChangeSignatureViewModelTestState(viewModel, symbol.GetParameters())

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -26,7 +28,7 @@ class C
     }
 }";
             var updatedSignature = new[] {
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired: false, defaultValue: "1", isCallsiteOmitted: true) };
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1") };
             var updatedCode = @"
 class C
 {
@@ -52,7 +54,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(0),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired: false, defaultValue: "1", isCallsiteOmitted: true) };
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1") };
             var updatedCode = @"
 class C
 {
@@ -79,7 +81,7 @@ class C
     }
 }";
             var updatedSignature = new[] {
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired: false, defaultValue: "1", isCallsiteOmitted: true),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1"),
                 new AddedParameterOrExistingIndex(0) };
             var updatedCode = @"
 class C
@@ -110,7 +112,7 @@ class C
     }
 }";
             var updatedSignature = new[] {
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", isRequired: false, defaultValue: "1", isCallsiteOmitted: true),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "a", CallSiteKind.Omitted, isRequired: false, defaultValue: "1"),
                 new AddedParameterOrExistingIndex(0) };
             var updatedCode = @"
 class C
@@ -141,7 +143,7 @@ class SomeAttribute : System.Attribute
             var permutation = new[] {
                 new AddedParameterOrExistingIndex(0),
                 new AddedParameterOrExistingIndex(1),
-                AddedParameterOrExistingIndex.CreateAdded("int", "x", isRequired: false, defaultValue: "3", isCallsiteOmitted: true),
+                AddedParameterOrExistingIndex.CreateAdded("int", "x", CallSiteKind.Omitted, isRequired: false, defaultValue: "3"),
                 new AddedParameterOrExistingIndex(2)};
             var updatedCode = @"
 [Some(1, 2, y: 4)]

@@ -4,18 +4,18 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentHoverName)]
-    internal class HoverHandler : IRequestHandler<TextDocumentPositionParams, Hover>
+    [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(Methods.TextDocumentHoverName)]
+    internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -23,10 +23,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public async Task<Hover> HandleRequestAsync(Solution solution, TextDocumentPositionParams request,
-            ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public override string Method => Methods.TextDocumentHoverName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+
+        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocumentFromURI(request.TextDocument.Uri);
+            var document = context.Document;
             if (document == null)
             {
                 return null;
@@ -34,7 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var quickInfoService = document.Project.LanguageServices.GetService<QuickInfoService>();
+            var quickInfoService = document.Project.LanguageServices.GetRequiredService<QuickInfoService>();
             var info = await quickInfoService.GetQuickInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
             if (info == null)
             {
@@ -42,21 +48,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new Hover
+
+            // TODO - Switch to markup content once it supports classifications.
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
+            return new VSHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
-                Contents = new MarkupContent
-                {
-                    Kind = MarkupKind.Markdown,
-                    Value = GetMarkdownString(info)
-                }
+                Contents = new SumType<SumType<string, MarkedString>, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
+                // Build the classified text without navigation actions - they are not serializable.
+                RawContent = await IntellisenseQuickInfoBuilder.BuildContentWithoutNavigationActionsAsync(info, document, cancellationToken).ConfigureAwait(false)
             };
-
-            // local functions
-            // TODO - This should return correctly formatted markdown from quick info.
-            // https://github.com/dotnet/roslyn/issues/43387
-            static string GetMarkdownString(QuickInfoItem info)
-                => string.Join("\r\n", info.Sections.Select(section => section.Text).Where(text => !string.IsNullOrEmpty(text)));
         }
     }
 }

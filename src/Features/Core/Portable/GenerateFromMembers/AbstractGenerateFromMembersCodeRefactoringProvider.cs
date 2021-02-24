@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
         }
 
-        protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
+        protected static async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
             Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -87,10 +89,10 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         /// <param name="selectedMembers"></param>
         /// <param name="rules"></param>
         /// <returns></returns>
-        protected ImmutableArray<IParameterSymbol> DetermineParameters(
+        protected static ImmutableArray<IParameterSymbol> DetermineParameters(
             ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
         {
-            var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
+            using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
             foreach (var symbol in selectedMembers)
             {
@@ -113,11 +115,11 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
                     name: parameterName));
             }
 
-            return parameters.ToImmutableAndFree();
+            return parameters.ToImmutable();
         }
 
         protected static readonly SymbolDisplayFormat SimpleFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,

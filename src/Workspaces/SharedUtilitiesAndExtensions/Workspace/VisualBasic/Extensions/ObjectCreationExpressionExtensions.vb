@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module ObjectCreationExpressionExtensions
 
         <Extension>
-        Public Function CanRemoveEmptyArgumentList(objectCreationExpression As ObjectCreationExpressionSyntax, semanticModel As SemanticModel) As Boolean
+        Public Function CanRemoveEmptyArgumentList(objectCreationExpression As ObjectCreationExpressionSyntax) As Boolean
             If objectCreationExpression.ArgumentList Is Nothing Then
                 Return False
             End If

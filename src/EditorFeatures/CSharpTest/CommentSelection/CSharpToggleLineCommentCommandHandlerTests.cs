@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
@@ -1005,7 +1007,6 @@ class C
 }"
         };
 
-
             ToggleCommentMultiple(markup, expected);
         }
 
@@ -1047,7 +1048,6 @@ class C
 }"
         };
 
-
             ToggleCommentMultiple(markup, expected);
         }
 
@@ -1057,7 +1057,7 @@ class C
                 .First(export => typeof(ToggleLineCommentCommandHandler).Equals(export.GetType()));
         }
 
-        internal override TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider)
-            => TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
+        internal override TestWorkspace GetWorkspace(string markup, TestComposition composition)
+            => TestWorkspace.CreateCSharp(markup, composition: composition);
     }
 }

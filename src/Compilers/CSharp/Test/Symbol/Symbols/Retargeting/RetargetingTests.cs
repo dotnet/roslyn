@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
@@ -749,6 +750,410 @@ class C1<T>
             Assert.Equal(c1.Arity, c1r.Arity);
             Assert.Equal(c1.MangleName, c1r.MangleName);
             Assert.Equal(c1.MetadataName, c1r.MetadataName);
+        }
+
+        [Fact]
+        public void FunctionPointerRetargeting_FullyConsistent()
+        {
+            TestFunctionPointerRetargetingSignature(
+                "method class [Con]C modopt([Con]C) & modopt([Con]C) *(class [Con]C modopt([Con]C) & modopt([Con]C), class [Con]C modopt([Con]C) & modopt([Con]C))",
+                "delegate*<ref C, ref C, ref C>",
+                returnConsistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param1Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param2Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true));
+        }
+
+        [Fact]
+        public void FunctionPointerRetargeting_Return()
+        {
+            TestFunctionPointerRetargetingSignature(
+                "method class [Ret]R modopt([Con]C) & modopt([Con]C) *(class [Con]C modopt([Con]C) & modopt([Con]C), class [Con]C modopt([Con]C) & modopt([Con]C))",
+                "delegate*<ref C, ref C, ref R>",
+                returnConsistent: (typeConsistent: false, refModConsistent: true, typeModConsistent: true),
+                param1Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param2Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true));
+
+            TestFunctionPointerRetargetingSignature(
+                "method class [Con]C modopt([Con]C) & modopt([Ret]R) *(class [Con]C modopt([Con]C) & modopt([Con]C), class [Con]C modopt([Con]C) & modopt([Con]C))",
+                "delegate*<ref C, ref C, ref C>",
+                returnConsistent: (typeConsistent: true, refModConsistent: false, typeModConsistent: true),
+                param1Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param2Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true));
+
+            TestFunctionPointerRetargetingSignature(
+                "method class [Con]C modopt([Ret]R) & modopt([Con]C) *(class [Con]C modopt([Con]C) & modopt([Con]C), class [Con]C modopt([Con]C) & modopt([Con]C))",
+                "delegate*<ref C, ref C, ref C>",
+                returnConsistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: false),
+                param1Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param2Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true));
+        }
+
+        [Fact]
+        public void FunctionPointerRetargeting_Param1()
+        {
+            TestFunctionPointerRetargetingSignature(
+                "method class [Con]C modopt([Con]C) & modopt([Con]C) *(class [Ret]R modopt([Con]C) & modopt([Con]C), class [Con]C modopt([Con]C) & modopt([Con]C))",
+                "delegate*<ref R, ref C, ref C>",
+                returnConsistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param1Consistent: (typeConsistent: false, refModConsistent: true, typeModConsistent: true),
+                param2Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true));
+
+            TestFunctionPointerRetargetingSignature(
+                "method class [Con]C modopt([Con]C) & modopt([Con]C) *(class [Con]C modopt([Con]C) & modopt([Ret]R), class [Con]C modopt([Con]C) & modopt([Con]C))",
+                "delegate*<ref C, ref C, ref C>",
+                returnConsistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param1Consistent: (typeConsistent: true, refModConsistent: false, typeModConsistent: true),
+                param2Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true));
+
+            TestFunctionPointerRetargetingSignature(
+                "method class [Con]C modopt([Con]C) & modopt([Con]C) *(class [Con]C modopt([Ret]R) & modopt([Con]C), class [Con]C modopt([Con]C) & modopt([Con]C))",
+                "delegate*<ref C, ref C, ref C>",
+                returnConsistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param1Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: false),
+                param2Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true));
+        }
+
+        [Fact]
+        public void FunctionPointerRetargeting_Param2()
+        {
+            TestFunctionPointerRetargetingSignature(
+                "method class [Con]C modopt([Con]C) & modopt([Con]C) *(class [Con]C modopt([Con]C) & modopt([Con]C), class [Ret]R modopt([Con]C) & modopt([Con]C))",
+                "delegate*<ref C, ref R, ref C>",
+                returnConsistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param1Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param2Consistent: (typeConsistent: false, refModConsistent: true, typeModConsistent: true));
+
+            TestFunctionPointerRetargetingSignature(
+                "method class [Con]C modopt([Con]C) & modopt([Con]C) *(class [Con]C modopt([Con]C) & modopt([Con]C), class [Con]C modopt([Con]C) & modopt([Ret]R))",
+                "delegate*<ref C, ref C, ref C>",
+                returnConsistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param1Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param2Consistent: (typeConsistent: true, refModConsistent: false, typeModConsistent: true));
+
+            TestFunctionPointerRetargetingSignature(
+                "method class [Con]C modopt([Con]C) & modopt([Con]C) *(class [Con]C modopt([Con]C) & modopt([Con]C), class [Con]C modopt([Ret]R) & modopt([Con]C))",
+                "delegate*<ref C, ref C, ref C>",
+                returnConsistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param1Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: true),
+                param2Consistent: (typeConsistent: true, refModConsistent: true, typeModConsistent: false));
+        }
+
+        private void TestFunctionPointerRetargetingSignature(
+            string ilSignature,
+            string overriddenSignature,
+            (bool typeConsistent, bool refModConsistent, bool typeModConsistent) returnConsistent,
+            (bool typeConsistent, bool refModConsistent, bool typeModConsistent) param1Consistent,
+            (bool typeConsistent, bool refModConsistent, bool typeModConsistent) param2Consistent)
+        {
+            var (retargetedAssembly1, retargetedAssembly2, consistentAssembly, originalComp, retargetedComp) = getFunctionPointerRetargetingDefinitions(ilSignature, overriddenSignature);
+
+            var mOriginal = getMethodSymbol(originalComp);
+            var mRetargeted = getMethodSymbol(retargetedComp);
+
+            Assert.IsType<RetargetingAssemblySymbol>(mRetargeted.ContainingAssembly);
+            Assert.NotSame(originalComp.Assembly, mRetargeted.ContainingAssembly);
+            Assert.NotSame(retargetedAssembly1, retargetedAssembly2);
+            Assert.Same(originalComp.Assembly, ((RetargetingAssemblySymbol)mRetargeted.ContainingAssembly).UnderlyingAssembly);
+
+            var ptrOriginal = (FunctionPointerTypeSymbol)mOriginal.ReturnType;
+            var ptrRetargeted = (FunctionPointerTypeSymbol)mRetargeted.ReturnType;
+
+            FunctionPointerUtilities.CommonVerifyFunctionPointer(ptrOriginal);
+            FunctionPointerUtilities.CommonVerifyFunctionPointer(ptrRetargeted);
+
+            if ((true, true, true) == returnConsistent &&
+                (true, true, true) == param1Consistent &&
+                (true, true, true) == param2Consistent)
+            {
+                Assert.Same(ptrOriginal, ptrRetargeted);
+            }
+            else
+            {
+                Assert.NotSame(ptrOriginal, ptrRetargeted);
+            }
+
+            assert(returnConsistent.typeConsistent,
+                   ptrOriginal.Signature.ReturnType,
+                   ptrRetargeted.Signature.ReturnType);
+            assert(returnConsistent.refModConsistent,
+                   getModifierTypeSymbol(ptrOriginal.Signature.RefCustomModifiers),
+                   getModifierTypeSymbol(ptrRetargeted.Signature.RefCustomModifiers));
+            assert(returnConsistent.typeModConsistent,
+                   getModifierTypeSymbol(ptrOriginal.Signature.ReturnTypeWithAnnotations.CustomModifiers),
+                   getModifierTypeSymbol(ptrRetargeted.Signature.ReturnTypeWithAnnotations.CustomModifiers));
+
+            Assert.Equal(2, ptrOriginal.Signature.ParameterCount);
+            Assert.Equal(2, ptrRetargeted.Signature.ParameterCount);
+
+            var param1Original = ptrOriginal.Signature.Parameters[0];
+            var param2Original = ptrOriginal.Signature.Parameters[1];
+            var param1Retargeted = ptrRetargeted.Signature.Parameters[0];
+            var param2Retargeted = ptrRetargeted.Signature.Parameters[1];
+
+            assert(param1Consistent.typeConsistent,
+                   param1Original.Type,
+                   param1Retargeted.Type);
+            assert(param1Consistent.refModConsistent,
+                   getModifierTypeSymbol(param1Original.RefCustomModifiers),
+                   getModifierTypeSymbol(param1Retargeted.RefCustomModifiers));
+            assert(param1Consistent.typeModConsistent,
+                   getModifierTypeSymbol(param1Original.TypeWithAnnotations.CustomModifiers),
+                   getModifierTypeSymbol(param1Retargeted.TypeWithAnnotations.CustomModifiers));
+
+            assert(param2Consistent.typeConsistent,
+                   param2Original.Type,
+                   param2Retargeted.Type);
+            assert(param2Consistent.refModConsistent,
+                   getModifierTypeSymbol(param2Original.RefCustomModifiers),
+                   getModifierTypeSymbol(param2Retargeted.RefCustomModifiers));
+            assert(param2Consistent.typeModConsistent,
+                   getModifierTypeSymbol(param2Original.TypeWithAnnotations.CustomModifiers),
+                   getModifierTypeSymbol(param2Retargeted.TypeWithAnnotations.CustomModifiers));
+
+            static MethodSymbol getMethodSymbol(CSharpCompilation compilation)
+            {
+                var c = compilation.GetTypeByMetadataName("Source");
+                return c.GetMethod("M");
+            }
+
+            static TypeSymbol getModifierTypeSymbol(ImmutableArray<CustomModifier> modifiers)
+                => ((CSharpCustomModifier)modifiers.Single()).ModifierSymbol;
+
+            void assert(bool consistent, TypeSymbol originalType, TypeSymbol retargetedType)
+            {
+                Assert.False(originalType.IsErrorType());
+                Assert.False(retargetedType.IsErrorType());
+                if (consistent)
+                {
+                    Assert.Same(consistentAssembly, originalType.ContainingAssembly);
+                    Assert.Same(consistentAssembly, retargetedType.ContainingAssembly);
+                }
+                else
+                {
+                    Assert.Same(retargetedAssembly1, originalType.ContainingAssembly);
+                    Assert.Same(retargetedAssembly2, retargetedType.ContainingAssembly);
+                }
+            }
+
+            static (AssemblySymbol retargetedAssembly1, AssemblySymbol retargetedAssembly2, AssemblySymbol consistentAssembly, CSharpCompilation originalComp, CSharpCompilation retargetedComp)
+                getFunctionPointerRetargetingDefinitions(string mIlSignature, string mOverriddenSignature)
+            {
+                var retargetedSource = @"public class R {{}}";
+                var retargetedIdentity = new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true);
+                var standardReference = TargetFrameworkUtil.StandardReferences.ToArray();
+                var retargeted1 = CreateCompilation(retargetedIdentity, new[] { retargetedSource }, references: standardReference);
+                var retargeted1Ref = retargeted1.ToMetadataReference();
+                var retargeted2 = CreateCompilation(retargetedIdentity.WithVersion(new Version(2, 0, 0, 0)), new[] { retargetedSource }, references: standardReference);
+                var retargeted2Ref = retargeted2.ToMetadataReference();
+
+                var consistent = CreateCompilation("public class C {}", assemblyName: "Con", targetFramework: TargetFramework.Standard);
+                var consistentRef = consistent.ToMetadataReference();
+
+                var ilSource = $@"
+{buildAssemblyExternClause(retargeted1)}
+{buildAssemblyExternClause(consistent)}
+.class public auto ansi beforefieldinit Il
+       extends [mscorlib]System.Object
+{{
+    .method public hidebysig newslot virtual 
+        instance {mIlSignature} 'M' ()
+    {{
+        .maxstack 8
+
+        ldnull
+        throw
+    }}
+
+    .method public hidebysig specialname rtspecialname 
+            instance void  .ctor() cil managed
+    {{
+        .maxstack  8
+        ldarg.0
+        call       instance void [mscorlib]System.Object::.ctor()
+        ret
+    }}
+}}
+";
+
+                var ilRef = CompileIL(ilSource);
+
+                var originalComp = CreateCompilation($@"
+unsafe class Source : Il
+{{
+    public override {mOverriddenSignature} M() => throw null;
+}}", new[] { retargeted1Ref, consistentRef, ilRef }, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Standard);
+
+                originalComp.VerifyDiagnostics();
+
+                var retargetedComp = CreateCompilation("", references: new[] { originalComp.ToMetadataReference(), retargeted2Ref, consistentRef, ilRef },
+                                                       options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9,
+                                                       targetFramework: TargetFramework.Standard);
+
+                retargetedComp.VerifyDiagnostics();
+
+                return (retargeted1.Assembly, retargeted2.Assembly, consistent.Assembly, originalComp, retargetedComp);
+
+                static string buildAssemblyExternClause(CSharpCompilation comp)
+                {
+                    AssemblyIdentity assemblyIdentity = comp.Assembly.Identity;
+                    System.Version version = assemblyIdentity.Version;
+
+                    return $@"
+.assembly extern {assemblyIdentity.Name}
+{{
+  .ver {version.Major}:{version.Minor}:{version.Build}:{version.Revision}
+}}
+";
+                }
+            }
+        }
+
+        [Fact]
+        public void RetargetedUnmanagedCallersOnlyData()
+        {
+            var originalIdentity = new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true);
+            // Custom corlib is necessary as the CallConv type must be defined in corlib, and we need to make
+            // sure that it's retargeted correctly.
+            string corlibSource = @"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public abstract partial class Enum : ValueType {}
+    public class String { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Type { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) {}
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { Method = 0x0040, }
+    namespace Runtime
+    {
+        namespace InteropServices
+        {
+            [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+            public sealed class UnmanagedCallersOnlyAttribute : Attribute
+            {
+                public UnmanagedCallersOnlyAttribute()
+                {
+                }
+
+                public Type[] CallConvs;
+                public string EntryPoint;
+            }
+        }
+        namespace CompilerServices
+        {
+            public sealed class CallConvCdecl {}
+        }
+    }
+}
+";
+            var beforeRetargeting = CreateCompilation(originalIdentity, new[] { corlibSource }, new MetadataReference[0]);
+            beforeRetargeting.VerifyDiagnostics();
+
+            var unmanagedCallersOnlyAssembly = CreateEmptyCompilation(@"
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) } )]
+    public static void M(int s) {}
+}
+", new[] { beforeRetargeting.ToMetadataReference() });
+            unmanagedCallersOnlyAssembly.VerifyDiagnostics();
+
+            var afterRetargeting = CreateCompilation(originalIdentity.WithVersion(new Version(2, 0, 0, 0)), new[] { corlibSource }, new MetadataReference[0]);
+            afterRetargeting.VerifyDiagnostics();
+
+            var finalComp = CreateEmptyCompilation(@"C.M(1);", options: TestOptions.ReleaseExe, references: new[] { afterRetargeting.ToMetadataReference(), unmanagedCallersOnlyAssembly.ToMetadataReference() });
+            finalComp.VerifyDiagnostics(
+                // (1,1): error CS8901: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // C.M(1);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M(1)").WithArguments("C.M(int)").WithLocation(1, 1)
+            );
+
+            var m = finalComp.GetTypeByMetadataName("C").GetMethod("M");
+            var unmanagedCallersOnlyData = m.GetUnmanagedCallersOnlyAttributeData(forceComplete: true);
+            Assert.IsType<RetargetingMethodSymbol>(m);
+            var containingAssembly = unmanagedCallersOnlyData.CallingConventionTypes.Single().ContainingAssembly;
+            Assert.NotSame(containingAssembly, beforeRetargeting.Assembly);
+            Assert.Same(containingAssembly, afterRetargeting.Assembly);
+        }
+
+        [Fact]
+        public void RetargetedUnmanagedCallersOnlyEmptyData()
+        {
+            var originalIdentity = new AssemblyIdentity("Ret", new Version(1, 0, 0, 0), isRetargetable: true);
+            // Custom corlib is necessary as the CallConv type must be defined in corlib, and we need to make
+            // sure that it's retargeted correctly.
+            string corlibSource = @"
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public abstract partial class Enum : ValueType {}
+    public class String { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public class Type { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) {}
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { Method = 0x0040, }
+    namespace Runtime
+    {
+        namespace InteropServices
+        {
+            [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+            public sealed class UnmanagedCallersOnlyAttribute : Attribute
+            {
+                public UnmanagedCallersOnlyAttribute()
+                {
+                }
+
+                public Type[] CallConvs;
+                public string EntryPoint;
+            }
+        }
+        namespace CompilerServices
+        {
+            public sealed class CallConvCdecl {}
+        }
+    }
+}
+";
+            var beforeRetargeting = CreateCompilation(originalIdentity, new[] { corlibSource }, new MetadataReference[0]);
+            beforeRetargeting.VerifyDiagnostics();
+
+            var unmanagedCallersOnlyAssembly = CreateEmptyCompilation(@"
+using System.Runtime.InteropServices;
+public class C
+{
+    [UnmanagedCallersOnly]
+    public static void M(int s) {}
+}
+", new[] { beforeRetargeting.ToMetadataReference() });
+            unmanagedCallersOnlyAssembly.VerifyDiagnostics();
+
+            var afterRetargeting = CreateCompilation(originalIdentity.WithVersion(new Version(2, 0, 0, 0)), new[] { corlibSource }, new MetadataReference[0]);
+            afterRetargeting.VerifyDiagnostics();
+
+            var finalComp = CreateEmptyCompilation(@"C.M(1);", options: TestOptions.ReleaseExe, references: new[] { afterRetargeting.ToMetadataReference(), unmanagedCallersOnlyAssembly.ToMetadataReference() });
+            finalComp.VerifyDiagnostics(
+                // (1,1): error CS8901: 'C.M(int)' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.
+                // C.M(1);
+                Diagnostic(ErrorCode.ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly, "C.M(1)").WithArguments("C.M(int)").WithLocation(1, 1)
+            );
         }
     }
 

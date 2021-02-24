@@ -973,9 +973,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_0_an_Async_Function" xml:space="preserve">
     <value>Make {0} an Async Function.</value>
   </data>
-  <data name="Insert_Missing_Cast" xml:space="preserve">
-    <value>Insert Missing Cast</value>
-  </data>
   <data name="Convert_0_to_Iterator" xml:space="preserve">
     <value>Convert {0} to Iterator</value>
   </data>
@@ -1241,5 +1238,18 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Make_0_inheritable" xml:space="preserve">
     <value>Make '{0}' inheritable</value>
+  </data>
+  <data name="Change_to_DirectCast" xml:space="preserve">
+    <value>Change to 'DirectCast'</value>
+  </data>
+  <data name="Change_to_TryCast" xml:space="preserve">
+    <value>Change to 'TryCast'</value>
+  </data>
+  <data name="Remove_shared_keyword_from_module_member" xml:space="preserve">
+    <value>Remove 'Shared' keyword from Module member</value>
+    <comment>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</comment>
+  </data>
+  <data name="_0_Events" xml:space="preserve">
+    <value>({0} Events)</value>
   </data>
 </root>

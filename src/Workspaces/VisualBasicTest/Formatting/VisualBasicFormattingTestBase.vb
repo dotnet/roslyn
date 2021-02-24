@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Return SyntaxFactory.ParseCompilationUnit(text, options:=DirectCast(parseOptions, VisualBasicParseOptions))
         End Function
 
-        Protected Function CreateMethod(ParamArray lines() As String) As String
+        Protected Shared Function CreateMethod(ParamArray lines() As String) As String
             Dim adjustedLines = New List(Of String)()
             adjustedLines.Add("Class C")
             adjustedLines.Add("    Sub Method()")
@@ -80,7 +80,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
 
         Protected Function AssertFormatSpanAsync(markupCode As String, expected As String) As Task
             Dim code As String = Nothing
-            Dim cursorPosition As Integer? = Nothing
             Dim spans As ImmutableArray(Of TextSpan) = Nothing
             MarkupTestFile.GetSpans(markupCode, code, spans)
 
@@ -115,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Return AssertFormatAsync(expected, code, spans, LanguageNames.VisualBasic, debugMode, changedOptionSet, testWithTransformation, parseOptions)
         End Function
 
-        Private Function StringFromLines(ParamArray lines As String()) As String
+        Private Shared Function StringFromLines(ParamArray lines As String()) As String
             Return String.Join(Environment.NewLine, lines)
         End Function
     End Class

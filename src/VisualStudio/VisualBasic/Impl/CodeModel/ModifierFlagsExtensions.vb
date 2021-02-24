@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
     Friend Module ModifierFlagsExtensions
-        Private s_modifierDefinitions As New SortedList(Of ModifierFlags, SyntaxKind) From {
+        Private ReadOnly s_modifierDefinitions As New SortedList(Of ModifierFlags, SyntaxKind) From {
             {ModifierFlags.Partial, SyntaxKind.PartialKeyword},
             {ModifierFlags.Default, SyntaxKind.DefaultKeyword},
             {ModifierFlags.Private, SyntaxKind.PrivateKeyword},

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.IO;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,6 +14,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         protected AbstractFileHeaderDiagnosticAnalyzer(string language)
             : base(
                 IDEDiagnosticIds.FileHeaderMismatch,
+                EnforceOnBuildValues.FileHeaderMismatch,
                 CodeStyleOptions2.FileHeaderTemplate,
                 language,
                 new LocalizableResourceString(nameof(AnalyzersResources.The_file_header_is_missing_or_not_located_at_the_top_of_the_file), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
             var invalidHeaderTitle = new LocalizableResourceString(nameof(AnalyzersResources.The_file_header_does_not_match_the_required_text), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
             var invalidHeaderMessage = new LocalizableResourceString(nameof(AnalyzersResources.A_source_file_contains_a_header_that_does_not_match_the_required_text), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
-            InvalidHeaderDescriptor = CreateDescriptorWithId(DescriptorId, invalidHeaderTitle, invalidHeaderMessage);
+            InvalidHeaderDescriptor = CreateDescriptorWithId(DescriptorId, EnforceOnBuildValues.FileHeaderMismatch, invalidHeaderTitle, invalidHeaderMessage);
         }
 
         protected abstract AbstractFileHeaderHelper FileHeaderHelper { get; }
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
                 return;
             }
 
-            if (!context.Options.TryGetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, tree, out string fileHeaderTemplate)
+            if (!context.Options.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out var fileHeaderTemplate)
                 || string.IsNullOrEmpty(fileHeaderTemplate))
             {
                 return;

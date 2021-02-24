@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.TextStructureNavigation;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -275,7 +275,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             var startOfFirstString = TestString.IndexOf('"');
             var endOfFirstString = TestString.IndexOf('"', startOfFirstString + 1);
             var startOfString = TestString.IndexOf("$\"", endOfFirstString + 1, StringComparison.Ordinal);
-            var lengthOfStringIncludingQuotes = TestString.LastIndexOf('"') - startOfString + 1;
 
             // Selects interpolated string start token
             AssertExtent(
@@ -359,10 +358,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             using var workspace = TestWorkspace.CreateCSharp(code, options);
             var buffer = workspace.Documents.First().GetTextBuffer();
 
-            var provider = new TextStructureNavigatorProvider(
-                workspace.GetService<ITextStructureNavigatorSelectorService>(),
-                workspace.GetService<IContentTypeRegistryService>(),
-                workspace.GetService<IWaitIndicator>());
+            var provider = Assert.IsType<TextStructureNavigatorProvider>(
+                workspace.GetService<ITextStructureNavigatorProvider>(ContentTypeNames.CSharpContentType));
 
             var navigator = provider.CreateTextStructureNavigator(buffer);
 
@@ -397,10 +394,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             using var workspace = TestWorkspace.CreateCSharp(code, options);
             var buffer = workspace.Documents.First().GetTextBuffer();
 
-            var provider = new TextStructureNavigatorProvider(
-                workspace.GetService<ITextStructureNavigatorSelectorService>(),
-                workspace.GetService<IContentTypeRegistryService>(),
-                workspace.GetService<IWaitIndicator>());
+            var provider = Assert.IsType<TextStructureNavigatorProvider>(
+                workspace.GetService<ITextStructureNavigatorProvider>(ContentTypeNames.CSharpContentType));
 
             var navigator = provider.CreateTextStructureNavigator(buffer);
 

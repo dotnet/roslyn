@@ -1,5 +1,6 @@
 ﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
 
@@ -28,7 +29,7 @@
     <ItemGroup>
       <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="" />
       <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64" />
-      <_FileEntries Include='file source="$(IntermediateOutputPath)%(_ServiceHubConfigFiles.FileName)%(_ServiceHubConfigFiles.FileSuffix).servicehub.service.json"'/>
+      <_FileEntries Include='file source="$(IntermediateOutputPath)%(_ServiceHubConfigFiles.Identity)%(_ServiceHubConfigFiles.FileSuffix).servicehub.service.json"'/>
     </ItemGroup>
 
     <PropertyGroup>

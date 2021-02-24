@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TypeCompilationState compilationState = new TypeCompilationState(method.ContainingType, compilation, module);
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var block = MethodCompiler.BindMethodBody(method, compilationState, diagnostics);
+            var block = MethodCompiler.BindMethodBody(method, compilationState, new BindingDiagnosticBag(diagnostics));
             diagnostics.Free();
             return block;
         }

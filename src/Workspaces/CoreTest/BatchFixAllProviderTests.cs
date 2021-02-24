@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -105,11 +107,7 @@ class TestClass {{
 
                     if (_nested)
                     {
-#if NETCOREAPP2_0 || NET472
                         fixes = new List<CodeAction> { CodeAction.Create("Container", fixes.ToImmutableArray(), isInlinable: false) };
-#else
-                        throw new NotSupportedException("Nested code actions are not supported on this framework.");
-#endif
                     }
 
                     foreach (var fix in fixes)
@@ -121,7 +119,7 @@ class TestClass {{
                 return Task.CompletedTask;
             }
 
-            private async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, int replacement, CancellationToken cancellationToken)
+            private static async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, int replacement, CancellationToken cancellationToken)
             {
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken);
                 var root = await tree.GetRootAsync(cancellationToken);

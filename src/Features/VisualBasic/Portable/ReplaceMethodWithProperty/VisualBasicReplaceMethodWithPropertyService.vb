@@ -48,10 +48,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             Dim methodBlockOrStatement = GetParentIfBlock(getMethodDeclaration)
             editor.ReplaceNode(methodBlockOrStatement,
-                               ConvertMethodsToProperty(editor, semanticModel, getAndSetMethods, propertyName, nameChanged))
+                               ConvertMethodsToProperty(editor, getAndSetMethods, propertyName, nameChanged))
         End Sub
 
-        Private Function GetParentIfBlock(declaration As MethodStatementSyntax) As DeclarationStatementSyntax
+        Private Shared Function GetParentIfBlock(declaration As MethodStatementSyntax) As DeclarationStatementSyntax
             If declaration.IsParentKind(SyntaxKind.FunctionBlock) OrElse declaration.IsParentKind(SyntaxKind.SubBlock) Then
                 Return DirectCast(declaration.Parent, DeclarationStatementSyntax)
             End If
@@ -59,9 +59,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return declaration
         End Function
 
-        Private Function ConvertMethodsToProperty(
+        Private Shared Function ConvertMethodsToProperty(
             editor As SyntaxEditor,
-            semanticModel As SemanticModel,
             getAndSetMethods As GetAndSetMethods,
             propertyName As String, nameChanged As Boolean) As DeclarationStatementSyntax
 
@@ -128,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return newPropertyDeclaration.WithAdditionalAnnotations(Formatter.Annotation)
         End Function
 
-        Private Function GetPropertyName(identifier As SyntaxToken, propertyName As String, nameChanged As Boolean) As SyntaxToken
+        Private Shared Function GetPropertyName(identifier As SyntaxToken, propertyName As String, nameChanged As Boolean) As SyntaxToken
             Return If(nameChanged, SyntaxFactory.Identifier(propertyName), identifier)
         End Function
 

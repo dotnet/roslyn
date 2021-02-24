@@ -244,5 +244,15 @@ namespace Microsoft.CodeAnalysis
         PropertySubpattern = 0x6b,
         /// <summary>Indicates an <see cref="IUsingDeclarationOperation"/>.</summary>
         UsingDeclaration = 0x6c,
+        /// <summary>Indicates an <see cref="INegatedPatternOperation"/>.</summary>
+        NegatedPattern = 0x6d,
+        /// <summary>Indicates an <see cref="IBinaryPatternOperation"/>.</summary>
+        BinaryPattern = 0x6e,
+        /// <summary>Indicates an <see cref="ITypePatternOperation"/>.</summary>
+        TypePattern = 0x6f,
+        /// <summary>Indicates an <see cref="IRelationalPatternOperation"/>.</summary>
+        RelationalPattern = 0x70,
+        /// <summary>Indicates an <see cref="IWithOperation"/>.</summary>
+        With = 0x71,
     }
 }

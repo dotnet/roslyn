@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
         {
         }
 
-        private CSharpSyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+        private static CSharpSyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
         protected override void ProcessCompilationUnit(
             SyntaxTreeAnalysisContext context,
@@ -51,7 +54,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 
             // If we have a class or struct, recurse inwards.
             if (member.IsKind(SyntaxKind.ClassDeclaration, out TypeDeclarationSyntax typeDeclaration) ||
-                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration))
+                member.IsKind(SyntaxKind.StructDeclaration, out typeDeclaration) ||
+                member.IsKind(SyntaxKind.RecordDeclaration, out typeDeclaration))
             {
                 ProcessMembers(context, option, typeDeclaration.Members);
             }
@@ -110,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
                         break;
 
                     case SyntaxKind.ClassDeclaration:
+                    case SyntaxKind.RecordDeclaration:
                     case SyntaxKind.StructDeclaration:
                         {
                             // Inside a type, default is private

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
     internal static class UseConditionalExpressionCodeFixHelpers
     {
-        public static readonly SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
+        public static readonly SyntaxAnnotation SpecializedFormattingAnnotation = new();
 
         public static SyntaxRemoveOptions GetRemoveOptions(
             ISyntaxFactsService syntaxFacts, SyntaxNode syntax)

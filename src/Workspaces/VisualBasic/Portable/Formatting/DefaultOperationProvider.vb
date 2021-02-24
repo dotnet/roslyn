@@ -177,11 +177,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
+        Private Shared Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
             Return previousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) OrElse nextToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia)
         End Function
 
-        Private Function IsFirstXmlTag(currentToken As SyntaxToken) As Boolean
+        Private Shared Function IsFirstXmlTag(currentToken As SyntaxToken) As Boolean
             Dim xmlDeclaration = TryCast(currentToken.Parent, XmlDeclarationSyntax)
             If xmlDeclaration IsNot Nothing AndAlso
                xmlDeclaration.LessThanQuestionToken = currentToken AndAlso

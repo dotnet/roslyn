@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class NamespaceDeclarationSyntax
     {
-        new internal InternalSyntax.NamespaceDeclarationSyntax Green
+        internal new InternalSyntax.NamespaceDeclarationSyntax Green
         {
             get
             {

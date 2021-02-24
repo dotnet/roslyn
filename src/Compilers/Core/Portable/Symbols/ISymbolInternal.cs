@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Symbols
@@ -136,5 +134,13 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// Returns an <see cref="ISymbol"/> instance associated with this symbol.
         /// </summary>
         ISymbol GetISymbol();
+
+        /// <summary>
+        /// Returns an <see cref="Cci.IReference"/> instance associated with this symbol.
+        /// In general, this API is not safe to use. Transition from symbols to Cci interfaces
+        /// should be handled by PEModuleBuilder translation layer. One relatively safe scenario
+        /// is to use it on a symbol that is a definition.
+        /// </summary>
+        Cci.IReference GetCciAdapter();
     }
 }

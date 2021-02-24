@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -17,6 +20,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     [UseExportProvider]
     public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
     {
+        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
+            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
+            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+
         protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, string rootNamespace = null)
         {
             using var workspace = CreateWorkspaceFromFile(source, language, rootNamespace);
@@ -29,7 +36,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var document = workspace.CurrentSolution.GetDocument(documentId);
             var span = (await document.GetSyntaxRootAsync()).FullSpan;
 
-            var actualDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
+            var actualDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
             actualDiagnostics.Verify(expectedDiagnostics);
         }
 
@@ -37,14 +44,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
             if (language == LanguageNames.CSharp)
             {
-                return TestWorkspace.CreateCSharp(source);
+                return TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
             }
             else
             {
                 return TestWorkspace.CreateVisualBasic(
                     source,
                     compilationOptions: new VisualBasic.VisualBasicCompilationOptions(
-                        OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));
+                        OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace),
+                    composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
             }
         }
 

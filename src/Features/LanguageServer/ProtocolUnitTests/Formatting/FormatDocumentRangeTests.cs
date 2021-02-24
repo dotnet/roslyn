@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,17 +34,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             int i = 1;
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
             var rangeToFormat = locations["format"].Single();
-            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(rangeToFormat.Uri).GetTextAsync();
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(rangeToFormat.Uri).Single().GetTextAsync();
 
-            var results = await RunFormatDocumentRangeAsync(workspace.CurrentSolution, rangeToFormat);
+            var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expected, actualText);
         }
 
-        private static async Task<LSP.TextEdit[]> RunFormatDocumentRangeAsync(Solution solution, LSP.Location location)
-            => await GetLanguageServer(solution).FormatDocumentRangeAsync(solution, CreateDocumentRangeFormattingParams(location), new LSP.ClientCapabilities(), CancellationToken.None);
+        private static async Task<LSP.TextEdit[]> RunFormatDocumentRangeAsync(TestLspServer testLspServer, LSP.Location location)
+        {
+            return await testLspServer.ExecuteRequestAsync<LSP.DocumentRangeFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentRangeFormattingName,
+                           CreateDocumentRangeFormattingParams(location), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
 
         private static LSP.DocumentRangeFormattingParams CreateDocumentRangeFormattingParams(LSP.Location location)
             => new LSP.DocumentRangeFormattingParams()

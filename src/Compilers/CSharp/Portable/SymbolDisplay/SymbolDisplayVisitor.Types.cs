@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.SymbolDisplay;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case CodeAnalysis.NullableAnnotation.NotAnnotated:
                     if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier) &&
                         !type.IsValueType &&
-                        (type as Symbols.PublicModel.TypeSymbol)?.UnderlyingTypeSymbol.IsTypeParameterDisallowingAnnotation() != true)
+                        (type as Symbols.PublicModel.TypeSymbol)?.UnderlyingTypeSymbol.IsTypeParameterDisallowingAnnotationInCSharp8() != true)
                     {
                         return true;
                     }
@@ -147,6 +149,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true);
             }
             AddPunctuation(SyntaxKind.AsteriskToken);
+        }
+
+        public override void VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+        {
+            VisitMethod(symbol.Signature);
         }
 
         public override void VisitTypeParameter(ITypeParameterSymbol symbol)
@@ -557,6 +564,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (symbol.TypeKind)
             {
+                case TypeKind.Class when symbol.IsRecord:
+                    return SymbolDisplayPartKind.RecordClassName;
                 case TypeKind.Submission:
                 case TypeKind.Module:
                 case TypeKind.Class:
@@ -653,6 +662,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (symbol.TypeKind)
                     {
+                        case TypeKind.Class when symbol.IsRecord:
+                            AddKeyword(SyntaxKind.RecordKeyword);
+                            AddSpace();
+                            break;
+
                         case TypeKind.Module:
                         case TypeKind.Class:
                             AddKeyword(SyntaxKind.ClassKeyword);

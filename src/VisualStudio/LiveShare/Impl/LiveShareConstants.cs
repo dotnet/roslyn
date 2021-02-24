@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare
 {
-    class LiveShareConstants
+    internal class LiveShareConstants
     {
         // The service name for an LSP server implemented using Roslyn designed to be used with the Roslyn client
         public const string RoslynContractName = "Roslyn";

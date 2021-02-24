@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,14 +53,14 @@ class C
             compilation.VerifyDiagnostics(
                 // (7,9): warning CS1522: Empty switch block
                 //         {
-                Diagnostic(ErrorCode.WRN_EmptySwitch, "{").WithLocation(7, 9));
+                Diagnostic(ErrorCode.WRN_EmptySwitch, "{", isSuppressed: false).WithLocation(7, 9));
 
             // Verify compiler syntax warning can be suppressed with a suppressor.
             var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS1522") };
             VerifySuppressedDiagnostics(compilation, analyzers,
                 // (7,9): warning CS1522: Empty switch block
                 //         {
-                Diagnostic("CS1522", "{").WithLocation(7, 9));
+                Diagnostic("CS1522", "{", isSuppressed: true).WithLocation(7, 9));
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
@@ -74,14 +76,14 @@ class C
             compilation.VerifyDiagnostics(
                 // (5,26): warning CS0169: The field 'C.f' is never used
                 //     private readonly int f;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f").WithLocation(5, 26));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "f", isSuppressed: false).WithArguments("C.f").WithLocation(5, 26));
 
             // Verify compiler semantic warning can be suppressed with a suppressor.
             var analyzers = new DiagnosticAnalyzer[] { new DiagnosticSuppressorForId("CS0169") };
             VerifySuppressedDiagnostics(compilation, analyzers,
                 // (5,26): warning CS0169: The field 'C.f' is never used
                 //     private readonly int f;
-                Diagnostic("CS0169", "f").WithArguments("C.f").WithLocation(5, 26));
+                Diagnostic("CS0169", "f", isSuppressed: true).WithArguments("C.f").WithLocation(5, 26));
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
@@ -133,12 +135,16 @@ class C
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
             var expectedDiagnostics = new DiagnosticDescription[] {
-                Diagnostic(analyzer.Descriptor.Id, source1),
-                Diagnostic(analyzer.Descriptor.Id, source2)
+                Diagnostic(analyzer.Descriptor.Id, source1, isSuppressed: false).WithLocation(1, 1),
+                Diagnostic(analyzer.Descriptor.Id, source2, isSuppressed: false).WithLocation(1, 1),
             };
             VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer }, expectedDiagnostics);
 
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, new DiagnosticSuppressorForId(analyzer.Descriptor.Id) };
+            expectedDiagnostics = new DiagnosticDescription[] {
+                Diagnostic(analyzer.Descriptor.Id, source1, isSuppressed: true).WithLocation(1, 1),
+                Diagnostic(analyzer.Descriptor.Id, source2, isSuppressed: true).WithLocation(1, 1),
+            };
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostics);
         }
 
@@ -150,10 +156,11 @@ class C
             compilation.VerifyDiagnostics();
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
-            var expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source);
+            var expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: false).WithLocation(1, 1);
             VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer }, expectedDiagnostic);
 
             // Multiple suppressors with same suppression ID.
+            expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: true).WithLocation(1, 1);
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, new DiagnosticSuppressorForId(analyzer.Descriptor.Id), new DiagnosticSuppressorForId(analyzer.Descriptor.Id) };
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostic);
 
@@ -181,8 +188,8 @@ class C
 
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, suppressor1, suppresor2 };
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors,
-                Diagnostic("CS0169", "f").WithArguments("C1.f").WithLocation(1, 33),
-                Diagnostic(analyzer.Descriptor.Id, source));
+                Diagnostic("CS0169", "f", isSuppressed: true).WithArguments("C1.f").WithLocation(1, 33),
+                Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: true));
         }
 
         [Fact, WorkItem(20242, "https://github.com/dotnet/roslyn/issues/20242")]
@@ -193,11 +200,12 @@ class C
             compilation.VerifyDiagnostics();
 
             var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
-            var expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source);
+            var expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: false);
             VerifyAnalyzerDiagnostics(compilation, new DiagnosticAnalyzer[] { analyzer }, expectedDiagnostic);
 
             const string suppressionId = "SPR1001";
             var analyzersAndSuppressors = new DiagnosticAnalyzer[] { analyzer, new DiagnosticSuppressorForId(analyzer.Descriptor.Id, suppressionId) };
+            expectedDiagnostic = Diagnostic(analyzer.Descriptor.Id, source, isSuppressed: true);
             VerifySuppressedDiagnostics(compilation, analyzersAndSuppressors, expectedDiagnostic);
 
             var specificDiagnosticOptions = compilation.Options.SpecificDiagnosticOptions.Add(suppressionId, ReportDiagnostic.Suppress);
@@ -223,16 +231,22 @@ class C { }";
                 {
                     foreach (DiagnosticSeverity effectiveSeverity in severities)
                     {
-                        var diagnostic = Diagnostic("ID1000", "class C { }")
+                        var diagnostic = Diagnostic("ID1000", "class C { }", isSuppressed: true)
                                             .WithLocation(2, 1)
                                             .WithDefaultSeverity(defaultSeverity)
                                             .WithEffectiveSeverity(configurable ? effectiveSeverity : defaultSeverity);
+
+                        var diagnosticNoSuppressor = Diagnostic("ID1000", "class C { }", isSuppressed: false)
+                            .WithLocation(2, 1)
+                            .WithDefaultSeverity(defaultSeverity)
+                            .WithEffectiveSeverity(configurable ? effectiveSeverity : defaultSeverity);
 
                         if (defaultSeverity == DiagnosticSeverity.Warning &&
                             effectiveSeverity == DiagnosticSeverity.Error &&
                             configurable)
                         {
                             diagnostic = diagnostic.WithWarningAsError(true);
+                            diagnosticNoSuppressor = diagnosticNoSuppressor.WithWarningAsError(true);
                         }
 
                         var analyzer = new CompilationAnalyzerWithSeverity(defaultSeverity, configurable);
@@ -246,7 +260,7 @@ class C { }";
                         compilation = compilation.WithOptions(compilation.Options.WithSpecificDiagnosticOptions(specificDiagnosticOptions));
 
                         // Verify analyzer diagnostic without suppressor, also verify no suppressions.
-                        VerifyAnalyzerDiagnostics(compilation, analyzersWithoutSuppressor, diagnostic);
+                        VerifyAnalyzerDiagnostics(compilation, analyzersWithoutSuppressor, diagnosticNoSuppressor);
                         VerifySuppressedDiagnostics(compilation, analyzersWithoutSuppressor);
 
                         // Verify suppressed analyzer diagnostic, except when default severity is Error or diagnostic is not-configurable.

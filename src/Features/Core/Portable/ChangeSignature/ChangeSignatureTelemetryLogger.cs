@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
@@ -12,9 +14,9 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         private const string Minimum = nameof(Minimum);
         private const string Mean = nameof(Mean);
 
-        private static readonly LogAggregator s_logAggregator = new LogAggregator();
-        private static readonly StatisticLogAggregator s_statisticLogAggregator = new StatisticLogAggregator();
-        private static readonly HistogramLogAggregator s_histogramLogAggregator = new HistogramLogAggregator(bucketSize: 1000, maxBucketValue: 30000);
+        private static readonly LogAggregator s_logAggregator = new();
+        private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(bucketSize: 1000, maxBucketValue: 30000);
 
         internal enum ActionInfo
         {

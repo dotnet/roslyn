@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     internal static class PredefinedCodeRefactoringProviderNames
@@ -12,9 +14,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string AddMissingImports = "Add Missing Imports On Paste Code Action Provider";
         public const string ChangeSignature = "Change Signature Code Action Provider";
         public const string ConvertAnonymousTypeToClass = "Convert Anonymous Type to Class Code Action Provider";
+        public const string ConvertDirectCastToTryCast = "Convert Direct Cast to Try Cast";
+        public const string ConvertTryCastToDirectCast = "Convert Try Cast to Direct Cast";
         public const string ConvertToInterpolatedString = "Convert To Interpolated String Code Action Provider";
         public const string ConvertTupleToStruct = "Convert Tuple to Struct Code Action Provider";
         public const string EncapsulateField = "Encapsulate Field";
+        public const string ExtractClass = "Extract Class Code Action Provider";
         public const string ExtractInterface = "Extract Interface Code Action Provider";
         public const string ExtractMethod = "Extract Method Code Action Provider";
         public const string GenerateConstructorFromMembers = "Generate Constructor From Members Code Action Provider";
@@ -33,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string MoveToNamespace = "Move To Namespace Code Action Provider";
         public const string MoveTypeToFile = "Move Type To File Code Action Provider";
         public const string PullMemberUp = "Pull Member Up Code Action Provider";
+        public const string InlineMethod = "Inline Method Code Action Provider";
         public const string ReplaceDocCommentTextWithTag = "Replace Documentation Comment Text With Tag Code Action Provider";
         public const string SimplifyLambda = "Simplify Lambda Code Action Provider";
         public const string SplitIntoConsecutiveIfStatements = "Split Into Consecutive If Statements Code Action Provider";

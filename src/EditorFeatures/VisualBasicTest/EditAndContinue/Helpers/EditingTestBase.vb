@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -15,7 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public MustInherit Class EditingTestBase
         Inherits BasicTestBase
 
-        Friend Shared ReadOnly Analyzer As VisualBasicEditAndContinueAnalyzer = New VisualBasicEditAndContinueAnalyzer()
+        Friend Shared Function CreateAnalyzer() As VisualBasicEditAndContinueAnalyzer
+            Return New VisualBasicEditAndContinueAnalyzer()
+        End Function
 
         Public Enum StateMachineKind
             None
@@ -36,8 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Return New SemanticEditDescription(kind, symbolProvider, Nothing, preserveLocalVariables)
         End Function
 
-        Private Shared Function ParseSource(source As String, Optional options As ParseOptions = Nothing) As SyntaxTree
-            Return VisualBasicEditAndContinueTestHelpers.Instance.ParseText(ActiveStatementsDescription.ClearTags(source))
+        Private Shared Function ParseSource(source As String) As SyntaxTree
+            Return VisualBasicEditAndContinueTestHelpers.CreateInstance().ParseText(ActiveStatementsDescription.ClearTags(source))
         End Function
 
         Friend Shared Function GetTopEdits(src1 As String, src2 As String) As EditScript(Of SyntaxNode)
@@ -60,10 +63,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             Dim m1 = MakeMethodBody(src1, stateMachine)
             Dim m2 = MakeMethodBody(src2, stateMachine)
 
-            Dim diagnostics = New List(Of RudeEditDiagnostic)()
+            Dim diagnostics = New ArrayBuilder(Of RudeEditDiagnostic)()
 
             Dim oldHasStateMachineSuspensionPoint = False, newHasStateMachineSuspensionPoint = False
-            Dim match = Analyzer.GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, oldHasStateMachineSuspensionPoint, newHasStateMachineSuspensionPoint)
+            Dim match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty(Of AbstractEditAndContinueAnalyzer.ActiveNode)(), diagnostics, oldHasStateMachineSuspensionPoint, newHasStateMachineSuspensionPoint)
             Dim needsSyntaxMap = oldHasStateMachineSuspensionPoint AndAlso newHasStateMachineSuspensionPoint
 
             Assert.Equal(stateMachine <> StateMachineKind.None, needsSyntaxMap)
@@ -79,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                                                 src2 As String,
                                                 Optional stateMachine As StateMachineKind = StateMachineKind.None) As IEnumerable(Of KeyValuePair(Of SyntaxNode, SyntaxNode))
             Dim methodMatch = GetMethodMatch(src1, src2, stateMachine)
-            Return EditAndContinueTestHelpers.GetMethodMatches(Analyzer, methodMatch)
+            Return EditAndContinueTestHelpers.GetMethodMatches(CreateAnalyzer(), methodMatch)
         End Function
 
         Public Shared Function ToMatchingPairs(match As Match(Of SyntaxNode)) As MatchingPairs

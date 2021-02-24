@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -180,5 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundIndexOrRangePatternIndexerAccess
     {
         protected override ImmutableArray<BoundNode?> Children => ImmutableArray.Create<BoundNode?>(Receiver, Argument);
+    }
+
+    internal partial class BoundFunctionPointerInvocation : IBoundInvalidNode
+    {
+        ImmutableArray<BoundNode> IBoundInvalidNode.InvalidNodeChildren => CSharpOperationFactory.CreateInvalidChildrenFromArgumentsExpression(receiverOpt: this.InvokedExpression, Arguments);
+        protected override ImmutableArray<BoundNode?> Children => StaticCast<BoundNode?>.From(((IBoundInvalidNode)this).InvalidNodeChildren);
     }
 }

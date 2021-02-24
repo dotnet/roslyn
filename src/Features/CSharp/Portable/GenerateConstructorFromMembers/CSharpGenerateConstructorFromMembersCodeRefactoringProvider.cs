@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -33,6 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructorFromMembers
             : base(pickMembersService_forTesting)
         {
         }
+
+        protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
+            => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 
         protected override string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format)
             => SymbolDisplay.ToDisplayString(parameter, format);

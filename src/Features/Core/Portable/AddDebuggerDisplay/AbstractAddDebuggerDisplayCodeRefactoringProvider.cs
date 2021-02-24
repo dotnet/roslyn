@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -48,9 +46,9 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
             if (debuggerAttributeTypeSymbol is null)
                 return;
 
-            var typeSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(type, context.CancellationToken);
+            var typeSymbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(type, context.CancellationToken);
 
-            if (!IsClassOrStruct(typeSymbol))
+            if (typeSymbol.IsStatic || !IsClassOrStruct(typeSymbol))
                 return;
 
             if (HasDebuggerDisplayAttribute(typeSymbol, compilation))
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
                 return null;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(method);
+            var methodSymbol = (IMethodSymbol)semanticModel.GetRequiredDeclaredSymbol(method, cancellationToken);
 
             var isDebuggerDisplayMethod = IsDebuggerDisplayMethod(methodSymbol);
             if (!isDebuggerDisplayMethod && !IsToStringMethod(methodSymbol))
@@ -134,7 +132,7 @@ namespace Microsoft.CodeAnalysis.AddDebuggerDisplay
 
             editor.AddAttribute(type, newAttribute);
 
-            var typeSymbol = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(type, cancellationToken);
+            var typeSymbol = (INamedTypeSymbol)semanticModel.GetRequiredDeclaredSymbol(type, cancellationToken);
 
             if (!typeSymbol.GetMembers().OfType<IMethodSymbol>().Any(IsDebuggerDisplayMethod))
             {

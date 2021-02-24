@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertIfToSwitch;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         : AbstractConvertIfToSwitchCodeRefactoringProvider<IfStatementSyntax, ExpressionSyntax, BinaryExpressionSyntax, PatternSyntax>
     {
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpConvertIfToSwitchCodeRefactoringProvider()
         {
         }
@@ -32,8 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
         {
             var version = ((CSharpParseOptions)options).LanguageVersion;
             var features =
-                (version >= LanguageVersion.CSharp7 ? Feature.SourcePattern | Feature.TypePattern | Feature.CaseGuard : 0) |
-                (version >= LanguageVersion.CSharp8 ? Feature.SwitchExpression : 0);
+                (version >= LanguageVersion.CSharp7 ? Feature.SourcePattern | Feature.IsTypePattern | Feature.CaseGuard : 0) |
+                (version >= LanguageVersion.CSharp8 ? Feature.SwitchExpression : 0) |
+                (version.IsCSharp9OrAbove() ? Feature.RelationalPattern | Feature.OrPattern | Feature.AndPattern | Feature.TypePattern : 0);
             return new CSharpAnalyzer(syntaxFacts, features);
         }
     }

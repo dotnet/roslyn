@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -120,10 +123,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             public SyntaxToken GetIdentifierTokenAtDeclaration(SyntaxNode node)
                 => node.GetAnnotatedTokens(_variableSymbol.IdentifierTokenAnnotation).SingleOrDefault();
 
-            public static void SortVariables(Compilation compilation, List<VariableInfo> list)
+            public static void SortVariables(Compilation compilation, ArrayBuilder<VariableInfo> variables)
             {
                 var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
-                list.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
+                variables.Sort((v1, v2) => Compare(v1, v2, cancellationTokenType));
             }
 
             private static int Compare(VariableInfo left, VariableInfo right, INamedTypeSymbol cancellationTokenType)

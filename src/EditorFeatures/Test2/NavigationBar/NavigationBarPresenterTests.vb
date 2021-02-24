@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     <Project Language="C#" CommonReferences="true">
                         <Document>{|Document:class C { $$ }|}</Document>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument("LEADING TEXT {|Document:|} TRAILING TEXT", {subjectDocument})
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.GetTextBuffer())
 
                 Dim provider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
-                Await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
+                Await provider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 
                 Assert.True(presentItemsCalled)
             End Using
@@ -94,7 +94,7 @@ class C
                     <Project Language="C#" CommonReferences="true" PreprocessorSymbols="Proj2">
                         <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)
@@ -152,7 +152,7 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Proj2=True">
                         <Document IsLinkFile="true" LinkAssemblyName="VBProj" LinkFilePath="C.vb"/>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.Single(Function(d) d.IsLinkFile)
@@ -208,7 +208,7 @@ class C
                     <Project Language="C#" CommonReferences="true" AssemblyName="CProj">
                         <Document IsLinkFile="true" LinkAssemblyName="BProj" LinkFilePath="C.cs"/>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim expectedProjectNames As New List(Of String) From {"AProj", "BProj", "CProj"}
@@ -247,7 +247,7 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VB-Proj1">
                         <Document IsLinkFile="true" LinkAssemblyName="VBProj" LinkFilePath="C.vb"/>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim baseDocument = workspace.Documents.Single(Function(d) Not d.IsLinkFile)
                 Dim expectedProjectNames As New List(Of String) From {"VBProj", "VB-Proj1"}
@@ -284,7 +284,7 @@ Class C
 End Class
                         </Document>
                     </Project>
-                </Workspace>, exportProvider:=TestExportProvider.ExportProviderWithCSharpAndVisualBasic)
+                </Workspace>, composition:=EditorTestCompositions.EditorFeatures)
 
                 Dim document = workspace.Documents.Single()
 
@@ -316,7 +316,7 @@ End Class
                 Await workspaceWaiter.ExpeditedWaitAsync()
                 Await navigationBarWaiter.ExpeditedWaitAsync()
 
-                Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
+                Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 
                 Assert.Equal("VBProj2", projectName)
             End Using

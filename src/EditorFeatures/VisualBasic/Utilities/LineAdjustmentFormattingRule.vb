@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
                 Return nextOperation.Invoke(previousToken, currentToken)
             End If
 
-            Dim previous = CType(previousToken, SyntaxToken)
             Dim current = CType(currentToken, SyntaxToken)
 
             ' case: insert blank line in empty method body.

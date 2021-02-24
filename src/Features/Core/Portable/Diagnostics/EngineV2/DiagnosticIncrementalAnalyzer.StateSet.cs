@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -32,10 +30,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly ConcurrentDictionary<DocumentId, ActiveFileState> _activeFileStates;
             private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectStates;
-
-            // whether this analyzer has compilation end analysis or not
-            // -1 not set, 0 no, 1 yes.
-            private volatile int _compilationEndAnalyzer = -1;
 
             public StateSet(string language, DiagnosticAnalyzer analyzer, string errorSourceName)
             {
@@ -138,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ProjectState GetOrCreateProjectState(ProjectId projectId)
                 => _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
 
-            public async Task<bool> OnDocumentOpenedAsync(IPersistentStorageService persistentStorageService, Document document)
+            public async Task<bool> OnDocumentOpenedAsync(IPersistentStorageService persistentStorageService, TextDocument document)
             {
                 // can not be cancelled
                 if (!TryGetProjectState(document.Project.Id, out var projectState) ||
@@ -159,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            public async Task<bool> OnDocumentClosedAsync(IPersistentStorageService persistentStorageService, Document document)
+            public async Task<bool> OnDocumentClosedAsync(IPersistentStorageService persistentStorageService, TextDocument document)
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
@@ -174,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return true;
             }
 
-            public bool OnDocumentReset(Document document)
+            public bool OnDocumentReset(TextDocument document)
             {
                 var changed = false;
                 // can not be cancelled
@@ -230,37 +224,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 InMemoryStorage.DropCache(Analyzer);
             }
 
-            public void ComputeCompilationEndAnalyzer(Project project, Compilation? compilation)
-            {
-                if (_compilationEndAnalyzer != -1)
-                {
-                    return;
-                }
-
-                // running this multiple time is fine
-                var result = Analyzer.IsCompilationEndAnalyzer(project, compilation);
-                if (!result.HasValue)
-                {
-                    // try again next time.
-                    return;
-                }
-
-                _compilationEndAnalyzer = result.Value ? 1 : 0;
-            }
-
-            public bool IsCompilationEndAnalyzer(Project project, Compilation compilation)
-            {
-                ComputeCompilationEndAnalyzer(project, compilation);
-
-                return _compilationEndAnalyzer == 1;
-            }
-
             private sealed class PersistentNames
             {
                 private const string UserDiagnosticsPrefixTableName = "<UserDiagnostics2>";
 
                 private static readonly ConcurrentDictionary<string, PersistentNames> s_analyzerStateNameCache
-                    = new ConcurrentDictionary<string, PersistentNames>(concurrencyLevel: 2, capacity: 10);
+                    = new(concurrencyLevel: 2, capacity: 10);
 
                 private PersistentNames(string assemblyQualifiedName)
                 {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -47,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return leading.Substring(0, lastNewLinePos);
         }
 
-        public static ValueTuple<SyntaxToken, SyntaxToken> GetBracePair(this SyntaxNode node)
+        public static (SyntaxToken openBrace, SyntaxToken closeBrace) GetBracePair(this SyntaxNode? node)
             => node.GetBraces();
 
-        public static bool IsValidBracePair(this ValueTuple<SyntaxToken, SyntaxToken> bracePair)
+        public static bool IsValidBracePair(this (SyntaxToken openBrace, SyntaxToken closeBrace) bracePair)
         {
-            if (bracePair.Item1.IsKind(SyntaxKind.None) ||
-                bracePair.Item1.IsMissing ||
-                bracePair.Item2.IsKind(SyntaxKind.None))
+            if (bracePair.openBrace.IsKind(SyntaxKind.None) ||
+                bracePair.openBrace.IsMissing ||
+                bracePair.closeBrace.IsKind(SyntaxKind.None))
             {
                 return false;
             }
@@ -109,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             => token.Kind() == SyntaxKind.ColonToken && token.Parent.IsKind(SyntaxKind.BaseList);
 
         public static bool IsCommaInArgumentOrParameterList(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.CommaToken && (token.Parent.IsAnyArgumentList() || token.Parent.IsKind(SyntaxKind.ParameterList));
+            => token.Kind() == SyntaxKind.CommaToken && (token.Parent.IsAnyArgumentList() || token.Parent.IsKind(SyntaxKind.ParameterList) || token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList));
 
         public static bool IsLambdaBodyBlock(this SyntaxNode node)
         {
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return IsEmbeddedStatement(block);
         }
 
-        public static bool IsEmbeddedStatement(this SyntaxNode node)
+        public static bool IsEmbeddedStatement([NotNullWhen(true)] this SyntaxNode? node)
         {
             SyntaxNode? statementOrElse = node as StatementSyntax;
             if (statementOrElse == null)
@@ -412,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public static bool IsInitializerForArrayOrCollectionCreationExpression(this SyntaxNode node)
+        public static bool IsInitializerForArrayOrCollectionCreationExpression([NotNullWhen(true)] this SyntaxNode? node)
         {
             if (node is InitializerExpressionSyntax initializer)
             {
@@ -473,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return token.Parent.Parent is LabeledStatementSyntax;
         }
 
-        public static ValueTuple<SyntaxToken, SyntaxToken> GetFirstAndLastMemberDeclarationTokensAfterAttributes(this MemberDeclarationSyntax node)
+        public static (SyntaxToken firstToken, SyntaxToken lastToken) GetFirstAndLastMemberDeclarationTokensAfterAttributes(this MemberDeclarationSyntax node)
         {
             Contract.ThrowIfNull(node);
 
@@ -481,54 +479,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var attributes = node.GetAttributes();
             if (attributes.Count == 0)
             {
-                return ValueTuple.Create(node.GetFirstToken(includeZeroWidth: true), node.GetLastToken(includeZeroWidth: true));
+                return (node.GetFirstToken(includeZeroWidth: true), node.GetLastToken(includeZeroWidth: true));
             }
 
             var lastToken = node.GetLastToken(includeZeroWidth: true);
             var lastAttributeToken = attributes.Last().GetLastToken(includeZeroWidth: true);
             if (lastAttributeToken.Equals(lastToken))
             {
-                return ValueTuple.Create(default(SyntaxToken), default(SyntaxToken));
+                return default;
             }
 
             var firstTokenAfterAttribute = lastAttributeToken.GetNextToken(includeZeroWidth: true);
 
             // there are attributes, get first token after the tokens belong to attributes
-            return ValueTuple.Create(firstTokenAfterAttribute, lastToken);
-        }
-
-        public static bool IsBlockBody(this SyntaxNode node)
-        {
-            Contract.ThrowIfNull(node);
-
-            if (!(node is BlockSyntax blockNode) || blockNode.Parent == null)
-            {
-                return false;
-            }
-
-            switch (blockNode.Parent.Kind())
-            {
-                case SyntaxKind.AnonymousMethodExpression:
-                case SyntaxKind.CheckedStatement:
-                case SyntaxKind.UncheckedStatement:
-                case SyntaxKind.UnsafeStatement:
-                case SyntaxKind.TryStatement:
-                case SyntaxKind.CatchClause:
-                case SyntaxKind.FinallyClause:
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.UnknownAccessorDeclaration:
-                    return true;
-                default:
-                    return false;
-            }
+            return (firstTokenAfterAttribute, lastToken);
         }
 
         public static bool IsPlusOrMinusExpression(this SyntaxToken token)

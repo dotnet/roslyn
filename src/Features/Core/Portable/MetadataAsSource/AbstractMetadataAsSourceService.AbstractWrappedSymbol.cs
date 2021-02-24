@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 => _symbol.Accept(visitor);
 
             public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-                => _symbol.Accept<TResult>(visitor);
+                => _symbol.Accept(visitor);
 
             public ImmutableArray<AttributeData> GetAttributes()
                 => _symbol.GetAttributes();

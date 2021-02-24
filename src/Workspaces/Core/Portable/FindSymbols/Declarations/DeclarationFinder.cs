@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     // Return symbols from skeleton assembly in this case so that symbols have 
                     // the same language as startingCompilation.
-                    symbolsWithName = symbolsWithName.Select(s => s.GetSymbolKey().Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol)
+                    symbolsWithName = symbolsWithName.Select(s => s.GetSymbolKey(cancellationToken).Resolve(startingCompilation, cancellationToken: cancellationToken).Symbol)
                                                      .WhereNotNull()
                                                      .ToImmutableArray();
                 }
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         project.Solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     var symbols = await info.FindAsync(
-                            query, assembly, project.Id, filter, cancellationToken).ConfigureAwait(false);
+                            query, assembly, filter, cancellationToken).ConfigureAwait(false);
                     list.AddRange(symbols);
                 }
             }

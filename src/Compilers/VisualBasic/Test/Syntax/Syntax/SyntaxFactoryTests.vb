@@ -109,5 +109,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Assert.Equal(expected, literalMethod.Invoke(Nothing, {value}).ToString())
         End Sub
+
+        <Fact>
+        Public Shared Sub TestParseTypeNameOptions()
+            Dim options As VisualBasicParseOptions = TestOptions.Regular
+            Dim code = "
+#If Variable
+String
+#Else
+Integer
+#End If"
+
+            Dim type1 = SyntaxFactory.ParseTypeName(code, options:=options.WithPreprocessorSymbols(New KeyValuePair(Of String, Object)("Variable", "True")))
+            Assert.Equal("String", type1.ToString())
+
+            Dim type2 = SyntaxFactory.ParseTypeName(code, options:=options)
+            Assert.Equal("Integer", type2.ToString())
+        End Sub
     End Class
 End Namespace

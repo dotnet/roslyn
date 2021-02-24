@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType;
@@ -92,7 +94,6 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-
         [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
@@ -169,7 +170,6 @@ class C
         int[||] i = 0, j = j;
     }
 }";
-
 
             await TestMissingInRegularAndScriptAsync(code);
         }

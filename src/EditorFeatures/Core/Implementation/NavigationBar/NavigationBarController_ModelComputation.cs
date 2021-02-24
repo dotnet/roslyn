@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// </summary>
         private Task<NavigationBarModel> _modelTask;
         private NavigationBarModel _lastCompletedModel;
-        private CancellationTokenSource _modelTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _modelTaskCancellationSource = new();
 
         /// <summary>
         /// Starts a new task to compute the model based on the current text.
@@ -34,11 +36,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             AssertIsForeground();
 
             var textSnapshot = _subjectBuffer.CurrentSnapshot;
-            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return;
-            }
 
             // Cancel off any existing work
             _modelTaskCancellationSource.Cancel();
@@ -51,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _modelTask =
                 Task.Delay(modelUpdateDelay, cancellationToken)
                     .SafeContinueWithFromAsync(
-                        _ => ComputeModelAsync(document, textSnapshot, cancellationToken),
+                        _ => ComputeModelAsync(textSnapshot, cancellationToken),
                         cancellationToken,
                         TaskContinuationOptions.OnlyOnRanToCompletion,
                         TaskScheduler.Default);
@@ -63,8 +60,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         /// <summary>
         /// Computes a model for the given snapshot.
         /// </summary>
-        private async Task<NavigationBarModel> ComputeModelAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
+        private async Task<NavigationBarModel> ComputeModelAsync(ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
+            // When computing items just get the partial semantics workspace.  This will ensure we can get data for this
+            // file, and hopefully have enough loaded to get data for other files in the case of partial types.  In the
+            // event the other files aren't available, then partial-type information won't be correct.  That's ok though
+            // as this is just something that happens during solution load and will pass once that is over.  By using
+            // partial semantics, we can ensure we don't spend an inordinate amount of time computing and using full
+            // compilation data (like skeleton assemblies).
+            var document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
+            if (document == null)
+            {
+                _lastCompletedModel = null;
+                return _lastCompletedModel;
+            }
+
             // TODO: remove .FirstOrDefault()
             var languageService = document.GetLanguageService<INavigationBarItemService>();
             if (languageService != null)
@@ -100,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         }
 
         private Task<NavigationBarSelectedTypeAndMember> _selectedItemInfoTask;
-        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new CancellationTokenSource();
+        private CancellationTokenSource _selectedItemInfoTaskCancellationSource = new();
 
         /// <summary>
         /// Starts a new task to compute what item should be selected.
@@ -146,7 +156,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     async t =>
                     {
                         await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                        cancellationToken.ThrowIfCancellationRequested();
 
                         PushSelectedItemsToPresenter(t.Result);
                     },

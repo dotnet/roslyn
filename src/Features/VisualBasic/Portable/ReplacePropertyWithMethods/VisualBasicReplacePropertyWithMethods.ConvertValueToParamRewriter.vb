@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Private Sub New()
             End Sub
 
-            Private Function ConvertToParam(name As XmlNodeSyntax) As SyntaxNode
+            Private Shared Function ConvertToParam(name As XmlNodeSyntax) As SyntaxNode
                 Return name.ReplaceToken(DirectCast(name, XmlNameSyntax).LocalName,
                                          SyntaxFactory.XmlNameToken("param", SyntaxKind.IdentifierToken))
             End Function

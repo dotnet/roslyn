@@ -10,10 +10,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class ImplementsClauseCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(ImplementsClauseCompletionProvider)
         End Function
@@ -468,7 +464,7 @@ Class A
     Public Function Equals(other As Integer) As Boolean Implements IEquatable(
 End Class</text>.Value
 
-            Await VerifyProviderCommitAsync(text, "IEquatable(Of Integer)", expected, "("c, "")
+            Await VerifyProviderCommitAsync(text, "IEquatable(Of Integer)", expected, "("c)
         End Function
 
         <WorkItem(546802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
@@ -509,7 +505,7 @@ Class C
     Public Sub test Implements [Interface].
 End Class</text>.Value
 
-            Await VerifyProviderCommitAsync(text, "Interface", expected, "."c, "")
+            Await VerifyProviderCommitAsync(text, "Interface", expected, "."c)
         End Function
 
         <WorkItem(543812, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543812")>

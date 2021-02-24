@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -22,6 +24,36 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
+    // The option page configuration is duplicated in PackageRegistration.pkgdef.
+    //
+    // C# option pages tree:
+    //   CSharp
+    //     General (from editor)
+    //     Scroll Bars (from editor)
+    //     Tabs (from editor)
+    //     Advanced
+    //     Code Style (category)
+    //       General
+    //       Formatting (category)
+    //         General
+    //         Indentation
+    //         New Lines
+    //         Spacing
+    //         Wrapping
+    //       Naming
+    //     IntelliSense
+
+    [ProvideLanguageEditorOptionPage(typeof(Options.AdvancedOptionPage), "CSharp", null, "Advanced", pageNameResourceId: "#102", keywordListResourceId: 306)]
+    [ProvideLanguageEditorToolsOptionCategory("CSharp", "Code Style", "#114")]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.CodeStylePage), "CSharp", @"Code Style", "General", pageNameResourceId: "#108", keywordListResourceId: 313)]
+    [ProvideLanguageEditorToolsOptionCategory("CSharp", @"Code Style\Formatting", "#107")]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingOptionPage), "CSharp", @"Code Style\Formatting", "General", pageNameResourceId: "#108", keywordListResourceId: 307)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingIndentationOptionPage), "CSharp", @"Code Style\Formatting", "Indentation", pageNameResourceId: "#109", keywordListResourceId: 308)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingWrappingPage), "CSharp", @"Code Style\Formatting", "Wrapping", pageNameResourceId: "#110", keywordListResourceId: 311)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingNewLinesPage), "CSharp", @"Code Style\Formatting", "NewLines", pageNameResourceId: "#111", keywordListResourceId: 309)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.Formatting.FormattingSpacingPage), "CSharp", @"Code Style\Formatting", "Spacing", pageNameResourceId: "#112", keywordListResourceId: 310)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.NamingStylesOptionPage), "CSharp", @"Code Style", "Naming", pageNameResourceId: "#115", keywordListResourceId: 314)]
+    [ProvideLanguageEditorOptionPage(typeof(Options.IntelliSenseOptionPage), "CSharp", null, "IntelliSense", pageNameResourceId: "#103", keywordListResourceId: 312)]
     [Guid(Guids.CSharpPackageIdString)]
     internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLanguageService>, IVsUserSettingsQuery
     {
@@ -38,25 +70,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 this.RegisterService<ICSharpTempPECompilerService>(async ct =>
                 {
+                    var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
                     await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
-                    return new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>());
+                    return new TempPECompilerService(workspace.Services.GetService<IMetadataService>());
                 });
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {
             }
         }
 
-        protected override VisualStudioWorkspaceImpl CreateWorkspace()
-            => this.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
-
         protected override async Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
+            var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
+
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             if (await GetServiceAsync(typeof(SVsObjectManager)).ConfigureAwait(true) is IVsObjectManager2 objectManager)
             {
-                _libraryManager = new ObjectBrowserLibraryManager(this, ComponentModel, Workspace);
+                _libraryManager = new ObjectBrowserLibraryManager(this, ComponentModel, workspace);
 
                 if (ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(_libraryManager, out _libraryManagerCookie)))
                 {
@@ -110,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         }
 
         protected override CSharpLanguageService CreateLanguageService()
-            => new CSharpLanguageService(this);
+            => new(this);
 
         protected override void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace)
         {

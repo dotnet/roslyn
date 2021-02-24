@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Private Sub New()
         End Sub
 
-        Private Function IsCommaOfNewConditional(token As SyntaxToken) As Boolean
+        Private Shared Function IsCommaOfNewConditional(token As SyntaxToken) As Boolean
             If token.Kind() = SyntaxKind.CommaToken Then
                 Return token.Parent.HasAnnotation(
                         UseConditionalExpressionCodeFixHelpers.SpecializedFormattingAnnotation)

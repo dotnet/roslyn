@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var optionService = workspaceServices.GetService<IOptionService>();
-            var errorReportingService = workspaceServices.GetService<IErrorReportingService>();
-            var errorLoggerService = workspaceServices.GetService<IErrorLoggerService>();
+            var optionService = workspaceServices.GetRequiredService<IOptionService>();
+            var errorReportingService = workspaceServices.GetRequiredService<IErrorReportingService>();
+            var errorLoggerService = workspaceServices.GetRequiredService<IErrorLoggerService>();
             return new ExtensionManager(optionService, errorReportingService, errorLoggerService, _errorHandlers);
         }
 
@@ -72,10 +72,19 @@ namespace Microsoft.CodeAnalysis.Editor
                     {
                         base.HandleException(provider, exception);
 
-                        _errorReportingService?.ShowErrorInfoInActiveView(String.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, provider.GetType().Name),
+                        _errorReportingService?.ShowGlobalErrorInfo(String.Format(WorkspacesResources._0_encountered_an_error_and_has_been_disabled, provider.GetType().Name),
                             new InfoBarUI(WorkspacesResources.Show_Stack_Trace, InfoBarUI.UIKind.HyperLink, () => ShowDetailedErrorInfo(exception), closeAfterAction: false),
-                            new InfoBarUI(WorkspacesResources.Enable, InfoBarUI.UIKind.Button, () => { EnableProvider(provider); LogEnableProvider(provider); }),
-                            new InfoBarUI(WorkspacesResources.Enable_and_ignore_future_errors, InfoBarUI.UIKind.Button, () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); }),
+                            new InfoBarUI(WorkspacesResources.Enable, InfoBarUI.UIKind.Button, () =>
+                            {
+                                EnableProvider(provider);
+                                LogEnableProvider(provider);
+                            }),
+                            new InfoBarUI(WorkspacesResources.Enable_and_ignore_future_errors, InfoBarUI.UIKind.Button, () =>
+                            {
+                                EnableProvider(provider);
+                                IgnoreProvider(provider);
+                                LogEnableAndIgnoreProvider(provider);
+                            }),
                             new InfoBarUI(String.Empty, InfoBarUI.UIKind.Close, () => LogLeaveDisabled(provider)));
                     }
                     else

@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Partial Module ExpressionGenerator
+    Partial Friend Module ExpressionGenerator
         Private Enum StringPieceKind
             Normal
             NonPrintable

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicMetadataAsSourceService(provider)
+            Return VisualBasicMetadataAsSourceService.Instance
         End Function
     End Class
 End Namespace

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -43,17 +45,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
-using System;
-using System.Runtime.CompilerServices;
-
 public class [|C|]
 {{
-    [NativeIntegerAttribute]
     public nint i;
-    [NativeIntegerAttribute]
     public nuint i2;
 
     public C();
+}}");
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            public async Task TestInitOnlyProperty()
+            {
+                var metadataSource = @"public class C { public int Property { get; init; } }
+namespace System.Runtime.CompilerServices
+{
+    public sealed class IsExternalInit { }
+}
+";
+                var symbolName = "C";
+
+                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview",
+                    expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class [|C|]
+{{
+    public C();
+
+    public int Property {{ get; init; }}
 }}");
             }
 
@@ -88,8 +109,6 @@ public class [|C|]
 // System.ValueTuple.dll
 #endregion
 
-using System;
-using System;
 using System.Collections;
 
 namespace System
@@ -111,6 +130,25 @@ namespace System
         public override int GetHashCode();
         public override string ToString();
     }}
+}}");
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+            public async Task TestExtendedPartialMethod1()
+            {
+                var metadataSource = "public partial class C { public partial void F(); public partial void F() { } }";
+                var symbolName = "C";
+
+                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview",
+                    expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class [|C|]
+{{
+    public C();
+
+    public void F();
 }}");
             }
         }

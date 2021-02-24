@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -25,38 +29,46 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         {|caret:|}
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
             var tags = new string[] { "Class", "Internal" };
-            var completionParams = CreateCompletionParams(locations["caret"].Single());
-            var completionItem = CreateCompletionItem("A", LSP.CompletionItemKind.Class, tags, completionParams);
+            var completionParams = CreateCompletionParams(locations["caret"].Single(), LSP.VSCompletionInvokeKind.Explicit, "\0", LSP.CompletionTriggerKind.Invoked);
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var completionItem = await CreateCompletionItemAsync(
+                "A", LSP.CompletionItemKind.Class, tags, completionParams, document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters).ConfigureAwait(false);
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
-            var expected = CreateResolvedCompletionItem("A", LSP.CompletionItemKind.Class, null, completionParams, description, "class A", null);
+            var expected = CreateResolvedCompletionItem(completionItem, description, "class A", null);
 
-            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(workspace.CurrentSolution, completionItem, clientCapabilities);
+            var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(testLspServer, completionItem, clientCapabilities).ConfigureAwait(false);
             AssertJsonEquals(expected, results);
         }
 
-        private static async Task<object> RunResolveCompletionItemAsync(Solution solution, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
-            => await GetLanguageServer(solution).ResolveCompletionItemAsync(solution, completionItem, clientCapabilities, CancellationToken.None);
-
-        private static LSP.VSCompletionItem CreateResolvedCompletionItem(string text, LSP.CompletionItemKind kind, string[] tags, LSP.CompletionParams requestParameters,
-            ClassifiedTextElement description, string detail, string documentation)
+        private static async Task<object> RunResolveCompletionItemAsync(TestLspServer testLspServer, LSP.CompletionItem completionItem, LSP.ClientCapabilities clientCapabilities = null)
         {
-            var resolvedCompletionItem = CreateCompletionItem(text, kind, tags, requestParameters);
-            resolvedCompletionItem.Detail = detail;
+            return await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName,
+                           completionItem, clientCapabilities, null, CancellationToken.None);
+        }
+
+        private static LSP.VSCompletionItem CreateResolvedCompletionItem(
+            VSCompletionItem completionItem,
+            ClassifiedTextElement description,
+            string detail,
+            string documentation)
+        {
+            completionItem.Detail = detail;
             if (documentation != null)
             {
-                resolvedCompletionItem.Documentation = new LSP.MarkupContent()
+                completionItem.Documentation = new LSP.MarkupContent()
                 {
                     Kind = LSP.MarkupKind.PlainText,
                     Value = documentation
                 };
             }
 
-            resolvedCompletionItem.Description = description;
-            return resolvedCompletionItem;
+            completionItem.Description = description;
+            return completionItem;
         }
 
         private static ClassifiedTextRun[] CreateClassifiedTextRunForClass(string className)

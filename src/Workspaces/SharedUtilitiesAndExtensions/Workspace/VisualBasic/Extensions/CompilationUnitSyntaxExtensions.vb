@@ -15,7 +15,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
     Friend Module CompilationUnitSyntaxExtensions
         <Extension>
-        Public Function CanAddImportsStatements(contextNode As SyntaxNode, cancellationToken As CancellationToken) As Boolean
+        Public Function CanAddImportsStatements(contextNode As SyntaxNode, document As Document, cancellationToken As CancellationToken) As Boolean
+            Return CanAddImportsStatements(contextNode, document.CanAddImportsInHiddenRegions(), cancellationToken)
+        End Function
+
+        <Extension>
+        Public Function CanAddImportsStatements(contextNode As SyntaxNode, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Boolean
+            If contextNode.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
+                Return False
+            End If
+
+            If allowInHiddenRegions Then
+                Return True
+            End If
+
             Dim root = contextNode.GetAncestorOrThis(Of CompilationUnitSyntax)()
             If root.Imports.Count > 0 Then
                 Dim start = root.Imports.First.SpanStart
@@ -76,11 +89,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return root.WithImports(
                 [imports].Select(Function(u) u.WithAdditionalAnnotations(annotations)).ToSyntaxList())
         End Function
-
-        Private Function IsDocCommentOrElastic(t As SyntaxTrivia) As Boolean
-            Return t.Kind() = SyntaxKind.DocumentationCommentTrivia OrElse t.IsElastic()
-        End Function
-
 
         Private Function AddImportsStatements(root As CompilationUnitSyntax, importsStatements As IList(Of ImportsStatementSyntax)) As List(Of ImportsStatementSyntax)
             ' We need to try and not place the using inside of a directive if possible.

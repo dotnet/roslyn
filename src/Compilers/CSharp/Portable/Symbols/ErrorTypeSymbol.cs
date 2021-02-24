@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -80,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return this.ErrorInfo;
+            return new UseSiteInfo<AssemblySymbol>(this.ErrorInfo);
         }
 
         /// <summary>
@@ -545,6 +542,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(nullableAnnotation != DefaultNullableAnnotation);
             return new PublicModel.ErrorTypeSymbol(this, nullableAnnotation);
         }
+
+        internal sealed override bool IsRecord => false;
+        internal sealed override bool HasPossibleWellKnownCloneMethod() => false;
     }
 
     internal abstract class SubstitutedErrorTypeSymbol : ErrorTypeSymbol
@@ -598,9 +598,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalDefinition.ResultKind; }
         }
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _originalDefinition.GetUseSiteDiagnostic();
+            return _originalDefinition.GetUseSiteInfo();
         }
 
         public override int GetHashCode()
