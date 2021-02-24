@@ -229,7 +229,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                     break;
 
                 case SinkKind.HardcodedEncryptionKey:
-                    sourceInfo = HardcodedBytesSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
+                    sourceInfo = HardcodedSymmetricAlgorithmKeysSources.SourceInfos.AddRange(StringTranferSources.SourceInfos);
                     break;
 
                 case SinkKind.HardcodedCertificate:
