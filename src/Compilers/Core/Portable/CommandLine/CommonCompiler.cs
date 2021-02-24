@@ -933,7 +933,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             DiagnosticBag? analyzerExceptionDiagnostics = null;
-            ConcurrentSet<(string filePath, Stream stream)>? artifactStreams = null;
+            var artifactStreams = new ConcurrentSet<(string filePath, Stream stream)>();
             if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis
                     ref analyzerExceptionDiagnostics,
                     diagnostics,
                     analyzerConfigProvider,
-                    ref artifactStreams,
+                    artifactStreams,
                     cancellationToken);
             }
 
@@ -1259,16 +1259,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void FlushAndCloseArtifactStreams(DiagnosticBag diagnostics, ConcurrentSet<(string filePath, Stream stream)>? artifactStreams)
+        private void FlushAndCloseArtifactStreams(DiagnosticBag diagnostics, ConcurrentSet<(string filePath, Stream stream)> artifactStreams)
         {
-            if (artifactStreams != null)
+            foreach (var (path, stream) in artifactStreams)
             {
-                foreach (var (path, stream) in artifactStreams)
-                {
-                    using var disposer = new NoThrowStreamDisposer(stream, path, diagnostics, MessageProvider);
-                    if (stream.CanWrite)
-                        stream.Flush();
-                }
+                using var disposer = new NoThrowStreamDisposer(stream, path, diagnostics, MessageProvider);
+                if (stream.CanWrite)
+                    stream.Flush();
             }
         }
 
@@ -1283,7 +1280,7 @@ namespace Microsoft.CodeAnalysis
             ref DiagnosticBag? analyzerExceptionDiagnostics,
             DiagnosticBag diagnostics,
             CompilerAnalyzerConfigOptionsProvider analyzerConfigProvider,
-            ref ConcurrentSet<(string path, Stream stream)>? artifactStreams,
+            ConcurrentSet<(string path, Stream stream)> artifactStreams,
             CancellationToken cancellationToken)
         {
             AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(additionalTextFiles, analyzerConfigProvider);
@@ -1305,7 +1302,6 @@ namespace Microsoft.CodeAnalysis
                 Func<string, Stream>? createArtifactStreamArg = null;
                 if (!string.IsNullOrWhiteSpace(Arguments.GeneratedArtifactsOutputDirectory))
                 {
-                    artifactStreams = new ConcurrentSet<(string path, Stream stream)>();
                     createArtifactStreamArg = GetArtifactStream(
                         Arguments.GeneratedArtifactsOutputDirectory, diagnostics, touchedFilesLogger, artifactStreams);
                 }
