@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(42, read.ReturnCode);
             Assert.False(read.Utf8Output);
             Assert.Equal("a string", read.Output);
-            Assert.Equal("", read.ErrorOutput);
         }
 
         [Fact]

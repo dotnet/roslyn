@@ -292,8 +292,8 @@ class C
             var result = await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray<TextSpan>.Empty, CancellationToken.None);
 
             Assert.True(result.HasChanges);
-            Assert.True(result.SemanticEdits[0].PreserveLocalVariables);
             var syntaxMap = result.SemanticEdits[0].SyntaxMap;
+            Assert.NotNull(syntaxMap);
 
             var newStatementSpan = result.ActiveStatements[0].Span;
             var newStatementTextSpan = newText.Lines.GetTextSpan(newStatementSpan);
@@ -685,13 +685,16 @@ namespace N
 }
 ";
             var source2 = @"
+class D
+{
+}
 ";
 
             using var workspace = TestWorkspace.CreateCSharp(source1, composition: s_composition);
 
-            var oldProject = workspace.CurrentSolution.Projects.Single();
-            var newDocId = DocumentId.CreateNewId(oldProject.Id);
             var oldSolution = workspace.CurrentSolution;
+            var oldProject = oldSolution.Projects.Single();
+            var newDocId = DocumentId.CreateNewId(oldProject.Id);
             var newSolution = oldSolution.AddDocument(newDocId, "goo.cs", SourceText.From(source2));
 
             workspace.TryApplyChanges(newSolution);
@@ -715,8 +718,7 @@ namespace N
             }
 
             Assert.True(result.IsSingle());
-            Assert.Equal(1, result.Single().RudeEditErrors.Count());
-            Assert.Equal(RudeEditKind.InsertFile, result.Single().RudeEditErrors.Single().Kind);
+            Assert.Empty(result.Single().RudeEditErrors);
         }
 
         [Theory, CombinatorialData]

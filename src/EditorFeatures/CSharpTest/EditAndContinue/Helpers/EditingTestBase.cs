@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -39,17 +37,23 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
             => new(rudeEditKind, squiggle, arguments, firstLine: null);
 
-        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>> syntaxMap)
-        {
-            Assert.NotNull(syntaxMap);
-            return new SemanticEditDescription(kind, symbolProvider, syntaxMap, preserveLocalVariables: true);
-        }
+        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<KeyValuePair<TextSpan, TextSpan>>? syntaxMap, string? partialType = null)
+            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap, hasSyntaxMap: syntaxMap != null);
 
-        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, bool preserveLocalVariables = false)
-            => new(kind, symbolProvider, syntaxMap: null, preserveLocalVariables);
+        internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, string? partialType = null, bool preserveLocalVariables = false)
+            => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap: null, preserveLocalVariables);
+
+        internal static string DeletedSymbolDisplay(string kind, string displayName)
+            => string.Format(FeaturesResources.member_kind_and_name, kind, displayName);
+
+        internal static DocumentAnalysisResultsDescription DocumentResults(
+            ActiveStatementsDescription? activeStatements = null,
+            SemanticEditDescription[]? semanticEdits = null,
+            RudeEditDiagnosticDescription[]? diagnostics = null)
+            => new(activeStatements, semanticEdits, diagnostics);
 
         private static SyntaxTree ParseSource(string source)
-            => CSharpEditAndContinueTestHelpers.CreateInstance().ParseText(ActiveStatementsDescription.ClearTags(source));
+            => new CSharpEditAndContinueTestHelpers().ParseText(ActiveStatementsDescription.ClearTags(source));
 
         internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2)
         {
@@ -61,6 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
             var match = SyntaxComparer.TopLevel.ComputeMatch(tree1.GetRoot(), tree2.GetRoot());
             return match.GetTreeEdits();
+        }
+
+        public static EditScript<SyntaxNode> GetTopEdits(EditScript<SyntaxNode> methodEdits)
+        {
+            var oldMethodSource = methodEdits.Match.OldRoot.ToFullString();
+            var newMethodSource = methodEdits.Match.NewRoot.ToFullString();
+
+            return GetTopEdits(WrapMethodBodyWithClass(oldMethodSource), WrapMethodBodyWithClass(newMethodSource));
         }
 
         /// <summary>
@@ -102,6 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         public static MatchingPairs ToMatchingPairs(IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> matches)
             => EditAndContinueTestHelpers.ToMatchingPairs(matches);
+
+#nullable disable
 
         internal static BlockSyntax MakeMethodBody(
             string bodySource,
