@@ -222,8 +222,8 @@
   <data name="The_project_already_contains_the_specified_reference" xml:space="preserve">
     <value>The project already contains the specified reference.</value>
   </data>
-  <data name="The_project_already_transitively_references_the_target_project" xml:space="preserve">
-    <value>The project already transitively references the target project.</value>
+  <data name="A_project_may_not_reference_itself" xml:space="preserve">
+    <value>A project may not reference itself.</value>
   </data>
   <data name="The_solution_already_contains_the_specified_document" xml:space="preserve">
     <value>The solution already contains the specified document.</value>

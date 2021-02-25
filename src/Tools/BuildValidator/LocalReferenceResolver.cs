@@ -125,7 +125,7 @@ namespace BuildValidator
                 {
                     _logger.LogError($@"{missingReference.Name} - {missingReference.Mvid}");
                 }
-                throw new FileNotFoundException();
+                throw new Exception($"Cannot resolve {uncached.Length} references");
             }
         }
 
