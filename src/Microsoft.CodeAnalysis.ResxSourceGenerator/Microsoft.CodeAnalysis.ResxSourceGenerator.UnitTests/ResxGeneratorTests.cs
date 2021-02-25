@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Xunit;
 using CSharpLanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
 using VerifyCS = Microsoft.CodeAnalysis.ResxSourceGenerator.Test.CSharpSourceGeneratorVerifier<Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator>;
@@ -156,7 +154,7 @@ namespace TestProject
                     Sources =
                     {
                         "",
-                        ("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator\\TestProject.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", "TestProject.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -218,7 +216,7 @@ End Namespace
                     Sources =
                     {
                         "",
-                        ("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator\\TestProject.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", "TestProject.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -326,7 +324,7 @@ build_property.RootNamespace = {rootNamespace}
                     Sources =
                     {
                         "",
-                        ($"Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator\\{rootNamespace}.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", $"{rootNamespace}.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -399,7 +397,7 @@ build_property.RootNamespace = {rootNamespace}
                     Sources =
                     {
                         "",
-                        ($"Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator\\{rootNamespace}.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", $"{rootNamespace}.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -470,7 +468,7 @@ build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
                     Sources =
                     {
                         "",
-                        ($"Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator\\{namespaceName}.{typeName}.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", $"{namespaceName}.{typeName}.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -553,7 +551,7 @@ build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
                     Sources =
                     {
                         "",
-                        ($"Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator\\{namespaceName}.{typeName}.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", $"{namespaceName}.{typeName}.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -629,7 +627,7 @@ build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ?
                     Sources =
                     {
                         omitGetResourceString ? customGetResourceString : "",
-                        ("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator\\TestProject.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", "TestProject.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -716,7 +714,7 @@ build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ?
                     Sources =
                     {
                         omitGetResourceString ? customGetResourceString : "",
-                        ("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator\\TestProject.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", "TestProject.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -781,7 +779,7 @@ build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
                     Sources =
                     {
                         "",
-                        ("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator\\TestProject.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", "TestProject.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -858,7 +856,7 @@ build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
                     Sources =
                     {
                         "",
-                        ("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator\\TestProject.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", "TestProject.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -923,7 +921,7 @@ build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "
                     Sources =
                     {
                         "",
-                        ("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator\\TestProject.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", "TestProject.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -1000,7 +998,7 @@ build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "
                     Sources =
                     {
                         "",
-                        ("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator\\TestProject.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", "TestProject.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -1100,7 +1098,7 @@ build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" 
                     Sources =
                     {
                         "",
-                        ("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp\\Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator\\TestProject.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", "TestProject.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -1173,7 +1171,7 @@ build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" 
                     Sources =
                     {
                         "",
-                        ("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic\\Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator\\TestProject.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", "TestProject.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
