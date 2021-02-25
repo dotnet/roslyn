@@ -754,5 +754,13 @@ class C
 {
     delegate*$$");
         }
+
+        [WorkItem(51487, "https://github.com/dotnet/roslyn/issues/51487")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAtRoot_Regular()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"$$");
+        }
     }
 }

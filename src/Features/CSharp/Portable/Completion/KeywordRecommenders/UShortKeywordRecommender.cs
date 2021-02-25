@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsAnyExpressionContext ||
                 context.IsDefiniteCastTypeContext ||
                 context.IsStatementContext ||
-                context.IsGlobalStatementContext ||
+                (context.IsGlobalStatementContext && syntaxTree.IsScript()) ||
                 context.IsObjectCreationTypeContext ||
                 (context.IsGenericTypeArgumentContext && !context.TargetToken.GetRequiredParent().HasAncestor<XmlCrefAttributeSyntax>()) ||
                 context.IsFunctionPointerTypeArgumentContext ||
