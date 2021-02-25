@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace BuildValidator
 {
-    public static class IldasmUtilities
+    internal static class IldasmUtilities
     {
         private static string GetIldasmPath()
         {
