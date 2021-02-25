@@ -763,7 +763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Not String.IsNullOrEmpty(Options.RootNamespace) Then
-                WriteValue(builder, CompilationOptionNames.RootNamespaces, Options.RootNamespace)
+                WriteValue(builder, CompilationOptionNames.RootNamespace, Options.RootNamespace)
             End If
 
             If Options.ParseOptions IsNot Nothing Then

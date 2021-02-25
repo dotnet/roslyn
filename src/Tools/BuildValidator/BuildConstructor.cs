@@ -273,7 +273,7 @@ namespace BuildValidator
             var (optimizationLevel, plus) = GetOptimizationLevel(optimization);
             var isChecked = OptionToBool(CompilationOptionNames.Checked) ?? true;
             var embedVBRuntime = OptionToBool(CompilationOptionNames.EmbedRuntime) ?? false;
-            var rootNamespace = OptionToString(CompilationOptionNames.RootNamespaces);
+            var rootNamespace = OptionToString(CompilationOptionNames.RootNamespace);
 
             var compilationOptions = new VisualBasicCompilationOptions(
                 optionsReader.GetOutputKind(),
