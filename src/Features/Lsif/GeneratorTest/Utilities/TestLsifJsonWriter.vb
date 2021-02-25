@@ -24,7 +24,6 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             Next
         End Sub
 
-
         Private Sub ILsifJsonWriter_Write(element As Element) Implements ILsifJsonWriter.Write
             SyncLock _gate
                 ' We intentionally use Add so it'll throw if we have a duplicate ID.
