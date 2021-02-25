@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -144,6 +145,7 @@ namespace BuildValidator
                                 PdbMetadataReader: rebuildPeReader.GetEmbeddedPdbMetadataReader());
 
                             writeDiffInfo(debugPath, originalBinaryPath.Name, originalInfo, rebuildInfo, producedCompilation);
+                            SearchForKnownIssues(logger, originalInfo, rebuildInfo);
                         }
                     }
                 }
@@ -241,18 +243,16 @@ namespace BuildValidator
 
             static void writeMetadataVisualization(string outputFilePath, MetadataReader metadataReader)
             {
-                using var tempFile = File.OpenWrite(outputFilePath);
-                var writer = new StreamWriter(tempFile);
+                using var writer = new StreamWriter(outputFilePath, append: false);
                 var visualizer = new MetadataVisualizer(metadataReader, writer);
                 visualizer.Visualize();
                 writer.Flush();
             }
 
             // Used to write any data that could be interesting for debugging purposes
-            static void writeDataFile(string assemblyFilePath, PEReader peReader, MetadataReader pdbMetadataReader)
+            static void writeDataFile(string outputFilePath, PEReader peReader, MetadataReader pdbMetadataReader)
             {
-                using var fileStream = File.OpenWrite(assemblyFilePath + ".data.txt");
-                var writer = new StreamWriter(fileStream);
+                using var writer = new StreamWriter(outputFilePath, append: false);
                 var peMetadataReader = peReader.GetMetadataReader();
 
                 writeDebugDirectory();
@@ -281,6 +281,33 @@ namespace BuildValidator
                         }
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Given two builds which are not identical this will look for known issues that could be 
+        /// causing the difference.
+        /// </summary>
+        private static unsafe bool SearchForKnownIssues(ILogger logger, BuildInfo originalInfo, BuildInfo rebuildInfo)
+        {
+            return hasPdbCompressionDifferences();
+
+            bool hasPdbCompressionDifferences()
+            {
+                var originalEntry = originalInfo.AssemblyReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                var rebuildEntry = rebuildInfo.AssemblyReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                if (originalEntry.DataSize != rebuildEntry.DataSize)
+                {
+                    var originalPdbSpan = new Span<byte>(originalInfo.PdbMetadataReader.MetadataPointer, originalInfo.PdbMetadataReader.MetadataLength);
+                    var rebuildPdbSpan = new Span<byte>(rebuildInfo.PdbMetadataReader.MetadataPointer, rebuildInfo.PdbMetadataReader.MetadataLength);
+                    if (originalPdbSpan.SequenceEqual(rebuildPdbSpan))
+                    {
+                        logger.LogError($"Known issue: different compression used for embedded portable pdb debug directory entry");
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
     }
