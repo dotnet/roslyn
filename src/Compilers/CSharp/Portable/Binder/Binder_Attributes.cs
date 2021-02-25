@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.SelectAsArray(
-                    (arg, attributeArgumentBinder) => attributeArgumentBinder.BindToTypeForErrorRecovery(arg),
+                    static (arg, attributeArgumentBinder) => attributeArgumentBinder.BindToTypeForErrorRecovery(arg),
                     attributeArgumentBinder);
             }
             Debug.Assert(boundConstructorArguments.All(a => !a.NeedsToBeConverted()));
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The result of this method captures some AnalyzedArguments, which must be free'ed by the caller.
+        /// The caller is responsible for freeing <see cref="AnalyzedAttributeArguments.ConstructorArguments"/> and <see cref="AnalyzedAttributeArguments.NamedArguments"/>.
         /// </summary>
         private AnalyzedAttributeArguments BindAttributeArguments(
             AttributeArgumentListSyntax? attributeArgumentList,
