@@ -1485,24 +1485,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             static bool IsAtEndOfSwitchStatementPattern(SyntaxToken leftToken)
             {
                 var node = leftToken.Parent;
+                if (node == null)
+                    return false;
 
                 // Walking up the tree for expressions such as 'case (((N.C.P $$'
-                while (node.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
-                {
-                    node = node.Parent;
-                }
+                if (node.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
+                    node = node.GetRequiredParent();
 
                 // Getting rid of the extra parentheses to deal with cases such as 'case (((1 $$'
                 while (node.IsParentKind(SyntaxKind.ParenthesizedExpression))
-                {
-                    node = node.Parent;
-                }
+                    node = node.GetRequiredParent();
+
+                // Only after a pattern if the pattern is complete on the left of us.
+                if (node.GetLastToken(includeZeroWidth: true) != leftToken)
+                    return false;
 
                 // case (1 $$
                 if (node.IsParentKind(SyntaxKind.CaseSwitchLabel) && node.Parent.IsParentKind(SyntaxKind.SwitchSection))
-                {
                     return true;
-                }
 
                 return false;
             }
