@@ -1866,9 +1866,6 @@ class C
                 // (110,107): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA?DAT:NDA-->NDA */ { int a; if (x               ? (y && G(out a)) : z)               b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(110, 107),
-                // (111,95): error CS0165: Use of unassigned local variable 'a'
-                // /* NDA?DAT:DAT-->DAT */ { int a; if (x               ? (y && G(out a)) : (z && G(out a))) b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(111, 95),
                 // (112,107): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA?DAT:DAT-->DAT */ { int a; if (x               ? (y && G(out a)) : (z && G(out a))) b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(112, 107),
@@ -1878,9 +1875,6 @@ class C
                 // (114,107): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA?DAT:DAF-->NDA */ { int a; if (x               ? (y && G(out a)) : (z || G(out a))) b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(114, 107),
-                // (115,95): error CS0165: Use of unassigned local variable 'a'
-                // /* NDA?DAT:DA -->DAT */ { int a; if (x               ? (y && G(out a)) : G(out a))        b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(115, 95),
                 // (116,107): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA?DAT:DA -->DAT */ { int a; if (x               ? (y && G(out a)) : G(out a))        b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(116, 107),
@@ -1899,105 +1893,69 @@ class C
                 // (121,95): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA?DAF:DAF-->DAF */ { int a; if (x               ? (y || G(out a)) : (z || G(out a))) b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(121, 95),
-                // (122,107): error CS0165: Use of unassigned local variable 'a'
-                // /* NDA?DAF:DAF-->DAF */ { int a; if (x               ? (y || G(out a)) : (z || G(out a))) b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(122, 107),
                 // (123,95): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA?DAF:DA -->DAF */ { int a; if (x               ? (y || G(out a)) : G(out a))        b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(123, 95),
-                // (124,107): error CS0165: Use of unassigned local variable 'a'
-                // /* NDA?DAF:DA -->DAF */ { int a; if (x               ? (y || G(out a)) : G(out a))        b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(124, 107),
                 // (125,95): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA?DA :NDA-->NDA */ { int a; if (x               ? G(out a)        : z)               b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(125, 95),
                 // (126,107): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA?DA :NDA-->NDA */ { int a; if (x               ? G(out a)        : z)               b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(126, 107),
-                // (127,95): error CS0165: Use of unassigned local variable 'a'
-                // /* NDA?DA :DAT-->DAT */ { int a; if (x               ? G(out a)        : (z && G(out a))) b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(127, 95),
                 // (128,107): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA?DA :DAT-->DAT */ { int a; if (x               ? G(out a)        : (z && G(out a))) b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(128, 107),
                 // (129,95): error CS0165: Use of unassigned local variable 'a'
                 // /* NDA?DA :DAF-->DAF */ { int a; if (x               ? G(out a)        : (z || G(out a))) b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(129, 95),
-                // (130,107): error CS0165: Use of unassigned local variable 'a'
-                // /* NDA?DA :DAF-->DAF */ { int a; if (x               ? G(out a)        : (z || G(out a))) b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(130, 107),
                 // (132,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?NDA:NDA-->NDA */ { int a; if ((x && G(out a)) ? y               : z)               b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(132, 95),
                 // (133,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?NDA:NDA-->NDA */ { int a; if ((x && G(out a)) ? y               : z)               b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(133, 107),
-                // (134,95): error CS0165: Use of unassigned local variable 'a'
-                // /* DAT?NDA:DAT-->DAT */ { int a; if ((x && G(out a)) ? y               : (z && G(out a))) b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(134, 95),
                 // (135,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?NDA:DAT-->DAT */ { int a; if ((x && G(out a)) ? y               : (z && G(out a))) b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(135, 107),
                 // (136,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?NDA:DAF-->DAF */ { int a; if ((x && G(out a)) ? y               : (z || G(out a))) b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(136, 95),
-                // (137,107): error CS0165: Use of unassigned local variable 'a'
-                // /* DAT?NDA:DAF-->DAF */ { int a; if ((x && G(out a)) ? y               : (z || G(out a))) b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(137, 107),
                 // (139,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DAT:NDA-->NDA */ { int a; if ((x && G(out a)) ? (y && G(out a)) : z)               b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(139, 95),
                 // (140,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DAT:NDA-->NDA */ { int a; if ((x && G(out a)) ? (y && G(out a)) : z)               b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(140, 107),
-                // (141,95): error CS0165: Use of unassigned local variable 'a'
-                // /* DAT?DAT:DAT-->DAT */ { int a; if ((x && G(out a)) ? (y && G(out a)) : (z && G(out a))) b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(141, 95),
                 // (142,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DAT:DAT-->DAT */ { int a; if ((x && G(out a)) ? (y && G(out a)) : (z && G(out a))) b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(142, 107),
                 // (143,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DAT:DAF-->DAF */ { int a; if ((x && G(out a)) ? (y && G(out a)) : (z || G(out a))) b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(143, 95),
-                // (144,107): error CS0165: Use of unassigned local variable 'a'
-                // /* DAT?DAT:DAF-->DAF */ { int a; if ((x && G(out a)) ? (y && G(out a)) : (z || G(out a))) b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(144, 107),
                 // (146,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DAF:NDA-->NDA */ { int a; if ((x && G(out a)) ? (y || G(out a)) : z)               b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(146, 95),
                 // (147,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DAF:NDA-->NDA */ { int a; if ((x && G(out a)) ? (y || G(out a)) : z)               b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(147, 107),
-                // (148,95): error CS0165: Use of unassigned local variable 'a'
-                // /* DAT?DAF:DAT-->DAT */ { int a; if ((x && G(out a)) ? (y || G(out a)) : (z && G(out a))) b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(148, 95),
                 // (149,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DAF:DAT-->DAT */ { int a; if ((x && G(out a)) ? (y || G(out a)) : (z && G(out a))) b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(149, 107),
                 // (150,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DAF:DAF-->DAF */ { int a; if ((x && G(out a)) ? (y || G(out a)) : (z || G(out a))) b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(150, 95),
-                // (151,107): error CS0165: Use of unassigned local variable 'a'
-                // /* DAT?DAF:DAF-->DAF */ { int a; if ((x && G(out a)) ? (y || G(out a)) : (z || G(out a))) b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(151, 107),
                 // (153,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DA :NDA-->NDA */ { int a; if ((x && G(out a)) ? G(out a)        : z)               b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(153, 95),
                 // (154,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DA :NDA-->NDA */ { int a; if ((x && G(out a)) ? G(out a)        : z)               b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(154, 107),
-                // (155,95): error CS0165: Use of unassigned local variable 'a'
-                // /* DAT?DA :DAT-->DAT */ { int a; if ((x && G(out a)) ? G(out a)        : (z && G(out a))) b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(155, 95),
                 // (156,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DA :DAT-->DAT */ { int a; if ((x && G(out a)) ? G(out a)        : (z && G(out a))) b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(156, 107),
                 // (157,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAT?DA :DAF-->DAF */ { int a; if ((x && G(out a)) ? G(out a)        : (z || G(out a))) b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(157, 95),
-                // (158,107): error CS0165: Use of unassigned local variable 'a'
-                // /* DAT?DA :DAF-->DAF */ { int a; if ((x && G(out a)) ? G(out a)        : (z || G(out a))) b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(158, 107),
                 // (160,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAF?NDA:NDA-->NDA */ { int a; if ((x || G(out a)) ? y               : z)               b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(160, 95),
@@ -2022,54 +1980,31 @@ class C
                 // (167,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAF?NDA:DA -->NDA */ { int a; if ((x || G(out a)) ? y               : G(out a))        b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(167, 107),
-                // (168,95): error CS0165: Use of unassigned local variable 'a'
-                // /* DAF?DAT:NDA-->DAT */ { int a; if ((x || G(out a)) ? (y && G(out a)) : z)               b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(168, 95),
                 // (169,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAF?DAT:NDA-->DAT */ { int a; if ((x || G(out a)) ? (y && G(out a)) : z)               b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(169, 107),
-                // (170,95): error CS0165: Use of unassigned local variable 'a'
-                // /* DAF?DAT:DAT-->DAT */ { int a; if ((x || G(out a)) ? (y && G(out a)) : (z && G(out a))) b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(170, 95),
                 // (171,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAF?DAT:DAT-->DAT */ { int a; if ((x || G(out a)) ? (y && G(out a)) : (z && G(out a))) b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(171, 107),
-                // (172,95): error CS0165: Use of unassigned local variable 'a'
-                // /* DAF?DAT:DAF-->DAT */ { int a; if ((x || G(out a)) ? (y && G(out a)) : (z || G(out a))) b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(172, 95),
                 // (173,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAF?DAT:DAF-->DAT */ { int a; if ((x || G(out a)) ? (y && G(out a)) : (z || G(out a))) b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(173, 107),
-                // (174,95): error CS0165: Use of unassigned local variable 'a'
-                // /* DAF?DAT:DA -->DAT */ { int a; if ((x || G(out a)) ? (y && G(out a)) : G(out a))        b = a; else d = c; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(174, 95),
                 // (175,107): error CS0165: Use of unassigned local variable 'a'
                 // /* DAF?DAT:DA -->DAT */ { int a; if ((x || G(out a)) ? (y && G(out a)) : G(out a))        b = c; else d = a; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(175, 107),
                 // (176,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAF?DAF:NDA-->DAF */ { int a; if ((x || G(out a)) ? (y || G(out a)) : z)               b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(176, 95),
-                // (177,107): error CS0165: Use of unassigned local variable 'a'
-                // /* DAF?DAF:NDA-->DAF */ { int a; if ((x || G(out a)) ? (y || G(out a)) : z)               b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(177, 107),
                 // (178,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAF?DAF:DAT-->DAF */ { int a; if ((x || G(out a)) ? (y || G(out a)) : (z && G(out a))) b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(178, 95),
-                // (179,107): error CS0165: Use of unassigned local variable 'a'
-                // /* DAF?DAF:DAT-->DAF */ { int a; if ((x || G(out a)) ? (y || G(out a)) : (z && G(out a))) b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(179, 107),
                 // (180,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAF?DAF:DAF-->DAF */ { int a; if ((x || G(out a)) ? (y || G(out a)) : (z || G(out a))) b = a; else d = c; } // Error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(180, 95),
-                // (181,107): error CS0165: Use of unassigned local variable 'a'
-                // /* DAF?DAF:DAF-->DAF */ { int a; if ((x || G(out a)) ? (y || G(out a)) : (z || G(out a))) b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(181, 107),
                 // (182,95): error CS0165: Use of unassigned local variable 'a'
                 // /* DAF?DAF:DA -->DAF */ { int a; if ((x || G(out a)) ? (y || G(out a)) : G(out a))        b = a; else d = c; } // Error
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(182, 95),
-                // (183,107): error CS0165: Use of unassigned local variable 'a'
-                // /* DAF?DAF:DA -->DAF */ { int a; if ((x || G(out a)) ? (y || G(out a)) : G(out a))        b = c; else d = a; } // OK
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(183, 107));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "a").WithArguments("a").WithLocation(182, 95)
+                );
         }
 
         [Fact, WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
@@ -2096,11 +2031,74 @@ class C
     }
 }
 ";
-            // Bug#529603: Won't Fix (Native no error)
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
+        [Theory]
+        [InlineData("true", "false")]
+        [InlineData("FIELD_TRUE", "FIELD_FALSE")]
+        [InlineData("LOCAL_TRUE", "LOCAL_FALSE")]
+        public void IfConditionalConstant(string @true, string @false)
+        {
+            var source = @"
+#pragma warning disable 219 // The variable is assigned but its value is never used
+#pragma warning disable 8321 // The local function is declared but never used
+
+class C
+{
+    const bool FIELD_TRUE = true;
+    const bool FIELD_FALSE = false;
+
+    static void M()
+    {
+        const bool LOCAL_TRUE = true;
+        const bool LOCAL_FALSE = false;
+
+        static void M1(bool b)
+        {
+            int x, y;
+            if (b ? Set(out x) : " + @false + @")
+                y = x;
+        }
+
+        static void M2(bool b)
+        {
+            int x, y;
+            if (b ? Set(out x) : " + @true + @")
+                y = x; // 1
+        }
+
+        static void M3(bool b)
+        {
+            int x, y;
+            if (b ? " + @false + @" : Set(out x))
+                y = x;
+        }
+
+        static void M4(bool b)
+        {
+            int x, y;
+            if (b ? " + @true + @" : Set(out x))
+                y = x; // 2
+        }
+
+        static bool Set(out int x)
+        {
+            x = 1;
+            return true;
+        }
+    }
+}
+";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,21): error CS0165: Use of unassigned local variable 'x'
-                //             int y = x; // x is definitely assigned if we reach this point
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x"));
+                // (26,21): error CS0165: Use of unassigned local variable 'x'
+                //                 y = x; // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(26, 21),
+                // (40,21): error CS0165: Use of unassigned local variable 'x'
+                //                 y = x; // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(40, 21)
+                );
         }
 
         [WorkItem(545352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545352")]
