@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
         Private ReadOnly _elementsById As Dictionary(Of Id(Of Element), Element) = New Dictionary(Of Id(Of Element), Element)
         Private ReadOnly _edgesByOutVertex As Dictionary(Of Vertex, List(Of Edge)) = New Dictionary(Of Vertex, List(Of Edge))
 
-        Private Sub ILsifJsonWriter_Write(elements As List(Of Element)) Implements ILsifJsonWriter.Write
+        Private Sub ILsifJsonWriter_WriteAll(elements As List(Of Element)) Implements ILsifJsonWriter.WriteAll
             For Each element In elements
                 ILsifJsonWriter_Write(element)
             Next

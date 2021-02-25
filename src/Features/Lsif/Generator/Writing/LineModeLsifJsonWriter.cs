@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
             }
         }
 
-        public void Write(List<Element> elements)
+        public void WriteAll(List<Element> elements)
         {
             var lines = new List<string>();
             foreach (var element in elements)
