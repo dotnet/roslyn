@@ -84,5 +84,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
             StartEditSessionImpl?.Invoke(debuggerService, out documentsToReanalyze);
         }
+
+        Task IEditAndContinueWorkspaceService.OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
     }
 }
