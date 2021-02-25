@@ -29,9 +29,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="My Project\" />
   </ItemGroup>
 </Project>
