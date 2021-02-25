@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
     internal interface ILsifJsonWriter
     {
         void Write(Element element);
-        void Write(List<Element> elements);
+        void WriteAll(List<Element> elements);
     }
 }
