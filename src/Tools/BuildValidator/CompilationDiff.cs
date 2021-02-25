@@ -144,7 +144,7 @@ namespace BuildValidator
                                 AssemblyReader: rebuildPeReader,
                                 PdbMetadataReader: rebuildPeReader.GetEmbeddedPdbMetadataReader());
 
-                            writeDiffInfo(debugPath, originalBinaryPath.Name, originalInfo, rebuildInfo, producedCompilation);
+                            createDiffArtifacts(debugPath, originalBinaryPath.Name, originalInfo, rebuildInfo, producedCompilation);
                             SearchForKnownIssues(logger, originalInfo, rebuildInfo);
                         }
                     }
@@ -153,21 +153,21 @@ namespace BuildValidator
                 return new CompilationDiff(originalBinaryPath.FullName, bytesEqual);
             }
 
-            static void writeDiffInfo(string debugPath, string assemblyFileName, BuildInfo originalInfo, BuildInfo rebuildInfo, Compilation compilation)
+            static void createDiffArtifacts(string debugPath, string assemblyFileName, BuildInfo originalInfo, BuildInfo rebuildInfo, Compilation compilation)
             {
                 var assemblyName = Path.GetFileNameWithoutExtension(assemblyFileName);
                 var assemblyDebugPath = Path.Combine(debugPath, assemblyName);
                 Directory.CreateDirectory(assemblyDebugPath);
 
-                var originalDataFiles = writeBuildInfo(Path.Combine(assemblyDebugPath, "original"), assemblyFileName, originalInfo);
-                var rebuildDataFiles = writeBuildInfo(Path.Combine(assemblyDebugPath, "rebuild"), assemblyFileName, rebuildInfo);
+                var originalDataFiles = createBuildArtifacts(Path.Combine(assemblyDebugPath, "original"), assemblyFileName, originalInfo);
+                var rebuildDataFiles = createBuildArtifacts(Path.Combine(assemblyDebugPath, "rebuild"), assemblyFileName, rebuildInfo);
 
-                writeDiffScript("compare-pe.mdv.ps1", originalDataFiles.AssemblyMdvFilePath, rebuildDataFiles.AssemblyMdvFilePath);
-                writeDiffScript("compare-pdb.mdv.ps1", originalDataFiles.PdbMdvFilePath, rebuildDataFiles.PdbMdvFilePath);
-                writeDiffScript("compare-pdb.xml.ps1", originalDataFiles.PdbXmlFilePath, rebuildDataFiles.PdbXmlFilePath);
-                writeDiffScript("compare-il.ps1", originalDataFiles.ILFilePath, rebuildDataFiles.ILFilePath);
+                createDiffScript("compare-pe.mdv.ps1", originalDataFiles.AssemblyMdvFilePath, rebuildDataFiles.AssemblyMdvFilePath);
+                createDiffScript("compare-pdb.mdv.ps1", originalDataFiles.PdbMdvFilePath, rebuildDataFiles.PdbMdvFilePath);
+                createDiffScript("compare-pdb.xml.ps1", originalDataFiles.PdbXmlFilePath, rebuildDataFiles.PdbXmlFilePath);
+                createDiffScript("compare-il.ps1", originalDataFiles.ILFilePath, rebuildDataFiles.ILFilePath);
 
-                void writeDiffScript(string scriptName, string originalFilePath, string rebuildFilePath)
+                void createDiffScript(string scriptName, string originalFilePath, string rebuildFilePath)
                 {
                     originalFilePath = getRelativePath(originalFilePath);
                     rebuildFilePath = getRelativePath(rebuildFilePath);
@@ -190,7 +190,7 @@ namespace BuildValidator
                 }
             }
 
-            static BuildDataFiles writeBuildInfo(string outputPath, string assemblyFileName, BuildInfo buildInfo)
+            static BuildDataFiles createBuildArtifacts(string outputPath, string assemblyFileName, BuildInfo buildInfo)
             {
                 var assemblyName = Path.GetFileNameWithoutExtension(assemblyFileName);
                 var assemblyFilePath = Path.Combine(outputPath, assemblyFileName);
@@ -210,9 +210,9 @@ namespace BuildValidator
                 var pdbFilePath = Path.Combine(outputPath, assemblyName + ".extracted.pdb");
                 writeAllBytes(pdbFilePath, new Span<byte>(buildInfo.PdbMetadataReader.MetadataPointer, buildInfo.PdbMetadataReader.MetadataLength));
 
-                writeMetadataVisualization(buildDataFiles.AssemblyMdvFilePath, buildInfo.AssemblyMetadataReader);
-                writeMetadataVisualization(buildDataFiles.PdbMdvFilePath, buildInfo.PdbMetadataReader);
-                writeDataFile(buildDataFiles.CustomDataFilePath, buildInfo.AssemblyReader, buildInfo.PdbMetadataReader);
+                createMetadataVisualization(buildDataFiles.AssemblyMdvFilePath, buildInfo.AssemblyMetadataReader);
+                createMetadataVisualization(buildDataFiles.PdbMdvFilePath, buildInfo.PdbMetadataReader);
+                createDataFile(buildDataFiles.CustomDataFilePath, buildInfo.AssemblyReader, buildInfo.PdbMetadataReader);
 
                 var pdbToXmlOptions = PdbToXmlOptions.ResolveTokens
                     | PdbToXmlOptions.ThrowOnError
@@ -241,7 +241,7 @@ namespace BuildValidator
                 tempFile.Write(span);
             }
 
-            static void writeMetadataVisualization(string outputFilePath, MetadataReader metadataReader)
+            static void createMetadataVisualization(string outputFilePath, MetadataReader metadataReader)
             {
                 using var writer = new StreamWriter(outputFilePath, append: false);
                 var visualizer = new MetadataVisualizer(metadataReader, writer);
@@ -250,7 +250,7 @@ namespace BuildValidator
             }
 
             // Used to write any data that could be interesting for debugging purposes
-            static void writeDataFile(string outputFilePath, PEReader peReader, MetadataReader pdbMetadataReader)
+            static void createDataFile(string outputFilePath, PEReader peReader, MetadataReader pdbMetadataReader)
             {
                 using var writer = new StreamWriter(outputFilePath, append: false);
                 var peMetadataReader = peReader.GetMetadataReader();
