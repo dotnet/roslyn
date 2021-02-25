@@ -200,6 +200,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.IsClear);
 
+            if (IsSubmissionClass)
+            {
+                // Submission imports are handled by LookupMembersInternal in InContainerBinder.LookupSymbolsInSingleBinder.
+                return;
+            }
+
             var imports = GetImports(basesBeingResolved);
 
             // Try using aliases or symbols in imported namespaces
