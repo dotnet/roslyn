@@ -145,14 +145,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="map">The mapping delegate</param>
         /// <param name="arg">The extra input used by mapping delegate</param>
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
-        public static ImmutableArray<T> SelectAsArrayInPlaceAndFree<T, TArg>(this ArrayBuilder<T> items, Func<T, TArg, T> map, TArg arg)
+        public static ImmutableArray<T> SelectAsArrayInPlace<T, TArg>(this ArrayBuilder<T> items, Func<T, TArg, T> map, TArg arg)
         {
             for (int i = 0; i < items.Count; i++)
             {
                 items[i] = map(items[i], arg);
             }
 
-            return items.ToImmutableAndFree();
+            return items.ToImmutable();
         }
 
         public static void AddOptional<T>(this ArrayBuilder<T> builder, T? item)
