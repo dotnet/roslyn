@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.SelectAsArrayInPlace(
+                boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.SelectAsArray(
                     (arg, attributeArgumentBinder) => attributeArgumentBinder.BindToTypeForErrorRecovery(arg),
                     attributeArgumentBinder);
             }

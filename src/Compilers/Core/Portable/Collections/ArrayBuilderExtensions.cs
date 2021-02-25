@@ -137,24 +137,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>
-        /// Maps an array builder to immutable array, applying the select function to the array builder in place, and freeing the underlying
-        /// array builder.
-        /// </summary>
-        /// <param name="items">The sequence to map</param>
-        /// <param name="map">The mapping delegate</param>
-        /// <param name="arg">The extra input used by mapping delegate</param>
-        /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
-        public static ImmutableArray<T> SelectAsArrayInPlace<T, TArg>(this ArrayBuilder<T> items, Func<T, TArg, T> map, TArg arg)
-        {
-            for (int i = 0; i < items.Count; i++)
-            {
-                items[i] = map(items[i], arg);
-            }
-
-            return items.ToImmutable();
-        }
-
         public static void AddOptional<T>(this ArrayBuilder<T> builder, T? item)
             where T : class
         {
