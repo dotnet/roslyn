@@ -158,14 +158,30 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a <see cref="DocumentId"/>s of documents whose state changed when compared to older states.
         /// </summary>
-        public IEnumerable<DocumentId> GetChangedStateIds(TextDocumentStates<TState> oldStates)
+        public IEnumerable<DocumentId> GetChangedStateIds(TextDocumentStates<TState> oldStates, bool ignoreUnchangedContent = false, bool ignoreUnchangeableDocuments = false)
         {
-            foreach (var id in _ids)
+            Contract.ThrowIfTrue(!ignoreUnchangedContent && ignoreUnchangeableDocuments);
+
+            foreach (var id in Ids)
             {
-                if (oldStates._map.TryGetValue(id, out var oldState) && oldState != _map[id])
+                if (!oldStates.TryGetState(id, out var oldState))
                 {
-                    yield return id;
+                    // document was removed
+                    continue;
                 }
+
+                var newState = _map[id];
+                if (newState == oldState)
+                {
+                    continue;
+                }
+
+                if (ignoreUnchangedContent && !newState.HasTextChanged(oldState, ignoreUnchangeableDocuments))
+                {
+                    continue;
+                }
+
+                yield return id;
             }
         }
 

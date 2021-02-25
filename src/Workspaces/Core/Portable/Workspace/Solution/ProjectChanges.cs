@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         /// in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="NewProject"/>.
         /// </summary>
         public IEnumerable<DocumentId> GetChangedDocuments()
-            => GetChangedDocuments(onlyGetDocumentsWithTextChanges: false, ignoreUnchangeableDocuments: false);
+            => GetChangedDocuments(onlyGetDocumentsWithTextChanges: false);
 
         /// <summary>
         /// Get changed documents in the order they appear in <see cref="Project.DocumentIds"/> of <see cref="NewProject"/>.
@@ -132,30 +130,7 @@ namespace Microsoft.CodeAnalysis
             => GetChangedDocuments(onlyGetDocumentsWithTextChanges, ignoreUnchangeableDocuments: false);
 
         internal IEnumerable<DocumentId> GetChangedDocuments(bool onlyGetDocumentsWithTextChanges, bool ignoreUnchangeableDocuments)
-        {
-            foreach (var id in _newProject.State.DocumentStates.Ids)
-            {
-                var oldState = _oldProject.State.DocumentStates.GetState(id);
-                if (oldState == null)
-                {
-                    // document was removed
-                    continue;
-                }
-
-                var newState = _newProject.State.DocumentStates.GetRequiredState(id);
-                if (newState == oldState)
-                {
-                    continue;
-                }
-
-                if (onlyGetDocumentsWithTextChanges && !newState.HasTextChanged(oldState, ignoreUnchangeableDocuments))
-                {
-                    continue;
-                }
-
-                yield return newState.Id;
-            }
-        }
+            => _newProject.State.DocumentStates.GetChangedStateIds(_oldProject.State.DocumentStates, onlyGetDocumentsWithTextChanges, ignoreUnchangeableDocuments);
 
         /// <summary>
         /// Get <see cref="DocumentId"/>s of additional documents with any changes (textual and non-textual)

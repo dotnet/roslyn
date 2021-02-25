@@ -286,17 +286,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static async Task PopulateChangedAndAddedDocumentsAsync(CommittedSolution baseSolution, Project project, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
+        private static async Task PopulateChangedAndAddedDocumentsAsync(CommittedSolution baseSolution, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
         {
             changedOrAddedDocuments.Clear();
 
-            if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(project))
+            if (!EditAndContinueWorkspaceService.SupportsEditAndContinue(newProject))
             {
                 return;
             }
 
-            var baseProject = baseSolution.GetProject(project.Id);
-            if (baseProject == project)
+            var oldProject = baseSolution.GetProject(newProject.Id);
+            if (oldProject == newProject)
             {
                 return;
             }
@@ -308,16 +308,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // TODO (https://github.com/dotnet/roslyn/issues/1204):
             // hook up the debugger reported error, check that the project has not been loaded and report a better error.
             // Here, we assume these projects are not modified.
-            if (baseProject == null)
+            if (oldProject == null)
             {
-                EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", project.Id.DebugName, project.Id);
+                EditAndContinueWorkspaceService.Log.Write("EnC state of '{0}' [0x{1:X8}] queried: project not loaded", newProject.Id.DebugName, newProject.Id);
                 return;
             }
 
-            var changes = project.GetChanges(baseProject);
-            foreach (var documentId in changes.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true))
+            foreach (var documentId in newProject.State.DocumentStates.GetChangedStateIds(oldProject.State.DocumentStates, ignoreUnchangedContent: true))
             {
-                var document = project.GetDocument(documentId)!;
+                var document = newProject.GetDocument(documentId)!;
                 if (document.State.Attributes.DesignTimeOnly)
                 {
                     continue;
@@ -332,7 +331,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // (there had to be one as the content doesn't match). When we are about to apply changes it is ok to ignore this
                 // document because the user does not see the change yet in the buffer (if the doc is open) and won't be confused
                 // if it is not applied yet. The change will be applied later after it's observed by the workspace.
-                var baseSource = await baseProject.GetDocument(documentId)!.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var baseSource = await oldProject.GetDocument(documentId)!.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var source = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (baseSource.ContentEquals(source))
                 {
@@ -342,15 +341,61 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 changedOrAddedDocuments.Add(document);
             }
 
-            foreach (var documentId in changes.GetAddedDocuments())
+            foreach (var documentId in newProject.State.DocumentStates.GetAddedStateIds(oldProject.State.DocumentStates))
             {
-                var document = project.GetDocument(documentId)!;
+                var document = newProject.GetDocument(documentId)!;
                 if (document.State.Attributes.DesignTimeOnly)
                 {
                     continue;
                 }
 
                 changedOrAddedDocuments.Add(document);
+            }
+
+            // TODO: support document removal/rename (see https://github.com/dotnet/roslyn/issues/41144, https://github.com/dotnet/roslyn/issues/49013).
+
+            // Given the following assumptions:
+            // - source generators are deterministic,
+            // - source documents, metadata references and compilation options have not changed,
+            // - additional documents have not changed,
+            // - analyzer config documents have not changed,
+            // the outputs of source generators will not change.
+            // 
+            // Currently it's not possible to change compilation options (Project System is readonly during debugging).
+            // Source documents are checked above.
+
+            if (changedOrAddedDocuments.IsEmpty() &&
+                newProject.State.DocumentStates.GetRemovedStateIds(oldProject.State.DocumentStates).IsEmpty() &&
+                !newProject.State.AdditionalDocumentStates.HasAnyStateChanges(oldProject.State.AdditionalDocumentStates) &&
+                !newProject.State.AnalyzerConfigDocumentStates.HasAnyStateChanges(oldProject.State.AnalyzerConfigDocumentStates))
+            {
+                // Based on the above assumption there are no changes in source generated files.
+                return;
+            }
+
+            var oldSourceGeneratedDocumentStates = await oldProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
+            var newSourceGeneratedDocumentStates = await newProject.Solution.State.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
+
+            foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
+            {
+                var newState = newSourceGeneratedDocumentStates.GetRequiredState(documentId);
+                if (newState.Attributes.DesignTimeOnly)
+                {
+                    continue;
+                }
+
+                changedOrAddedDocuments.Add(newProject.GetOrCreateSourceGeneratedDocument(newState));
+            }
+
+            foreach (var documentId in newSourceGeneratedDocumentStates.GetAddedStateIds(oldSourceGeneratedDocumentStates))
+            {
+                var newState = newSourceGeneratedDocumentStates.GetRequiredState(documentId);
+                if (newState.Attributes.DesignTimeOnly)
+                {
+                    continue;
+                }
+
+                changedOrAddedDocuments.Add(newProject.GetOrCreateSourceGeneratedDocument(newState));
             }
         }
 

@@ -136,56 +136,64 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             Contract.ThrowIfFalse(currentDocument == null || documentId == currentDocument.Id);
 
-            Document? document;
-            Document? committedDocument;
+            Solution solution;
+            var documentState = DocumentState.None;
 
             lock (_guard)
             {
-                committedDocument = _solution.GetDocument(documentId);
-
-                if (_documentState.TryGetValue(documentId, out var documentState))
-                {
-                    switch (documentState)
-                    {
-                        case DocumentState.MatchesBuildOutput:
-                            // Note: committedDocument is null if we previously validated that a document that is not in
-                            // the committed solution is also not in the PDB. This means the document has been added during debugging.
-                            return (committedDocument, documentState);
-
-                        case DocumentState.DesignTimeOnly:
-                            return (null, documentState);
-
-                        case DocumentState.OutOfSync:
-                            if (reloadOutOfSyncDocument)
-                            {
-                                break;
-                            }
-
-                            return (null, documentState);
-
-                        case DocumentState.Indeterminate:
-                            // Previous attempt resulted in a read error. Try again.
-                            break;
-
-                        case DocumentState.None:
-                            throw ExceptionUtilities.Unreachable;
-                    }
-                }
+                solution = _solution;
+                _documentState.TryGetValue(documentId, out documentState);
             }
 
-            if (committedDocument == null)
+            var committedDocument = solution.GetDocument(documentId);
+
+            switch (documentState)
             {
-                var sourceGeneratedDocument = await _solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
-                if (sourceGeneratedDocument != null)
-                {
-                    // source generated files are never out-of-date:
-                    return (sourceGeneratedDocument, DocumentState.MatchesBuildOutput);
-                }
+                case DocumentState.MatchesBuildOutput:
+                    // Note: committedDocument is null if we previously validated that a document that is not in
+                    // the committed solution is also not in the PDB. This means the document has been added during debugging.
+                    return (committedDocument, documentState);
+
+                case DocumentState.DesignTimeOnly:
+                    return (null, documentState);
+
+                case DocumentState.OutOfSync:
+                    if (reloadOutOfSyncDocument)
+                    {
+                        break;
+                    }
+
+                    return (null, documentState);
+
+                case DocumentState.Indeterminate:
+                    // Previous attempt resulted in a read error. Try again.
+                    break;
+
+                case DocumentState.None:
+                    // Have not seen the document before, the document is not in the solution, or the document is source generated.
+
+                    if (committedDocument == null)
+                    {
+                        var sourceGeneratedDocument = await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
+                        if (sourceGeneratedDocument != null)
+                        {
+                            // source generated files are never out-of-date:
+                            return (sourceGeneratedDocument, DocumentState.MatchesBuildOutput);
+                        }
+
+                        // The current document is source-generated therefore the corresponding one is not present in the base solution.
+                        if (currentDocument is SourceGeneratedDocument)
+                        {
+                            return (null, DocumentState.MatchesBuildOutput);
+                        }
+                    }
+
+                    break;
             }
 
-            // Document may have been added to the workspace after the committed solution snapshot was taken,
-            // but the document may have been compiled into the baseline DLL/PDB.
-            document = committedDocument ?? currentDocument;
+            // Document compiled into the baseline DLL/PDB may have been added to the workspace
+            // after the committed solution snapshot was taken.
+            var document = committedDocument ?? currentDocument;
             if (document == null)
             {
                 // Document has been deleted.
@@ -207,7 +215,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             lock (_guard)
             {
                 // only listed document states can be changed:
-                if (_documentState.TryGetValue(documentId, out var documentState) &&
+                if (_documentState.TryGetValue(documentId, out documentState) &&
                     documentState != DocumentState.OutOfSync &&
                     documentState != DocumentState.Indeterminate)
                 {

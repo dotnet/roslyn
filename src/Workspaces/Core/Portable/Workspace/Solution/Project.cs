@@ -285,11 +285,14 @@ namespace Microsoft.CodeAnalysis
             var generatedDocumentState = generatedDocumentStates.GetState(documentId);
             if (generatedDocumentState != null)
             {
-                return ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, generatedDocumentState.Id, s_createSourceGeneratedDocumentFunction, (generatedDocumentState, this));
+                return GetOrCreateSourceGeneratedDocument(generatedDocumentState);
             }
 
             return null;
         }
+
+        internal SourceGeneratedDocument GetOrCreateSourceGeneratedDocument(SourceGeneratedDocumentState state)
+            => ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this))!;
 
         /// <summary>
         /// Returns the <see cref="SourceGeneratedDocumentState"/> for a source generated document that has already been generated and observed.
