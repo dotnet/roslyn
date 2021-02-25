@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Collections;
 namespace IdeCoreBenchmarks
 {
     [DisassemblyDiagnoser]
-    public class SegmentedArrayBenchmarks
+    public class SegmentedArrayBenchmarks_Indexer
     {
         private int[] _values = null!;
         private object?[] _valuesObject = null!;
