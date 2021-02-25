@@ -314,8 +314,8 @@ namespace BuildValidator
             string? OptionToString(string option) => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? value : null;
             bool? OptionToBool(string option) => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? ToBool(value) : null;
             T? OptionToEnum<T>(string option) where T : struct => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? ToEnum<T>(value) : null;
-            bool? ToBool(string value) => bool.TryParse(value, out var boolValue) ? boolValue : null;
-            T? ToEnum<T>(string value) where T : struct => Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
+            static bool? ToBool(string value) => bool.TryParse(value, out var boolValue) ? boolValue : null;
+            static T? ToEnum<T>(string value) where T : struct => Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
         }
         #endregion
     }

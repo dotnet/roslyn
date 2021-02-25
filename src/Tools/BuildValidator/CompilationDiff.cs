@@ -234,7 +234,7 @@ namespace BuildValidator
                 return buildDataFiles;
             }
 
-            static unsafe void writeAllBytes(string filePath, Span<byte> span)
+            static void writeAllBytes(string filePath, Span<byte> span)
             {
                 using var tempFile = File.OpenWrite(filePath);
                 tempFile.Write(span);
