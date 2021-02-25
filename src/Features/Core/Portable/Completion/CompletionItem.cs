@@ -85,6 +85,12 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules Rules { get; }
 
         /// <summary>
+        /// Returns true if this item's text edit requires complex resolution that
+        /// may impact performance.
+        /// </summary>
+        public bool IsComplexTextEdit { get; }
+
+        /// <summary>
         /// The name of the <see cref="CompletionProvider"/> that created this 
         /// <see cref="CompletionItem"/>. Not available to clients. Only used by 
         /// the Completion subsystem itself for things like getting description text
@@ -110,7 +116,8 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItemRules rules,
             string displayTextPrefix,
             string displayTextSuffix,
-            string inlineDescription)
+            string inlineDescription,
+            bool isComplexTextEdit)
         {
             DisplayText = displayText ?? "";
             DisplayTextPrefix = displayTextPrefix ?? "";
@@ -121,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             Tags = tags.NullToEmpty();
             Rules = rules ?? CompletionItemRules.Default;
+            IsComplexTextEdit = isComplexTextEdit;
 
             if (!DisplayText.Equals(filterText, StringComparison.Ordinal))
             {
@@ -154,6 +162,23 @@ namespace Microsoft.CodeAnalysis.Completion
             return Create(displayText, filterText, sortText, properties, tags, rules, displayTextPrefix, displayTextSuffix, inlineDescription: null);
         }
 
+        // binary back compat overload
+        public static CompletionItem Create(
+            string displayText,
+            string filterText,
+            string sortText,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules rules,
+            string displayTextPrefix,
+            string displayTextSuffix,
+            string inlineDescription)
+        {
+            return Create(
+                displayText, filterText, sortText, properties, tags, rules, displayTextPrefix,
+                displayTextSuffix, inlineDescription, isComplexTextEdit: false);
+        }
+
         public static CompletionItem Create(
             string displayText,
             string filterText = null,
@@ -163,7 +188,8 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItemRules rules = null,
             string displayTextPrefix = null,
             string displayTextSuffix = null,
-            string inlineDescription = null)
+            string inlineDescription = null,
+            bool isComplexTextEdit = false)
         {
             return new CompletionItem(
                 span: default,
@@ -175,7 +201,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: rules,
                 displayTextPrefix: displayTextPrefix,
                 displayTextSuffix: displayTextSuffix,
-                inlineDescription: inlineDescription);
+                inlineDescription: inlineDescription,
+                isComplexTextEdit: isComplexTextEdit);
         }
 
         /// <summary>
@@ -210,7 +237,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: rules,
                 displayTextPrefix: null,
                 displayTextSuffix: null,
-                inlineDescription: null);
+                inlineDescription: null,
+                isComplexTextEdit: false);
         }
 
         private CompletionItem With(
@@ -223,7 +251,8 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<CompletionItemRules> rules = default,
             Optional<string> displayTextPrefix = default,
             Optional<string> displayTextSuffix = default,
-            Optional<string> inlineDescription = default)
+            Optional<string> inlineDescription = default,
+            Optional<bool> isComplexTextEdit = default)
         {
             var newSpan = span.HasValue ? span.Value : Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : DisplayText;
@@ -233,6 +262,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var newProperties = properties.HasValue ? properties.Value : Properties;
             var newTags = tags.HasValue ? tags.Value : Tags;
             var newRules = rules.HasValue ? rules.Value : Rules;
+            var newIsComplexTextEdit = isComplexTextEdit.HasValue ? isComplexTextEdit.Value : IsComplexTextEdit;
             var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : DisplayTextPrefix;
             var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : DisplayTextSuffix;
 
@@ -245,7 +275,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 newRules == Rules &&
                 newDisplayTextPrefix == DisplayTextPrefix &&
                 newDisplayTextSuffix == DisplayTextSuffix &&
-                newInlineDescription == InlineDescription)
+                newInlineDescription == InlineDescription &&
+                newIsComplexTextEdit == IsComplexTextEdit)
             {
                 return this;
             }
@@ -260,7 +291,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: newRules,
                 displayTextPrefix: newDisplayTextPrefix,
                 displayTextSuffix: newDisplayTextSuffix,
-                inlineDescription: newInlineDescription)
+                inlineDescription: newInlineDescription,
+                isComplexTextEdit: newIsComplexTextEdit)
             {
                 AutomationText = AutomationText,
                 ProviderName = ProviderName,
@@ -349,6 +381,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem WithRules(CompletionItemRules rules)
             => With(rules: rules);
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="IsComplexTextEdit"/> property changed.
+        /// </summary>
+        public CompletionItem WithIsComplexTextEdit(bool isComplexTextEdit)
+            => With(isComplexTextEdit: isComplexTextEdit);
 
         private string _entireDisplayText;
 

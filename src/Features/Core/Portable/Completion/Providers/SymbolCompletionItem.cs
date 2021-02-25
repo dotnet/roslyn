@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
+            ImmutableArray<string> tags = default,
+            bool isComplexTextEdit = false)
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
 
@@ -54,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 glyph: firstSymbol.GetGlyph(),
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
-                tags: tags);
+                tags: tags,
+                isComplexTextEdit: isComplexTextEdit);
 
             item = WithSupportedPlatforms(item, supportedPlatforms);
             return symbolEncoder(symbols, item);
@@ -267,7 +269,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
+            ImmutableArray<string> tags = default,
+            bool isComplexTextEdit = false)
         {
             return CreateWithSymbolId(
                 displayText,
@@ -280,7 +283,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterText,
                 supportedPlatforms,
                 properties,
-                tags);
+                tags,
+                isComplexTextEdit);
         }
 
         public static CompletionItem CreateWithSymbolId(
@@ -294,12 +298,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
+            ImmutableArray<string> tags = default,
+            bool isComplexTextEdit = false)
         {
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolEncoding, sortText, insertionText,
-                filterText, supportedPlatforms, properties, tags);
+                filterText, supportedPlatforms, properties, tags, isComplexTextEdit);
         }
 
         public static CompletionItem CreateWithNameAndKind(
@@ -313,12 +318,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
+            ImmutableArray<string> tags = default,
+            bool isComplexTextEdit = false)
         {
             return CreateWorker(
                 displayText, displayTextSuffix, symbols, rules, contextPosition,
                 s_addSymbolInfo, sortText, insertionText,
-                filterText, supportedPlatforms, properties, tags);
+                filterText, supportedPlatforms, properties, tags, isComplexTextEdit);
         }
 
         internal static string GetSymbolName(CompletionItem item)

@@ -92,13 +92,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
             }
 
-            // We compute the TextEdit resolves for override and partial method completions here.
-            // Lazily resolving TextEdits is technically a violation of the LSP spec, but is
-            // currently supported by the VS client anyway. Once the VS client adheres to the spec,
-            // this logic will need to change and VS will need to provide official support for
-            // TextEdit resolution in some form.
-            if (completionItem.InsertText == null && completionItem.TextEdit == null)
+            // We compute the TextEdit resolves for complex text edits (e.g. override and partial
+            // method completions) here. Lazily resolving TextEdits is technically a violation of
+            // the LSP spec, but is currently supported by the VS client anyway. Once the VS client
+            // adheres to the spec, this logic will need to change and VS will need to provide
+            // official support for TextEdit resolution in some form.
+            if (selectedItem.IsComplexTextEdit)
             {
+                Contract.ThrowIfTrue(completionItem.InsertText != null);
+                Contract.ThrowIfTrue(completionItem.TextEdit != null);
+
                 var snippetsSupported = context.ClientCapabilities.TextDocument?.Completion?.CompletionItem?.SnippetSupport ?? false;
 
                 completionItem.TextEdit = await GenerateTextEditAsync(

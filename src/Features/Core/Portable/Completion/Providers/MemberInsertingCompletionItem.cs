@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: descriptionPosition,
                 properties: props,
-                rules: rules);
+                rules: rules,
+                isComplexTextEdit: true);
         }
 
         public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
