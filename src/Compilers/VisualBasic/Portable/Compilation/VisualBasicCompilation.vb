@@ -751,11 +751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' LanguageVersion should already be mapped to an effective version at this point
             Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)
             WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString())
-
-            If Options.CheckOverflow Then
-                WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
-            End If
-
+            WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
             WriteValue(builder, CompilationOptionNames.OptionStrict, Options.OptionStrict.ToString())
             WriteValue(builder, CompilationOptionNames.OptionInfer, Options.OptionInfer.ToString())
             WriteValue(builder, CompilationOptionNames.OptionCompareText, Options.OptionCompareText.ToString())

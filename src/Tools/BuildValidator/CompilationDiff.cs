@@ -142,9 +142,9 @@ namespace BuildValidator
                         File.WriteAllBytes(rebuildAssemblyPath, rebuildBytes);
 
                         var originalPeMdvPath = Path.Combine(originalPath, assemblyName + ".pe.mdv");
-                        var originalPdbMdvPath = Path.Combine(originalPath, assemblyName + ".pdb.mdv");
+                        var originalPdbMdvPath = Path.Combine(originalPath, assemblyName + ".extracted.pdb");
                         writeVisualization(originalPeMdvPath, optionsReader.PeReader.GetMetadataReader());
-                        writeVisualization(originalPdbMdvPath, optionsReader.PdbReader);
+                        writePdbVisualization(originalPdbMdvPath, optionsReader.PdbReader);
 
                         var originalPdbXmlPath = Path.Combine(originalPath, assemblyName + ".pdb.xml");
                         using var originalPdbXml = File.Create(originalPdbXmlPath);
@@ -167,7 +167,7 @@ namespace BuildValidator
                             methodName: null);
 
                         var rebuildPeMdvPath = Path.Combine(rebuildPath, assemblyName + ".pe.mdv");
-                        var rebuildPdbMdvPath = Path.Combine(rebuildPath, assemblyName + ".pdb.mdv");
+                        var rebuildPdbMdvPath = Path.Combine(rebuildPath, assemblyName + ".extracted.pdb");
                         fixed (byte* ptr = rebuildBytes)
                         {
                             using var rebuildPeReader = new PEReader(ptr, rebuildBytes.Length);
@@ -180,7 +180,7 @@ namespace BuildValidator
                                 out _) && provider is { })
                             {
                                 var rebuildPdbReader = provider.GetMetadataReader(MetadataReaderOptions.Default);
-                                writeVisualization(rebuildPdbMdvPath, rebuildPdbReader);
+                                writePdbVisualization(rebuildPdbMdvPath, rebuildPdbReader);
 
                                 using var rebuildPdbXml = File.Create(rebuildPdbXmlPath);
                                 PdbToXmlConverter.ToXml(
@@ -223,15 +223,24 @@ namespace BuildValidator
                 return new CompilationDiff(originalBinaryPath.FullName, bytesEqual);
             }
 
+            void writePdbVisualization(string pdbOutPath, MetadataReader pdbReader)
+            {
+                using (var tempFile = File.OpenWrite(pdbOutPath))
+                {
+                    var span = new ReadOnlySpan<byte>(pdbReader.MetadataPointer, pdbReader.MetadataLength);
+                    tempFile.Write(span);
+                }
+
+                writeVisualization(pdbOutPath + ".mdv", pdbReader);
+            }
+
             void writeVisualization(string outPath, MetadataReader pdbReader)
             {
-                using (var tempFile = File.OpenWrite(outPath))
-                {
-                    var writer = new StreamWriter(tempFile);
-                    var visualizer = new MetadataVisualizer(pdbReader, writer);
-                    visualizer.Visualize();
-                    writer.Flush();
-                }
+                using var tempFile = File.OpenWrite(outPath);
+                var writer = new StreamWriter(tempFile);
+                var visualizer = new MetadataVisualizer(pdbReader, writer);
+                visualizer.Visualize();
+                writer.Flush();
             }
         }
     }

@@ -271,7 +271,7 @@ namespace BuildValidator
                 .WithPreprocessorSymbols(preprocessorSymbols);
 
             var (optimizationLevel, plus) = GetOptimizationLevel(optimization);
-            var isChecked = OptionToBool(CompilationOptionNames.Checked) ?? false;
+            var isChecked = OptionToBool(CompilationOptionNames.Checked) ?? true;
             var embedVBRuntime = OptionToBool(CompilationOptionNames.EmbedRuntime) ?? false;
             var rootNamespace = OptionToString(CompilationOptionNames.RootNamespaces) ?? null;
 
