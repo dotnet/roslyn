@@ -51,8 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.DeclaredType);
             VisitAndUnsplitAll(node.Deconstruction);
             VisitAndUnsplitAll(node.Properties);
-            if (node.ListPatternInfo != null)
-                VisitAndUnsplitAll(node.ListPatternInfo.Subpatterns);
+            VisitAndUnsplitAll(node.ListPatternInfo?.Subpatterns ?? default);
             Visit(node.VariableAccess);
             return null;
         }
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSlicePattern(BoundSlicePattern node)
         {
-            Visit(node.PatternOpt);
+            Visit(node.Pattern);
             return null;
         }
 
@@ -375,78 +374,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         break;
                                     }
                                 case BoundDagIndexEvaluation e:
-                                    {
-                                        var type = TypeWithAnnotations.Create(e.PropertyOpt is null ? ((ArrayTypeSymbol)inputType).ElementType : e.PropertyOpt.Type, NullableAnnotation.Annotated);
-                                        var output = new BoundDagTemp(e.Syntax, type.Type, e);
-                                        int outputSlot = makeDagTempSlot(type, output);
-                                        Debug.Assert(outputSlot > 0);
-                                        addToTempMap(output, outputSlot, type.Type);
-                                        break;
-                                    }
+                                    addTemp(e, e.Property is null ? ((ArrayTypeSymbol)inputType).ElementType : e.Property.Type);
+                                    break;
                                 case BoundDagSliceEvaluation e:
-                                    {
-                                        var type = TypeWithAnnotations.Create(e.SliceMethodOpt is null ? inputType : e.SliceMethodOpt.ReturnType, NullableAnnotation.Annotated);
-                                        var output = new BoundDagTemp(e.Syntax, type.Type, e);
-                                        int outputSlot = makeDagTempSlot(type, output);
-                                        Debug.Assert(outputSlot > 0);
-                                        addToTempMap(output, outputSlot, type.Type);
-                                        break;
-                                    }
+                                    addTemp(e, e.SliceMethod is null ? inputType : e.SliceMethod.ReturnType);
+                                    break;
                                 case BoundDagArrayEvaluation e:
-                                    {
-                                        var type = TypeWithAnnotations.Create(((ArrayTypeSymbol)inputType).ElementType, NullableAnnotation.Annotated);
-                                        var output = new BoundDagTemp(e.Syntax, type.Type, e);
-                                        int outputSlot = makeDagTempSlot(type, output);
-                                        Debug.Assert(outputSlot > 0);
-                                        addToTempMap(output, outputSlot, type.Type);
-                                        break;
-                                    }
+                                    addTemp(e, ((ArrayTypeSymbol)inputType).ElementType);
+                                    break;
                                 case BoundDagArrayLengthEvaluation e:
-                                    {
-                                        var type = TypeWithAnnotations.Create(this.compilation.GetSpecialType(SpecialType.System_Int32), NullableAnnotation.Annotated);
-                                        var output = new BoundDagTemp(e.Syntax, type.Type, e);
-                                        int outputSlot = makeDagTempSlot(type, output);
-                                        Debug.Assert(outputSlot > 0);
-                                        addToTempMap(output, outputSlot, type.Type);
-                                        break;
-                                    }
+                                    addTemp(e, compilation.GetSpecialType(SpecialType.System_Int32));
+                                    break;
+                                case BoundDagEnumeratorEvaluation e:
+                                    addTemp(e, e.EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType);
+                                    break;
                                 case BoundDagMethodEvaluation e:
+                                    if (e.Method is null || e.Method.ParameterCount == 2)
                                     {
-                                        var returnType = e.Method.IsConstructor()
+                                        // TryGetNonEnumeratedCount
+                                        addTemp(e, compilation.GetSpecialType(SpecialType.System_Boolean), 0); // outputTemp
+                                        addTemp(e, compilation.GetSpecialType(SpecialType.System_Int32), 1); // out countTemp
+                                        addTemp(e, compilation.GetSpecialType(SpecialType.System_Int32), 2); // countTemp
+                                    }
+                                    else
+                                    {
+                                        var type = e.Method.IsConstructor()
                                             ? e.Method.ContainingType
                                             : e.Method.ReturnType;
-
-                                        if (!returnType.IsVoidType())
-                                        {
-                                            var type = TypeWithAnnotations.Create(returnType, NullableAnnotation.Annotated);
-                                            var output = new BoundDagTemp(e.Syntax, type.Type, e);
-                                            int outputSlot = makeDagTempSlot(type, output);
-                                            Debug.Assert(outputSlot > 0);
-                                            addToTempMap(output, outputSlot, type.Type);
-                                        }
-
-                                        break;
-                                    }
-                                case BoundDagEnumeratorEvaluation e:
-                                    {
-                                        {
-                                            var type = TypeWithAnnotations.Create(e.EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType, NullableAnnotation.Annotated);
-                                            var output = new BoundDagTemp(e.Syntax, type.Type, e);
-                                            int outputSlot = makeDagTempSlot(type, output);
-                                            Debug.Assert(outputSlot > 0);
-                                            addToTempMap(output, outputSlot, type.Type);
-                                        }
-                                        {
-                                            var type = TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Int32), NullableAnnotation.Annotated);
-                                            var count = new BoundDagTemp(e.Syntax, type.Type, e, index: 1);
-                                            int countSlot = makeDagTempSlot(type, count);
-                                            Debug.Assert(countSlot > 0);
-                                            addToTempMap(count, countSlot, type.Type);
-                                        }
-                                        break;
+                                        if (!type.IsVoidType())
+                                            addTemp(e, type);
                                     }
 
+                                    break;
                                 case BoundDagIncrementEvaluation:
+                                case BoundDagGotoEvaluation:
+                                case BoundDagGotoTargetEvaluation:
                                     break;
 
                                 default:
@@ -634,6 +596,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 object slotKey = (node, temp);
                 return GetOrCreatePlaceholderSlot(slotKey, type);
+            }
+
+            void addTemp(BoundDagEvaluation e, TypeSymbol t, int index = 0)
+            {
+                var type = TypeWithAnnotations.Create(t, NullableAnnotation.Annotated);
+                var output = new BoundDagTemp(e.Syntax, type.Type, e, index: index);
+                int outputSlot = makeDagTempSlot(type, output);
+                Debug.Assert(outputSlot > 0);
+                addToTempMap(output, outputSlot, type.Type);
             }
         }
 

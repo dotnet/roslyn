@@ -3527,6 +3527,15 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                                      // Arity
                     0,                                                                                                                  // Method Signature
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                                    // Return Type
+
+                // System_Linq_Enumerable__TryGetNonEnumeratedCount
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                                        // Flags
+                (byte)WellKnownType.System_Linq_Enumerable,                                                                             // DeclaringTypeId
+                0,                                                                                                                      // Arity
+                    2,                                                                                                                  // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_IEnumerable,
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3970,6 +3979,7 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Collections_Generic_Deque_T__ctor
                 "Enqueue",                                  // System_Collections_Generic_Deque_T__Enqueue
                 "Pop",                                      // System_Collections_Generic_Deque_T__Pop
+                "TryGetNonEnumeratedCount",                 // System_Linq_Enumerable__TryGetNonEnumeratedCount
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

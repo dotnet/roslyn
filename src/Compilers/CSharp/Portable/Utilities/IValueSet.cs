@@ -57,11 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// contains values but we cannot produce a particular value (e.g. for the set `nint > int.MaxValue`), returns null.
         /// </summary>
         ConstantValue? Sample { get; }
-
-        /// <summary>
-        /// Returns true if the value set contains exactly one contiguous interval, i.e there's no gap in between.
-        /// </summary>
-        bool IsContiguous { get; }
     }
 
     /// <summary>
@@ -97,6 +92,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the relation and some do not.
         /// </summary>
         bool All(BinaryOperatorKind relation, T value);
+    }
+
+    internal interface INumericValueSet<T> : IValueSet<T>
+    {
+        /// <summary>
+        /// Returns true if the value set contains exactly one contiguous interval, i.e. there's no gap in between.
+        /// </summary>
+        bool IsContiguous { get; }
 
         /// <summary>
         /// Returns the inclusive bounds of this value set.

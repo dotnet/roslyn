@@ -227,9 +227,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case Tests.False _:
                         return tests;
                     case Tests.One(BoundDagEvaluation e):
-                        // TODO(alrz) We emit unconditionally. There is probably some room for optimizations if values are disarded
-                        if (e.Kind == BoundKind.DagIncrementEvaluation ||
-                            e.Kind == BoundKind.DagMethodEvaluation ||
+                        // TODO(alrz) Removing unused
+                        if (e.Kind == BoundKind.DagMethodEvaluation ||
+                            e.Kind == BoundKind.DagIncrementEvaluation ||
+                            e.Kind == BoundKind.DagGotoEvaluation ||
+                            e.Kind == BoundKind.DagGotoTargetEvaluation ||
                             usedValues.Contains(e))
                         {
                             if (e.Input.Source is { })
@@ -1895,7 +1897,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     remainingTests.Free();
                     return result;
                 }
-
                 public override BoundDagTest ComputeSelectedTest()
                 {
                     // Our simple heuristic is to perform the first test of the

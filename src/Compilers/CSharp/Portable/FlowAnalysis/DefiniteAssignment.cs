@@ -1605,9 +1605,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.SlicePattern:
                     {
                         var pat = (BoundSlicePattern)pattern;
-                        if (pat.PatternOpt != null)
+                        if (pat.Pattern != null)
                         {
-                            AssignPatternVariables(pat.PatternOpt);
+                            AssignPatternVariables(pat.Pattern);
                         }
                         break;
                     }
@@ -1636,9 +1636,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         if (pat.ListPatternInfo != null)
                         {
-                            foreach (BoundPattern p in pat.ListPatternInfo.Subpatterns)
+                            if (!pat.ListPatternInfo.Subpatterns.IsDefaultOrEmpty)
                             {
-                                AssignPatternVariables(p, definitely);
+                                foreach (BoundPattern p in pat.ListPatternInfo.Subpatterns)
+                                {
+                                    AssignPatternVariables(p, definitely);
+                                }
                             }
 
                             if (pat.ListPatternInfo.LengthPattern != null)

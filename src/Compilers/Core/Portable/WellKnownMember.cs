@@ -515,6 +515,8 @@ namespace Microsoft.CodeAnalysis
         System_Collections_Generic_Deque_T__Enqueue,
         System_Collections_Generic_Deque_T__Pop,
 
+        System_Linq_Enumerable__TryGetNonEnumerableCount,
+        
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

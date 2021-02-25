@@ -36,19 +36,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ArrayBuilder<BoundStatement> _loweredDecisionDag;
 
             /// <summary>
-            /// Keep track of all enumerator evaluations that need disposal to wrap in try-finally.
+            /// Keep track of every <see cref="BoundDagEnumeratorEvaluation"/> that needs disposal to be wrapped in try-finally.
             /// </summary>
             private PooledDictionary<int, BoundDagEnumeratorEvaluation> _enumeratorEvaluations;
 
             /// <summary>
-            /// Keep a map of each NoOpEvaluation to its containing dag node to jump to.
+            /// Labels for <see cref="BoundDagGotoEvaluation"/> to jump to.
             /// </summary>
-            private PooledDictionary<BoundDagEvaluation, BoundEvaluationDecisionDagNode> _alternativeMap;
+            private PooledDictionary<BoundDagGotoTargetEvaluation, LabelSymbol> _targetLabels;
 
             /// <summary>
             /// The label in the code for the beginning of code for each node of the dag.
             /// </summary>
-            protected readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
+            private readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
 
             protected DecisionDagRewriter(
                 SyntaxNode node,
@@ -78,8 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _dagNodeLabels[node] = d.Label;
                             break;
                         case BoundEvaluationDecisionDagNode e:
-                            addToMap(e);
                             notePredecessor(e.Next);
+                            if (e.Evaluation is BoundDagGotoTargetEvaluation target)
+                            {
+                                (_targetLabels ??= PooledDictionary<BoundDagGotoTargetEvaluation, LabelSymbol>.GetInstance()).TryAdd(target, GetDagNodeLabel(e));
+                            }
                             break;
                         case BoundTestDecisionDagNode p:
                             notePredecessor(p.WhenTrue);
@@ -93,15 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasPredecessor.Free();
                 return;
 
-                void addToMap(BoundEvaluationDecisionDagNode node)
-                {
-                    if (node.Evaluation.Kind == BoundKind.DagIncrementEvaluation)
-                    {
-                        (_alternativeMap ??= PooledDictionary<BoundDagEvaluation, BoundEvaluationDecisionDagNode>.GetInstance()).Add(node.Evaluation, node);
-                        GetDagNodeLabel(node);
-                    }
-                }
-
                 void notePredecessor(BoundDecisionDagNode successor)
                 {
                     if (successor != null && !hasPredecessor.Add(successor))
@@ -114,25 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected new void Free()
             {
                 _dagNodeLabels.Free();
-                _alternativeMap?.Free();
+                _targetLabels?.Free();
                 base.Free();
-            }
-
-            private BoundDecisionDagNode GetAlternativeDagNode(BoundDagTest test)
-            {
-                return test.Next != null ? _alternativeMap[test.Next] : null;
             }
 
             protected virtual LabelSymbol GetDagNodeLabel(BoundDecisionDagNode dag)
             {
                 if (!_dagNodeLabels.TryGetValue(dag, out LabelSymbol label))
                 {
-                    _dagNodeLabels.Add(dag, label = dag switch
-                    {
-                        BoundLeafDecisionDagNode d => d.Label,
-                        BoundEvaluationDecisionDagNode { Evaluation: BoundDagIncrementEvaluation } => _factory.GenerateLabel("dagLoopNode"),
-                        _ => _factory.GenerateLabel("dagNode"),
-                    });
+                    _dagNodeLabels.Add(dag, label = dag is BoundLeafDecisionDagNode d ? d.Label : _factory.GenerateLabel("dagNode"));
                 }
 
                 return label;
@@ -413,9 +397,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ImmutableArray<BoundDecisionDagNode> nodesToLower = sortedNodes.WhereAsArray(n => n.Kind != BoundKind.WhenDecisionDagNode && n.Kind != BoundKind.LeafDecisionDagNode);
                 var loweredNodes = PooledHashSet<BoundDecisionDagNode>.GetInstance();
+                var nodesToSkip = PooledHashSet<BoundDecisionDagNode>.GetInstance();
                 for (int i = 0, length = nodesToLower.Length; i < length; i++)
                 {
                     BoundDecisionDagNode node = nodesToLower[i];
+                    if (nodesToSkip.Contains(node))
+                    {
+                        continue;
+                    }
+
                     // A node may have been lowered as part of a switch dispatch, but if it had a label, we'll need to lower it individually as well
                     bool alreadyLowered = loweredNodes.Contains(node);
                     if (alreadyLowered && !_dagNodeLabels.TryGetValue(node, out _))
@@ -440,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (GenerateBufferCtor(node, loweredNodes, nodesToLower, i))
+                    if (GenerateBufferCtor(node, nodesToSkip, nodesToLower, i))
                     {
                         continue;
                     }
@@ -456,7 +446,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 loweredNodes.Free();
-                var result = _enumeratorEvaluations is not null
+                nodesToSkip.Free();
+                // TODO(alrz)
+                var result = false && _enumeratorEvaluations is not null
                     ? RewriteDecisionDagWithTryFinally()
                     : _loweredDecisionDag.ToImmutable();
                 _loweredDecisionDag.Free();
@@ -504,8 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (builder[i] is BoundConditionalGoto conditional)
                         {
-                            if (string.Equals(conditional.Label.Name, "dagLoopNode", StringComparison.Ordinal))
-                                continue;
                             if (!labelMap.TryGetValue(conditional.Label, out LabelSymbol newLabel))
                                 labelMap.Add(conditional.Label, newLabel = _factory.GenerateLabel("leaveLabel"));
                             builder[i] = conditional.Update(conditional.Condition, conditional.JumpIfTrue, newLabel);
@@ -529,38 +519,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            /// <summary>
-            /// Lower buffer constructor with the known size from the loop condition we use to fill the buffer.
-            /// Considering a multi-arm match, the value is not known until after the DAG is simplified.
-            /// </summary>
-            /// <returns></returns>
             private bool GenerateBufferCtor(
                 BoundDecisionDagNode node,
-                HashSet<BoundDecisionDagNode> loweredNodes,
+                HashSet<BoundDecisionDagNode> nodesToSkip,
                 ImmutableArray<BoundDecisionDagNode> nodesToLower,
                 int indexOfNode)
             {
-                if (node is BoundEvaluationDecisionDagNode { Evaluation: BoundDagMethodEvaluation { Method: { MethodKind: MethodKind.Constructor } } e })
+                if (node is not BoundEvaluationDecisionDagNode { Evaluation: BoundDagMethodEvaluation { Method: { MethodKind: MethodKind.Constructor } bufferCtor } bufferCtorEvaluation })
                 {
-                    var test =
-                        nodesToLower[indexOfNode + 5] is BoundTestDecisionDagNode { Test: BoundDagRelationalTest t0 } ? t0 :
-                        nodesToLower[indexOfNode + 6] is BoundTestDecisionDagNode { Test: BoundDagRelationalTest t1 } ? t1 :
-                        throw ExceptionUtilities.Unreachable;
-
-                    Debug.Assert(e.CurrentProperty is null);
-                    Debug.Assert(e.EnumeratorTemp is null);
-                    Debug.Assert(test.OperatorKind == BinaryOperatorKind.IntGreaterThanOrEqual);
-                    Debug.Assert(test.Value.Discriminator == ConstantValueTypeDiscriminator.Int32);
-
-                    var outputTemp = new BoundDagTemp(e.Syntax, e.Method.ContainingType, e);
-                    var output = _tempAllocator.GetTemp(outputTemp);
-                    BoundExpression argument = _factory.Literal(test.Value, _factory.SpecialType(SpecialType.System_Int32));
-                    var lowered = _factory.Assignment(output, _factory.New(e.Method, ImmutableArray.Create(argument)));
-                    _loweredDecisionDag.Add(lowered);
-                    return true;
+                    return false;
                 }
 
-                return false;
+                var pushNodes = ArrayBuilder<BoundEvaluationDecisionDagNode>.GetInstance();
+
+                int bufferSize = -1;
+                for (int i = indexOfNode + 1, n = nodesToLower.Length; i < n; i++)
+                {
+                    switch (nodesToLower[i])
+                    {
+                        case BoundEvaluationDecisionDagNode { Evaluation: BoundDagMethodEvaluation { Method: { Name: "Enqueue" } } pushMethodEvaluation } dagNode
+                            when Equals(pushMethodEvaluation.Input.Source, bufferCtorEvaluation):
+                            pushNodes.Add(dagNode);
+                            break;
+                        case BoundEvaluationDecisionDagNode { Evaluation: BoundDagMethodEvaluation { Method: { Name: "Pop" } } popMethodEvaluation }
+                            when Equals(popMethodEvaluation.Input.Source, bufferCtorEvaluation):
+                            int index = popMethodEvaluation.Index;
+                            if (index > bufferSize)
+                                bufferSize = index;
+                            break;
+                    }
+                }
+
+                if (bufferSize > 0)
+                {
+                    var outputTemp = new BoundDagTemp(bufferCtorEvaluation.Syntax, bufferCtor.ContainingType, bufferCtorEvaluation);
+                    var output = _tempAllocator.GetTemp(outputTemp);
+                    _loweredDecisionDag.Add(_factory.Assignment(output, _factory.New(bufferCtor, _factory.Literal(bufferSize))));
+                }
+                else
+                {
+                    nodesToSkip.AddAll(pushNodes);
+                }
+
+                pushNodes.Free();
+                return true;
             }
 
             /// <summary>
@@ -1067,13 +1069,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundEvaluationDecisionDagNode { Evaluation: var evaluation } evaluationNode:
                         {
-                            BoundExpression sideEffect = LowerEvaluation(evaluation);
-                            Debug.Assert(sideEffect != null);
-                            _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
-                            if (evaluation.Kind == BoundKind.DagEnumeratorEvaluation &&
-                                (BoundDagEnumeratorEvaluation)evaluation is var e && e.EnumeratorInfo.NeedsDisposal)
+                            switch (evaluation)
                             {
-                                (_enumeratorEvaluations ??= PooledDictionary<int, BoundDagEnumeratorEvaluation>.GetInstance()).Add(_loweredDecisionDag.Count - 2, e);
+                                case BoundDagGotoTargetEvaluation:
+                                case BoundDagMethodEvaluation { Method: null }:
+                                    // This is a missing or otherwise inapplicable TryGetNonEnumeratedCount
+                                    break;
+
+                                case BoundDagGotoEvaluation e:
+                                    _loweredDecisionDag.Add(_factory.Goto(_targetLabels[e.Target]));
+                                    break;
+
+                                case BoundDagEnumeratorEvaluation { NeedsDisposal: true } e:
+                                    (_enumeratorEvaluations ??= PooledDictionary<int, BoundDagEnumeratorEvaluation>.GetInstance()).Add(_loweredDecisionDag.Count - 1, e);
+                                    goto default;
+
+                                default:
+                                    BoundExpression sideEffect = LowerEvaluation(evaluation);
+                                    Debug.Assert(sideEffect != null);
+                                    _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+                                    break;
                             }
 
                             // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
@@ -1094,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundTestDecisionDagNode testNode:
                         {
                             BoundExpression test = base.LowerTest(testNode.Test);
-                            GenerateTest(test, testNode.WhenTrue, GetAlternativeDagNode(testNode.Test) ?? testNode.WhenFalse, nextNode);
+                            GenerateTest(test, testNode.WhenTrue, testNode.WhenFalse, nextNode);
                         }
 
                         break;

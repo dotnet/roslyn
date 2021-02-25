@@ -68,10 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            bool IValueSet.IsContiguous => throw ExceptionUtilities.Unreachable;
-
-            (TFloating First, TFloating Last) IValueSet<TFloating>.GetRange() => throw ExceptionUtilities.Unreachable;
-
             public static IValueSet<TFloating> Related(BinaryOperatorKind relation, TFloating value)
             {
                 TFloatingTC tc = default;

@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, evaluated);
                         }
 
-                    case BoundDagIndexEvaluation { PropertyOpt: var property } e:
+                    case BoundDagIndexEvaluation { Property: var property } e:
                         {
                             var inputType = input.Type;
                             Debug.Assert(inputType is { });
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, access);
                         }
 
-                    case BoundDagSliceEvaluation { SliceMethodOpt: null } e:
+                    case BoundDagSliceEvaluation { SliceMethod: null } e:
                         {
                             TypeSymbol inputType = input.Type;
                             Debug.Assert(inputType is { });
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, callExpr);
                         }
 
-                    case BoundDagSliceEvaluation { SliceMethodOpt: { } sliceMethod } e:
+                    case BoundDagSliceEvaluation { SliceMethod: { } sliceMethod } e:
                         {
                             Debug.Assert(sliceMethod.ContainingSymbol.Equals(input.Type));
                             Debug.Assert(sliceMethod.ParameterCount == 2);
@@ -323,48 +323,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, callExpr);
                         }
-
                     case BoundDagMethodEvaluation e:
                         {
-                            MethodSymbol method = e.Method;
-
+                            var method = e.Method;
+                            Debug.Assert(method is not null);
                             Debug.Assert(!method.IsConstructor());
-                            Debug.Assert(e.CurrentProperty is null == e.EnumeratorTemp is null);
-
-                            var arg = e.CurrentProperty is not null
-                                ? ImmutableArray.Create(_factory.Property(_tempAllocator.GetTemp(e.EnumeratorTemp), e.CurrentProperty))
-                                : ImmutableArray<BoundExpression>.Empty;
-
-                            BoundExpression callExpr = _factory.Call(input, method, arg);
-                            if (method.ReturnType.IsVoidType())
+                            if (method.ParameterCount == 2)
                             {
-                                // Enqueue Method
-                                return callExpr;
+                                // TryGetNonEnumeratedCount
+                                var successTemp = new BoundDagTemp(e.Syntax, _factory.SpecialType(SpecialType.System_Boolean), e, 0);
+                                var success = _tempAllocator.GetTemp(successTemp);
+                                var countTemp = new BoundDagTemp(e.Syntax, _factory.SpecialType(SpecialType.System_Int32), e, 1);
+                                var count = _tempAllocator.GetTemp(countTemp);
+                                var callExpr = _factory.Call(null, method,
+                                    refKinds: ImmutableArray.Create(RefKind.None, RefKind.Out),
+                                    args: ImmutableArray.Create(input, count));
+                                return _factory.AssignmentExpression(success, callExpr);
                             }
 
-                            // MoveNext or Pop Method
-                            var outputTemp = new BoundDagTemp(e.Syntax, method.ReturnType, e);
-                            BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-                            return _factory.AssignmentExpression(output, callExpr);
+                            TypeSymbol returnType = method.ReturnType;
+                            if (returnType.IsVoidType())
+                            {
+                                // Push
+                                var enumeratorTemp = e.Input.Source!.Input;
+                                var enumerator = _tempAllocator.GetTemp(enumeratorTemp);
+                                var info = ((BoundDagEnumeratorEvaluation)enumeratorTemp.Source)!.EnumeratorInfo;
+                                return _factory.Call(input, method, _factory.Call(enumerator, info.CurrentPropertyGetter));
+                            }
+                            else
+                            {
+                                // MoveNext or Pop
+                                Debug.Assert(!returnType.IsVoidType());
+                                var outputTemp = new BoundDagTemp(e.Syntax, returnType, e);
+                                BoundExpression output = _tempAllocator.GetTemp(outputTemp);
+                                return _factory.AssignmentExpression(output, _factory.Call(input, method));
+                            }
                         }
-
-                    case BoundDagIncrementEvaluation e:
-                        {
-                            return _factory.IntIncrement(input);
-                        }
-
                     case BoundDagEnumeratorEvaluation e:
                         {
                             MethodSymbol method = e.EnumeratorInfo.GetEnumeratorInfo.Method;
                             var callExpr = _factory.Call(input, method);
                             var outputTemp = new BoundDagTemp(e.Syntax, method.ReturnType, e);
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
-
-                            var countTemp = new BoundDagTemp(e.Syntax, this._factory.SpecialType(SpecialType.System_Int32), e, index: 1);
-                            return _factory.MakeSequence(
-                                _factory.AssignmentExpression(_tempAllocator.GetTemp(countTemp), _factory.Literal(0)),
-                                _factory.AssignmentExpression(output, callExpr));
+                            return _factory.AssignmentExpression(output, callExpr);
                         }
+
+                    case BoundDagIncrementEvaluation:
+                        return _factory.IntIncrement(input);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(evaluation);

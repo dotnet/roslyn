@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             PropertySymbol getLengthProperty, PropertySymbol? getItemProperty)
         {
             var syntax = pattern.Syntax;
-            var subpatterns = pattern.Subpatterns;
+            var subpatterns = pattern.Subpatterns.NullToEmpty();
 
             var tests = ArrayBuilder<Tests>.GetInstance(4 + subpatterns.Length * 2);
             MakeCheckNotNull(input, syntax, isExplicitTest: false, tests);
@@ -29,38 +30,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, getLengthProperty, input);
             tests.Add(new Tests.One(lengthEvaluation));
 
-            var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
-            if (pattern.LengthPattern != null)
-                tests.Add(MakeTestsAndBindings(lengthTemp, pattern.LengthPattern, bindings));
-            tests.Add(MakeInferredLengthTests(syntax, pattern, lengthTemp));
+            var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
+            MakeLengthTests(syntax, pattern, bindings, lengthTemp, tests);
 
             for (int index = 0; index < subpatterns.Length; index++)
             {
                 var subpattern = subpatterns[index];
                 if (subpattern is BoundSlicePattern slice)
                 {
-                    if (slice.PatternOpt is not null)
+                    if (slice.Pattern is not null)
                     {
-                        var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slice.SliceMethodOpt, lengthTemp, startIndex: index, endIndex: index - (subpatterns.Length - 1), input);
+                        var sliceEvaluation = new BoundDagSliceEvaluation(syntax, slice.SliceMethod, lengthTemp, startIndex: index, endIndex: index - (subpatterns.Length - 1), input);
                         tests.Add(new Tests.One(sliceEvaluation));
-                        var sliceTemp = new BoundDagTemp(syntax, slice.SliceMethodOpt is null ? input.Type : slice.SliceMethodOpt.ReturnType, sliceEvaluation);
-                        tests.Add(MakeTestsAndBindings(sliceTemp, slice.PatternOpt, bindings));
+                        var sliceTemp = new BoundDagTemp(syntax, slice.SliceMethod is null ? input.Type : slice.SliceMethod.ReturnType, sliceEvaluation);
+                        tests.Add(MakeTestsAndBindings(sliceTemp, slice.Pattern, bindings));
                     }
 
                     for (int i = subpatterns.Length - 1, j = -1; i > index; i--, j--)
                     {
-                        addIndex(j, subpatterns[i]);
+                        addIndexerTests(index: j, subpatterns[i]);
                     }
 
                     goto done;
                 }
 
-                addIndex(index, subpattern);
+                addIndexerTests(index, subpattern);
             }
 done:
             return Tests.AndSequence.Create(tests);
 
-            void addIndex(int index, BoundPattern subpattern)
+            void addIndexerTests(int index, BoundPattern subpattern)
             {
                 var indexEvaluation = new BoundDagIndexEvaluation(syntax, getItemProperty, lengthTemp, index, input);
                 tests.Add(new Tests.One(indexEvaluation));
@@ -74,13 +73,13 @@ done:
             if (input.Type.IsErrorType())
                 return Tests.True.Instance;
             Debug.Assert(input.Type.IsSZArray());
-            var getLengthProperty = (PropertySymbol)this._compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length);
+            var getLengthProperty = (PropertySymbol)_compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length);
             return MakeTestsAndBindingsForListPattern(input, pattern, bindings, getLengthProperty, getItemProperty: null);
         }
 
         private static Tests MakeInferredLengthTests(SyntaxNode syntax, BoundListPatternInfo pattern, BoundDagTemp lengthTemp)
         {
-            if (!pattern.HasSubpatterns)
+            if (pattern.Subpatterns.IsDefault)
                 return Tests.True.Instance;
             return new Tests.One(pattern.HasSlice
                 ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(pattern.Subpatterns.Length - 1), lengthTemp)
@@ -102,125 +101,160 @@ done:
 
             var tests = ArrayBuilder<Tests>.GetInstance();
 
+            // TryGetCount
+            MethodSymbol? tryGetCountMethod = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Linq_Enumerable__TryGetNonEnumerableCount));
+            var tryGetCountEvaluation = new BoundDagMethodEvaluation(syntax, tryGetCountMethod, index: 0, input);
+            var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), tryGetCountEvaluation, index: 0);
+            var countOutTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), tryGetCountEvaluation, index: 1);
+            var countTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), tryGetCountEvaluation, index: 2);
+            tests.Add(new Tests.One(tryGetCountEvaluation));
+            if (tryGetCountMethod != null)
+            {
+                tests.Add(makeDisjunction(
+                    new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(false), successTemp)),
+                    MakeLengthTests(syntax, pattern, bindings, countOutTemp)));
+            }
+
+            // GetEnumerator
             var enumeratorEvaluation = new BoundDagEnumeratorEvaluation(syntax, info, input);
             tests.Add(new Tests.One(enumeratorEvaluation));
             var enumeratorTemp = new BoundDagTemp(syntax, info.GetEnumeratorInfo.Method.ReturnType, enumeratorEvaluation);
 
-            int index = 0;
-            for (; index < subpatterns.Length; index++)
+            // BufferCtor
+            var (bufferType, bufferCtor, pushMethod, popMethod) = getWellKnownMembers();
+            var bufferCtorEvaluation = new BoundDagMethodEvaluation(syntax, bufferCtor, index: 0, enumeratorTemp);
+            var bufferTemp = new BoundDagTemp(syntax, bufferType, bufferCtorEvaluation);
+            tests.Add(new Tests.One(bufferCtorEvaluation));
+
+            if (subpatterns.IsDefault)
+            {
+                Debug.Assert(pattern.LengthPattern is not null);
+                addTrailingTests(0); // [3]
+                goto done;
+            }
+
+            for (int index = 0; index < subpatterns.Length; index++)
             {
                 BoundPattern subpattern = subpatterns[index];
                 if (subpattern is BoundSlicePattern slice)
                 {
-                    // TODO(alrz) Report in binding
-                    if (slice.PatternOpt is not null)
-                        throw new NotImplementedException();
-
-                    if (index == subpatterns.Length - 1)
-                        break;
-
-                    addTrailingTests();
+                    if (slice.Pattern is not null)
+                        throw new NotImplementedException("error: enumerator with slice");
+                    addTrailingTests(index);
                     goto done;
                 }
 
-                addMoveNext(index, test: true);
-                addCurrentTests(subpattern);
+                addMoveNext(tests, index, test: true);
+                var incrementEvaluation = new BoundDagIncrementEvaluation(syntax, index, countTemp);
+                tests.Add(new Tests.One(incrementEvaluation));
+                var currentEvaluation = new BoundDagPropertyEvaluation(syntax, currentProperty, index, enumeratorTemp);
+                tests.Add(new Tests.One(currentEvaluation));
+                var currentTemp = new BoundDagTemp(syntax, pattern.ElementType, currentEvaluation);
+                var currentPushEvaluation = new BoundDagMethodEvaluation(syntax, pushMethod, index, bufferTemp);
+                tests.Add(new Tests.One(currentPushEvaluation));
+                tests.Add(MakeTestsAndBindings(currentTemp, subpattern, bindings));
             }
 
-            if (pattern.HasSubpatterns && !pattern.HasSlice)
-                addMoveNext(index, test: false);
+            Debug.Assert(!pattern.HasSlice);
+            addMoveNext(tests, index: subpatterns.Length, test: false);
 
             if (pattern.LengthPattern is not null)
-                addLengthTests();
+                computeLengthValueSet(countTemp); // {1,2,3} [3]
 
 done:
             return Tests.AndSequence.Create(tests);
 
             // local functions
 
-            void addCurrentTests(BoundPattern subpattern)
+            void addTrailingTests(int indexOfSlice)
             {
-                var currentEvaluation = new BoundDagPropertyEvaluation(syntax, currentProperty, index, enumeratorTemp);
-                tests.Add(new Tests.One(currentEvaluation));
-                var currentTemp = new BoundDagTemp(syntax, pattern.ElementType, currentEvaluation);
-                tests.Add(MakeTestsAndBindings(currentTemp, subpattern, bindings));
-            }
-
-            (BoundDagIncrementEvaluation, (Tests, Tests, Tests)) makeLengthTestsAndTemp()
-            {
-                // TODO(alrz) TryGetNonEnumeratedCount
-                // TODO(alrz) Initial countTemp value
-                var countTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), enumeratorTemp.Source, index: 1);
-                return (new BoundDagIncrementEvaluation(syntax, countTemp), makeLengthTests(countTemp));
-            }
-
-            void addLengthTests()
-            {
-                var (loopStart, (lengthTest, minLengthTest, maxLengthTest)) = makeLengthTestsAndTemp();
-
-                addMoveNext(-1, test: true);
-                tests.Add(new Tests.One(loopStart));
-                tests.Add(maxLengthTest);
-                addMoveNext(-2, test: false, otherwiseGoTo: loopStart);
-                tests.Add(minLengthTest);
-                tests.Add(lengthTest);
-            }
-
-            void addTrailingTests()
-            {
-                var (loopStart, (lengthTest, minLengthTest, maxLengthTest)) = makeLengthTestsAndTemp();
-
-                var (bufferType, bufferCtor, pushMethod, popMethod) = getWellKnownMembers();
-                var bufferCtorEvaluation = new BoundDagMethodEvaluation(syntax, bufferCtor, index: 0, enumeratorTemp);
-                var bufferTemp = new BoundDagTemp(syntax, bufferType, bufferCtorEvaluation);
-
-                addMoveNext(-1, test: true);
-                tests.Add(new Tests.One(bufferCtorEvaluation));
-                tests.Add(new Tests.One(loopStart));
-                addPush(pushMethod, bufferTemp);
-                tests.Add(maxLengthTest);
-                addMoveNext(-2, test: false, otherwiseGoTo: loopStart);
-                tests.Add(minLengthTest);
-                tests.Add(lengthTest);
-
-                for (int i = subpatterns.Length - 1, j = 0; i > index; i--, j++)
+                int currentIndex = indexOfSlice + 1;
+                if (pattern.LengthPattern is null &&
+                    !pattern.Subpatterns.IsDefault &&
+                    pattern.Subpatterns.Length == currentIndex)
                 {
-                    var popEvaluation = new BoundDagMethodEvaluation(syntax, popMethod, index: j, bufferTemp);
-                    tests.Add(new Tests.One(popEvaluation));
-                    var popTemp = new BoundDagTemp(syntax, pattern.ElementType, popEvaluation);
-                    tests.Add(MakeTestsAndBindings(popTemp, subpatterns[i], bindings));
+                    // {1,2,3, ..}
+                    return;
+                }
+
+                var (minLengthTests, maxLengthTests) = makeLengthTests(countTemp);
+                var pushMethodEvaluation = new BoundDagMethodEvaluation(syntax, pushMethod, index: -1, bufferTemp);
+
+                var leading = ImmutableArray.Create(subpatterns.NullToEmpty(), 0, indexOfSlice);
+                var gotoTargetEvaluation = new BoundDagGotoTargetEvaluation(syntax, leading, enumeratorTemp);
+                var gotoEvaluation = new BoundDagGotoEvaluation(syntax, gotoTargetEvaluation, enumeratorTemp);
+                var incrementEvaluation = new BoundDagIncrementEvaluation(syntax, -1, countTemp);
+                tests.Add(new Tests.One(gotoTargetEvaluation));
+                tests.Add(maxLengthTests);
+
+                var continuation = ArrayBuilder<Tests>.GetInstance(3);
+                continuation.Add(new Tests.One(pushMethodEvaluation));
+                continuation.Add(new Tests.One(incrementEvaluation));
+                continuation.Add(new Tests.One(gotoEvaluation));
+
+                tests.Add(makeDisjunction(
+                    makeMoveNext(-1, test: false),
+                    Tests.AndSequence.Create(continuation)));
+                tests.Add(minLengthTests);
+
+                if (!subpatterns.IsDefaultOrEmpty)
+                {
+                    for (int i = subpatterns.Length - 1, j = 1; i >= currentIndex; i--, j++)
+                    {
+                        var popEvaluation = new BoundDagMethodEvaluation(syntax, popMethod, index: j, bufferTemp);
+                        tests.Add(new Tests.One(popEvaluation));
+                        var popTemp = new BoundDagTemp(syntax, pattern.ElementType, popEvaluation);
+                        tests.Add(MakeTestsAndBindings(popTemp, subpatterns[i], bindings));
+                    }
                 }
             }
 
-            void addMoveNext(int index, bool test, BoundDagIncrementEvaluation? otherwiseGoTo = null)
+            static Tests makeDisjunction(Tests test1, Tests test2)
+            {
+                var tests = ArrayBuilder<Tests>.GetInstance(2);
+                tests.Add(test1);
+                tests.Add(test2);
+                return Tests.OrSequence.Create(tests);
+            }
+
+            void addMoveNext(ArrayBuilder<Tests> tests, int index, bool test)
             {
                 var moveNextEvaluation = new BoundDagMethodEvaluation(syntax, moveNextMethod, index, enumeratorTemp);
                 tests.Add(new Tests.One(moveNextEvaluation));
                 var moveNextTemp = new BoundDagTemp(syntax, moveNextMethod.ReturnType, moveNextEvaluation);
-                tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(test), moveNextTemp) { Next = otherwiseGoTo }));
+                tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(test), moveNextTemp)));
             }
 
-            void addPush(MethodSymbol pushMethod, BoundDagTemp bufferTemp)
+            Tests makeMoveNext(int index, bool test)
             {
-                tests.Add(new Tests.One(new BoundDagMethodEvaluation(syntax, pushMethod, enumeratorTemp, currentProperty, index: 0, bufferTemp)));
+                var tests = ArrayBuilder<Tests>.GetInstance(2);
+                addMoveNext(tests, index, test);
+                return Tests.AndSequence.Create(tests);
             }
 
-            (Tests lengthTest, Tests minLengthTest, Tests maxLengthTest) makeLengthTests(BoundDagTemp countTemp)
+            INumericValueSet<int>? computeLengthValueSet(BoundDagTemp countTemp)
             {
                 Tests lengthTests = MakeInferredLengthTests(syntax, pattern, countTemp);
                 Tests lengthPatternTests = pattern.LengthPattern is not null ? MakeTestsAndBindings(countTemp, pattern.LengthPattern, bindings) : Tests.True.Instance;
                 IValueSet values1 = lengthTests.ComputeIntValueSet();
                 IValueSet values2 = lengthPatternTests.ComputeIntValueSet();
-                if (values1.Intersect(values2) is not IValueSet<int> { IsContiguous: true } lengthValueSet)
-                {
-                    _diagnostics.Add(ErrorCode.ERR_InvalidLengthPattern, (pattern.LengthPattern?.Syntax ?? syntax).Location);
-                    return (lengthTests, Tests.True.Instance, Tests.True.Instance);
-                }
+                if (values1.Intersect(values2) is INumericValueSet<int> { IsContiguous: true } lengthValueSet)
+                    return lengthValueSet;
 
-                (int minLength, int maxLength) = lengthValueSet.GetRange();
-                Tests minLengthTest = MakeRelationalTests(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(minLength), countTemp);
-                Tests maxLengthTest = MakeRelationalTests(syntax, BinaryOperatorKind.IntLessThanOrEqual, ConstantValue.Create(maxLength), countTemp);
-                return (lengthTests, minLengthTest, maxLengthTest);
+                _diagnostics.Add(ErrorCode.ERR_InvalidLengthPattern, (pattern.LengthPattern?.Syntax ?? syntax).Location);
+                return null;
+            }
+
+            (Tests minLengthTests, Tests maxLengthTests) makeLengthTests(BoundDagTemp countTemp)
+            {
+                var lengthValueSet = computeLengthValueSet(countTemp);
+                if (lengthValueSet is null)
+                    return (Tests.True.Instance, Tests.True.Instance);
+
+                var (minLength, maxLength) = lengthValueSet.GetRange();
+                var minLengthTests = MakeRelationalTests(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(minLength), countTemp);
+                var maxLengthTests = MakeRelationalTests(syntax, BinaryOperatorKind.IntLessThanOrEqual, ConstantValue.Create(maxLength), countTemp);
+                return (minLengthTests, maxLengthTests);
             }
 
             (NamedTypeSymbol bufferType, MethodSymbol bufferCtor, MethodSymbol pushMethod, MethodSymbol popMethod) getWellKnownMembers()
@@ -232,6 +266,20 @@ done:
                 var popMethod = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Generic_Deque_T__Pop))!.AsMember(bufferType);
                 return (bufferType, bufferCtor, pushMethod, popMethod);
             }
+        }
+
+        private Tests MakeLengthTests(SyntaxNode syntax, BoundListPatternInfo pattern, ArrayBuilder<BoundPatternBinding> bindings, BoundDagTemp countTemp)
+        {
+            var tests = ArrayBuilder<Tests>.GetInstance(2);
+            MakeLengthTests(syntax, pattern, bindings, countTemp, tests);
+            return Tests.AndSequence.Create(tests);
+        }
+
+        private void MakeLengthTests(SyntaxNode syntax, BoundListPatternInfo pattern, ArrayBuilder<BoundPatternBinding> bindings, BoundDagTemp countTemp, ArrayBuilder<Tests> tests)
+        {
+            if (pattern.LengthPattern != null)
+                tests.Add(MakeTestsAndBindings(countTemp, pattern.LengthPattern, bindings));
+            tests.Add(MakeInferredLengthTests(syntax, pattern, countTemp));
         }
 
         private void MakeTestsAndBindingsForListPattern0(BoundDagTemp input, BoundListPatternWithArray pattern, ArrayBuilder<BoundPatternBinding> bindings)
@@ -251,7 +299,7 @@ done:
             {
                 var lengthEvaluation = new BoundDagArrayLengthEvaluation(syntax, dimension: i, input);
                 tests.Add(new Tests.One(lengthEvaluation));
-                var lengthTemp = new BoundDagTemp(syntax, this._compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
+                var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
                 lengthTempBuilder.Add(lengthTemp);
                 tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(sizes[i]), lengthTemp)));
             }

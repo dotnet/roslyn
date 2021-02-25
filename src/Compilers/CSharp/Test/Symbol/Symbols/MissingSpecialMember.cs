@@ -964,6 +964,7 @@ namespace System
                     case WellKnownMember.System_Collections_Generic_Deque_T__ctor:
                     case WellKnownMember.System_Collections_Generic_Deque_T__Enqueue:
                     case WellKnownMember.System_Collections_Generic_Deque_T__Pop:
+                    case WellKnownMember.System_Linq_Enumerable__TryGetNonEnumerableCount:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

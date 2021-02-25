@@ -1379,7 +1379,6 @@
   <AbstractNode Name="BoundDagTest" Base="BoundNode">
     <!-- Input is the input to the decision point. -->
     <Field Name="Input" Type="BoundDagTemp"/>
-    <!--<Field Name="Next" Type="BoundDagNoOpEvaluation?"/>-->
   </AbstractNode>
   <Node Name="BoundDagTemp" Base="BoundNode">
     <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
@@ -1425,8 +1424,8 @@
   </Node>
   <Node Name="BoundDagIndexEvaluation" Base="BoundDagEvaluation">
     <!-- This will be null if input type is an array -->
-    <Field Name="PropertyOpt" Type="PropertySymbol?" Null="allow"/>
-    <Field Name="LengthTemp" Type="BoundDagTemp" Null="disallow"/>
+    <Field Name="Property" Type="PropertySymbol?"/>
+    <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="Index" Type="int"/>
   </Node>
   <Node Name="BoundDagArrayEvaluation" Base="BoundDagEvaluation">
@@ -1438,21 +1437,27 @@
   </Node>
   <Node Name="BoundDagSliceEvaluation" Base="BoundDagEvaluation">
     <!-- This will be null if input type is an array -->
-    <Field Name="SliceMethodOpt" Type="MethodSymbol?" Null="allow"/>
-    <Field Name="LengthTemp" Type="BoundDagTemp" Null="disallow"/>
+    <Field Name="SliceMethod" Type="MethodSymbol?"/>
+    <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="StartIndex" Type="int"/>
     <Field Name="EndIndex" Type="int"/>
   </Node>
   <Node Name="BoundDagMethodEvaluation" Base="BoundDagEvaluation">
-    <Field Name="Method" Type="MethodSymbol" Null="disallow"/>
-    <Field Name="EnumeratorTemp" Type="BoundDagTemp?" Null="allow"/>
-    <Field Name="CurrentProperty" Type="PropertySymbol?" Null="allow"/>
+    <!-- MoveNext, Pop, Push, BufferCtor, TryGetNonEnumeratedCount -->
+    <Field Name="Method" Type="MethodSymbol?"/>
     <Field Name="Index" Type="int"/>
   </Node>
   <Node Name="BoundDagEnumeratorEvaluation" Base="BoundDagEvaluation">
-    <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo" Null="disallow"/>
+    <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo"/>
   </Node>
   <Node Name="BoundDagIncrementEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Index" Type="int"/>
+  </Node>
+  <Node Name="BoundDagGotoTargetEvaluation" Base="BoundDagEvaluation">
+    <Field Name="LeadingPatterns" Type="ImmutableArray&lt;BoundPattern&gt;"/>
+  </Node>
+  <Node Name="BoundDagGotoEvaluation" Base="BoundDagEvaluation">
+    <Field Name="Target" Type="BoundDagGotoTargetEvaluation"/>
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
@@ -2088,9 +2093,8 @@
     <Field Name="DeclaredType" Type="BoundTypeExpression?"/>
     <Field Name="DeconstructMethod" Type="MethodSymbol?"/>
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
-    <Field Name="ListPatternInfo" Type="BoundListPatternInfo?" Null="allow"/>
+    <Field Name="ListPatternInfo" Type="BoundListPatternInfo?"/>
     <Field Name="Properties" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
-
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
          a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
     <Field Name="Variable" Type="Symbol?"/>
@@ -2140,27 +2144,25 @@
   </Node>
 
   <AbstractNode Name="BoundListPatternInfo" Base="BoundNode">
-    <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="LengthPattern" Type="BoundPattern?" Null="allow"/>
-    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
-    <!-- TODO(alrz) Use Subpatterns.IsDefault instead -->
-    <Field Name="HasSubpatterns" Type="bool"/>
+    <Field Name="ElementType" Type="TypeSymbol"/>
+    <Field Name="LengthPattern" Type="BoundPattern?"/>
+    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="allow"/>
     <Field Name="HasSlice" Type="bool"/>
   </AbstractNode>
   <Node Name="BoundListPatternWithArray" Base="BoundListPatternInfo">
   </Node>
   <Node Name="BoundListPatternWithRangeIndexerPattern" Base="BoundListPatternInfo">
-    <Field Name="GetLengthProperty" Type="PropertySymbol" Null="disallow"/>
-    <Field Name="GetItemProperty" Type="PropertySymbol" Null="disallow"/>
+    <Field Name="GetLengthProperty" Type="PropertySymbol"/>
+    <Field Name="GetItemProperty" Type="PropertySymbol"/>
   </Node>
   <Node Name="BoundListPatternWithEnumerablePattern" Base="BoundListPatternInfo">
-    <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo" Null="disallow"/>
+    <Field Name="EnumeratorInfo" Type="ForEachEnumeratorInfo"/>
   </Node>
 
   <Node Name="BoundSlicePattern" Base="BoundPattern">
     <!-- This will be null if input type is an array -->
-    <Field Name="SliceMethodOpt" Type="MethodSymbol?" Null="allow"/>
-    <Field Name="PatternOpt" Type="BoundPattern?" Null="allow" />
+    <Field Name="SliceMethod" Type="MethodSymbol?"/>
+    <Field Name="Pattern" Type="BoundPattern?"/>
   </Node>
 
   <Node Name="BoundDiscardExpression" Base="BoundExpression">
