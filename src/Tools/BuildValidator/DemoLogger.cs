@@ -61,7 +61,7 @@ namespace BuildValidator
     internal sealed class EmptyLogger : ILogger, IDisposable
     {
         public static EmptyLogger Instance { get; } = new EmptyLogger();
-        
+
         public void Dispose()
         {
         }

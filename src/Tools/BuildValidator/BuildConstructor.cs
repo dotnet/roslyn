@@ -273,7 +273,7 @@ namespace BuildValidator
             var (optimizationLevel, plus) = GetOptimizationLevel(optimization);
             var isChecked = OptionToBool(CompilationOptionNames.Checked) ?? true;
             var embedVBRuntime = OptionToBool(CompilationOptionNames.EmbedRuntime) ?? false;
-            var rootNamespace = OptionToString(CompilationOptionNames.RootNamespaces) ?? null;
+            var rootNamespace = OptionToString(CompilationOptionNames.RootNamespaces);
 
             var compilationOptions = new VisualBasicCompilationOptions(
                 optionsReader.GetOutputKind(),
@@ -313,8 +313,9 @@ namespace BuildValidator
 
             string? OptionToString(string option) => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? value : null;
             bool? OptionToBool(string option) => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? ToBool(value) : null;
-            T? OptionToEnum<T>(string option) where T : struct => pdbCompilationOptions.TryGetUniqueOption(option, out var value) && Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
-            bool? ToBool(string option) => bool.TryParse(option, out var value) ? value : null;
+            T? OptionToEnum<T>(string option) where T : struct => pdbCompilationOptions.TryGetUniqueOption(option, out var value) ? ToEnum<T>(value) : null;
+            bool? ToBool(string value) => bool.TryParse(value, out var boolValue) ? boolValue : null;
+            T? ToEnum<T>(string value) where T : struct => Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
         }
         #endregion
     }

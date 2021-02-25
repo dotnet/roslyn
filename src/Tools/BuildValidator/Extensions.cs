@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
@@ -16,11 +17,12 @@ namespace BuildValidator
     internal static class Extensions
     {
 #if !NETCOREAPP
-        internal static void Write(this FileStream stream, ReadOnlySpan<byte> span)
+        internal static unsafe void Write(this FileStream stream, ReadOnlySpan<byte> span)
         {
-            for (int i = 0; i < span.Length; i++)
+            fixed (byte* dataPointer = span)
             {
-                stream.WriteByte(span[i]);
+                using var unmanagedStream = new UnmanagedMemoryStream(dataPointer, span.Length);
+                unmanagedStream.CopyTo(stream);
             }
         }
 #endif
