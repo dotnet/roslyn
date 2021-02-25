@@ -251,7 +251,7 @@ namespace BuildValidator
             pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Define, out var define);
             pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.GlobalNamespaces, out var globalNamespacesString);
 
-            IEnumerable<GlobalImport> globalImports = null;
+            IEnumerable<GlobalImport>? globalImports = null;
             if (!string.IsNullOrEmpty(globalNamespacesString))
             {
                 globalImports = GlobalImport.Parse(globalNamespacesString.Split(';'));

@@ -5,6 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace BuildValidator
@@ -20,5 +24,12 @@ namespace BuildValidator
             }
         }
 #endif
+
+        internal static MetadataReader GetEmbeddedPdbMetadataReader(this PEReader peReader)
+        {
+            var entry = peReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+            var provider = peReader.ReadEmbeddedPortablePdbDebugDirectoryData(entry);
+            return provider.GetMetadataReader();
+        }
     }
 }
