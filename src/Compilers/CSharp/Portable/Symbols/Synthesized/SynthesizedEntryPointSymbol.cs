@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Creates a new top-level binder that just contains the global imports for the compilation.
                 // The imports are required if a consumer of the scripting API is using a Task implementation 
                 // that uses extension methods.
-                var binder = new InContainerBinder(
+                Binder binder = new ImportsBinder(
                     container: null,
                     next: new BuckStopsHereBinder(compilation),
                     imports: compilation.GlobalImports);

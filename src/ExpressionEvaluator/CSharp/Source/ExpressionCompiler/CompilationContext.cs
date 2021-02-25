@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     currentStringGroup--;
                 }
 
-                binder = new InContainerBinder(@namespace, binder, imports);
+                binder = new InContainerBinder(@namespace, new ImportsBinder(@namespace, binder, imports));
             }
 
             stack.Free();
@@ -958,8 +958,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // the actual binder chain.
                 binder = new InContainerBinder(
                     binder.Container,
-                    binder,
-                    Imports.FromCustomDebugInfo(binder.Compilation, ImmutableDictionary<string, AliasAndUsingDirective>.Empty, ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externs));
+                    new ImportsBinder(
+                        binder.Container,
+                        binder,
+                        Imports.FromCustomDebugInfo(binder.Compilation, ImmutableDictionary<string, AliasAndUsingDirective>.Empty, ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, externs)));
             }
 
             var usingAliases = ImmutableDictionary.CreateBuilder<string, AliasAndUsingDirective>();

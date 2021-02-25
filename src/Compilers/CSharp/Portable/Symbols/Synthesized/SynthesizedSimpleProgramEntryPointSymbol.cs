@@ -195,7 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation = DeclaringCompilation;
 
             Binder result = new BuckStopsHereBinder(compilation);
-            result = new InContainerBinder(compilation.GlobalNamespace, result, SyntaxNode, inUsing: false);
+            var globalNamespace = compilation.GlobalNamespace;
+            result = new InContainerBinder(globalNamespace, new ImportsBinder(globalNamespace, result, SyntaxNode, inUsing: false));
             result = new InContainerBinder(ContainingType, result);
             result = new InMethodBinder(this, result);
             result = result.WithAdditionalFlags(ignoreAccessibility ? BinderFlags.IgnoreAccessibility : BinderFlags.None);
