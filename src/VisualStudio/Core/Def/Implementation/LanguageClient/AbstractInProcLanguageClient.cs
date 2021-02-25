@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -23,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     {
         private readonly string? _diagnosticsClientName;
         private readonly VSShell.IAsyncServiceProvider _asyncServiceProvider;
+        private readonly IThreadingContext _threadingContext;
 
         /// <summary>
         /// Legacy support for LSP push diagnostics.
@@ -77,6 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             VSShell.IAsyncServiceProvider asyncServiceProvider,
+            IThreadingContext threadingContext,
             string? diagnosticsClientName)
         {
             _requestDispatcherFactory = requestDispatcherFactory;
@@ -86,6 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _diagnosticsClientName = diagnosticsClientName;
             _asyncServiceProvider = asyncServiceProvider;
+            _threadingContext = threadingContext;
         }
 
         /// <summary>
@@ -95,6 +99,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {
+            // HACK HACK HACK: prevent potential crashes/state corruption during load. Fixes
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1261421
+            //
+            // When we create an LSP server, we compute our server capabilities; this may depend on
+            // reading things like workspace options which will force us to initialize our option persisters.
+            // Unfortunately some of our option persisters currently assert they are first created on the UI
+            // thread. If the first time they're created is because of LSP initialization, we might end up loading
+            // them on a background thread which will throw exceptions and then prevent them from being created
+            // again later.
+            //
+            // The correct fix for this is to fix the threading violations in the option persister code;
+            // asserting a MEF component is constructed on the foreground thread is never allowed, but alas it's
+            // done there. Fixing that isn't difficult but comes with some risk I don't want to take for 16.9;
+            // instead we'll just compute our capabilities here on the UI thread to ensure everything is loaded.
+            // We _could_ consider doing a SwitchToMainThreadAsync in InProcLanguageServer.InitializeAsync
+            // (where the problematic call to GetCapabilites is), but that call is invoked across the StreamJsonRpc
+            // link where it's unclear if VS Threading rules apply. By doing this here, we are dong it in a
+            // VS API that is following VS Threading rules, and it also ensures that the preereqs are loaded
+            // prior to any RPC calls being made.
+            //
+            // https://github.com/dotnet/roslyn/issues/29602 will track removing this hack
+            // since that's the primary offending persister that needs to be addressed.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _ = GetCapabilities();
+
             if (_languageServer is not null)
             {
                 Contract.ThrowIfFalse(_languageServer.HasShutdownStarted, "The language server has not yet been asked to shutdown.");
