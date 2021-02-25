@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -88,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 span => span,
                 span => GetLinesFromSelectedSpan(span).ToImmutableArray());
 
+            var isMultiCaret = selectedSpans.Count > 1;
+
             Operation operation;
             // If any of the lines are uncommented, add comments.
             if (linesInSelections.Values.Any(lines => SelectionHasUncommentedLines(lines, commentInfo)))
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             {
                 foreach (var selection in linesInSelections)
                 {
-                    UncommentLines(selection.Value, textChanges, trackingSpans, commentInfo);
+                    UncommentLines(selection.Key, selection.Value, textChanges, trackingSpans, commentInfo);
                 }
 
                 operation = Operation.Uncomment;
@@ -112,8 +115,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             return new CommentSelectionResult(textChanges, trackingSpans, operation);
         }
 
-        private static void UncommentLines(ImmutableArray<ITextSnapshotLine> commentedLines, ArrayBuilder<TextChange> textChanges,
-            ArrayBuilder<CommentTrackingSpan> trackingSpans, CommentSelectionInfo commentInfo)
+        private static void UncommentLines(
+            SnapshotSpan selectedSpan,
+            ImmutableArray<ITextSnapshotLine> commentedLines,
+            ArrayBuilder<TextChange> textChanges,
+            ArrayBuilder<CommentTrackingSpan> trackingSpans,
+            CommentSelectionInfo commentInfo)
         {
             foreach (var line in commentedLines)
             {
@@ -126,11 +133,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 }
             }
 
-            trackingSpans.Add(new CommentTrackingSpan(TextSpan.FromBounds(commentedLines.First().Start, commentedLines.Last().End)));
+            var commentTrackingSpan = new CommentTrackingSpan(selectedSpan.Span.ToTextSpan());
+            trackingSpans.Add(commentTrackingSpan);
         }
 
-        private static void CommentLines(SnapshotSpan selectedSpan, ImmutableArray<ITextSnapshotLine> linesInSelection,
-            ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> trackingSpans, CommentSelectionInfo commentInfo)
+        private static void CommentLines(
+            SnapshotSpan selectedSpan,
+            ImmutableArray<ITextSnapshotLine> linesInSelection,
+            ArrayBuilder<TextChange> textChanges,
+            ArrayBuilder<CommentTrackingSpan> trackingSpans,
+            CommentSelectionInfo commentInfo)
         {
             var indentation = DetermineSmallestIndent(selectedSpan, linesInSelection.First(), linesInSelection.Last());
             foreach (var line in linesInSelection)
@@ -141,8 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 }
             }
 
-            trackingSpans.Add(new CommentTrackingSpan(
-                TextSpan.FromBounds(linesInSelection.First().Start, linesInSelection.Last().End)));
+            var commentTrackingSpan = new CommentTrackingSpan(selectedSpan.Span.ToTextSpan());
+            trackingSpans.Add(commentTrackingSpan);
         }
 
         private static List<ITextSnapshotLine> GetLinesFromSelectedSpan(SnapshotSpan span)
