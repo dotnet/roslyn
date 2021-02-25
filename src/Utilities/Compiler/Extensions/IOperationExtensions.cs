@@ -643,11 +643,15 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
+        [return: NotNullIfNotNull("operation")]
         public static IOperation? WalkUpParentheses(this IOperation? operation)
         {
-            while (operation is IParenthesizedOperation parenthesizedOperation)
+            if (operation is null)
+                return null;
+
+            while (operation.Parent is IParenthesizedOperation parenthesizedOperation)
             {
-                operation = parenthesizedOperation.Parent;
+                operation = parenthesizedOperation;
             }
 
             return operation;
@@ -668,11 +672,15 @@ namespace Analyzer.Utilities.Extensions
             return operation;
         }
 
+        [return: NotNullIfNotNull("operation")]
         public static IOperation? WalkUpConversion(this IOperation? operation)
         {
-            while (operation is IConversionOperation conversionOperation)
+            if (operation is null)
+                return null;
+
+            while (operation.Parent is IConversionOperation conversionOperation)
             {
-                operation = conversionOperation.Parent;
+                operation = conversionOperation;
             }
 
             return operation;
