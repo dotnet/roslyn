@@ -524,10 +524,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         #region not supported
         public bool SupportGetDiagnostics { get { return false; } }
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(
+        public ValueTask<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
-            return ImmutableArray<DiagnosticData>.Empty;
+            return new ValueTask<ImmutableArray<DiagnosticData>>(ImmutableArray<DiagnosticData>.Empty);
         }
         #endregion
 

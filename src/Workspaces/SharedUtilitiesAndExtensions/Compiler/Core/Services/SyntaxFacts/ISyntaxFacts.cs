@@ -28,9 +28,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         ISyntaxKinds SyntaxKinds { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
-        bool SupportsNotPattern(ParseOptions options);
-        bool SupportsThrowExpression(ParseOptions options);
         bool SupportsLocalFunctionDeclaration(ParseOptions options);
+        bool SupportsNotPattern(ParseOptions options);
+        bool SupportsRecord(ParseOptions options);
+        bool SupportsThrowExpression(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -129,6 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse);
 
+        bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node);
         void GetPartsOfCastExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode expression);
 
@@ -391,6 +393,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsClassDeclaration([NotNullWhen(true)] SyntaxNode? node);
         bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node);
+        SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node);
         List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root);
         SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);

@@ -1943,6 +1943,57 @@ public class BaseType
 }")
         End Function
 
+        <WorkItem(50765, "https://github.com/dotnet/roslyn/issues/50765")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestDelegateConstructorCrossLanguageWithMissingType() As Task
+            Await TestAsync(
+<Workspace>
+    <Project Language="C#" Name="CSharpProjectWithExtraType" CommonReferences="true">
+        <Document>
+public class ExtraType { }
+        </Document>
+    </Project>
+    <Project Language="C#" Name="CSharpProjectGeneratingInto" CommonReferences="true">
+        <ProjectReference>CSharpProjectWithExtraType</ProjectReference>
+        <Document>
+public class C
+{
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+}
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <ProjectReference>CSharpProjectGeneratingInto</ProjectReference>
+        <Document>
+Option Strict On
+
+Public Class B
+    Public Sub M()
+        Dim x = [|New C(42, 42)|]
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>.ToString(),
+"
+public class C
+{
+    private int v1;
+    private int v2;
+
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+
+    public C(int v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+}
+        ", TestOptions.Regular)
+        End Function
+
         <WorkItem(14077, "https://github.com/dotnet/roslyn/issues/14077")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function CreateFieldDefaultNamingStyle() As Task
@@ -2128,5 +2179,117 @@ Class C
 End Class
 ")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(51040, "https://github.com/dotnet/roslyn/issues/51040")>
+        Public Async Function TestOmittedParameter() As Task
+
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _a As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Function M() As C
+        Return New C(, [||]2)
+    End Function
+End Class
+",
+"Class C
+    Private _a As Integer
+    Private v As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Sub New(Optional a As Integer = 1, Optional v As Integer = Nothing)
+        Me.New(a)
+        Me.v = v
+    End Sub
+
+    Public Function M() As C
+        Return New C(, 2)
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(51040, "https://github.com/dotnet/roslyn/issues/51040")>
+        Public Async Function TestOmittedParameterAtEnd() As Task
+
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _a As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Function M() As C
+        Return New C(1,[||])
+    End Function
+End Class
+",
+"Class C
+    Private _a As Integer
+    Private p As Object
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Sub New(Optional a As Integer = 1, Optional p As Object = Nothing)
+        Me.New(a)
+        Me.p = p
+    End Sub
+
+    Public Function M() As C
+        Return New C(1,)
+    End Function
+End Class
+")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem(51040, "https://github.com/dotnet/roslyn/issues/51040")>
+        Public Async Function TestOmittedParameterAtStartAndEnd() As Task
+
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Private _a As Integer
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Function M() As C
+        Return New C(,[||])
+    End Function
+End Class
+",
+"Class C
+    Private _a As Integer
+    Private p As Object
+
+    Public Sub New(Optional a As Integer = 1)
+        Me._a = a
+    End Sub
+
+    Public Sub New(Optional a As Integer = 1, Optional p As Object = Nothing)
+        Me.New(a)
+        Me.p = p
+    End Sub
+
+    Public Function M() As C
+        Return New C(,)
+    End Function
+End Class
+")
+        End Function
+
     End Class
 End Namespace

@@ -159,9 +159,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _type;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _useSiteDiagnosticInfo;
+            return new UseSiteInfo<AssemblySymbol>(_useSiteDiagnosticInfo);
         }
 
         public sealed override int GetHashCode()
@@ -184,6 +184,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
                 TypeSymbol.Equals(ContainingType, other.ContainingType, compareKind);
+        }
+
+        internal override FieldSymbol AsMember(NamedTypeSymbol newOwner)
+        {
+            Debug.Assert(newOwner.IsTupleType && newOwner.TupleElementTypesWithAnnotations.Length > TupleElementIndex);
+            if (ReferenceEquals(newOwner, ContainingType))
+            {
+                return this;
+            }
+
+            TupleErrorFieldSymbol newCorrespondingField = null;
+            if (!ReferenceEquals(_correspondingDefaultField, this))
+            {
+                newCorrespondingField = (TupleErrorFieldSymbol)_correspondingDefaultField.AsMember(newOwner);
+            }
+
+            return new TupleErrorFieldSymbol(
+                newOwner,
+                Name,
+                TupleElementIndex,
+                _locations.IsEmpty ? null : Locations[0],
+                newOwner.TupleElementTypesWithAnnotations[TupleElementIndex],
+                _useSiteDiagnosticInfo,
+                _isImplicitlyDeclared,
+                newCorrespondingField);
         }
     }
 }

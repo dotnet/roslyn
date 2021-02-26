@@ -1697,7 +1697,7 @@ namespace Microsoft.Cci
             };
         }
 
-        public void WriteMetadataAndIL(PdbWriter nativePdbWriterOpt, Stream metadataStream, Stream ilStream, Stream portablePdbStreamOpt, out MetadataSizes metadataSizes)
+        public void WriteMetadataAndIL(PdbWriter nativePdbWriterOpt, Stream metadataStream, Stream ilStream, Stream portablePdbStreamOpt, BlobReader? pdbOptionsBlobReader, out MetadataSizes metadataSizes)
         {
             Debug.Assert(nativePdbWriterOpt == null ^ portablePdbStreamOpt == null);
 
@@ -1724,6 +1724,7 @@ namespace Microsoft.Cci
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceDataBuilder,
+                pdbOptionsBlobReader,
                 out Blob mvidFixup,
                 out Blob mvidStringFixup);
 
@@ -1779,6 +1780,7 @@ namespace Microsoft.Cci
             BlobBuilder ilBuilder,
             BlobBuilder mappedFieldDataBuilder,
             BlobBuilder managedResourceDataBuilder,
+            BlobReader? pdbOptionsBlobReader,
             out Blob mvidFixup,
             out Blob mvidStringFixup)
         {
@@ -1787,6 +1789,17 @@ namespace Microsoft.Cci
 
             if (_debugMetadataOpt != null)
             {
+                // Ensure document table lists files in command line order
+                // This is key for us to be able to accurately rebuild a binary from a PDB.
+                var documentsBuilder = Module.DebugDocumentsBuilder;
+                foreach (var tree in Module.CommonCompilation.SyntaxTrees)
+                {
+                    if (documentsBuilder.TryGetDebugDocument(tree.FilePath, basePath: null) is { } doc && !_documentIndex.ContainsKey(doc))
+                    {
+                        AddDocument(doc, _documentIndex);
+                    }
+                }
+
                 DefineModuleImportScope();
 
                 if (module.SourceLinkStreamOpt != null)
@@ -1794,7 +1807,7 @@ namespace Microsoft.Cci
                     EmbedSourceLink(module.SourceLinkStreamOpt);
                 }
 
-                EmbedCompilationOptions(module);
+                EmbedCompilationOptions(pdbOptionsBlobReader, module);
                 EmbedMetadataReferenceInformation(module);
             }
 

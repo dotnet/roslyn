@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryCast
 
     public class RemoveUnnecessaryCastTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [WorkItem(545979, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545979")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -8207,6 +8207,27 @@ public class C {
             await test.RunAsync();
         }
 
+        [WorkItem(51123, "https://github.com/dotnet/roslyn/issues/51123")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNativeIntCastsToInt()
+        {
+            var source =
+@"using System;
+
+public class C {
+    public int N(IntPtr x) => (int)(nint)x;
+}";
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
         [WorkItem(47800, "https://github.com/dotnet/roslyn/issues/47800")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveNativeUIntCasts()
@@ -8431,7 +8452,7 @@ class C
         => s is null ? (ushort)1234 : ushort.Parse(s);
 }
 ",
-                LanguageVersion = LanguageVersion.CSharp8,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -8444,14 +8465,14 @@ class C
                 TestCode = @"
 class C
 {
-    ushort Goo(string s)
-        => s is null ? [|(ushort)|]1234 : ushort.Parse(s);
+    uint Goo(string s)
+        => s is null ? [|(uint)|]1234 : uint.Parse(s);
 }",
                 FixedCode = @"
 class C
 {
-    ushort Goo(string s)
-        => s is null ? 1234 : ushort.Parse(s);
+    uint Goo(string s)
+        => s is null ? 1234 : uint.Parse(s);
 }",
                 LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();

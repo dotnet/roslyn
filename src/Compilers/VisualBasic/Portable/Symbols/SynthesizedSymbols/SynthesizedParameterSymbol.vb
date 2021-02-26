@@ -240,8 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             Dim compilation = Me.DeclaringCompilation
             If Type.ContainsTupleNames() AndAlso
-                compilation.HasTupleNamesAttributes AndAlso
-                compilation.CanEmitSpecialType(SpecialType.System_String) Then
+                compilation.HasTupleNamesAttributes Then
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(Type))
             End If
         End Sub

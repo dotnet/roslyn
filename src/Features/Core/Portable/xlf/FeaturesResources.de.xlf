@@ -90,6 +90,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Tupelelementnamen "{0}" hinzufügen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">Das Hinzufügen von "{0}" zu einer Schnittstellenmethode verhindert das Fortsetzen der Debugsitzung.</target>
@@ -124,6 +129,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">Wechselbedingungen werden nicht erfasst und können nicht benannt werden.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
+        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
+        <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -205,6 +215,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Die Änderung von "{0}" in "{1}" verhindert, dass die Debugsitzung fortgesetzt wird, weil sich dadurch die Form des Zustandsautomaten verändert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Codeformat "{0}" konfigurieren</target>
@@ -245,6 +260,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">In LINQ konvertieren (Aufrufformular)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_record">
+        <source>Convert to record</source>
+        <target state="new">Convert to record</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
         <target state="translated">In Struktur konvertieren</target>
@@ -273,31 +293,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
         <target state="translated">Verbleibende Elemente als Eigenschaften erstellen und zuweisen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="DisposableFieldsShouldBeDisposedDescription">
-        <source>A type that implements System.IDisposable declares fields that are of types that also implement IDisposable. The Dispose method of the field is not called by the Dispose method of the declaring type. To fix a violation of this rule, call Dispose on fields that are of types that implement IDisposable if you are responsible for allocating and releasing the unmanaged resources held by the field.</source>
-        <target state="translated">Ein Typ, der System.IDisposable implementiert, deklariert Felder, die Typen aufweisen, die ebenfalls IDisposable implementieren. Die Dispose-Methode des Felds wird nicht von der Dispose-Methode des deklarierenden Typs aufgerufen. Wenn Sie für das Zuordnen und Freigeben nicht verwalteter Ressourcen zuständig sind, die von diesem Feld belegt werden, rufen Sie zum Beheben eines Verstoßes gegen diese Regel Dispose für Felder auf, die Typen aufweisen, welche IDisposable implementieren.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_field_0_is_never_disposed">
-        <source>Disposable field '{0}' is never disposed</source>
-        <target state="translated">Das löschbare Feld "{0}" wird niemals gelöscht.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_fields_should_be_disposed">
-        <source>Disposable fields should be disposed</source>
-        <target state="translated">Verwerfbare Felder verwerfen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Disposable_object_created_by_0_is_never_disposed">
-        <source>Disposable object created by '{0}' is never disposed</source>
-        <target state="translated">Das von "{0}" erstellte löschbare Objekt wird niemals gelöscht.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Dispose_objects_before_losing_scope">
-        <source>Dispose objects before losing scope</source>
-        <target state="translated">Objekte verwerfen, bevor Bereich verloren geht</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -337,12 +332,12 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider">
         <source>Error creating instance of CodeFixProvider</source>
-        <target state="new">Error creating instance of CodeFixProvider</target>
+        <target state="translated">Fehler beim Erstellen der CodeFixProvider-Instanz</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_creating_instance_of_CodeFixProvider_0">
         <source>Error creating instance of CodeFixProvider '{0}'</source>
-        <target state="new">Error creating instance of CodeFixProvider '{0}'</target>
+        <target state="translated">Fehler beim Erstellen der CodeFixProvider-Instanz "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Example">
@@ -622,8 +617,8 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">Durch das Ändern des Texts von "{0}" wird die Fortsetzung der Debugsitzung aufgrund des folgenden internen Fehlers verhindert: {1}.</target>
-        <note />
+        <target state="needs-review-translation">Durch das Ändern des Texts von "{0}" wird die Fortsetzung der Debugsitzung aufgrund des folgenden internen Fehlers verhindert: {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
         <source>Modifying source file '{0}' will prevent the debug session from continuing because the file is too big.</source>
@@ -652,8 +647,8 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">Durch das Ändern der Quelldatei "{0}" wird die Fortsetzung der Debugsitzung aufgrund des folgenden internen Fehlers verhindert: {1}.</target>
-        <note />
+        <target state="needs-review-translation">Durch das Ändern der Quelldatei "{0}" wird die Fortsetzung der Debugsitzung aufgrund des folgenden internen Fehlers verhindert: {1}</target>
+        <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
@@ -1842,7 +1837,7 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       </trans-unit>
       <trans-unit id="Removal_of_document_not_supported">
         <source>Removal of document not supported</source>
-        <target state="new">Removal of document not supported</target>
+        <target state="translated">Das Entfernen des Dokuments wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_async_modifier">
@@ -2005,11 +2000,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Durch Aktualisieren von "{0}" im Kontext einer aktiven Anweisung wird verhindert, dass die Debugsitzung fortgesetzt wird.</target>
         <note />
       </trans-unit>
-      <trans-unit id="UseRecommendedDisposePatternDescription">
-        <source>Use recommended dispose pattern to ensure that locally scoped disposable objects are disposed on all paths. If possible, wrap the creation within a 'using' statement or a 'using' declaration. Otherwise, use a try-finally pattern, with a dedicated local variable declared before the try region and an unconditional Dispose invocation on non-null value in the 'finally' region, say 'x?.Dispose()'. If the object is explicitly disposed within the try region or the dispose ownership is transferred to another object or method, assign 'null' to the local variable just after such an operation to prevent double dispose in 'finally'</source>
-        <target state="translated">Verwenden Sie das empfohlene Dispose-Muster, um sicherzustellen, dass löschbare Objekte für den lokalen Bereich in allen Pfaden gelöscht werden. Schließen Sie die Erstellung nach Möglichkeit in einer using-Anweisung oder einer using-Deklaration ein. Verwenden Sie andernfalls ein try-finally-Muster mit einer vor dem try-Bereich deklarierten dedizierten lokalen Variablen und einem Dispose-Aufruf ohne Bedingung für den Nicht-NULL-Wert im finally-Bereich, beispielsweise "x?.Dispose()". Wenn das Objekt explizit innerhalb des try-Bereichs gelöscht oder der Dispose-Besitz auf ein anderes Objekt oder eine andere Methode übertragen wird, weisen Sie der lokalen Variablen gleich nach einem solchen Vorgang NULL zu, um einen doppelten Löschvorgang in "finally" zu vermeiden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
         <target state="translated">Blocktextkörper für Lambdaausdrücke verwenden</target>
@@ -2024,16 +2014,6 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <source>Use interpolated verbatim string</source>
         <target state="translated">Interpolierte ausführliche Zeichenfolge verwenden</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern">
-        <source>Use recommended dispose pattern</source>
-        <target state="translated">Empfohlenes Dispose-Muster verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_recommended_dispose_pattern_to_ensure_that_object_created_by_0_is_disposed_on_all_paths_using_statement_declaration_or_try_finally">
-        <source>Use recommended dispose pattern to ensure that object created by '{0}' is disposed on all paths: using statement/declaration or try/finally</source>
-        <target state="translated">Verwenden Sie das empfohlene Dispose-Muster, um sicherzustellen, dass das von "{0}" erstellte Objekt in allen Pfaden gelöscht wird: using-Anweisung/-Deklaration oder try/finally.</target>
-        <note>{Locked="using"}{Locked="try"}{Locked="finally"} "using", "try" and "finally" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
@@ -2105,6 +2085,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Umbruch</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
+        <source>You can use the navigation bar to switch contexts.</source>
+        <target state="new">You can use the navigation bar to switch contexts.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">"{0}" kann nicht NULL oder leer sein.</target>
@@ -2113,6 +2098,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="_0_cannot_be_null_or_whitespace">
         <source>'{0}' cannot be null or whitespace.</source>
         <target state="translated">"{0}" darf nicht NULL oder ein Leerraumzeichen sein.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_dash_1">
+        <source>{0} - {1}</source>
+        <target state="new">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2361,6 +2351,11 @@ Bei Verwendung des Formatbezeichners "H" ohne weitere benutzerdefinierte Formatb
         <target state="translated">Der benutzerdefinierte Formatbezeichner "HH" (plus beliebig viele zusätzliche H-Bezeichner) repräsentiert die Stunde als eine Zahl zwischen 00 und 23, d. h., die Stunde wird in einem nullbasierten 24-Stunden-Format dargestellt, bei dem die Stunden seit Mitternacht gezählt werden. Ein einstelliger Stundenwert wird mit einer führenden Null formatiert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="code">
+        <source>code</source>
+        <target state="new">code</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">Datumstrennzeichen</target>
@@ -2487,6 +2482,11 @@ Der Standardformatbezeichner "f" repräsentiert eine Kombination aus den Mustern
         <target state="translated">generische Überladungen</target>
         <note />
       </trans-unit>
+      <trans-unit id="in_0_1_2">
+        <source>in {0} ({1} - {2})</source>
+        <target state="new">in {0} ({1} - {2})</target>
+        <note />
+      </trans-unit>
       <trans-unit id="in_Source_attribute">
         <source>in Source (attribute)</source>
         <target state="translated">in Quelle (Attribut)</target>
@@ -2511,6 +2511,11 @@ Der Standardformatbezeichner "f" repräsentiert eine Kombination aus den Mustern
         <source>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</source>
         <target state="translated">Der Standardformatbezeichner "T" repräsentiert eine benutzerdefinierte Datums- und Uhrzeitformatzeichenfolge, die durch die DateTimeFormatInfo.LongTimePattern-Eigenschaft einer bestimmten Kultur definiert ist. Die benutzerdefinierte Formatzeichenfolge für die invariante Kultur lautet beispielsweise "HH:mm:ss".</target>
         <note />
+      </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="new">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
@@ -2964,11 +2969,6 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
         <target state="translated">Beim Ändern von komplexen Anweisungen, die einen "await"-Ausdruck enthalten, wird die Debuggingsitzung unterbrochen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">Bei Änderungen an der Sichtbarkeit von Konstruktoren wird die Debuggingsitzung unterbrochen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">Nach dem Erfassen der zuvor noch nicht erfassten Variable "{0}" kann die Debugsitzung nicht mehr fortgesetzt werden.</target>
@@ -3175,8 +3175,8 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Durch Löschen von "{0}" wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">Durch Löschen von "{0}" wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3192,11 +3192,6 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
       <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
         <source>Deleting a method body will prevent the debug session from continuing.</source>
         <target state="translated">Durch Löschen eines Methodenkörpers wird verhindert, dass eine Debuggingsitzung fortgesetzt wird.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
-        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="translated">Eine aktive Anweisung wurde aus der ursprünglichen Methode entfernt. Sie müssen Ihre Änderungen rückgängig machen, um die Debuggingsitzung fortzusetzen oder neu zu starten.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3227,11 +3222,6 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
       <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
         <target state="translated">Durch Ändern des Initialisierers von "{0}" in einem generischen Typen wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
-        <target state="translated">Durch Ändern des Initialisierers von "{0}" in einem partiellen Typ wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
@@ -3285,8 +3275,8 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Durch Entfernen von "{0}", das eine aktive Anweisung enthält, wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
+        <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">Durch Entfernen von "{0}", das eine aktive Anweisung enthält, wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -3411,18 +3401,13 @@ Möchten Sie fortfahren?</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
-        <source>Not Available</source>
-        <target state="translated">Nicht verfügbar</target>
+        <source>Not Available ⚠</source>
+        <target state="needs-review-translation">Nicht verfügbar</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
         <target state="translated">    {0} - {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
-        <source>You can use the navigation bar to switch context.</source>
-        <target state="translated">Sie können die Navigationsleiste verwenden, um den Kontext zu wechseln.</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">
@@ -3683,6 +3668,11 @@ When this standard format specifier is used, the formatting or parsing operation
 Der Zweck des Formatbezeichners "s" besteht darin, Ergebniszeichenfolgen zu erzeugen, die basierend auf Datums- und Uhrzeitwerten konsistent in aufsteigender oder absteigender Reihenfolge sortiert werden. Obwohl der Standardformatbezeichner "s" einen Datums- und Uhrzeitwert in einem konsistenten Format repräsentiert, wird der Wert des zu formatierenden Objekts für Datum und Uhrzeit bei der Formatierung nicht geändert, um die zugehörige DateTime.Kind-Eigenschaft oder den zugehörigen DateTimeOffset.Offset-Wert widerzuspiegeln. Beispielsweise sind die Ergebniszeichenfolgen, die bei Formatierung der Datums- und Uhrzeitwerte 2014-11-15T18:32:17+00:00 und 2014-11-15T18:32:17+08:00 generiert werden, identisch.
 
 Bei Verwendung dieses Standardformatbezeichners wird zur Formatierung oder Analyse immer die invariante Kultur verwendet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="new">static constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

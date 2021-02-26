@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -13,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static partial class TypeSymbolExtensions
     {
-        public static bool ImplementsInterface(this TypeSymbol subType, TypeSymbol superInterface, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static bool ImplementsInterface(this TypeSymbol subType, TypeSymbol superInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            foreach (NamedTypeSymbol @interface in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            foreach (NamedTypeSymbol @interface in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 if (@interface.IsInterface && TypeSymbol.Equals(@interface, superInterface, TypeCompareKind.ConsiderEverything2))
                 {
@@ -376,6 +377,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsDelegateType() ? (NamedTypeSymbol)type : null;
         }
 
+        public static TypeSymbol? GetDelegateOrFunctionPointerType(this TypeSymbol type)
+        {
+            return (TypeSymbol?)GetDelegateType(type) ?? type as FunctionPointerTypeSymbol;
+        }
+
         /// <summary>
         /// return true if the type is constructed from System.Linq.Expressions.Expression`1
         /// </summary>
@@ -443,6 +449,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default(ImmutableArray<ParameterSymbol>);
             }
             return invokeMethod.Parameters;
+        }
+
+        public static ImmutableArray<ParameterSymbol> DelegateOrFunctionPointerParameters(this TypeSymbol type)
+        {
+            Debug.Assert(type is FunctionPointerTypeSymbol || type.IsDelegateType());
+            if (type is FunctionPointerTypeSymbol { Signature: { Parameters: var functionPointerParameters } })
+            {
+                return functionPointerParameters;
+            }
+            else
+            {
+                return type.DelegateParameters();
+            }
         }
 
         public static bool TryGetElementTypesWithAnnotationsIfTupleType(this TypeSymbol type, out ImmutableArray<TypeWithAnnotations> elementTypes)
@@ -522,16 +541,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type is object ? type.SpecialType : SpecialType.None;
         }
 
-        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            HashSet<DiagnosticInfo>? localUseSiteDiagnostics = useSiteDiagnostics;
-            var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteDiagnostics), sym,
+            CompoundUseSiteInfo<AssemblySymbol> localUseSiteInfo = useSiteInfo;
+            var result = type.VisitType((type1, symbol, unused) => IsTypeLessVisibleThan(type1, symbol, ref localUseSiteInfo), sym,
                                         canDigThroughNullable: true); // System.Nullable is public
-            useSiteDiagnostics = localUseSiteDiagnostics;
+            useSiteInfo = localUseSiteInfo;
             return result is null;
         }
 
-        private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        private static bool IsTypeLessVisibleThan(TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             switch (type.TypeKind)
             {
@@ -541,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Enum:
                 case TypeKind.Delegate:
                 case TypeKind.Submission:
-                    return !IsAsRestrictive((NamedTypeSymbol)type, sym, ref useSiteDiagnostics);
+                    return !IsAsRestrictive((NamedTypeSymbol)type, sym, ref useSiteInfo);
 
                 default:
                     return false;
@@ -765,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        private static bool IsAsRestrictive(NamedTypeSymbol s1, Symbol sym2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Accessibility acc1 = s1.DeclaredAccessibility;
 
@@ -818,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // then this is at least as restrictive as s1's protected.
                                 for (var parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
                                 {
-                                    if (parent1.IsAccessibleViaInheritance(parent2, ref useSiteDiagnostics))
+                                    if (parent1.IsAccessibleViaInheritance(parent2, ref useSiteInfo))
                                     {
                                         return true;
                                     }
@@ -829,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // if s2 is protected, and it's parent is a subclass (or the same as) s1's parent
                                 // then this is at least as restrictive as s1's protected
                                 var parent2 = s2.ContainingType;
-                                if ((object)parent2 != null && parent1.IsAccessibleViaInheritance(parent2, ref useSiteDiagnostics))
+                                if ((object)parent2 != null && parent1.IsAccessibleViaInheritance(parent2, ref useSiteInfo))
                                 {
                                     return true;
                                 }
@@ -860,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                     for (var parent2 = s2.ContainingType; (object)parent2 != null; parent2 = parent2.ContainingType)
                                     {
-                                        if (parent1.IsAccessibleViaInheritance(parent2, ref useSiteDiagnostics))
+                                        if (parent1.IsAccessibleViaInheritance(parent2, ref useSiteInfo))
                                         {
                                             return true;
                                         }
@@ -881,7 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 case Accessibility.Protected:
                                     // if s2 is protected, and it's parent is a subclass (or the same as) s1's parent
                                     // then this is at least as restrictive as s1's internal protected
-                                    if (parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteDiagnostics))
+                                    if (parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteInfo))
                                     {
                                         return true;
                                     }
@@ -892,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     // if s2 is private protected, and it's parent is a subclass (or the same as) s1's parent
                                     // or its in the same assembly as s1, then this is at least as restrictive as s1's protected
                                     if (s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly) ||
-                                        parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteDiagnostics))
+                                        parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteInfo))
                                     {
                                         return true;
                                     }
@@ -903,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     // if s2 is internal protected, and it's parent is a subclass (or the same as) s1's parent
                                     // and its in the same assembly as s1, then this is at least as restrictive as s1's protected
                                     if (s2.ContainingAssembly.HasInternalAccessTo(s1.ContainingAssembly) &&
-                                        parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteDiagnostics))
+                                        parent1.IsAccessibleViaInheritance(s2.ContainingType, ref useSiteInfo))
                                     {
                                         return true;
                                     }
@@ -1029,6 +1048,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool ContainsTupleNames(this TypeSymbol type) =>
             type.VisitType((TypeSymbol t, object? _1, bool _2) => !t.TupleElementNames.IsDefault, null) is object;
+
+        /// <summary>
+        /// Return true if the type contains any function pointer types.
+        /// </summary>
+        internal static bool ContainsFunctionPointer(this TypeSymbol type) =>
+            type.VisitType((TypeSymbol t, object? _, bool _) => t.IsFunctionPointer(), null) is object;
 
         /// <summary>
         /// Guess the non-error type that the given type was intended to represent.
@@ -1375,23 +1400,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsValueType && type.TypeKind != TypeKind.TypeParameter;
         }
 
-        internal static void AddUseSiteDiagnostics(
-            this TypeSymbol type,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            DiagnosticInfo errorInfo = type.GetUseSiteDiagnostic();
-
-            if ((object)errorInfo != null)
-            {
-                if (useSiteDiagnostics == null)
-                {
-                    useSiteDiagnostics = new HashSet<DiagnosticInfo>();
-                }
-
-                useSiteDiagnostics.Add(errorInfo);
-            }
-        }
-
         /// <summary>
         /// Return all of the type parameters in this type and enclosing types,
         /// from outer-most to inner-most type.
@@ -1693,8 +1701,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 RoslynDebug.Assert(type.IsGenericType);
                 var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-                type.GetAllTypeArguments(typeArgumentsBuilder, ref useSiteDiagnostics);
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                type.GetAllTypeArguments(typeArgumentsBuilder, ref discardedUseSiteInfo);
                 for (int i = 0; i < typeArgumentsBuilder.Count; i++)
                 {
                     var typeWithModifier = typeArgumentsBuilder[i];
@@ -1723,8 +1731,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RoslynDebug.Assert(arity < 2);
                 var taskType = compilation.GetWellKnownType(
                     arity == 0 ?
-                    WellKnownType.System_Threading_Tasks_Task :
-                    WellKnownType.System_Threading_Tasks_Task_T);
+                        WellKnownType.System_Threading_Tasks_Task :
+                        WellKnownType.System_Threading_Tasks_Task_T);
                 if (taskType.TypeKind == TypeKind.Error)
                 {
                     // Skip if Task types are not available.

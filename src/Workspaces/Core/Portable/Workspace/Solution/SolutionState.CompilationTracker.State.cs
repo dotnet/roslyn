@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -29,8 +31,7 @@ namespace Microsoft.CodeAnalysis
                     compilationWithoutGeneratedDocuments: null,
                     declarationOnlyCompilation: null,
                     generatedDocuments: ImmutableArray<SourceGeneratedDocumentState>.Empty,
-                    generatedDocumentsAreFinal: false,
-                    unrootedSymbolSet: null);
+                    generatedDocumentsAreFinal: false);
 
                 /// <summary>
                 /// A strong reference to the declaration-only compilation. This compilation isn't used to produce symbols,
@@ -61,14 +62,6 @@ namespace Microsoft.CodeAnalysis
                 public bool GeneratedDocumentsAreFinal { get; }
 
                 /// <summary>
-                /// Weak set of the assembly, module and dynamic symbols that this compilation tracker has created.
-                /// This can be used to determine which project an assembly symbol came from after the fact.  This is
-                /// needed as the compilation an assembly came from can be GC'ed and further requests to get that
-                /// compilation (or any of it's assemblies) may produce new assembly symbols.
-                /// </summary>
-                public readonly UnrootedSymbolSet? UnrootedSymbolSet;
-
-                /// <summary>
                 /// Specifies whether <see cref="FinalCompilationWithGeneratedDocuments"/> and all compilations it depends on contain full information or not. This can return
                 /// <see langword="null"/> if the state isn't at the point where it would know, and it's necessary to transition to <see cref="FinalState"/> to figure that out.
                 /// </summary>
@@ -85,8 +78,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>>? compilationWithoutGeneratedDocuments,
                     Compilation? declarationOnlyCompilation,
                     ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
-                    bool generatedDocumentsAreFinal,
-                    UnrootedSymbolSet? unrootedSymbolSet)
+                    bool generatedDocumentsAreFinal)
                 {
                     // Declaration-only compilations should never have any references
                     Contract.ThrowIfTrue(declarationOnlyCompilation != null && declarationOnlyCompilation.ExternalReferences.Any());
@@ -95,7 +87,6 @@ namespace Microsoft.CodeAnalysis
                     DeclarationOnlyCompilation = declarationOnlyCompilation;
                     GeneratedDocuments = generatedDocuments;
                     GeneratedDocumentsAreFinal = generatedDocumentsAreFinal;
-                    UnrootedSymbolSet = unrootedSymbolSet;
                 }
 
                 public static State Create(
@@ -121,30 +112,6 @@ namespace Microsoft.CodeAnalysis
                         ? new WeakValueSource<Compilation>(compilation)
                         : (ValueSource<Optional<Compilation>>)new ConstantValueSource<Optional<Compilation>>(compilation);
                 }
-
-                public static UnrootedSymbolSet GetUnrootedSymbols(Compilation compilation)
-                {
-
-                    var primaryAssembly = new WeakReference<IAssemblySymbol>(compilation.Assembly);
-
-                    // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
-                    // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
-                    // underlying compilation is GC'ed.
-                    var primaryDynamic = new WeakReference<ITypeSymbol?>(
-                        compilation.Language == LanguageNames.CSharp ? compilation.DynamicType : null);
-
-                    var secondarySymbols = new WeakSet<ISymbol>();
-                    foreach (var reference in compilation.References)
-                    {
-                        var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
-                        if (symbol == null)
-                            continue;
-
-                        secondarySymbols.Add(symbol);
-                    }
-
-                    return new UnrootedSymbolSet(primaryAssembly, primaryDynamic, secondarySymbols);
-                }
             }
 
             /// <summary>
@@ -162,8 +129,7 @@ namespace Microsoft.CodeAnalysis
                     : base(compilationWithoutGeneratedDocuments: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
                            generatedDocuments,
-                           generatedDocumentsAreFinal: false, // since we have a set of transformations to make, we'll always have to run generators again
-                           GetUnrootedSymbols(inProgressCompilation))
+                           generatedDocumentsAreFinal: false) // since we have a set of transformations to make, we'll always have to run generators again
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
                     Contract.ThrowIfFalse(intermediateProjects.Length > 0);
@@ -183,8 +149,7 @@ namespace Microsoft.CodeAnalysis
                     : base(compilationWithoutGeneratedDocuments: null,
                            declarationOnlyCompilation,
                            generatedDocuments,
-                           generatedDocumentsAreFinal,
-                           unrootedSymbolSet: null)
+                           generatedDocumentsAreFinal)
                 {
                 }
             }
@@ -201,19 +166,33 @@ namespace Microsoft.CodeAnalysis
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
                            generatedDocuments,
-                           generatedDocumentsAreFinal,
-                           GetUnrootedSymbols(declarationCompilation))
+                           generatedDocumentsAreFinal)
                 {
                 }
             }
 
             /// <summary>
-            /// The final state a compilation tracker reaches. The <see cref="State.DeclarationOnlyCompilation"/> is available,
-            /// as well as the real <see cref="State.FinalCompilationWithGeneratedDocuments"/>.
+            /// The final state a compilation tracker reaches. The <see cref="State.DeclarationOnlyCompilation"/> is
+            /// available, as well as the real <see cref="State.FinalCompilationWithGeneratedDocuments"/>. It is a
+            /// requirement that any <see cref="Compilation"/> provided to any clients of the <see cref="Solution"/>
+            /// (for example, through <see cref="Project.GetCompilationAsync"/> or <see
+            /// cref="Project.TryGetCompilation"/> must be from a <see cref="FinalState"/>.  This is because <see
+            /// cref="FinalState"/> stores extra information in it about that compilation that the <see
+            /// cref="Solution"/> can be queried for (for example: <see
+            /// cref="Solution.GetOriginatingProject(ISymbol)"/>.  If <see cref="Compilation"/>s from other <see
+            /// cref="State"/>s are passed out, then these other APIs will not function correctly.
             /// </summary>
             private sealed class FinalState : State
             {
                 public override bool? HasSuccessfullyLoaded { get; }
+
+                /// <summary>
+                /// Weak set of the assembly, module and dynamic symbols that this compilation tracker has created.
+                /// This can be used to determine which project an assembly symbol came from after the fact.  This is
+                /// needed as the compilation an assembly came from can be GC'ed and further requests to get that
+                /// compilation (or any of it's assemblies) may produce new assembly symbols.
+                /// </summary>
+                public readonly UnrootedSymbolSet UnrootedSymbolSet;
 
                 /// <summary>
                 /// The final compilation, with all references and source generators run. This is distinct from
@@ -224,29 +203,124 @@ namespace Microsoft.CodeAnalysis
                 /// </summary>
                 public override ValueSource<Optional<Compilation>> FinalCompilationWithGeneratedDocuments { get; }
 
-                public FinalState(
+                private FinalState(
                     ValueSource<Optional<Compilation>> finalCompilationSource,
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
                     ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
-                    UnrootedSymbolSet? unrootedSymbolSet)
+                    UnrootedSymbolSet unrootedSymbolSet)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
                            generatedDocuments,
-                           generatedDocumentsAreFinal: true, // when we're in a final state, we've ran generators and should not run again
-                           unrootedSymbolSet)
+                           generatedDocumentsAreFinal: true) // when we're in a final state, we've ran generators and should not run again
                 {
                     HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                     FinalCompilationWithGeneratedDocuments = finalCompilationSource;
+                    UnrootedSymbolSet = unrootedSymbolSet;
 
                     if (GeneratedDocuments.IsEmpty)
                     {
                         // In this case, the finalCompilationSource and compilationWithoutGeneratedFilesSource should point to the
                         // same Compilation, which should be compilationWithoutGeneratedFiles itself
-                        Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilation));
-                        Debug.Assert(object.ReferenceEquals(finalCompilation.Value, compilationWithoutGeneratedFiles));
+                        Debug.Assert(finalCompilationSource.TryGetValue(out var finalCompilationVal));
+                        Debug.Assert(object.ReferenceEquals(finalCompilationVal.Value, compilationWithoutGeneratedFiles));
                     }
+                }
+
+                /// <param name="finalCompilation">Not held onto</param>
+                /// <param name="projectId">Not held onto</param>
+                /// <param name="metadataReferenceToProjectId">Not held onto</param>
+                public static FinalState Create(
+                    ValueSource<Optional<Compilation>> finalCompilationSource,
+                    ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
+                    Compilation compilationWithoutGeneratedFiles,
+                    bool hasSuccessfullyLoaded,
+                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    Compilation finalCompilation,
+                    ProjectId projectId,
+                    Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
+                {
+                    // Keep track of information about symbols from this Compilation.  This will help support other APIs
+                    // the solution exposes that allows the user to map back from symbols to project information.
+
+                    var unrootedSymbolSet = GetUnrootedSymbols(finalCompilation);
+                    RecordAssemblySymbols(projectId, finalCompilation, metadataReferenceToProjectId);
+
+                    return new FinalState(
+                        finalCompilationSource,
+                        compilationWithoutGeneratedFilesSource,
+                        compilationWithoutGeneratedFiles,
+                        hasSuccessfullyLoaded,
+                        generatedDocuments, unrootedSymbolSet);
+                }
+
+                private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
+                {
+                    RecordSourceOfAssemblySymbol(compilation.Assembly, projectId);
+
+                    if (metadataReferenceToProjectId != null)
+                    {
+                        foreach (var (metadataReference, currentID) in metadataReferenceToProjectId)
+                        {
+                            var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
+                            RecordSourceOfAssemblySymbol(symbol, currentID);
+                        }
+                    }
+                }
+
+                private static void RecordSourceOfAssemblySymbol(ISymbol? assemblyOrModuleSymbol, ProjectId projectId)
+                {
+                    // TODO: how would we ever get a null here?
+                    if (assemblyOrModuleSymbol == null)
+                    {
+                        return;
+                    }
+
+                    Contract.ThrowIfNull(projectId);
+                    // remember which project is associated with this assembly
+                    if (!s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblyOrModuleSymbol, out var tmp))
+                    {
+                        // use GetValue to avoid race condition exceptions from Add.
+                        // the first one to set the value wins.
+                        s_assemblyOrModuleSymbolToProjectMap.GetValue(assemblyOrModuleSymbol, _ => projectId);
+                    }
+                    else
+                    {
+                        // sanity check: this should always be true, no matter how many times
+                        // we attempt to record the association.
+                        Debug.Assert(tmp == projectId);
+                    }
+                }
+
+                private static UnrootedSymbolSet GetUnrootedSymbols(Compilation compilation)
+                {
+                    var primaryAssembly = new WeakReference<IAssemblySymbol>(compilation.Assembly);
+
+                    // The dynamic type is also unrooted (i.e. doesn't point back at the compilation or source
+                    // assembly).  So we have to keep track of it so we can get back from it to a project in case the 
+                    // underlying compilation is GC'ed.
+                    var primaryDynamic = new WeakReference<ITypeSymbol?>(
+                        compilation.Language == LanguageNames.CSharp ? compilation.DynamicType : null);
+
+                    // PERF: Preallocate this array so we don't have to resize it as we're adding assembly symbols.
+                    using var _ = ArrayBuilder<(int hashcode, WeakReference<ISymbol> symbol)>.GetInstance(
+                        compilation.ExternalReferences.Length + compilation.DirectiveReferences.Length, out var secondarySymbols);
+
+                    foreach (var reference in compilation.References)
+                    {
+                        var symbol = compilation.GetAssemblyOrModuleSymbol(reference);
+                        if (symbol == null)
+                            continue;
+
+                        secondarySymbols.Add((ReferenceEqualityComparer.GetHashCode(symbol), new WeakReference<ISymbol>(symbol)));
+                    }
+
+                    // Sort all the secondary symbols by their hash.  This will allow us to easily binary search for
+                    // them afterwards. Note: it is fine for multiple symbols to have the same reference hash.  The
+                    // search algorithm will account for that.
+                    secondarySymbols.Sort(WeakSymbolComparer.Instance);
+                    return new UnrootedSymbolSet(primaryAssembly, primaryDynamic, secondarySymbols.ToImmutable());
                 }
             }
         }

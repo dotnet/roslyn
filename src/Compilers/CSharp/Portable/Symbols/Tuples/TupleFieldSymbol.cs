@@ -136,9 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingField.GetAttributes();
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _underlyingField.GetUseSiteDiagnostic();
+            return _underlyingField.GetUseSiteInfo();
         }
 
         internal override bool RequiresCompletion => _underlyingField.RequiresCompletion;
@@ -276,15 +276,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _cannotUse = cannotUse;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
             if (_cannotUse)
             {
-                return new CSDiagnosticInfo(ErrorCode.ERR_TupleInferredNamesNotAvailable, _name,
-                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureInferredTupleNames.RequiredVersion()));
+                return new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_TupleInferredNamesNotAvailable, _name,
+                    new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureInferredTupleNames.RequiredVersion())));
             }
 
-            return base.GetUseSiteDiagnostic();
+            return base.GetUseSiteInfo();
         }
 
         public override string Name

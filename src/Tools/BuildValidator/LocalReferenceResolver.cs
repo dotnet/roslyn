@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -26,11 +27,24 @@ namespace BuildValidator
         private readonly HashSet<DirectoryInfo> _indexDirectories = new HashSet<DirectoryInfo>();
         private readonly ILogger _logger;
 
-        public LocalReferenceResolver(ILoggerFactory loggerFactory)
+        public LocalReferenceResolver(Options options, ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
-            _indexDirectories.Add(GetArtifactsDirectory());
+            foreach (var path in options.AssembliesPaths)
+            {
+                _indexDirectories.Add(new DirectoryInfo(path));
+            }
             _indexDirectories.Add(GetNugetCacheDirectory());
+            foreach (var path in options.ReferencesPaths)
+            {
+                _indexDirectories.Add(new DirectoryInfo(path));
+            }
+
+            using var _ = _logger.BeginScope("Assembly Reference Search Paths");
+            foreach (var directory in _indexDirectories)
+            {
+                _logger.LogInformation($@"""{directory.FullName}""");
+            }
         }
 
         public static DirectoryInfo GetNugetCacheDirectory()
@@ -44,12 +58,22 @@ namespace BuildValidator
             return new DirectoryInfo(nugetPackageDirectory);
         }
 
+        public string GetReferencePath(MetadataReferenceInfo referenceInfo)
+        {
+            if (_cache.TryGetValue(referenceInfo.Mvid, out var value))
+            {
+                return value;
+            }
+
+            throw new Exception($"Could not find referenced assembly {referenceInfo}");
+        }
+
         public ImmutableArray<MetadataReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)
         {
             var referenceArray = references.ToImmutableArray();
             CacheNames(referenceArray);
 
-            var files = referenceArray.Select(r => _cache[r.Mvid]);
+            var files = referenceArray.Select(r => GetReferencePath(r));
 
             var metadataReferences = files.Select(f => MetadataReference.CreateFromFile(f)).Cast<MetadataReference>().ToImmutableArray();
             return metadataReferences;
@@ -76,7 +100,7 @@ namespace BuildValidator
                         continue;
                     }
 
-                    if (!(GetMvidForFile(file) is { } mvid) || !_cache.ContainsKey(mvid))
+                    if (GetMvidForFile(file) is not { } mvid || _cache.ContainsKey(mvid))
                     {
                         continue;
                     }
@@ -96,7 +120,12 @@ namespace BuildValidator
 
             if (uncached.Any())
             {
-                _logger.LogDebug($"Unable to find files for the following metadata references: {uncached}");
+                using var _ = _logger.BeginScope($"Missing metadata references:");
+                foreach (var missingReference in uncached)
+                {
+                    _logger.LogError($@"{missingReference.Name} - {missingReference.Mvid}");
+                }
+                throw new Exception($"Cannot resolve {uncached.Length} references");
             }
         }
 
@@ -117,24 +146,6 @@ namespace BuildValidator
                     return null;
                 }
             }
-        }
-
-        public static DirectoryInfo GetArtifactsDirectory()
-        {
-            var assemblyLocation = typeof(LocalReferenceResolver).Assembly.Location;
-            var binDir = Directory.GetParent(assemblyLocation);
-
-            while (binDir != null && !binDir.FullName.EndsWith("artifacts\\bin", FileNameEqualityComparer.StringComparison))
-            {
-                binDir = binDir.Parent;
-            }
-
-            if (binDir == null)
-            {
-                throw new Exception();
-            }
-
-            return binDir;
         }
     }
 }

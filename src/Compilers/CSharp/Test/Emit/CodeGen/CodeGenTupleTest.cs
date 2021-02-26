@@ -3262,7 +3262,8 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))] // The used assemblies test hook is blocked by https://github.com/dotnet/roslyn/issues/39976
+        [WorkItem(39976, "https://github.com/dotnet/roslyn/issues/39976")]
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
@@ -28462,6 +28463,91 @@ unsafe struct Z
                 }
 
                 Assert.Equal(type, field.Type.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void TupleAsMemberTests()
+        {
+            // Use minimal framework to force the tuple symbols to be generated as ErrorFields, because they couldn't be matched with the
+            // nonexistent System.ValueTuple's fields.
+            var comp = CreateCompilation("", targetFramework: TargetFramework.Minimal);
+            var @object = comp.GetSpecialType(SpecialType.System_Object);
+            var obliviousObject = TypeWithAnnotations.Create(@object, NullableAnnotation.Oblivious);
+
+            // (object~ a, object~ b, object~ c, object~ d, object~ e, object~ f, object~ g, object~ h, object~ i)
+            // All positions are errored
+            var obliviousOriginalTuple = NamedTypeSymbol.CreateTuple(
+                locationOpt: null,
+                elementTypesWithAnnotations: ImmutableArray.Create(obliviousObject, obliviousObject, obliviousObject, obliviousObject, obliviousObject, obliviousObject, obliviousObject, obliviousObject, obliviousObject),
+                elementLocations: ImmutableArray.Create<Location>(null, null, null, null, null, null, null, null, null),
+                elementNames: ImmutableArray.Create("a", "b", "c", "d", "e", "f", "g", "h", "i"),
+                comp,
+                shouldCheckConstraints: false,
+                includeNullability: false,
+                errorPositions: ImmutableArray.Create(true, true, true, true, true, true, true, true, true));
+
+            AssertEx.Equal("System.ValueTuple<System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, System.Object, (System.Object, System.Object)>",
+                           obliviousOriginalTuple.ToTestDisplayString(includeNonNullable: true));
+
+            var nullableObject = TypeWithAnnotations.Create(@object, NullableAnnotation.Annotated);
+            var nonNullableObject = TypeWithAnnotations.Create(@object, NullableAnnotation.NotAnnotated);
+
+            // (object!, object?, object!, object?, object!, object?, object!, object?, object!)
+            // All positions are errored
+            var nullableEnabledTuple = NamedTypeSymbol.CreateTuple(
+                locationOpt: null,
+                elementTypesWithAnnotations: ImmutableArray.Create(nonNullableObject, nullableObject, nonNullableObject, nullableObject, nonNullableObject, nullableObject, nonNullableObject, nullableObject, nonNullableObject),
+                elementLocations: ImmutableArray.Create<Location>(null, null, null, null, null, null, null, null, null),
+                elementNames: default,
+                comp,
+                shouldCheckConstraints: false,
+                includeNullability: false,
+                errorPositions: ImmutableArray.Create(true, true, true, true, true, true, true, true, true));
+
+            AssertEx.Equal("System.ValueTuple<System.Object!, System.Object?, System.Object!, System.Object?, System.Object!, System.Object?, System.Object!, (System.Object?, System.Object!)>",
+                           nullableEnabledTuple.ToTestDisplayString(includeNonNullable: true));
+
+            // Original tuple fields as a member of the nullable-enabled tuple, should carry the names over
+
+            for (int i = 0; i < obliviousOriginalTuple.TupleElements.Length; i++)
+            {
+                var originalField = (TupleErrorFieldSymbol)obliviousOriginalTuple.TupleElements[i];
+                verifyIndexAndDefaultElement(originalField, i, isDefaultElement: false);
+
+                var nullabilityString = (i % 2 == 1) ? "?" : "!";
+                var name = ((char)('a' + i)).ToString();
+
+                var newField = (TupleErrorFieldSymbol)originalField.AsMember(nullableEnabledTuple);
+                AssertEx.Equal($"System.Object{nullabilityString} System.ValueTuple<System.Object!, System.Object?, System.Object!, System.Object?, System.Object!, System.Object?, System.Object!, (System.Object?, System.Object!)>.{name}",
+                               newField.ToTestDisplayString(includeNonNullable: true));
+
+                verifyIndexAndDefaultElement(newField, i, isDefaultElement: false);
+                verifyDefaultFieldType(newField, i, nullabilityString);
+
+                var newDefaultField = (TupleErrorFieldSymbol)newField.CorrespondingTupleField;
+                verifyIndexAndDefaultElement(newDefaultField, i, isDefaultElement: true);
+                verifyDefaultFieldType(newDefaultField, i, nullabilityString);
+
+                var originalDefaultField = (TupleErrorFieldSymbol)originalField.CorrespondingTupleField;
+                verifyIndexAndDefaultElement(originalDefaultField, i, isDefaultElement: true);
+
+                newDefaultField = (TupleErrorFieldSymbol)originalDefaultField.AsMember(nullableEnabledTuple);
+
+                verifyIndexAndDefaultElement(newDefaultField, i, isDefaultElement: true);
+                verifyDefaultFieldType(newDefaultField, i, nullabilityString);
+            }
+
+            static void verifyIndexAndDefaultElement(TupleErrorFieldSymbol tupleField, int i, bool isDefaultElement)
+            {
+                Assert.Equal(i, tupleField.TupleElementIndex);
+                Assert.Equal(isDefaultElement, tupleField.IsDefaultTupleElement);
+            }
+
+            static void verifyDefaultFieldType(FieldSymbol tupleField, int i, string nullabilityString)
+            {
+                AssertEx.Equal($"System.Object{nullabilityString} System.ValueTuple<System.Object!, System.Object?, System.Object!, System.Object?, System.Object!, System.Object?, System.Object!, (System.Object?, System.Object!)>.Item{i + 1}",
+                               tupleField.CorrespondingTupleField.ToTestDisplayString(includeNonNullable: true));
             }
         }
     }

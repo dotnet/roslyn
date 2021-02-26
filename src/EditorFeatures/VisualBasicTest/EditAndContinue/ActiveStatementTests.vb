@@ -3,8 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
+    <UseExportProvider>
     Public Class ActiveStatementTests
         Inherits EditingTestBase
 
@@ -262,7 +264,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.method))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(Integer)")))
         End Sub
 
         <Fact>
@@ -282,7 +284,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(FeaturesResources.class_, "C")))
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -315,7 +317,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Shared Sub Main()"))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Shared Sub Main()", FeaturesResources.code))
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -420,21 +422,21 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Do"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "If True"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Else"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Case 1, 2"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Case Else"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "While True"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Do Until True"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "If True Then"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Else"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "For i = 0 To 10"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "For Each i In {1, 2}"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Using z = New C()"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "With expr"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Shared Sub Main()"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "SyncLock Nothing"))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Do", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "If True", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Else", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Case 1, 2", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Case Else", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "While True", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Do Until True", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "If True Then", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Else", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "For i = 0 To 10", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "For Each i In {1, 2}", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Using z = New C()", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "With expr", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Shared Sub Main()", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "SyncLock Nothing", FeaturesResources.code))
         End Sub
 
         <Fact>
@@ -475,7 +477,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then"))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then", FeaturesResources.code))
         End Sub
 
         <Fact>
@@ -512,7 +514,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then"))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then", FeaturesResources.code))
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -647,7 +649,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub Main()"))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub Main()", FeaturesResources.code))
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -695,7 +697,7 @@ End Module
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, Nothing, "module"))
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(VBFeaturesResources.module_, "Module1")))
         End Sub
 #End Region
 
@@ -1651,8 +1653,8 @@ End Class
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c As New D(2)"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "e As New D(2)"),
-                Diagnostic(RudeEditKind.Delete, "a As New D(2)", FeaturesResources.field),
-                Diagnostic(RudeEditKind.Delete, "e As New D(2)", FeaturesResources.field))
+                Diagnostic(RudeEditKind.Delete, "a As New D(2)", DeletedSymbolDisplay(FeaturesResources.field, "b")),
+                Diagnostic(RudeEditKind.Delete, "e As New D(2)", DeletedSymbolDisplay(FeaturesResources.field, "f")))
         End Sub
 
         <Fact>
@@ -1774,12 +1776,12 @@ End Class
         Public Sub Initializer_Array_Update3()
             Dim src1 = "
 Class C
-    Private <AS:0>a(1)</AS:0>
-    Private <AS:1>e(1)</AS:1>
-    Private f(1)
+    Private <AS:0>a(1,0)</AS:0>
+    Private <AS:1>e(1,0)</AS:1>
+    Private f(1,0)
 
     Sub Main
-        Dim <AS:2>c(1)</AS:2>
+        Dim <AS:2>c(1,0)</AS:2>
     End Sub
 End Class
 "
@@ -1799,11 +1801,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "c(1,2)"),
-                Diagnostic(RudeEditKind.TypeUpdate, "a(1,2)", FeaturesResources.field),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "e(1,2)"),
-                Diagnostic(RudeEditKind.TypeUpdate, "e(1,2)", FeaturesResources.field),
-                Diagnostic(RudeEditKind.TypeUpdate, "f(1,2)", FeaturesResources.field))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "c(1,2)"))
         End Sub
 
         <Fact, WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
@@ -2090,7 +2089,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.field))
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.field, "a")))
         End Sub
 
         <Fact>
@@ -2143,7 +2142,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "a,      c        As New D()", FeaturesResources.field))
+                Diagnostic(RudeEditKind.Delete, "a,      c        As New D()", DeletedSymbolDisplay(FeaturesResources.field, "b")))
         End Sub
 
         <Fact>
@@ -2170,7 +2169,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "a,      b        As New D()", FeaturesResources.field))
+                Diagnostic(RudeEditKind.Delete, "a,      b        As New D()", DeletedSymbolDisplay(FeaturesResources.field, "c")))
         End Sub
 
         <Fact>
@@ -2224,7 +2223,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "a,b As Integer", FeaturesResources.field))
+                Diagnostic(RudeEditKind.Delete, "a,b As Integer", DeletedSymbolDisplay(FeaturesResources.field, "c")))
         End Sub
 
         <Fact>
@@ -2327,7 +2326,7 @@ End Class
 Class C
     Dim <AS:0>a As Integer = 1</AS:0>
     Shared b As Integer = 1
-    Dim c(1) As Integer = 1
+    Dim c(1) As Integer
 End Class
 "
 
@@ -2858,7 +2857,7 @@ Class Test
         For Each b In e1
             For Each c In e1
                 Dim a = Sub()
-                    For Each a In e1
+                    For Each z In e1
                         <AS:0>System.Console.Write()</AS:0>
                     Next
                 End Sub
@@ -2873,7 +2872,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each a In e1", VBFeaturesResources.For_Each_block),
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each z In e1", VBFeaturesResources.For_Each_block),
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each b In e1", VBFeaturesResources.For_Each_block))
         End Sub
 
@@ -3496,7 +3495,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try"))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try", FeaturesResources.code))
         End Sub
 
         <Fact>
@@ -3560,7 +3559,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try"))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try", FeaturesResources.code))
         End Sub
 
         <Fact>
@@ -5293,7 +5292,7 @@ Imports System
 Imports System.Threading.Tasks
 Class C
     Sub F()
-        Dim f = Function(a) <AS:0>Function(b) a + b</AS:0>
+        Dim f = Function(a) <AS:0>Task.FromResult(Function(b) 1)</AS:0>
     End Sub
 End Class
 "
@@ -5302,7 +5301,7 @@ Imports System
 Imports System.Threading.Tasks
 Class C
     Sub F()
-        Dim f = Async Function(a) <AS:0>Function(b) a + b</AS:0>
+        Dim f = Async Function(a) <AS:0>Function(b) 1</AS:0>
     End Sub
 End Class
 "
@@ -5321,7 +5320,7 @@ Imports System
 Imports System.Threading.Tasks
 Class C
     Sub F()
-        Dim f = Function(a) <AS:0>Function(b)</AS:0> a + b
+        Dim f = Function(a) Task.FromResult(<AS:0>Function(b)</AS:0> a + b)
     End Sub
 End Class
 "
@@ -5361,7 +5360,7 @@ Class C
     End Function
  
     Sub F()
-        Dim f = <AS:0>Iterator Function()</AS:0>
+        Dim f = <AS:0>Iterator Function() As IEnumerable(Of Integer)</AS:0>
                   G()
                 End Function
     End Sub
@@ -5371,14 +5370,14 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Iterator Function()"))
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Iterator Function() As IEnumerable(Of Integer)"))
         End Sub
 
         <Fact>
         Public Sub AsyncLambdaToLambda_WithoutActiveStatement_NoAwait()
             Dim src1 = "
 Class C
-    Function G() As Task(Of Integer)
+    Shared Function G() As Task(Of Integer)
         Return Nothing
     End Function
  
@@ -5390,7 +5389,7 @@ End Class
 "
             Dim src2 = "
 Class C
-    Function G() As Task(Of Integer)
+    Shared Function G() As Task(Of Integer)
         Return Nothing
     End Function
  
@@ -5414,7 +5413,7 @@ End Class
 Imports System
 Imports System.Threading.Tasks
 Class C
-    Function G() As IEnumerable(Of Integer)
+    Shared Function G() As IEnumerable(Of Integer)
         Return Nothing
     End Function
  
@@ -5428,7 +5427,7 @@ End Class
 Imports System
 Imports System.Threading.Tasks
 Class C
-    Function G() As IEnumerable(Of Integer)
+    Shared Function G() As IEnumerable(Of Integer)
         Return Nothing
     End Function
  
@@ -5614,7 +5613,7 @@ Module C
 End Module"
 
             Dim active = GetActiveStatements(src1, src2)
-            Extensions.VerifyUnchangedDocument(src2, active)
+            EditAndContinueValidation.VerifyUnchangedDocument(src2, active)
         End Sub
 
         <Fact>
@@ -5648,7 +5647,7 @@ Module C
 End Module"
 
             Dim active = GetActiveStatements(src1, src2)
-            Extensions.VerifyUnchangedDocument(src2, active)
+            EditAndContinueValidation.VerifyUnchangedDocument(src2, active)
         End Sub
 
 #End Region
@@ -5714,7 +5713,7 @@ End Class
             active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()"))
+                Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()", FeaturesResources.code))
         End Sub
 
         <Fact>
@@ -5738,7 +5737,7 @@ End Class
             active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame)
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub F()"))
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub F()", FeaturesResources.code))
         End Sub
     End Class
 End Namespace

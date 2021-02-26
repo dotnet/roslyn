@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     tupleErrorField.TupleElementIndex,
                     tupleErrorField.Locations.IsEmpty ? null : tupleErrorField.Locations[0],
                     this.RetargetingTranslator.Retarget(tupleErrorField.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByName),
-                    tupleErrorField.GetUseSiteDiagnostic(),
+                    tupleErrorField.GetUseSiteInfo().DiagnosticInfo,
                     tupleErrorField.IsImplicitlyDeclared,
                     retargetedCorrespondingDefaultFieldOpt);
             }
@@ -805,8 +805,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 // TODO: if it is a missing symbol error but no longer missing in the target assembly, then we can resolve it here.
 
-                var useSiteDiagnostic = type.GetUseSiteDiagnostic();
-                if (useSiteDiagnostic != null)
+                var useSiteDiagnostic = type.GetUseSiteInfo().DiagnosticInfo;
+                if (useSiteDiagnostic?.Severity == DiagnosticSeverity.Error)
                 {
                     return type;
                 }

@@ -55,7 +55,7 @@ namespace AnalyzerRunner
             if (usePersistentStorage)
             {
                 var persistentStorageService = _workspace.Services.GetRequiredService<IPersistentStorageService>();
-                using var persistentStorage = persistentStorageService.GetStorage(_workspace.CurrentSolution);
+                await using var persistentStorage = await persistentStorageService.GetStorageAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
                 if (persistentStorage is NoOpPersistentStorage)
                 {
                     throw new InvalidOperationException("Benchmark is not configured to use persistent storage.");

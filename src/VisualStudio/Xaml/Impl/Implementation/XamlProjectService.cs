@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -60,30 +59,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         public static IXamlDocumentAnalyzerService? AnalyzerService { get; private set; }
 
-        public void TrackOpenDocument(string filePath)
+        public DocumentId? TrackOpenDocument(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
             {
                 // Can't track anything without a path (can happen while diffing)
-                return;
+                return null;
             }
 
             if (_threadingContext.JoinableTaskContext.IsOnMainThread)
             {
-                EnsureDocument(filePath);
+                return EnsureDocument(filePath);
             }
             else
             {
-                _threadingContext.JoinableTaskFactory.Run(async () =>
+                return _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                    EnsureDocument(filePath);
+                    return EnsureDocument(filePath);
                 });
             }
         }
 
-        private void EnsureDocument(string filePath)
+        private DocumentId? EnsureDocument(string filePath)
         {
             if (_rdt == null)
             {
@@ -107,23 +106,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             catch (ArgumentException)
             {
                 // We only support open documents that are in the RDT already
+                return null;
             }
 
             if (hierarchy == null || docCookie == 0)
             {
-                return;
+                return null;
             }
 
             if (!_xamlProjects.TryGetValue(hierarchy, out var project))
             {
                 if (!hierarchy.TryGetName(out var name))
                 {
-                    return;
+                    return null;
                 }
 
                 if (!hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_ProjectIDGuid, out var projectGuid))
                 {
-                    return;
+                    return null;
                 }
 
                 var projectInfo = new VisualStudioProjectCreationInfo
@@ -133,7 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                     ProjectGuid = projectGuid
                 };
 
-                project = _visualStudioProjectFactory.CreateAndAddToWorkspace(name, StringConstants.XamlLanguageName, projectInfo);
+                project = _threadingContext.JoinableTaskFactory.Run(() => _visualStudioProjectFactory.CreateAndAddToWorkspaceAsync(
+                    name, StringConstants.XamlLanguageName, projectInfo, CancellationToken.None));
                 _xamlProjects.Add(hierarchy, project);
             }
 
@@ -158,6 +159,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                     }
                 }
             }
+
+            if (_rdtDocumentIds.TryGetValue(docCookie, out var docId))
+            {
+                return docId;
+            }
+
+            return null;
         }
 
         private void OnProjectClosing(IVsHierarchy hierarchy)

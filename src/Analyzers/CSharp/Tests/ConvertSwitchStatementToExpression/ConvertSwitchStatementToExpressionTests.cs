@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertSwitchStatementT
     {
         private static readonly LanguageVersion CSharp9 = LanguageVersion.CSharp9;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
         public async Task TestReturn()
@@ -1916,8 +1916,8 @@ return i switch
             };
 
             test.ExpectedDiagnostics.Add(
-                // error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805"));
+                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11));
 
             await test.RunAsync();
         }
@@ -1961,8 +1961,8 @@ j = i switch
             };
 
             test.ExpectedDiagnostics.Add(
-                // error CS8805: Program using top-level statements must be an executable.
-                DiagnosticResult.CompilerError("CS8805"));
+                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 11));
 
             await test.RunAsync();
         }

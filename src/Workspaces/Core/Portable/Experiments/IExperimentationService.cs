@@ -31,8 +31,9 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string PartialLoadMode = "Roslyn.PartialLoadMode";
         public const string TypeImportCompletion = "Roslyn.TypeImportCompletion";
         public const string TargetTypedCompletionFilter = "Roslyn.TargetTypedCompletionFilter";
-        public const string TriggerCompletionInArgumentLists = "Roslyn.TriggerCompletionInArgumentLists";
         public const string OOPServerGC = "Roslyn.OOPServerGC";
         public const string ImportsOnPasteDefaultEnabled = "Roslyn.ImportsOnPasteDefaultEnabled";
+        public const string RemoveUnusedReferences = "Roslyn.RemoveUnusedReferences";
+        public const string LSPCompletion = "Roslyn.LSP.Completion";
     }
 }

@@ -16,6 +16,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxNormalizerTests
     {
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestLineBreakInterpolations()
+        {
+            TestNormalizeExpression(
+                @"$""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""",
+                @"$""Printed: {new Printer(){TextToPrint = ""Hello world!""}.PrintedText}"""
+            );
+        }
+
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestVerbatimStringInterpolationWithLineBreaks()
+        {
+            TestNormalizeStatement(@"Console.WriteLine($@""Test with line
+breaks
+{
+                new[]{
+     1, 2, 3
+  }[2]
+}
+            "");",
+            @"Console.WriteLine($@""Test with line
+breaks
+{new[]{1, 2, 3}[2]}
+            "");"
+            );
+        }
+
         [Fact]
         public void TestNormalizeExpression1()
         {
@@ -231,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("class ia\r\n{\r\nint\r\np\r\n{\r\nget{}\r\nset;\r\n}\r\n}", "class ia\r\n{\r\n  int p\r\n  {\r\n    get\r\n    {\r\n    }\r\n\r\n    set;\r\n  }\r\n}");
             TestNormalizeDeclaration("class ib\r\n{\r\nint\r\np\r\n{\r\nget;\r\nset{}\r\n}\r\n}", "class ib\r\n{\r\n  int p\r\n  {\r\n    get;\r\n    set\r\n    {\r\n    }\r\n  }\r\n}");
 
-            // properties with initalizers
+            // properties with initializers
             TestNormalizeDeclaration("class i4\r\n{\r\nint\r\np\r\n{\r\nset;\r\n}=1;\r\n}", "class i4\r\n{\r\n  int p { set; } = 1;\r\n}");
             TestNormalizeDeclaration("class i5\r\n{\r\nint\r\np\r\n{\r\nset{}\r\n}=1;\r\n}", "class i5\r\n{\r\n  int p\r\n  {\r\n    set\r\n    {\r\n    }\r\n  } = 1;\r\n}");
             TestNormalizeDeclaration("class i6\r\n{\r\nint\r\np\r\n{\r\ninit;\r\n}=1;\r\n}", "class i6\r\n{\r\n  int p { init; } = 1;\r\n}");

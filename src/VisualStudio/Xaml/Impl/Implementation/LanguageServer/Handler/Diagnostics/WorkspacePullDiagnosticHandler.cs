@@ -9,25 +9,27 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false, StringConstants.XamlLanguageName), Shared]
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ProvidesMethod(MSLSPMethods.WorkspacePullDiagnosticName)]
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public WorkspacePullDiagnosticHandler(
-            ILspSolutionProvider solutionProvider,
             IXamlPullDiagnosticService xamlPullDiagnosticService)
-            : base(solutionProvider, xamlPullDiagnosticService)
+            : base(xamlPullDiagnosticService)
         { }
+
+        public override string Method => MSLSPMethods.WorkspacePullDiagnosticName;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request) => null;
 
@@ -41,6 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         /// </summary>
         protected override ImmutableArray<Document> GetDocuments(RequestContext context)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
             var projects = context.Solution.GetXamlProjects();
             foreach (var project in projects)
