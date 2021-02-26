@@ -7,11 +7,13 @@
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
+    [UseExportProvider]
     public class ActiveStatementTests_Methods : EditingTestBase
     {
         #region Methods
@@ -43,12 +45,17 @@ class C
 }
 ";
 
-            // TODO (bug 755959): better deleted active statement span
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.method));
+            EditAndContinueValidation.VerifySemantics(
+                new[] { edits },
+                new[]
+                {
+                    DocumentResults(
+                        active,
+                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(int)")) })
+                });
         }
 
         [Fact]
@@ -550,7 +557,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "get"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "get", FeaturesResources.code));
         }
 
         [Fact]
@@ -575,7 +582,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.property_setter));
+                Diagnostic(RudeEditKind.Delete, "int P", DeletedSymbolDisplay(CSharpFeaturesResources.property_setter, "P.set")));
         }
 
         [Fact]
@@ -601,7 +608,7 @@ class C
 
             // Can be improved with https://github.com/dotnet/roslyn/issues/22696
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "int P"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "int P", FeaturesResources.code));
         }
 
         #endregion
@@ -654,7 +661,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "int this[int a]", CSharpFeaturesResources.indexer_setter));
+                Diagnostic(RudeEditKind.Delete, "int this[int a]", DeletedSymbolDisplay(CSharpFeaturesResources.indexer_setter, "this[int].set")));
         }
 
         [Fact]
@@ -756,9 +763,10 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
+            // Rude edits of active statements (AS:1) are not reported if the top-level edits are rude.
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, @"stringCollection[1] = ""hello"";"),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.indexer_setter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.indexer_setter),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "stringCollection[1] = \"hello\";"));
         }
 
         [Fact]
@@ -858,9 +866,10 @@ class SampleCollection<T>
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
+            // Rude edits of active statements (AS:1) are not reported if the top-level edits are rude.
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(stringCollection[1]);"),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.indexer_getter));
+                Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.indexer_getter),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(stringCollection[1]);"));
         }
 
         [Fact]
@@ -959,7 +968,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{", FeaturesResources.code));
         }
 
         [Fact]
@@ -1058,7 +1067,7 @@ class SampleCollection<T>
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active,
-                                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{", FeaturesResources.code));
         }
 
         #endregion

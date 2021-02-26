@@ -349,8 +349,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return SpecializedTasks.True;
                     }
 
-                    public virtual void Dispose()
+                    public void Dispose()
                     {
+                    }
+
+                    public ValueTask DisposeAsync()
+                    {
+                        return ValueTaskFactory.CompletedTask;
                     }
                 }
             }

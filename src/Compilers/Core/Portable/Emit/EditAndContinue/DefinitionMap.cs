@@ -311,10 +311,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 symbolMap = MapToMetadataSymbolMatcher;
             }
 
+            var previousMethod = mappedMethod.PreviousMethod;
+            if (previousMethod is null)
+            {
+                previousMethod = (IMethodSymbolInternal)symbolMap.MapDefinitionOrNamespace(topLevelMethod);
+            }
+
             return new EncVariableSlotAllocator(
                 symbolMap,
                 mappedMethod.SyntaxMap,
-                mappedMethod.PreviousMethod,
+                previousMethod,
                 methodId,
                 previousLocals,
                 lambdaMap,
