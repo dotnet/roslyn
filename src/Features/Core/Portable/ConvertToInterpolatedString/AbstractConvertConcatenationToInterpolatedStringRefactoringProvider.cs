@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
     internal abstract class AbstractConvertConcatenationToInterpolatedStringRefactoringProvider<TExpressionSyntax> : CodeRefactoringProvider
         where TExpressionSyntax : SyntaxNode
     {
+        protected abstract bool SupportsConstantInterpolatedStrings(Document document);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, textSpan, cancellationToken) = context;
@@ -45,14 +47,17 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            // if there is a const keyword, the refactoring shouldn't show because interpolated string is not const string
-            var declarator = top.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsVariableDeclarator);
-            if (declarator != null)
+            if (!SupportsConstantInterpolatedStrings(context.Document))
             {
-                var generator = SyntaxGenerator.GetGenerator(document);
-                if (generator.GetModifiers(declarator).IsConst)
+                // if there is a const keyword, the refactoring shouldn't show because interpolated string is not const string
+                var declarator = top.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsVariableDeclarator);
+                if (declarator != null)
                 {
-                    return;
+                    var generator = SyntaxGenerator.GetGenerator(document);
+                    if (generator.GetModifiers(declarator).IsConst)
+                    {
+                        return;
+                    }
                 }
             }
 

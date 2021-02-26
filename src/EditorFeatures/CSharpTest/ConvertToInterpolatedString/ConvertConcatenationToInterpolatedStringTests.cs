@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using CSharpLanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
     Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString.CSharpConvertConcatenationToInterpolatedStringRefactoringProvider>;
 
@@ -927,8 +928,27 @@ class C
     const string World = ""World"";
     const string Message = Hello + "" "" + [||]World;
 }";
+            var fixedCode = @"
+class C
+{
+    const string Hello = ""Hello"";
+    const string World = ""World"";
+    const string Message = $""{Hello} {World}"";
+}";
 
-            await VerifyCS.VerifyRefactoringAsync(code, code);
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.CSharp9,
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.Preview,
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
         }
 
         [WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
@@ -944,8 +964,29 @@ class C
         const string Message = Hello + "" "" + [||]World;
     }
 }";
+            var fixedCode = @"
+class C
+{
+    void M() {
+        const string Hello = ""Hello"";
+        const string World = ""World"";
+        const string Message = $""{Hello} {World}"";
+    }
+}";
 
-            await VerifyCS.VerifyRefactoringAsync(code, code);
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.CSharp9,
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.Preview,
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
         }
 
         [WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]

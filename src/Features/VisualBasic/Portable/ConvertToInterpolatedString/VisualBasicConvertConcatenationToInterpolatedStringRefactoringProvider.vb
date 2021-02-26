@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
         Public Sub New()
         End Sub
 
+        Protected Overrides Function SupportsConstantInterpolatedStrings(document As Document) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function GetTextWithoutQuotes(text As String, isVerbatim As Boolean, isCharacterLiteral As Boolean) As String
             If isCharacterLiteral Then
                 Return text.Substring("'".Length, text.Length - "''C".Length)
