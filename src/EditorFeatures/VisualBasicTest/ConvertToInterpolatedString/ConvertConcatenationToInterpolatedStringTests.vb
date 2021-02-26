@@ -160,9 +160,11 @@ End Class")
             Await VerifyVB.VerifyRefactoringAsync(
 "
 public class D
-    public shared operator&(D d, string s) as boolean
+    public shared operator &(d As D, s As String) as boolean
+        Return False
     end operator
-    public shared operator&(string s, D d) as boolean
+    public shared operator &(s As String, d As D) as boolean
+        Return False
     end operator
 end class
 
@@ -174,9 +176,11 @@ Public Class C
 End Class",
 "
 public class D
-    public shared operator&(D d, string s) as boolean
+    public shared operator &(d As D, s As String) as boolean
+        Return False
     end operator
-    public shared operator&(string s, D d) as boolean
+    public shared operator &(s As String, d As D) as boolean
+        Return False
     end operator
 end class
 
@@ -190,11 +194,14 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestWithOverloadedOperator2() As Task
-            Dim code = "
+            Await VerifyVB.VerifyRefactoringAsync(
+"
 public class D
-    public shared operator&(D d, string s) as boolean
+    public shared operator &(d As D, s As String) as boolean
+        Return False
     end operator
-    public shared operator&(string s, D d) as boolean
+    public shared operator &(s As String, d As D) as boolean
+        Return False
     end operator
 end class
 
@@ -203,9 +210,23 @@ Public Class C
         dim d as D = nothing
         dim v = d & [||]""string"" & 1
     End Sub
-End Class"
+End Class",
+"
+public class D
+    public shared operator &(d As D, s As String) as boolean
+        Return False
+    end operator
+    public shared operator &(s As String, d As D) as boolean
+        Return False
+    end operator
+end class
 
-            Await VerifyVB.VerifyRefactoringAsync(code, code)
+Public Class C
+    Sub M()
+        dim d as D = nothing
+        dim v = $""{d & ""string""}{1}""
+    End Sub
+End Class")
         End Function
 
         <WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")>
@@ -569,6 +590,7 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
         Public Async Function TestConcatenationWithInlineString() As Task
             Await VerifyVB.VerifyRefactoringAsync("
+Imports System
 Public Class C
     Private Sub M()
         Const Hello As String = ""Hello""
@@ -576,6 +598,7 @@ Public Class C
         Console.WriteLine(Hello + "" "" + World[||])
     End Sub
 End Class", "
+Imports System
 Public Class C
     Private Sub M()
         Const Hello As String = ""Hello""

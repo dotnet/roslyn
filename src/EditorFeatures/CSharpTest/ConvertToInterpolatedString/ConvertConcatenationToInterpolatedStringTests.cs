@@ -345,8 +345,8 @@ public class C
         {
             var code = @"public class D
 {
-    public static bool operator +(D d, string s) => false;
-    public static bool operator +(string s, D d) => false;
+    public static int operator +(D d, string s) => 0;
+    public static int operator +(string s, D d) => 0;
 }
 
 public class C
@@ -953,6 +953,7 @@ class C
         public async Task TestConcatenationWithInlineString()
         {
             await VerifyCS.VerifyRefactoringAsync(@"
+using System;
 class C
 {
     void M() {
@@ -962,6 +963,7 @@ class C
     }
 }",
 @"
+using System;
 class C
 {
     void M() {
@@ -998,14 +1000,14 @@ class C
 class C
 {{
     void M() {{
-        {before}
+        _ = {before};
     }}
 }}";
             var expected = $@"
 class C
 {{
     void M() {{
-        {after}
+        _ = {after};
     }}
 }}";
             await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
@@ -1029,14 +1031,14 @@ class C
 class C
 {{
     void M() {{
-        {before}
+        _ = {before};
     }}
 }}";
             var expected = $@"
 class C
 {{
     void M() {{
-        {after}
+        _ = {after};
     }}
 }}";
             await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
@@ -1058,14 +1060,14 @@ class C
 class C
 {{
     void M() {{
-        {before}
+        _ = {before};
     }}
 }}";
             var expected = $@"
 class C
 {{
     void M() {{
-        {after}
+        _ = {after};
     }}
 }}";
             await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
