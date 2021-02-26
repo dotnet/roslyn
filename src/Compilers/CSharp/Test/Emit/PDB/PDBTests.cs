@@ -4300,7 +4300,6 @@ class C
     }
 }
 ");
-            // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
             c.VerifyPdb("C.M",
 @"<symbols>
@@ -4334,11 +4333,8 @@ class C
         <entry offset=""0x3b"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x3d"">
-        <scope startOffset=""0x1"" endOffset=""0x3b"">
-          <local name=""i"" il_index=""0"" il_start=""0x1"" il_end=""0x3b"" attributes=""0"" />
-          <scope startOffset=""0x16"" endOffset=""0x2b"">
-            <local name=""i"" il_index=""0"" il_start=""0x16"" il_end=""0x2b"" attributes=""0"" />
-          </scope>
+        <scope startOffset=""0x16"" endOffset=""0x2b"">
+          <local name=""i"" il_index=""0"" il_start=""0x16"" il_end=""0x2b"" attributes=""0"" />
         </scope>
       </scope>
     </method>
