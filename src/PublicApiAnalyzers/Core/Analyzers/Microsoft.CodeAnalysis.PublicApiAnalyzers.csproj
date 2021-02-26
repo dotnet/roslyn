@@ -8,9 +8,6 @@
     -->
     <PackageId>*$(MSBuildProjectFile)*</PackageId>
     <MicrosoftCodeAnalysisVersion>1.2.1</MicrosoftCodeAnalysisVersion>
-
-    <!-- Work around PerformanceSensitiveAttribute.cs cannot resolve ValueTask<TResult>. -->
-    <NoWarn>$(NoWarn);CS1574</NoWarn>
   </PropertyGroup>
 
   <Choose>
