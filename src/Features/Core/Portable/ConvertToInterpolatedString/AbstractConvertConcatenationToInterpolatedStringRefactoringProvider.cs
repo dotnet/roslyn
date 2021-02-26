@@ -135,7 +135,9 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 if (currentContentIsStringOrCharacterLiteral)
                 {
                     var text = piece.GetFirstToken().Text;
+                    var value = piece.GetFirstToken().Value?.ToString() ?? piece.GetFirstToken().ValueText;
                     var textWithEscapedBraces = text.Replace("{", "{{").Replace("}", "}}");
+                    var valueTextWithEscapedBraces = value.Replace("{", "{{").Replace("}", "}}");
                     var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatimStringLiteral, isCharacterLiteral);
                     if (previousContentWasStringLiteralExpression)
                     {
@@ -147,14 +149,14 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         // not:
                         //      {InterpolatedStringText}{Interpolation}{InterpolatedStringText}{InterpolatedStringText}
                         var existingInterpolatedStringTextNode = content.Last();
-                        var newText = ConcatenateTextToTextNode(generator, existingInterpolatedStringTextNode, textWithoutQuotes);
+                        var newText = ConcatenateTextToTextNode(generator, existingInterpolatedStringTextNode, textWithoutQuotes, valueTextWithEscapedBraces);
                         content[^1] = newText;
                     }
                     else
                     {
                         // This is either the first string literal we have encountered or it is the most recent one we've seen
                         // after adding an interpolation.  Add a new interpolated-string-text-node to the list.
-                        content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes)));
+                        content.Add(generator.InterpolatedStringText(generator.InterpolatedStringTextToken(textWithoutQuotes, valueTextWithEscapedBraces)));
                     }
                 }
                 else if (syntaxFacts.IsInterpolatedStringExpression(piece) &&
@@ -173,7 +175,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                         {
                             // if piece starts with a text and the previous part was a string, merge the two parts (see also above)
                             // "a" + $"b{1 + 1}" -> "a" and "b" get merged
-                            var newText = ConcatenateTextToTextNode(generator, content.Last(), contentPart.GetFirstToken().Text);
+                            var newText = ConcatenateTextToTextNode(generator, content.Last(), contentPart.GetFirstToken().Text, contentPart.GetFirstToken().ValueText);
                             content[^1] = newText;
                         }
                         else
@@ -202,11 +204,13 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             return generator.InterpolatedStringExpression(startToken, content, endToken);
         }
 
-        private static SyntaxNode ConcatenateTextToTextNode(SyntaxGenerator generator, SyntaxNode interpolatedStringTextNode, string textWithoutQuotes)
+        private static SyntaxNode ConcatenateTextToTextNode(SyntaxGenerator generator, SyntaxNode interpolatedStringTextNode, string textWithoutQuotes, string value)
         {
             var existingText = interpolatedStringTextNode.GetFirstToken().Text;
+            var existingValue = interpolatedStringTextNode.GetFirstToken().ValueText;
             var newText = existingText + textWithoutQuotes;
-            return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(newText));
+            var newValue = existingValue + value;
+            return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(newText, newValue));
         }
 
         protected abstract string GetTextWithoutQuotes(string text, bool isVerbatimStringLiteral, bool isCharacterLiteral);

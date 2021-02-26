@@ -496,6 +496,29 @@ public class C
 
         [WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithStringLiteralWithBraces2()
+        {
+            {
+                await VerifyCS.VerifyRefactoringAsync(
+    @"public class C
+{
+    void M()
+    {
+        var v = 1 + [||]""{string}"" + ""{string}"";
+    }
+}",
+    @"public class C
+{
+    void M()
+    {
+        var v = $""{1}{{string}}{{string}}"";
+    }
+}");
+            }
+        }
+
+        [WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithStringLiteralWithDoubleBraces()
         {
             {
