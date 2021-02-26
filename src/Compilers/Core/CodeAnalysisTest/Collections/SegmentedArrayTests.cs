@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Null(data.GetTestAccessor().Items);
 
             Assert.True(data.IsFixedSize);
-            Assert.False(data.IsReadOnly);
+            Assert.True(data.IsReadOnly);
             Assert.False(data.IsSynchronized);
             Assert.Equal(0, data.Length);
             Assert.Null(data.SyncRoot);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var data = new SegmentedArray<IntPtr>(length);
 
             Assert.True(data.IsFixedSize);
-            Assert.False(data.IsReadOnly);
+            Assert.True(data.IsReadOnly);
             Assert.False(data.IsSynchronized);
             Assert.Equal(length, data.Length);
             Assert.Same(data.GetTestAccessor().Items, data.SyncRoot);
