@@ -163,34 +163,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         private static CommentTrackingSpan GetNewSelection(SnapshotSpan selectedSpan, IEditorOptions editorOptions, bool isMultiCaret)
         {
-            // If the span is just the caret location without a selection move the caret
-            // down to the next line at the same column (or end of line).
-            // We bail in multi caret scenarios as the next line could already be modified as part of this comment operation.
-            if (selectedSpan.IsEmpty && !isMultiCaret)
+            if (!selectedSpan.IsEmpty || isMultiCaret)
             {
-                selectedSpan.End.GetLineAndCharacter(out var caretLineNumber, out var caretOffset);
-                var caretLine = selectedSpan.Snapshot.GetLineFromLineNumber(caretLineNumber);
-
-                var nextLineNumber = caretLineNumber + 1;
-                if (nextLineNumber < selectedSpan.Snapshot.LineCount)
-                {
-                    // Get the column in the line of the current caret location.
-                    var caretColumn = caretLine.GetColumnFromLineOffset(caretOffset, editorOptions);
-
-                    var nextLine = selectedSpan.Snapshot.GetLineFromLineNumber(nextLineNumber);
-                    // Compute the correct offset location from the column in the previous line.
-                    var offsetInNextLine = nextLine.GetLineOffsetFromColumn(caretColumn, editorOptions);
-                    var position = selectedSpan.Snapshot.GetPosition(nextLineNumber, offsetInNextLine);
-                    return new CommentTrackingSpan(TextSpan.FromBounds(position, position));
-                }
-                else
-                {
-                    return new CommentTrackingSpan(TextSpan.FromBounds(caretLine.End, caretLine.End));
-                }
+                // In selection or any multi-caret scenarios, leave the selection unchanged.
+                // We bail in multi caret scenarios as the next line could already be modified as part of this comment operation.
+                return new CommentTrackingSpan(selectedSpan.Span.ToTextSpan());
             }
 
-            // In selection or any multi-caret scenarios, leave the selection unchanged.
-            return new CommentTrackingSpan(selectedSpan.Span.ToTextSpan());
+            // If the span is just the caret location without a selection move the caret
+            // down to the next line at the same column (or end of line).
+            selectedSpan.End.GetLineAndCharacter(out var caretLineNumber, out var caretOffset);
+            var caretLine = selectedSpan.Snapshot.GetLineFromLineNumber(caretLineNumber);
+
+            var nextLineNumber = caretLineNumber + 1;
+            if (nextLineNumber < selectedSpan.Snapshot.LineCount)
+            {
+                // Get the column in the line of the current caret location.
+                var caretColumn = caretLine.GetColumnFromLineOffset(caretOffset, editorOptions);
+
+                var nextLine = selectedSpan.Snapshot.GetLineFromLineNumber(nextLineNumber);
+                // Compute the correct offset location from the column in the previous line.
+                var offsetInNextLine = nextLine.GetLineOffsetFromColumn(caretColumn, editorOptions);
+                var position = selectedSpan.Snapshot.GetPosition(nextLineNumber, offsetInNextLine);
+                return new CommentTrackingSpan(TextSpan.FromBounds(position, position));
+            }
+            else
+            {
+                return new CommentTrackingSpan(TextSpan.FromBounds(caretLine.End, caretLine.End));
+            }
         }
 
         private static List<ITextSnapshotLine> GetLinesFromSelectedSpan(SnapshotSpan span)
