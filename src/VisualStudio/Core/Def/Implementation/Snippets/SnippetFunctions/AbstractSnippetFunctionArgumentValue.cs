@@ -12,8 +12,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
-using static Roslyn.Utilities.TaskExtensions;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
@@ -61,6 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (!TryGetDocument(out var document))
             {
                 // Unable to suggest arguments if a document is not available
+                return null;
+            }
+
+            if (snippetExpansionClient.ExpansionSession is null)
+            {
+                // The session isn't active anymore while we're being asked
+                // TODO: Telemetry https://github.com/dotnet/roslyn/issues/50033
                 return null;
             }
 

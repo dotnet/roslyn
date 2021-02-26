@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -61,8 +59,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         /// <returns>The tracking span of the inserted "/**/" if there is an $end$ location, null
         /// otherwise.</returns>
-        protected override ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan()
+        protected override ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan()
         {
+            RoslynDebug.AssertNotNull(ExpansionSession);
+
             var endSpanInSurfaceBuffer = new VsTextSpan[1];
             if (ExpansionSession.GetEndSpan(endSpanInSurfaceBuffer) != VSConstants.S_OK)
             {
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(commentSpan, SpanTrackingMode.EdgeExclusive);
         }
 
-        public override int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc)
+        public override int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc)
         {
             if (!TryGetSnippetFunctionInfo(xmlFunctionNode, out var snippetFunctionName, out var param))
             {
@@ -126,8 +126,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            var contextLocation = root.FindToken(position).Parent;
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            var contextLocation = root.FindToken(position).GetRequiredParent();
 
             var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode);
             if (!newUsingDirectives.Any())
@@ -142,9 +142,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var addImportService = document.GetLanguageService<IAddImportsService>();
-            var generator = document.GetLanguageService<SyntaxGenerator>();
-            var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
+            var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, placeSystemNamespaceFirst, allowInHiddenRegions, cancellationToken);
 
             var newDocument = document.WithSyntaxRoot(newRoot);

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -100,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         }
 
         /// <inheritdoc cref="State._expansionSession"/>
-        public IVsExpansionSession ExpansionSession => _state._expansionSession;
+        public IVsExpansionSession? ExpansionSession => _state._expansionSession;
 
         /// <inheritdoc cref="State.IsFullMethodCallSnippet"/>
         public bool IsFullMethodCallSnippet => _state.IsFullMethodCallSnippet;
@@ -123,18 +122,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return _argumentProviders;
         }
 
-        public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc);
-        protected abstract ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan();
+        public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc);
+        protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
         internal abstract Document AddImports(Document document, int position, XElement snippetNode, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken);
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
         {
             AssertIsForeground();
 
+            if (ExpansionSession == null)
+            {
+                return VSConstants.E_FAIL;
+            }
+
             // If this is a manually-constructed snippet for a full method call, avoid formatting the snippet since
-            // doing so will disrupt signature help. Check '_state._methods' instead of '_state.IsFullMethodCallSnippet'
-            // because '_state._expansionSession' is not initialized at this point.
-            if (!_state._methods.IsDefault)
+            // doing so will disrupt signature help.
+            if (_state.IsFullMethodCallSnippet)
             {
                 return VSConstants.S_OK;
             }
@@ -204,8 +207,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return VSConstants.S_OK;
         }
 
-        private void SetNewEndPosition(ITrackingSpan endTrackingSpan)
+        private void SetNewEndPosition(ITrackingSpan? endTrackingSpan)
         {
+            RoslynDebug.AssertNotNull(ExpansionSession);
             if (SetEndPositionIfNoneSpecified(ExpansionSession))
             {
                 return;
@@ -232,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
         }
 
-        private void CleanUpEndLocation(ITrackingSpan endTrackingSpan)
+        private void CleanUpEndLocation(ITrackingSpan? endTrackingSpan)
         {
             if (endTrackingSpan != null)
             {
@@ -311,9 +315,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return true;
         }
 
-        protected static bool TryGetSnippetNode(IVsExpansionSession pSession, out XElement snippetNode)
+        protected static bool TryGetSnippetNode(IVsExpansionSession pSession, [NotNullWhen(true)] out XElement? snippetNode)
         {
-            IXMLDOMNode xmlNode = null;
+            IXMLDOMNode? xmlNode = null;
             snippetNode = null;
 
             try
@@ -928,7 +932,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 textSpan.iEndLine = textSpan.iStartLine;
                 textSpan.iEndIndex = textSpan.iStartIndex;
 
-                var expansion = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer) as IVsExpansion;
+                var expansion = (IVsExpansion?)EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer);
+                Contract.ThrowIfNull(expansion);
+
                 _earlyEndExpansionHappened = false;
 
                 // This expansion was chosen from the snippet picker, and not derived from a symbol. Make sure the state
@@ -957,6 +963,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         private void GetCaretPositionInSurfaceBuffer(out int caretLine, out int caretColumn)
         {
             var vsTextView = EditorAdaptersFactoryService.GetViewAdapter(TextView);
+            Contract.ThrowIfNull(vsTextView);
             vsTextView.GetCaretPos(out caretLine, out caretColumn);
             vsTextView.GetBuffer(out var textLines);
             // Handle virtual space (e.g, see Dev10 778675)
@@ -1013,7 +1020,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 var assemblyName = assemblyElement != null ? assemblyElement.Value.Trim() : null;
 
-                if (string.IsNullOrEmpty(assemblyName))
+                if (RoslynString.IsNullOrEmpty(assemblyName))
                 {
                     continue;
                 }
@@ -1027,7 +1034,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             if (failedReferenceAdditions.Any())
             {
-                var notificationService = workspace.Services.GetService<INotificationService>();
+                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(
                     string.Format(ServicesVSResources.The_following_references_were_not_found_0_Please_locate_and_add_them_manually, Environment.NewLine)
                     + Environment.NewLine + Environment.NewLine
@@ -1063,7 +1070,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return true;
         }
 
-        protected static bool TryGetSnippetFunctionInfo(IXMLDOMNode xmlFunctionNode, out string snippetFunctionName, out string param)
+        protected static bool TryGetSnippetFunctionInfo(
+            IXMLDOMNode xmlFunctionNode,
+            [NotNullWhen(true)] out string? snippetFunctionName,
+            [NotNullWhen(true)] out string? param)
         {
             if (xmlFunctionNode.text.IndexOf('(') == -1 ||
                 xmlFunctionNode.text.IndexOf(')') == -1 ||
@@ -1118,7 +1128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             /// <summary>
             /// The current expansion session.
             /// </summary>
-            public IVsExpansionSession _expansionSession;
+            public IVsExpansionSession? _expansionSession;
 
             /// <summary>
             /// The set of symbols initially identified as candidates for providing arguments. When a snippet is
@@ -1147,7 +1157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             /// The current symbol presented in an Argument Provider snippet session. This may be null if Signature Help
             /// has not yet provided a symbol to show.
             /// </summary>
-            public IMethodSymbol _method;
+            public IMethodSymbol? _method;
 
             /// <summary>
             /// Maps from parameter name to current argument value. When this dictionary does not contain a mapping for
