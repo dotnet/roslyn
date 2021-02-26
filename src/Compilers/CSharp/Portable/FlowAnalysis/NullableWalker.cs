@@ -9035,12 +9035,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLiteral(BoundLiteral node)
         {
-            var result = base.VisitLiteral(node);
-
             Debug.Assert(!IsConditionalState);
+            var result = base.VisitLiteral(node);
             SetResultType(node, TypeWithState.Create(node.Type, node.Type?.CanContainNull() != false && node.ConstantValue?.IsNull == true ? NullableFlowState.MaybeDefault : NullableFlowState.NotNull));
-
-            SplitIfBooleanConstant(node);
             return result;
         }
 
