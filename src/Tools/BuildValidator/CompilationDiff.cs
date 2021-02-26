@@ -46,9 +46,7 @@ namespace BuildValidator
         public string OriginalPath { get; }
         public ImmutableArray<Diagnostic> Diagnostics { get; }
 
-        private CompilationDiff(
-            string originalPath,
-            bool? areEqual)
+        private CompilationDiff(string originalPath, bool? areEqual)
         {
             AreEqual = areEqual;
             OriginalPath = originalPath;
@@ -58,6 +56,11 @@ namespace BuildValidator
         {
             Diagnostics = diagnostics;
             OriginalPath = originalPath;
+        }
+
+        public static CompilationDiff CreatePlaceholder(FileInfo originalBinaryPath)
+        {
+            return new CompilationDiff(originalBinaryPath.FullName, areEqual: null);
         }
 
         public static unsafe CompilationDiff Create(
@@ -229,7 +232,7 @@ namespace BuildValidator
                     options: pdbToXmlOptions,
                     methodName: null);
 
-                Process.Start(@"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe", $@"{assemblyFilePath} /all /out={buildDataFiles.ILFilePath}").WaitForExit();
+                Process.Start(IldasmUtilities.IldasmPath, $@"{assemblyFilePath} /all /out={buildDataFiles.ILFilePath}").WaitForExit();
 
                 return buildDataFiles;
             }

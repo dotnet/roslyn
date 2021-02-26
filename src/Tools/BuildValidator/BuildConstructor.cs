@@ -39,12 +39,16 @@ namespace BuildValidator
             _logger = logger;
         }
 
-        public Compilation CreateCompilation(CompilationOptionsReader compilationOptionsReader, string fileName)
+        public Compilation? CreateCompilation(CompilationOptionsReader compilationOptionsReader, string fileName)
         {
-            var pdbCompilationOptions = compilationOptionsReader.GetMetadataCompilationOptions();
-            if (pdbCompilationOptions.Length == 0)
+            // We try to handle assemblies missing compilation options gracefully by skipping them.
+            // However, if an assembly has some bad combination of data, for example if it contains
+            // compilation options but not metadata references, then we throw an exception.
+            if (!compilationOptionsReader.TryGetMetadataCompilationOptions(out var pdbCompilationOptions)
+                || pdbCompilationOptions.Length == 0)
             {
-                throw new InvalidDataException("Did not find compilation options in pdb");
+                _logger.LogInformation($"{fileName} did not contain compilation options in its PDB");
+                return null;
             }
 
             var metadataReferenceInfos = compilationOptionsReader.GetMetadataReferences();
