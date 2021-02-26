@@ -3636,6 +3636,34 @@ class C
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"), preserveLocalVariables: false) });
         }
 
+        [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
+        public void MethodWithExpressionBody_Update_LiftedParameter()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int M(int a) => new Func<int>(() => a + 1)();
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int M(int a) => new Func<int>(() => 2)();   // not capturing a anymore
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int M(int a) => new Func<int>(() => a + 1)();]@35 -> [int M(int a) => new Func<int>(() => 2)();]@35");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
+        }
+
         [Fact]
         public void MethodWithExpressionBody_ToBlockBody()
         {
@@ -10133,9 +10161,6 @@ class C
         [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
         public void IndexerWithExpressionBody_Update_LiftedParameter()
         {
-            // TODO: https://github.com/dotnet/roslyn/issues/51297
-            // The test fails if "+ 10" and "+ 11" are removed. 
-
             var src1 = @"
 using System;
 
@@ -10156,6 +10181,34 @@ class C
 
             edits.VerifyEdits(
                 "Update [int this[int a] => new Func<int>(() => a + 1)() + 10;]@35 -> [int this[int a] => new Func<int>(() => 2)() + 11;]@35");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
+        }
+
+        [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
+        public void IndexerWithExpressionBody_Update_LiftedParameter_2()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int this[int a] => new Func<int>(() => a + 1)();
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int this[int a] => new Func<int>(() => 2)();   // not capturing a anymore
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] => new Func<int>(() => a + 1)();]@35 -> [int this[int a] => new Func<int>(() => 2)();]@35");
 
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));

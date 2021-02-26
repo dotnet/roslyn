@@ -647,9 +647,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.FinallyClause;
 
                 case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.AnonymousMethodExpression:
-                    // Note: Simple lambda expression is only labeled for statements, so it is below
+                    // Note: Lambda expression is only labeled for statements, see below
                     return Label.NestedFunction;
 
                 case SyntaxKind.FromClause:
@@ -742,6 +741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 // Statement syntax
                 switch (kind)
                 {
+                    case SyntaxKind.ParenthesizedLambdaExpression:
                     case SyntaxKind.SimpleLambdaExpression:
                         return Label.NestedFunction;
 
