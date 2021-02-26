@@ -63,9 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
         private ImmutableArray<ArgumentProvider> _argumentProviders;
 
-        protected bool indentCaretOnCommit;
-        protected int indentDepth;
-        protected bool earlyEndExpansionHappened;
+        private bool _indentCaretOnCommit;
+        private int _indentDepth;
+        private bool _earlyEndExpansionHappened;
 
         /// <summary>
         /// Set to <see langword="true"/> when the snippet client registers an event listener for
@@ -248,18 +248,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 if (lineText.Trim() == string.Empty)
                 {
-                    indentCaretOnCommit = true;
+                    _indentCaretOnCommit = true;
 
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
                         var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
                     }
                     else
                     {
                         // If we don't have a document, then just guess the typical default TabSize value.
-                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize: 4);
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize: 4);
                     }
 
                     SubjectBuffer.Delete(new Span(line.Start.Position, line.Length));
@@ -365,9 +365,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// <param name="endLinePosition"></param>
         internal void PositionCaretForEditingInternal(string endLineText, int endLinePosition)
         {
-            if (indentCaretOnCommit && endLineText == string.Empty)
+            if (_indentCaretOnCommit && endLineText == string.Empty)
             {
-                TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(TextView.TextSnapshot.GetPoint(endLinePosition), indentDepth));
+                TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(TextView.TextSnapshot.GetPoint(endLinePosition), _indentDepth));
             }
         }
 
@@ -864,7 +864,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             if (ExpansionSession == null)
             {
-                earlyEndExpansionHappened = true;
+                _earlyEndExpansionHappened = true;
             }
 
             // This call to EndExpansion may be a reentrant call to the client within a call to InsertSpecificExpansion
@@ -875,7 +875,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             _state.ClearActiveSession();
             _state.ClearSymbolInformationUnlessPreserved();
 
-            indentCaretOnCommit = false;
+            _indentCaretOnCommit = false;
 
             return VSConstants.S_OK;
         }
@@ -929,21 +929,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 textSpan.iEndIndex = textSpan.iStartIndex;
 
                 var expansion = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer) as IVsExpansion;
-                earlyEndExpansionHappened = false;
+                _earlyEndExpansionHappened = false;
 
                 // This expansion was chosen from the snippet picker, and not derived from a symbol. Make sure the state
                 // isn't tracking any symbol information.
                 _state.ClearSymbolInformation();
                 hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out _state._expansionSession);
 
-                if (earlyEndExpansionHappened)
+                if (_earlyEndExpansionHappened)
                 {
                     // EndExpansion was called before InsertNamedExpansion returned, so set
                     // expansionSession to null to indicate that there is no active expansion
                     // session. This can occur when the snippet inserted doesn't have any expansion
                     // fields.
                     _state._expansionSession = null;
-                    earlyEndExpansionHappened = false;
+                    _earlyEndExpansionHappened = false;
                 }
             }
             catch (COMException ex)
