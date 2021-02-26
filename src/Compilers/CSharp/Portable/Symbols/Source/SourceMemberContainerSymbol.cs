@@ -1503,13 +1503,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (member is FieldSymbol && this.IsTupleType)
-            {
-                Debug.Assert(forDiagnostics);
-                return; // There are dangling tuple elements, probably related to https://github.com/dotnet/roslyn/issues/43597
-                        // and will be addressed by a pending PR https://github.com/dotnet/roslyn/pull/44231.
-            }
-
             Debug.Assert(false, "Premature symbol exposure.");
         }
 
