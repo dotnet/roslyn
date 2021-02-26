@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagSliceEvaluation e:
                                     addTemp(e, e.SliceMethod is null ? inputType : e.SliceMethod.ReturnType);
                                     break;
-                                case BoundDagArrayEvaluation e:
+                                case BoundDagArrayIndexEvaluation e:
                                     addTemp(e, ((ArrayTypeSymbol)inputType).ElementType);
                                     break;
                                 case BoundDagArrayLengthEvaluation e:
@@ -407,8 +407,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                     break;
                                 case BoundDagIncrementEvaluation:
-                                case BoundDagGotoEvaluation:
-                                case BoundDagGotoTargetEvaluation:
                                     break;
 
                                 default:
@@ -428,7 +426,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Split();
                             switch (test)
                             {
-                                case BoundDagTypeTest t:
+                                case BoundDagIterationTest:
+                                case BoundDagTypeTest:
                                     if (inputSlot > 0)
                                     {
                                         learnFromNonNullTest(inputSlot, ref this.StateWhenTrue);

@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -243,7 +242,7 @@ public class X
 
         [Theory]
         [CombinatorialData]
-        public void ListPattern_Trailing(
+        public void ListPattern_Trailing_01(
             [CombinatorialValues(
                 "System.Collections.Generic.IEnumerable<int>",
                 "int[]"
@@ -272,6 +271,122 @@ static int Match(TYPE array) => array switch
             compilation.VerifyDiagnostics();
             string expectedOutput = @"12340";
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ListPattern_Trailing_02(
+            [CombinatorialValues(-1,1,0)] int tryCountReturns,
+            [CombinatorialValues(
+                "System.Collections.Generic.IEnumerable<int>",
+                "int[]"
+            )]
+            string type)
+        {
+            var source = @"
+using System;
+
+Console.Write(Match1(new int[]{}));    
+Console.Write(Match1(new[]{0}));
+Console.Write(Match1(new[]{1}));
+Console.Write(Match1(new[]{0,3}));
+Console.Write(Match1(new[]{0,4}));
+Console.Write(Match1(new[]{1,3}));
+Console.Write(Match1(new[]{1,4}));
+Console.Write(Match1(new[]{1,4,3}));
+Console.Write(Match1(new[]{0,3,4}));
+
+Console.Write(Match2(new int[]{}));    
+Console.Write(Match2(new[]{0}));
+Console.Write(Match2(new[]{1}));
+Console.Write(Match2(new[]{0,3}));
+Console.Write(Match2(new[]{0,4}));
+Console.Write(Match2(new[]{1,3}));
+Console.Write(Match2(new[]{1,4}));
+Console.Write(Match2(new[]{1,4,3}));
+Console.Write(Match2(new[]{0,3,4}));
+
+static int Match1(TYPE array) => array switch
+{
+    { 1 ,.., 4 } => 2,
+    { 0 ,.., 3 } => 1,
+    _ => 0
+};
+static int Match2(TYPE array) => array switch
+{
+    { 0 ,.., 3 } => 1,
+    { 1 ,.., 4 } => 2,
+    _ => 0
+};
+".Replace("TYPE", type) + BufferSource + (tryCountReturns == -1 ? null : tryCountReturns == 1 ? TryGetCountSource_ReturnsTrue : TryGetCountSource_ReturnsFalse);
+            var compilation = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            string expectedOutput = @"000100200000100200";
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ListPattern_Trailing_03(
+            [CombinatorialValues(-1,1,0)] int tryCountReturns,
+            [CombinatorialValues(
+                "System.Collections.Generic.IEnumerable<int>",
+                "int[]"
+            )]
+            string type)
+        {
+            var source = @"
+using System;
+
+Console.Write(Match1(new[]{0,1,2,3}));    
+Console.Write(Match1(new[]{0,1,2,3,1,2,3}));
+Console.Write(Match2(new[]{0,1,2,3}));    
+Console.Write(Match2(new[]{0,1,2,3,1,2,3}));
+
+Console.Write(Match1(new[]{0,1,2,3,4}));    
+Console.Write(Match1(new[]{0,1,2,3,1,2,3,4}));
+Console.Write(Match2(new[]{0,1,2,3,4}));    
+Console.Write(Match2(new[]{0,1,2,3,1,2,3,4}));
+static int Match1(TYPE array) => array switch
+{
+    { 0,.., 1, 2, 3, 4 } => 2,
+    { 0,..,    1, 2, 3 } => 1,
+    
+    _ => 0
+};
+static int Match2(TYPE array) => array switch
+{
+    { 0,.., 1, 2, 3 } => 1, 
+    { 0,.., 1, 2, 3, 4 } => 2,
+    _ => 0
+};
+".Replace("TYPE", type) + BufferSource + (tryCountReturns == -1 ? null : tryCountReturns == 1 ? TryGetCountSource_ReturnsTrue : TryGetCountSource_ReturnsFalse);
+            var compilation = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            string expectedOutput = @"11112222";
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ListPattern_Trailing_04(
+            [CombinatorialValues(-1,1,0)] int tryCountReturns)
+        {
+            var source = @"
+_ = Match1(null);
+static int Match1(System.Collections.Generic.IEnumerable<int> array) => array switch
+{
+    { .., 1, 2 } => 2,
+    { 1, 2, .. } => 1,
+    _ => 0
+};
+" + BufferSource + (tryCountReturns == -1 ? null : tryCountReturns == 1 ? TryGetCountSource_ReturnsTrue : TryGetCountSource_ReturnsFalse);;
+            var compilation = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { 1, 2, .. } => 1,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ 1, 2, .. }").WithLocation(6, 5)
+                );
         }
 
         [Fact]

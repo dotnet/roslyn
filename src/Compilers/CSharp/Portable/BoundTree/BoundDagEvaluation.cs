@@ -32,11 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagEnumeratorEvaluation e => e.EnumeratorInfo.GetEnumeratorInfo.Method,
                     BoundDagIndexEvaluation e => e.Property,
                     BoundDagSliceEvaluation e => e.SliceMethod,
-                    BoundDagArrayEvaluation or
+                    BoundDagArrayIndexEvaluation or
                     BoundDagArrayLengthEvaluation or
-                    BoundDagIncrementEvaluation or
-                    BoundDagGotoEvaluation => null,
-                    BoundDagGotoTargetEvaluation => null,
+                    BoundDagIncrementEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
             }
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundDagArrayEvaluation
+    partial class BoundDagArrayIndexEvaluation
     {
         public override int GetHashCode() => base.GetHashCode() ^ Hash.CombineValues(this.Indices);
         public override bool Equals(BoundDagEvaluation obj)
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this == obj ||
                 base.Equals(obj) &&
                 // base.Equals checks the kind field, so the following cast is safe
-                this.Indices.SequenceEqual(((BoundDagArrayEvaluation)obj).Indices);
+                this.Indices.SequenceEqual(((BoundDagArrayIndexEvaluation)obj).Indices);
         }
     }
 
@@ -118,30 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                base.Equals(obj) &&
                // base.Equals checks the kind field, so the following cast is safe
                this.Index == ((BoundDagIncrementEvaluation)obj).Index;
-        }
-    }
-
-    partial class BoundDagGotoTargetEvaluation
-    {
-        public override int GetHashCode() => base.GetHashCode() ^ Hash.CombineValues(this.LeadingPatterns);
-        public override bool Equals(BoundDagEvaluation obj)
-        {
-            return this == obj ||
-               base.Equals(obj) &&
-               // base.Equals checks the kind field, so the following cast is safe
-               this.LeadingPatterns.SequenceEqual(((BoundDagGotoTargetEvaluation)obj).LeadingPatterns);
-        }
-    }
-
-    partial class BoundDagGotoEvaluation
-    {
-        public override int GetHashCode() => base.GetHashCode() ^ this.Target.GetHashCode();
-        public override bool Equals(BoundDagEvaluation obj)
-        {
-            return this == obj ||
-               base.Equals(obj) &&
-               // base.Equals checks the kind field, so the following cast is safe
-               this.Target.Equals(((BoundDagGotoEvaluation)obj).Target);
         }
     }
 

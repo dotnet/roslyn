@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return _factory.AssignmentExpression(output, access);
                         }
 
-                    case BoundDagArrayEvaluation e:
+                    case BoundDagArrayIndexEvaluation e:
                         {
                             Debug.Assert(input.Type is ArrayTypeSymbol);
                             Debug.Assert(e.Indices.Length == e.LengthTemps.Length);

@@ -145,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagExplicitNullTest,
         DagValueTest,
         DagRelationalTest,
+        DagIterationTest,
         DagDeconstructEvaluation,
         DagTypeEvaluation,
         DagFieldEvaluation,
@@ -156,8 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagMethodEvaluation,
         DagEnumeratorEvaluation,
         DagIncrementEvaluation,
-        DagGotoTargetEvaluation,
-        DagGotoEvaluation,
         SwitchSection,
         SwitchLabel,
         SequencePointExpression,
@@ -4976,6 +4975,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundDagIterationTest : BoundDagTest
+    {
+        public BoundDagIterationTest(SyntaxNode syntax, MethodSymbol moveNextMethod, MethodSymbol? pushMethod, BoundDagTemp bufferTemp, BoundDagTemp countTemp, int maxLength, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagIterationTest, syntax, input, hasErrors || bufferTemp.HasErrors() || countTemp.HasErrors() || input.HasErrors())
+        {
+
+            RoslynDebug.Assert(moveNextMethod is object, "Field 'moveNextMethod' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(bufferTemp is object, "Field 'bufferTemp' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(countTemp is object, "Field 'countTemp' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.MoveNextMethod = moveNextMethod;
+            this.PushMethod = pushMethod;
+            this.BufferTemp = bufferTemp;
+            this.CountTemp = countTemp;
+            this.MaxLength = maxLength;
+        }
+
+
+        public MethodSymbol MoveNextMethod { get; }
+
+        public MethodSymbol? PushMethod { get; }
+
+        public BoundDagTemp BufferTemp { get; }
+
+        public BoundDagTemp CountTemp { get; }
+
+        public int MaxLength { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagIterationTest(this);
+
+        public BoundDagIterationTest Update(MethodSymbol moveNextMethod, MethodSymbol? pushMethod, BoundDagTemp bufferTemp, BoundDagTemp countTemp, int maxLength, BoundDagTemp input)
+        {
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(moveNextMethod, this.MoveNextMethod) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(pushMethod, this.PushMethod) || bufferTemp != this.BufferTemp || countTemp != this.CountTemp || maxLength != this.MaxLength || input != this.Input)
+            {
+                var result = new BoundDagIterationTest(this.Syntax, moveNextMethod, pushMethod, bufferTemp, countTemp, maxLength, input, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal abstract partial class BoundDagEvaluation : BoundDagTest
     {
         protected BoundDagEvaluation(BoundKind kind, SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
@@ -5142,9 +5184,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundDagArrayEvaluation : BoundDagEvaluation
+    internal sealed partial class BoundDagArrayIndexEvaluation : BoundDagEvaluation
     {
-        public BoundDagArrayEvaluation(SyntaxNode syntax, ImmutableArray<BoundDagTemp> lengthTemps, ImmutableArray<int> indices, BoundDagTemp input, bool hasErrors = false)
+        public BoundDagArrayIndexEvaluation(SyntaxNode syntax, ImmutableArray<BoundDagTemp> lengthTemps, ImmutableArray<int> indices, BoundDagTemp input, bool hasErrors = false)
             : base(BoundKind.DagArrayEvaluation, syntax, input, hasErrors || lengthTemps.HasErrors() || input.HasErrors())
         {
 
@@ -5163,11 +5205,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagArrayEvaluation(this);
 
-        public BoundDagArrayEvaluation Update(ImmutableArray<BoundDagTemp> lengthTemps, ImmutableArray<int> indices, BoundDagTemp input)
+        public BoundDagArrayIndexEvaluation Update(ImmutableArray<BoundDagTemp> lengthTemps, ImmutableArray<int> indices, BoundDagTemp input)
         {
             if (lengthTemps != this.LengthTemps || indices != this.Indices || input != this.Input)
             {
-                var result = new BoundDagArrayEvaluation(this.Syntax, lengthTemps, indices, input, this.HasErrors);
+                var result = new BoundDagArrayIndexEvaluation(this.Syntax, lengthTemps, indices, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5322,64 +5364,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (index != this.Index || input != this.Input)
             {
                 var result = new BoundDagIncrementEvaluation(this.Syntax, index, input, this.HasErrors);
-                result.CopyAttributes(this);
-                return result;
-            }
-            return this;
-        }
-    }
-
-    internal sealed partial class BoundDagGotoTargetEvaluation : BoundDagEvaluation
-    {
-        public BoundDagGotoTargetEvaluation(SyntaxNode syntax, ImmutableArray<BoundPattern> leadingPatterns, BoundDagTemp input, bool hasErrors = false)
-            : base(BoundKind.DagGotoTargetEvaluation, syntax, input, hasErrors || leadingPatterns.HasErrors() || input.HasErrors())
-        {
-
-            RoslynDebug.Assert(!leadingPatterns.IsDefault, "Field 'leadingPatterns' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
-            this.LeadingPatterns = leadingPatterns;
-        }
-
-
-        public ImmutableArray<BoundPattern> LeadingPatterns { get; }
-        [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagGotoTargetEvaluation(this);
-
-        public BoundDagGotoTargetEvaluation Update(ImmutableArray<BoundPattern> leadingPatterns, BoundDagTemp input)
-        {
-            if (leadingPatterns != this.LeadingPatterns || input != this.Input)
-            {
-                var result = new BoundDagGotoTargetEvaluation(this.Syntax, leadingPatterns, input, this.HasErrors);
-                result.CopyAttributes(this);
-                return result;
-            }
-            return this;
-        }
-    }
-
-    internal sealed partial class BoundDagGotoEvaluation : BoundDagEvaluation
-    {
-        public BoundDagGotoEvaluation(SyntaxNode syntax, BoundDagGotoTargetEvaluation target, BoundDagTemp input, bool hasErrors = false)
-            : base(BoundKind.DagGotoEvaluation, syntax, input, hasErrors || target.HasErrors() || input.HasErrors())
-        {
-
-            RoslynDebug.Assert(target is object, "Field 'target' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
-
-            this.Target = target;
-        }
-
-
-        public BoundDagGotoTargetEvaluation Target { get; }
-        [DebuggerStepThrough]
-        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagGotoEvaluation(this);
-
-        public BoundDagGotoEvaluation Update(BoundDagGotoTargetEvaluation target, BoundDagTemp input)
-        {
-            if (target != this.Target || input != this.Input)
-            {
-                var result = new BoundDagGotoEvaluation(this.Syntax, target, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8618,6 +8602,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagValueTest((BoundDagValueTest)node, arg);
                 case BoundKind.DagRelationalTest:
                     return VisitDagRelationalTest((BoundDagRelationalTest)node, arg);
+                case BoundKind.DagIterationTest:
+                    return VisitDagIterationTest((BoundDagIterationTest)node, arg);
                 case BoundKind.DagDeconstructEvaluation:
                     return VisitDagDeconstructEvaluation((BoundDagDeconstructEvaluation)node, arg);
                 case BoundKind.DagTypeEvaluation:
@@ -8629,7 +8615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DagIndexEvaluation:
                     return VisitDagIndexEvaluation((BoundDagIndexEvaluation)node, arg);
                 case BoundKind.DagArrayEvaluation:
-                    return VisitDagArrayEvaluation((BoundDagArrayEvaluation)node, arg);
+                    return VisitDagArrayEvaluation((BoundDagArrayIndexEvaluation)node, arg);
                 case BoundKind.DagArrayLengthEvaluation:
                     return VisitDagArrayLengthEvaluation((BoundDagArrayLengthEvaluation)node, arg);
                 case BoundKind.DagSliceEvaluation:
@@ -8640,10 +8626,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagEnumeratorEvaluation((BoundDagEnumeratorEvaluation)node, arg);
                 case BoundKind.DagIncrementEvaluation:
                     return VisitDagIncrementEvaluation((BoundDagIncrementEvaluation)node, arg);
-                case BoundKind.DagGotoTargetEvaluation:
-                    return VisitDagGotoTargetEvaluation((BoundDagGotoTargetEvaluation)node, arg);
-                case BoundKind.DagGotoEvaluation:
-                    return VisitDagGotoEvaluation((BoundDagGotoEvaluation)node, arg);
                 case BoundKind.SwitchSection:
                     return VisitSwitchSection((BoundSwitchSection)node, arg);
                 case BoundKind.SwitchLabel:
@@ -8927,19 +8909,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitDagExplicitNullTest(BoundDagExplicitNullTest node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagValueTest(BoundDagValueTest node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagRelationalTest(BoundDagRelationalTest node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDagIterationTest(BoundDagIterationTest node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagTypeEvaluation(BoundDagTypeEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagFieldEvaluation(BoundDagFieldEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagIndexEvaluation(BoundDagIndexEvaluation node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitDagArrayEvaluation(BoundDagArrayEvaluation node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDagArrayEvaluation(BoundDagArrayIndexEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagArrayLengthEvaluation(BoundDagArrayLengthEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagSliceEvaluation(BoundDagSliceEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagMethodEvaluation(BoundDagMethodEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagEnumeratorEvaluation(BoundDagEnumeratorEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagIncrementEvaluation(BoundDagIncrementEvaluation node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitDagGotoTargetEvaluation(BoundDagGotoTargetEvaluation node, A arg) => this.DefaultVisit(node, arg);
-        public virtual R VisitDagGotoEvaluation(BoundDagGotoEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchSection(BoundSwitchSection node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchLabel(BoundSwitchLabel node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSequencePointExpression(BoundSequencePointExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -9144,19 +9125,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitDagExplicitNullTest(BoundDagExplicitNullTest node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagValueTest(BoundDagValueTest node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagRelationalTest(BoundDagRelationalTest node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDagIterationTest(BoundDagIterationTest node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagTypeEvaluation(BoundDagTypeEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagFieldEvaluation(BoundDagFieldEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagPropertyEvaluation(BoundDagPropertyEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagIndexEvaluation(BoundDagIndexEvaluation node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitDagArrayEvaluation(BoundDagArrayEvaluation node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDagArrayEvaluation(BoundDagArrayIndexEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagArrayLengthEvaluation(BoundDagArrayLengthEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagSliceEvaluation(BoundDagSliceEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagMethodEvaluation(BoundDagMethodEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagEnumeratorEvaluation(BoundDagEnumeratorEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagIncrementEvaluation(BoundDagIncrementEvaluation node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitDagGotoTargetEvaluation(BoundDagGotoTargetEvaluation node) => this.DefaultVisit(node);
-        public virtual BoundNode? VisitDagGotoEvaluation(BoundDagGotoEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchSection(BoundSwitchSection node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchLabel(BoundSwitchLabel node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSequencePointExpression(BoundSequencePointExpression node) => this.DefaultVisit(node);
@@ -9769,6 +9749,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Input);
             return null;
         }
+        public override BoundNode? VisitDagIterationTest(BoundDagIterationTest node)
+        {
+            this.Visit(node.BufferTemp);
+            this.Visit(node.CountTemp);
+            this.Visit(node.Input);
+            return null;
+        }
         public override BoundNode? VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node)
         {
             this.Visit(node.Input);
@@ -9795,7 +9782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Input);
             return null;
         }
-        public override BoundNode? VisitDagArrayEvaluation(BoundDagArrayEvaluation node)
+        public override BoundNode? VisitDagArrayEvaluation(BoundDagArrayIndexEvaluation node)
         {
             this.VisitList(node.LengthTemps);
             this.Visit(node.Input);
@@ -9824,18 +9811,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitDagIncrementEvaluation(BoundDagIncrementEvaluation node)
         {
-            this.Visit(node.Input);
-            return null;
-        }
-        public override BoundNode? VisitDagGotoTargetEvaluation(BoundDagGotoTargetEvaluation node)
-        {
-            this.VisitList(node.LeadingPatterns);
-            this.Visit(node.Input);
-            return null;
-        }
-        public override BoundNode? VisitDagGotoEvaluation(BoundDagGotoEvaluation node)
-        {
-            this.Visit(node.Target);
             this.Visit(node.Input);
             return null;
         }
@@ -10921,6 +10896,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             return node.Update(node.OperatorKind, node.Value, input);
         }
+        public override BoundNode? VisitDagIterationTest(BoundDagIterationTest node)
+        {
+            BoundDagTemp bufferTemp = (BoundDagTemp)this.Visit(node.BufferTemp);
+            BoundDagTemp countTemp = (BoundDagTemp)this.Visit(node.CountTemp);
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            return node.Update(node.MoveNextMethod, node.PushMethod, bufferTemp, countTemp, node.MaxLength, input);
+        }
         public override BoundNode? VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
@@ -10948,7 +10930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             return node.Update(node.Property, lengthTemp, node.Index, input);
         }
-        public override BoundNode? VisitDagArrayEvaluation(BoundDagArrayEvaluation node)
+        public override BoundNode? VisitDagArrayEvaluation(BoundDagArrayIndexEvaluation node)
         {
             ImmutableArray<BoundDagTemp> lengthTemps = this.VisitList(node.LengthTemps);
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
@@ -10979,18 +10961,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             return node.Update(node.Index, input);
-        }
-        public override BoundNode? VisitDagGotoTargetEvaluation(BoundDagGotoTargetEvaluation node)
-        {
-            ImmutableArray<BoundPattern> leadingPatterns = this.VisitList(node.LeadingPatterns);
-            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(leadingPatterns, input);
-        }
-        public override BoundNode? VisitDagGotoEvaluation(BoundDagGotoEvaluation node)
-        {
-            BoundDagGotoTargetEvaluation target = (BoundDagGotoTargetEvaluation)this.Visit(node.Target);
-            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
-            return node.Update(target, input);
         }
         public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
         {
@@ -12726,6 +12696,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 updatedNode = node.Update(naturalTypeOpt, node.WasTargetTyped, node.Conversion, expression, switchArms, decisionDag, node.DefaultLabel, node.ReportedNotExhaustive, node.Type);
             }
             return updatedNode;
+        }
+
+        public override BoundNode? VisitDagIterationTest(BoundDagIterationTest node)
+        {
+            MethodSymbol moveNextMethod = GetUpdatedSymbol(node, node.MoveNextMethod);
+            MethodSymbol? pushMethod = GetUpdatedSymbol(node, node.PushMethod);
+            BoundDagTemp bufferTemp = (BoundDagTemp)this.Visit(node.BufferTemp);
+            BoundDagTemp countTemp = (BoundDagTemp)this.Visit(node.CountTemp);
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            return node.Update(moveNextMethod, pushMethod, bufferTemp, countTemp, node.MaxLength, input);
         }
 
         public override BoundNode? VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node)
@@ -14997,6 +14977,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
+        public override TreeDumperNode VisitDagIterationTest(BoundDagIterationTest node, object? arg) => new TreeDumperNode("dagIterationTest", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("moveNextMethod", node.MoveNextMethod, null),
+            new TreeDumperNode("pushMethod", node.PushMethod, null),
+            new TreeDumperNode("bufferTemp", null, new TreeDumperNode[] { Visit(node.BufferTemp, null) }),
+            new TreeDumperNode("countTemp", null, new TreeDumperNode[] { Visit(node.CountTemp, null) }),
+            new TreeDumperNode("maxLength", node.MaxLength, null),
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
         public override TreeDumperNode VisitDagDeconstructEvaluation(BoundDagDeconstructEvaluation node, object? arg) => new TreeDumperNode("dagDeconstructEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("deconstructMethod", node.DeconstructMethod, null),
@@ -15035,7 +15026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
-        public override TreeDumperNode VisitDagArrayEvaluation(BoundDagArrayEvaluation node, object? arg) => new TreeDumperNode("dagArrayEvaluation", null, new TreeDumperNode[]
+        public override TreeDumperNode VisitDagArrayEvaluation(BoundDagArrayIndexEvaluation node, object? arg) => new TreeDumperNode("dagArrayEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("lengthTemps", null, from x in node.LengthTemps select Visit(x, null)),
             new TreeDumperNode("indices", node.Indices, null),
@@ -15078,20 +15069,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDagIncrementEvaluation(BoundDagIncrementEvaluation node, object? arg) => new TreeDumperNode("dagIncrementEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("index", node.Index, null),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
-            new TreeDumperNode("hasErrors", node.HasErrors, null)
-        }
-        );
-        public override TreeDumperNode VisitDagGotoTargetEvaluation(BoundDagGotoTargetEvaluation node, object? arg) => new TreeDumperNode("dagGotoTargetEvaluation", null, new TreeDumperNode[]
-        {
-            new TreeDumperNode("leadingPatterns", null, from x in node.LeadingPatterns select Visit(x, null)),
-            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
-            new TreeDumperNode("hasErrors", node.HasErrors, null)
-        }
-        );
-        public override TreeDumperNode VisitDagGotoEvaluation(BoundDagGotoEvaluation node, object? arg) => new TreeDumperNode("dagGotoEvaluation", null, new TreeDumperNode[]
-        {
-            new TreeDumperNode("target", null, new TreeDumperNode[] { Visit(node.Target, null) }),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

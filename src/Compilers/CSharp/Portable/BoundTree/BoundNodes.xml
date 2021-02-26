@@ -1405,6 +1405,13 @@
     <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
+  <Node Name="BoundDagIterationTest" Base="BoundDagTest">
+    <Field Name="MoveNextMethod" Type="MethodSymbol"/>
+    <Field Name="PushMethod" Type="MethodSymbol?"/>
+    <Field Name="BufferTemp" Type="BoundDagTemp"/>
+    <Field Name="CountTemp" Type="BoundDagTemp"/>
+    <Field Name="MaxLength" Type="int"/>
+  </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
   <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
   </AbstractNode>
@@ -1428,7 +1435,7 @@
     <Field Name="LengthTemp" Type="BoundDagTemp"/>
     <Field Name="Index" Type="int"/>
   </Node>
-  <Node Name="BoundDagArrayEvaluation" Base="BoundDagEvaluation">
+  <Node Name="BoundDagArrayIndexEvaluation" Base="BoundDagEvaluation">
     <Field Name="LengthTemps" Type="ImmutableArray&lt;BoundDagTemp&gt;"/>
     <Field Name="Indices" Type="ImmutableArray&lt;int&gt;"/>
   </Node>
@@ -1452,12 +1459,6 @@
   </Node>
   <Node Name="BoundDagIncrementEvaluation" Base="BoundDagEvaluation">
     <Field Name="Index" Type="int"/>
-  </Node>
-  <Node Name="BoundDagGotoTargetEvaluation" Base="BoundDagEvaluation">
-    <Field Name="LeadingPatterns" Type="ImmutableArray&lt;BoundPattern&gt;"/>
-  </Node>
-  <Node Name="BoundDagGotoEvaluation" Base="BoundDagEvaluation">
-    <Field Name="Target" Type="BoundDagGotoTargetEvaluation"/>
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">

@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             private PooledDictionary<int, BoundDagEnumeratorEvaluation> _enumeratorEvaluations;
 
             /// <summary>
-            /// Labels for <see cref="BoundDagGotoEvaluation"/> to jump to.
-            /// </summary>
-            private PooledDictionary<BoundDagGotoTargetEvaluation, LabelSymbol> _targetLabels;
-
-            /// <summary>
             /// The label in the code for the beginning of code for each node of the dag.
             /// </summary>
             private readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
@@ -79,10 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         case BoundEvaluationDecisionDagNode e:
                             notePredecessor(e.Next);
-                            if (e.Evaluation is BoundDagGotoTargetEvaluation target)
-                            {
-                                (_targetLabels ??= PooledDictionary<BoundDagGotoTargetEvaluation, LabelSymbol>.GetInstance()).TryAdd(target, GetDagNodeLabel(e));
-                            }
                             break;
                         case BoundTestDecisionDagNode p:
                             notePredecessor(p.WhenTrue);
@@ -108,7 +99,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected new void Free()
             {
                 _dagNodeLabels.Free();
-                _targetLabels?.Free();
                 base.Free();
             }
 
@@ -603,6 +593,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            private void GenerateIterationTest(BoundDagIterationTest test, BoundDecisionDagNode whenTrue, BoundDecisionDagNode whenFalse, BoundDecisionDagNode nextNode)
+            {
+                _factory.Syntax = test.Syntax;
+                Debug.Assert(test != null);
+
+                var enumeratorTemp = test.Input;
+                var enumerator = _tempAllocator.GetTemp(test.Input);
+                Debug.Assert(enumeratorTemp.Source != null);
+                var info = ((BoundDagEnumeratorEvaluation)enumeratorTemp.Source).EnumeratorInfo;
+
+                BoundExpression moveNextCall = _factory.Call(enumerator, info.MoveNextInfo.Method);
+                BoundExpression pushCall = test.PushMethod is not null
+                    ? _factory.Call(_tempAllocator.GetTemp(test.BufferTemp),
+                        test.PushMethod, _factory.Call(enumerator, info.CurrentPropertyGetter))
+                    : null;
+                BoundExpression maxLengthTest = test.MaxLength != int.MaxValue
+                    ? _factory.Binary(BinaryOperatorKind.IntGreaterThanOrEqual, _factory.SpecialType(SpecialType.System_Int32),
+                        _factory.Literal(test.MaxLength), _tempAllocator.GetTemp(test.CountTemp))
+                    : null;
+                BoundExpression increment = _factory.IntIncrement(_tempAllocator.GetTemp(test.CountTemp));
+
+                /*
+                 * start:
+                 *  if (!(count <= maxLength))
+                 *    goto whenFalse;
+                 *  if (!moveNext)
+                 *    goto whenTrue;
+                 *  pushCall;
+                 *  count++;
+                 *  goto start;
+                 */
+
+                var startLabel = _factory.GenerateLabel("start");
+                _loweredDecisionDag.Add(_factory.Label(startLabel));
+                if (maxLengthTest is not null)
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(maxLengthTest, GetDagNodeLabel(whenFalse), jumpIfTrue: false));
+                _loweredDecisionDag.Add(_factory.ConditionalGoto(moveNextCall, GetDagNodeLabel(whenTrue), jumpIfTrue: false));
+                if (pushCall is not null)
+                    _loweredDecisionDag.Add(_factory.ExpressionStatement(pushCall));
+                _loweredDecisionDag.Add(_factory.ExpressionStatement(increment));
+                _loweredDecisionDag.Add(_factory.Goto(startLabel));
+            }
+
             private void GenerateTest(BoundExpression test, BoundDecisionDagNode whenTrue, BoundDecisionDagNode whenFalse, BoundDecisionDagNode nextNode)
             {
                 // Because we have already "optimized" away tests for a constant switch expression, the test should be nontrivial.
@@ -1071,13 +1104,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             switch (evaluation)
                             {
-                                case BoundDagGotoTargetEvaluation:
                                 case BoundDagMethodEvaluation { Method: null }:
                                     // This is a missing or otherwise inapplicable TryGetNonEnumeratedCount
-                                    break;
-
-                                case BoundDagGotoEvaluation e:
-                                    _loweredDecisionDag.Add(_factory.Goto(_targetLabels[e.Target]));
                                     break;
 
                                 case BoundDagEnumeratorEvaluation { NeedsDisposal: true } e:
@@ -1102,6 +1130,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // We only need a goto if we would not otherwise fall through to the desired state
                                 _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(evaluationNode.Next)));
                             }
+                        }
+
+                        break;
+
+                    case BoundTestDecisionDagNode { Test: BoundDagIterationTest iter } testNode:
+                        {
+                            GenerateIterationTest(iter, testNode.WhenTrue, testNode.WhenFalse, nextNode);
                         }
 
                         break;

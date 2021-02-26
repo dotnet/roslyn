@@ -67,11 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundLeafDecisionDagNode n:
                             return n.Label == whenTrueLabel;
                         case BoundEvaluationDecisionDagNode e:
-                            if (RequiresNonLinearLowering(e.Evaluation))
+                            if (e.Evaluation is BoundDagEnumeratorEvaluation { NeedsDisposal: true })
                                 return false;
                             node = e.Next;
                             break;
                         case BoundTestDecisionDagNode t:
+                            if (t.Test is BoundDagIterationTest)
+                                return false;
                             bool falseFail = IsFailureNode(t.WhenFalse, whenFalseLabel);
                             if (falseFail == IsFailureNode(t.WhenTrue, whenFalseLabel))
                                 return false;
@@ -82,11 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-        }
-
-        private static bool RequiresNonLinearLowering(BoundDagEvaluation e)
-        {
-            return e is BoundDagGotoEvaluation or BoundDagEnumeratorEvaluation { NeedsDisposal: true };
         }
 
         /// <summary>
@@ -203,7 +200,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return;
                     case BoundDagEvaluation eval:
                         {
-                            Debug.Assert(!RequiresNonLinearLowering(eval));
                             var sideEffect = LowerEvaluation(eval);
                             _sideEffectBuilder.Add(sideEffect);
                             return;
