@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     : (TupleErrorFieldSymbol)RetargetingTranslator.Retarget(correspondingTupleField);
 
                 return new TupleErrorFieldSymbol(
-                    RetargetingTranslator.Retarget(tupleErrorField.ContainingType, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
+                    RetargetingTranslator.Retarget(tupleErrorField.ContainingType, RetargetOptions.RetargetPrimitiveTypesByName),
                     tupleErrorField.Name,
                     tupleErrorField.TupleElementIndex,
                     tupleErrorField.Locations.IsEmpty ? null : tupleErrorField.Locations[0],
-                    this.RetargetingTranslator.Retarget(tupleErrorField.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
+                    this.RetargetingTranslator.Retarget(tupleErrorField.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByName),
                     tupleErrorField.GetUseSiteDiagnostic(),
                     tupleErrorField.IsImplicitlyDeclared,
                     retargetedCorrespondingDefaultFieldOpt);
