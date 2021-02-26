@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // construct the alias sym with the binder for which we are building imports. That
                             // way the alias target can make use of extern alias definitions.
-                            usingAliases.Add(identifierValueText, new AliasAndUsingDirective(new AliasSymbol(usingsBinder, usingDirective.Name, usingDirective.Alias), usingDirective));
+                            usingAliases.Add(identifierValueText, new AliasAndUsingDirective(new AliasSymbolFromSyntax(usingsBinder, usingDirective.Name, usingDirective.Alias), usingDirective));
                         }
                     }
                     else
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_GlobalExternAlias, aliasSyntax.Identifier.GetLocation());
                 }
 
-                builder.Add(new AliasAndExternAliasDirective(new AliasSymbol(binder, aliasSyntax), aliasSyntax));
+                builder.Add(new AliasAndExternAliasDirective(new AliasSymbolFromSyntax(binder, aliasSyntax), aliasSyntax));
             }
 
             return builder.ToImmutableAndFree();
@@ -592,7 +592,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamespaceOrTypeSymbol target = alias.Alias.GetAliasTarget(basesBeingResolved: null);
 
                 diagnostics.Clear();
-                diagnostics.AddRange(alias.Alias.AliasTargetDiagnostics);
+                if (alias.Alias is AliasSymbolFromSyntax aliasFromSyntax)
+                {
+                    diagnostics.AddRange(aliasFromSyntax.AliasTargetDiagnostics);
+                }
 
                 alias.Alias.CheckConstraints(diagnostics);
 
@@ -628,7 +631,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var target = (NamespaceSymbol)alias.Alias.GetAliasTarget(null);
                 Debug.Assert(target.IsGlobalNamespace);
 
-                semanticDiagnostics.AddRange(alias.Alias.AliasTargetDiagnostics.DiagnosticBag);
+                if (alias.Alias is AliasSymbolFromSyntax aliasFromSyntax)
+                {
+                    semanticDiagnostics.AddRange(aliasFromSyntax.AliasTargetDiagnostics.DiagnosticBag);
+                }
 
                 if (!Compilation.ReportUnusedImportsInTree(alias.ExternAliasDirective.SyntaxTree))
                 {

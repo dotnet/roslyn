@@ -58,18 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override AssemblySymbol ContainingAssembly
             => _module.ContainingAssembly;
 
-        internal IEnumerable<Imports> GetBoundImportsMerged()
-        {
-            var compilation = this.DeclaringCompilation;
-            foreach (var declaration in _mergedDeclaration.Declarations)
-            {
-                if (declaration.HasUsings || declaration.HasExternAliases)
-                {
-                    yield return compilation.GetImports(declaration);
-                }
-            }
-        }
-
         public override string Name
             => _mergedDeclaration.Name;
 
