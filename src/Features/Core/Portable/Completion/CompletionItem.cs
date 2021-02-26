@@ -86,7 +86,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Returns true if this item's text edit requires complex resolution that
-        /// may impact performance.
+        /// may impact performance. For example, an edit may be complex if it needs
+        /// to format or type check the resulting code, or make complex non-local
+        /// changes to other parts of the file.
         /// </summary>
         public bool IsComplexTextEdit { get; }
 
@@ -262,9 +264,9 @@ namespace Microsoft.CodeAnalysis.Completion
             var newProperties = properties.HasValue ? properties.Value : Properties;
             var newTags = tags.HasValue ? tags.Value : Tags;
             var newRules = rules.HasValue ? rules.Value : Rules;
-            var newIsComplexTextEdit = isComplexTextEdit.HasValue ? isComplexTextEdit.Value : IsComplexTextEdit;
             var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : DisplayTextPrefix;
             var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : DisplayTextSuffix;
+            var newIsComplexTextEdit = isComplexTextEdit.HasValue ? isComplexTextEdit.Value : IsComplexTextEdit;
 
             if (newSpan == Span &&
                 newDisplayText == DisplayText &&
