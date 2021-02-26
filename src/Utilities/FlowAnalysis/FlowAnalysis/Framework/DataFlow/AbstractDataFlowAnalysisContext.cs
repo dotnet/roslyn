@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         : CacheBasedEquatable<TAnalysisContext>, IDataFlowAnalysisContext
         where TAnalysisContext : class, IDataFlowAnalysisContext
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
+        where TAnalysisData : AbstractAnalysisData
     {
         protected AbstractDataFlowAnalysisContext(
             AbstractValueDomain<TAbstractAnalysisValue> valueDomain,

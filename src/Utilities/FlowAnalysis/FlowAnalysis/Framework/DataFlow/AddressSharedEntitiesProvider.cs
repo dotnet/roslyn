@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
     internal sealed class AddressSharedEntitiesProvider<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisContext : AbstractDataFlowAnalysisContext<TAnalysisData, TAnalysisContext, TAnalysisResult, TAbstractAnalysisValue>
         where TAnalysisResult : class, IDataFlowAnalysisResult<TAbstractAnalysisValue>
+        where TAnalysisData : AbstractAnalysisData
     {
         /// <summary>
         /// Map builder from entity to set of entities that share the same instance location.
