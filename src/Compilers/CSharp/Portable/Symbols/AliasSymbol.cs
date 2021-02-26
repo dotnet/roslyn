@@ -271,15 +271,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly bool _isExtern;
         private BindingDiagnosticBag? _aliasTargetDiagnostics;
 
-        internal AliasSymbolFromSyntax(Binder binder, NameSyntax name, NameEqualsSyntax alias)
-            : base(ImmutableArray.Create(alias.Name.Identifier.GetLocation()))
+        internal AliasSymbolFromSyntax(Binder binder, UsingDirectiveSyntax syntax)
+            : base(ImmutableArray.Create(syntax.Alias!.Name.Identifier.GetLocation()))
         {
-            Debug.Assert(name.Parent.IsKind(SyntaxKind.UsingDirective));
-            Debug.Assert(name.Parent == alias.Parent);
+            Debug.Assert(syntax.Alias is object);
 
-            _aliasName = alias.Name.Identifier;
+            _aliasName = syntax.Alias.Name.Identifier;
             _binder = binder;
-            _aliasTargetName = name;
+            _aliasTargetName = syntax.Name;
         }
 
         internal AliasSymbolFromSyntax(Binder binder, ExternAliasDirectiveSyntax syntax)
