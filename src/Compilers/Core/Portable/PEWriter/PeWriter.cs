@@ -339,6 +339,12 @@ namespace Microsoft.Cci
                 return new ResourceSectionBuilderFromResources(nativeResourcesOpt);
             }
 
+            var rawResourcesOpt = module.RawWin32Resources;
+            if (rawResourcesOpt != null)
+            {
+                return new ResourceSectionBuilderFromRaw(rawResourcesOpt);
+            }
+
             return null;
         }
 
@@ -371,6 +377,22 @@ namespace Microsoft.Cci
             protected override void Serialize(BlobBuilder builder, SectionLocation location)
             {
                 NativeResourceWriter.SerializeWin32Resources(builder, _resources, location.RelativeVirtualAddress);
+            }
+        }
+
+        private class ResourceSectionBuilderFromRaw : ResourceSectionBuilder
+        {
+            private readonly Stream _resources;
+            public ResourceSectionBuilderFromRaw(Stream resources)
+            {
+                _resources = resources;
+            }
+
+            protected override void Serialize(BlobBuilder builder, SectionLocation location)
+            {
+                using var memoryStream = new MemoryStream();
+                _resources.CopyTo(memoryStream);
+                builder.WriteBytes(memoryStream.ToArray());
             }
         }
     }
