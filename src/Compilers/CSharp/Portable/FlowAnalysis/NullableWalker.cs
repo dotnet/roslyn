@@ -8182,22 +8182,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void SplitIfBooleanConstant(BoundExpression node)
-        {
-            if (node.ConstantValue is { IsBoolean: true, BooleanValue: bool booleanValue })
-            {
-                Split();
-                if (booleanValue)
-                {
-                    StateWhenFalse = UnreachableState();
-                }
-                else
-                {
-                    StateWhenTrue = UnreachableState();
-                }
-            }
-        }
-
         public override BoundNode? VisitFieldAccess(BoundFieldAccess node)
         {
             var updatedSymbol = VisitMemberAccess(node, node.ReceiverOpt, node.FieldSymbol);
