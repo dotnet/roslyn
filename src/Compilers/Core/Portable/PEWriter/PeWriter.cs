@@ -380,7 +380,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private class ResourceSectionBuilderFromRaw : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromRaw : ResourceSectionBuilder
         {
             private readonly Stream _resources;
             public ResourceSectionBuilderFromRaw(Stream resources)
