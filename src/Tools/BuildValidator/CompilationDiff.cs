@@ -232,7 +232,13 @@ namespace BuildValidator
                     options: pdbToXmlOptions,
                     methodName: null);
 
-                Process.Start(IldasmUtilities.IldasmPath, $@"{assemblyFilePath} /all /out={buildDataFiles.ILFilePath}").WaitForExit();
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = IldasmUtilities.IldasmPath,
+                    Arguments = $@"{assemblyFilePath} /all /out={buildDataFiles.ILFilePath}",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }).WaitForExit();
 
                 return buildDataFiles;
             }
