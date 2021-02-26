@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Emit
             public readonly IMethodSymbolInternal PreviousMethod;
             public readonly Func<SyntaxNode, SyntaxNode> SyntaxMap;
 
-            public MappedMethod(IMethodSymbolInternal previousMethodOpt, Func<SyntaxNode, SyntaxNode> syntaxMap)
+            public MappedMethod(IMethodSymbolInternal previousMethod, Func<SyntaxNode, SyntaxNode> syntaxMap)
             {
-                PreviousMethod = previousMethodOpt;
+                PreviousMethod = previousMethod;
                 SyntaxMap = syntaxMap;
             }
         }
@@ -311,16 +311,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 symbolMap = MapToMetadataSymbolMatcher;
             }
 
-            var previousMethod = mappedMethod.PreviousMethod;
-            if (previousMethod is null)
-            {
-                previousMethod = (IMethodSymbolInternal)symbolMap.MapDefinitionOrNamespace(topLevelMethod);
-            }
-
             return new EncVariableSlotAllocator(
                 symbolMap,
                 mappedMethod.SyntaxMap,
-                previousMethod,
+                mappedMethod.PreviousMethod,
                 methodId,
                 previousLocals,
                 lambdaMap,

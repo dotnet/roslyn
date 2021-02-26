@@ -593,7 +593,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return ProjectAnalysisSummary.ValidChanges;
         }
 
-        private static ProjectChanges GetProjectChanges(Compilation newCompilation, ImmutableArray<DocumentAnalysisResults> changedDocumentAnalyses, CancellationToken cancellationToken)
+        internal static ProjectChanges GetProjectChanges(
+            Compilation oldCompilation,
+            Compilation newCompilation,
+            ImmutableArray<DocumentAnalysisResults> changedDocumentAnalyses,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -626,7 +630,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
 
-                MergePartialEdits(newCompilation, allEdits, out var mergedEdits, out var addedSymbols, cancellationToken);
+                MergePartialEdits(oldCompilation, newCompilation, allEdits, out var mergedEdits, out var addedSymbols, cancellationToken);
 
                 return new ProjectChanges(
                     mergedEdits,
@@ -640,7 +644,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static void MergePartialEdits(
+        internal static void MergePartialEdits(
+            Compilation oldCompilation,
             Compilation newCompilation,
             IReadOnlyList<SemanticEditInfo> edits,
             out ImmutableArray<SemanticEdit> mergedEdits,
@@ -649,13 +654,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             using var _0 = ArrayBuilder<SemanticEdit>.GetInstance(edits.Count, out var mergedEditsBuilder);
             using var _1 = PooledHashSet<ISymbol>.GetInstance(out var addedSymbolsBuilder);
-            using var _2 = ArrayBuilder<ISymbol>.GetInstance(edits.Count, out var resolvedSymbols);
+            using var _2 = ArrayBuilder<(ISymbol? oldSymbol, ISymbol newSymbol)>.GetInstance(edits.Count, out var resolvedSymbols);
 
             foreach (var edit in edits)
             {
-                var resolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
-                Contract.ThrowIfNull(resolution.Symbol);
-                resolvedSymbols.Add(resolution.Symbol);
+                SymbolKeyResolution oldResolution;
+                if (edit.Kind == SemanticEditKind.Update)
+                {
+                    oldResolution = edit.Symbol.Resolve(oldCompilation, ignoreAssemblyKey: true, cancellationToken);
+                    Contract.ThrowIfNull(oldResolution.Symbol);
+                }
+                else
+                {
+                    oldResolution = default;
+                }
+
+                var newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                Contract.ThrowIfNull(newResolution.Symbol);
+
+                resolvedSymbols.Add((oldResolution.Symbol, newResolution.Symbol));
             }
 
             for (var i = 0; i < edits.Count; i++)
@@ -664,18 +681,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (edit.PartialType == null)
                 {
-                    var symbol = resolvedSymbols[i];
+                    var (oldSymbol, newSymbol) = resolvedSymbols[i];
 
                     if (edit.Kind == SemanticEditKind.Insert)
                     {
                         // Inserts do not need partial type merging.
-                        addedSymbolsBuilder.Add(symbol);
+                        addedSymbolsBuilder.Add(newSymbol);
                     }
 
                     mergedEditsBuilder.Add(new SemanticEdit(
                         edit.Kind,
-                        oldSymbol: null,
-                        newSymbol: symbol,
+                        oldSymbol: oldSymbol,
+                        newSymbol: newSymbol,
                         syntaxMap: edit.SyntaxMap,
                         preserveLocalVariables: edit.SyntaxMap != null));
                 }
@@ -694,21 +711,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var symbolKeyComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
             var mergedSyntaxMaps = new Dictionary<SymbolKey, Func<SyntaxNode, SyntaxNode?>>(symbolKeyComparer);
 
-            foreach (var partialTypeEdits in edits.Where(edit => edit.PartialType != null).GroupBy(edit => edit.PartialType!.Value, symbolKeyComparer))
+            var editsByPartialType = edits
+                .Where(edit => edit.PartialType != null)
+                .GroupBy(edit => edit.PartialType!.Value, symbolKeyComparer);
+
+            foreach (var partialTypeEdits in editsByPartialType)
             {
-                // the symbols may only be constructors, all of which have a single syntax declaration
-                Debug.Assert(partialTypeEdits.Select((edit, index) => resolvedSymbols[index]).All(symbol => symbol is IMethodSymbol
-                {
-                    MethodKind: MethodKind.Constructor or MethodKind.StaticConstructor or MethodKind.SharedConstructor,
-                    DeclaringSyntaxReferences: { Length: 1 }
-                }));
+                Debug.Assert(partialTypeEdits.All(edit => edit.SyntaxMapTree != null && edit.SyntaxMap != null));
 
-                Debug.Assert(partialTypeEdits.All(edit => edit.SyntaxMap != null));
-
-                var trees = partialTypeEdits.Select((edit, index) => resolvedSymbols[index].DeclaringSyntaxReferences.Single().SyntaxTree).ToImmutableArray();
+                var newTrees = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMapTree!);
                 var syntaxMaps = partialTypeEdits.SelectAsArray(edit => edit.SyntaxMap!);
 
-                mergedSyntaxMaps.Add(partialTypeEdits.Key, node => syntaxMaps[trees.IndexOf(node.SyntaxTree)](node));
+                mergedSyntaxMaps.Add(partialTypeEdits.Key, node => syntaxMaps[newTrees.IndexOf(node.SyntaxTree)](node));
             }
 
             // Deduplicate updates based on new symbol and use merged syntax map calculated above for a given partial type.
@@ -723,10 +737,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     Contract.ThrowIfFalse(edit.Kind == SemanticEditKind.Update);
 
-                    var newSymbol = resolvedSymbols[i];
+                    var (oldSymbol, newSymbol) = resolvedSymbols[i];
                     if (visitedSymbols.Add(newSymbol))
                     {
-                        mergedEditsBuilder.Add(new SemanticEdit(SemanticEditKind.Update, oldSymbol: null, newSymbol, mergedSyntaxMaps[edit.PartialType.Value], preserveLocalVariables: true));
+                        mergedEditsBuilder.Add(new SemanticEdit(SemanticEditKind.Update, oldSymbol, newSymbol, mergedSyntaxMaps[edit.PartialType.Value], preserveLocalVariables: true));
                     }
                 }
             }
@@ -746,24 +760,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _5 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
                 using var _6 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
 
-                var baseSolution = DebuggingSession.LastCommittedSolution;
+                var oldSolution = DebuggingSession.LastCommittedSolution;
 
                 var isBlocked = false;
-                foreach (var project in solution.Projects)
+                foreach (var newProject in solution.Projects)
                 {
-                    await PopulateChangedAndAddedDocumentsAsync(baseSolution, project, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
+                    await PopulateChangedAndAddedDocumentsAsync(oldSolution, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
                     if (changedOrAddedDocuments.IsEmpty())
                     {
                         continue;
                     }
 
-                    var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
+                    var (mvid, mvidReadError) = await DebuggingSession.GetProjectModuleIdAsync(newProject, cancellationToken).ConfigureAwait(false);
                     if (mvidReadError != null)
                     {
                         // The error hasn't been reported by GetDocumentDiagnosticsAsync since it might have been intermittent.
                         // The MVID is required for emit so we consider the error permanent and report it here.
                         // Bail before analyzing documents as the analysis needs to read the PDB which will likely fail if we can't even read the MVID.
-                        diagnostics.Add((project.Id, ImmutableArray.Create(mvidReadError)));
+                        diagnostics.Add((newProject.Id, ImmutableArray.Create(mvidReadError)));
 
                         Telemetry.LogProjectAnalysisSummary(ProjectAnalysisSummary.ValidChanges, ImmutableArray.Create(mvidReadError.Descriptor.Id));
                         isBlocked = true;
@@ -772,13 +786,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (mvid == Guid.Empty)
                     {
-                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]: project not built", project.Id.DebugName, project.Id);
+                        EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]: project not built", newProject.Id.DebugName, newProject.Id);
                         continue;
                     }
 
                     // PopulateChangedAndAddedDocumentsAsync returns no changes if base project does not exist
-                    var baseProject = baseSolution.GetProject(project.Id);
-                    Contract.ThrowIfNull(baseProject);
+                    var oldProject = oldSolution.GetProject(newProject.Id);
+                    Contract.ThrowIfNull(oldProject);
 
                     // Ensure that all changed documents are in-sync. Once a document is in-sync it can't get out-of-sync.
                     // Therefore, results of further computations based on base snapshots of changed documents can't be invalidated by 
@@ -795,25 +809,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // which change we have not observed yet. Then call-sites of C.M in a changed document observed by the analysis will be seen as C.M(object) 
                     // instead of the true C.M(string).
 
-                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(project, changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                    var (changedDocumentAnalyses, documentDiagnostics) = await AnalyzeDocumentsAsync(newProject, changedOrAddedDocuments, solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                     if (documentDiagnostics.Any())
                     {
                         // The diagnostic hasn't been reported by GetDocumentDiagnosticsAsync since out-of-sync documents are likely to be synchronized
                         // before the changes are attempted to be applied. If we still have any out-of-sync documents we report warnings and ignore changes in them.
                         // If in future the file is updated so that its content matches the PDB checksum, the document transitions to a matching state, 
                         // and we consider any further changes to it for application.
-                        diagnostics.Add((project.Id, documentDiagnostics));
+                        diagnostics.Add((newProject.Id, documentDiagnostics));
                     }
 
                     // The capability of a module to apply edits may change during edit session if the user attaches debugger to 
                     // an additional process that doesn't support EnC (or detaches from such process). Before we apply edits 
                     // we need to check with the debugger.
-                    var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, project.Name, cancellationToken).ConfigureAwait(false);
+                    var (moduleDiagnostics, isModuleLoaded) = await GetModuleDiagnosticsAsync(mvid, newProject.Name, cancellationToken).ConfigureAwait(false);
 
                     var isModuleEncBlocked = isModuleLoaded && !moduleDiagnostics.IsEmpty;
                     if (isModuleEncBlocked)
                     {
-                        diagnostics.Add((project.Id, moduleDiagnostics));
+                        diagnostics.Add((newProject.Id, moduleDiagnostics));
                         isBlocked = true;
                     }
 
@@ -829,36 +843,38 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(project, readers, out var createBaselineDiagnostics, out var baseline))
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, readers, out var createBaselineDiagnostics, out var baseline))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
                         // Report diagnosics even when the module is never going to be loaded (e.g. in multi-targeting scenario, where only one framework being debugged).
                         // This is consistent with reporting compilation errors - the IDE reports them for all TFMs regardless of what framework the app is running on.
-                        diagnostics.Add((project.Id, createBaselineDiagnostics));
+                        diagnostics.Add((newProject.Id, createBaselineDiagnostics));
                         Telemetry.LogProjectAnalysisSummary(projectSummary, createBaselineDiagnostics);
                         isBlocked = true;
                         continue;
                     }
 
-                    EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", project.Id.DebugName, project.Id);
+                    EditAndContinueWorkspaceService.Log.Write("Emitting update of '{0}' [0x{1:X8}]", newProject.Id.DebugName, newProject.Id);
 
-                    var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(currentCompilation);
+                    var oldCompilation = await oldProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var newCompilation = await newProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    Contract.ThrowIfNull(oldCompilation);
+                    Contract.ThrowIfNull(newCompilation);
 
-                    var projectChanges = GetProjectChanges(currentCompilation, changedDocumentAnalyses, cancellationToken);
-                    var baseActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var projectChanges = GetProjectChanges(oldCompilation, newCompilation, changedDocumentAnalyses, cancellationToken);
+                    var oldActiveStatements = await BaseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
                     // Exception regions of active statements in changed documents are calculated (non-default),
                     // since we already checked that no changed document is out-of-sync above.
-                    var baseActiveExceptionRegions = await GetBaseActiveExceptionRegionsAsync(solution, cancellationToken).ConfigureAwait(false);
+                    var oldActiveExceptionRegions = await GetBaseActiveExceptionRegionsAsync(solution, cancellationToken).ConfigureAwait(false);
 
                     var lineEdits = projectChanges.LineChanges.SelectAsArray((lineChange, project) =>
                     {
                         var filePath = project.GetDocument(lineChange.DocumentId)!.FilePath;
                         Contract.ThrowIfNull(filePath);
                         return new SequencePointUpdates(filePath, lineChange.Changes);
-                    }, project);
+                    }, newProject);
 
                     using var pdbStream = SerializableBytes.CreateWritableStream();
                     using var metadataStream = SerializableBytes.CreateWritableStream();
@@ -867,9 +883,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var updatedMethods = ImmutableArray.CreateBuilder<MethodDefinitionHandle>();
 
                     // project must support compilations since it supports EnC
-                    Contract.ThrowIfNull(currentCompilation);
+                    Contract.ThrowIfNull(newCompilation);
 
-                    var emitResult = currentCompilation.EmitDifference(
+                    var emitResult = newCompilation.EmitDifference(
                         baseline,
                         projectChanges.SemanticEdits,
                         projectChanges.AddedSymbols.Contains,
@@ -886,8 +902,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Determine all active statements whose span changed and exception region span deltas.
                         GetActiveStatementAndExceptionRegionSpans(
                             mvid,
-                            baseActiveStatements,
-                            baseActiveExceptionRegions,
+                            oldActiveStatements,
+                            oldActiveExceptionRegions,
                             updatedMethodTokens,
                             _nonRemappableRegions,
                             projectChanges.NewActiveStatements,
@@ -906,7 +922,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             exceptionRegionUpdates));
 
                         nonRemappableRegions.Add((mvid, moduleNonRemappableRegions));
-                        emitBaselines.Add((project.Id, emitResult.Baseline));
+                        emitBaselines.Add((newProject.Id, emitResult.Baseline));
                     }
                     else
                     {
@@ -923,7 +939,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // method bodies to have errors.
                     if (!emitResult.Diagnostics.IsEmpty)
                     {
-                        diagnostics.Add((project.Id, emitResult.Diagnostics));
+                        diagnostics.Add((newProject.Id, emitResult.Diagnostics));
                     }
 
                     Telemetry.LogProjectAnalysisSummary(projectSummary, emitResult.Diagnostics);
