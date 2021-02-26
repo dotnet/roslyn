@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// This value is used to determine which documentation comment should be provided for the current
         /// parameter.  Normally this is determined simply by determining the parameter by index.
         /// </summary>
-        public string ArgumentName { get; }
+        public string? ArgumentName { get; }
 
         /// <summary>
         /// The item to select by default.  If this is <see langword="null"/> then the controller will
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             TextSpan applicableSpan,
             int argumentIndex,
             int argumentCount,
-            string argumentName,
+            string? argumentName,
             int? selectedItem = null)
         {
             Contract.ThrowIfNull(items);

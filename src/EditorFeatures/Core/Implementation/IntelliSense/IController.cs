@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
     internal interface IController<TModel>
     {
-        void OnModelUpdated(TModel result);
+        void OnModelUpdated(TModel result, bool updateController);
         IAsyncToken BeginAsyncOperation(string name = "", object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0);
         void StopModelComputation();
     }

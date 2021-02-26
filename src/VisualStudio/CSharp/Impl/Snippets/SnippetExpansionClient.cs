@@ -6,24 +6,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.TextManager.Interop;
 using MSXML;
 using Roslyn.Utilities;
@@ -33,8 +38,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
     internal sealed partial class SnippetExpansionClient : AbstractSnippetExpansionClient
     {
-        public SnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(threadingContext, languageServiceGuid, textView, subjectBuffer, editorAdaptersFactoryService)
+        public SnippetExpansionClient(
+            IThreadingContext threadingContext,
+            Guid languageServiceGuid,
+            ITextView textView,
+            ITextBuffer subjectBuffer,
+            SignatureHelpControllerProvider signatureHelpControllerProvider,
+            IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
+            : base(
+                threadingContext,
+                languageServiceGuid,
+                textView,
+                subjectBuffer,
+                signatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService,
+                argumentProviders)
         {
         }
 
@@ -80,6 +101,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     return VSConstants.S_OK;
                 case "GenerateSwitchCases":
                     pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param);
+                    return VSConstants.S_OK;
+                case "ArgumentValue":
+                    // For the internal ArgumentValue function, the snippet field name is expected to match the
+                    // parameter name, and the string passed to the function is a serialized SymbolKey allowing the
+                    // snippet function to resolve the original IParameterSymbol.
+                    pFunc = new SnippetFunctionArgumentValue(this, SubjectBuffer, parameterName: bstrFieldName, parameterKey: new SymbolKey(param));
                     return VSConstants.S_OK;
                 default:
                     pFunc = null;

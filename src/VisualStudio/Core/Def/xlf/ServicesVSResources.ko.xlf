@@ -862,6 +862,11 @@
         <target state="new">Symbols without references</target>
         <note />
       </trans-unit>
+      <trans-unit id="Tab_twice_to_insert_arguments">
+        <source>Tab twice to insert arguments (experimental)</source>
+        <target state="new">Tab twice to insert arguments (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">대상 네임스페이스:</target>

@@ -70,6 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_items_from_unimported_namespaces =>
             CSharpVSResources.Show_items_from_unimported_namespaces;
 
+        public static string Option_Tab_twice_to_insert_arguments =>
+            ServicesVSResources.Tab_twice_to_insert_arguments;
+
         public static string Automatically_show_completion_list_in_argument_lists =>
             CSharpVSResources.Automatically_show_completion_list_in_argument_lists;
     }
