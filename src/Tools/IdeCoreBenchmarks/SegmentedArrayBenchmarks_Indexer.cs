@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.Collections;
 
@@ -39,6 +40,13 @@ namespace IdeCoreBenchmarks
             _values[^1] = 0;
         }
 
+        [Benchmark(Description = "int[] (Copy)")]
+        public void ShiftAllViaArrayCopy()
+        {
+            Array.Copy(_values, 1, _values, 0, _values.Length - 1);
+            _values[^1] = 0;
+        }
+
         [Benchmark(Description = "object[]")]
         public void ShiftAllArrayObject()
         {
@@ -47,6 +55,13 @@ namespace IdeCoreBenchmarks
                 _valuesObject[i] = _valuesObject[i + 1];
             }
 
+            _valuesObject[^1] = null;
+        }
+
+        [Benchmark(Description = "object[] (Copy)")]
+        public void ShiftAllObjectViaArrayCopy()
+        {
+            Array.Copy(_valuesObject, 1, _valuesObject, 0, _valuesObject.Length - 1);
             _valuesObject[^1] = null;
         }
 
@@ -61,6 +76,13 @@ namespace IdeCoreBenchmarks
             _segmentedValues[^1] = 0;
         }
 
+        [Benchmark(Description = "SegmentedArray<int> (Copy)")]
+        public void ShiftAllViaSegmentedArrayCopy()
+        {
+            SegmentedArray.Copy(_segmentedValues, 1, _segmentedValues, 0, _segmentedValues.Length - 1);
+            _segmentedValues[^1] = 0;
+        }
+
         [Benchmark(Description = "SegmentedArray<object>")]
         public void ShiftAllSegmentedObject()
         {
@@ -69,6 +91,13 @@ namespace IdeCoreBenchmarks
                 _segmentedValuesObject[i] = _segmentedValuesObject[i + 1];
             }
 
+            _segmentedValuesObject[^1] = null;
+        }
+
+        [Benchmark(Description = "SegmentedArray<object> (Copy)")]
+        public void ShiftAllObjectViaSegmentedArrayCopy()
+        {
+            SegmentedArray.Copy(_segmentedValuesObject, 1, _segmentedValuesObject, 0, _segmentedValuesObject.Length - 1);
             _segmentedValuesObject[^1] = null;
         }
     }

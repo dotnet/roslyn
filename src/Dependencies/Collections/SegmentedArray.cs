@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
@@ -83,10 +84,33 @@ namespace Microsoft.CodeAnalysis.Collections
             if (length == 0)
                 return;
 
-            var unalignedEnumerator = GetSegmentsUnaligned(sourceArray, sourceIndex, destinationArray, destinationIndex, length);
-            if (sourceIndex < destinationIndex
-                && sourceArray.SyncRoot == destinationArray.SyncRoot
+            if (sourceArray.SyncRoot == destinationArray.SyncRoot
                 && sourceIndex + length > destinationIndex)
+            {
+                // We are copying in the same array with overlap
+                CopyOverlapped(sourceArray, sourceIndex, destinationIndex, length);
+            }
+            else
+            {
+                foreach (var (first, second) in GetSegmentsUnaligned(sourceArray, sourceIndex, destinationArray, destinationIndex, length))
+                {
+                    first.CopyTo(second);
+                }
+            }
+        }
+
+        // PERF: Avoid inlining this path in Copy<T>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void CopyOverlapped<T>(SegmentedArray<T> array, int sourceIndex, int destinationIndex, int length)
+        {
+            Debug.Assert(length > 0);
+            Debug.Assert(sourceIndex >= 0);
+            Debug.Assert(destinationIndex >= 0);
+            Debug.Assert((uint)(sourceIndex + length) <= array.Length);
+            Debug.Assert((uint)(destinationIndex + length) <= array.Length);
+
+            var unalignedEnumerator = GetSegmentsUnaligned(array, sourceIndex, array, destinationIndex, length);
+            if (sourceIndex < destinationIndex)
             {
                 // We are copying forward in the same array with overlap
                 foreach (var (first, second) in unalignedEnumerator.Reverse())
