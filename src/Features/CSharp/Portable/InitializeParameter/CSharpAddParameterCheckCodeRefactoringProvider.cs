@@ -58,5 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override bool PrefersThrowExpression(DocumentOptionSet options)
             => options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression).Value;
+
+        protected override string EscapeResourceString(string input)
+            => input.Replace("\\", "\\\\").Replace("\"", "\\\"");
     }
 }

@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract bool CanOffer(SyntaxNode body);
         protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
+        protected abstract string EscapeResourceString(string input);
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol methodSymbol,
@@ -371,7 +372,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         private static TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter)
             => (TStatementSyntax)generator.CreateNullCheckAndThrowStatement(semanticModel, parameter);
 
-        private static TStatementSyntax CreateStringCheckStatement(
+        private TStatementSyntax CreateStringCheckStatement(
             Compilation compilation, SyntaxGenerator generator,
             IParameterSymbol parameter, string methodName)
         {
@@ -543,7 +544,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 generator.NameOfExpression(generator.IdentifierName(parameter.Name)));
         }
 
-        private static SyntaxNode CreateArgumentException(
+        private SyntaxNode CreateArgumentException(
             Compilation compilation, SyntaxGenerator generator, IParameterSymbol parameter, string methodName)
         {
             var text = methodName switch
@@ -552,6 +553,10 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 nameof(string.IsNullOrWhiteSpace) => new LocalizableResourceString(nameof(FeaturesResources._0_cannot_be_null_or_whitespace), FeaturesResources.ResourceManager, typeof(FeaturesResources)).ToString(),
                 _ => throw ExceptionUtilities.Unreachable,
             };
+
+            // The resource string is written to be shown in a UI and is not necessarily valid code, but we're
+            // going to be putting it into a string literal so we need to escape quotes etc. to avoid syntax errors
+            text = EscapeResourceString(text);
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var content);
 

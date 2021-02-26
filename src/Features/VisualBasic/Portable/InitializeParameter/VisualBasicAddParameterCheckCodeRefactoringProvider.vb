@@ -50,5 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             ' No throw expression preference option is defined for VB because it doesn't support throw expressions.
             Return False
         End Function
+
+        Protected Overrides Function EscapeResourceString(input As String) As String
+            Return input.Replace("""", """""")
+        End Function
     End Class
 End Namespace

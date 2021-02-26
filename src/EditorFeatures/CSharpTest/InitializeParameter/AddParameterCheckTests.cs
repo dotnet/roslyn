@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -1546,6 +1547,45 @@ class C
         }}
     }}
 }}", index: 2);
+        }
+
+        [WorkItem(51338, "https://github.com/dotnet/roslyn/issues/51338")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSpecialStringCheck3()
+        {
+            var culture = CultureInfo.CurrentUICulture;
+            try
+            {
+                CultureInfo.CurrentUICulture = new CultureInfo("de-DE", useUserOverride: false);
+
+                await TestInRegularAndScript1Async(
+    @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+    @$"
+using System;
+
+class C
+{{
+    public C(string s)
+    {{
+        if (string.IsNullOrEmpty(s))
+        {{
+            throw new ArgumentException($""{string.Format(FeaturesResources._0_cannot_be_null_or_empty, "{nameof(s)}").Replace("\"", "\\\"")}"", nameof(s));
+        }}
+    }}
+}}", index: 1);
+            }
+            finally
+            {
+                CultureInfo.CurrentUICulture = culture;
+            }
         }
 
         [WorkItem(19173, "https://github.com/dotnet/roslyn/issues/19173")]

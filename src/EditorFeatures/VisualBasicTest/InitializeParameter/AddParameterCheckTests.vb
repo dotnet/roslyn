@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Globalization
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
@@ -506,6 +507,37 @@ class C
         End If
     end sub
 end class", index:=2)
+        End Function
+
+        <WorkItem(51338, "https://github.com/dotnet/roslyn/issues/51338")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
+        Public Async Function TestSpecialStringCheck3() As Task
+            Dim culture = CultureInfo.CurrentUICulture
+
+            Try
+                CultureInfo.CurrentUICulture = New CultureInfo("de-DE", useUserOverride:=False)
+
+                Await TestInRegularAndScript1Async(
+    "
+Imports System
+
+class C
+    public sub new([||]s as string)
+    end sub
+end class",
+    $"
+Imports System
+
+class C
+    public sub new(s as string)
+        If String.IsNullOrEmpty(s) Then
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(s)}").Replace("""", """""")}"", NameOf(s))
+        End If
+    end sub
+end class", index:=1)
+            Finally
+                CultureInfo.CurrentUICulture = culture
+            End Try
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
