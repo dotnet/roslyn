@@ -294,6 +294,8 @@ namespace Analyzer.Utilities
         public const string SystemRuntimeSerializationOnSerializingAttribute = "System.Runtime.Serialization.OnSerializingAttribute";
         public const string SystemRuntimeSerializationSerializationInfo = "System.Runtime.Serialization.SerializationInfo";
         public const string SystemRuntimeSerializationStreamingContext = "System.Runtime.Serialization.StreamingContext";
+        public const string SystemRuntimeVersioningSupportedOSPlatformAttribute = "System.Runtime.Versioning.SupportedOSPlatformAttribute";
+        public const string SystemRuntimeVersioningUnsupportedOSPlatformAttribute = "System.Runtime.Versioning.UnsupportedOSPlatformAttribute";
         public const string SystemSecurityAuthenticationSslProtocols = "System.Security.Authentication.SslProtocols";
         public const string SystemSecurityCryptographyAesCcm = "System.Security.Cryptography.AesCcm";
         public const string SystemSecurityCryptographyAesGcm = "System.Security.Cryptography.AesGcm";
