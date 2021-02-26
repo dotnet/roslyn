@@ -13,11 +13,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
     internal delegate bool ValueContentCheck(ImmutableArray<PointsToAbstractValue> pointsTos, ImmutableArray<ValueContentAbstractValue> valueContents);
     internal delegate bool MethodMatcher(string methodName, ImmutableArray<IArgumentOperation> arguments);
     internal delegate bool ParameterMatcher(IParameterSymbol parameter, WellKnownTypeProvider wellKnownTypeProvider);
+    internal delegate bool ArrayLengthMatcher(int length);
 
     /// <summary>
     /// Info for tainted data sources, which generate tainted data.
     /// </summary>
-    internal class SourceInfo : ITaintedDataInfo, IEquatable<SourceInfo>
+    internal sealed class SourceInfo : ITaintedDataInfo, IEquatable<SourceInfo>
     {
         /// <summary>
         /// Constructs.
@@ -30,7 +31,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// <param name="taintedMethodsNeedsValueContentAnalysis">Methods that generate tainted data and whose arguments need extra value content analysis and points to analysis.</param>
         /// <param name="transferProperties">Properties that transfer taint to `this` on assignment.</param>
         /// <param name="transferMethods">Methods that could taint another argument when one of its argument is tainted.</param>
-        /// <param name="taintConstantArray"></param>
+        /// <param name="taintConstantArray">Indicates that constant arrays of the type should be tainted.</param>
+        /// <param name="constantArrayLengthMatcher">Delegate to determine if a constant array's length indicates the value should be tainted.</param>
         /// <param name="dependencyFullTypeNames">Full type names of the optional dependency/referenced types that should be resolved</param>
         public SourceInfo(
             string fullTypeName,
@@ -43,6 +45,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             ImmutableHashSet<string> transferProperties,
             ImmutableHashSet<(MethodMatcher, ImmutableHashSet<(string, string)>)> transferMethods,
             bool taintConstantArray,
+            ArrayLengthMatcher? constantArrayLengthMatcher,
             ImmutableArray<string>? dependencyFullTypeNames = null)
         {
             FullTypeName = fullTypeName ?? throw new ArgumentNullException(nameof(fullTypeName));
@@ -55,6 +58,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             TransferProperties = transferProperties ?? throw new ArgumentNullException(nameof(transferProperties));
             TransferMethods = transferMethods ?? throw new ArgumentNullException(nameof(transferMethods));
             TaintConstantArray = taintConstantArray;
+            ConstantArrayLengthMatcher = constantArrayLengthMatcher;
+            if (!taintConstantArray && constantArrayLengthMatcher != null)
+            {
+                throw new ArgumentException("Can't specify constantArrayLengthMatcher unless taintConstantArray is true");
+            }
+
             DependencyFullTypeNames = dependencyFullTypeNames ?? ImmutableArray<string>.Empty;
         }
 
@@ -165,6 +174,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         public bool TaintConstantArray { get; }
 
         /// <summary>
+        /// For constant arrays, checks the length of the array to determine if it's tainted.
+        /// </summary>
+        public ArrayLengthMatcher? ConstantArrayLengthMatcher { get; }
+
+        /// <summary>
         /// Indicates that this <see cref="SourceInfo"/> uses <see cref="ValueContentAbstractValue"/>s.
         /// </summary>
         public bool RequiresValueContentAnalysis => !this.TaintedMethodsNeedsValueContentAnalysis.IsEmpty;
@@ -176,17 +190,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(this.TaintConstantArray.GetHashCode(),
-                HashUtilities.Combine(this.TaintedProperties,
-                HashUtilities.Combine(this.TaintedArguments,
-                HashUtilities.Combine(this.TaintedMethods,
-                HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis,
-                HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis,
-                HashUtilities.Combine(this.TransferMethods,
-                HashUtilities.Combine(this.TransferProperties,
-                HashUtilities.Combine(this.DependencyFullTypeNames,
-                HashUtilities.Combine(this.IsInterface.GetHashCode(),
-                    StringComparer.Ordinal.GetHashCode(this.FullTypeName)))))))))));
+            var hashCode = new RoslynHashCode();
+            hashCode.Add(this.TaintConstantArray.GetHashCode());
+            HashUtilities.Combine(this.TaintedProperties, ref hashCode);
+            HashUtilities.Combine(this.TaintedArguments, ref hashCode);
+            HashUtilities.Combine(this.TaintedMethods, ref hashCode);
+            HashUtilities.Combine(this.TaintedMethodsNeedsPointsToAnalysis, ref hashCode);
+            HashUtilities.Combine(this.TaintedMethodsNeedsValueContentAnalysis, ref hashCode);
+            HashUtilities.Combine(this.TransferMethods, ref hashCode);
+            HashUtilities.Combine(this.TransferProperties, ref hashCode);
+            HashUtilities.Combine(this.DependencyFullTypeNames, ref hashCode);
+            hashCode.Add(this.IsInterface.GetHashCode());
+            hashCode.Add(StringComparer.Ordinal.GetHashCode(this.FullTypeName));
+            return hashCode.ToHashCode();
         }
 
         public override bool Equals(object obj)

@@ -85,9 +85,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 InterproceduralAnalysisPredicate);
         }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(AdditionalSupportedValueTypes));
+            hashCode.Add(HashUtilities.Combine(AdditionalSupportedValueTypes));
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<ValueContentAnalysisData, ValueContentAnalysisContext, ValueContentAnalysisResult, ValueContentAbstractValue> obj)
+        {
+            var other = (ValueContentAnalysisContext)obj;
+            return HashUtilities.Combine(AdditionalSupportedValueTypes) == HashUtilities.Combine(other.AdditionalSupportedValueTypes);
         }
     }
 }
