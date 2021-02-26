@@ -249,22 +249,22 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNoTargetType">
         <source>There is no target type for the default literal.</source>
-        <target state="translated">默认文本没有目标类型。</target>
+        <target state="translated">default 字面量缺少目标类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
-        <target state="translated">默认文本 "default" 作为模式无效。请相应使用其他文本(例如 "0" 或 "null")。若要匹配一切项，请使用放弃模式 "_"。</target>
+        <target state="translated">默认字面量“default”不能作为模式使用。请使用其他更适合的字面量（如“0”或“null”）。若要匹配任何输入，请使用放弃模式“_”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
         <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
-        <target state="translated">变量不能在 "not" 或 "or" 模式中声明。</target>
+        <target state="translated">在“not”或“or”模式中不能声明变量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
-        <target state="translated">在 switch 语句中，不允许将放弃模式作为大小写标签。对于放弃模式，使用 "case var _:"；对于名为 "_" 的常量，使用 "case @_:"。</target>
+        <target state="translated">在 switch 语句中，不允许将放弃模式作为 case 标签。请使用“case var _:”以表示放弃模式、使用“case @_:”以定义名为“_”的变量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoesNotOverrideBaseEqualityContract">
@@ -1909,7 +1909,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureDefaultLiteral">
         <source>default literal</source>
-        <target state="translated">默认文本</target>
+        <target state="translated">default 字面量</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePrivateProtected">
@@ -2164,12 +2164,12 @@
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">将 null 文本或可能的 null 值转换为不可为 null 类型。</target>
+        <target state="translated">将 null 字面量或可能为 null 的值转换为非 null 类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
-        <target state="translated">将 null 文本或可能的 null 值转换为不可为 null 类型。</target>
+        <target state="translated">将 null 字面量或可能为 null 的值转换为非 null 类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DisallowNullAttributeForbidsMaybeNullAssignment">
@@ -2348,42 +2348,42 @@
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">无法将 null 文本转换为不可为 null 的引用类型。</target>
+        <target state="translated">无法将 null 字面量转换为非 null 的引用类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
         <source>Cannot convert null literal to non-nullable reference type.</source>
-        <target state="translated">无法将 null 文本转换为不可为 null 的引用类型。</target>
+        <target state="translated">无法将 null 字面量转换为非 null 的引用类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
         <source>Possible null reference argument for parameter '{0}' in '{1}'.</source>
-        <target state="translated">“{1}”中“{0}”形参的可能的 null 引用实参。</target>
+        <target state="translated">“{1}”中的形参“{0}”可能传入 null 引用实参。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument_Title">
         <source>Possible null reference argument.</source>
-        <target state="translated">可能的 null 引用参数。</target>
+        <target state="translated">引用类型参数可能为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceAssignment">
         <source>Possible null reference assignment.</source>
-        <target state="translated">可能的 null 引用赋值。</target>
+        <target state="translated">引用类型赋值可能为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceAssignment_Title">
         <source>Possible null reference assignment.</source>
-        <target state="translated">可能的 null 引用赋值。</target>
+        <target state="translated">引用类型赋值可能为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer">
         <source>Object or collection initializer implicitly dereferences possibly null member '{0}'.</source>
-        <target state="translated">对象或集合初始值设定项会隐式取消引用可能为 null 的成员“{0}”。</target>
+        <target state="translated">对象或集合初始值设定项会隐式解引用可能为 null 的成员“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
-        <target state="translated">对象或集合初始值设定项会隐式取消引用可能为 null 的成员。</target>
+        <target state="translated">对象或集合初始值设定项会隐式解引用可能为 null 的成员“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
@@ -2398,12 +2398,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
         <source>Possible null reference return.</source>
-        <target state="translated">可能的 null 引用返回。</target>
+        <target state="translated">可能返回 null 引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn_Title">
         <source>Possible null reference return.</source>
-        <target state="translated">可能的 null 引用返回。</target>
+        <target state="translated">可能返回 null 引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
@@ -2778,12 +2778,12 @@
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
         <source>Thrown value may be null.</source>
-        <target state="translated">引发的值可为 null。</target>
+        <target state="translated">抛出的值可能为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull_Title">
         <source>Thrown value may be null.</source>
-        <target state="translated">引发的值可为 null。</target>
+        <target state="translated">抛出的值可能为 null。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation">
@@ -3643,7 +3643,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadExceptionType">
         <source>The type caught or thrown must be derived from System.Exception</source>
-        <target state="translated">捕获或抛弃的类型必须从 System.Exception 派生</target>
+        <target state="translated">捕获或抛出的值的类型必须从 System.Exception 派生</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEmptyThrow">
@@ -3653,7 +3653,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadFinallyLeave">
         <source>Control cannot leave the body of a finally clause</source>
-        <target state="translated">控制不能离开 finally 子句主体</target>
+        <target state="translated">控制流不能从 finally 子句中离开</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LabelShadow">
@@ -3848,12 +3848,12 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNotValid">
         <source>Use of default literal is not valid in this context</source>
-        <target state="translated">在此背景下使用默认文本无效</target>
+        <target state="translated">在此上下文中下使用 default 字面量是非法的</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationThis">
         <source>The 'this' object cannot be used before all of its fields have been assigned</source>
-        <target state="translated">在给 "this" 对象的所有字段赋值之前，无法使用该对象</target>
+        <target state="translated">在给 “this” 对象的所有字段赋值之前，无法使用该对象</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgsInvalid">
@@ -5717,7 +5717,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_BadEmptyThrowInFinally">
         <source>A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause</source>
-        <target state="translated">在嵌套在最近的封闭 catch 子句内部的 finally 子句内不允许使用不带参数的 throw 语句</target>
+        <target state="translated">catch 子句内嵌套的 finally 语句中不允许使用不带参数的 throw 语句</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidSpecifier">
@@ -6002,7 +6002,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_TypelessTupleInAs">
         <source>The first operand of an 'as' operator may not be a tuple literal without a natural type.</source>
-        <target state="translated">"as" 运算符的第一个操作数在没有自然类型的情况下可能不是元组文本。</target>
+        <target state="translated">“as”运算符的第一个操作数不能是一个没有自然类型的元组字面量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer">
@@ -6037,7 +6037,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsBadCoalesce">
         <source>An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side</source>
-        <target state="translated">表达式树 lambda 不能包含左侧为 null 或默认文本的合并运算符</target>
+        <target state="translated">lambda 表达式树不能包含左侧为 null 或 default 字面量的 null 合并运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentifierExpected">
@@ -6087,7 +6087,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_TooManyCharsInConst">
         <source>Too many characters in character literal</source>
-        <target state="translated">字符文本中的字符太多</target>
+        <target state="translated">字符字面量中的字符太多</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidNumber">
@@ -9524,12 +9524,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="UseLiteralForTokens">
         <source>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.</source>
-        <target state="translated">使用 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal 可创建字符文本标记。</target>
+        <target state="translated">使用 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal 来创建字符字面量标记。</target>
         <note />
       </trans-unit>
       <trans-unit id="UseLiteralForNumeric">
         <source>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.</source>
-        <target state="translated">使用 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal 可创建数字文本标记。</target>
+        <target state="translated">使用 Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal 来创建数字字面量标记。</target>
         <note />
       </trans-unit>
       <trans-unit id="ThisMethodCanOnlyBeUsedToCreateTokens">
@@ -10309,7 +10309,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings">
         <source>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</source>
-        <target state="translated">该程序所使用的用户字符串的合并后长度超出所允许的限制。请尝试减少字符串文本的使用。</target>
+        <target state="translated">该程序中的所有用户字符串在合并后，长度超出限制。请尝试减少字符串字面量的使用。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternNullableType">
@@ -10444,12 +10444,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NewWithTupleTypeSyntax">
         <source>'new' cannot be used with tuple type. Use a tuple literal expression instead.</source>
-        <target state="translated">'"new" 不能与元组类型共同使用。改用元组文本表达式。</target>
+        <target state="translated">'"new" 不能与元组类型共同使用。请改用元组字面量表达式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DeconstructionVarFormDisallowsSpecificType">
         <source>Deconstruction 'var (...)' form disallows a specific type for 'var'.</source>
-        <target state="translated">析构函数 "var (...)" 窗体驳回 "var" 的特定类型。</target>
+        <target state="translated">“var (...)”形式的解构表达式不允许将“var”替换为某一特定类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleElementNamesAttributeMissing">
@@ -10479,7 +10479,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsTupleLiteral">
         <source>An expression tree may not contain a tuple literal.</source>
-        <target state="translated">表达式树不能包含元组文本。</target>
+        <target state="translated">表达式树不能包含元组字面量。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsTupleConversion">
