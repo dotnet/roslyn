@@ -10,7 +10,13 @@ namespace Analyzer.Utilities
 {
     internal static class HashUtilities
     {
-        internal static int GetHashCodeOrDefault(this object? obj) => obj?.GetHashCode() ?? 0;
+        internal static int GetHashCodeOrDefault<T>(this T? obj)
+            where T : class
+            => obj?.GetHashCode() ?? 0;
+
+        internal static int GetHashCodeOrDefault<T>(this T? obj)
+            where T : struct
+            => obj?.GetHashCode() ?? 0;
 
         internal static int Combine<T>(ImmutableArray<T> array)
         {

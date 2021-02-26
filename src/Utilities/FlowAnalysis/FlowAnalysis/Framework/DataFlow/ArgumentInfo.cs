@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             hashCode.Add(Operation.GetHashCode());
             hashCode.Add(AnalysisEntity.GetHashCodeOrDefault());
             hashCode.Add(InstanceLocation.GetHashCode());
-            hashCode.Add(Value.GetHashCodeOrDefault());
+            hashCode.Add(Value?.GetHashCode() ?? 0);
         }
 
         protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<ArgumentInfo<TAbstractAnalysisValue>> obj)
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             return Operation.GetHashCode() == other.Operation.GetHashCode()
                 && AnalysisEntity.GetHashCodeOrDefault() == other.AnalysisEntity.GetHashCodeOrDefault()
                 && InstanceLocation.GetHashCode() == other.InstanceLocation.GetHashCode()
-                && Value.GetHashCodeOrDefault() == other.Value.GetHashCodeOrDefault();
+                && (Value?.GetHashCode() ?? 0) == (other.Value?.GetHashCode() ?? 0);
         }
     }
 }

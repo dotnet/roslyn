@@ -120,7 +120,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 this.ContainingTypeName.GetHashCodeOrDefault(),
                 this.MethodName.GetHashCodeOrDefault(),
                 this.ParameterNameOfPropertySetObject.GetHashCodeOrDefault(),
-                this.DerivedClass.GetHashCodeOrDefault(),
+                this.DerivedClass.GetHashCode(),
                 this.InvocationEvaluator.GetHashCodeOrDefault());
         }
 
