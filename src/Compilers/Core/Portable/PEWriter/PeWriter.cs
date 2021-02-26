@@ -348,7 +348,7 @@ namespace Microsoft.Cci
             return null;
         }
 
-        private class ResourceSectionBuilderFromObj : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromObj : ResourceSectionBuilder
         {
             private readonly ResourceSection _resourceSection;
 
@@ -364,7 +364,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private class ResourceSectionBuilderFromResources : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromResources : ResourceSectionBuilder
         {
             private readonly IEnumerable<IWin32Resource> _resources;
 

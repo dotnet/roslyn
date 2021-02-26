@@ -2423,7 +2423,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
         /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
         /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).
-        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
+        /// Null to indicate that there are none. The RES format begins with a null resource entry.
+        /// Note that the caller is responsible for disposing this stream, if provided.</param>
         /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
         /// <param name="options">Emit options.</param>
         /// <param name="debugEntryPoint">
