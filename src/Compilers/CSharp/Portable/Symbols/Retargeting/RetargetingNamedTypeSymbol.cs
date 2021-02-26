@@ -122,37 +122,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            var result = this.RetargetingTranslator.Retarget(_underlyingType.GetMembers());
-            if (!this.IsTupleType)
-            {
-                return result;
-            }
-
-            // For ValueTuple definitions, we may have to re-insert tuple error fields
-            return this.AddOrWrapTupleMembers(result).ToImmutableAndFree();
+            return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers());
         }
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
         {
-            var result = this.RetargetingTranslator.Retarget(_underlyingType.GetMembersUnordered());
-            if (!this.IsTupleType)
-            {
-                return result;
-            }
-
-            // For ValueTuple definitions, we may have to re-insert tuple error fields
-            return this.AddOrWrapTupleMembers(result).ToImmutableAndFree();
+            return this.RetargetingTranslator.Retarget(_underlyingType.GetMembersUnordered());
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            if (!this.IsTupleType)
+            return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers(name));
+        }
+
+        public override void InitializeTupleFieldDefinitionsToIndexMap()
+        {
+            Debug.Assert(this.IsTupleType);
+            Debug.Assert(this.IsDefinition); // we only store a map for definitions
+
+            var retargetedMap = new SmallDictionary<FieldSymbol, int>(ReferenceEqualityComparer.Instance);
+            foreach ((FieldSymbol field, int index) in _underlyingType.TupleFieldDefinitionsToIndexMap)
             {
-                return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers(name));
+                retargetedMap.Add(this.RetargetingTranslator.Retarget(field), index);
             }
 
-            // For ValueTuple definitions, we may have to re-insert tuple error fields
-            return GetMembers().WhereAsArray(m => m.Name == name);
+            this.TupleData!.SetFieldDefinitionsToIndexMap(retargetedMap);
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
