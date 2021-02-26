@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using Analyzer.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
@@ -15,13 +15,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             public IOperation Operation { get; }
 
-#pragma warning disable CA1307 // Specify StringComparison - string.GetHashCode(StringComparison) not available in all projects that reference this shared project
-            protected override void ComputeHashCodeParts(Action<int> addPart)
+            protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
             {
-                addPart(Operation.GetHashCode());
-                addPart(nameof(OperationBasedIndex).GetHashCode());
+                hashCode.Add(Operation.GetHashCode());
+                hashCode.Add(nameof(OperationBasedIndex).GetHashCode());
             }
-#pragma warning restore CA1307 // Specify StringComparison
+
+            protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<AbstractIndex> obj)
+            {
+                var other = (OperationBasedIndex)obj;
+                return Operation.GetHashCode() == other.Operation.GetHashCode();
+            }
         }
     }
 }

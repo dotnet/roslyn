@@ -139,11 +139,19 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         /// </summary>
         public TaintedDataSymbolMap<SinkInfo> SinkInfos { get; }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {
-            addPart(SourceInfos.GetHashCode());
-            addPart(SanitizerInfos.GetHashCode());
-            addPart(SinkInfos.GetHashCode());
+            hashCode.Add(SourceInfos.GetHashCode());
+            hashCode.Add(SanitizerInfos.GetHashCode());
+            hashCode.Add(SinkInfos.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<TaintedDataAnalysisData, TaintedDataAnalysisContext, TaintedDataAnalysisResult, TaintedDataAbstractValue> obj)
+        {
+            var other = (TaintedDataAnalysisContext)obj;
+            return SourceInfos.GetHashCode() == other.SourceInfos.GetHashCode()
+                && SanitizerInfos.GetHashCode() == other.SanitizerInfos.GetHashCode()
+                && SinkInfos.GetHashCode() == other.SinkInfos.GetHashCode();
         }
     }
 }

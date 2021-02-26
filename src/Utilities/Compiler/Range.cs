@@ -50,7 +50,7 @@ namespace System
         /// <summary>Returns the hash code for this instance.</summary>
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(Start.GetHashCode(), End.GetHashCode());
+            return RoslynHashCode.Combine(Start.GetHashCode(), End.GetHashCode());
         }
 
         /// <summary>Converts the value of the current Range object to its equivalent string representation.</summary>

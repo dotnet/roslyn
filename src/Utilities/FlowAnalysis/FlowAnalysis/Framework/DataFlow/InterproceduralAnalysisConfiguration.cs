@@ -140,9 +140,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public override int GetHashCode()
         {
-            return HashUtilities.Combine(InterproceduralAnalysisKind.GetHashCode(),
-                HashUtilities.Combine(MaxInterproceduralMethodCallChain.GetHashCode(),
-                                      MaxInterproceduralLambdaOrLocalFunctionCallChain.GetHashCode()));
+            return RoslynHashCode.Combine(
+                InterproceduralAnalysisKind.GetHashCode(),
+                MaxInterproceduralMethodCallChain.GetHashCode(),
+                MaxInterproceduralLambdaOrLocalFunctionCallChain.GetHashCode());
         }
 
         public static bool operator ==(InterproceduralAnalysisConfiguration left, InterproceduralAnalysisConfiguration right)
