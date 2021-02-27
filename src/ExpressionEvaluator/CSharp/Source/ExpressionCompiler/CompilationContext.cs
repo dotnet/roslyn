@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
 
                 var externAliasSyntax = SyntaxFactory.ExternAliasDirective(aliasNameSyntax.Identifier);
-                var aliasSymbol = new AliasSymbol(binder, externAliasSyntax); // Binder is only used to access compilation.
+                var aliasSymbol = new AliasSymbolFromSyntax(binder, externAliasSyntax); // Binder is only used to access compilation.
                 externsBuilder.Add(new AliasAndExternAliasDirective(aliasSymbol, externAliasDirective: null)); // We have one, but we pass null for consistency.
             }
 
@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return false;
                 }
 
-                var aliasSymbol = AliasSymbol.CreateCustomDebugInfoAlias(targetSymbol, aliasSyntax.Identifier, binder);
+                var aliasSymbol = AliasSymbol.CreateCustomDebugInfoAlias(targetSymbol, aliasSyntax.Identifier, binder.ContainingMemberOrLambda);
                 usingAliases.Add(alias, new AliasAndUsingDirective(aliasSymbol, usingDirective: null));
             }
 

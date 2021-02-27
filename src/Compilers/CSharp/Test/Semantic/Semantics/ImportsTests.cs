@@ -117,7 +117,7 @@ using F = System.IO;
 
             var externAlias1 = scratchExternAliases[0];
             var externAlias2 = new AliasAndExternAliasDirective(
-                AliasSymbol.CreateCustomDebugInfoAlias(scratchExternAliases[1].Alias.Target, externAlias1.ExternAliasDirective.Identifier, binder),
+                AliasSymbol.CreateCustomDebugInfoAlias(scratchExternAliases[1].Alias.Target, externAlias1.ExternAliasDirective.Identifier, binder.ContainingMemberOrLambda),
                  externAlias1.ExternAliasDirective);
 
             var imports1 = Imports.FromCustomDebugInfo(

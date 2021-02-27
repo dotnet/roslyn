@@ -2282,7 +2282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private AliasSymbol CreateGlobalNamespaceAlias()
         {
-            return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace, new InContainerBinder(this.GlobalNamespace, new BuckStopsHereBinder(this)));
+            return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace);
         }
 
         private void CompleteTree(SyntaxTree tree)
