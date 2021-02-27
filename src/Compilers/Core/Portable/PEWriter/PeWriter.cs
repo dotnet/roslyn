@@ -391,7 +391,7 @@ namespace Microsoft.Cci
             protected override void Serialize(BlobBuilder builder, SectionLocation location)
             {
                 int value;
-                while ((value = _resources.ReadByte() >= 0)
+                while ((value = _resources.ReadByte()) >= 0)
                 {
                     builder.WriteByte((byte)value);
                 }
