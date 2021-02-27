@@ -202,6 +202,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Throw New NotImplementedException()
             End Function
 
+            Protected Overrides ReadOnly Property FallbackDefaultLiteral As String
+                Get
+                    Throw New NotImplementedException()
+                End Get
+            End Property
+
             Friend Overrides Function AddImports(document As Document, position As Integer, snippetNode As XElement, placeSystemNamespaceFirst As Boolean, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Document
                 Return document
             End Function

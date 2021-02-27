@@ -104,9 +104,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// <inheritdoc cref="State.IsFullMethodCallSnippet"/>
         public bool IsFullMethodCallSnippet => _state.IsFullMethodCallSnippet;
 
-        /// <inheritdoc cref="State._arguments"/>
-        public ImmutableDictionary<string, string> Arguments => _state._arguments;
-
         public ImmutableArray<ArgumentProvider> GetArgumentProviders(Workspace workspace)
         {
             AssertIsForeground();
@@ -125,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc);
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
         internal abstract Document AddImports(Document document, int position, XElement snippetNode, bool placeSystemNamespaceFirst, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        protected abstract string FallbackDefaultLiteral { get; }
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
         {
@@ -521,7 +519,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (methodSymbols.Any())
             {
                 var methodName = dataBufferSpan.GetText();
-                var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, cancellationToken);
+                var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty, cancellationToken);
 
                 var doc = new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
@@ -605,7 +603,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// <param name="parameters">The parameters to the method. If the specific target of the invocation is not
         /// known, an empty array may be passed to create a template with a placeholder where arguments will eventually
         /// go.</param>
-        private static XDocument CreateMethodCallSnippet(string methodName, bool includeMethod, ImmutableArray<IParameterSymbol> parameters, CancellationToken cancellationToken)
+        private static XDocument CreateMethodCallSnippet(string methodName, bool includeMethod, ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string> parameterValues, CancellationToken cancellationToken)
         {
             XNamespace snippetNamespace = "http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet";
 
@@ -632,8 +630,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 declarations.Add(new XElement(
                     snippetNamespace + "Literal",
                     new XElement(snippetNamespace + "ID", new XText(parameter.Name)),
-                    new XElement(snippetNamespace + "Function", new XText($"ArgumentValue({SymbolKey.CreateString(parameter, cancellationToken)})")),
-                    new XElement(snippetNamespace + "Default", new XText(""))));
+                    new XElement(snippetNamespace + "Default", new XText(parameterValues.GetValueOrDefault(parameter.Name, "")))));
             }
 
             if (!declarations.Any())
@@ -765,6 +762,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
+            var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document is null)
+            {
+                // Couldn't identify the current document
+                _state.ClearSymbolInformation();
+                return;
+            }
+
             var textViewModel = TextView.TextViewModel;
             if (textViewModel == null)
             {
@@ -776,24 +781,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (buffer is not IVsExpansion expansion)
             {
                 return;
-            }
-
-            // Track current argument values so input created/updated by a user is not lost when cycling through
-            // Signature Help overloads:
-            //
-            // 1. For each parameter of the method currently presented as a snippet, the value of the argument as
-            //    it appears in code.
-            // 2. Place the argument values in a map from parameter name to current value.
-            // 3. (Later) the values in the map can be read to avoid providing new values for equivalent parameters.
-            if (_state._method is not null)
-            {
-                foreach (var previousParameter in _state._method.Parameters)
-                {
-                    if (ExpansionSession.GetFieldValue(previousParameter.Name, out var previousValue) == VSConstants.S_OK)
-                    {
-                        _state._arguments = _state._arguments.SetItem(previousParameter.Name, previousValue);
-                    }
-                }
             }
 
             // We need to replace the portion of the existing Full Method Call snippet which appears inside parentheses.
@@ -825,7 +812,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             adjustedTextSpan.iEndLine = textSpan[0].iEndLine;
             adjustedTextSpan.iEndIndex = textSpan[0].iEndIndex;
 
-            var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, cancellationToken);
+            // Track current argument values so input created/updated by a user is not lost when cycling through
+            // Signature Help overloads:
+            //
+            // 1. For each parameter of the method currently presented as a snippet, the value of the argument as
+            //    it appears in code.
+            // 2. Place the argument values in a map from parameter name to current value.
+            // 3. (Later) the values in the map can be read to avoid providing new values for equivalent parameters.
+            var newArguments = _state._arguments;
+
+            if (_state._method is not null)
+            {
+                foreach (var previousParameter in _state._method.Parameters)
+                {
+                    if (ExpansionSession.GetFieldValue(previousParameter.Name, out var previousValue) == VSConstants.S_OK)
+                    {
+                        newArguments = newArguments.SetItem(previousParameter.Name, previousValue);
+                    }
+                }
+            }
+
+            // Now compute the new arguments for the new call
+            var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
+            var position = SubjectBuffer.CurrentSnapshot.GetPosition(adjustedTextSpan.iStartLine, adjustedTextSpan.iStartIndex);
+
+            foreach (var parameter in method.Parameters)
+            {
+                newArguments.TryGetValue(parameter.Name, out var value);
+
+                foreach (var provider in GetArgumentProviders(document.Project.Solution.Workspace))
+                {
+                    var context = new ArgumentContext(provider, semanticModel, position, parameter, value, cancellationToken);
+                    ThreadingContext.JoinableTaskFactory.Run(() => provider.ProvideArgumentAsync(context));
+
+                    if (context.DefaultValue is not null)
+                    {
+                        value = context.DefaultValue;
+                        break;
+                    }
+                }
+
+                // If we still have no value, fill in the default
+                if (value is null)
+                {
+                    value = FallbackDefaultLiteral;
+                }
+
+                newArguments = newArguments.SetItem(parameter.Name, value);
+            }
+
+            var snippet = CreateMethodCallSnippet(method.Name, includeMethod: false, method.Parameters, newArguments, cancellationToken);
             var doc = new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
@@ -835,14 +871,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 _state._method = method;
                 var previousMethods = _state._methods;
-                var previousArguments = _state._arguments;
 
                 if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
                 {
                     _state._preserveSymbols = false;
                     Debug.Assert(_state._methods == previousMethods);
                     Debug.Assert(_state._method == method);
-                    Debug.Assert(_state._arguments == previousArguments);
+                    _state._arguments = newArguments;
 
                     // On this path, the closing parenthesis is not part of the updated snippet, so there is no way for
                     // the snippet itself to represent the $end$ marker (which falls after the ')' character). Instead,

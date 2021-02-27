@@ -83,6 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(commentSpan, SpanTrackingMode.EdgeExclusive);
         }
 
+        protected override string FallbackDefaultLiteral => "default";
+
         public override int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc)
         {
             if (!TryGetSnippetFunctionInfo(xmlFunctionNode, out var snippetFunctionName, out var param))
@@ -101,12 +103,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                     return VSConstants.S_OK;
                 case "GenerateSwitchCases":
                     pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param);
-                    return VSConstants.S_OK;
-                case "ArgumentValue":
-                    // For the internal ArgumentValue function, the snippet field name is expected to match the
-                    // parameter name, and the string passed to the function is a serialized SymbolKey allowing the
-                    // snippet function to resolve the original IParameterSymbol.
-                    pFunc = new SnippetFunctionArgumentValue(this, SubjectBuffer, parameterName: bstrFieldName, parameterKey: new SymbolKey(param));
                     return VSConstants.S_OK;
                 default:
                     pFunc = null;

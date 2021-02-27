@@ -70,6 +70,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Return Nothing
         End Function
 
+        Protected Overrides ReadOnly Property FallbackDefaultLiteral As String = "Nothing"
+
         Public Overrides Function GetExpansionFunction(xmlFunctionNode As IXMLDOMNode, bstrFieldName As String, ByRef pFunc As IVsExpansionFunction) As Integer
             Dim snippetFunctionName As String = Nothing
             Dim param As String = Nothing
@@ -88,12 +90,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
                     Return VSConstants.S_OK
                 Case "GenerateSwitchCases"
                     pFunc = New SnippetFunctionGenerateSwitchCases(Me, SubjectBuffer, bstrFieldName, param)
-                    Return VSConstants.S_OK
-                Case "ArgumentValue"
-                    ' For the internal ArgumentValue function, the snippet field name is expected to match the parameter
-                    ' name, and the string passed to the function is a serialized SymbolKey allowing the snippet
-                    ' function to resolve the original IParameterSymbol.
-                    pFunc = New SnippetFunctionArgumentValue(Me, SubjectBuffer, parameterName:=bstrFieldName, parameterKey:=New SymbolKey(param))
                     Return VSConstants.S_OK
                 Case Else
                     pFunc = Nothing
