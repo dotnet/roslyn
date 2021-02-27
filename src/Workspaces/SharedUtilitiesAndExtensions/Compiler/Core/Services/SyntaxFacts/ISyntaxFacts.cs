@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDeclaration(SyntaxNode node);
         bool IsTypeDeclaration(SyntaxNode node);
 
+        bool isMethodDeclaration(SyntaxNode node);
+
         bool IsRegularComment(SyntaxTrivia trivia);
         bool IsDocumentationComment(SyntaxTrivia trivia);
         bool IsElastic(SyntaxTrivia trivia);

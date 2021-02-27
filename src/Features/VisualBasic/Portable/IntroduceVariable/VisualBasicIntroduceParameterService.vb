@@ -2,22 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.IntroduceVariable
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicIntroduceParameterService
-        Inherits AbstractIntroduceParameterService(Of VisualBasicIntroduceParameterService, ExpressionSyntax, MethodBlockSyntax, InvocationExpressionSyntax, IdentifierNameSyntax)
+        Inherits AbstractIntroduceParameterService(Of VisualBasicIntroduceParameterService, ExpressionSyntax, InvocationExpressionSyntax, IdentifierNameSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -33,54 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         End Function
 
-        Protected Overrides Async Function RewriteCallSitesAsync(semanticDocument As SemanticDocument, expression As ExpressionSyntax, callSites As ImmutableDictionary(Of Document, List(Of InvocationExpressionSyntax)),
-                                                            methodSymbol As IMethodSymbol, cancellationToken As CancellationToken) As Task(Of Solution)
-            Dim mappingDictionary = MapExpressionToParameters(semanticDocument, expression, cancellationToken)
-            expression = expression.TrackNodes(mappingDictionary.Values)
-            Dim identifiers = expression.DescendantNodes().OfType(Of IdentifierNameSyntax)
-
-            If Not callSites.Keys.Any() Then
-                Return Nothing
-            End If
-
-            Dim firstCallSite = callSites.Keys.First()
-            Dim currentSolution = firstCallSite.Project.Solution
-
-            For Each keyValuePair In callSites
-                Dim document = currentSolution.GetDocument(keyValuePair.Key.Id)
-                Dim invocationExpressionList = keyValuePair.Value
-                Dim generator = SyntaxGenerator.GetGenerator(document)
-                Dim semanticFacts = document.GetRequiredLanguageService(Of ISemanticFactsService)
-                Dim invocationSemanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                Dim editor = New SyntaxEditor(Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False), generator)
-
-                For Each invocationExpression In invocationExpressionList
-                    Dim newArgumentExpression = expression
-                    Dim invocationArguments = invocationExpression.ArgumentList.Arguments
-
-                    For Each argument In invocationArguments
-                        Dim simpleArgument = TryCast(argument, SimpleArgumentSyntax)
-                        Dim associatedParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, argument, cancellationToken)
-                        Dim parenthesizedArgumentExpression = generator.AddParentheses(simpleArgument.Expression, False)
-                        Dim value As IdentifierNameSyntax = Nothing
-                        If Not mappingDictionary.TryGetValue(associatedParameter, value) Then
-                            Continue For
-                        End If
-
-                        newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(value), parenthesizedArgumentExpression)
-                    Next
-
-                    Dim allArguments =
-                        invocationExpression.ArgumentList.Arguments.Add(SyntaxFactory.SimpleArgument(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)))
-                    editor.ReplaceNode(invocationExpression, editor.Generator.InvocationExpression(invocationExpression.Expression, allArguments))
-                Next
-
-                Dim newRoot = editor.GetChangedRoot()
-                document = document.WithSyntaxRoot(newRoot)
-                currentSolution = document.Project.Solution
-            Next
-
-            Return currentSolution
+        Protected Overrides Function AddArgumentToArgumentList(invocationArguments As SeparatedSyntaxList(Of SyntaxNode), newArgumentExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
+            Return invocationArguments.Add(SyntaxFactory.SimpleArgument(DirectCast(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation), ExpressionSyntax)))
         End Function
 
         Protected Overrides Function RewriteCore(Of TNode As SyntaxNode)(node As TNode, replacementNode As SyntaxNode, matches As ISet(Of ExpressionSyntax)) As TNode

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 _matches = matches;
             }
 
-            public override SyntaxNode Visit(SyntaxNode node)
+            public override SyntaxNode? Visit(SyntaxNode? node)
             {
                 if (node is ExpressionSyntax expression &&
                     _matches.Contains(expression))
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 return base.Visit(node);
             }
 
-            public static SyntaxNode Visit(SyntaxNode node, SyntaxNode replacementNode, ISet<ExpressionSyntax> matches)
+            public static SyntaxNode? Visit(SyntaxNode node, SyntaxNode replacementNode, ISet<ExpressionSyntax> matches)
                 => new Rewriter(replacementNode, matches).Visit(node);
         }
     }

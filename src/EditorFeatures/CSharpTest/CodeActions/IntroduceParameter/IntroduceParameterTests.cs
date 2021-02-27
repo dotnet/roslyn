@@ -101,6 +101,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithSingleMethodCallInLocalFunction()
+        {
+            var code =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z)
+                    {
+                        int m = M2(x, z);
+                        
+                        int M2(int x, int y)
+                        {
+                            int val = [|x * y|];
+                            return val;
+                        }
+                    }
+                }";
+
+            var expected =
+                @"using System;
+                class TestClass
+                {
+                    void M(int x, int y, int z)
+                    {
+                        int m = M2(x, z, x * z);
+                        
+                        int M2(int x, int y, int v)
+                        {
+                            int val = {|Rename:v|};
+                            return val;
+                        }
+                    }
+                }";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
         public async Task TestHighlightIncompleteExpressionCaseWithSingleMethodCall()
         {
             var code =

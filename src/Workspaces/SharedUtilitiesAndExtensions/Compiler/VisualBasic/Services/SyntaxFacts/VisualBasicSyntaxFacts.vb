@@ -1470,6 +1470,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function IsMethodDeclaration(node As SyntaxNode) As Boolean Implements ISyntaxFacts.isMethodDeclaration
+            Select Case node.Kind()
+                Case SyntaxKind.SubBlock,
+                     SyntaxKind.FunctionBlock,
+                     SyntaxKind.FunctionLambdaHeader,
+                     SyntaxKind.SubLambdaHeader
+                    Return True
+            End Select
+
+            Return False
+        End Function
+
         Public Function IsDeclaratorOfLocalDeclarationStatement(declarator As SyntaxNode, localDeclarationStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.IsDeclaratorOfLocalDeclarationStatement
             Return DirectCast(localDeclarationStatement, LocalDeclarationStatementSyntax).Declarators.
                 Contains(DirectCast(declarator, VariableDeclaratorSyntax))

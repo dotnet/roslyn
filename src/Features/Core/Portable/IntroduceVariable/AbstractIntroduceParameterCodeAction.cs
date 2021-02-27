@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TMethodDeclarationSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax>
+    internal partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax>
     {
         internal abstract class AbstractIntroduceParameterCodeAction : CodeAction
         {
@@ -57,37 +57,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var singleLineExpression = _semanticDocument.Document.GetLanguageService<ISyntaxFactsService>().ConvertToSingleLine(expression);
                 var nodeString = singleLineExpression.ToString();
 
-                return CreateDisplayText(nodeString);
+                return string.Format(CreateDisplayText(), nodeString);
             }
 
-            private string CreateDisplayText(string nodeString)
-            {
-                string formatString;
-                if (_allOccurrences)
+            private string CreateDisplayText()
+                => (_allOccurrences, _trampoline) switch
                 {
-                    if (_trampoline)
-                    {
-                        formatString = FeaturesResources.Introduce_parameter_and_trampoline_for_all_occurrences_of_0;
-                    }
-                    else
-                    {
-                        formatString = FeaturesResources.Introduce_parameter_for_all_occurrences_of_0;
-                    }
-                }
-                else
-                {
-                    if (_trampoline)
-                    {
-                        formatString = FeaturesResources.Introduce_parameter_and_trampoline_for_0;
-                    }
-                    else
-                    {
-                        formatString = FeaturesResources.Introduce_parameter_for_0;
-                    }
-                }
-
-                return string.Format(formatString, nodeString);
-            }
+                    (true, true) => FeaturesResources.Introduce_new_parameter_overload_for_all_occurrences_of_0,
+                    (true, false) => FeaturesResources.Introduce_parameter_for_all_occurrences_of_0,
+                    (false, true) => FeaturesResources.Introduce_new_parameter_overload_for_0,
+                    (false, false) => FeaturesResources.Introduce_parameter_for_0
+                };
         }
     }
 }

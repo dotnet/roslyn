@@ -550,19 +550,19 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Lokale Variable einführen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Introduce_new_parameter_overload_for_0">
+        <source>Introduce new parameter overload for '{0}'</source>
+        <target state="new">Introduce new parameter overload for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Introduce_new_parameter_overload_for_all_occurrences_of_0">
+        <source>Introduce new parameter overload for all occurrences of '{0}'</source>
+        <target state="new">Introduce new parameter overload for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_parameter">
         <source>Introduce parameter</source>
         <target state="new">Introduce parameter</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_parameter_and_trampoline_for_0">
-        <source>Introduce parameter and trampoline for '{0}'</source>
-        <target state="new">Introduce parameter and trampoline for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_parameter_and_trampoline_for_all_occurrences_of_0">
-        <source>Introduce parameter and trampoline for all occurrences of '{0}'</source>
-        <target state="new">Introduce parameter and trampoline for all occurrences of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">
