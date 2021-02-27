@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -218,42 +217,58 @@ namespace Roslyn.Test.Utilities
                 Value = value
             };
 
-        protected static LSP.CompletionParams CreateCompletionParams(LSP.Location caret, string triggerCharacter, LSP.CompletionTriggerKind triggerKind)
+        protected static LSP.CompletionParams CreateCompletionParams(
+            LSP.Location caret,
+            LSP.VSCompletionInvokeKind invokeKind,
+            string triggerCharacter,
+            LSP.CompletionTriggerKind triggerKind)
             => new LSP.CompletionParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
-                Context = new LSP.CompletionContext()
+                Context = new LSP.VSCompletionContext()
                 {
+                    InvokeKind = invokeKind,
                     TriggerCharacter = triggerCharacter,
-                    TriggerKind = triggerKind
+                    TriggerKind = triggerKind,
                 }
             };
 
-        protected static LSP.VSCompletionItem CreateCompletionItem(
-            string insertText,
+        protected static async Task<LSP.VSCompletionItem> CreateCompletionItemAsync(
+            string label,
             LSP.CompletionItemKind kind,
             string[] tags,
-            LSP.CompletionParams requestParameters,
+            LSP.CompletionParams request,
+            Document document,
             bool preselect = false,
             ImmutableArray<char>? commitCharacters = null,
+            LSP.TextEdit? textEdit = null,
+            string? insertText = null,
             string? sortText = null,
+            string? filterText = null,
+            string? displayText = null,
             int resultId = 0)
         {
+            var position = await document.GetPositionFromLinePositionAsync(
+                ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
+            var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(
+                request.Context, document, position, CancellationToken.None).ConfigureAwait(false);
+
             var item = new LSP.VSCompletionItem()
             {
-                FilterText = insertText,
+                TextEdit = textEdit,
                 InsertText = insertText,
-                Label = insertText,
-                SortText = sortText ?? insertText,
+                FilterText = filterText ?? label,
+                Label = label,
+                SortText = sortText ?? label,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
                 Data = JObject.FromObject(new CompletionResolveData()
                 {
-                    DisplayText = insertText,
-                    TextDocument = requestParameters.TextDocument,
-                    Position = requestParameters.Position,
-                    CompletionTrigger = ProtocolConversions.LSPToRoslynCompletionTrigger(requestParameters.Context),
+                    DisplayText = displayText ?? label,
+                    TextDocument = request.TextDocument,
+                    Position = request.Position,
+                    CompletionTrigger = completionTrigger,
                     ResultId = resultId,
                 }),
                 Preselect = preselect
@@ -267,6 +282,17 @@ namespace Roslyn.Test.Utilities
 
             return item;
         }
+
+        protected static LSP.TextEdit GenerateTextEdit(string newText, int startLine, int startChar, int endLine, int endChar)
+            => new LSP.TextEdit
+            {
+                NewText = newText,
+                Range = new LSP.Range
+                {
+                    Start = new LSP.Position { Line = startLine, Character = startChar },
+                    End = new LSP.Position { Line = endLine, Character = endChar }
+                }
+            };
 
         private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location)
             => new CodeActionResolveData(uniqueIdentifier, location.Range, CreateTextDocumentIdentifier(location.Uri));

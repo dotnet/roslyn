@@ -427,6 +427,11 @@
         <target state="translated">'{0}' ile '{1}' işlev işaretçisi arasındaki başvurular uyuşmuyor</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FunctionPointerTypesInAttributeNotSupported">
+        <source>Using a function pointer type in a 'typeof' in an attribute is not supported.</source>
+        <target state="new">Using a function pointer type in a 'typeof' in an attribute is not supported.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FunctionPointersCannotBeCalledWithNamedArguments">
         <source>A function pointer cannot be called with named arguments.</source>
         <target state="translated">İşlev işaretçisi, adlandırılmış bağımsız değişkenler ile çağrılamaz.</target>
@@ -9225,11 +9230,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_NoCanonicalView">
         <source>Cannot find the interop type that matches the embedded interop type '{0}'. Are you missing an assembly reference?</source>
         <target state="translated">Gömülü birlikte çalışma türü '{0}' ile eşleşen birlikte çalışma türü bulunamıyor. Bir derleme başvurunuz mu eksik?</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Başvuruya göre dönüş türü 'ref {0}' desteklenmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">

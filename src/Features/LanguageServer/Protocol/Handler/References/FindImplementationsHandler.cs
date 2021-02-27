@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(LSP.Methods.TextDocumentImplementationName, mutatesSolutionState: false)]
+    [ProvidesMethod(LSP.Methods.TextDocumentImplementationName)]
     internal class FindImplementationsHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
         [ImportingConstructor]
@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public FindImplementationsHandler()
         {
         }
+
+        public override string Method => LSP.Methods.TextDocumentImplementationName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 

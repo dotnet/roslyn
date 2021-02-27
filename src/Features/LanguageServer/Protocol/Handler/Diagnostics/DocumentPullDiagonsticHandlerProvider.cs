@@ -7,10 +7,12 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(MSLSPMethods.DocumentPullDiagnosticName)]
     internal class DocumentPullDiagonsticHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IDiagnosticService _diagnosticService;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _analyzerService = analyzerService;
         }
 
-        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
         {
             return ImmutableArray.Create<IRequestHandler>(new DocumentPullDiagnosticHandler(_diagnosticService, _analyzerService));
         }

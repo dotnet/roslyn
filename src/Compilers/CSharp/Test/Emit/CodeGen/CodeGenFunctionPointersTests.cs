@@ -932,12 +932,21 @@ unsafe class D
 
             var comp = CreateCompilationWithFunctionPointersAndIl(source, ilSource);
             comp.VerifyDiagnostics(
+                // (6,9): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
+                //         c.Field(__arglist(1, 2));
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "c.Field(__arglist(1, 2))").WithArguments("delegate* unmanaged[]<void>").WithLocation(6, 9),
                 // (6,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field(__arglist(1, 2));
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(6, 11),
+                // (7,9): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
+                //         c.Field(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "c.Field(1, 2, 3)").WithArguments("delegate* unmanaged[]<void>").WithLocation(7, 9),
                 // (7,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field(1, 2, 3);
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(7, 11),
+                // (8,9): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
+                //         c.Field();
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "c.Field()").WithArguments("delegate* unmanaged[]<void>").WithLocation(8, 9),
                 // (8,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field();
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(8, 11),
@@ -947,6 +956,9 @@ unsafe class D
                 // (9,21): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Field = c.Field;
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Field").WithArguments("delegate* unmanaged[]<void>").WithLocation(9, 21),
+                // (10,9): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
+                //         c.Prop();
+                Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "c.Prop()").WithArguments("delegate* unmanaged[]<void>").WithLocation(10, 9),
                 // (10,11): error CS8806: The calling convention of 'delegate* unmanaged[]<void>' is not supported by the language.
                 //         c.Prop();
                 Diagnostic(ErrorCode.ERR_UnsupportedCallingConvention, "Prop").WithArguments("delegate* unmanaged[]<void>").WithLocation(10, 11),
@@ -5333,7 +5345,7 @@ public unsafe class C
     public delegate*<delegate*<string, int*>, delegate*<string?>, delegate*<void*, string>> F6;
 }";
 
-            var comp = CreateCompilationWithFunctionPointers(source, options: WithNonNullTypesTrue(TestOptions.UnsafeReleaseDll));
+            var comp = CreateCompilationWithFunctionPointers(source, options: WithNullableEnable(TestOptions.UnsafeReleaseDll));
             comp.VerifyDiagnostics();
 
             verifySymbolNullabilities(comp.GetTypeByMetadataName("C")!);
@@ -11286,6 +11298,38 @@ False");
   IL_0014:  ret
 }
 ");
+        }
+
+        [Fact, WorkItem(48765, "https://github.com/dotnet/roslyn/issues/48765")]
+        public void TypeOfFunctionPointerInAttribute()
+        {
+            var comp = CreateCompilationWithFunctionPointers(@"
+using System;
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+[Attr(typeof(delegate*<void>))]
+[Attr(typeof(delegate*<void>[]))]
+[Attr(typeof(C<delegate*<void>[]>))]
+unsafe class Attr : System.Attribute
+{
+    public Attr(System.Type type) {}
+}
+
+class C<T> {}
+");
+
+            // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario. Currently, we don't know how to
+            // encode these in metadata, and may need to work with the runtime team to define a new format.
+            comp.VerifyDiagnostics(
+                // (4,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                // [Attr(typeof(delegate*<void>))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(delegate*<void>)").WithLocation(4, 7),
+                // (5,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                // [Attr(typeof(delegate*<void>[]))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(delegate*<void>[])").WithLocation(5, 7),
+                // (6,7): error CS8911: Using a function pointer type in a 'typeof' in an attribute is not supported.
+                // [Attr(typeof(C<delegate*<void>[]>))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "typeof(C<delegate*<void>[]>)").WithLocation(6, 7)
+            );
         }
 
         private static readonly Guid s_guid = new Guid("97F4DBD4-F6D1-4FAD-91B3-1001F92068E5");

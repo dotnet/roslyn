@@ -30,15 +30,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     [Export(typeof(ILanguageClient))]
     internal class RazorInProcLanguageClient : AbstractInProcLanguageClient
     {
-        public const string ClientName = "RazorCSharp";
+        public const string ClientName = ProtocolConstants.RazorCSharp;
 
         private readonly IGlobalOptionService _globalOptionService;
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
         /// <summary>
-        /// Gets the name of the language client (displayed to the user).
+        /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
-        public override string Name => ServicesVSResources.Razor_CSharp_Language_Server_Client;
+        public override string Name => "Razor C# Language Server Client";
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

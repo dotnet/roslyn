@@ -26,18 +26,26 @@ variables:
     - group: DotNet-GitHub-Versions-Repo-Write
     - name: _DevDivDropAccessToken
       value: $(System.AccessToken)
+  # For publishing from devdiv pipeline to devdiv feed, the API key can 
+  # be any non-empty string as authentication is done in the pipeline. 
+    - name: _DevDivNugetFeedAccessToken
+      value: "AzureArtifacts"
   # If the pipeline is running in dnceng:
-  # Get access token with $dn-bot-devdiv-drop-rw-code-rw from DotNet-VSTS-Infra-Access
+  # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
   # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
   # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
+  # Get $dn-bot-devdiv-packaging-rw from DotNet-DevDiv-Insertion-Workflow-Variables
   - ${{ if eq(variables['System.TeamProject'], 'internal') }}:
     - group: DotNet-Blob-Feed
     - group: DotNet-Symbol-Server-Pats
     - group: DotNet-Versions-Publish
     - group: DotNet-VSTS-Infra-Access
+    - group: DotNet-DevDiv-Insertion-Workflow-Variables
     - name: _DevDivDropAccessToken
       value: $(dn-bot-devdiv-drop-rw-code-rw)
+    - name: _DevDivNugetFeedAccessToken
+      value: $(dn-bot-devdiv-packaging-rw)
 
 stages:
 - stage: build
@@ -50,7 +58,7 @@ stages:
     # Conditionally set build pool so we can share this YAML when building with different pipeline (devdiv vs dnceng) 
     pool:      
       ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-        name: VSEng-MicroBuildVS2017
+        name: VSEngSS-MicroBuild2017
         demands: 
         - msbuild
         - visualstudio
@@ -109,7 +117,11 @@ stages:
     - task: PowerShell@2
       displayName: Merge master-vs-deps into source branch
       inputs:
-        filePath: 'scripts\merge-vs-deps.ps1'
+        filePath: 'scripts\merge-vs-deps.ps1'        
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          arguments: '-userName "$(Build.RequestedFor)" -userEmail $(Build.RequestedForEmail)'
+        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+          arguments: '-userName "$(Build.RequestedFor)" -userEmail $(Build.RequestedForEmail) -accessToken $(dn-bot-dnceng-build-rw-code-rw)'
       condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
@@ -180,7 +192,7 @@ stages:
       displayName: Publish Assets
       inputs:
         filePath: 'eng\publish-assets.ps1'
-        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(AccessToken-dotnet-build-bot-public-repo) -gitHubEmail $(Roslyn.GitHubEmail)'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(AccessToken-dotnet-build-bot-public-repo) -gitHubEmail $(Roslyn.GitHubEmail) -devdivApiKey $(_DevDivNugetFeedAccessToken)'
       condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files

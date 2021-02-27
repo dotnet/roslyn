@@ -52,8 +52,9 @@ record Point(int x, int y);
 ";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,12): error CS8805: Program using top-level statements must be an executable.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 12),
                 // (2,12): error CS1514: { expected
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 12),
@@ -96,8 +97,9 @@ record Point(int x, int y);
             );
             comp = CreateCompilation(src3, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // record Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "record Point(int x, int y);").WithLocation(2, 1),
                 // (2,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // record Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "record Point(int x, int y);").WithArguments("top-level statements", "9.0").WithLocation(2, 1),
@@ -114,8 +116,9 @@ record Point(int x, int y);
 
             comp = CreateCompilation(src1, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1),
+                // (2,12): error CS8805: Program using top-level statements must be an executable.
+                // class Point(int x, int y);
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "(int x, int y);").WithLocation(2, 12),
                 // (2,12): error CS1514: { expected
                 // class Point(int x, int y);
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 12),
@@ -226,6 +229,66 @@ class E
 
             comp = CreateCompilation(src3);
             comp.VerifyDiagnostics();
+        }
+
+        [CombinatorialData]
+        [Theory, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        public void GetSimpleNonTypeMembers(bool useCompilationReference)
+        {
+            var lib_src = @"
+public record RecordA(RecordB B);
+
+public record RecordB(int C);
+";
+            var lib_comp = CreateCompilation(lib_src);
+
+            var src = @"
+class C
+{
+    void M(RecordA a, RecordB b)
+    {
+        _ = a.B == b;
+    }
+}
+";
+            var comp = CreateCompilation(src, references: new[] { AsReference(lib_comp, useCompilationReference) });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        public void GetSimpleNonTypeMembers_SingleCompilation()
+        {
+            var src = @"
+public record RecordA(RecordB B);
+
+public record RecordB(int C);
+
+class C
+{
+    void M(RecordA a, RecordB b)
+    {
+        _ = a.B == b;
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            Assert.Equal("System.Boolean RecordB.op_Equality(RecordB? r1, RecordB? r2)",
+                model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(49302, "https://github.com/dotnet/roslyn/issues/49302")]
+        public void GetSimpleNonTypeMembers_DirectApiCheck()
+        {
+            var src = @"
+public record RecordB();
+";
+            var comp = CreateCompilation(src);
+            var b = comp.GlobalNamespace.GetTypeMember("RecordB");
+            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB? r1, RecordB? r2)" },
+                b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
         }
 
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
@@ -5296,7 +5359,7 @@ record C2: Error;
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(49263, "https://github.com/dotnet/roslyn/issues/49263")]
         public void ToString_SelfReferentialBase()
         {
             var src = @"
@@ -10962,18 +11025,23 @@ class Program
 }");
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       23 (0x17)
+  // Code size       29 (0x1d)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0015
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  ret
-  IL_0015:  ldc.i4.0
-  IL_0016:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_001b
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0019
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  ret
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.1
+  IL_001c:  ret
 }");
             verifier.VerifyIL("A.GetHashCode()",
 @"{
@@ -11034,28 +11102,33 @@ class Program
 }");
             verifier.VerifyIL("B.Equals(B)",
 @"{
-  // Code size       58 (0x3a)
+  // Code size       64 (0x40)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool A.Equals(A)""
-  IL_0007:  brfalse.s  IL_0038
-  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
-  IL_000e:  ldarg.0
-  IL_000f:  ldfld      ""object B.<Y>k__BackingField""
-  IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""object B.<Y>k__BackingField""
-  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
-  IL_001f:  brfalse.s  IL_0038
-  IL_0021:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
-  IL_0026:  ldarg.0
-  IL_0027:  ldfld      ""object B.<X>k__BackingField""
-  IL_002c:  ldarg.1
-  IL_002d:  ldfld      ""object B.<X>k__BackingField""
-  IL_0032:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
-  IL_0037:  ret
-  IL_0038:  ldc.i4.0
-  IL_0039:  ret
+  IL_0002:  beq.s      IL_003e
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool A.Equals(A)""
+  IL_000b:  brfalse.s  IL_003c
+  IL_000d:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""object B.<Y>k__BackingField""
+  IL_0018:  ldarg.1
+  IL_0019:  ldfld      ""object B.<Y>k__BackingField""
+  IL_001e:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_0023:  brfalse.s  IL_003c
+  IL_0025:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_002a:  ldarg.0
+  IL_002b:  ldfld      ""object B.<X>k__BackingField""
+  IL_0030:  ldarg.1
+  IL_0031:  ldfld      ""object B.<X>k__BackingField""
+  IL_0036:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_003b:  ret
+  IL_003c:  ldc.i4.0
+  IL_003d:  ret
+  IL_003e:  ldc.i4.1
+  IL_003f:  ret
 }");
             verifier.VerifyIL("B.GetHashCode()",
 @"{
@@ -11145,18 +11218,23 @@ class Program
 }");
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       23 (0x17)
+  // Code size       29 (0x1d)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0015
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  ret
-  IL_0015:  ldc.i4.0
-  IL_0016:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_001b
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0019
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  ret
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.1
+  IL_001c:  ret
 }");
             verifier.VerifyIL("A.GetHashCode()",
 @"{
@@ -11187,12 +11265,17 @@ class Program
 }");
             verifier.VerifyIL("B.Equals(B)",
 @"{
-  // Code size        8 (0x8)
+  // Code size       14 (0xe)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool A.Equals(A)""
-  IL_0007:  ret
+  IL_0002:  beq.s      IL_000c
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool A.Equals(A)""
+  IL_000b:  ret
+  IL_000c:  ldc.i4.1
+  IL_000d:  ret
 }");
             verifier.VerifyIL("B.GetHashCode()",
 @"{
@@ -11249,28 +11332,33 @@ class Program
 }");
             verifier.VerifyIL("C.Equals(C)",
 @"{
-  // Code size       58 (0x3a)
+  // Code size       64 (0x40)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool B.Equals(B)""
-  IL_0007:  brfalse.s  IL_0038
-  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
-  IL_000e:  ldarg.0
-  IL_000f:  ldfld      ""object C.<X>k__BackingField""
-  IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""object C.<X>k__BackingField""
-  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
-  IL_001f:  brfalse.s  IL_0038
-  IL_0021:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
-  IL_0026:  ldarg.0
-  IL_0027:  ldfld      ""object C.<Y>k__BackingField""
-  IL_002c:  ldarg.1
-  IL_002d:  ldfld      ""object C.<Y>k__BackingField""
-  IL_0032:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
-  IL_0037:  ret
-  IL_0038:  ldc.i4.0
-  IL_0039:  ret
+  IL_0002:  beq.s      IL_003e
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool B.Equals(B)""
+  IL_000b:  brfalse.s  IL_003c
+  IL_000d:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""object C.<X>k__BackingField""
+  IL_0018:  ldarg.1
+  IL_0019:  ldfld      ""object C.<X>k__BackingField""
+  IL_001e:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_0023:  brfalse.s  IL_003c
+  IL_0025:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_002a:  ldarg.0
+  IL_002b:  ldfld      ""object C.<Y>k__BackingField""
+  IL_0030:  ldarg.1
+  IL_0031:  ldfld      ""object C.<Y>k__BackingField""
+  IL_0036:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_003b:  ret
+  IL_003c:  ldc.i4.0
+  IL_003d:  ret
+  IL_003e:  ldc.i4.1
+  IL_003f:  ret
 }");
             verifier.VerifyIL("C.GetHashCode()",
 @"{
@@ -11393,25 +11481,30 @@ class Program
 }");
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       47 (0x2f)
+  // Code size       53 (0x35)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_002d
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_002d
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""object A.<Y>k__BackingField""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""object A.<Y>k__BackingField""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
-  IL_002c:  ret
-  IL_002d:  ldc.i4.0
-  IL_002e:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0033
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0031
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0031
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""object A.<Y>k__BackingField""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""object A.<Y>k__BackingField""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_0030:  ret
+  IL_0031:  ldc.i4.0
+  IL_0032:  ret
+  IL_0033:  ldc.i4.1
+  IL_0034:  ret
 }");
             verifier.VerifyIL("A.GetHashCode()",
 @"{
@@ -11465,12 +11558,17 @@ class Program
 }");
             verifier.VerifyIL("B.Equals(B)",
 @"{
-  // Code size        8 (0x8)
+  // Code size       14 (0xe)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool A.Equals(A)""
-  IL_0007:  ret
+  IL_0002:  beq.s      IL_000c
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool A.Equals(A)""
+  IL_000b:  ret
+  IL_000c:  ldc.i4.1
+  IL_000d:  ret
 }");
             verifier.VerifyIL("B.GetHashCode()",
 @"{
@@ -11529,28 +11627,33 @@ class Program
 }");
             verifier.VerifyIL("C.Equals(C)",
 @"{
-  // Code size       58 (0x3a)
+  // Code size       64 (0x40)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool B.Equals(B)""
-  IL_0007:  brfalse.s  IL_0038
-  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
-  IL_000e:  ldarg.0
-  IL_000f:  ldfld      ""object C.<X>k__BackingField""
-  IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""object C.<X>k__BackingField""
-  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
-  IL_001f:  brfalse.s  IL_0038
-  IL_0021:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
-  IL_0026:  ldarg.0
-  IL_0027:  ldfld      ""object C.<Y>k__BackingField""
-  IL_002c:  ldarg.1
-  IL_002d:  ldfld      ""object C.<Y>k__BackingField""
-  IL_0032:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
-  IL_0037:  ret
-  IL_0038:  ldc.i4.0
-  IL_0039:  ret
+  IL_0002:  beq.s      IL_003e
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool B.Equals(B)""
+  IL_000b:  brfalse.s  IL_003c
+  IL_000d:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""object C.<X>k__BackingField""
+  IL_0018:  ldarg.1
+  IL_0019:  ldfld      ""object C.<X>k__BackingField""
+  IL_001e:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_0023:  brfalse.s  IL_003c
+  IL_0025:  call       ""System.Collections.Generic.EqualityComparer<object> System.Collections.Generic.EqualityComparer<object>.Default.get""
+  IL_002a:  ldarg.0
+  IL_002b:  ldfld      ""object C.<Y>k__BackingField""
+  IL_0030:  ldarg.1
+  IL_0031:  ldfld      ""object C.<Y>k__BackingField""
+  IL_0036:  callvirt   ""bool System.Collections.Generic.EqualityComparer<object>.Equals(object, object)""
+  IL_003b:  ret
+  IL_003c:  ldc.i4.0
+  IL_003d:  ret
+  IL_003e:  ldc.i4.1
+  IL_003f:  ret
 }");
             verifier.VerifyIL("C.GetHashCode()",
 @"{
@@ -15797,6 +15900,18 @@ public record A {
                 // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // public record A {
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+}").WithArguments("System.Exception").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+}").WithArguments("System.Exception").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+}").WithArguments("System.Exception").WithLocation(2, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -16729,6 +16844,16 @@ public record A {
                 // (3,31): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override Something GetHashCode() => default;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 31),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+    public override Something GetHashCode() => default;
+}").WithArguments("System.Exception").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+    public override Something GetHashCode() => default;
+}").WithArguments("System.Exception").WithLocation(2, 1),
                 // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // public record A {
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
@@ -16813,6 +16938,16 @@ public record A {
                 // (3,26): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 //     public override bool GetHashCode() => default;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(3, 26),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+    public override bool GetHashCode() => default;
+}").WithArguments("System.Exception").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+    public override bool GetHashCode() => default;
+}").WithArguments("System.Exception").WithLocation(2, 1),
                 // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // public record A {
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
@@ -16900,6 +17035,18 @@ public record A {
                 // (2,15): error CS0518: Predefined type 'System.Type' is not defined or imported
                 // public record A {
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Type").WithLocation(2, 15),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+}").WithArguments("System.Exception").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+}").WithArguments("System.Exception").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Exception' is not defined or imported
+                // public record A {
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"public record A {
+}").WithArguments("System.Exception").WithLocation(2, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
@@ -21916,18 +22063,23 @@ True").VerifyDiagnostics();
 
             verifier.VerifyIL("C.Equals(C)",
 @"{
-  // Code size       23 (0x17)
+  // Code size       29 (0x1d)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0015
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  ret
-  IL_0015:  ldc.i4.0
-  IL_0016:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_001b
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0019
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  ret
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.1
+  IL_001c:  ret
 }");
             verifier.VerifyIL("C.Equals(object)",
 @"{
@@ -21980,25 +22132,30 @@ True").VerifyDiagnostics();
 
             verifier.VerifyIL("C.Equals(C)",
 @"{
-  // Code size       47 (0x2f)
+  // Code size       53 (0x35)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_002d
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type C.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_002d
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int C._id""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""int C._id""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002c:  ret
-  IL_002d:  ldc.i4.0
-  IL_002e:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0033
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0031
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type C.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0031
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int C._id""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int C._id""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0030:  ret
+  IL_0031:  ldc.i4.0
+  IL_0032:  ret
+  IL_0033:  ldc.i4.1
+  IL_0034:  ret
 }");
             verifier.VerifyIL("C.GetHashCode()",
 @"{
@@ -22077,36 +22234,46 @@ True").VerifyDiagnostics(
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       23 (0x17)
+  // Code size       29 (0x1d)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0015
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  ret
-  IL_0015:  ldc.i4.0
-  IL_0016:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_001b
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0019
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  ret
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.1
+  IL_001c:  ret
 }");
             verifier.VerifyIL("B1.Equals(B1)",
 @"{
-  // Code size       34 (0x22)
+  // Code size       40 (0x28)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool A.Equals(A)""
-  IL_0007:  brfalse.s  IL_0020
-  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_000e:  ldarg.0
-  IL_000f:  ldfld      ""int B1.<P>k__BackingField""
-  IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""int B1.<P>k__BackingField""
-  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_001f:  ret
-  IL_0020:  ldc.i4.0
-  IL_0021:  ret
+  IL_0002:  beq.s      IL_0026
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool A.Equals(A)""
+  IL_000b:  brfalse.s  IL_0024
+  IL_000d:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int B1.<P>k__BackingField""
+  IL_0018:  ldarg.1
+  IL_0019:  ldfld      ""int B1.<P>k__BackingField""
+  IL_001e:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0023:  ret
+  IL_0024:  ldc.i4.0
+  IL_0025:  ret
+  IL_0026:  ldc.i4.1
+  IL_0027:  ret
 }");
             verifier.VerifyIL("B1.GetHashCode()",
 @"{
@@ -22185,34 +22352,44 @@ True").VerifyDiagnostics(
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       47 (0x2f)
+  // Code size       53 (0x35)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_002d
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_002d
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int A.<P>k__BackingField""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""int A.<P>k__BackingField""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002c:  ret
-  IL_002d:  ldc.i4.0
-  IL_002e:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0033
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0031
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0031
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int A.<P>k__BackingField""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int A.<P>k__BackingField""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0030:  ret
+  IL_0031:  ldc.i4.0
+  IL_0032:  ret
+  IL_0033:  ldc.i4.1
+  IL_0034:  ret
 }");
             verifier.VerifyIL("B1.Equals(B1)",
 @"{
-  // Code size        8 (0x8)
+  // Code size       14 (0xe)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool A.Equals(A)""
-  IL_0007:  ret
+  IL_0002:  beq.s      IL_000c
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool A.Equals(A)""
+  IL_000b:  ret
+  IL_000c:  ldc.i4.1
+  IL_000d:  ret
 }");
             verifier.VerifyIL("B1.GetHashCode()",
 @"{
@@ -22286,27 +22463,37 @@ True").VerifyDiagnostics(
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       23 (0x17)
-  .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0015
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  ret
-  IL_0015:  ldc.i4.0
-  IL_0016:  ret
-}");
-            verifier.VerifyIL("C.Equals(C)",
-@"{
-  // Code size        8 (0x8)
+  // Code size       29 (0x1d)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool B.Equals(B)""
-  IL_0007:  ret
+  IL_0002:  beq.s      IL_001b
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0019
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  ret
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.1
+  IL_001c:  ret
+}");
+            verifier.VerifyIL("C.Equals(C)",
+@"{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_000c
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool B.Equals(B)""
+  IL_000b:  ret
+  IL_000c:  ldc.i4.1
+  IL_000d:  ret
 }");
         }
 
@@ -22388,18 +22575,23 @@ True").VerifyDiagnostics();
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       23 (0x17)
+  // Code size       29 (0x1d)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0015
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  ret
-  IL_0015:  ldc.i4.0
-  IL_0016:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_001b
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0019
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  ret
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.1
+  IL_001c:  ret
 }");
             verifier.VerifyIL("B.Equals(A)",
 @"{
@@ -22421,12 +22613,17 @@ True").VerifyDiagnostics();
 }");
             verifier.VerifyIL("C.Equals(C)",
 @"{
-  // Code size        8 (0x8)
+  // Code size       14 (0xe)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool B.Equals(B)""
-  IL_0007:  ret
+  IL_0002:  beq.s      IL_000c
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool B.Equals(B)""
+  IL_000b:  ret
+  IL_000c:  ldc.i4.1
+  IL_000d:  ret
 }");
 
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
@@ -22574,44 +22771,54 @@ True").VerifyDiagnostics(
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       47 (0x2f)
+  // Code size       53 (0x35)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_002d
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_002d
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int A.<X>k__BackingField""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""int A.<X>k__BackingField""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002c:  ret
-  IL_002d:  ldc.i4.0
-  IL_002e:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0033
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0031
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0031
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int A.<X>k__BackingField""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int A.<X>k__BackingField""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0030:  ret
+  IL_0031:  ldc.i4.0
+  IL_0032:  ret
+  IL_0033:  ldc.i4.1
+  IL_0034:  ret
 }");
             // https://github.com/dotnet/roslyn/issues/44895: C.Equals() should compare B.Y.
             verifier.VerifyIL("C.Equals(C)",
 @"{
-  // Code size       34 (0x22)
+  // Code size       40 (0x28)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool B.Equals(B)""
-  IL_0007:  brfalse.s  IL_0020
-  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_000e:  ldarg.0
-  IL_000f:  ldfld      ""int C.<Z>k__BackingField""
-  IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""int C.<Z>k__BackingField""
-  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_001f:  ret
-  IL_0020:  ldc.i4.0
-  IL_0021:  ret
+  IL_0002:  beq.s      IL_0026
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool B.Equals(B)""
+  IL_000b:  brfalse.s  IL_0024
+  IL_000d:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int C.<Z>k__BackingField""
+  IL_0018:  ldarg.1
+  IL_0019:  ldfld      ""int C.<Z>k__BackingField""
+  IL_001e:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0023:  ret
+  IL_0024:  ldc.i4.0
+  IL_0025:  ret
+  IL_0026:  ldc.i4.1
+  IL_0027:  ret
 }");
             verifier.VerifyIL("C.GetHashCode()",
 @"{
@@ -22735,25 +22942,30 @@ True").VerifyDiagnostics(
 
             verifier.VerifyIL("A.Equals(A)",
 @"{
-  // Code size       47 (0x2f)
+  // Code size       53 (0x35)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_002d
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type A.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  brfalse.s  IL_002d
-  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      ""int A.<X>k__BackingField""
-  IL_0021:  ldarg.1
-  IL_0022:  ldfld      ""int A.<X>k__BackingField""
-  IL_0027:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_002c:  ret
-  IL_002d:  ldc.i4.0
-  IL_002e:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_0033
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0031
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type A.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  brfalse.s  IL_0031
+  IL_001a:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_001f:  ldarg.0
+  IL_0020:  ldfld      ""int A.<X>k__BackingField""
+  IL_0025:  ldarg.1
+  IL_0026:  ldfld      ""int A.<X>k__BackingField""
+  IL_002b:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0030:  ret
+  IL_0031:  ldc.i4.0
+  IL_0032:  ret
+  IL_0033:  ldc.i4.1
+  IL_0034:  ret
 }");
             verifier.VerifyIL("B.Equals(A)",
 @"{
@@ -22766,21 +22978,26 @@ True").VerifyDiagnostics(
 }");
             verifier.VerifyIL("B.Equals(B)",
 @"{
-  // Code size       34 (0x22)
+  // Code size       40 (0x28)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool A.Equals(A)""
-  IL_0007:  brfalse.s  IL_0020
-  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_000e:  ldarg.0
-  IL_000f:  ldfld      ""int B.<Y>k__BackingField""
-  IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""int B.<Y>k__BackingField""
-  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_001f:  ret
-  IL_0020:  ldc.i4.0
-  IL_0021:  ret
+  IL_0002:  beq.s      IL_0026
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool A.Equals(A)""
+  IL_000b:  brfalse.s  IL_0024
+  IL_000d:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int B.<Y>k__BackingField""
+  IL_0018:  ldarg.1
+  IL_0019:  ldfld      ""int B.<Y>k__BackingField""
+  IL_001e:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0023:  ret
+  IL_0024:  ldc.i4.0
+  IL_0025:  ret
+  IL_0026:  ldc.i4.1
+  IL_0027:  ret
 }");
             verifier.VerifyIL("C.Equals(B)",
 @"{
@@ -22793,21 +23010,26 @@ True").VerifyDiagnostics(
 }");
             verifier.VerifyIL("C.Equals(C)",
 @"{
-  // Code size       34 (0x22)
+  // Code size       40 (0x28)
   .maxstack  3
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool B.Equals(B)""
-  IL_0007:  brfalse.s  IL_0020
-  IL_0009:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
-  IL_000e:  ldarg.0
-  IL_000f:  ldfld      ""int C.<Z>k__BackingField""
-  IL_0014:  ldarg.1
-  IL_0015:  ldfld      ""int C.<Z>k__BackingField""
-  IL_001a:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
-  IL_001f:  ret
-  IL_0020:  ldc.i4.0
-  IL_0021:  ret
+  IL_0002:  beq.s      IL_0026
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool B.Equals(B)""
+  IL_000b:  brfalse.s  IL_0024
+  IL_000d:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""int C.<Z>k__BackingField""
+  IL_0018:  ldarg.1
+  IL_0019:  ldfld      ""int C.<Z>k__BackingField""
+  IL_001e:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0023:  ret
+  IL_0024:  ldc.i4.0
+  IL_0025:  ret
+  IL_0026:  ldc.i4.1
+  IL_0027:  ret
 }");
         }
 
@@ -23091,6 +23313,8 @@ False").VerifyDiagnostics();
         {
             var sourceA = @"public record A;";
             var comp = CreateCompilation(sourceA);
+            comp.VerifyDiagnostics();
+
             var refA = useCompilationReference ? comp.ToMetadataReference() : comp.EmitToImageReference();
             VerifyVirtualMethod(comp.GetMember<MethodSymbol>("A.get_EqualityContract"), isOverride: false);
             VerifyVirtualMethods(comp.GetMembers("A.Equals"), ("System.Boolean A.Equals(A? other)", false), ("System.Boolean A.Equals(System.Object? obj)", true));
@@ -23134,18 +23358,23 @@ True").VerifyDiagnostics();
 
             verifier.VerifyIL("A<T>.Equals(A<T>)",
 @"{
-  // Code size       23 (0x17)
+  // Code size       29 (0x1d)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  brfalse.s  IL_0015
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""System.Type A<T>.EqualityContract.get""
-  IL_0009:  ldarg.1
-  IL_000a:  callvirt   ""System.Type A<T>.EqualityContract.get""
-  IL_000f:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
-  IL_0014:  ret
-  IL_0015:  ldc.i4.0
-  IL_0016:  ret
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  beq.s      IL_001b
+  IL_0004:  ldarg.1
+  IL_0005:  brfalse.s  IL_0019
+  IL_0007:  ldarg.0
+  IL_0008:  callvirt   ""System.Type A<T>.EqualityContract.get""
+  IL_000d:  ldarg.1
+  IL_000e:  callvirt   ""System.Type A<T>.EqualityContract.get""
+  IL_0013:  call       ""bool System.Type.op_Equality(System.Type, System.Type)""
+  IL_0018:  ret
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.1
+  IL_001c:  ret
 }");
             verifier.VerifyIL("B.Equals(A<int>)",
 @"{
@@ -23158,12 +23387,17 @@ True").VerifyDiagnostics();
 }");
             verifier.VerifyIL("B.Equals(B)",
 @"{
-  // Code size        8 (0x8)
+  // Code size       14 (0xe)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  call       ""bool A<int>.Equals(A<int>)""
-  IL_0007:  ret
+  IL_0002:  beq.s      IL_000c
+  IL_0004:  ldarg.0
+  IL_0005:  ldarg.1
+  IL_0006:  call       ""bool A<int>.Equals(A<int>)""
+  IL_000b:  ret
+  IL_000c:  ldc.i4.1
+  IL_000d:  ret
 }");
         }
 

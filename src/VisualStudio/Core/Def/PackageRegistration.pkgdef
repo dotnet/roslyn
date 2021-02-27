@@ -13,3 +13,8 @@
 "CS"="CA719A03-D55C-48F9-85DE-D934346E7F70"
 "VB"="EEC3DF0D-6D3F-4544-ABF9-8E26E6A90275"
 
+[$RootKey$\FeatureFlags\Roslyn\LSP\Completion]
+"Description"="Enables the LSP-powered C#/VB completion experience to operate with prototype behavior. Note this currently will not affect local C#/VB scenarios except for C# in Razor."
+"Value"=dword:00000000
+"Title"="Enable experimental C#/VB LSP completion experience"
+"PreviewPaneChannels"="IntPreview,int.main"

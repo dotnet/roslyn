@@ -12,10 +12,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [LspMethod(MSLSPMethods.DocumentPullDiagnosticName, mutatesSolutionState: false)]
     internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<DocumentDiagnosticsParams, DiagnosticReport>
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
+
+        public override string Method => MSLSPMethods.DocumentPullDiagnosticName;
 
         public DocumentPullDiagnosticHandler(
             IDiagnosticService diagnosticService,

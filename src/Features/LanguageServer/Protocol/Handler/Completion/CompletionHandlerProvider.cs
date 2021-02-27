@@ -10,10 +10,13 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(LSP.Methods.TextDocumentCompletionName)]
+    [ProvidesMethod(LSP.Methods.TextDocumentCompletionResolveName)]
     internal class CompletionHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionProviders = completionProviders;
         }
 
-        protected override ImmutableArray<IRequestHandler> InitializeHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
         {
             var completionListCache = new CompletionListCache();
             return ImmutableArray.Create<IRequestHandler>(

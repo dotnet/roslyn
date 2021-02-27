@@ -33,6 +33,7 @@
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>
+  <ValueType Name="ImmutableBindingDiagnostic"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -1614,7 +1615,7 @@
     <Field Name="ConstructorArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
     <Field Name="ConstructorArgumentsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstructorExpanded" Type="bool" />
-    <Field Name="NamedArguments" Type ="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="NamedArguments" Type ="ImmutableArray&lt;BoundAssignmentOperator&gt;"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
 
@@ -1957,7 +1958,7 @@
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
     <Field Name="Body" Type="BoundBlock"/>
-    <Field Name="Diagnostics" Type="ImmutableArray&lt;Microsoft.CodeAnalysis.Diagnostic&gt;" />
+    <Field Name="Diagnostics" Type="ImmutableBindingDiagnostic&lt;AssemblySymbol&gt;"/>
     <Field Name="Binder" Type="Binder" Null="disallow" />
   </Node>
 
@@ -1965,6 +1966,8 @@
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
     <Field Name="Data" Type="UnboundLambdaState" Null="disallow"/>
+    <!-- Track dependencies while binding body, etc. -->
+    <Field Name="WithDependencies" Type="Boolean"/>
   </Node>
 
   <Node Name="BoundQueryClause" Base="BoundExpression">

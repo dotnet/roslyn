@@ -14,7 +14,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [LspMethod(LSP.Methods.TextDocumentFormattingName, mutatesSolutionState: false)]
+    [ProvidesMethod(LSP.Methods.TextDocumentFormattingName)]
     internal class FormatDocumentHandler : AbstractFormatDocumentHandlerBase<LSP.DocumentFormattingParams, LSP.TextEdit[]>
     {
         [ImportingConstructor]
@@ -22,6 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public FormatDocumentHandler()
         {
         }
+
+        public override string Method => LSP.Methods.TextDocumentFormattingName;
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentFormattingParams request) => request.TextDocument;
 

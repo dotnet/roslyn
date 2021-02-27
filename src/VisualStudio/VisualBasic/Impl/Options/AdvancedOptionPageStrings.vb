@@ -280,5 +280,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As SchemeName =
             SchemeName.VisualStudio2017
+
+        Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
+            ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
     End Module
 End Namespace

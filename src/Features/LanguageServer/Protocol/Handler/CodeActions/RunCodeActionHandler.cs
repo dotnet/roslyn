@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// applied as a command due to an LSP bug (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/).
     /// Commands must be applied from the UI thread in VS.
     /// </summary>
-    [LspCommand(CodeActionsHandler.RunCodeActionCommandName, mutatesSolutionState: true)]
-    internal class RunCodeActionHandler : IRequestHandler<LSP.ExecuteCommandParams, object>
+    internal class RunCodeActionHandler : AbstractExecuteWorkspaceCommandHandler
     {
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
@@ -44,13 +43,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.ExecuteCommandParams request)
+        public override string Command => CodeActionsHandler.RunCodeActionCommandName;
+
+        public override bool MutatesSolutionState => true;
+        public override bool RequiresLSPSolution => true;
+
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.ExecuteCommandParams request)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             return runRequest.TextDocument;
         }
 
-        public async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             var document = context.Document;

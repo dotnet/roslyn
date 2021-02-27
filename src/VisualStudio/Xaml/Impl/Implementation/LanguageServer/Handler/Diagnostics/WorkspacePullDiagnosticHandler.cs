@@ -14,11 +14,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [LspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false)]
+    [ProvidesMethod(MSLSPMethods.WorkspacePullDiagnosticName)]
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
     {
         [ImportingConstructor]
@@ -27,6 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             IXamlPullDiagnosticService xamlPullDiagnosticService)
             : base(xamlPullDiagnosticService)
         { }
+
+        public override string Method => MSLSPMethods.WorkspacePullDiagnosticName;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request) => null;
 
@@ -40,6 +43,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         /// </summary>
         protected override ImmutableArray<Document> GetDocuments(RequestContext context)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             using var _ = ArrayBuilder<Document>.GetInstance(out var result);
             var projects = context.Solution.GetXamlProjects();
             foreach (var project in projects)

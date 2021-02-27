@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider, Shared]
-    [LspMethod(Methods.TextDocumentRangeFormattingName, mutatesSolutionState: false)]
+    [ProvidesMethod(Methods.TextDocumentRangeFormattingName)]
     internal class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]>
     {
         [ImportingConstructor]
@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public FormatDocumentRangeHandler()
         {
         }
+
+        public override string Method => Methods.TextDocumentRangeFormattingName;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
 

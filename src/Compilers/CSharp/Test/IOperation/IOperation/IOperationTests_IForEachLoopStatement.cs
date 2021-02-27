@@ -7048,7 +7048,7 @@ class A
 static class Extensions
 {
     public static IEnumerator<string>? GetEnumerator(this A a) => throw null!;
-}", options: WithNonNullTypesTrue());
+}", options: WithNullableEnable());
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')

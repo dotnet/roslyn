@@ -15,11 +15,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Private Property ShowImportCompletionItemsOptionValue As Boolean = True
 
         Private Property IsExpandedCompletion As Boolean = True
+        Private Property UsePartialSemantic As Boolean = False
 
         Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
             Return options _
                 .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue) _
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
+                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion) _
+                .WithChangedOption(CompletionServiceOptions.UsePartialSemanticForImportCompletion, UsePartialSemantic)
         End Function
 
         Protected Overrides Function GetComposition() As TestComposition
@@ -202,6 +204,63 @@ End Namespace</Text>.Value
 
             Dim markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.VisualBasic)
             Await VerifyCustomCommitProviderAsync(markup, "Bar", expectedCodeAfterCommit, sourceCodeKind:=kind)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoCompletionItemWhenAliasExists() As Task
+            Dim file1 = "
+Imports FFF = Foo1.Foo2.Foo3.Foo4
+Imports FFF1 = Foo1.Foo2.Foo3.Foo4.Foo5
+
+Namespace Bar
+    Public Class Bar1
+        Private Sub EE()
+            F$$
+        End Sub
+    End Class
+End Namespace"
+
+            Dim file2 = "
+Namespace Foo1
+    Namespace Foo2
+        Namespace Foo3
+            Public Class Foo4
+                Public Class Foo5
+                End Class
+            End Class
+        End Namespace
+    End Namespace
+End Namespace
+"
+            Dim markup = CreateMarkupForSingleProject(file1, file2, LanguageNames.VisualBasic)
+            Await VerifyItemIsAbsentAsync(markup, "Foo4", inlineDescription:="Foo1.Foo2.Foo3")
+            Await VerifyItemIsAbsentAsync(markup, "Foo5", inlineDescription:="Foo1.Foo2.Foo3")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAliasHasNoEffectOnGenerics() As Task
+            Dim file1 = "
+Imports FFF = Foo1.Foo2.Foo3.Foo4(Of Int)
+Namespace Bar
+    Public Class Bar1
+        Private Sub EE()
+            F$$
+        End Sub
+    End Class
+End Namespace"
+
+            Dim file2 = "
+Namespace Foo1
+    Namespace Foo2
+        Namespace Foo3
+            Public Class Foo4(Of T)
+            End Class
+        End Namespace
+    End Namespace
+End Namespace"
+
+            Dim markup = CreateMarkupForSingleProject(file1, file2, LanguageNames.VisualBasic)
+            Await VerifyItemExistsAsync(markup, "Foo4", glyph:=Glyph.ClassPublic, inlineDescription:="Foo1.Foo2.Foo3", displayTextSuffix:="(Of ...)")
         End Function
     End Class
 End Namespace

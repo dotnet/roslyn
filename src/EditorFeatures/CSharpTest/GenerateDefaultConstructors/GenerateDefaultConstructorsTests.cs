@@ -1340,5 +1340,34 @@ sealed class Program : Base
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestRecord()
+        {
+            await TestInRegularAndScriptAsync(
+@"record C : [||]B
+{
+}
+
+record B
+{
+    public B(int x)
+    {
+    }
+}",
+@"record C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+record B
+{
+    public B(int x)
+    {
+    }
+}", index: 1);
+        }
     }
 }
