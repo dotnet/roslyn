@@ -20,5 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay
         End Sub
 
         Protected Overrides ReadOnly Property CanNameofAccessNonPublicMembersFromAttributeArgument As Boolean
+
+        Protected Overrides Function SupportsConstantInterpolatedStrings(document As Document) As Boolean
+            Return False
+        End Function
     End Class
 End Namespace

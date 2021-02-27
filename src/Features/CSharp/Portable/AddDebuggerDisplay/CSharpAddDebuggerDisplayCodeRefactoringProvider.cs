@@ -8,6 +8,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddDebuggerDisplay;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay
@@ -25,5 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddDebuggerDisplay
         }
 
         protected override bool CanNameofAccessNonPublicMembersFromAttributeArgument => true;
+
+        protected override bool SupportsConstantInterpolatedStrings(Document document)
+            => ((CSharpParseOptions)document.Project.ParseOptions!).LanguageVersion.HasConstantInterpolatedStrings();
     }
 }

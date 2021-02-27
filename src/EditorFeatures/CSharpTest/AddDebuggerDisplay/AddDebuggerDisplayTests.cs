@@ -37,6 +37,33 @@ class C
         }
 
         [Fact]
+        public async Task SupportsConstantInterpolatedStrings()
+        {
+            var code = @"
+[||]class C
+{
+}";
+            var fixedCode = @"
+using System.Diagnostics;
+
+[DebuggerDisplay($""{{{nameof(GetDebuggerDisplay)}(),nq}}"")]
+class C
+{
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
+    }
+}";
+
+            await new VerifyCS.Test()
+            {
+                LanguageVersion = LanguageVersion.Preview,
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task OfferedOnEmptyRecord()
         {
             var code = @"
