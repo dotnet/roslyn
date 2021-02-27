@@ -7,14 +7,29 @@
         <target state="translated">Ajouter les directives using manquantes au moment du collage</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+        <source>Allow blank line after colon in constructor initializer</source>
+        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
+        <source>Allow blank lines between consecutive braces</source>
+        <target state="new">Allow blank lines between consecutive braces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_embedded_statements_on_same_line">
+        <source>Allow embedded statements on same line</source>
+        <target state="new">Allow embedded statements on same line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">Appliquer toutes les règles de mise en forme de C# (indentation, enveloppement, espacement)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
-        <source>Automatically show completion list in argument lists (experimental)</source>
-        <target state="translated">Afficher automatiquement la liste de complétion dans les listes d'arguments (expérimental)</target>
+        <source>Automatically show completion list in argument lists</source>
+        <target state="needs-review-translation">Afficher automatiquement la liste de complétion dans les listes d'arguments (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp">
@@ -86,6 +101,11 @@
         <source>Perform additional code cleanup during formatting</source>
         <target state="translated">Effectuer un nettoyage supplémentaire du code pendant la mise en forme</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
+        <source>Place open brace on new line for object, collection, array, and with initializers</source>
+        <target state="new">Place open brace on new line for object, collection, array, and with initializers</target>
+        <note>{Locked="with"}</note>
       </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
@@ -265,11 +285,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_methods_local_functions">
         <source>Place open brace on new line for methods and local functions</source>
         <target state="translated">Placer une accolade ouvrante sur une nouvelle ligne pour les méthodes et les fonctions locales</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_open_brace_on_new_line_for_object_collection_and_array_initializers">
-        <source>Place open brace on new line for object, collection and array initializers</source>
-        <target state="translated">Placer une accolade ouvrante sur une nouvelle ligne pour des initialiseurs d'objet, de collection et de tableau</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_types">

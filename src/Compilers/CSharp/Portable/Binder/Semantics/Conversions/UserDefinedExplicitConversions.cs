@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
            BoundExpression sourceExpression,
            TypeSymbol source,
            TypeSymbol target,
-           ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+           ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)target != null);
@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: Find the set of types D from which user-defined conversion operators
             // SPEC: will be considered...
             var d = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            ComputeUserDefinedExplicitConversionTypeSet(source, target, d, ref useSiteDiagnostics);
+            ComputeUserDefinedExplicitConversionTypeSet(source, target, d, ref useSiteInfo);
 
             // SPEC: Find the set of applicable user-defined and lifted conversion operators, U...
             var ubuild = ArrayBuilder<UserDefinedConversionAnalysis>.GetInstance();
-            ComputeApplicableUserDefinedExplicitConversionSet(sourceExpression, source, target, d, ubuild, ref useSiteDiagnostics);
+            ComputeApplicableUserDefinedExplicitConversionSet(sourceExpression, source, target, d, ubuild, ref useSiteInfo);
             d.Free();
             ImmutableArray<UserDefinedConversionAnalysis> u = ubuild.ToImmutableAndFree();
 
@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC: Find the most specific source type SX of the operators in U...
-            TypeSymbol sx = MostSpecificSourceTypeForExplicitUserDefinedConversion(u, sourceExpression, source, ref useSiteDiagnostics);
+            TypeSymbol sx = MostSpecificSourceTypeForExplicitUserDefinedConversion(u, sourceExpression, source, ref useSiteInfo);
             if ((object)sx == null)
             {
                 return UserDefinedConversionResult.NoBestSourceType(u);
             }
 
             // SPEC: Find the most specific target type TX of the operators in U...
-            TypeSymbol tx = MostSpecificTargetTypeForExplicitUserDefinedConversion(u, target, ref useSiteDiagnostics);
+            TypeSymbol tx = MostSpecificTargetTypeForExplicitUserDefinedConversion(u, target, ref useSiteInfo);
             if ((object)tx == null)
             {
                 return UserDefinedConversionResult.NoBestTargetType(u);
@@ -69,18 +69,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UserDefinedConversionResult.Valid(u, best.Value);
         }
 
-        private static void ComputeUserDefinedExplicitConversionTypeSet(TypeSymbol source, TypeSymbol target, ArrayBuilder<NamedTypeSymbol> d, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static void ComputeUserDefinedExplicitConversionTypeSet(TypeSymbol source, TypeSymbol target, ArrayBuilder<NamedTypeSymbol> d, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            TypeSymbol s0 = GetUnderlyingEffectiveType(source, ref useSiteDiagnostics);
-            TypeSymbol t0 = GetUnderlyingEffectiveType(target, ref useSiteDiagnostics);
+            TypeSymbol s0 = GetUnderlyingEffectiveType(source, ref useSiteInfo);
+            TypeSymbol t0 = GetUnderlyingEffectiveType(target, ref useSiteInfo);
 
             // Spec 6.4.5: User-defined explicit conversions
             //   Find the set of types, D, from which user-defined conversion operators will be considered. 
             //   This set consists of S0 (if S0 is a class or struct), the base classes of S0 (if S0 is a class),
             //   T0 (if T0 is a class or struct), and the base classes of T0 (if T0 is a class).
 
-            AddTypesParticipatingInUserDefinedConversion(d, s0, includeBaseTypes: true, useSiteDiagnostics: ref useSiteDiagnostics);
-            AddTypesParticipatingInUserDefinedConversion(d, t0, includeBaseTypes: true, useSiteDiagnostics: ref useSiteDiagnostics);
+            AddTypesParticipatingInUserDefinedConversion(d, s0, includeBaseTypes: true, useSiteInfo: ref useSiteInfo);
+            AddTypesParticipatingInUserDefinedConversion(d, t0, includeBaseTypes: true, useSiteInfo: ref useSiteInfo);
         }
 
         private void ComputeApplicableUserDefinedExplicitConversionSet(
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol target,
             ArrayBuilder<NamedTypeSymbol> d,
             ArrayBuilder<UserDefinedConversionAnalysis> u,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)target != null);
@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (NamedTypeSymbol declaringType in d)
             {
-                AddUserDefinedConversionsToExplicitCandidateSet(sourceExpression, source, target, u, declaringType, WellKnownMemberNames.ExplicitConversionName, ref useSiteDiagnostics);
-                AddUserDefinedConversionsToExplicitCandidateSet(sourceExpression, source, target, u, declaringType, WellKnownMemberNames.ImplicitConversionName, ref useSiteDiagnostics);
+                AddUserDefinedConversionsToExplicitCandidateSet(sourceExpression, source, target, u, declaringType, WellKnownMemberNames.ExplicitConversionName, ref useSiteInfo);
+                AddUserDefinedConversionsToExplicitCandidateSet(sourceExpression, source, target, u, declaringType, WellKnownMemberNames.ImplicitConversionName, ref useSiteInfo);
             }
         }
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<UserDefinedConversionAnalysis> u,
             NamedTypeSymbol declaringType,
             string operatorName,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)target != null);
@@ -185,25 +185,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol convertsFrom = op.GetParameterType(0);
                 TypeSymbol convertsTo = op.ReturnType;
-                Conversion fromConversion = EncompassingExplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
-                Conversion toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
+                Conversion fromConversion = EncompassingExplicitConversion(sourceExpression, source, convertsFrom, ref useSiteInfo);
+                Conversion toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteInfo);
 
                 // We accept candidates for which the parameter type encompasses the *underlying* source type.
                 if (!fromConversion.Exists &&
                     (object)source != null &&
                     source.IsNullableType() &&
-                    EncompassingExplicitConversion(null, source.GetNullableUnderlyingType(), convertsFrom, ref useSiteDiagnostics).Exists)
+                    EncompassingExplicitConversion(null, source.GetNullableUnderlyingType(), convertsFrom, ref useSiteInfo).Exists)
                 {
-                    fromConversion = ClassifyBuiltInConversion(source, convertsFrom, ref useSiteDiagnostics);
+                    fromConversion = ClassifyBuiltInConversion(source, convertsFrom, ref useSiteInfo);
                 }
 
                 // As in dev11 (and the revised spec), we also accept candidates for which the return type is encompassed by the *stripped* target type.
                 if (!toConversion.Exists &&
                     (object)target != null &&
                     target.IsNullableType() &&
-                    EncompassingExplicitConversion(null, convertsTo, target.GetNullableUnderlyingType(), ref useSiteDiagnostics).Exists)
+                    EncompassingExplicitConversion(null, convertsTo, target.GetNullableUnderlyingType(), ref useSiteInfo).Exists)
                 {
-                    toConversion = ClassifyBuiltInConversion(convertsTo, target, ref useSiteDiagnostics);
+                    toConversion = ClassifyBuiltInConversion(convertsTo, target, ref useSiteInfo);
                 }
 
                 // In the corresponding implicit conversion code we can get away with first 
@@ -237,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         TypeSymbol nullableFrom = MakeNullableType(convertsFrom);
                         TypeSymbol nullableTo = convertsTo.IsNonNullableValueType() ? MakeNullableType(convertsTo) : convertsTo;
-                        Conversion liftedFromConversion = EncompassingExplicitConversion(sourceExpression, source, nullableFrom, ref useSiteDiagnostics);
-                        Conversion liftedToConversion = EncompassingExplicitConversion(null, nullableTo, target, ref useSiteDiagnostics);
+                        Conversion liftedFromConversion = EncompassingExplicitConversion(sourceExpression, source, nullableFrom, ref useSiteInfo);
+                        Conversion liftedToConversion = EncompassingExplicitConversion(null, nullableTo, target, ref useSiteInfo);
                         Debug.Assert(liftedFromConversion.Exists);
                         Debug.Assert(liftedToConversion.Exists);
                         u.Add(UserDefinedConversionAnalysis.Lifted(op, liftedFromConversion, liftedToConversion, nullableFrom, nullableTo));
@@ -263,13 +263,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (target.IsNullableType() && convertsTo.IsNonNullableValueType())
                         {
                             convertsTo = MakeNullableType(convertsTo);
-                            toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
+                            toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteInfo);
                         }
 
                         if ((object)source != null && source.IsNullableType() && convertsFrom.IsNonNullableValueType())
                         {
                             convertsFrom = MakeNullableType(convertsFrom);
-                            fromConversion = EncompassingExplicitConversion(null, convertsFrom, source, ref useSiteDiagnostics);
+                            fromConversion = EncompassingExplicitConversion(null, convertsFrom, source, ref useSiteInfo);
                         }
 
                         u.Add(UserDefinedConversionAnalysis.Normal(op, fromConversion, toConversion, convertsFrom, convertsTo));
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<UserDefinedConversionAnalysis> u,
             BoundExpression sourceExpression,
             TypeSymbol source,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: If any of the operators in U convert from S then SX is S.
 
@@ -321,26 +321,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return source;
                 }
 
-                HashSet<DiagnosticInfo> _useSiteDiagnostics = useSiteDiagnostics;
-                System.Func<UserDefinedConversionAnalysis, bool> isValid = conv => IsEncompassedBy(sourceExpression, source, conv.FromType, ref _useSiteDiagnostics);
+                CompoundUseSiteInfo<AssemblySymbol> inLambdaUseSiteInfo = useSiteInfo;
+                System.Func<UserDefinedConversionAnalysis, bool> isValid = conv => IsEncompassedBy(sourceExpression, source, conv.FromType, ref inLambdaUseSiteInfo);
                 if (u.Any(isValid))
                 {
-                    var result = MostEncompassedType(u, isValid, conv => conv.FromType, ref _useSiteDiagnostics);
-                    useSiteDiagnostics = _useSiteDiagnostics;
+                    var result = MostEncompassedType(u, isValid, conv => conv.FromType, ref inLambdaUseSiteInfo);
+                    useSiteInfo = inLambdaUseSiteInfo;
                     return result;
                 }
 
-                useSiteDiagnostics = _useSiteDiagnostics;
+                useSiteInfo = inLambdaUseSiteInfo;
             }
 
 
-            return MostEncompassingType(u, conv => conv.FromType, ref useSiteDiagnostics);
+            return MostEncompassingType(u, conv => conv.FromType, ref useSiteInfo);
         }
 
         private TypeSymbol MostSpecificTargetTypeForExplicitUserDefinedConversion(
             ImmutableArray<UserDefinedConversionAnalysis> u,
             TypeSymbol target,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: If any of the operators in U convert to T then TX is T.
 
@@ -376,20 +376,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return target;
             }
 
-            HashSet<DiagnosticInfo> _useSiteDiagnostics = useSiteDiagnostics;
-            System.Func<UserDefinedConversionAnalysis, bool> isValid = conv => IsEncompassedBy(null, conv.ToType, target, ref _useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> inLambdaUseSiteInfo = useSiteInfo;
+            System.Func<UserDefinedConversionAnalysis, bool> isValid = conv => IsEncompassedBy(null, conv.ToType, target, ref inLambdaUseSiteInfo);
             if (u.Any(isValid))
             {
-                var result = MostEncompassingType(u, isValid, conv => conv.ToType, ref _useSiteDiagnostics);
-                useSiteDiagnostics = _useSiteDiagnostics;
+                var result = MostEncompassingType(u, isValid, conv => conv.ToType, ref inLambdaUseSiteInfo);
+                useSiteInfo = inLambdaUseSiteInfo;
                 return result;
             }
 
-            useSiteDiagnostics = _useSiteDiagnostics;
-            return MostEncompassedType(u, conv => conv.ToType, ref useSiteDiagnostics);
+            useSiteInfo = inLambdaUseSiteInfo;
+            return MostEncompassedType(u, conv => conv.ToType, ref useSiteInfo);
         }
 
-        private Conversion EncompassingExplicitConversion(BoundExpression expr, TypeSymbol a, TypeSymbol b, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Conversion EncompassingExplicitConversion(BoundExpression expr, TypeSymbol a, TypeSymbol b, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(expr != null || (object)a != null);
             Debug.Assert((object)b != null);
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to an enum type, because the native compiler did not.  It would be a breaking
             // change.
 
-            var result = ClassifyStandardConversion(expr, a, b, ref useSiteDiagnostics);
+            var result = ClassifyStandardConversion(expr, a, b, ref useSiteInfo);
             return result.IsEnumeration ? Conversion.NoConversion : result;
         }
     }

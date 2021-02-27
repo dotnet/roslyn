@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindXmlComment(
                                        syntax As XmlCommentSyntax,
                                        rootInfoOpt As XmlElementRootInfo,
-                                       diagnostics As DiagnosticBag) As BoundExpression
+                                       diagnostics As BindingDiagnosticBag) As BoundExpression
             If rootInfoOpt Is Nothing Then
                 diagnostics = CheckXmlFeaturesAllowed(syntax, diagnostics)
             End If
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundXmlComment(syntax, str, objectCreation, objectCreation.Type)
         End Function
 
-        Private Function BindXmlDocument(syntax As XmlDocumentSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlDocument(syntax As XmlDocumentSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             diagnostics = CheckXmlFeaturesAllowed(syntax, diagnostics)
 
             Dim declaration = BindXmlDeclaration(syntax.Declaration, diagnostics)
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundXmlDocument(syntax, declaration, childNodes, rewriterInfo, objectCreation.Type, rewriterInfo.HasErrors)
         End Function
 
-        Private Function BindXmlDeclaration(syntax As XmlDeclarationSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlDeclaration(syntax As XmlDeclarationSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim version = BindXmlDeclarationOption(syntax, syntax.Version, diagnostics)
             Dim encoding = BindXmlDeclarationOption(syntax, syntax.Encoding, diagnostics)
             Dim standalone = BindXmlDeclarationOption(syntax, syntax.Standalone, diagnostics)
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundXmlDeclaration(syntax, version, encoding, standalone, objectCreation, objectCreation.Type)
         End Function
 
-        Private Function BindXmlDeclarationOption(syntax As XmlDeclarationSyntax, optionSyntax As XmlDeclarationOptionSyntax, diagnostics As DiagnosticBag) As BoundLiteral
+        Private Function BindXmlDeclarationOption(syntax As XmlDeclarationSyntax, optionSyntax As XmlDeclarationOptionSyntax, diagnostics As BindingDiagnosticBag) As BoundLiteral
             If optionSyntax Is Nothing Then
                 Return CreateStringLiteral(syntax, Nothing, compilerGenerated:=True, diagnostics:=diagnostics)
             Else
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function BindXmlProcessingInstruction(syntax As XmlProcessingInstructionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlProcessingInstruction(syntax As XmlProcessingInstructionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim target = CreateStringLiteral(syntax, GetXmlName(syntax.Name), compilerGenerated:=True, diagnostics:=diagnostics)
             Dim data = CreateStringLiteral(syntax, GetXmlString(syntax.TextTokens), compilerGenerated:=True, diagnostics:=diagnostics)
             Dim objectCreation = BindObjectCreationExpression(
@@ -88,14 +88,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindXmlEmptyElement(
                                             syntax As XmlEmptyElementSyntax,
                                             rootInfoOpt As XmlElementRootInfo,
-                                            diagnostics As DiagnosticBag) As BoundExpression
+                                            diagnostics As BindingDiagnosticBag) As BoundExpression
             Return BindXmlElement(syntax, syntax.Name, syntax.Attributes, Nothing, rootInfoOpt, diagnostics)
         End Function
 
         Private Function BindXmlElement(
                                        syntax As XmlElementSyntax,
                                        rootInfoOpt As XmlElementRootInfo,
-                                       diagnostics As DiagnosticBag) As BoundExpression
+                                       diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim startTag = syntax.StartTag
             Return BindXmlElement(syntax, startTag.Name, startTag.Attributes, syntax.Content, rootInfoOpt, diagnostics)
         End Function
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        attributes As SyntaxList(Of XmlNodeSyntax),
                                        content As SyntaxList(Of XmlNodeSyntax),
                                        rootInfoOpt As XmlElementRootInfo,
-                                       diagnostics As DiagnosticBag) As BoundExpression
+                                       diagnostics As BindingDiagnosticBag) As BoundExpression
             If rootInfoOpt Is Nothing Then
                 diagnostics = CheckXmlFeaturesAllowed(syntax, diagnostics)
 
@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               otherAttributes As ArrayBuilder(Of XmlNodeSyntax),
                                                               content As SyntaxList(Of XmlNodeSyntax),
                                                               rootInfo As XmlElementRootInfo,
-                                                              diagnostics As DiagnosticBag) As BoundExpression
+                                                              diagnostics As BindingDiagnosticBag) As BoundExpression
             ' Any expression type is allowed as long as there is an appropriate XElement
             ' constructor for that argument type. In particular, this allows expressions of type
             ' XElement since XElement includes New(other As XElement). This is consistent with
@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      objectCreation As BoundExpression,
                                                      childNodes As ImmutableArray(Of BoundExpression),
                                                      rootInfoOpt As XmlElementRootInfo,
-                                                     diagnostics As DiagnosticBag) As BoundXmlContainerRewriterInfo
+                                                     diagnostics As BindingDiagnosticBag) As BoundXmlContainerRewriterInfo
             If (childNodes.Length = 0) AndAlso
                 ((rootInfoOpt Is Nothing) OrElse (rootInfoOpt.ImportedNamespaces.Count = 0)) Then
                 Return New BoundXmlContainerRewriterInfo(objectCreation)
@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                 namespacesPlaceholder As BoundRValuePlaceholder,
                                                                 <Out()> ByRef xmlnsAttributesPlaceholder As BoundRValuePlaceholder,
                                                                 <Out()> ByRef removeNamespacesGroup As BoundMethodOrPropertyGroup,
-                                                                diagnostics As DiagnosticBag) As BoundExpression
+                                                                diagnostics As BindingDiagnosticBag) As BoundExpression
 
             If xmlnsAttributesPlaceholder Is Nothing Then
                 Dim listType = GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, syntax, diagnostics).Construct(
@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            syntax As XmlNodeSyntax,
                                            prefix As String,
                                            namespaceName As String,
-                                           diagnostics As DiagnosticBag) As BoundXmlAttribute
+                                           diagnostics As BindingDiagnosticBag) As BoundXmlAttribute
             Dim name = BindXmlnsName(syntax, prefix, compilerGenerated:=True, diagnostics:=diagnostics)
             Dim [namespace] = BindXmlNamespace(syntax,
                                                CreateStringLiteral(syntax, namespaceName, compilerGenerated:=True, diagnostics:=diagnostics),
@@ -396,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       syntax As XmlNodeSyntax,
                                       prefix As String,
                                       compilerGenerated As Boolean,
-                                      diagnostics As DiagnosticBag) As BoundExpression
+                                      diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim name = GetXmlnsXmlName(prefix)
             Return BindXmlName(syntax,
                                    CreateStringLiteral(syntax,
@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                            matchesImport As Boolean,
                                            compilerGenerated As Boolean,
                                            hasErrors As Boolean,
-                                           diagnostics As DiagnosticBag) As BoundXmlAttribute
+                                           diagnostics As BindingDiagnosticBag) As BoundXmlAttribute
             Dim objectCreation As BoundExpression
             If useConstructor Then
                 objectCreation = BindObjectCreationExpression(syntax,
@@ -442,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          syntax As XmlAttributeSyntax,
                                          rootInfo As XmlElementRootInfo,
                                          <Out()> ByRef xmlName As XmlName,
-                                         diagnostics As DiagnosticBag) As BoundXmlAttribute
+                                         diagnostics As BindingDiagnosticBag) As BoundXmlAttribute
             Dim nameSyntax = syntax.Name
             Dim name As BoundExpression
 
@@ -522,9 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function MatchesXmlnsImport(name As XmlNameSyntax, value As String) As Boolean
             Dim prefix As String = Nothing
-            Dim diagnostics = DiagnosticBag.GetInstance()
-            TryGetXmlnsPrefix(name, prefix, diagnostics)
-            diagnostics.Free()
+            TryGetXmlnsPrefix(name, prefix, BindingDiagnosticBag.Discarded)
 
             If prefix Is Nothing Then
                 Return False
@@ -539,7 +537,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Bind the expression within the XmlEmbeddedExpressionSyntax,
         ''' and wrap in a BoundXmlEmbeddedExpression.
         ''' </summary>
-        Private Function BindXmlEmbeddedExpression(syntax As XmlEmbeddedExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlEmbeddedExpression(syntax As XmlEmbeddedExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim binder = New XmlEmbeddedExpressionBinder(Me)
             Dim expr = binder.BindRValue(syntax.Expression, diagnostics)
             Debug.Assert(expr IsNot Nothing)
@@ -552,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                      attributes As ArrayBuilder(Of XmlNodeSyntax),
                                      childNodeBuilder As ArrayBuilder(Of BoundExpression),
                                      rootInfo As XmlElementRootInfo,
-                                     diagnostics As DiagnosticBag)
+                                     diagnostics As BindingDiagnosticBag)
             For Each childSyntax In attributes
                 If childSyntax.Kind = SyntaxKind.XmlAttribute Then
                     Dim attributeSyntax = DirectCast(childSyntax, XmlAttributeSyntax)
@@ -600,13 +598,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
         End Class
 
-        Private Sub BindXmlContent(content As SyntaxList(Of XmlNodeSyntax), childNodeBuilder As ArrayBuilder(Of BoundExpression), rootInfoOpt As XmlElementRootInfo, diagnostics As DiagnosticBag)
+        Private Sub BindXmlContent(content As SyntaxList(Of XmlNodeSyntax), childNodeBuilder As ArrayBuilder(Of BoundExpression), rootInfoOpt As XmlElementRootInfo, diagnostics As BindingDiagnosticBag)
             For Each childSyntax In content
                 childNodeBuilder.Add(BindXmlContent(childSyntax, rootInfoOpt, diagnostics))
             Next
         End Sub
 
-        Private Function BindXmlContent(syntax As XmlNodeSyntax, rootInfoOpt As XmlElementRootInfo, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlContent(syntax As XmlNodeSyntax, rootInfoOpt As XmlElementRootInfo, diagnostics As BindingDiagnosticBag) As BoundExpression
             Select Case syntax.Kind
                 Case SyntaxKind.XmlProcessingInstruction
                     Return BindXmlProcessingInstruction(DirectCast(syntax, XmlProcessingInstructionSyntax), diagnostics)
@@ -634,7 +632,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function BindXmlAttributeAccess(syntax As XmlMemberAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlAttributeAccess(syntax As XmlMemberAccessExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             diagnostics = CheckXmlFeaturesAllowed(syntax, diagnostics)
 
             Dim receiver = BindXmlMemberAccessReceiver(syntax, diagnostics)
@@ -653,8 +651,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Determine the appropriate overload, allowing
                 ' XElement or IEnumerable(Of XElement) argument.
                 Dim xmlType = GetWellKnownType(WellKnownType.System_Xml_Linq_XElement, syntax, diagnostics)
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                If receiverType.IsOrDerivedFrom(xmlType, useSiteDiagnostics) OrElse receiverType.IsCompatibleWithGenericIEnumerableOfType(xmlType, useSiteDiagnostics) Then
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
+                If receiverType.IsOrDerivedFrom(xmlType, useSiteInfo) OrElse receiverType.IsCompatibleWithGenericIEnumerableOfType(xmlType, useSiteInfo) Then
                     group = GetXmlMethodOrPropertyGroup(syntax,
                                                             GetInternalXmlHelperType(syntax, diagnostics),
                                                             StringConstants.XmlAttributeValueMethodName,
@@ -662,7 +660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             diagnostics)
                 End If
 
-                diagnostics.Add(syntax, useSiteDiagnostics)
+                diagnostics.Add(syntax, useSiteInfo)
 
                 If group IsNot Nothing Then
                     memberAccess = BindInvocationExpressionIfGroupNotNothing(syntax, group, ImmutableArray.Create(Of BoundExpression)(receiver, name), diagnostics)
@@ -679,15 +677,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundXmlMemberAccess(syntax, memberAccess, memberAccess.Type)
         End Function
 
-        Private Function BindXmlElementAccess(syntax As XmlMemberAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlElementAccess(syntax As XmlMemberAccessExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             Return BindXmlElementAccess(syntax, StringConstants.XmlElementsMethodName, ERRID.ERR_TypeDisallowsElements, diagnostics)
         End Function
 
-        Private Function BindXmlDescendantAccess(syntax As XmlMemberAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlDescendantAccess(syntax As XmlMemberAccessExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             Return BindXmlElementAccess(syntax, StringConstants.XmlDescendantsMethodName, ERRID.ERR_TypeDisallowsDescendants, diagnostics)
         End Function
 
-        Private Function BindXmlElementAccess(syntax As XmlMemberAccessExpressionSyntax, memberName As String, typeDisallowsError As ERRID, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlElementAccess(syntax As XmlMemberAccessExpressionSyntax, memberName As String, typeDisallowsError As ERRID, diagnostics As BindingDiagnosticBag) As BoundExpression
             diagnostics = CheckXmlFeaturesAllowed(syntax, diagnostics)
 
             Dim receiver = BindXmlMemberAccessReceiver(syntax, diagnostics)
@@ -704,16 +702,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Determine the appropriate overload, allowing
                 ' XContainer or IEnumerable(Of XContainer) argument.
                 Dim xmlType = GetWellKnownType(WellKnownType.System_Xml_Linq_XContainer, syntax, diagnostics)
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
 
-                If receiverType.IsOrDerivedFrom(xmlType, useSiteDiagnostics) Then
+                If receiverType.IsOrDerivedFrom(xmlType, useSiteInfo) Then
                     group = GetXmlMethodOrPropertyGroup(syntax,
                                                             xmlType,
                                                             memberName,
                                                             receiver,
                                                             diagnostics)
                     arguments = ImmutableArray.Create(Of BoundExpression)(name)
-                ElseIf receiverType.IsCompatibleWithGenericIEnumerableOfType(xmlType, useSiteDiagnostics) Then
+                ElseIf receiverType.IsCompatibleWithGenericIEnumerableOfType(xmlType, useSiteInfo) Then
                     group = GetXmlMethodOrPropertyGroup(syntax,
                                                             GetWellKnownType(WellKnownType.System_Xml_Linq_Extensions, syntax, diagnostics),
                                                             memberName,
@@ -722,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     arguments = ImmutableArray.Create(Of BoundExpression)(receiver, name)
                 End If
 
-                diagnostics.Add(syntax, useSiteDiagnostics)
+                diagnostics.Add(syntax, useSiteInfo)
 
                 If group IsNot Nothing Then
                     memberAccess = BindInvocationExpressionIfGroupNotNothing(syntax, group, arguments, diagnostics)
@@ -739,7 +737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundXmlMemberAccess(syntax, memberAccess, memberAccess.Type)
         End Function
 
-        Private Function BindXmlMemberAccessReceiver(syntax As XmlMemberAccessExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlMemberAccessReceiver(syntax As XmlMemberAccessExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             If syntax.Base Is Nothing Then
                 Dim receiver As BoundExpression
 
@@ -765,7 +763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function BindXmlName(
                                     syntax As XmlNameSyntax,
                                     forElement As Boolean,
-                                    diagnostics As DiagnosticBag) As BoundExpression
+                                    diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim fromImports = False
             Dim prefix As String = Nothing
             Dim localName As String = Nothing
@@ -781,7 +779,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     <Out()> ByRef prefix As String,
                                     <Out()> ByRef localName As String,
                                     <Out()> ByRef [namespace] As String,
-                                    diagnostics As DiagnosticBag) As BoundExpression
+                                    diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim prefixSyntax = syntax.Prefix
             Dim namespaceExpr As BoundLiteral
 
@@ -850,7 +848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             importedNamespaces.Add(New KeyValuePair(Of String, String)(prefix, [namespace]))
         End Sub
 
-        Private Function BindXmlName(syntax As VisualBasicSyntaxNode, localName As BoundExpression, [namespace] As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlName(syntax As VisualBasicSyntaxNode, localName As BoundExpression, [namespace] As BoundExpression, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim group = GetXmlMethodOrPropertyGroup(
                 syntax,
                 GetWellKnownType(WellKnownType.System_Xml_Linq_XName, syntax, diagnostics),
@@ -861,7 +859,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundXmlName(syntax, [namespace], localName, objectCreation, objectCreation.Type)
         End Function
 
-        Private Function BindGetXmlNamespace(syntax As GetXmlNamespaceExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindGetXmlNamespace(syntax As GetXmlNamespaceExpressionSyntax, diagnostics As BindingDiagnosticBag) As BoundExpression
             diagnostics = CheckXmlFeaturesAllowed(syntax, diagnostics)
 
             Dim nameSyntax = syntax.Name
@@ -886,7 +884,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return BindXmlNamespace(syntax, expr, diagnostics)
         End Function
 
-        Private Function BindXmlNamespace(syntax As VisualBasicSyntaxNode, [namespace] As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlNamespace(syntax As VisualBasicSyntaxNode, [namespace] As BoundExpression, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim group = GetXmlMethodOrPropertyGroup(
                 syntax,
                 GetWellKnownType(WellKnownType.System_Xml_Linq_XNamespace, syntax, diagnostics),
@@ -897,7 +895,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundXmlNamespace(syntax, [namespace], objectCreation, objectCreation.Type)
         End Function
 
-        Private Function ReportXmlNamespacePrefixNotDefined(syntax As VisualBasicSyntaxNode, prefixToken As SyntaxToken, prefix As String, compilerGenerated As Boolean, diagnostics As DiagnosticBag) As BoundBadExpression
+        Private Function ReportXmlNamespacePrefixNotDefined(syntax As VisualBasicSyntaxNode, prefixToken As SyntaxToken, prefix As String, compilerGenerated As Boolean, diagnostics As BindingDiagnosticBag) As BoundBadExpression
             Debug.Assert(prefix IsNot Nothing)
             Debug.Assert(prefix = GetXmlName(prefixToken))
             ' "XML namespace prefix '{0}' is not defined."
@@ -909,7 +907,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Function BindXmlCData(syntax As XmlCDataSectionSyntax, rootInfoOpt As XmlElementRootInfo, diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindXmlCData(syntax As XmlCDataSectionSyntax, rootInfoOpt As XmlElementRootInfo, diagnostics As BindingDiagnosticBag) As BoundExpression
             If rootInfoOpt Is Nothing Then
                 diagnostics = CheckXmlFeaturesAllowed(syntax, diagnostics)
             End If
@@ -923,7 +921,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundXmlCData(syntax, value, objectCreation, objectCreation.Type)
         End Function
 
-        Private Function BindXmlText(syntax As XmlTextSyntax, diagnostics As DiagnosticBag) As BoundLiteral
+        Private Function BindXmlText(syntax As XmlTextSyntax, diagnostics As BindingDiagnosticBag) As BoundLiteral
             Return CreateStringLiteral(syntax, GetXmlString(syntax.TextTokens), compilerGenerated:=False, diagnostics:=diagnostics)
         End Function
 
@@ -954,14 +952,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function GetXmlMethodOrPropertyGroup(syntax As VisualBasicSyntaxNode, type As NamedTypeSymbol, memberName As String, receiverOpt As BoundExpression, diagnostics As DiagnosticBag) As BoundMethodOrPropertyGroup
+        Private Function GetXmlMethodOrPropertyGroup(syntax As VisualBasicSyntaxNode, type As NamedTypeSymbol, memberName As String, receiverOpt As BoundExpression, diagnostics As BindingDiagnosticBag) As BoundMethodOrPropertyGroup
             If type.IsErrorType() Then
                 Return Nothing
             End If
 
             Debug.Assert((receiverOpt Is Nothing) OrElse
                          receiverOpt.Type.IsErrorType() OrElse
-                         receiverOpt.Type.IsOrDerivedFrom(type, Nothing))
+                         receiverOpt.Type.IsOrDerivedFrom(type, CompoundUseSiteInfo(Of AssemblySymbol).Discarded))
 
             Dim group As BoundMethodOrPropertyGroup = Nothing
             Dim result = LookupResult.GetInstance()
@@ -970,15 +968,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' on this type only, not base types, and ignore extension methods or properties
             ' from the current scope. (Extension methods and properties will be included,
             ' as shared members, if the members are defined on 'type' however.)
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics)
             LookupMember(result,
                          type,
                          memberName,
                          arity:=0,
                          options:=LookupOptions.AllMethodsOfAnyArity Or LookupOptions.NoBaseClassLookup Or LookupOptions.IgnoreExtensionMethods,
-                         useSiteDiagnostics:=useSiteDiagnostics)
+                         useSiteInfo:=useSiteInfo)
 
-            diagnostics.Add(syntax, useSiteDiagnostics)
+            diagnostics.Add(syntax, useSiteInfo)
 
             If result.IsGood Then
                 Debug.Assert(result.Symbols.Count > 0)
@@ -1016,7 +1014,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If the method or property group is not Nothing, bind as an invocation expression.
         ''' Otherwise return a BoundBadExpression containing the arguments.
         ''' </summary>
-        Private Function BindInvocationExpressionIfGroupNotNothing(syntax As SyntaxNode, groupOpt As BoundMethodOrPropertyGroup, arguments As ImmutableArray(Of BoundExpression), diagnostics As DiagnosticBag) As BoundExpression
+        Private Function BindInvocationExpressionIfGroupNotNothing(syntax As SyntaxNode, groupOpt As BoundMethodOrPropertyGroup, arguments As ImmutableArray(Of BoundExpression), diagnostics As BindingDiagnosticBag) As BoundExpression
             If groupOpt Is Nothing Then
                 Return BadExpression(syntax, arguments, ErrorTypeSymbol.UnknownResultType)
             Else
@@ -1035,7 +1033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Check if XML features are allowed. If not, report an error and return a
         ''' separate DiagnosticBag that can be used for binding sub-expressions.
         ''' </summary>
-        Private Function CheckXmlFeaturesAllowed(syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As DiagnosticBag
+        Private Function CheckXmlFeaturesAllowed(syntax As VisualBasicSyntaxNode, diagnostics As BindingDiagnosticBag) As BindingDiagnosticBag
             ' Check if XObject is available, which matches the native compiler.
             Dim type = Compilation.GetWellKnownType(WellKnownType.System_Xml_Linq_XObject)
             If type.IsErrorType() Then
@@ -1043,7 +1041,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ReportDiagnostic(diagnostics, syntax, ERRID.ERR_XmlFeaturesNotAvailable)
                 ' DiagnosticBag does not need to be created from the pool
                 ' since this is an error recovery scenario only.
-                Return New DiagnosticBag()
+                Return BindingDiagnosticBag.Discarded
             Else
                 Return diagnostics
             End If
@@ -1053,7 +1051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             syntax As VisualBasicSyntaxNode,
                                             str As String,
                                             compilerGenerated As Boolean,
-                                            diagnostics As DiagnosticBag,
+                                            diagnostics As BindingDiagnosticBag,
                                             Optional hasErrors As Boolean = False) As BoundLiteral
             Debug.Assert(syntax IsNot Nothing)
             Dim result = New BoundLiteral(syntax, ConstantValue.Create(str), GetSpecialType(SpecialType.System_String, syntax, diagnostics), hasErrors:=hasErrors)
@@ -1078,7 +1076,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       xmlnsAttributes As ArrayBuilder(Of BoundXmlAttribute),
                                       otherAttributes As ArrayBuilder(Of XmlNodeSyntax),
                                       importedNamespaces As ArrayBuilder(Of KeyValuePair(Of String, String)),
-                                      diagnostics As DiagnosticBag) As Dictionary(Of String, String)
+                                      diagnostics As BindingDiagnosticBag) As Dictionary(Of String, String)
             Debug.Assert(xmlnsAttributes.Count = 0)
             Debug.Assert(otherAttributes.Count = 0)
 
@@ -1143,7 +1141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                       name As XmlName,
                                                       attribute As BoundXmlAttribute,
                                                       <Out()> ByRef allAttributes As Dictionary(Of XmlName, BoundXmlAttribute),
-                                                      diagnostics As DiagnosticBag) As Boolean
+                                                      diagnostics As BindingDiagnosticBag) As Boolean
             If allAttributes Is Nothing Then
                 allAttributes = New Dictionary(Of XmlName, BoundXmlAttribute)(XmlNameComparer.Instance)
             End If
@@ -1173,7 +1171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              <Out()> ByRef [namespace] As BoundExpression,
                                              <Out()> ByRef hasErrors As Boolean,
                                              fromImport As Boolean,
-                                             diagnostics As DiagnosticBag) As Boolean
+                                             diagnostics As BindingDiagnosticBag) As Boolean
             prefix = Nothing
             namespaceName = Nothing
             [namespace] = Nothing
@@ -1241,7 +1239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Shared Function RedefinesReservedXmlNamespace(syntax As VisualBasicSyntaxNode, prefix As String, reservedPrefix As String, [namespace] As String, reservedNamespace As String, diagnostics As DiagnosticBag) As Boolean
+        Private Shared Function RedefinesReservedXmlNamespace(syntax As VisualBasicSyntaxNode, prefix As String, reservedPrefix As String, [namespace] As String, reservedNamespace As String, diagnostics As BindingDiagnosticBag) As Boolean
             If ([namespace] = reservedNamespace) AndAlso (prefix <> reservedPrefix) Then
                 ' "Prefix '{0}' cannot be bound to namespace name reserved for '{1}'."
                 ReportDiagnostic(diagnostics, syntax, ERRID.ERR_ReservedXmlNamespace, prefix, reservedPrefix)
@@ -1255,7 +1253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' If name is "xmlns:p", set prefix to p and return True.
         ''' Otherwise return False.
         ''' </summary>
-        Private Function TryGetXmlnsPrefix(syntax As XmlNameSyntax, <Out()> ByRef prefix As String, diagnostics As DiagnosticBag) As Boolean
+        Private Function TryGetXmlnsPrefix(syntax As XmlNameSyntax, <Out()> ByRef prefix As String, diagnostics As BindingDiagnosticBag) As Boolean
             Dim localName = GetXmlName(syntax.LocalName)
             Dim prefixName As String = Nothing
 
@@ -1349,7 +1347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     expr As BoundExpression,
                                                                     prefixes As BoundRValuePlaceholder,
                                                                     namespaces As BoundRValuePlaceholder,
-                                                                    diagnostics As DiagnosticBag) As BoundExpression
+                                                                    diagnostics As BindingDiagnosticBag) As BoundExpression
                 Return _binder.BindRemoveNamespaceAttributesInvocation(
                     _syntax,
                     expr,

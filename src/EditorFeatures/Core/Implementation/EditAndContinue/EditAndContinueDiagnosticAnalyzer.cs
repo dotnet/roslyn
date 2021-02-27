@@ -5,8 +5,10 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
@@ -36,20 +38,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Workspace.Services;
-            var encService = services.GetService<IEditAndContinueWorkspaceService>();
-            if (encService is null)
+            var workspace = document.Project.Solution.Workspace;
+
+            // do not load EnC service and its dependencies if the app is not running:
+            var debuggingService = workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
+            if (debuggingService.CurrentDebuggingState == DebuggingState.Design)
             {
                 return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
             }
 
+            return AnalyzeSemanticsImplAsync(document, cancellationToken);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsImplAsync(Document document, CancellationToken cancellationToken)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var proxy = new RemoteEditAndContinueServiceProxy(workspace);
+
             var activeStatementSpanProvider = new DocumentActiveStatementSpanProvider(async cancellationToken =>
             {
-                var trackingService = services.GetRequiredService<IActiveStatementTrackingService>();
+                var trackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
                 return await trackingService.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
             });
 
-            return encService.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken);
+            return proxy.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).AsTask();
         }
     }
 }
