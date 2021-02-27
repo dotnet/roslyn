@@ -102,14 +102,13 @@ done:
             var tests = ArrayBuilder<Tests>.GetInstance();
 
             // TryGetCount
-            MethodSymbol? tryGetCountMethod = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Linq_Enumerable__TryGetNonEnumerableCount));
-            var tryGetCountEvaluation = new BoundDagMethodEvaluation(syntax, tryGetCountMethod, index: 0, input);
-            var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), tryGetCountEvaluation, index: 0);
-            var countOutTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), tryGetCountEvaluation, index: 1);
-            var countTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), tryGetCountEvaluation, index: 2);
-            tests.Add(new Tests.One(tryGetCountEvaluation));
+            MethodSymbol? tryGetCountMethod = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Linq_Enumerable__TryGetNonEnumeratedCount));
             if (tryGetCountMethod != null)
             {
+                var tryGetCountEvaluation = new BoundDagMethodEvaluation(syntax, tryGetCountMethod, index: 0, input);
+                var successTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), tryGetCountEvaluation, index: 0);
+                var countOutTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), tryGetCountEvaluation, index: 1);
+                tests.Add(new Tests.One(tryGetCountEvaluation));
                 tests.Add(makeDisjunction(
                     new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(false), successTemp)),
                     MakeLengthTests(syntax, pattern, bindings, countOutTemp)));
@@ -119,6 +118,7 @@ done:
             var enumeratorEvaluation = new BoundDagEnumeratorEvaluation(syntax, info, input);
             tests.Add(new Tests.One(enumeratorEvaluation));
             var enumeratorTemp = new BoundDagTemp(syntax, info.GetEnumeratorInfo.Method.ReturnType, enumeratorEvaluation);
+            var countTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), enumeratorEvaluation, index: 1);
 
             // BufferCtor
             var (bufferType, bufferCtor, pushMethod, popMethod) = getWellKnownMembers();
@@ -144,7 +144,7 @@ done:
                     goto done;
                 }
 
-                addMoveNext(index, test: true);
+                tests.Add(new Tests.One(new BoundDagMoveNextTest(syntax, index, enumeratorTemp)));
                 var incrementEvaluation = new BoundDagIncrementEvaluation(syntax, index, countTemp);
                 tests.Add(new Tests.One(incrementEvaluation));
                 var currentEvaluation = new BoundDagPropertyEvaluation(syntax, currentProperty, index, enumeratorTemp);
@@ -156,7 +156,7 @@ done:
             }
 
             Debug.Assert(!pattern.HasSlice);
-            addMoveNext(index: subpatterns.Length, test: false);
+            tests.Add(Tests.Not.Create(new Tests.One(new BoundDagMoveNextTest(syntax, subpatterns.Length, enumeratorTemp))));
 
             if (pattern.LengthPattern is not null)
                 computeLengthValueSet(countTemp); // {1,2,3} [3]
@@ -169,7 +169,7 @@ done:
             void addTrailingTests(int indexOfSlice)
             {
                 int currentIndex = indexOfSlice + 1;
-                bool hasTrailing = !pattern.Subpatterns.IsDefault && pattern.Subpatterns.Length != currentIndex;
+                bool hasTrailing = !subpatterns.IsDefault && subpatterns.Length != currentIndex;
                 if (pattern.LengthPattern is null && !hasTrailing)
                 {
                     // {1,2,3, ..}
@@ -177,11 +177,8 @@ done:
                 }
 
                 var (minLength, maxLength) = computeLengthValueSet(countTemp)?.GetRange() ?? (int.MinValue, int.MaxValue);
-                var minLengthTests = MakeRelationalTests(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(minLength), countTemp);
-                var iterationTest = new BoundDagIterationTest(
-                    syntax, moveNextMethod, hasTrailing ? pushMethod : null, bufferTemp: bufferTemp, countTemp: countTemp, maxLength, enumeratorTemp);
-                tests.Add(new Tests.One(iterationTest));
-                tests.Add(minLengthTests);
+                tests.Add(new Tests.One(new BoundDagIterationTest(syntax, hasTrailing ? pushMethod : null, bufferTemp, maxLength, enumeratorTemp)));
+                tests.Add(MakeRelationalTests(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(minLength), countTemp));
 
                 if (!subpatterns.IsDefaultOrEmpty)
                 {
@@ -201,14 +198,6 @@ done:
                 tests.Add(test1);
                 tests.Add(test2);
                 return Tests.OrSequence.Create(tests);
-            }
-
-            void addMoveNext(int index, bool test)
-            {
-                var moveNextEvaluation = new BoundDagMethodEvaluation(syntax, moveNextMethod, index, enumeratorTemp);
-                tests.Add(new Tests.One(moveNextEvaluation));
-                var moveNextTemp = new BoundDagTemp(syntax, moveNextMethod.ReturnType, moveNextEvaluation);
-                tests.Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(test), moveNextTemp)));
             }
 
             INumericValueSet<int>? computeLengthValueSet(BoundDagTemp countTemp)

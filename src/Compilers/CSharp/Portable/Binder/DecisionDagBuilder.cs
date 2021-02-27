@@ -994,7 +994,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDagExplicitNullTest _:
                 case BoundDagNonNullTest _:
                 case BoundDagTypeTest _:
-                case BoundDagIterationTest _:
+                case BoundDagIterationTest:
+                case BoundDagMoveNextTest:
                     return (values, values, true, true);
                 case BoundDagValueTest t:
                     return resultForRelation(BinaryOperatorKind.Equal, t.Value);
@@ -1084,34 +1085,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             trueTestImpliesTrueOther = false;
             falseTestImpliesTrueOther = false;
 
+            // if the tests are for unrelated things, there is no implication from one to the other
             if (!test.Input.Equals(other.Input))
-            {
-                // TODO(alrz) Should create a DagMoveNextTest with enumeratorTemp as input, then we can check this in the switch below
-                if (test is BoundDagIterationTest &&
-                    other is BoundDagValueTest { Input: { Source: BoundDagMethodEvaluation { Method: { Name: "MoveNext" } } moveNextEvaluation } } &&
-                    test.Input.Equals(moveNextEvaluation.Input))
-                {
-                    // MoveNext is not allowed after an iteration loop
-                    // because the sequence is already finished at that point.
-                    trueTestPermitsTrueOther = false;
-                    falseTestPermitsTrueOther = false;
-                }
-                // if the tests are for unrelated things, there is no implication from one to the other
                 return;
-            }
 
             switch (test)
             {
-                case BoundDagIterationTest i1:
+                case BoundDagMoveNextTest m1:
                     switch (other)
                     {
-                        case BoundDagIterationTest i2:
-                            Debug.Assert(i1.Equals(i2), "sameTest");
+                        case BoundDagMoveNextTest m2 when m1.Equals(m2):
                             trueTestImpliesTrueOther = true;
                             falseTestPermitsTrueOther = false;
                             break;
                     }
-
+                    break;
+                case BoundDagIterationTest i1:
+                    switch (other)
+                    {
+                        case BoundDagIterationTest i2 when i1.Equals(i2):
+                            trueTestImpliesTrueOther = true;
+                            falseTestPermitsTrueOther = false;
+                            break;
+                        case BoundDagMoveNextTest:
+                            // MoveNext is not allowed after an iteration loop
+                            // because the sequence is already finished at that point.
+                            trueTestPermitsTrueOther = false;
+                            falseTestPermitsTrueOther = false;
+                            break;
+                    }
                     break;
                 case BoundDagNonNullTest _:
                     switch (other)

@@ -1406,11 +1406,12 @@
     <Field Name="Value" Type="ConstantValue" Null="disallow"/>
   </Node>
   <Node Name="BoundDagIterationTest" Base="BoundDagTest">
-    <Field Name="MoveNextMethod" Type="MethodSymbol"/>
     <Field Name="PushMethod" Type="MethodSymbol?"/>
     <Field Name="BufferTemp" Type="BoundDagTemp"/>
-    <Field Name="CountTemp" Type="BoundDagTemp"/>
     <Field Name="MaxLength" Type="int"/>
+  </Node>
+  <Node Name="BoundDagMoveNextTest" Base="BoundDagTest">
+    <Field Name="Index" Type="int"/>
   </Node>
   <!-- As a decision, an evaluation is considered to always succeed. -->
   <AbstractNode Name="BoundDagEvaluation" Base="BoundDagTest">
@@ -1450,8 +1451,8 @@
     <Field Name="EndIndex" Type="int"/>
   </Node>
   <Node Name="BoundDagMethodEvaluation" Base="BoundDagEvaluation">
-    <!-- MoveNext, Pop, Push, BufferCtor, TryGetNonEnumeratedCount -->
-    <Field Name="Method" Type="MethodSymbol?"/>
+    <!-- Pop, Push, BufferCtor, TryGetNonEnumeratedCount -->
+    <Field Name="Method" Type="MethodSymbol"/>
     <Field Name="Index" Type="int"/>
   </Node>
   <Node Name="BoundDagEnumeratorEvaluation" Base="BoundDagEvaluation">

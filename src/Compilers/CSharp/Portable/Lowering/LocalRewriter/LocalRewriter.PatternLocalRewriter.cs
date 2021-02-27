@@ -326,7 +326,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagMethodEvaluation e:
                         {
                             var method = e.Method;
-                            Debug.Assert(method is not null);
                             Debug.Assert(!method.IsConstructor());
                             if (method.ParameterCount == 2)
                             {
@@ -345,14 +344,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (returnType.IsVoidType())
                             {
                                 // Push
-                                var enumeratorTemp = e.Input.Source!.Input;
+                                Debug.Assert(e.Input.Source is not null);
+                                var enumeratorTemp = e.Input.Source.Input;
                                 var enumerator = _tempAllocator.GetTemp(enumeratorTemp);
-                                var info = ((BoundDagEnumeratorEvaluation)enumeratorTemp.Source)!.EnumeratorInfo;
+                                Debug.Assert(enumeratorTemp.Source is BoundDagEnumeratorEvaluation);
+                                var info = ((BoundDagEnumeratorEvaluation)enumeratorTemp.Source).EnumeratorInfo;
                                 return _factory.Call(input, method, _factory.Call(enumerator, info.CurrentPropertyGetter));
                             }
                             else
                             {
-                                // MoveNext or Pop
+                                // Pop
                                 Debug.Assert(!returnType.IsVoidType());
                                 var outputTemp = new BoundDagTemp(e.Syntax, returnType, e);
                                 BoundExpression output = _tempAllocator.GetTemp(outputTemp);
@@ -411,6 +412,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!input.Type.IsNullableType());
                         Debug.Assert(input.Type.IsValueType);
                         return MakeRelationalTest(d.Syntax, input, d.OperatorKind, d.Value);
+
+                    case BoundDagMoveNextTest:
+                        Debug.Assert(test.Input.Source is BoundDagEnumeratorEvaluation);
+                        return _factory.Call(input, ((BoundDagEnumeratorEvaluation)test.Input.Source).EnumeratorInfo.MoveNextInfo.Method);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(test);

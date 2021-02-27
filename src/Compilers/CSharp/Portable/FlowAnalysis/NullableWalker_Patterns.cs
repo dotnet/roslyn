@@ -386,15 +386,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     addTemp(e, compilation.GetSpecialType(SpecialType.System_Int32));
                                     break;
                                 case BoundDagEnumeratorEvaluation e:
-                                    addTemp(e, e.EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType);
+                                    addTemp(e, e.EnumeratorInfo.GetEnumeratorInfo.Method.ReturnType, 0); // enumeratorTemp
+                                    addTemp(e, compilation.GetSpecialType(SpecialType.System_Int32), 1); // countTemp
                                     break;
                                 case BoundDagMethodEvaluation e:
-                                    if (e.Method is null || e.Method.ParameterCount == 2)
+                                    if (e.Method.ParameterCount == 2)
                                     {
                                         // TryGetNonEnumeratedCount
-                                        addTemp(e, compilation.GetSpecialType(SpecialType.System_Boolean), 0); // outputTemp
-                                        addTemp(e, compilation.GetSpecialType(SpecialType.System_Int32), 1); // out countTemp
-                                        addTemp(e, compilation.GetSpecialType(SpecialType.System_Int32), 2); // countTemp
+                                        addTemp(e, compilation.GetSpecialType(SpecialType.System_Boolean), 0); // successTemp
+                                        addTemp(e, compilation.GetSpecialType(SpecialType.System_Int32), 1); // countOutTemp
                                     }
                                     else
                                     {
@@ -427,6 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             switch (test)
                             {
                                 case BoundDagIterationTest:
+                                case BoundDagMoveNextTest:
                                 case BoundDagTypeTest:
                                     if (inputSlot > 0)
                                     {

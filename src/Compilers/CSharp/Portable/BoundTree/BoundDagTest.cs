@@ -31,11 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case (BoundDagRelationalTest x, BoundDagRelationalTest y):
                     return x.Relation == y.Relation && x.Value.Equals(y.Value);
                 case (BoundDagIterationTest x, BoundDagIterationTest y):
-                    return x.MoveNextMethod.Equals(y.MoveNextMethod, TypeCompareKind.AllIgnoreOptions) &&
-                           //x.PushMethod.Equals(y.MoveNextMethod, TypeCompareKind.AllIgnoreOptions) &&
-                           //x.CountTemp.Equals(y.CountTemp) &&
-                           //x.BufferTemp.Equals(y.BufferTemp) &&
-                           x.MaxLength == y.MaxLength;
+                    return x.MaxLength == y.MaxLength;
+                case (BoundDagMoveNextTest x, BoundDagMoveNextTest y):
+                    return x.Index == y.Index;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this);
             }

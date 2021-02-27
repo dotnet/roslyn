@@ -600,19 +600,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var enumeratorTemp = test.Input;
                 var enumerator = _tempAllocator.GetTemp(test.Input);
-                Debug.Assert(enumeratorTemp.Source != null);
-                var info = ((BoundDagEnumeratorEvaluation)enumeratorTemp.Source).EnumeratorInfo;
-
+                Debug.Assert(enumeratorTemp.Source is BoundDagEnumeratorEvaluation);
+                var e = (BoundDagEnumeratorEvaluation)enumeratorTemp.Source;
+                var info = e.EnumeratorInfo;
+                var countTemp = new BoundDagTemp(e.Syntax, _factory.SpecialType(SpecialType.System_Int32), e, 1);
+                BoundExpression count = _tempAllocator.GetTemp(countTemp);
                 BoundExpression moveNextCall = _factory.Call(enumerator, info.MoveNextInfo.Method);
                 BoundExpression pushCall = test.PushMethod is not null
-                    ? _factory.Call(_tempAllocator.GetTemp(test.BufferTemp),
-                        test.PushMethod, _factory.Call(enumerator, info.CurrentPropertyGetter))
+                    ? _factory.Call(_tempAllocator.GetTemp(test.BufferTemp), test.PushMethod, _factory.Call(enumerator, info.CurrentPropertyGetter))
                     : null;
                 BoundExpression maxLengthTest = test.MaxLength != int.MaxValue
-                    ? _factory.Binary(BinaryOperatorKind.IntGreaterThanOrEqual, _factory.SpecialType(SpecialType.System_Int32),
-                        _factory.Literal(test.MaxLength), _tempAllocator.GetTemp(test.CountTemp))
+                    ? _factory.Binary(BinaryOperatorKind.IntGreaterThanOrEqual, _factory.SpecialType(SpecialType.System_Int32), _factory.Literal(test.MaxLength), count)
                     : null;
-                BoundExpression increment = _factory.IntIncrement(_tempAllocator.GetTemp(test.CountTemp));
+                BoundExpression increment = _factory.IntIncrement(count);
 
                 /*
                  * start:
@@ -1104,10 +1104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             switch (evaluation)
                             {
-                                case BoundDagMethodEvaluation { Method: null }:
-                                    // This is a missing or otherwise inapplicable TryGetNonEnumeratedCount
-                                    break;
-
                                 case BoundDagEnumeratorEvaluation { NeedsDisposal: true } e:
                                     (_enumeratorEvaluations ??= PooledDictionary<int, BoundDagEnumeratorEvaluation>.GetInstance()).Add(_loweredDecisionDag.Count - 1, e);
                                     goto default;
