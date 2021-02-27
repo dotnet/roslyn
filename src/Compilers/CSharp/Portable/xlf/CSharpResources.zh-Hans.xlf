@@ -3848,7 +3848,7 @@
       </trans-unit>
       <trans-unit id="ERR_DefaultLiteralNotValid">
         <source>Use of default literal is not valid in this context</source>
-        <target state="translated">在此上下文中下使用 default 字面量是非法的</target>
+        <target state="translated">在此上下文中不可使用 default 字面量</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseDefViolationThis">
