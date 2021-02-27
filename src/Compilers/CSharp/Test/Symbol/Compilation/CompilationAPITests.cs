@@ -2192,7 +2192,7 @@ class C { }", options: TestOptions.Script);
             }
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation), typeof(NoIOperationValidation), Reason = "IOperation skip: Compilation changes over time, adds new errors")]
         public void MetadataConsistencyWhileEvolvingCompilation()
         {
             var md1 = AssemblyMetadata.CreateFromImage(CreateCompilation("public class C { }").EmitToArray());
