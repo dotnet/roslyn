@@ -62,6 +62,7 @@ End Interface"
         Public Async Function NotOfferedOnEnum() As Task
             Dim code = "
 [||]Enum Foo
+    None
 End Enum"
 
             Await VerifyVB.VerifyRefactoringAsync(code, code)
@@ -133,7 +134,7 @@ End Class")
         Public Async Function NotOfferedOnWrongOverloadOfToString() As Task
             Dim code = "
 Class A
-    Public Overrides Function ToString(Optional bar As Integer = 0) As String
+    Public Overridable Function ToString(Optional bar As Integer = 0) As String
         Return ""Foo""
     End Function
 End Class
@@ -285,7 +286,7 @@ End Class"
             Await VerifyVB.VerifyRefactoringAsync("
 Imports System.Diagnostics
 
-[DebuggerDisplay(""Foo"")]
+<DebuggerDisplay(""Foo"")>
 Class A
 End Class
 
@@ -294,7 +295,7 @@ End Class
 End Class", "
 Imports System.Diagnostics
 
-[DebuggerDisplay(""Foo"")]
+<DebuggerDisplay(""Foo"")>
 Class A
 End Class
 
