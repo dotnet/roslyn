@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
+using Roslyn.Utilities;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
@@ -65,14 +66,30 @@ namespace BuildValidator
 
             if (pdbCompilationOptions.TryGetUniqueOption("language", out var language))
             {
+                var diagnosticBag = DiagnosticBag.GetInstance();
                 var compilation = language switch
                 {
                     LanguageNames.CSharp => CreateCSharpCompilation(fileName, compilationOptionsReader, sources, metadataReferences),
-                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(fileName, compilationOptionsReader, sources, metadataReferences),
+                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(fileName, compilationOptionsReader, sources, metadataReferences, diagnosticBag),
                     _ => throw new InvalidDataException($"{language} is not a known language")
                 };
 
-                return compilation;
+                var diagnostics = diagnosticBag.ToReadOnlyAndFree();
+                var hadError = false;
+                foreach (var diagnostic in diagnostics)
+                {
+                    if (diagnostic.Severity == DiagnosticSeverity.Error)
+                    {
+                        _logger.LogError(diagnostic.ToString());
+                        hadError = true;
+                    }
+                    else
+                    {
+                        _logger.LogWarning(diagnostic.ToString());
+                    }
+                }
+
+                return hadError ? null : compilation;
             }
 
             throw new InvalidDataException("Did not find language in compilation options");
@@ -158,6 +175,7 @@ namespace BuildValidator
 
             var langVersionString = pdbCompilationOptions.GetUniqueOption("language-version");
             var optimization = pdbCompilationOptions.GetUniqueOption("optimization");
+
             // TODO: Check portability policy if needed
             // pdbCompilationOptions.TryGetValue("portability-policy", out var portabilityPolicyString);
             pdbCompilationOptions.TryGetUniqueOption(_logger, "define", out var define);
@@ -236,23 +254,23 @@ namespace BuildValidator
             string fileName,
             CompilationOptionsReader optionsReader,
             ImmutableArray<ResolvedSource> sources,
-            ImmutableArray<MetadataReference> metadataReferences)
+            ImmutableArray<MetadataReference> metadataReferences,
+            DiagnosticBag diagnosticBag)
         {
-            var compilationOptions = CreateVisualBasicCompilationOptions(optionsReader, fileName);
+            var compilationOptions = CreateVisualBasicCompilationOptions(optionsReader, fileName, diagnosticBag);
             return VisualBasicCompilation.Create(
                 Path.GetFileNameWithoutExtension(fileName),
-                syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s.SourceText, options: compilationOptions.ParseOptions, path: s.DisplayPath)).ToImmutableArray(),
+                syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s.SourceText, options: compilationOptions.ParseOptions, path: s.SourceFileInfo.SourceFilePath)).ToImmutableArray(),
                 references: metadataReferences,
                 options: compilationOptions);
         }
 
-        private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(CompilationOptionsReader optionsReader, string fileName)
+        private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(CompilationOptionsReader optionsReader, string fileName, DiagnosticBag diagnosticBag)
         {
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
             var langVersionString = pdbCompilationOptions.GetUniqueOption(CompilationOptionNames.LanguageVersion);
             pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
-            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Define, out var define);
             pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.GlobalNamespaces, out var globalNamespacesString);
 
             IEnumerable<GlobalImport>? globalImports = null;
@@ -264,15 +282,20 @@ namespace BuildValidator
             VB.LanguageVersion langVersion = default;
             VB.LanguageVersionFacts.TryParse(langVersionString, ref langVersion);
 
-            var preprocessorSymbols = string.IsNullOrEmpty(define)
-                ? Array.Empty<KeyValuePair<string, object>>()
-                : define.Split(',')
-                    .Select(s => s.Split('='))
-                    .Select(a => new KeyValuePair<string, object>(a[0], a[1]))
-                    .ToArray();
+            IReadOnlyDictionary<string, object>? preprocessorSymbols = null;
+            if (OptionToString(CompilationOptionNames.Define) is string defineString)
+            {
+                preprocessorSymbols = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(defineString, out var diagnostics);
+                if (diagnostics is object)
+                {
+                    diagnosticBag.AddRange(diagnostics);
+                }
+            }
 
-            var parseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(langVersion)
-                .WithPreprocessorSymbols(preprocessorSymbols);
+            var parseOptions = VisualBasicParseOptions
+                .Default
+                .WithLanguageVersion(langVersion)
+                .WithPreprocessorSymbols(preprocessorSymbols.ToImmutableArrayOrEmpty());
 
             var (optimizationLevel, plus) = GetOptimizationLevel(optimization);
             var isChecked = OptionToBool(CompilationOptionNames.Checked) ?? true;

@@ -65,6 +65,7 @@ try {
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Scripting`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Scripting.TestUtilities`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.TestSourceGenerator`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Workspaces`"" +
   " --assembliesPath `"$ArtifactsDir/obj/PrepareTests`"" +
   " --assembliesPath `"$ArtifactsDir/obj/RunTests`"" +
