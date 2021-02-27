@@ -2383,7 +2383,7 @@
       </trans-unit>
       <trans-unit id="WRN_NullReferenceInitializer_Title">
         <source>Object or collection initializer implicitly dereferences possibly null member.</source>
-        <target state="translated">对象或集合初始值设定项会隐式解引用可能为 null 的成员“{0}”。</target>
+        <target state="new">Object or collection initializer implicitly dereferences possibly null member.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
