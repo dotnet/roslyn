@@ -626,16 +626,13 @@ tryAgain:
         private bool IsPossibleSubpatternElement()
         {
             return this.IsPossibleExpression(allowBinaryExpressions: false, allowAssignmentExpressions: false) ||
-                this.CurrentToken.Kind switch
-                {
-                    SyntaxKind.OpenBraceToken => true,
-                    SyntaxKind.OpenBracketToken => true,
-                    SyntaxKind.LessThanToken => true,
-                    SyntaxKind.LessThanEqualsToken => true,
-                    SyntaxKind.GreaterThanToken => true,
-                    SyntaxKind.GreaterThanEqualsToken => true,
-                    _ => false
-                };
+                this.CurrentToken.Kind is
+                    SyntaxKind.OpenBraceToken or
+                    SyntaxKind.OpenBracketToken or
+                    SyntaxKind.LessThanToken or
+                    SyntaxKind.LessThanEqualsToken or
+                    SyntaxKind.GreaterThanToken or
+                    SyntaxKind.GreaterThanEqualsToken;
         }
 
         private PostSkipAction SkipBadPatternListTokens(
