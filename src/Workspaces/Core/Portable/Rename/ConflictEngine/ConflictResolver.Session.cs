@@ -533,11 +533,11 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                             hasConflict = true;
 
                             var newLocationTasks = newReferencedSymbols.Select(async symbol => await GetSymbolLocationAsync(solution, symbol, _cancellationToken).ConfigureAwait(false));
-                            var newLocations = (await Task.WhenAll(newLocationTasks).ConfigureAwait(false)).Where(loc => loc != null && loc.IsInSource);
+                            var newLocations = (await Task.WhenAll(newLocationTasks).ConfigureAwait(false)).WhereNotNull().Where(loc => loc.IsInSource);
                             foreach (var originalReference in conflictAnnotation.RenameDeclarationLocationReferences.Where(loc => loc.IsSourceLocation))
                             {
                                 var adjustedStartPosition = conflictResolution.GetAdjustedTokenStartingPosition(originalReference.TextSpan.Start, originalReference.DocumentId);
-                                if (newLocations.Any(loc => loc!.SourceSpan.Start == adjustedStartPosition))
+                                if (newLocations.Any(loc => loc.SourceSpan.Start == adjustedStartPosition))
                                 {
                                     hasConflict = false;
                                     break;

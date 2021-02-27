@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var typeAttribute = element.Attribute("Type");
             var valueAttribute = element.Attribute(nameof(Value));
             var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
-            var version = (int)element.Attribute(nameof(SerializationVersion))!;
+            var version = (int?)element.Attribute(nameof(SerializationVersion));
 
             if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
             {
