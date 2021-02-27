@@ -8521,5 +8521,72 @@ class C
                 context.AddItem(CompletionItem.Create(displayText:="★ Length2", filterText:="Length"))
             End Function
         End Class
+
+        <WorkItem(49813, "https://github.com/dotnet/roslyn/issues/49813")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCaseSensitiveMatchWithLowerMatchPriority(showCompletionInArgumentLists As Boolean) As Task
+            ' PreselectionProvider will provide an item "★ length" with filter text "length",
+            ' which is a case-insentive match to typed text "Length", but with higher match priority.
+            ' In this case, we need to make sure the case-sensitive match "Length" is selected.
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+struct Range
+{
+    public (int Offset, int Length) GetOffsetAndLength(int length) => (0, 0);
+}
+
+class Repro
+{
+    public int Length { get; }
+
+    public void Test(Range x)
+    {
+        var (offset, length) = x.GetOffsetAndLength(Length$$);
+    }
+}
+                              </Document>,
+                              extraExportedTypes:={GetType(PreselectionProvider)}.ToList(),
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"★ length", "length", "Length"})
+                Await state.AssertSelectedCompletionItem("Length", isHardSelected:=True)
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContainAll({"★ length", "length", "Length"})
+                Await state.AssertSelectedCompletionItem("Length", isHardSelected:=True)
+            End Using
+        End Function
+
+        ' Simulate the situation that some provider (e.g. IntelliCode) provides items with higher match priority that only match case-insensitively.
+        <ExportCompletionProvider(NameOf(PreselectionProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class PreselectionProvider
+            Inherits CommonCompletionProvider
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                Dim rules = CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection).WithMatchPriority(MatchPriority.Preselect)
+                context.AddItem(CompletionItem.Create(displayText:="★ length", filterText:="length", rules:=rules))
+                Return Task.CompletedTask
+            End Function
+
+            Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+                Return True
+            End Function
+        End Class
     End Class
 End Namespace
