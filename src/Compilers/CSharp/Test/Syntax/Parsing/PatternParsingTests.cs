@@ -6669,7 +6669,7 @@ switch (e)
                 N(SyntaxKind.IsKeyword);
                 N(SyntaxKind.RecursivePattern);
                 {
-                    N(SyntaxKind.ListPatternClause);
+                    N(SyntaxKind.PropertyPatternClause);
                     {
                         N(SyntaxKind.OpenBraceToken);
                         M(SyntaxKind.Subpattern);

@@ -10658,57 +10658,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     internal sealed partial class LengthPatternClauseSyntax : CSharpSyntaxNode
     {
         internal readonly SyntaxToken openBracketToken;
-        internal readonly PatternSyntax? pattern;
+        internal readonly PatternSyntax pattern;
         internal readonly SyntaxToken closeBracketToken;
 
-        internal LengthPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBracketToken, PatternSyntax? pattern, SyntaxToken closeBracketToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+        internal LengthPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBracketToken, PatternSyntax pattern, SyntaxToken closeBracketToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
           : base(kind, diagnostics, annotations)
         {
             this.SlotCount = 3;
             this.AdjustFlagsAndWidth(openBracketToken);
             this.openBracketToken = openBracketToken;
-            if (pattern != null)
-            {
-                this.AdjustFlagsAndWidth(pattern);
-                this.pattern = pattern;
-            }
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
             this.AdjustFlagsAndWidth(closeBracketToken);
             this.closeBracketToken = closeBracketToken;
         }
 
-        internal LengthPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBracketToken, PatternSyntax? pattern, SyntaxToken closeBracketToken, SyntaxFactoryContext context)
+        internal LengthPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBracketToken, PatternSyntax pattern, SyntaxToken closeBracketToken, SyntaxFactoryContext context)
           : base(kind)
         {
             this.SetFactoryContext(context);
             this.SlotCount = 3;
             this.AdjustFlagsAndWidth(openBracketToken);
             this.openBracketToken = openBracketToken;
-            if (pattern != null)
-            {
-                this.AdjustFlagsAndWidth(pattern);
-                this.pattern = pattern;
-            }
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
             this.AdjustFlagsAndWidth(closeBracketToken);
             this.closeBracketToken = closeBracketToken;
         }
 
-        internal LengthPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBracketToken, PatternSyntax? pattern, SyntaxToken closeBracketToken)
+        internal LengthPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBracketToken, PatternSyntax pattern, SyntaxToken closeBracketToken)
           : base(kind)
         {
             this.SlotCount = 3;
             this.AdjustFlagsAndWidth(openBracketToken);
             this.openBracketToken = openBracketToken;
-            if (pattern != null)
-            {
-                this.AdjustFlagsAndWidth(pattern);
-                this.pattern = pattern;
-            }
+            this.AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
             this.AdjustFlagsAndWidth(closeBracketToken);
             this.closeBracketToken = closeBracketToken;
         }
 
         public SyntaxToken OpenBracketToken => this.openBracketToken;
-        public PatternSyntax? Pattern => this.pattern;
+        public PatternSyntax Pattern => this.pattern;
         public SyntaxToken CloseBracketToken => this.closeBracketToken;
 
         internal override GreenNode? GetSlot(int index)
@@ -10755,12 +10746,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var openBracketToken = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(openBracketToken);
             this.openBracketToken = openBracketToken;
-            var pattern = (PatternSyntax?)reader.ReadValue();
-            if (pattern != null)
-            {
-                AdjustFlagsAndWidth(pattern);
-                this.pattern = pattern;
-            }
+            var pattern = (PatternSyntax)reader.ReadValue();
+            AdjustFlagsAndWidth(pattern);
+            this.pattern = pattern;
             var closeBracketToken = (SyntaxToken)reader.ReadValue();
             AdjustFlagsAndWidth(closeBracketToken);
             this.closeBracketToken = closeBracketToken;
@@ -10979,7 +10967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (openBraceToken != this.OpenBraceToken || subpatterns != this.Subpatterns || closeBraceToken != this.CloseBraceToken)
             {
-                var newNode = SyntaxFactory.PropertyPatternClause(this.Kind, openBraceToken, subpatterns, closeBraceToken);
+                var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
                 var diags = GetDiagnostics();
                 if (diags?.Length > 0)
                     newNode = newNode.WithDiagnosticsGreen(diags);
@@ -36296,11 +36284,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new RecursivePatternSyntax(SyntaxKind.RecursivePattern, type, positionalPatternClause, lengthPatternClause, propertyPatternClause, designation, this.context);
         }
 
-        public LengthPatternClauseSyntax LengthPatternClause(SyntaxToken openBracketToken, PatternSyntax? pattern, SyntaxToken closeBracketToken)
+        public LengthPatternClauseSyntax LengthPatternClause(SyntaxToken openBracketToken, PatternSyntax pattern, SyntaxToken closeBracketToken)
         {
 #if DEBUG
             if (openBracketToken == null) throw new ArgumentNullException(nameof(openBracketToken));
             if (openBracketToken.Kind != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             if (closeBracketToken == null) throw new ArgumentNullException(nameof(closeBracketToken));
             if (closeBracketToken.Kind != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
 #endif
@@ -36340,14 +36329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public PropertyPatternClauseSyntax PropertyPatternClause(SyntaxKind kind, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+        public PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
         {
-            switch (kind)
-            {
-                case SyntaxKind.PropertyPatternClause:
-                case SyntaxKind.ListPatternClause: break;
-                default: throw new ArgumentException(nameof(kind));
-            }
 #if DEBUG
             if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
             if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
@@ -36356,10 +36339,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
             int hash;
-            var cached = CSharpSyntaxNodeCache.TryGetNode((int)kind, openBraceToken, subpatterns.Node, closeBraceToken, this.context, out hash);
+            var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, this.context, out hash);
             if (cached != null) return (PropertyPatternClauseSyntax)cached;
 
-            var result = new PropertyPatternClauseSyntax(kind, openBraceToken, subpatterns.Node, closeBraceToken, this.context);
+            var result = new PropertyPatternClauseSyntax(SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, this.context);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);
@@ -41213,11 +41196,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new RecursivePatternSyntax(SyntaxKind.RecursivePattern, type, positionalPatternClause, lengthPatternClause, propertyPatternClause, designation);
         }
 
-        public static LengthPatternClauseSyntax LengthPatternClause(SyntaxToken openBracketToken, PatternSyntax? pattern, SyntaxToken closeBracketToken)
+        public static LengthPatternClauseSyntax LengthPatternClause(SyntaxToken openBracketToken, PatternSyntax pattern, SyntaxToken closeBracketToken)
         {
 #if DEBUG
             if (openBracketToken == null) throw new ArgumentNullException(nameof(openBracketToken));
             if (openBracketToken.Kind != SyntaxKind.OpenBracketToken) throw new ArgumentException(nameof(openBracketToken));
+            if (pattern == null) throw new ArgumentNullException(nameof(pattern));
             if (closeBracketToken == null) throw new ArgumentNullException(nameof(closeBracketToken));
             if (closeBracketToken.Kind != SyntaxKind.CloseBracketToken) throw new ArgumentException(nameof(closeBracketToken));
 #endif
@@ -41257,14 +41241,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return result;
         }
 
-        public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxKind kind, SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+        public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
         {
-            switch (kind)
-            {
-                case SyntaxKind.PropertyPatternClause:
-                case SyntaxKind.ListPatternClause: break;
-                default: throw new ArgumentException(nameof(kind));
-            }
 #if DEBUG
             if (openBraceToken == null) throw new ArgumentNullException(nameof(openBraceToken));
             if (openBraceToken.Kind != SyntaxKind.OpenBraceToken) throw new ArgumentException(nameof(openBraceToken));
@@ -41273,10 +41251,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
             int hash;
-            var cached = SyntaxNodeCache.TryGetNode((int)kind, openBraceToken, subpatterns.Node, closeBraceToken, out hash);
+            var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, out hash);
             if (cached != null) return (PropertyPatternClauseSyntax)cached;
 
-            var result = new PropertyPatternClauseSyntax(kind, openBraceToken, subpatterns.Node, closeBraceToken);
+            var result = new PropertyPatternClauseSyntax(SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken);
             if (hash >= 0)
             {
                 SyntaxNodeCache.AddNode(result, hash);

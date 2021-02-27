@@ -829,7 +829,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         SlicePattern = 9034,
         LengthPatternClause = 9035,
-        ListPatternClause = 9036,
 
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
 

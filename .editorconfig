@@ -163,6 +163,9 @@ dotnet_diagnostic.IDE0044.severity = warning
 # RS0016: Only enable if API files are present
 dotnet_public_api_analyzer.require_api_files = true
 
+# PROTOTYPE(list-patterns) https://github.com/dotnet/roslyn/issues/50357
+dotnet_public_api_analyzer.severity = none
+
 # CSharp code style settings:
 [*.cs]
 # Newline settings

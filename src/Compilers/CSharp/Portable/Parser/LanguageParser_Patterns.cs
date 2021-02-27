@@ -307,7 +307,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     openKind: SyntaxKind.OpenParenToken,
                     closeKind: SyntaxKind.CloseParenToken);
 
-                parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause0, afterLengthPattern: false);
+                parseLengthPatternClause(out LengthPatternClauseSyntax lengthPatternClause0);
+                parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause0);
                 parseDesignation(out VariableDesignationSyntax designation0);
 
                 if (type == null &&
@@ -334,12 +335,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 var positionalPatternClause = _syntaxFactory.PositionalPatternClause(openParenToken, subPatterns, closeParenToken);
-                var result = _syntaxFactory.RecursivePattern(type, positionalPatternClause, lengthPatternClause: null, propertyPatternClause0, designation0);
+                var result = _syntaxFactory.RecursivePattern(type, positionalPatternClause, lengthPatternClause: lengthPatternClause0, propertyPatternClause0, designation0);
                 return result;
             }
 
             if (parseLengthPatternClause(out LengthPatternClauseSyntax lengthPatternClause) |
-                parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause, afterLengthPattern: lengthPatternClause is not null))
+                parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause))
             {
                 parseDesignation(out VariableDesignationSyntax designation0);
                 return _syntaxFactory.RecursivePattern(type, positionalPatternClause: null, lengthPatternClause, propertyPatternClause, designation0);
@@ -379,12 +380,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            bool parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClauseResult, bool afterLengthPattern)
+            bool parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClauseResult)
             {
                 propertyPatternClauseResult = null;
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                 {
-                    propertyPatternClauseResult = ParsePropertyPatternClause(afterLengthPattern);
+                    propertyPatternClauseResult = ParsePropertyPatternClause();
                     return true;
                 }
 
@@ -416,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private LengthPatternClauseSyntax ParseLengthPatternClause()
         {
             var openBracket = EatToken(SyntaxKind.OpenBracketToken);
-            var pattern = IsPossibleSubpatternElement() ? ParsePattern(Precedence.Conditional) : null;
+            var pattern = ParsePattern(Precedence.Conditional);
             var closeBracket = EatToken(SyntaxKind.CloseBracketToken);
             var result = _syntaxFactory.LengthPatternClause(openBracket, pattern, closeBracket);
             return CheckFeatureAvailability(result, MessageID.IDS_FeatureLengthPattern);
@@ -529,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private PropertyPatternClauseSyntax ParsePropertyPatternClause(bool afterLengthPattern)
+        private PropertyPatternClauseSyntax ParsePropertyPatternClause()
         {
             ParseSubpatternList(
                 openToken: out SyntaxToken openBraceToken,
@@ -537,10 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 closeToken: out SyntaxToken closeBraceToken,
                 openKind: SyntaxKind.OpenBraceToken,
                 closeKind: SyntaxKind.CloseBraceToken);
-            var kind = afterLengthPattern || subPatterns.Count > 0 && subPatterns[0].NameColon is null
-                ? SyntaxKind.ListPatternClause
-                : SyntaxKind.PropertyPatternClause;
-            return _syntaxFactory.PropertyPatternClause(kind, openBraceToken, subPatterns, closeBraceToken);
+            return _syntaxFactory.PropertyPatternClause(openBraceToken, subPatterns, closeBraceToken);
         }
 
         private void ParseSubpatternList(

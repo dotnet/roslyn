@@ -5,27 +5,27 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class PatternParsingTests2 : ParsingTests
+    public class PatternParsingTests_ListPatterns : ParsingTests
     {
         private new void UsingExpression(string text, params DiagnosticDescription[] expectedErrors)
         {
             UsingExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview), expectedErrors);
         }
 
-        public PatternParsingTests2(ITestOutputHelper output) : base(output)
+        public PatternParsingTests_ListPatterns(ITestOutputHelper output) : base(output)
         {
         }
 
         [Fact]
         public void LengthPattern_01()
         {
-            UsingExpression(@"c is []{}");
+            UsingExpression(@"c is [0]{}");
             verify();
 
-            UsingExpression(@"c is []{}", TestOptions.Regular9,
+            UsingExpression(@"c is [0]{}", TestOptions.Regular9,
                 // (1,6): error CS8652: The feature 'length pattern' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // c is []{}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("length pattern").WithLocation(1, 6));
+                // c is [0]{}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[0]").WithArguments("length pattern").WithLocation(1, 6));
             verify();
 
             void verify()
@@ -42,9 +42,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.LengthPatternClause);
                         {
                             N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ConstantPattern);
+                            {
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
                             N(SyntaxKind.CloseBracketToken);
                         }
-                        N(SyntaxKind.ListPatternClause);
+                        N(SyntaxKind.PropertyPatternClause);
                         {
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.CloseBraceToken);
@@ -110,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.ListPatternClause);
+                    N(SyntaxKind.PropertyPatternClause);
                     {
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
@@ -141,11 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void LengthPattern_04()
         {
-            UsingExpression(@"c is ()[]",
-                // (1,1): error CS1073: Unexpected token '['
-                // c is ()[]
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "c is ()").WithArguments("[").WithLocation(1, 1)
-                );
+            UsingExpression(@"c is ()[0]");
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -160,6 +163,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.LengthPatternClause);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ConstantPattern);
+                        {
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                 }
             }
@@ -367,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IsKeyword);
                     N(SyntaxKind.RecursivePattern);
                     {
-                        N(SyntaxKind.ListPatternClause);
+                        N(SyntaxKind.PropertyPatternClause);
                         {
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.Subpattern);
@@ -412,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IsKeyword);
                     N(SyntaxKind.RecursivePattern);
                     {
-                        N(SyntaxKind.ListPatternClause);
+                        N(SyntaxKind.PropertyPatternClause);
                         {
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.Subpattern);
@@ -444,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.IsKeyword);
                 N(SyntaxKind.RecursivePattern);
                 {
-                    N(SyntaxKind.ListPatternClause);
+                    N(SyntaxKind.PropertyPatternClause);
                     {
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
@@ -531,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.IsKeyword);
                 N(SyntaxKind.RecursivePattern);
                 {
-                    N(SyntaxKind.ListPatternClause);
+                    N(SyntaxKind.PropertyPatternClause);
                     {
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
@@ -570,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.IsKeyword);
                 N(SyntaxKind.RecursivePattern);
                 {
-                    N(SyntaxKind.ListPatternClause);
+                    N(SyntaxKind.PropertyPatternClause);
                     {
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.Subpattern);
