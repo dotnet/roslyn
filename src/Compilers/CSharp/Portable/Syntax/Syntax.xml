@@ -2003,7 +2003,7 @@
     <Field Name="Type" Type="TypeSyntax" Optional="true" />
     <Field Name="PositionalPatternClause" Type="PositionalPatternClauseSyntax" Optional="true" />
     <Field Name="LengthPatternClause" Type="LengthPatternClauseSyntax" Optional="true" />
-    <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true"/>
+    <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true" />
     <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
       <Kind Name="SingleVariableDesignation"/>
       <Kind Name="DiscardDesignation"/>
