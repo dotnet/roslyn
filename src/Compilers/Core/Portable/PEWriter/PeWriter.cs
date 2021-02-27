@@ -390,9 +390,11 @@ namespace Microsoft.Cci
 
             protected override void Serialize(BlobBuilder builder, SectionLocation location)
             {
-                using var memoryStream = new MemoryStream();
-                _resources.CopyTo(memoryStream);
-                builder.WriteBytes(memoryStream.ToArray());
+                int value;
+                while ((value = _resources.ReadByte() >= 0)
+                {
+                    builder.WriteByte((byte)value);
+                }
             }
         }
     }
