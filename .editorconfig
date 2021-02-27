@@ -164,7 +164,9 @@ dotnet_diagnostic.IDE0044.severity = warning
 dotnet_public_api_analyzer.require_api_files = true
 
 # PROTOTYPE(list-patterns) https://github.com/dotnet/roslyn/issues/50357
-dotnet_public_api_analyzer.severity = none
+dotnet_diagnostic.RS0016.severity = none
+dotnet_diagnostic.RS0017.severity = none
+dotnet_diagnostic.RS0027.severity = none
 
 # CSharp code style settings:
 [*.cs]
