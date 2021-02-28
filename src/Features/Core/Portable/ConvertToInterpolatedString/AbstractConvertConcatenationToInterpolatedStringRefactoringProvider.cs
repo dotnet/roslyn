@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -34,8 +32,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var (document, textSpan, cancellationToken) = context;
             var possibleExpressions = await context.GetRelevantNodesAsync<TExpressionSyntax>().ConfigureAwait(false);
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // let's take the largest (last) StringConcat we can given current textSpan
             var top = possibleExpressions
@@ -107,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 }
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var interpolatedString = CreateInterpolatedString(document, isVerbatimStringLiteral, pieces);
             context.RegisterRefactoring(
                 new MyCodeAction(
@@ -124,7 +122,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         protected SyntaxNode CreateInterpolatedString(
             Document document, bool isVerbatimStringLiteral, ArrayBuilder<SyntaxNode> pieces)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var generator = SyntaxGenerator.GetGenerator(document);
             var startToken = generator.CreateInterpolatedStringStartToken(isVerbatimStringLiteral)
                                 .WithLeadingTrivia(pieces.First().GetLeadingTrivia());
@@ -240,7 +238,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         }
 
         private static bool IsStringConcat(
-            ISyntaxFactsService syntaxFacts, SyntaxNode expression,
+            ISyntaxFactsService syntaxFacts, SyntaxNode? expression,
             SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (!syntaxFacts.IsBinaryExpression(expression))
