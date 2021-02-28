@@ -30,11 +30,10 @@ namespace BuildValidator
         public LocalReferenceResolver(Options options, ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<LocalReferenceResolver>();
-            foreach (var directoryInfo in GetRefAssembliesDirectories())
+            foreach (var path in options.AssembliesPaths)
             {
-                _indexDirectories.Add(directoryInfo);
+                _indexDirectories.Add(new DirectoryInfo(path));
             }
-            _indexDirectories.Add(new DirectoryInfo(options.AssembliesPath));
             _indexDirectories.Add(GetNugetCacheDirectory());
             foreach (var path in options.ReferencesPaths)
             {
@@ -44,7 +43,7 @@ namespace BuildValidator
             using var _ = _logger.BeginScope("Assembly Reference Search Paths");
             foreach (var directory in _indexDirectories)
             {
-                _logger.LogInformation($@"""{directory}""");
+                _logger.LogInformation($@"""{directory.FullName}""");
             }
         }
 
@@ -57,16 +56,6 @@ namespace BuildValidator
             }
 
             return new DirectoryInfo(nugetPackageDirectory);
-        }
-
-        public static DirectoryInfo[] GetRefAssembliesDirectories()
-        {
-            // TODO: Don't hardcode the paths here. 
-            return new[]
-            {
-                new DirectoryInfo(@"C:\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref"),
-                new DirectoryInfo(@"C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref")
-            };
         }
 
         public string GetReferencePath(MetadataReferenceInfo referenceInfo)
@@ -136,7 +125,7 @@ namespace BuildValidator
                 {
                     _logger.LogError($@"{missingReference.Name} - {missingReference.Mvid}");
                 }
-                throw new FileNotFoundException();
+                throw new Exception($"Cannot resolve {uncached.Length} references");
             }
         }
 

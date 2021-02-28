@@ -2525,7 +2525,7 @@ public class P
                 "mscorlib: global,Y,Y,Z");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution1()
         {
             // c - a -> b
@@ -2628,7 +2628,7 @@ public class C : A
                 "B, Version=3.0.0.0: Y,X");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_WeakIdentities1()
         {
             // c - a -> "b,v1,PKT=null" 
@@ -2664,7 +2664,7 @@ public class C : A
                 "B, Version=1.0.0.0: <superseded>");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_WeakIdentities2()
         {
             // c - a -> "b,v1,PKT=null"
@@ -2717,7 +2717,7 @@ public class C : A
             resolver.VerifyResolutionAttempts();
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_ActualMissing()
         {
             // c - a -> d
@@ -2740,7 +2740,7 @@ public class C : A
         /// <summary>
         /// Ignore assemblies returned by the resolver that don't match the reference identity.
         /// </summary>
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_MissingDueToResolutionMismatch()
         {
             // c - a -> b
@@ -2765,7 +2765,7 @@ public class C : A
                 "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_Multiple()
         {
             // c - a -> d
@@ -2790,7 +2790,7 @@ public class C : A
                 "B -> D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_Modules()
         {
             // c - a - d
@@ -2994,7 +2994,7 @@ public class C : A
                 "E, Version=1.0.0.0");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_BindingToImplicitReference1()
         {
             // c - a -> d -> "b,v2"
@@ -3038,7 +3038,7 @@ public class C : A
                 "B, Version=1.0.0.0: <superseded>");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_BindingToImplicitReference2()
         {
             // c - a -> d -> "b,v2"
@@ -3104,7 +3104,7 @@ public class C : A
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_BindingToImplicitReference3()
         {
             // c - a -> d -> "b,v2"
@@ -3170,7 +3170,7 @@ public class C : A
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_Supersession_FxUnification()
         {
             var options = TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
@@ -3213,7 +3213,7 @@ public class C : A
                 "System, Version=2.0.0.0: <superseded>");
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation), Reason = "IOperation adds extra assemblies")]
         public void MissingAssemblyResolution_Supersession_StrongNames()
         {
             var options = TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);

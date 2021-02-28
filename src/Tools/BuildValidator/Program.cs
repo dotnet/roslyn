@@ -43,14 +43,14 @@ namespace BuildValidator
             var rootCommand = new RootCommand
             {
                 new Option<string>(
-                    "--assembliesPath", "Path to assemblies to rebuild"
-                ) { IsRequired = true },
+                    "--assembliesPath", "Path to assemblies to rebuild (can be specified one or more times)"
+                ) { IsRequired = true, Argument = { Arity = ArgumentArity.OneOrMore } },
                 new Option<string>(
                     "--sourcePath", "Path to sources to use in rebuild"
                 ) { IsRequired = true },
-                new Option<string[]?>(
-                    "--referencesPaths", "Additional paths to referenced assemblies"
-                ),
+                new Option<string>(
+                    "--referencesPath", "Path to referenced assemblies (can be specified zero or more times)"
+                ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
                 new Option<bool>(
                     "--verbose", "Output verbose log information"
                 ),
@@ -64,32 +64,30 @@ namespace BuildValidator
                     "--debugPath", "Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled."
                 )
             };
-            rootCommand.Handler = CommandHandler.Create<string, string, string[]?, bool, bool, bool, string>(HandleCommand);
+            rootCommand.Handler = CommandHandler.Create<string[], string, string[]?, bool, bool, bool, string>(HandleCommand);
             return rootCommand.Invoke(args);
         }
 
-        static int HandleCommand(string assembliesPath, string sourcePath, string[]? referencesPaths, bool verbose, bool quiet, bool debug, string? debugPath)
+        static int HandleCommand(string[] assembliesPath, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)
         {
             // If user provided a debug path then assume we should write debug outputs.
             debug |= debugPath is object;
             debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
-            referencesPaths ??= Array.Empty<string>();
+            referencesPath ??= Array.Empty<string>();
 
-            var options = new Options(assembliesPath, referencesPaths, sourcePath, verbose, quiet, debug, debugPath);
+            var options = new Options(assembliesPath, referencesPath, sourcePath, verbose, quiet, debug, debugPath);
 
-            // TODO: remove the DemoLoggerProvider, update this dependency,
-            // and move to the built in logger.
-            var loggerFactory = new LoggerFactory(
-                new[] { new ConsoleLoggerProvider(new ConsoleLoggerSettings()) },
-                new LoggerFilterOptions()
-                {
-                    MinLevel = options.Verbose ? LogLevel.Trace : LogLevel.Information
-                });
-
-            if (!options.Quiet)
+            // TODO: remove the DemoLoggerProvider or convert it to something more permanent
+            var loggerFactory = LoggerFactory.Create(builder =>
             {
-                loggerFactory.AddProvider(new DemoLoggerProvider());
-            }
+                builder.SetMinimumLevel((options.Verbose, options.Quiet) switch
+                {
+                    (_, true) => LogLevel.Error,
+                    (true, _) => LogLevel.Trace,
+                    _ => LogLevel.Information
+                });
+                builder.AddProvider(new DemoLoggerProvider());
+            });
 
             var logger = loggerFactory.CreateLogger<Program>();
             try
@@ -106,15 +104,23 @@ namespace BuildValidator
 
             try
             {
+                var artifactsDirs = options.AssembliesPaths.Select(path => new DirectoryInfo(path));
+                using (logger.BeginScope("Rebuild Search Paths"))
+                {
+                    foreach (var artifactsDir in artifactsDirs)
+                    {
+                        logger.LogInformation($@"""{artifactsDir.FullName}""");
+                    }
+                }
+
                 var sourceResolver = new LocalSourceResolver(options, loggerFactory);
                 var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
 
                 var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
 
-                var artifactsDir = new DirectoryInfo(options.AssembliesPath);
-
-                var filesToValidate = artifactsDir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
-                    .Concat(artifactsDir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
+                var filesToValidate = artifactsDirs.SelectMany(dir =>
+                        dir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
+                            .Concat(dir.EnumerateFiles("*.dll", SearchOption.AllDirectories)))
                     .Distinct(FileNameEqualityComparer.Instance);
 
                 var success = ValidateFiles(filesToValidate, buildConstructor, logger, options);
@@ -156,6 +162,16 @@ namespace BuildValidator
                 }
             }
 
+            using (logger.BeginScope("Rebuilds with configuration issues"))
+            {
+                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual is null && a.Diagnostics.IsDefaultOrEmpty))
+                {
+                    logger.LogError($"{diff.OriginalPath} was missing required metadata for rebuilding. Was it built with a recent enough compiler with the required settings?");
+                    // dependencies which don't have the required metadata have a way of sneaking into the obj folder.
+                    // for now, let's not let presence of these assemblies cause the rebuild to fail.
+                }
+            }
+
             using (logger.BeginScope("Rebuilds with output differences"))
             {
                 foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == false))
@@ -165,10 +181,9 @@ namespace BuildValidator
                     success = false;
                 }
             }
-
             using (logger.BeginScope("Rebuilds with compilation errors"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == null))
+                foreach (var diff in assembliesCompiled.Where(a => !a.Diagnostics.IsDefaultOrEmpty))
                 {
                     logger.LogError($"{diff.OriginalPath} had {diff.Diagnostics.Length} diagnostics.");
                     success = false;
@@ -203,7 +218,7 @@ namespace BuildValidator
                 if (!pdbOpened || pdbReaderProvider is null)
                 {
                     logger.LogError($"Could not find pdb for {originalBinary.FullName}");
-                    return null;
+                    return CompilationDiff.CreatePlaceholder(originalBinary);
                 }
 
                 using var _ = logger.BeginScope($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
@@ -213,7 +228,11 @@ namespace BuildValidator
 
                 var compilation = buildConstructor.CreateCompilation(
                     optionsReader,
-                    Path.GetFileNameWithoutExtension(originalBinary.Name));
+                    originalBinary.Name);
+                if (compilation is null)
+                {
+                    return CompilationDiff.CreatePlaceholder(originalBinary);
+                }
 
                 var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), logger, options);
                 return compilationDiff;

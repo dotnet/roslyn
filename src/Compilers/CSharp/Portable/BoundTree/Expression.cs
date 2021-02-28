@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAttribute
     {
-        protected override ImmutableArray<BoundNode?> Children => StaticCast<BoundNode?>.From(this.ConstructorArguments.AddRange(this.NamedArguments));
+        protected override ImmutableArray<BoundNode?> Children => StaticCast<BoundNode?>.From(this.ConstructorArguments.AddRange(StaticCast<BoundExpression>.From(this.NamedArguments)));
     }
 
     internal partial class BoundQueryClause
