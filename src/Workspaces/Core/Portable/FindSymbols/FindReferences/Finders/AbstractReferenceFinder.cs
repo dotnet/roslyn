@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     return (matched: true, CandidateReason.None);
                 }
-                else if (await symbolInfoToMatch.CandidateSymbols.AnyAsync(s => SymbolFinder.OriginalSymbolsMatchAsync(solution, searchSymbol, s, cancellationToken)).ConfigureAwait(false))
+                else if (await symbolInfoToMatch.CandidateSymbols.AnyAsync(static (s, arg) => SymbolFinder.OriginalSymbolsMatchAsync(arg.solution, arg.searchSymbol, s, arg.cancellationToken), (solution, searchSymbol, cancellationToken)).ConfigureAwait(false))
                 {
                     return (matched: true, symbolInfoToMatch.CandidateReason);
                 }

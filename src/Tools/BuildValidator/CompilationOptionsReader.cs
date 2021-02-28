@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -77,14 +78,29 @@ namespace BuildValidator
             PeReader = peReader;
         }
 
+        public bool TryGetMetadataCompilationOptionsBlobReader(out BlobReader reader)
+        {
+            return TryGetCustomDebugInformationBlobReader(CompilationOptionsGuid, out reader);
+        }
+
         public BlobReader GetMetadataCompilationOptionsBlobReader()
         {
-            if (!TryGetCustomDebugInformationBlobReader(CompilationOptionsGuid, out var optionsBlob))
+            if (!TryGetMetadataCompilationOptionsBlobReader(out var reader))
             {
                 throw new InvalidOperationException();
             }
+            return reader;
+        }
 
-            return optionsBlob;
+        public bool TryGetMetadataCompilationOptions([NotNullWhen(true)] out MetadataCompilationOptions? options)
+        {
+            if (_metadataCompilationOptions is null && TryGetMetadataCompilationOptionsBlobReader(out var optionsBlob))
+            {
+                _metadataCompilationOptions = new MetadataCompilationOptions(ParseCompilationOptions(optionsBlob));
+            }
+
+            options = _metadataCompilationOptions;
+            return options != null;
         }
 
         public MetadataCompilationOptions GetMetadataCompilationOptions()
