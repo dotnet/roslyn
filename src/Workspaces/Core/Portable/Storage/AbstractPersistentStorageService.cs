@@ -234,6 +234,9 @@ namespace Microsoft.CodeAnalysis.Storage
             public void Dispose()
                 => _storage.Dispose();
 
+            public ValueTask DisposeAsync()
+                => _storage.DisposeAsync();
+
             public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.ChecksumMatchesAsync(name, checksum, cancellationToken);
 
@@ -249,13 +252,13 @@ namespace Microsoft.CodeAnalysis.Storage
             public Task<bool> ChecksumMatchesAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.ChecksumMatchesAsync(document, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, cancellationToken);
 
             public Task<Stream> ReadStreamAsync(string name, Checksum checksum, CancellationToken cancellationToken)

@@ -751,23 +751,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' LanguageVersion should already be mapped to an effective version at this point
             Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)
             WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString())
+            WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionStrict, Options.OptionStrict.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionInfer, Options.OptionInfer.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionCompareText, Options.OptionCompareText.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionExplicit, Options.OptionExplicit.ToString())
+            WriteValue(builder, CompilationOptionNames.EmbedRuntime, Options.EmbedVbCoreRuntime.ToString())
 
-            If Options.CheckOverflow Then
-                WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            If Options.GlobalImports.Length > 0 Then
+                WriteValue(builder, CompilationOptionNames.GlobalNamespaces, String.Join(";", Options.GlobalImports.Select(Function(x) x.Name)))
             End If
 
-            If Options.OptionStrict <> OptionStrict.Off Then
-                WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
+            If Not String.IsNullOrEmpty(Options.RootNamespace) Then
+                WriteValue(builder, CompilationOptionNames.RootNamespace, Options.RootNamespace)
             End If
 
             If Options.ParseOptions IsNot Nothing Then
-                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
-                                                                                              If (p.Value Is Nothing) Then
-                                                                                                  Return p.Key
-                                                                                              End If
-
-                                                                                              Return p.Key + "=" + p.Value.ToString()
-                                                                                          End Function)
+                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(
+                    Function(p) As String
+                        If TypeOf p.Value Is String Then
+                            Return p.Key + "=""" + p.Value.ToString() + """"
+                        ElseIf p.Value Is Nothing Then
+                            Return p.Key
+                        Else
+                            Return p.Key + "=" + p.Value.ToString()
+                        End If
+                    End Function)
                 WriteValue(builder, CompilationOptionNames.Define, String.Join(",", preprocessorStrings))
             End If
         End Sub

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
+        internal static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(
             ISymbol symbol,
             Solution solution,
             IFindReferencesProgress progress,

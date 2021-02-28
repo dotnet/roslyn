@@ -215,7 +215,8 @@ jobs:
 
 - job: Correctness_Rebuild
   pool:
-    vmImage: windows-2019
+    name: NetCorePublic-Pool
+    queue: BuildPool.Windows.10.Amd64.Open
   timeoutInMinutes: 90
   steps:
     - template: eng/pipelines/checkout-windows-task.yml
@@ -226,13 +227,7 @@ jobs:
         filePath: eng/build.ps1
         arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
 
-    - task: PowerShell@2 
-      displayName: Build
-      inputs:
-        filePath: eng/build.ps1
-        arguments: -configuration Debug -prepareMachine -ci -build -bootstrap -publish -binaryLog -skipDocumentation
-
-    - script: .\artifacts\bin\BuildValidator\Debug\net472\BuildValidator.exe --assembliesPath .\artifacts\obj\Microsoft.CodeAnalysis --debugPath .\artifacts\BuildValidator --sourcePath .
+    - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
       displayName: Run BuildValidator
 
     - task: PublishBuildArtifacts@1

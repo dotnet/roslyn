@@ -23,7 +23,7 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.10.0-1.21113.12</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.10.0-2.21122.2</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -32,7 +32,8 @@
     <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20623.3</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.8.0</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.8.181</VisualStudioEditorPackagesVersion>
-    <ILToolsPackageVersion>5.0.0-alpha1.19409.1</ILToolsPackageVersion>
+    <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
+    <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.9.150</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>16.8.30406.65-pre</MicrosoftVisualStudioShellPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
@@ -90,9 +91,8 @@
     <MicrosoftDiaSymReaderNativeVersion>16.9.0-beta1.21055.5</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.5.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetVersionToolsVersion>3.0.0-preview1-03617-02</MicrosoftDotNetVersionToolsVersion>
-    <MicrosoftExtensionsDependencyInjectionVersion>2.1.1</MicrosoftExtensionsDependencyInjectionVersion>
-    <MicrosoftExtensionsLoggingVersion>2.1.1</MicrosoftExtensionsLoggingVersion>
-    <MicrosoftExtensionsLoggingConsoleVersion>2.1.1</MicrosoftExtensionsLoggingConsoleVersion>
+    <MicrosoftExtensionsLoggingVersion>5.0.0</MicrosoftExtensionsLoggingVersion>
+    <MicrosoftExtensionsLoggingConsoleVersion>5.0.0</MicrosoftExtensionsLoggingConsoleVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.8.27812-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
@@ -246,9 +246,15 @@
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
     <xunitrunnervisualstudioVersion>$(xunitVersion)</xunitrunnervisualstudioVersion>
     <xunitextensibilityexecutionVersion>$(xunitVersion)</xunitextensibilityexecutionVersion>
-    <runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>
-    <runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>
-    <runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>$(ILToolsPackageVersion)</runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>
+
+    <runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>$(ILAsmPackageVersion)</runtimeWinX64MicrosoftNETCoreILAsmPackageVersion>
+    <runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>$(ILAsmPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILAsmPackageVersion>
+    <runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>$(ILAsmPackageVersion)</runtimeOSXX64MicrosoftNETCoreILAsmPackageVersion>
+
+    <runtimeWinX64MicrosoftNETCoreILDAsmPackageVersion>$(ILDAsmPackageVersion)</runtimeWinX64MicrosoftNETCoreILDAsmPackageVersion>
+    <runtimeLinuxX64MicrosoftNETCoreILDAsmPackageVersion>$(ILDAsmPackageVersion)</runtimeLinuxX64MicrosoftNETCoreILDAsmPackageVersion>
+    <runtimeOSXX64MicrosoftNETCoreILDAsmPackageVersion>$(ILDAsmPackageVersion)</runtimeOSXX64MicrosoftNETCoreILDAsmPackageVersion>
+
     <!--
       NOTE: The following dependencies have been identified as particularly problematic to update.
       If you bump their versions, you must push your changes to a dev branch in dotnet/roslyn and

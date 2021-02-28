@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
+        public ValueTask DisposeAsync()
+        {
+            return ValueTaskFactory.CompletedTask;
+        }
+
         public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 

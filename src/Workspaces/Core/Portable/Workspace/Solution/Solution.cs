@@ -1871,9 +1871,17 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var projectReference in projectReferences)
             {
-                if (projectId == projectReference.ProjectId || _state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                if (projectId == projectReference.ProjectId)
                 {
-                    throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
+                    throw new InvalidOperationException(WorkspacesResources.A_project_may_not_reference_itself);
+                }
+
+                if (_state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                {
+                    throw new InvalidOperationException(
+                        string.Format(WorkspacesResources.Adding_project_reference_from_0_to_1_will_cause_a_circular_reference,
+                            projectId,
+                            projectReference.ProjectId));
                 }
             }
         }
