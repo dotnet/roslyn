@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             windowFrame.Show();
 
-            var openedDocument = textBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+            var openedDocument = textBuffer?.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             if (openedDocument != null)
             {
                 var editorWorkspace = openedDocument.Project.Solution.Workspace;

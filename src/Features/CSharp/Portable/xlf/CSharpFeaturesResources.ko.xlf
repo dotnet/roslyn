@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="needs-review-translation">await 추가</target>
+        <target state="translated">'await' 추가</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
         <source>Add 'await' and 'ConfigureAwait(false)'</source>
-        <target state="new">Add 'await' and 'ConfigureAwait(false)'</target>
+        <target state="translated">'await' 및 'ConfigureAwait(false)' 추가</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_missing_usings">

@@ -262,7 +262,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Convert_to_record">
         <source>Convert to record</source>
-        <target state="new">Convert to record</target>
+        <target state="translated">Konwertuj na rekord</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
@@ -617,7 +617,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Zmodyfikowanie treści elementu „{0}” uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}</target>
+        <target state="translated">Zmodyfikowanie treści elementu „{0}” uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}.</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
@@ -647,7 +647,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="needs-review-translation">Zmodyfikowanie pliku źródłowego „{0}” uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}</target>
+        <target state="translated">Zmodyfikowanie pliku źródłowego „{0}” uniemożliwi kontynuowanie sesji debugowania ze względu na błąd wewnętrzny: {1}.</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -2102,7 +2102,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="_0_dash_1">
         <source>{0} - {1}</source>
-        <target state="new">{0} - {1}</target>
+        <target state="translated">{0} - {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_null_here">
@@ -2484,7 +2484,7 @@ Standardowy specyfikator formatu „f” reprezentuje połączenie wzorców dłu
       </trans-unit>
       <trans-unit id="in_0_1_2">
         <source>in {0} ({1} - {2})</source>
-        <target state="new">in {0} ({1} - {2})</target>
+        <target state="translated">w {0} ({1} — {2})</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source_attribute">
