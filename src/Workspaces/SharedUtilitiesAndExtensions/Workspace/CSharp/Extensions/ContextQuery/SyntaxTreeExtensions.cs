@@ -1489,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (node == null)
                     return false;
 
-                // Walk up the expression that precedes us, as long as it is complete.
+                // Walk up the right edge of all complete expressions.
                 while (node is ExpressionSyntax && node.GetLastToken(includeZeroWidth: true) == leftToken)
                     node = node.GetRequiredParent();
 
