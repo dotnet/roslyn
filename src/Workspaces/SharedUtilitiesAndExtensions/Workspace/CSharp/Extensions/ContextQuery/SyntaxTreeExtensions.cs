@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -1489,16 +1490,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return false;
 
                 // Walking up the tree for expressions such as 'case (((N.C.P $$'
-                if (node.IsParentKind(SyntaxKind.SimpleMemberAccessExpression))
+                if (CSharpSyntaxFacts.Instance.IsNameOfAnyMemberAccessExpression(node))
                     node = node.GetRequiredParent();
+
+                if (node is MemberAccessExpressionSyntax memberAccess && memberAccess.Name.Identifier != leftToken)
+                    return false;
 
                 // Getting rid of the extra parentheses to deal with cases such as 'case (((1 $$'
                 while (node.IsParentKind(SyntaxKind.ParenthesizedExpression))
                     node = node.GetRequiredParent();
-
-                // Only after a pattern if the pattern is complete on the left of us.
-                if (node.GetLastToken(includeZeroWidth: true) != leftToken)
-                    return false;
 
                 // case (1 $$
                 if (node.IsParentKind(SyntaxKind.CaseSwitchLabel) && node.Parent.IsParentKind(SyntaxKind.SwitchSection))
