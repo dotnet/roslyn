@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             static bool IsAtEndOfSwitchStatementPattern(SyntaxToken leftToken)
             {
-                SyntaxNode node = leftToken.Parent as ExpressionSyntax;
+                SyntaxNode? node = leftToken.Parent as ExpressionSyntax;
                 if (node == null)
                     return false;
 
