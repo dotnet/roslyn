@@ -767,13 +767,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Options.ParseOptions IsNot Nothing Then
-                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
-                                                                                              If (p.Value Is Nothing) Then
-                                                                                                  Return p.Key
-                                                                                              End If
-
-                                                                                              Return p.Key + "=" + p.Value.ToString()
-                                                                                          End Function)
+                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(
+                    Function(p) As String
+                        If TypeOf p.Value Is String Then
+                            Return p.Key + "=""" + p.Value.ToString() + """"
+                        ElseIf p.Value Is Nothing Then
+                            Return p.Key
+                        Else
+                            Return p.Key + "=" + p.Value.ToString()
+                        End If
+                    End Function)
                 WriteValue(builder, CompilationOptionNames.Define, String.Join(",", preprocessorStrings))
             End If
         End Sub

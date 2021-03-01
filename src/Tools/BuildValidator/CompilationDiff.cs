@@ -285,7 +285,7 @@ namespace BuildValidator
                         if (info.EmbeddedCompressedHash is { } hash)
                         {
                             var hashString = BitConverter.ToString(hash).Replace("-", "");
-                            writer.WriteLine($@"\t""{info.SourceFilePath}"" - {hashString}");
+                            writer.WriteLine($@"\t""{Path.GetFileName(info.SourceFilePath)}"" - {hashString}");
                         }
                     }
                 }

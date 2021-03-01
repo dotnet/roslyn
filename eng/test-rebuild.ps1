@@ -72,6 +72,7 @@ try {
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Scripting`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Test.Utilities`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.TestSourceGenerator`"" +
+  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Workspaces.Desktop`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Workspaces.MSBuild`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Workspaces`"" +
