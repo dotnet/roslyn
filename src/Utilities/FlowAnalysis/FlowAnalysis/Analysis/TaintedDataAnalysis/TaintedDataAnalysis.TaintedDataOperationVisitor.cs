@@ -9,6 +9,7 @@ using System.Linq;
 using Analyzer.Utilities.Extensions;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
@@ -427,6 +428,20 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 if (taintedArguments.Any())
                 {
                     ProcessTaintedDataEnteringInvocationOrCreation(localFunction, taintedArguments, originalOperation);
+                }
+
+                return baseValue;
+            }
+
+            public override TaintedDataAbstractValue VisitInvocation_Lambda(IFlowAnonymousFunctionOperation lambda, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, TaintedDataAbstractValue defaultValue)
+            {
+                // Always invoke base visit.
+                TaintedDataAbstractValue baseValue = base.VisitInvocation_Lambda(lambda, visitedArguments, originalOperation, defaultValue);
+
+                IEnumerable<IArgumentOperation> taintedArguments = GetTaintedArguments(visitedArguments);
+                if (taintedArguments.Any())
+                {
+                    ProcessTaintedDataEnteringInvocationOrCreation(lambda.Symbol, taintedArguments, originalOperation);
                 }
 
                 return baseValue;
