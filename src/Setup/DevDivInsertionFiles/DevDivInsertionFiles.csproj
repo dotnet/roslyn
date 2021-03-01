@@ -115,13 +115,6 @@
       Exclude dependencies that are not inserted from Roslyn repo and are installed by other VS components.
       
       Note: can't use globs due to https://github.com/Microsoft/msbuild/issues/3791.
-      
-      these dependency should be removed once StreamJsonRpc adds a build target for
-      net472 - https://github.com/dotnet/roslyn/issues/34558
-      
-      <_Dependency Remove="Nerdbank.Streams"/>
-      <_Dependency Remove="System.IO.Pipelines"/>
-      <_Dependency Remove="System.ValueTuple"/>
     -->
     <ItemGroup>
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.VisualStudio.'))"/>

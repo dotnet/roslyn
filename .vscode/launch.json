@@ -5,6 +5,25 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch BuildValidator.dll",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/artifacts/bin/BuildValidator/Debug/netcoreapp3.1/BuildValidator.dll",
+      "args": [
+        "--assembliesPath", "./artifacts/obj/csc/Debug/netcoreapp3.1",
+        "--referencesPath", "./artifacts/bin",
+        "--referencesPath", "C:/Program Files/dotnet/packs/Microsoft.AspNetCore.App.Ref",
+        "--referencesPath", "C:/Program Files/dotnet/packs/Microsoft.NETCore.App.Ref",
+        "--debugPath", "./artifacts/BuildValidator",
+        "--sourcePath", "."
+      ],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
       "name": "Launch RunTests.dll",
       "type": "coreclr",
       "request": "launch",

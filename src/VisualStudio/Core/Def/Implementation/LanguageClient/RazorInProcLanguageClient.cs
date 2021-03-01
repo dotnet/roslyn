@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     [Export(typeof(ILanguageClient))]
     internal class RazorInProcLanguageClient : AbstractInProcLanguageClient
     {
-        public const string ClientName = "RazorCSharp";
+        public const string ClientName = ProtocolConstants.RazorCSharp;
 
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 

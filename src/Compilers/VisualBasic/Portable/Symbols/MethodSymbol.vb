@@ -895,6 +895,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IMethodSymbol_MethodImplementationFlags As System.Reflection.MethodImplAttributes Implements IMethodSymbol.MethodImplementationFlags
+            Get
+                Return Me.ImplementationAttributes
+            End Get
+        End Property
+
         Private ReadOnly Property IMethodSymbol_IsExtensionMethod As Boolean Implements IMethodSymbol.IsExtensionMethod
             Get
                 Return Me.IsExtensionMethod
@@ -995,6 +1001,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IMethodSymbol_PartialImplementationPart As IMethodSymbol Implements IMethodSymbol.PartialImplementationPart
             Get
                 Return PartialImplementationPart
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbol_IsPartialDefinition As Boolean Implements IMethodSymbol.IsPartialDefinition
+            Get
+                Return If(TryCast(Me, SourceMemberMethodSymbol)?.IsPartialDefinition, False)
             End Get
         End Property
 

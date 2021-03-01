@@ -16,6 +16,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxNormalizerTests
     {
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestLineBreakInterpolations()
+        {
+            TestNormalizeExpression(
+                @"$""Printed: {                    new Printer() { TextToPrint = ""Hello world!"" }.PrintedText }""",
+                @"$""Printed: {new Printer(){TextToPrint = ""Hello world!""}.PrintedText}"""
+            );
+        }
+
+        [Fact, WorkItem(50742, "https://github.com/dotnet/roslyn/issues/50742")]
+        public void TestVerbatimStringInterpolationWithLineBreaks()
+        {
+            TestNormalizeStatement(@"Console.WriteLine($@""Test with line
+breaks
+{
+                new[]{
+     1, 2, 3
+  }[2]
+}
+            "");",
+            @"Console.WriteLine($@""Test with line
+breaks
+{new[]{1, 2, 3}[2]}
+            "");"
+            );
+        }
+
         [Fact]
         public void TestNormalizeExpression1()
         {
