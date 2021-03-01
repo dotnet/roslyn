@@ -33,7 +33,7 @@ Public Class VisualBasicDeterministicBuildCompilationTests
             "define",
             originalOptions.ParseOptions.PreprocessorSymbols,
             isDefault:=Function(v) v.IsEmpty,
-            toString:=Function(v) String.Join(",", v.Select(Function(p) If(p.Value IsNot Nothing, $"{p.Key}={p.Value}", p.Key))))
+            toString:=Function(v) String.Join(",", v.Select(Function(p) If(p.Value IsNot Nothing, $"{p.Key}=""{p.Value}""", p.Key))))
     End Sub
 
     Private Sub TestDeterministicCompilationVB(syntaxTrees As SyntaxTree(), compilationOptions As VisualBasicCompilationOptions, emitOptions As EmitOptions, ParamArray metadataReferences() As TestMetadataReferenceInfo)

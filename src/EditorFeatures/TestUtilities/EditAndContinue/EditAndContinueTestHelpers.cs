@@ -160,6 +160,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var newTrees = newDocuments.Select(d => d.GetSyntaxTreeSynchronously(default)!).ToArray();
 
             var testAccessor = Analyzer.GetTestAccessor();
+            var allEdits = new List<SemanticEditInfo>();
 
             for (var documentIndex = 0; documentIndex < documentCount; documentIndex++)
             {
@@ -185,7 +186,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Contract.ThrowIfNull(newModel);
 
                 var result = Analyzer.AnalyzeDocumentAsync(oldProject, oldActiveStatements, newDocument, newActiveStatementSpans, CancellationToken.None).Result;
-
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 
@@ -194,6 +194,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 if (!expectedResult.SemanticEdits.IsDefault)
                 {
                     VerifySemanticEdits(expectedResult.SemanticEdits, result.SemanticEdits, oldModel.Compilation, newModel.Compilation, oldRoot, newRoot);
+
+                    allEdits.AddRange(result.SemanticEdits);
                 }
 
                 if (expectedResult.Diagnostics.IsEmpty)
@@ -212,6 +214,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Assert.True(result.ExceptionRegions.IsDefault);
                 }
             }
+
+            // check if we can merge edits without throwing:
+            EditSession.MergePartialEdits(oldProject.GetCompilationAsync().Result!, newProject.GetCompilationAsync().Result!, allEdits, out var _, out var _, CancellationToken.None);
         }
 
         public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnostic> actual, SourceText newSource)
@@ -235,13 +240,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             for (var i = 0; i < actualSemanticEdits.Length; i++)
             {
-                var editKind = expectedSemanticEdits[i].Kind;
+                var expectedSemanticEdit = expectedSemanticEdits[i];
+                var actualSemanticEdit = actualSemanticEdits[i];
+                var editKind = expectedSemanticEdit.Kind;
 
-                Assert.Equal(editKind, actualSemanticEdits[i].Kind);
+                Assert.Equal(editKind, actualSemanticEdit.Kind);
 
-                var expectedOldSymbol = (editKind == SemanticEditKind.Update) ? expectedSemanticEdits[i].SymbolProvider(oldCompilation) : null;
-                var expectedNewSymbol = expectedSemanticEdits[i].SymbolProvider(newCompilation);
-                var symbolKey = actualSemanticEdits[i].Symbol;
+                var expectedOldSymbol = (editKind == SemanticEditKind.Update) ? expectedSemanticEdit.SymbolProvider(oldCompilation) : null;
+                var expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
+                var symbolKey = actualSemanticEdit.Symbol;
 
                 if (editKind == SemanticEditKind.Update)
                 {
@@ -257,26 +264,39 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     Assert.False(true, "Only Update or Insert allowed");
                 }
 
+                // Partial types must match:
+                Assert.Equal(
+                    expectedSemanticEdit.PartialType?.Invoke(newCompilation),
+                    actualSemanticEdit.PartialType?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+
                 // Edit is expected to have a syntax map:
-                var actualSyntaxMap = actualSemanticEdits[i].SyntaxMap;
-                Assert.Equal(expectedSemanticEdits[i].HasSyntaxMap, actualSyntaxMap != null);
+                var actualSyntaxMap = actualSemanticEdit.SyntaxMap;
+                Assert.Equal(expectedSemanticEdit.HasSyntaxMap, actualSyntaxMap != null);
 
                 // If expected map is specified validate its mappings with the actual one:
-                var expectedSyntaxMap = expectedSemanticEdits[i].SyntaxMap;
+                var expectedSyntaxMap = expectedSemanticEdit.SyntaxMap;
 
                 if (expectedSyntaxMap != null)
                 {
                     Contract.ThrowIfNull(actualSyntaxMap);
-
-                    foreach (var expectedSpanMapping in expectedSyntaxMap)
-                    {
-                        var newNode = FindNode(newRoot, expectedSpanMapping.Value);
-                        var expectedOldNode = FindNode(oldRoot, expectedSpanMapping.Key);
-                        var actualOldNode = actualSyntaxMap(newNode);
-
-                        Assert.Equal(expectedOldNode, actualOldNode);
-                    }
+                    VerifySyntaxMap(oldRoot, newRoot, expectedSyntaxMap, actualSyntaxMap);
                 }
+            }
+        }
+
+        private void VerifySyntaxMap(
+            SyntaxNode oldRoot,
+            SyntaxNode newRoot,
+            IEnumerable<KeyValuePair<TextSpan, TextSpan>> expectedSyntaxMap,
+            Func<SyntaxNode, SyntaxNode?> actualSyntaxMap)
+        {
+            foreach (var expectedSpanMapping in expectedSyntaxMap)
+            {
+                var newNode = FindNode(newRoot, expectedSpanMapping.Value);
+                var expectedOldNode = FindNode(oldRoot, expectedSpanMapping.Key);
+                var actualOldNode = actualSyntaxMap(newNode);
+
+                Assert.Equal(expectedOldNode, actualOldNode);
             }
         }
 

@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     foreach (var projectState in solution.State.ProjectStates)
                     {
-                        count += projectState.Value.DocumentIds.Count;
+                        count += projectState.Value.DocumentStates.Count;
                     }
 
                     return count;

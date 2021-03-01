@@ -96,8 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.InterpolatedStringText(textToken)
         End Function
 
-        Friend Overrides Function InterpolatedStringTextToken(content As String) As SyntaxToken
-            Return SyntaxFactory.InterpolatedStringTextToken(content, "")
+        Friend Overrides Function InterpolatedStringTextToken(content As String, value As String) As SyntaxToken
+            Return SyntaxFactory.InterpolatedStringTextToken(content, value)
         End Function
 
         Friend Overrides Function Interpolation(syntaxNode As SyntaxNode) As SyntaxNode

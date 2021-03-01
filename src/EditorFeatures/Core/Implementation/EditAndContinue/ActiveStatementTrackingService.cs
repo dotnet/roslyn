@@ -183,15 +183,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     }
 
                     Debug.Assert(openDocumentIds.Length == baseActiveStatementSpans.Length);
+                    using var _ = ArrayBuilder<Document?>.GetInstance(out var documents);
+
+                    foreach (var id in openDocumentIds)
+                    {
+                        documents.Add(await currentSolution.GetDocumentAsync(id, includeSourceGenerated: true, _cancellationSource.Token).ConfigureAwait(false));
+                    }
 
                     lock (_trackingSpans)
                     {
                         for (var i = 0; i < baseActiveStatementSpans.Length; i++)
                         {
-                            var document = currentSolution.GetDocument(openDocumentIds[i]);
+                            var document = documents[i];
                             if (document == null)
                             {
-                                // Document has been deleted.
+                                // Document has been deleted
                                 continue;
                             }
 

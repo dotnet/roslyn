@@ -73,12 +73,9 @@ namespace BuildValidator
         {
             using var rebuildPeStream = new MemoryStream();
 
-            // By default the Roslyn command line adds a resource that we need to replicate here.
-            using var win32ResourceStream = producedCompilation.CreateDefaultWin32Resources(
-                versionResource: true,
-                noManifest: producedCompilation.Options.OutputKind == OutputKind.DynamicallyLinkedLibrary,
-                manifestContents: null,
-                iconInIcoFormat: null);
+            var peHeader = optionsReader.PeReader.PEHeaders.PEHeader!;
+            var win32Resources = optionsReader.PeReader.GetSectionData(peHeader.ResourceTableDirectory.RelativeVirtualAddress);
+            using var win32ResourceStream = new UnmanagedMemoryStream(win32Resources.Pointer, win32Resources.Length);
 
             var sourceLink = optionsReader.GetSourceLinkUTF8();
 
@@ -93,9 +90,12 @@ namespace BuildValidator
                 pdbStream: null,
                 xmlDocumentationStream: null,
                 win32Resources: win32ResourceStream,
+                useRawWin32Resources: true,
                 manifestResources: optionsReader.GetManifestResources(),
                 options: new EmitOptions(
-                    debugInformationFormat: DebugInformationFormat.Embedded, highEntropyVirtualAddressSpace: true),
+                    debugInformationFormat: DebugInformationFormat.Embedded,
+                    highEntropyVirtualAddressSpace: (peHeader.DllCharacteristics & DllCharacteristics.HighEntropyVirtualAddressSpace) != 0,
+                    subsystemVersion: SubsystemVersion.Create(peHeader.MajorSubsystemVersion, peHeader.MinorSubsystemVersion)),
                 debugEntryPoint: debugEntryPoint,
                 metadataPEStream: null,
                 pdbOptionsBlobReader: optionsReader.GetMetadataCompilationOptionsBlobReader(),
@@ -232,7 +232,13 @@ namespace BuildValidator
                     options: pdbToXmlOptions,
                     methodName: null);
 
-                Process.Start(IldasmUtilities.IldasmPath, $@"{assemblyFilePath} /all /out={buildDataFiles.ILFilePath}").WaitForExit();
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = IldasmUtilities.IldasmPath,
+                    Arguments = $@"{assemblyFilePath} /all /out={buildDataFiles.ILFilePath}",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }).WaitForExit();
 
                 return buildDataFiles;
             }
@@ -279,7 +285,7 @@ namespace BuildValidator
                         if (info.EmbeddedCompressedHash is { } hash)
                         {
                             var hashString = BitConverter.ToString(hash).Replace("-", "");
-                            writer.WriteLine($@"\t""{info.SourceFilePath}"" - {hashString}");
+                            writer.WriteLine($@"\t""{Path.GetFileName(info.SourceFilePath)}"" - {hashString}");
                         }
                     }
                 }

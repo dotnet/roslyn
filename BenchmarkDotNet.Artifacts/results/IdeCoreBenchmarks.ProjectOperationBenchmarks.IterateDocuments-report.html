@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>IdeCoreBenchmarks.ProjectOperationBenchmarks.IterateDocuments-20210223-114823</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.12.1, OS=Windows 10.0.19042
+AMD Ryzen Threadripper 3960X, 1 CPU, 48 logical and 24 physical cores
+  [Host]     : .NET Framework 4.8 (4.8.4300.0), X64 RyuJIT
+  DefaultJob : .NET Framework 4.8 (4.8.4300.0), X64 RyuJIT
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>             Method</th><th>DocumentCount</th><th>     Mean</th><th>  Error</th><th> StdDev</th><th>   Median</th><th>Gen 0</th><th>Gen 1</th><th>Gen 2</th><th>Allocated</th>
+</tr>
+</thead><tbody><tr><td>Project.DocumentIds</td><td>0</td><td>23.34 ns</td><td>0.494 ns</td><td>0.891 ns</td><td>22.91 ns</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>Project.Documents</td><td>0</td><td>77.22 ns</td><td>0.537 ns</td><td>0.502 ns</td><td>77.31 ns</td><td>0.0772</td><td>-</td><td>-</td><td>128 B</td>
+</tr><tr><td>Solution.WithDocumentText</td><td>0</td><td>14.60 ns</td><td>0.324 ns</td><td>0.690 ns</td><td>14.57 ns</td><td>-</td><td>-</td><td>-</td><td>-</td>
+</tr><tr><td>Project.DocumentIds</td><td>100</td><td>8,159.41 ns</td><td>10.113 ns</td><td>8.965 ns</td><td>8,157.79 ns</td><td>0.0305</td><td>-</td><td>-</td><td>72 B</td>
+</tr><tr><td>Project.Documents</td><td>100</td><td>16,356.60 ns</td><td>97.365 ns</td><td>91.076 ns</td><td>16,382.64 ns</td><td>0.0916</td><td>-</td><td>-</td><td>201 B</td>
+</tr><tr><td>Solution.WithDocumentText</td><td>100</td><td>14,436.90 ns</td><td>355.846 ns</td><td>1,015.248 ns</td><td>14,392.68 ns</td><td>0.8240</td><td>0.2136</td><td>-</td><td>5285 B</td>
+</tr><tr><td>Project.DocumentIds</td><td>10000</td><td>863,988.25 ns</td><td>1,297.511 ns</td><td>1,213.693 ns</td><td>863,625.88 ns</td><td>-</td><td>-</td><td>-</td><td>80 B</td>
+</tr><tr><td>Project.Documents</td><td>10000</td><td>1,861,933.16 ns</td><td>11,538.506 ns</td><td>10,793.125 ns</td><td>1,859,064.65 ns</td><td>-</td><td>-</td><td>-</td><td>208 B</td>
+</tr><tr><td>Solution.WithDocumentText</td><td>10000</td><td>14,088.55 ns</td><td>281.041 ns</td><td>453.828 ns</td><td>14,003.49 ns</td><td>0.8698</td><td>0.2289</td><td>-</td><td>5539 B</td>
+</tr></tbody></table>
+</body>
+</html>
