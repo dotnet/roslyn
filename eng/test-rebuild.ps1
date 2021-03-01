@@ -56,12 +56,10 @@ try {
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.Test.Utilities`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp.Workspaces`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.CSharp`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.EditorFeatures.Cocoa`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.EditorFeatures.Text`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ExpressionCompiler`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ExternalAccess.Debugger`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ExternalAccess.Razor`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.FunctionResolver`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.Remote.Razor.ServiceHub`"" +
