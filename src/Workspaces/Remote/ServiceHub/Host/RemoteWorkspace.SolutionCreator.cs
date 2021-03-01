@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
-                        project.State.DocumentStates.Values,
+                        project.State.DocumentStates.States,
                         oldProjectChecksums.Documents,
                         newProjectChecksums.Documents,
                         (solution, documents) => solution.AddDocuments(documents),
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
-                        project.State.AdditionalDocumentStates.Values,
+                        project.State.AdditionalDocumentStates.States,
                         oldProjectChecksums.AdditionalDocuments,
                         newProjectChecksums.AdditionalDocuments,
                         (solution, documents) => solution.AddAdditionalDocuments(documents),
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     project = await UpdateDocumentsAsync(
                         project,
-                        project.State.AnalyzerConfigDocumentStates.Values,
+                        project.State.AnalyzerConfigDocumentStates.States,
                         oldProjectChecksums.AnalyzerConfigDocuments,
                         newProjectChecksums.AnalyzerConfigDocuments,
                         (solution, documents) => solution.AddAnalyzerConfigDocuments(documents),
