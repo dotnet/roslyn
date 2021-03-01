@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis
         {
             var generatedDocumentStates = await _solution.State.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
-            // return an interator to avoid eagerly allocating all the document instances
+            // return an iterator to avoid eagerly allocating all the document instances
             return generatedDocumentStates.States.Select(state =>
                 ImmutableHashMapExtensions.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)))!;
         }
