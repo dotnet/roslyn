@@ -3125,6 +3125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CommonPEModuleBuilder moduleBuilder,
             Stream? xmlDocStream,
             Stream? win32Resources,
+            bool useRawWin32Resources,
             string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
@@ -3132,7 +3133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag? resourceDiagnostics = DiagnosticBag.GetInstance();
 
-            SetupWin32Resources(moduleBuilder, win32Resources, resourceDiagnostics);
+            SetupWin32Resources(moduleBuilder, win32Resources, useRawWin32Resources, resourceDiagnostics);
 
             ReportManifestResourceDuplicates(
                 moduleBuilder.ManifestResources,
