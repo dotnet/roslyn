@@ -47,9 +47,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _serverTypeName = serverTypeName;
                 _requestCounters = new ConcurrentDictionary<string, Counter>();
 
-                // Buckets queued duration into 50ms buckets with the last bucket starting at 5000ms.
-                // Queue times should generally be relatively short so tracking beyond 5000ms isn't that useful.
-                _queuedDurationLogAggregator = new HistogramLogAggregator(bucketSize: 50, maxBucketValue: 5000);
+                // Buckets queued duration into 10ms buckets with the last bucket starting at 1000ms.
+                // Queue times are relatively short and fall under 50ms, so tracking past 1000ms is not useful.
+                _queuedDurationLogAggregator = new HistogramLogAggregator(bucketSize: 10, maxBucketValue: 1000);
 
                 // Since this is a log based histogram, these are appropriate bucket sizes for the log data.
                 // A bucket at 1 corresponds to ~26ms, while the max bucket value corresponds to ~17minutes
