@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 ICompilerServerLogger logger,
                 CancellationToken cancellationToken)
             {
-                var originalThreadId = Thread.CurrentThread.ManagedThreadId;
+                var originalThreadId = Environment.CurrentManagedThreadId;
                 var clientDir = buildPaths.ClientDirectory;
                 var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
                 var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
                     catch (ApplicationException e)
                     {
-                        var releaseThreadId = Thread.CurrentThread.ManagedThreadId;
+                        var releaseThreadId = Environment.CurrentManagedThreadId;
                         var message = $"ReleaseMutex failed. WaitOne Id: {originalThreadId} Release Id: {releaseThreadId}";
                         throw new Exception(message, e);
                     }
