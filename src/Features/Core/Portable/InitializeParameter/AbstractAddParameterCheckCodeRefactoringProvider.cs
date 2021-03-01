@@ -556,24 +556,24 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // The resource string is written to be shown in a UI and is not necessarily valid code, but we're
             // going to be putting it into a string literal so we need to escape quotes etc. to avoid syntax errors
-            text = EscapeResourceString(text);
+            var escapedText = EscapeResourceString(text);
 
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var content);
 
             var nameofExpression = generator.NameOfExpression(generator.IdentifierName(parameter.Name));
 
-            const string Placeholder = "{0}";
-            var placeholderIndex = text.IndexOf(Placeholder);
-            if (placeholderIndex < 0)
+            var textParts = GetPreAndPostTextParts(text);
+            var escapedTextParts = GetPreAndPostTextParts(escapedText);
+            if (textParts.pre is null)
             {
                 Debug.Fail("Should have found {0} in the resource string.");
-                content.Add(InterpolatedStringText(generator, text));
+                content.Add(InterpolatedStringText(generator, escapedText, text));
             }
             else
             {
-                content.Add(InterpolatedStringText(generator, text[..placeholderIndex]));
+                content.Add(InterpolatedStringText(generator, escapedTextParts.pre, textParts.pre));
                 content.Add(generator.Interpolation(nameofExpression));
-                content.Add(InterpolatedStringText(generator, text[(placeholderIndex + Placeholder.Length)..]));
+                content.Add(InterpolatedStringText(generator, escapedTextParts.post, textParts.post));
             }
 
             return generator.ObjectCreationExpression(
@@ -585,9 +585,22 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 nameofExpression);
         }
 
-        private static SyntaxNode InterpolatedStringText(SyntaxGenerator generator, string text)
+        private static (string pre, string post) GetPreAndPostTextParts(string text)
         {
-            return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(text, text));
+            const string Placeholder = "{0}";
+
+            var index = text.IndexOf(Placeholder);
+            if (index < 0)
+            {
+                return (null, null);
+            }
+
+            return (text[..index], text[(index + Placeholder.Length)..]);
+        }
+
+        private static SyntaxNode InterpolatedStringText(SyntaxGenerator generator, string content, string value)
+        {
+            return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(content, value));
         }
     }
 }
