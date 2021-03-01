@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Emit
         protected readonly struct MappedMethod
         {
             public readonly IMethodSymbolInternal PreviousMethod;
-            public readonly Func<SyntaxNode, SyntaxNode?> SyntaxMap;
+            public readonly Func<SyntaxNode, SyntaxNode?>? SyntaxMap;
 
-            public MappedMethod(IMethodSymbolInternal previousMethod, Func<SyntaxNode, SyntaxNode?> syntaxMap)
+            public MappedMethod(IMethodSymbolInternal previousMethod, Func<SyntaxNode, SyntaxNode?>? syntaxMap)
             {
                 PreviousMethod = previousMethod;
                 SyntaxMap = syntaxMap;
@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     RoslynDebug.AssertNotNull(edit.NewSymbol);
                     RoslynDebug.AssertNotNull(edit.OldSymbol);
-                    RoslynDebug.AssertNotNull(edit.SyntaxMap);
 
                     if (GetISymbolInternalOrNull(edit.NewSymbol) is IMethodSymbolInternal newMethod &&
                         GetISymbolInternalOrNull(edit.OldSymbol) is IMethodSymbolInternal oldMethod)
