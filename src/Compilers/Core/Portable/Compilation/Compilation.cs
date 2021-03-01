@@ -3076,17 +3076,17 @@ namespace Microsoft.CodeAnalysis
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethods,
             DiagnosticBag diagnostics,
-            Func<ISymWriterMetadataProvider, SymUnmanagedWriter> testSymWriterFactory,
-            string pdbFilePath,
+            Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
+            string? pdbFilePath,
             CancellationToken cancellationToken)
         {
-            var nativePdbWriterOpt = (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
+            var nativePdbWriter = (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
                 new Cci.PdbWriter(
                     pdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
                     testSymWriterFactory,
                     hashAlgorithmNameOpt: default);
 
-            using (nativePdbWriterOpt)
+            using (nativePdbWriter)
             {
                 var context = new EmitContext(moduleBeingBuilt, null, diagnostics, metadataOnly: false, includePrivateMembers: true);
                 var encId = Guid.NewGuid();
@@ -3103,16 +3103,16 @@ namespace Microsoft.CodeAnalysis
                         cancellationToken);
 
                     writer.WriteMetadataAndIL(
-                        nativePdbWriterOpt,
+                        nativePdbWriter,
                         metadataStream,
                         ilStream,
-                        (nativePdbWriterOpt == null) ? pdbStream : null,
+                        (nativePdbWriter == null) ? pdbStream : null,
                         pdbOptionsBlobReader: null,
                         out MetadataSizes metadataSizes);
 
                     writer.GetMethodTokens(updatedMethods);
 
-                    nativePdbWriterOpt?.WriteTo(pdbStream);
+                    nativePdbWriter?.WriteTo(pdbStream);
 
                     return diagnostics.HasAnyErrors() ? null : writer.GetDelta(baseline, this, encId, metadataSizes);
                 }

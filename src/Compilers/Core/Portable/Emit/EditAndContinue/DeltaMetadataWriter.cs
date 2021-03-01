@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -187,7 +185,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 localSignatureProvider: baseline.LocalSignatureProvider);
         }
 
-        private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, bool replace = false, IEqualityComparer<K> comparer = null)
+        private static IReadOnlyDictionary<K, V> AddRange<K, V>(IReadOnlyDictionary<K, V> previous, IReadOnlyDictionary<K, V> current, bool replace = false, IEqualityComparer<K>? comparer = null)
+            where K : notnull
         {
             if (previous.Count == 0)
             {
@@ -296,73 +295,49 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         protected override MethodDefinitionHandle GetMethodDefinitionHandle(IMethodDefinition def)
-        {
-            return MetadataTokens.MethodDefinitionHandle(_methodDefs[def]);
-        }
+            => MetadataTokens.MethodDefinitionHandle(_methodDefs[def]);
 
         protected override IMethodDefinition GetMethodDef(MethodDefinitionHandle index)
-        {
-            return _methodDefs[MetadataTokens.GetRowNumber(index)];
-        }
+            => _methodDefs[MetadataTokens.GetRowNumber(index)];
 
         protected override IReadOnlyList<IMethodDefinition> GetMethodDefs()
-        {
-            return _methodDefs.GetRows();
-        }
+            => _methodDefs.GetRows();
 
         protected override PropertyDefinitionHandle GetPropertyDefIndex(IPropertyDefinition def)
-        {
-            return MetadataTokens.PropertyDefinitionHandle(_propertyDefs[def]);
-        }
+            => MetadataTokens.PropertyDefinitionHandle(_propertyDefs[def]);
 
         protected override IReadOnlyList<IPropertyDefinition> GetPropertyDefs()
-        {
-            return _propertyDefs.GetRows();
-        }
+            => _propertyDefs.GetRows();
 
         protected override ParameterHandle GetParameterHandle(IParameterDefinition def)
-        {
-            return MetadataTokens.ParameterHandle(_parameterDefs[def]);
-        }
+            => MetadataTokens.ParameterHandle(_parameterDefs[def]);
 
         protected override IReadOnlyList<IParameterDefinition> GetParameterDefs()
-        {
-            return _parameterDefs.GetRows();
-        }
+            => _parameterDefs.GetRows();
 
         protected override IReadOnlyList<IGenericParameter> GetGenericParameters()
-        {
-            return _genericParameters.GetRows();
-        }
+            => _genericParameters.GetRows();
 
+        // Fields are associated with the type through the EncLog table.
         protected override FieldDefinitionHandle GetFirstFieldDefinitionHandle(INamedTypeDefinition typeDef)
-        {
-            // Fields are associated with the
-            // type through the EncLog table.
-            return default(FieldDefinitionHandle);
-        }
+            => default;
 
+        // Methods are associated with the type through the EncLog table.
         protected override MethodDefinitionHandle GetFirstMethodDefinitionHandle(INamedTypeDefinition typeDef)
-        {
-            // Methods are associated with the
-            // type through the EncLog table.
-            return default(MethodDefinitionHandle);
-        }
+            => default;
 
+        // Parameters are associated with the method through the EncLog table.
         protected override ParameterHandle GetFirstParameterHandle(IMethodDefinition methodDef)
-        {
-            // Parameters are associated with the
-            // method through the EncLog table.
-            return default(ParameterHandle);
-        }
+            => default;
 
         protected override AssemblyReferenceHandle GetOrAddAssemblyReferenceHandle(IAssemblyReference reference)
         {
             var identity = reference.Identity;
             var versionPattern = reference.AssemblyVersionPattern;
 
-            if ((object)versionPattern != null)
+            if (versionPattern is not null)
             {
+                RoslynDebug.AssertNotNull(_previousGeneration.InitialBaseline.LazyMetadataSymbols);
                 identity = _previousGeneration.InitialBaseline.LazyMetadataSymbols.AssemblyReferenceIdentityMap[identity.WithVersion(versionPattern)];
             }
 
@@ -539,7 +514,9 @@ namespace Microsoft.CodeAnalysis.Emit
             // First, visit all MethodImplementations and add to this.methodImplList.
             foreach (var methodImpl in typeDef.GetExplicitImplementationOverrides(Context))
             {
-                var methodDef = (IMethodDefinition)methodImpl.ImplementingMethod.AsDefinition(this.Context);
+                var methodDef = (IMethodDefinition?)methodImpl.ImplementingMethod.AsDefinition(this.Context);
+                RoslynDebug.AssertNotNull(methodDef);
+
                 int methodDefIndex;
                 ok = _methodDefs.TryGetValue(methodDef, out methodDefIndex);
                 Debug.Assert(ok);
@@ -615,15 +592,15 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        private void ReportReferencesToAddedSymbol(ISymbolInternal symbolOpt)
+        private void ReportReferencesToAddedSymbol(ISymbolInternal? symbol)
         {
-            if (symbolOpt != null && _changes.IsAdded(symbolOpt.GetISymbol()))
+            if (symbol != null && _changes.IsAdded(symbol.GetISymbol()))
             {
-                this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(
-                    this.messageProvider.ERR_EncReferenceToAddedMember,
-                    GetSymbolLocation(symbolOpt),
-                    symbolOpt.Name,
-                    symbolOpt.ContainingAssembly.Name));
+                Context.Diagnostics.Add(messageProvider.CreateDiagnostic(
+                    messageProvider.ERR_EncReferenceToAddedMember,
+                    GetSymbolLocation(symbol),
+                    symbol.Name,
+                    symbol.ContainingAssembly.Name));
             }
         }
 
@@ -689,8 +666,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             // local type is already translated, but not recursively
             ITypeReference translatedType = localDef.Type;
-            ITypeSymbolInternal typeSymbol = translatedType.GetInternalSymbol() as ITypeSymbolInternal;
-            if (typeSymbol != null)
+            if (translatedType.GetInternalSymbol() is ITypeSymbolInternal typeSymbol)
             {
                 translatedType = Context.Module.EncTranslateType(typeSymbol, Context.Diagnostics);
             }
@@ -1008,13 +984,14 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         private abstract class DefinitionIndexBase<T>
+            where T : notnull
         {
             protected readonly Dictionary<T, int> added; // Definitions added in this generation.
             protected readonly List<T> rows; // Rows in this generation, containing adds and updates.
             private readonly int _firstRowId; // First row in this generation.
             private bool _frozen;
 
-            public DefinitionIndexBase(int lastRowId, IEqualityComparer<T> comparer = null)
+            public DefinitionIndexBase(int lastRowId, IEqualityComparer<T>? comparer = null)
             {
                 this.added = new Dictionary<T, int>(comparer);
                 this.rows = new List<T>();
@@ -1120,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (_tryGetExistingIndex(item, out index))
                 {
 #if DEBUG
-                    T other;
+                    T? other;
                     Debug.Assert(!_map.TryGetValue(index, out other) || ((object)other == (object)item));
 #endif
                     _map[index] = item;
@@ -1479,7 +1456,9 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 // Unless the implementing method was added,
                 // the method implementation already exists.
-                var methodDef = (IMethodDefinition)methodImplementation.ImplementingMethod.AsDefinition(this.Context);
+                var methodDef = (IMethodDefinition?)methodImplementation.ImplementingMethod.AsDefinition(this.Context);
+                RoslynDebug.AssertNotNull(methodDef);
+
                 if (_changes.GetChange(methodDef) == SymbolChange.Added)
                 {
                     base.Visit(methodImplementation);
