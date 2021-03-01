@@ -2043,40 +2043,35 @@ class C
         {
             var source = @"
 #pragma warning disable 219 // The variable is assigned but its value is never used
-#pragma warning disable 8321 // The local function is declared but never used
 
 class C
 {
     const bool FIELD_TRUE = true;
     const bool FIELD_FALSE = false;
 
-    static void M()
+    static void M(bool b)
     {
         const bool LOCAL_TRUE = true;
         const bool LOCAL_FALSE = false;
 
-        static void M1(bool b)
         {
             int x, y;
             if (b ? Set(out x) : " + @false + @")
                 y = x;
         }
 
-        static void M2(bool b)
         {
             int x, y;
             if (b ? Set(out x) : " + @true + @")
                 y = x; // 1
         }
 
-        static void M3(bool b)
         {
             int x, y;
             if (b ? " + @false + @" : Set(out x))
                 y = x;
         }
 
-        static void M4(bool b)
         {
             int x, y;
             if (b ? " + @true + @" : Set(out x))
@@ -2092,12 +2087,12 @@ class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (26,21): error CS0165: Use of unassigned local variable 'x'
+                // (23,21): error CS0165: Use of unassigned local variable 'x'
                 //                 y = x; // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(26, 21),
-                // (40,21): error CS0165: Use of unassigned local variable 'x'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(23, 21),
+                // (35,21): error CS0165: Use of unassigned local variable 'x'
                 //                 y = x; // 2
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(40, 21)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(35, 21)
                 );
         }
 
