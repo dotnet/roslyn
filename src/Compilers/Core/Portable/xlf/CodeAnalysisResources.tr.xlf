@@ -711,11 +711,6 @@
         <target state="translated">Bağımsız değişken null öğe içeremez.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">Çözümleyici, desteklenmeyen 'asenkron' bir eylem kaydetmeye çalıştı.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
         <target state="translated">'{0}' kimliği ile bildirilen tanılama, çözümleyici tarafından desteklenmiyor.</target>

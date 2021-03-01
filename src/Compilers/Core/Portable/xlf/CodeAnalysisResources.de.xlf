@@ -711,11 +711,6 @@
         <target state="translated">Argument darf kein Nullelement enthalten.</target>
         <note />
       </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">Das Analysetool hat versucht, eine Aktion "async" zu registrieren. Dies wird nicht unterstützt.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
         <target state="translated">Die gemeldete Diagnose mit ID "{0}" wird vom Diagnoseanalysetool nicht unterstützt.</target>
