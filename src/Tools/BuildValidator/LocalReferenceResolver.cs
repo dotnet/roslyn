@@ -68,15 +68,23 @@ namespace BuildValidator
             throw new Exception($"Could not find referenced assembly {referenceInfo}");
         }
 
-        public ImmutableArray<MetadataReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)
+        public ImmutableArray<MetadataReference> ResolveReferences(ImmutableArray<MetadataReferenceInfo> references)
         {
-            var referenceArray = references.ToImmutableArray();
-            CacheNames(referenceArray);
+            CacheNames(references);
 
-            var files = referenceArray.Select(r => GetReferencePath(r));
+            var builder = ImmutableArray.CreateBuilder<MetadataReference>(references.Length);
+            foreach (var reference in references)
+            {
+                var file = GetReferencePath(reference);
+                builder.Add(MetadataReference.CreateFromFile(
+                    file,
+                    new MetadataReferenceProperties(
+                        kind: MetadataImageKind.Assembly,
+                        aliases: reference.ExternAliases,
+                        embedInteropTypes: reference.EmbedInteropTypes)));
+            }
 
-            var metadataReferences = files.Select(f => MetadataReference.CreateFromFile(f)).Cast<MetadataReference>().ToImmutableArray();
-            return metadataReferences;
+            return builder.MoveToImmutable();
         }
 
         public void CacheNames(ImmutableArray<MetadataReferenceInfo> names)
