@@ -197,14 +197,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
                     // Create a linked cancellation token to cancel any requests in progress when this shuts down
-                    var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
+                    using var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken);
 
                     var context = CreateRequestContext(work, out var workspace);
 
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        await work.CallbackAsync(context, cancellationToken.Token).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
                         _lspSolutionCache.Remove(workspace);
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // Non mutating are fire-and-forget because they are by definition readonly. Any errors
                         // will be sent back to the client but we can still capture errors in queue processing
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
-                        _ = work.CallbackAsync(context, cancellationToken).ReportNonFatalErrorAsync();
+                        _ = work.CallbackAsync(context, cancellationToken.Token).ReportNonFatalErrorAsync();
                     }
                 }
             }
