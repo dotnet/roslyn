@@ -4642,56 +4642,56 @@ public class C
                 .EmitToImageReference();
 
             {
-                // attribute in source
+                // type in source
                 var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithoutIsExternalInitRef }, assemblyName: "source");
                 comp.VerifyEmitDiagnostics();
                 verify(comp, "source");
             }
 
             {
-                // attribute in library
+                // type in library
                 var comp = CreateEmptyCompilation(new[] { source }, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef }, assemblyName: "source");
                 comp.VerifyEmitDiagnostics();
                 verify(comp, "libWithIsExternalInit");
             }
 
             {
-                // attribute in corlib and in source
+                // type in corlib and in source
                 var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithIsExternalInitRef }, assemblyName: "source");
                 comp.VerifyEmitDiagnostics();
                 verify(comp, "source");
             }
 
             {
-                // attribute in corlib, in library and in source
+                // type in corlib, in library and in source
                 var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef }, assemblyName: "source");
                 comp.VerifyEmitDiagnostics();
                 verify(comp, "source");
             }
 
             {
-                // attribute in corlib and in two libraries
+                // type in corlib and in two libraries
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 });
                 comp.VerifyEmitDiagnostics();
                 verify(comp, "corlibWithIsExternalInit");
             }
 
             {
-                // attribute in corlib and in two libraries (corlib in middle)
+                // type in corlib and in two libraries (corlib in middle)
                 var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, corlibWithIsExternalInitRef, libWithIsExternalInitRef2 });
                 comp.VerifyEmitDiagnostics();
                 verify(comp, "corlibWithIsExternalInit");
             }
 
             {
-                // attribute in corlib and in two libraries (corlib last)
+                // type in corlib and in two libraries (corlib last)
                 var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, libWithIsExternalInitRef2, corlibWithIsExternalInitRef });
                 comp.VerifyEmitDiagnostics();
                 verify(comp, "corlibWithIsExternalInit");
             }
 
             {
-                // attribute in corlib and in two libraries, but flag is set
+                // type in corlib and in two libraries, but flag is set
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 },
                     options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
                 comp.VerifyEmitDiagnostics(
@@ -4702,7 +4702,7 @@ public class C
             }
 
             {
-                // attribute in two libraries
+                // type in two libraries
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 });
                 comp.VerifyEmitDiagnostics(
                     // (4,32): error CS018: Predefined type 'System.Runtime.CompilerServices.IsExternalInit' is not defined or imported
@@ -4712,7 +4712,7 @@ public class C
             }
 
             {
-                // attribute in two libraries, but flag is set
+                // type in two libraries, but flag is set
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 },
                     options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
                 comp.VerifyEmitDiagnostics(
@@ -4723,21 +4723,21 @@ public class C
             }
 
             {
-                // attribute in corlib and in a library
+                // type in corlib and in a library
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef });
                 comp.VerifyEmitDiagnostics();
                 verify(comp, "corlibWithIsExternalInit");
             }
 
             {
-                // attribute in corlib and in a library (reverse order)
+                // type in corlib and in a library (reverse order)
                 var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, corlibWithIsExternalInitRef });
                 comp.VerifyEmitDiagnostics();
                 verify(comp, "corlibWithIsExternalInit");
             }
 
             {
-                // attribute in corlib and in a library, but flag is set
+                // type in corlib and in a library, but flag is set
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef },
                     options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
                 comp.VerifyEmitDiagnostics();

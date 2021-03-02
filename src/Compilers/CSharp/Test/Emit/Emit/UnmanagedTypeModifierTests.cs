@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1057,6 +1056,45 @@ public class Test<T> where T : unmanaged
 }";
 
             CreateCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DuplicateUnmanagedTypeInReferences_NoTypeInCorlib()
+        {
+            var corlib_cs = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class ValueType { }
+    public struct Void { }
+    public class Attribute { }
+}
+";
+
+            var corlibWithoutUnmanagedTypeRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+
+            var refCode = @"
+namespace System.Runtime.InteropServices
+{
+    public class UnmanagedType {}
+}";
+
+            var ref1 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }).EmitToImageReference();
+            var ref2 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutUnmanagedTypeRef }).EmitToImageReference();
+
+            var user = @"
+public class Test<T> where T : unmanaged
+{
+}";
+
+            CreateEmptyCompilation(user, references: new[] { ref1, ref2, corlibWithoutUnmanagedTypeRef })
+                .VerifyDiagnostics(
+                    // (2,32): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
+                    // public class Test<T> where T : unmanaged
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(2, 32));
         }
 
         [Fact]

@@ -4422,6 +4422,47 @@ public class Test
         }
 
         [Fact]
+        public void DuplicateInAttributeTypeInReferences_NoTypeInCorlib()
+        {
+            var corlib_cs = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class ValueType { }
+    public struct Void { }
+    public class Attribute { }
+    public class Exception { }
+}
+";
+
+            var corlibWithoutInAttributeRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
+
+            var refCode = @"
+namespace System.Runtime.InteropServices
+{
+    public class InAttribute {}
+}";
+
+            var ref1 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutInAttributeRef }).EmitToImageReference();
+            var ref2 = CreateEmptyCompilation(refCode, references: new[] { corlibWithoutInAttributeRef }).EmitToImageReference();
+
+            var user = @"
+public class Test
+{
+    public ref readonly int M() => throw null;
+}";
+
+            CreateEmptyCompilation(user, references: new[] { ref1, ref2, corlibWithoutInAttributeRef })
+                .VerifyDiagnostics(
+                    // (4,12): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
+                    //     public ref readonly int M() => throw null;
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 12));
+        }
+
+        [Fact]
         public void ParentClassOfProxiedInterfaceFunctionHasNoModreq_ImplementedInChild()
         {
             var code = @"

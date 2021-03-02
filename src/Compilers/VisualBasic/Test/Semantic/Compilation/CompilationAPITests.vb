@@ -2565,56 +2565,56 @@ End Namespace
             Dim libWithIsExternalInitRef2 = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="libWithIsExternalInit2").EmitToImageReference()
 
             If True Then
-                ' attribute in source
+                ' type in source
                 Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="source")
                 AssertNoDeclarationDiagnostics(comp)
                 GetWellKnownType_Verify(comp, "source")
             End If
 
             If True Then
-                ' attribute in library
+                ' type in library
                 Dim comp = CreateEmptyCompilation("", references:={corlibWithoutValueTupleRef, libWithIsExternalInitRef}, assemblyName:="source")
                 AssertNoDeclarationDiagnostics(comp)
                 GetWellKnownType_Verify(comp, "libWithIsExternalInit")
             End If
 
             If True Then
-                ' attribute in corlib and in source
+                ' type in corlib and in source
                 Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef}, assemblyName:="source")
                 AssertNoDeclarationDiagnostics(comp)
                 GetWellKnownType_Verify(comp, "source")
             End If
 
             If True Then
-                ' attribute in corlib, in library and in source
+                ' type in corlib, in library and in source
                 Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef, libWithIsExternalInitRef}, assemblyName:="source")
                 AssertNoDeclarationDiagnostics(comp)
                 GetWellKnownType_Verify(comp, "source")
             End If
 
             If True Then
-                ' attribute in corlib and in two libraries
+                ' type in corlib and in two libraries
                 Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef, libWithIsExternalInitRef2})
                 AssertNoDeclarationDiagnostics(comp)
                 GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
             End If
 
             If True Then
-                ' attribute in corlib and in two libraries (corlib in middle)
+                ' type in corlib and in two libraries (corlib in middle)
                 Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, corlibWithValueTupleRef, libWithIsExternalInitRef2})
                 AssertNoDeclarationDiagnostics(comp)
                 GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
             End If
 
             If True Then
-                ' attribute in corlib and in two libraries (corlib last)
+                ' type in corlib and in two libraries (corlib last)
                 Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2, corlibWithValueTupleRef})
                 AssertNoDeclarationDiagnostics(comp)
                 GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
             End If
 
             If True Then
-                ' attribute in corlib and in two libraries, but flag is set
+                ' type in corlib and in two libraries, but flag is set
                 Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef, libWithIsExternalInitRef2},
                     options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
                 AssertNoDeclarationDiagnostics(comp)
@@ -2622,14 +2622,14 @@ End Namespace
             End If
 
             If True Then
-                ' attribute in two libraries
+                ' type in two libraries
                 Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2})
                 AssertNoDeclarationDiagnostics(comp)
                 Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType)
             End If
 
             If True Then
-                ' attribute in two libraries, but flag is set
+                ' type in two libraries, but flag is set
                 Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2},
                     options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
                 AssertNoDeclarationDiagnostics(comp)
@@ -2637,21 +2637,21 @@ End Namespace
             End If
 
             If True Then
-                ' attribute in corlib and in a library
+                ' type in corlib and in a library
                 Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
                 AssertNoDeclarationDiagnostics(comp)
                 GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
             End If
 
             If True Then
-                ' attribute in corlib and in a library (reverse order)
+                ' type in corlib and in a library (reverse order)
                 Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
                 AssertNoDeclarationDiagnostics(comp)
                 GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
             End If
 
             If True Then
-                ' attribute in corlib and in a library, but flag is set
+                ' type in corlib and in a library, but flag is set
                 Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef},
                     options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
                 AssertNoDeclarationDiagnostics(comp)
