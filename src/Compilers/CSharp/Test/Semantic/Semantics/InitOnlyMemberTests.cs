@@ -4741,14 +4741,7 @@ public class C
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef },
                     options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
                 comp.VerifyEmitDiagnostics();
-
-                var modifier = ((SourcePropertySymbol)comp.GlobalNamespace.GetMember("C.Property")).SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
-                Assert.Equal("libWithIsExternalInit", modifier.Modifier.ContainingAssembly.Name);
-
-                Assert.Equal("libWithIsExternalInit", comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsExternalInit).ContainingAssembly.Name);
-
-                // This call doesn't use IgnoreCorLibraryDuplicatedTypes flag, so gets a different result
-                Assert.Equal("corlibWithIsExternalInit", comp.GetTypeByMetadataName("System.Runtime.CompilerServices.IsExternalInit").ContainingAssembly.Name);
+                verify(comp, "libWithIsExternalInit");
             }
 
             static void verify(CSharpCompilation comp, string expectedAssemblyName)

@@ -2655,10 +2655,7 @@ End Namespace
                 Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef},
                     options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
                 AssertNoDeclarationDiagnostics(comp)
-                Assert.Equal("libWithIsExternalInit", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
-
-                ' This call doesn't use IgnoreCorLibraryDuplicatedTypes flag, so gets a different result
-                Assert.Equal("corlibWithValueTupleRef", comp.GetTypeByMetadataName("System.ValueTuple`2").ContainingAssembly.Name)
+                GetWellKnownType_Verify(comp, "libWithIsExternalInit")
             End If
         End Sub
 
