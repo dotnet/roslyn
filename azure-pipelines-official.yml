@@ -126,6 +126,7 @@ stages:
           nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
         ${{ if eq(variables['System.TeamProject'], 'internal') }}:
           nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
+          forceReinstallCredentialProvider: true
 
     - task: NuGetCommand@2
       displayName: Restore internal tools
