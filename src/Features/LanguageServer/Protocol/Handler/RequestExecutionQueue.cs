@@ -196,15 +196,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
-                    // Create a linked cancellation token to cancel any requests in progress when this shuts down
-                    var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
-
                     var context = CreateRequestContext(work, out var workspace);
 
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        await ExecuteCallbackAsync(work, context, _cancelSource.Token).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
                         _lspSolutionCache.Remove(workspace);
@@ -214,7 +211,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // Non mutating are fire-and-forget because they are by definition readonly. Any errors
                         // will be sent back to the client but we can still capture errors in queue processing
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
-                        _ = work.CallbackAsync(context, cancellationToken).ReportNonFatalErrorAsync();
+                        _ = ExecuteCallbackAsync(work, context, _cancelSource.Token).ReportNonFatalErrorAsync();
                     }
                 }
             }
@@ -227,6 +224,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
             }
+        }
+
+        private static async Task ExecuteCallbackAsync(QueueItem work, RequestContext context, CancellationToken queueCancellationToken)
+        {
+            // Create a combined cancellation token to cancel any requests in progress when this shuts down
+            using var combinedTokenSource = queueCancellationToken.CombineWith(work.CancellationToken);
+
+            await work.CallbackAsync(context, combinedTokenSource.Token).ConfigureAwait(false);
         }
 
         private void OnRequestServerShutdown(string message)
