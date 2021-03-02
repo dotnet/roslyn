@@ -1411,9 +1411,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsLocalFunctionStatement([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
 
-        public bool isMethodDeclaration(SyntaxNode node)
-            => node.IsKind(SyntaxKind.LocalFunctionStatement) || node.IsKind(SyntaxKind.MethodDeclaration) || node.IsKind(SyntaxKind.SimpleLambdaExpression);
-
         public bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement)
         {
             return ((LocalDeclarationStatementSyntax)localDeclarationStatement).Declaration.Variables.Contains(

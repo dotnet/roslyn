@@ -239,24 +239,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
         public async Task TestSimpleExpressionWithNoMethodCallTrampoline()
         {
             var code =
-                @"using System;
-                class TestClass
-                {
-                    void M(int x, int y, int z) 
-                    {
-                        int m = [|x * y * z;|]
-                    }
-                }";
+@"using System;
+class TestClass
+{
+void M(int x, int y, int z) 
+{
+    int m = [|x * y * z;|]
+}
+}";
 
             var expected =
-                @"using System;
-                class TestClass
-                {
-                    void M(int x, int y, int z, int v) 
-                    {
-                        int m = {|Rename:v|};
-                    }
-                }";
+@"using System;
+class TestClass
+{
+    private void M(int x, int y, int z)
+    {
+        return M(x, y, z, x * y * z);
+    }
+
+    void M(int x, int y, int z, int v) 
+{
+    int m = {|Rename:v|};
+}
+}";
 
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }
@@ -265,34 +270,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
         public async Task TestSimpleExpressionWithSingleMethodCallTrampoline()
         {
             var code =
-                @"using System;
-                class TestClass
-                {
-                    void M(int x, int y, int z)
-                    {
-                        int m = [|x * y * z|];
-                    }
+@"using System;
+class TestClass
+{
+void M(int x, int y, int z)
+{
+    int m = [|x * y * z|];
+}
 
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, y, x);
-                    }
-                }";
+void M1(int x, int y, int z) 
+{
+    M(z, y, x);
+}
+}";
 
             var expected =
-                @"using System;
-                class TestClass
-                {
-                    void M(int x, int y, int z, int v)
-                    {
-                        int m = {|Rename:v|};
-                    }
+@"using System;
+class TestClass
+{
+    private void M(int x, int y, int z)
+    {
+        return M(x, y, z, x * y * z);
+    }
 
-                    void M1(int x, int y, int z) 
-                    {
-                        M(z, y, x);
-                    }
-                }";
+    void M(int x, int y, int z, int v)
+{
+    int m = {|Rename:v|};
+}
+
+void M1(int x, int y, int z) 
+{
+    M(z, y, x);
+}
+}";
 
             await TestInRegularAndScriptAsync(code, expected, index: 1);
         }

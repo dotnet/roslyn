@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
     internal partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax>
     {
-        internal abstract class AbstractIntroduceParameterCodeAction : CodeAction
+        internal class IntroduceParameterCodeAction : CodeAction
         {
             private readonly bool _allOccurrences;
             private readonly bool _trampoline;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             private readonly TExpressionSyntax _expression;
             private readonly SemanticDocument _semanticDocument;
 
-            internal AbstractIntroduceParameterCodeAction(
+            internal IntroduceParameterCodeAction(
                 SemanticDocument document,
                 TService service,
                 TExpressionSyntax expression,

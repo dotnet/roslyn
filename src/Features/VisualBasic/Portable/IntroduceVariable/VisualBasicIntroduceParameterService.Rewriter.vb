@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     Partial Friend Class VisualBasicIntroduceParameterService
-
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
@@ -31,8 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Public Overloads Shared Function Visit(node As SyntaxNode, replacementNode As SyntaxNode, matches As ISet(Of ExpressionSyntax)) As SyntaxNode
                 Return New Rewriter(replacementNode, matches).Visit(node)
             End Function
-
         End Class
     End Class
 End Namespace
-

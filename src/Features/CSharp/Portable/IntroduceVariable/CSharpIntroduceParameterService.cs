@@ -3,13 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.IntroduceVariable;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -28,23 +31,19 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
         }
 
-        protected override async Task<Solution> IntroduceParameterAsync(SemanticDocument document, ExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken)
-        {
-            if (!trampoline)
-            {
-                return await IntroduceParameterForRefactoringAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(false);
-
-            }
-            else
-            {
-                return await IntroduceParameterForTrampolineAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
         protected override SeparatedSyntaxList<SyntaxNode> AddArgumentToArgumentList(SeparatedSyntaxList<SyntaxNode> invocationArguments, SyntaxNode newArgumentExpression)
         {
             return invocationArguments.Add(SyntaxFactory.Argument((ExpressionSyntax)newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)));
         }
+
+        protected override ImmutableArray<SyntaxNode> AddExpressionArgumentToArgumentList(ImmutableArray<SyntaxNode> arguments, SyntaxNode expression)
+        {
+            var newArgument = SyntaxFactory.Argument((ExpressionSyntax)expression.WithoutAnnotations(ExpressionAnnotationKind));
+            return arguments.Add(newArgument);
+        }
+
+        protected override bool IsMethodDeclaration(SyntaxNode node)
+            => node.IsKind(SyntaxKind.LocalFunctionStatement) || node.IsKind(SyntaxKind.MethodDeclaration) || node.IsKind(SyntaxKind.SimpleLambdaExpression);
 
         protected override TNode RewriteCore<TNode>(
             TNode node,

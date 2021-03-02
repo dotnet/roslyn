@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -19,17 +20,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         Public Sub New()
         End Sub
 
-        Protected Overrides Async Function IntroduceParameterAsync(document As SemanticDocument, expression As ExpressionSyntax, allOccurrences As Boolean, trampoline As Boolean, cancellationToken As Threading.CancellationToken) As Task(Of Solution)
-            If Not trampoline Then
-                Return Await IntroduceParameterForRefactoringAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(False)
-            Else
-                Return Await IntroduceParameterForTrampolineAsync(document, expression, allOccurrences, cancellationToken).ConfigureAwait(False)
-            End If
-
-        End Function
-
         Protected Overrides Function AddArgumentToArgumentList(invocationArguments As SeparatedSyntaxList(Of SyntaxNode), newArgumentExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
             Return invocationArguments.Add(SyntaxFactory.SimpleArgument(DirectCast(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation), ExpressionSyntax)))
+        End Function
+
+        Protected Overrides Function AddExpressionArgumentToArgumentList(arguments As ImmutableArray(Of SyntaxNode), expression As SyntaxNode) As ImmutableArray(Of SyntaxNode)
+            Dim newArgument = SyntaxFactory.SimpleArgument(DirectCast(expression.WithoutAnnotations(ExpressionAnnotationKind), ExpressionSyntax))
+            Return arguments.Add(newArgument)
+        End Function
+
+        Protected Overrides Function IsMethodDeclaration(node As SyntaxNode) As Boolean
+            Select Case node.Kind()
+                Case SyntaxKind.SubBlock,
+                     SyntaxKind.FunctionBlock,
+                     SyntaxKind.FunctionLambdaHeader,
+                     SyntaxKind.SubLambdaHeader
+                    Return True
+            End Select
+
+            Return False
         End Function
 
         Protected Overrides Function RewriteCore(Of TNode As SyntaxNode)(node As TNode, replacementNode As SyntaxNode, matches As ISet(Of ExpressionSyntax)) As TNode

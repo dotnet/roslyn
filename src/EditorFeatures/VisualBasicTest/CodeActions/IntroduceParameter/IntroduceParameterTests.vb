@@ -156,8 +156,12 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
+    Public Sub M(x As Integer, y As Integer, z As Integer)
+        Return M(x, y, z, x * y * z)
+    End Sub
+
     Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
-        Dim num As Integer = {|Rename:v|}
+        Dim num As Integer = v
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
