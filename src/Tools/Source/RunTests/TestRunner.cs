@@ -158,15 +158,19 @@ namespace RunTests
                 var rehydrateFilename = isUnix ? "rehydrate.sh" : "rehydrate.cmd";
                 var lsCommand = isUnix ? "ls" : "dir";
                 var rehydrateCommand = isUnix ? $"./{rehydrateFilename}" : $@"call .\{rehydrateFilename}";
-                var workItem = @"
-        <HelixWorkItem Include=""" + assemblyInfo.DisplayName + @""">
-            <PayloadDirectory>" + Path.Combine(msbuildTestPayloadRoot, Path.GetDirectoryName(assemblyInfo.AssemblyPath)!) + @"</PayloadDirectory>
+                var setEnvironmentVariables = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
+                    ? $"{(isUnix ? "export" : "set")} ROSLYN_TEST_IOPERATION={iop}"
+                    : "";
+                var workItem = $@"
+        <HelixWorkItem Include=""{assemblyInfo.DisplayName}"">
+            <PayloadDirectory>{Path.Combine(msbuildTestPayloadRoot, Path.GetDirectoryName(assemblyInfo.AssemblyPath)!)}</PayloadDirectory>
             <Command>
-                " + lsCommand + @"
-                " + rehydrateCommand + @"
-                " + lsCommand + @"
+                {lsCommand}
+                {rehydrateCommand}
+                {lsCommand}
                 dotnet --version
-                dotnet " + commandLineArguments + @"
+                {setEnvironmentVariables}
+                dotnet {commandLineArguments}
             </Command>
             <Timeout>00:15:00</Timeout>
         </HelixWorkItem>
