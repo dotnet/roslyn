@@ -41,7 +41,6 @@ try {
   " --assembliesPath `"$ArtifactsDir/obj/AnalyzerRunner`"" +
   " --assembliesPath `"$ArtifactsDir/obj/BasicResultProvider.NetFX20`"" +
   " --assembliesPath `"$ArtifactsDir/obj/BuildBoss`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/BuildValidator`"" +
   " --assembliesPath `"$ArtifactsDir/obj/CodeStyleConfigFileGenerator`"" +
   " --assembliesPath `"$ArtifactsDir/obj/csc`"" +
   " --assembliesPath `"$ArtifactsDir/obj/CSharpResultProvider.NetFX20`"" +
@@ -90,7 +89,6 @@ try {
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler.UnitTests`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic.Features`"" +
-  " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic.ResultProvider.UnitTests`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests`"" +
   " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic.Scripting`"" +
@@ -124,7 +122,9 @@ try {
 
   # The following assemblies paths cause issues in CI.
   # https://github.com/dotnet/roslyn/issues/51598
+  # " --assembliesPath `"$ArtifactsDir/obj/BuildValidator`"" +
   # " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests`"" +
+  # " --assembliesPath `"$ArtifactsDir/obj/Microsoft.CodeAnalysis.VisualBasic.ResultProvider.UnitTests`"" +
 
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +
   " --sourcePath `"$RepoRoot`"" +
