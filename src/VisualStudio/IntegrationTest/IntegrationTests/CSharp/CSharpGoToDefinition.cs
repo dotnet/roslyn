@@ -74,7 +74,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
         public virtual void GoToDefinitionWithMultipleResults()
         {
             TestGoToDefinitionWithMultipleResults(declarationWindowName: "'PartialClass' declarations");
