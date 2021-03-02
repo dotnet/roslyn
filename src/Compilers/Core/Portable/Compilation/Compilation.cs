@@ -1753,10 +1753,16 @@ namespace Microsoft.CodeAnalysis
             return resourceList;
         }
 
-        internal void SetupWin32Resources(CommonPEModuleBuilder moduleBeingBuilt, Stream? win32Resources, DiagnosticBag diagnostics)
+        internal void SetupWin32Resources(CommonPEModuleBuilder moduleBeingBuilt, Stream? win32Resources, bool useRawWin32Resources, DiagnosticBag diagnostics)
         {
             if (win32Resources == null)
                 return;
+
+            if (useRawWin32Resources)
+            {
+                moduleBeingBuilt.RawWin32Resources = win32Resources;
+                return;
+            }
 
             Win32ResourceForm resourceForm;
 
@@ -2239,6 +2245,7 @@ namespace Microsoft.CodeAnalysis
             CommonPEModuleBuilder moduleBeingBuilt,
             Stream? xmlDocumentationStream,
             Stream? win32ResourcesStream,
+            bool useRawWin32Resources,
             string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
@@ -2416,7 +2423,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
         /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
         /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).
-        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
+        /// Null to indicate that there are none. The RES format begins with a null resource entry.
+        /// Note that the caller is responsible for disposing this stream, if provided.</param>
         /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
         /// <param name="options">Emit options.</param>
         /// <param name="debugEntryPoint">
@@ -2460,6 +2468,7 @@ namespace Microsoft.CodeAnalysis
                 pdbStream,
                 xmlDocumentationStream,
                 win32Resources,
+                useRawWin32Resources: false,
                 manifestResources,
                 options,
                 debugEntryPoint,
@@ -2475,6 +2484,7 @@ namespace Microsoft.CodeAnalysis
             Stream? pdbStream,
             Stream? xmlDocumentationStream,
             Stream? win32Resources,
+            bool useRawWin32Resources,
             IEnumerable<ResourceDescription>? manifestResources,
             EmitOptions? options,
             IMethodSymbol? debugEntryPoint,
@@ -2573,6 +2583,7 @@ namespace Microsoft.CodeAnalysis
                 pdbStream,
                 xmlDocumentationStream,
                 win32Resources,
+                useRawWin32Resources,
                 manifestResources,
                 options,
                 debugEntryPoint,
@@ -2593,6 +2604,7 @@ namespace Microsoft.CodeAnalysis
             Stream? pdbStream,
             Stream? xmlDocumentationStream,
             Stream? win32Resources,
+            bool useRawWin32Resources,
             IEnumerable<ResourceDescription>? manifestResources,
             EmitOptions? options,
             IMethodSymbol? debugEntryPoint,
@@ -2643,6 +2655,7 @@ namespace Microsoft.CodeAnalysis
                             moduleBeingBuilt,
                             xmlDocumentationStream,
                             win32Resources,
+                            useRawWin32Resources,
                             options.OutputNameOverride,
                             diagnostics,
                             cancellationToken))

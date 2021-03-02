@@ -104,12 +104,19 @@ namespace BuildValidator
 
             try
             {
+                var artifactsDirs = options.AssembliesPaths.Select(path => new DirectoryInfo(path));
+                using (logger.BeginScope("Rebuild Search Paths"))
+                {
+                    foreach (var artifactsDir in artifactsDirs)
+                    {
+                        logger.LogInformation($@"""{artifactsDir.FullName}""");
+                    }
+                }
+
                 var sourceResolver = new LocalSourceResolver(options, loggerFactory);
                 var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
 
                 var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
-
-                var artifactsDirs = options.AssembliesPaths.Select(path => new DirectoryInfo(path));
 
                 var filesToValidate = artifactsDirs.SelectMany(dir =>
                         dir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
@@ -155,6 +162,16 @@ namespace BuildValidator
                 }
             }
 
+            using (logger.BeginScope("Rebuilds with configuration issues"))
+            {
+                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual is null && a.Diagnostics.IsDefaultOrEmpty))
+                {
+                    logger.LogError($"{diff.OriginalPath} was missing required metadata for rebuilding. Was it built with a recent enough compiler with the required settings?");
+                    // dependencies which don't have the required metadata have a way of sneaking into the obj folder.
+                    // for now, let's not let presence of these assemblies cause the rebuild to fail.
+                }
+            }
+
             using (logger.BeginScope("Rebuilds with output differences"))
             {
                 foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == false))
@@ -164,10 +181,9 @@ namespace BuildValidator
                     success = false;
                 }
             }
-
             using (logger.BeginScope("Rebuilds with compilation errors"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == null))
+                foreach (var diff in assembliesCompiled.Where(a => !a.Diagnostics.IsDefaultOrEmpty))
                 {
                     logger.LogError($"{diff.OriginalPath} had {diff.Diagnostics.Length} diagnostics.");
                     success = false;
@@ -202,7 +218,7 @@ namespace BuildValidator
                 if (!pdbOpened || pdbReaderProvider is null)
                 {
                     logger.LogError($"Could not find pdb for {originalBinary.FullName}");
-                    return null;
+                    return CompilationDiff.CreatePlaceholder(originalBinary);
                 }
 
                 using var _ = logger.BeginScope($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
@@ -213,6 +229,10 @@ namespace BuildValidator
                 var compilation = buildConstructor.CreateCompilation(
                     optionsReader,
                     originalBinary.Name);
+                if (compilation is null)
+                {
+                    return CompilationDiff.CreatePlaceholder(originalBinary);
+                }
 
                 var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), logger, options);
                 return compilationDiff;

@@ -18,7 +18,8 @@ Param(
   [string]$gitHubUserName = "",
   [string]$gitHubToken = "",
   [string]$gitHubEmail = "",
-  [string]$nugetApiKey = ""
+  [string]$nugetApiKey = "",
+  [string]$devdivApiKey = ""
 )
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -28,8 +29,7 @@ function Get-PublishKey([string]$uploadUrl) {
   $url = New-Object Uri $uploadUrl
   switch ($url.Host) {
     "api.nuget.org" { return $nugetApiKey }
-    # For publishing to azure, the API key can be any non-empty string as authentication is done in the pipeline.
-    "pkgs.dev.azure.com" { return "AzureArtifacts"}
+    "pkgs.dev.azure.com" { return $devdivApiKey}
     default { throw "Cannot determine publish key for $uploadUrl" }
   }
 }

@@ -186,13 +186,21 @@ namespace Microsoft.CodeAnalysis
         /// Gets the document in this solution with the specified document ID.
         /// </summary>
         public Document? GetDocument(DocumentId? documentId)
+            => GetProject(documentId?.ProjectId)?.GetDocument(documentId!);
+
+        /// <summary>
+        /// Gets a document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
         {
-            if (this.ContainsDocument(documentId))
+            var project = GetProject(documentId?.ProjectId);
+            if (project == null)
             {
-                return this.GetProject(documentId.ProjectId)!.GetDocument(documentId);
+                return default;
             }
 
-            return null;
+            Contract.ThrowIfNull(documentId);
+            return project.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken);
         }
 
         /// <summary>
@@ -518,7 +526,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
-            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
+            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds.ToImmutableArray());
             if (newState == _state)
             {
                 return this;
@@ -1638,7 +1646,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<DocumentId>.Empty;
             }
 
-            var documentState = projectState.GetDocumentState(documentId);
+            var documentState = projectState.DocumentStates.GetState(documentId);
             if (documentState == null)
             {
                 // this document no longer exist
@@ -1871,9 +1879,17 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (var projectReference in projectReferences)
             {
-                if (projectId == projectReference.ProjectId || _state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                if (projectId == projectReference.ProjectId)
                 {
-                    throw new InvalidOperationException(WorkspacesResources.The_project_already_transitively_references_the_target_project);
+                    throw new InvalidOperationException(WorkspacesResources.A_project_may_not_reference_itself);
+                }
+
+                if (_state.ContainsTransitiveReference(projectReference.ProjectId, projectId))
+                {
+                    throw new InvalidOperationException(
+                        string.Format(WorkspacesResources.Adding_project_reference_from_0_to_1_will_cause_a_circular_reference,
+                            projectId,
+                            projectReference.ProjectId));
                 }
             }
         }

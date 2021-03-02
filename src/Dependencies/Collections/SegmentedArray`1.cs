@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public bool IsFixedSize => true;
 
-        public bool IsReadOnly => false;
+        public bool IsReadOnly => true;
 
         public bool IsSynchronized => false;
 
