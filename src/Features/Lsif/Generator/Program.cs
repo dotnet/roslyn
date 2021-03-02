@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }
                 else
                 {
-                    throw new Exception("Exactly one of either a solution path or a compiler invocation path should be supplied.");
+                    throw new Exception("Exactly one of either a solution path, project path or a compiler invocation path should be supplied.");
                 }
             }
             catch (Exception e)
