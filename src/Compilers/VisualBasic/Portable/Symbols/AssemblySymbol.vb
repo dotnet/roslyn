@@ -558,9 +558,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For i As Integer = 0 To references.Length - 1 Step 1
                 Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol AndAlso references(i).IsMissing)) ' Non-source assemblies can have missing references
 
-                Dim reference = references(i)
-
-                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                Dim candidate As NamedTypeSymbol = references(i).LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
 
                 If isWellKnownType AndAlso Not IsValidWellKnownType(candidate) Then
                     candidate = Nothing
@@ -586,8 +584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         End If
 
                         conflicts = (result.ContainingAssembly, candidate.ContainingAssembly)
-                        result = Nothing
-                        Exit For
+                        Return Nothing
                     End If
 
                     result = candidate
