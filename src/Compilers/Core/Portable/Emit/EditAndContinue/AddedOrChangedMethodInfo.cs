@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal struct AddedOrChangedMethodInfo
+    internal readonly struct AddedOrChangedMethodInfo
     {
         public readonly DebugId MethodId;
 
@@ -56,8 +56,12 @@ namespace Microsoft.CodeAnalysis.Emit
         public AddedOrChangedMethodInfo MapTypes(SymbolMatcher map)
         {
             var mappedLocals = ImmutableArray.CreateRange(Locals, MapLocalInfo, map);
-            var mappedHoistedLocalSlots = StateMachineHoistedLocalSlotsOpt.IsDefault ? default : ImmutableArray.CreateRange(StateMachineHoistedLocalSlotsOpt, MapHoistedLocalSlot, map);
-            var mappedAwaiterSlots = StateMachineAwaiterSlotsOpt.IsDefault ? default : ImmutableArray.CreateRange(StateMachineAwaiterSlotsOpt, map.MapReference);
+
+            var mappedHoistedLocalSlots = StateMachineHoistedLocalSlotsOpt.IsDefault ? default :
+                ImmutableArray.CreateRange(StateMachineHoistedLocalSlotsOpt, MapHoistedLocalSlot, map);
+
+            var mappedAwaiterSlots = StateMachineAwaiterSlotsOpt.IsDefault ? default :
+                ImmutableArray.CreateRange(StateMachineAwaiterSlotsOpt, static (typeRef, map) => (typeRef is null) ? null : map.MapReference(typeRef), map);
 
             return new AddedOrChangedMethodInfo(MethodId, mappedLocals, LambdaDebugInfo, ClosureDebugInfo, StateMachineTypeName, mappedHoistedLocalSlots, mappedAwaiterSlots);
         }

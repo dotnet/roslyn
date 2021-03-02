@@ -52,19 +52,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 deepTranslator: null);
         }
 
-        public override Cci.IDefinition? MapDefinition(Cci.IDefinition? definition)
+        public override Cci.IDefinition? MapDefinition(Cci.IDefinition definition)
         {
-            if (definition?.GetInternalSymbol() is Symbol symbol)
+            if (definition.GetInternalSymbol() is Symbol symbol)
             {
                 return (Cci.IDefinition?)_symbols.Visit(symbol)?.GetCciAdapter();
             }
 
-            return null;
+            // TODO: this appears to be dead code, remove (https://github.com/dotnet/roslyn/issues/51595)
+            return _defs.VisitDef(definition);
         }
 
-        public override Cci.INamespace? MapNamespace(Cci.INamespace? @namespace)
+        public override Cci.INamespace? MapNamespace(Cci.INamespace @namespace)
         {
-            if (@namespace?.GetInternalSymbol() is NamespaceSymbol symbol)
+            if (@namespace.GetInternalSymbol() is NamespaceSymbol symbol)
             {
                 return (Cci.INamespace?)_symbols.Visit(symbol)?.GetCciAdapter();
             }
@@ -72,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return null;
         }
 
-        public override Cci.ITypeReference? MapReference(Cci.ITypeReference? reference)
+        public override Cci.ITypeReference? MapReference(Cci.ITypeReference reference)
         {
-            if (reference?.GetInternalSymbol() is Symbol symbol)
+            if (reference.GetInternalSymbol() is Symbol symbol)
             {
                 return (Cci.ITypeReference?)_symbols.Visit(symbol)?.GetCciAdapter();
             }
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     }
 
                     var nestedType = type.AsNestedTypeDefinition(_sourceContext);
-                    RoslynDebug.AssertNotNull(nestedType);
+                    Debug.Assert(nestedType != null);
 
                     var otherContainer = (Cci.ITypeDefinition?)VisitDef(nestedType.ContainingTypeDefinition);
                     if (otherContainer == null)

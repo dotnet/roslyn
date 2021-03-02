@@ -13,14 +13,16 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class SymbolMatcher
     {
-        public abstract Cci.ITypeReference? MapReference(Cci.ITypeReference? reference);
-        public abstract Cci.IDefinition? MapDefinition(Cci.IDefinition? definition);
-        public abstract Cci.INamespace? MapNamespace(Cci.INamespace? @namespace);
+        public abstract Cci.ITypeReference? MapReference(Cci.ITypeReference reference);
+        public abstract Cci.IDefinition? MapDefinition(Cci.IDefinition definition);
+        public abstract Cci.INamespace? MapNamespace(Cci.INamespace @namespace);
 
         public ISymbolInternal? MapDefinitionOrNamespace(ISymbolInternal symbol)
         {
             var adapter = symbol.GetCciAdapter();
-            return (adapter is Cci.IDefinition definition) ? MapDefinition(definition)?.GetInternalSymbol() : MapNamespace((Cci.INamespace)adapter)?.GetInternalSymbol();
+            return (adapter is Cci.IDefinition definition) ?
+                MapDefinition(definition)?.GetInternalSymbol() :
+                MapNamespace((Cci.INamespace)adapter)?.GetInternalSymbol();
         }
 
         public EmitBaseline MapBaselineToCompilation(
