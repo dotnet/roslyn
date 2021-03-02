@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Windows.Controls;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Margin.InheritanceChainMargin
 {
-    public partial class InheritanceChainMargin : UserControl
+    internal class InheritanceChainGlyphTag : IGlyphTag
     {
-        public InheritanceChainMargin()
+        public InheritanceChainGlyphTag()
         {
-            InitializeComponent();
         }
     }
 }
-
