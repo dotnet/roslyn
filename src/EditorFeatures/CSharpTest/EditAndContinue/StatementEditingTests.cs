@@ -10296,6 +10296,41 @@ int G1(int[] p) { return p[2]; }
                 "Update [(int, int) x]@35 -> [(int, int) y]@35");
         }
 
-        #endregion 
+        #endregion
+
+        #region Records / With Expressions
+
+        [Fact]
+        public void WithExpression_PropertyAdd()
+        {
+            var src1 = @"var x = y with { X = 1 };";
+            var src2 = @"var x = y with { X = 1, Y = 2 };";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [x = y with { X = 1 }]@6 -> [x = y with { X = 1, Y = 2 }]@6");
+        }
+
+        [Fact]
+        public void WithExpression_PropertyDelete()
+        {
+            var src1 = @"var x = y with { X = 1, Y = 2 };";
+            var src2 = @"var x = y with { X = 1 };";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [x = y with { X = 1, Y = 2 }]@6 -> [x = y with { X = 1 }]@6");
+        }
+
+        [Fact]
+        public void WithExpression_PropertyChange()
+        {
+            var src1 = @"var x = y with { X = 1, Y = 1 };";
+            var src2 = @"var x = y with { X = 1, Y = 2 };";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [x = y with { X = 1, Y = 1 }]@6 -> [x = y with { X = 1, Y = 2 }]@6");
+        }
+
+
+        #endregion
     }
 }
