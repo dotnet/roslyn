@@ -49,6 +49,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         [DataMember(Order = 2)]
         public bool Explicit { get; }
 
+        /// <summary>
+        /// When cascading if we should only travel in a consistent direction away from the starting symbol.  For
+        /// example, starting on a virtual method, this would cascade upwards to implemented interface methods, and
+        /// downwards to overridden methods.  However, it would not then travel back down to other implementations of
+        /// those interface methods.  This is useful for cases where the client only wants references that could lead to
+        /// this symbol actually being called into at runtime.
+        /// </summary>
+        [DataMember(Order = 3)]
+        public bool UnidirectionalHierarchyCascade { get; }
+
         public FindReferencesSearchOptions(
             bool associatePropertyReferencesWithSpecificAccessor,
             bool cascade,

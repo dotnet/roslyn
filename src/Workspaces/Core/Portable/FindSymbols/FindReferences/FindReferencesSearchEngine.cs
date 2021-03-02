@@ -67,7 +67,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
 
-                var symbols = await DetermineAllSymbolsAsync(symbol).ConfigureAwait(false);
+                var cascadeDirection = _options.UnidirectionalHierarchyCascade
+                    ? FindReferencesCascadeDirection.Up | FindReferencesCascadeDirection.Down
+                    : FindReferencesCascadeDirection.All;
+
+                var symbols = await DetermineAllSymbolsAsync(symbol, cascadeDirection).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
                 var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
