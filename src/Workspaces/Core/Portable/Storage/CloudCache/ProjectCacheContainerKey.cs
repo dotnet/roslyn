@@ -56,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Storage
             if (string.IsNullOrEmpty(projectKey.FilePath))
                 return null;
 
-            // The file path has to be relative to the solution path.
+            // The file path has to be relative to the base path the DB is associated with (either the solution-path or
+            // repo-path).
             var relativePath = PathUtilities.GetRelativePath(relativePathBase, projectKey.FilePath!);
             if (relativePath == projectKey.FilePath)
                 return null;
@@ -82,7 +83,8 @@ namespace Microsoft.CodeAnalysis.Storage
             if (string.IsNullOrEmpty(documentKey.FilePath))
                 return null;
 
-            // The file path has to be relative to the solution path.
+            // The file path has to be relative to the base path the DB is associated with (either the solution-path or
+            // repo-path).
             var relativePath = PathUtilities.GetRelativePath(relativePathBase, documentKey.FilePath!);
             if (relativePath == documentKey.FilePath)
                 return null;
