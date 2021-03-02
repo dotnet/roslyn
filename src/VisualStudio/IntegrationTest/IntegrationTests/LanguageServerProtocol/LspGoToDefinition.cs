@@ -33,7 +33,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.LanguageServerProtocol
         /// uses a different name to create the references window.
         /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1286575
         /// </summary>
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public override void GoToDefinitionWithMultipleResults()
         {
             TestGoToDefinitionWithMultipleResults(declarationWindowName: "'PartialClass' references");
