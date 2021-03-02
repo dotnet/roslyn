@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         // we load ILogger prematurely which breaks MSBuildLocator.
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static async Task GenerateWithMSBuildLocatedAsync(
-            FileInfo solutionFile, ILsifJsonWriter lsifWriter, TextWriter logFile,
+            FileInfo solutionOrProjectFile, ILsifJsonWriter lsifWriter, TextWriter logFile,
             Func<MSBuildWorkspace, Task<Solution>> openAsync)
         {
             await logFile.WriteLineAsync($"Loading {solutionFile.FullName}...");
