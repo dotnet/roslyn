@@ -6,6 +6,7 @@
 param(
   [string]$configuration = "Debug",
   [switch]$ci = $false,
+  [switch]$useGlobalNuGetCache = $true,
   [switch]$noBuild = $false,
   [switch]$help)
 
@@ -16,6 +17,7 @@ function Print-Usage() {
   Write-Host "Usage: test-rebuild.ps1"
   Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
   Write-Host "  -ci                       Set when running on CI server"
+  Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -noBuild                  If set, skips running a bootstrap build before running the rebuild"
   Write-Host "  -help                     Print help and exit"
 }
@@ -31,7 +33,7 @@ try {
 
   if (-not $noBuild) {
     Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -configuration:$configuration -pack -binaryLog }
+    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -build -bootstrap -ci:$ci -useGlobalNuGetCache:$useGlobalNuGetCache -configuration:$configuration -pack -binaryLog }
   }
 
   $dotnetInstallDir = (InitializeDotNetCli -install:$true)
