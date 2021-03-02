@@ -5,8 +5,10 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Options;
@@ -38,6 +40,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var workspace = document.Project.Solution.Workspace;
 
+            // do not load EnC service and its dependencies if the app is not running:
+            var debuggingService = workspace.Services.GetRequiredService<IDebuggingWorkspaceService>();
+            if (debuggingService.CurrentDebuggingState == DebuggingState.Design)
+            {
+                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+            }
+
+            return AnalyzeSemanticsImplAsync(document, cancellationToken);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsImplAsync(Document document, CancellationToken cancellationToken)
+        {
+            var workspace = document.Project.Solution.Workspace;
             var proxy = new RemoteEditAndContinueServiceProxy(workspace);
 
             var activeStatementSpanProvider = new DocumentActiveStatementSpanProvider(async cancellationToken =>
