@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var solution = await openAsync(msbuildWorkspace);
 
-            await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
+            await logFile.WriteLineAsync($"Load completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
             var lsifGenerator = new Generator(lsifWriter);
 
             var totalTimeInGenerationAndCompilationFetchStopwatch = Stopwatch.StartNew();
