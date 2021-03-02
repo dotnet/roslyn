@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             FileInfo solutionOrProjectFile, ILsifJsonWriter lsifWriter, TextWriter logFile,
             Func<MSBuildWorkspace, Task<Solution>> openAsync)
         {
-            await logFile.WriteLineAsync($"Loading {solutionFile.FullName}...");
+            await logFile.WriteLineAsync($"Loading {solutionOrProjectFile.FullName}...");
 
             var solutionLoadStopwatch = Stopwatch.StartNew();
 
