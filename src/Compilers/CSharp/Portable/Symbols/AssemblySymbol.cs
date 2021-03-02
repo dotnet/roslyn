@@ -785,6 +785,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag warnings = null, // this is set to collect ambiguity warning for well-known types before C# 7
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
+            // Type from source always wins.
+            // After that we look in references, which may yield ambiguities. If `ignoreCorLibraryDuplicatedTypes` is set,
+            // corlib does not contribute to ambiguities (corlib loses over other references).
+            // For well-known types before C# 7, ambiguities are reported as a warning and the first candidate wins.
+            // For other types, when `ignoreCorLibraryDuplicatedTypes` isn't set, finding a candidate in corlib resolves
+            // ambiguities (corlib wins over other references).
+
             Debug.Assert(warnings is null || isWellKnownType);
 
             conflicts = default;
@@ -804,6 +811,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
 
+            // Then try corlib, when finding a result there means we've found the final result
+            bool isWellKnownTypeBeforeCSharp7 = isWellKnownType && warnings is not null;
+            if (!isWellKnownTypeBeforeCSharp7 && !ignoreCorLibraryDuplicatedTypes)
+            {
+                NamedTypeSymbol corLibCandidate = GetTopLevelTypeByMetadataName(CorLibrary, ref metadataName, assemblyOpt);
+
+                if (corLibCandidate is not null
+                    && (!isWellKnownType || IsValidWellKnownType(corLibCandidate))
+                    && !corLibCandidate.IsHiddenByCodeAnalysisEmbeddedAttribute())
+                {
+                    return corLibCandidate;
+                }
+            }
+
             Debug.Assert(this is SourceAssemblySymbol,
                 "Never include references for a non-source assembly, because they don't know about aliases.");
 
@@ -820,15 +841,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Lookup in references
-            bool onlyConsiderCorLib = false;
             foreach (var assembly in assemblies)
             {
                 Debug.Assert(!(this is SourceAssemblySymbol && assembly.IsMissing)); // Non-source assemblies can have missing references
-
-                if (onlyConsiderCorLib && assembly != CorLibrary)
-                {
-                    continue;
-                }
 
                 NamedTypeSymbol candidate = GetTopLevelTypeByMetadataName(assembly, ref metadataName, assemblyOpt);
 
@@ -847,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                Debug.Assert(!TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything2));
+                Debug.Assert(!TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything));
 
                 if ((object)result != null)
                 {
@@ -866,31 +881,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             continue;
                         }
                     }
-                    else if (isWellKnownType && warnings is null)
-                    {
-                        // For well-known types after C# 7, we prefer corlib (unless ignoreCorLibraryDuplicatedTypes is set)
-                        if (IsInCorLib(result))
-                        {
-                            // ignore candidate
-                            continue;
-                        }
-                        if (IsInCorLib(candidate))
-                        {
-                            // drop previous result
-                            result = candidate;
-                            continue;
-                        }
-                    }
 
                     if (warnings is null)
                     {
                         conflicts = (result.ContainingAssembly, candidate.ContainingAssembly);
                         result = null;
-                        if (isWellKnownType)
-                        {
-                            onlyConsiderCorLib = true;
-                            continue;
-                        }
                     }
                     else
                     {

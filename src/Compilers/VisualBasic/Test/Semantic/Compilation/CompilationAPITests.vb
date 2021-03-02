@@ -2566,51 +2566,51 @@ End Namespace
 
             If True Then
                 ' attribute in source
-                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef})
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithoutValueTupleRef}, assemblyName:="source")
                 AssertNoDeclarationDiagnostics(comp)
-                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsInSource())
+                GetWellKnownType_Verify(comp, "source")
             End If
 
             If True Then
                 ' attribute in library
-                Dim comp = CreateEmptyCompilation("", references:={corlibWithoutValueTupleRef, libWithIsExternalInitRef})
+                Dim comp = CreateEmptyCompilation("", references:={corlibWithoutValueTupleRef, libWithIsExternalInitRef}, assemblyName:="source")
                 AssertNoDeclarationDiagnostics(comp)
-                Assert.Equal("libWithIsExternalInit", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+                GetWellKnownType_Verify(comp, "libWithIsExternalInit")
             End If
 
             If True Then
                 ' attribute in corlib and in source
-                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef})
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef}, assemblyName:="source")
                 AssertNoDeclarationDiagnostics(comp)
-                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsInSource())
+                GetWellKnownType_Verify(comp, "source")
             End If
 
             If True Then
                 ' attribute in corlib, in library and in source
-                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
+                Dim comp = CreateEmptyCompilation(tuple, references:={corlibWithValueTupleRef, libWithIsExternalInitRef}, assemblyName:="source")
                 AssertNoDeclarationDiagnostics(comp)
-                Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsInSource())
+                GetWellKnownType_Verify(comp, "source")
             End If
 
             If True Then
                 ' attribute in corlib and in two libraries
                 Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef, libWithIsExternalInitRef2})
                 AssertNoDeclarationDiagnostics(comp)
-                Assert.Equal("corlibWithValueTupleRef", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
             End If
 
             If True Then
                 ' attribute in corlib and in two libraries (corlib in middle)
                 Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, corlibWithValueTupleRef, libWithIsExternalInitRef2})
                 AssertNoDeclarationDiagnostics(comp)
-                Assert.Equal("corlibWithValueTupleRef", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
             End If
 
             If True Then
                 ' attribute in corlib and in two libraries (corlib last)
                 Dim comp = CreateEmptyCompilation("", references:={libWithIsExternalInitRef, libWithIsExternalInitRef2, corlibWithValueTupleRef})
                 AssertNoDeclarationDiagnostics(comp)
-                Assert.Equal("corlibWithValueTupleRef", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
             End If
 
             If True Then
@@ -2640,14 +2640,14 @@ End Namespace
                 ' attribute in corlib and in a library
                 Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
                 AssertNoDeclarationDiagnostics(comp)
-                Assert.Equal("corlibWithValueTupleRef", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
             End If
 
             If True Then
                 ' attribute in corlib and in a library (reverse order)
                 Dim comp = CreateEmptyCompilation("", references:={corlibWithValueTupleRef, libWithIsExternalInitRef})
                 AssertNoDeclarationDiagnostics(comp)
-                Assert.Equal("corlibWithValueTupleRef", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+                GetWellKnownType_Verify(comp, "corlibWithValueTupleRef")
             End If
 
             If True Then
@@ -2656,7 +2656,15 @@ End Namespace
                     options:=TestOptions.DebugDll.WithIgnoreCorLibraryDuplicatedTypes(True))
                 AssertNoDeclarationDiagnostics(comp)
                 Assert.Equal("libWithIsExternalInit", comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+
+                ' This call doesn't use IgnoreCorLibraryDuplicatedTypes flag, so gets a different result
+                Assert.Equal("corlibWithValueTupleRef", comp.GetTypeByMetadataName("System.ValueTuple`2").ContainingAssembly.Name)
             End If
+        End Sub
+
+        Private Sub GetWellKnownType_Verify(comp As VisualBasicCompilation, expectedAssemblyName As String)
+            Assert.Equal(expectedAssemblyName, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
+            Assert.Equal(expectedAssemblyName, comp.GetTypeByMetadataName("System.ValueTuple`2").ContainingAssembly.Name)
         End Sub
 
     End Class

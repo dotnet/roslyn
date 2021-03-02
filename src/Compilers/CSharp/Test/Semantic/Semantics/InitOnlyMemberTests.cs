@@ -4643,58 +4643,51 @@ public class C
 
             {
                 // attribute in source
-                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithoutIsExternalInitRef });
+                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithoutIsExternalInitRef }, assemblyName: "source");
                 comp.VerifyEmitDiagnostics();
-                var modifier = getUsedModifier(comp);
-                Assert.True(modifier.Modifier.IsInSource());
+                verify(comp, "source");
             }
 
             {
                 // attribute in library
-                var comp = CreateEmptyCompilation(new[] { source }, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef });
+                var comp = CreateEmptyCompilation(new[] { source }, references: new[] { corlibWithoutIsExternalInitRef, libWithIsExternalInitRef }, assemblyName: "source");
                 comp.VerifyEmitDiagnostics();
-                var modifier = getUsedModifier(comp);
-                Assert.Equal("libWithIsExternalInit", modifier.Modifier.ContainingAssembly.Name);
+                verify(comp, "libWithIsExternalInit");
             }
 
             {
                 // attribute in corlib and in source
-                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithIsExternalInitRef });
+                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithIsExternalInitRef }, assemblyName: "source");
                 comp.VerifyEmitDiagnostics();
-                var modifier = getUsedModifier(comp);
-                Assert.True(modifier.Modifier.IsInSource());
+                verify(comp, "source");
             }
 
             {
                 // attribute in corlib, in library and in source
-                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef });
+                var comp = CreateEmptyCompilation(new[] { source, IsExternalInitTypeDefinition }, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef }, assemblyName: "source");
                 comp.VerifyEmitDiagnostics();
-                var modifier = getUsedModifier(comp);
-                Assert.True(modifier.Modifier.IsInSource());
+                verify(comp, "source");
             }
 
             {
                 // attribute in corlib and in two libraries
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef, libWithIsExternalInitRef2 });
                 comp.VerifyEmitDiagnostics();
-                var modifiers = getUsedModifier(comp);
-                Assert.Equal("corlibWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+                verify(comp, "corlibWithIsExternalInit");
             }
 
             {
                 // attribute in corlib and in two libraries (corlib in middle)
                 var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, corlibWithIsExternalInitRef, libWithIsExternalInitRef2 });
                 comp.VerifyEmitDiagnostics();
-                var modifiers = getUsedModifier(comp);
-                Assert.Equal("corlibWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+                verify(comp, "corlibWithIsExternalInit");
             }
 
             {
                 // attribute in corlib and in two libraries (corlib last)
                 var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, libWithIsExternalInitRef2, corlibWithIsExternalInitRef });
                 comp.VerifyEmitDiagnostics();
-                var modifiers = getUsedModifier(comp);
-                Assert.Equal("corlibWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+                verify(comp, "corlibWithIsExternalInit");
             }
 
             {
@@ -4733,16 +4726,14 @@ public class C
                 // attribute in corlib and in a library
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef });
                 comp.VerifyEmitDiagnostics();
-                var modifiers = getUsedModifier(comp);
-                Assert.Equal("corlibWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+                verify(comp, "corlibWithIsExternalInit");
             }
 
             {
                 // attribute in corlib and in a library (reverse order)
                 var comp = CreateEmptyCompilation(source, references: new[] { libWithIsExternalInitRef, corlibWithIsExternalInitRef });
                 comp.VerifyEmitDiagnostics();
-                var modifiers = getUsedModifier(comp);
-                Assert.Equal("corlibWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+                verify(comp, "corlibWithIsExternalInit");
             }
 
             {
@@ -4750,13 +4741,23 @@ public class C
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef },
                     options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
                 comp.VerifyEmitDiagnostics();
-                var modifiers = getUsedModifier(comp);
-                Assert.Equal("libWithIsExternalInit", modifiers.Modifier.ContainingAssembly.Name);
+
+                var modifier = ((SourcePropertySymbol)comp.GlobalNamespace.GetMember("C.Property")).SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
+                Assert.Equal("libWithIsExternalInit", modifier.Modifier.ContainingAssembly.Name);
+
+                Assert.Equal("libWithIsExternalInit", comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsExternalInit).ContainingAssembly.Name);
+
+                // This call doesn't use IgnoreCorLibraryDuplicatedTypes flag, so gets a different result
+                Assert.Equal("corlibWithIsExternalInit", comp.GetTypeByMetadataName("System.Runtime.CompilerServices.IsExternalInit").ContainingAssembly.Name);
             }
 
-            static CustomModifier getUsedModifier(CSharpCompilation comp)
+            static void verify(CSharpCompilation comp, string expectedAssemblyName)
             {
-                return ((SourcePropertySymbol)comp.GlobalNamespace.GetMember("C.Property")).SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
+                var modifier = ((SourcePropertySymbol)comp.GlobalNamespace.GetMember("C.Property")).SetMethod.ReturnTypeWithAnnotations.CustomModifiers.Single();
+                Assert.Equal(expectedAssemblyName, modifier.Modifier.ContainingAssembly.Name);
+
+                Assert.Equal(expectedAssemblyName, comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsExternalInit).ContainingAssembly.Name);
+                Assert.Equal(expectedAssemblyName, comp.GetTypeByMetadataName("System.Runtime.CompilerServices.IsExternalInit").ContainingAssembly.Name);
             }
         }
     }
