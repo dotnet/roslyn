@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Storage
             DocumentKey documentKey)
         {
             // See if we can get a project key for this info.  If not, we def can't get a doc key.
-            var projectContinerKey = CreateProjectContainerKey(relativePathBase, documentKey.Project);
-            if (projectContinerKey == null)
+            var projectContainerKey = CreateProjectContainerKey(relativePathBase, documentKey.Project);
+            if (projectContainerKey == null)
                 return null;
 
             // We have to have a file path for this document
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Storage
             if (relativePath == documentKey.FilePath)
                 return null;
 
-            var dimensions = projectContinerKey.Value.Dimensions
+            var dimensions = projectContainerKey.Value.Dimensions
                 .Add($"{nameof(DocumentKey)}.{nameof(DocumentKey.Name)}", documentKey.Name)
                 .Add($"{nameof(DocumentKey)}.{nameof(DocumentKey.FilePath)}", relativePath);
 
