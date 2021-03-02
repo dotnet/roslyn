@@ -18,54 +18,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.LanguageServerProtocol
     /// These tests test behavior that only applies to the LSP version of goto definition.
     /// </summary>
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class LspGoToDefinition : AbstractEditorTest
+    [Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+    public class LspGoToDefinition : CSharpGoToDefinition
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
         public LspGoToDefinition(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(LspGoToDefinition))
+            : base(instanceFactory)
         {
         }
 
         /// <summary>
-        /// This test corresponds to the <see cref="CSharpGoToDefinition.GoToDefinitionWithMultipleResults"/> test.
-        /// The non-LSP version will not work due to feature parity issues with the multiple results window, mainly
-        /// different naming and grouping functionality.
+        /// We need to pass in a different window name to look for declarations in as the LSP client
+        /// uses a different name to create the references window.
+        /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1286575
         /// </summary>
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        public void GoToDefinitionWithMultipleLSP()
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        public override void GoToDefinitionWithMultipleResults()
         {
-            SetUpEditor(
-@"partial class /*Marker*/ $$PartialClass { }
-
-partial class PartialClass { int i = 0; }");
-
-            VisualStudio.Editor.GoToDefinition("Class1.cs");
-
-            const string programReferencesCaption = "'PartialClass' references";
-            VisualStudio.Editor.WaitForActiveWindow(programReferencesCaption);
-            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
-
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
-
-            Assert.Collection(
-                results,
-                new Action<Reference>[]
-                {
-                    reference =>
-                    {
-                        Assert.Equal(expected: "partial class /*Marker*/ PartialClass { }", actual: reference.Code);
-                        Assert.Equal(expected: 0, actual: reference.Line);
-                        Assert.Equal(expected: 25, actual: reference.Column);
-                    },
-                    reference =>
-                    {
-                        Assert.Equal(expected: "partial class PartialClass { int i = 0; }", actual: reference.Code);
-                        Assert.Equal(expected: 2, actual: reference.Line);
-                        Assert.Equal(expected: 14, actual: reference.Column);
-                    }
-                });
+            TestGoToDefinitionWithMultipleResults(declarationWindowName: "'PartialClass' references");
         }
     }
 }

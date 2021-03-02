@@ -3,8 +3,9 @@ parameters:
     type: string
     default: 'Debug'
   - name: oop64bit
-    # Why string?  Parameters are evaluated at compile time, but all variables are strings at compile time.
-    # So in order to pass a variable in as a parameter here, it must be string.
+    # This is actually a boolean but must be defined as string.
+    # Parameters are evaluated at compile time, but all variables are strings at compile time.
+    # So in order to pass a parameter that comes from a variable these must be typed as string.
     type: string
     default: true
   - name: lspEditor

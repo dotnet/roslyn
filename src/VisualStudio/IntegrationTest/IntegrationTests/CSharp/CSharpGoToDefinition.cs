@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
         public void GoToClassDeclaration()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -49,7 +49,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
         public void GoToDefinitionOpensProvisionalTabIfDocumentNotAlreadyOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -74,21 +74,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
-        public void GoToDefinitionWithMultipleResults()
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        public virtual void GoToDefinitionWithMultipleResults()
+        {
+            TestGoToDefinitionWithMultipleResults(declarationWindowName: "'PartialClass' declarations");
+        }
+
+        protected void TestGoToDefinitionWithMultipleResults(string declarationWindowName)
         {
             SetUpEditor(
 @"partial class /*Marker*/ $$PartialClass { }
 
 partial class PartialClass { int i = 0; }");
 
-            VisualStudio.Editor.GoToDefinition("Class1.cs");
+            VisualStudio.Editor.GoToDefinition(declarationWindowName);
 
-            const string programReferencesCaption = "'PartialClass' declarations";
-            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents(declarationWindowName);
 
             var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
+            Assert.Equal(expected: declarationWindowName, actual: activeWindowCaption);
 
             Assert.Collection(
                 results,

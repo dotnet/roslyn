@@ -44,13 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
 
             public bool SupportsRename(ITextBuffer textBuffer)
             {
-                // Disable rename entry points when running under the LSP editor.
-                // The LSP client will handle the rename request.
-                if (textBuffer.IsInLspEditorContext())
-                {
-                    return false;
-                }
-
                 var sourceTextContainer = textBuffer.AsTextContainer();
                 if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
                 {

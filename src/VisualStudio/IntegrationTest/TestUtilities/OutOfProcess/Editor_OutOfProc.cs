@@ -365,16 +365,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }).ToArray();
         }
 
-        public void GoToDefinition(string viewName)
+        public void GoToDefinition(string expectedWindowName)
         {
             _editorInProc.GoToDefinition();
-            _editorInProc.WaitForActiveView(viewName);
+            _editorInProc.WaitForActiveWindow(expectedWindowName);
         }
 
-        public void GoToImplementation(string viewName)
+        public void GoToImplementation(string expectedWindowName)
         {
             _editorInProc.GoToImplementation();
-            _editorInProc.WaitForActiveView(viewName);
+            _editorInProc.WaitForActiveWindow(expectedWindowName);
         }
 
         public void SendExplicitFocus()

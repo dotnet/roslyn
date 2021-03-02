@@ -46,6 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
             var isLspEditorEnabled = experimentationService.IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
+
             // If the preview feature flag to turn on the LSP editor in local scenarios is on, advertise no capabilities for this Live Share
             // LSP server as LSP requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and remote scenarios.
             if (isLspEditorEnabled)

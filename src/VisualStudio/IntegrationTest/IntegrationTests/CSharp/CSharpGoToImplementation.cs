@@ -88,7 +88,7 @@ class Implementation : IDisposable
     }
 }");
             VisualStudio.Editor.PlaceCaret("IDisposable d", charsOffset: -1);
-            VisualStudio.Editor.GoToDefinition("IDisposable.cs");
+            VisualStudio.Editor.GoToDefinition("IDisposable [from metadata]");
             VisualStudio.Editor.GoToImplementation("FileImplementation.cs");
             VisualStudio.Editor.Verify.TextContains(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
         }
