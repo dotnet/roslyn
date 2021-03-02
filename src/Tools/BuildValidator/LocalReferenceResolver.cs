@@ -108,22 +108,21 @@ namespace BuildValidator
                             continue;
                         }
 
-                        _logger.LogTrace($"Cache candidate: {reference.FileInfo.FullName}");
                         if (GetMvidForFile(file) is not { } mvid)
                         {
-                            _logger.LogTrace($"Could not get MVID for {reference.FileInfo.FullName}");
+                            _logger.LogTrace($"Could not get MVID for {file.FullName}");
                             continue;
                         }
 
                         if (_cache.ContainsKey(mvid))
                         {
-                            _logger.LogTrace($"Already in cache: {reference.FileInfo.FullName}");
+                            _logger.LogTrace($"Already in cache: {file.FullName} - {mvid}");
                             continue;
                         }
 
                         if (mvid != reference.Mvid)
                         {
-                            _logger.LogTrace($"Mvid doesn't match reference: {reference.FileInfo.FullName} - {reference.Mvid} - {mvid}");
+                            _logger.LogTrace($"Mvid doesn't match reference: {file.FullName} - {mvid} - {reference.Mvid}");
                             continue;
                         }
 
