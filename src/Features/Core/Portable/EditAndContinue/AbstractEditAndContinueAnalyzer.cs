@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     // Edits in data member initializers and constructors are deferred, edits of other members (even on partial types)
                     // do not need merging accross partial type declarations.
-                    semanticEdits.Add(new SemanticEditInfo(editKind, lazySymbolKey.Value, syntaxMap, partialType: null));
+                    semanticEdits.Add(new SemanticEditInfo(editKind, lazySymbolKey.Value, syntaxMap, syntaxMapTree: null, partialType: null));
                 }
 
                 foreach (var (oldNode, newNode) in triviaEdits)
@@ -2714,7 +2714,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // Edits in data member initializers and constructors are deferred, edits of other members (even on partial types)
                     // do not need merging accross partial type declarations.
                     var symbolKey = SymbolKey.Create(newSymbol, cancellationToken);
-                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, partialType: null));
+                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null));
                 }
 
                 if (instanceConstructorEdits != null)
@@ -3090,6 +3090,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             SemanticEditKind.Update,
                             newCtorKey,
                             aggregateSyntaxMap,
+                            syntaxMapTree: isPartialEdit ? newSyntaxTree : null,
                             partialType: isPartialEdit ? SymbolKey.Create(newType, cancellationToken) : null));
                     }
                     else
@@ -3098,6 +3099,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             SemanticEditKind.Insert,
                             newCtorKey,
                             syntaxMap: null,
+                            syntaxMapTree: null,
                             partialType: null));
                     }
                 }

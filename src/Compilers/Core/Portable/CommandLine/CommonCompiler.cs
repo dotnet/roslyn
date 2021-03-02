@@ -1198,6 +1198,7 @@ namespace Microsoft.CodeAnalysis
                                         moduleBeingBuilt,
                                         xmlStreamDisposerOpt?.Stream,
                                         win32ResourceStreamOpt,
+                                        useRawWin32Resources: false,
                                         emitOptions.OutputNameOverride,
                                         diagnostics,
                                         cancellationToken);

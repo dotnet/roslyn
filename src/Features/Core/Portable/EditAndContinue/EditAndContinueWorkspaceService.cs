@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (baseActiveStatements.DocumentMap.TryGetValue(documentId, out var documentActiveStatements))
                 {
-                    var document = solution.GetDocument(documentId);
+                    var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                     var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, document, cancellationToken).ConfigureAwait(false);
                     if (baseDocument != null)
                     {
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var primaryDocument = solution.GetDocument(baseActiveStatement.PrimaryDocumentId);
+                var primaryDocument = await solution.GetDocumentAsync(baseActiveStatement.PrimaryDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 if (primaryDocument == null)
                 {
                     // The document has been deleted.
