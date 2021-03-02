@@ -52,13 +52,13 @@ End Class");
 End Class");
             VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "True");
 
-            VisualStudio.Editor.GoToDefinition("Class1.vb");
+            VisualStudio.Editor.GoToDefinition("Object Browser");
             Assert.Equal("Object Browser", VisualStudio.Shell.GetActiveWindowCaption());
 
             VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "False");
 
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.vb");
-            VisualStudio.Editor.GoToDefinition("Int32.vb");
+            VisualStudio.Editor.GoToDefinition("Int32 [from metadata]");
             VisualStudio.Editor.Verify.TextContains("Public Structure Int32");
         }
     }

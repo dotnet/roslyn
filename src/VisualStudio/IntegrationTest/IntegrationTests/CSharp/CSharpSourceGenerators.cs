@@ -50,8 +50,7 @@ internal static class Program
 }");
 
             VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
-            VisualStudio.Editor.GoToDefinition($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs");
-            Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
+            VisualStudio.Editor.GoToDefinition($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}");
             Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, VisualStudio.Editor.GetSelectedText());
         }
 
