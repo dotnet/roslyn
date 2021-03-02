@@ -228,10 +228,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private static async Task ExecuteCallbackAsync(QueueItem work, RequestContext context, CancellationToken queueCancellationToken)
         {
-            // Create a linked cancellation token to cancel any requests in progress when this shuts down
-            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(queueCancellationToken, work.CancellationToken);
+            // Create a combined cancellation token to cancel any requests in progress when this shuts down
+            using var combinedTokenSource = queueCancellationToken.CombineWith(work.CancellationToken);
 
-            await work.CallbackAsync(context, cancellationTokenSource.Token).ConfigureAwait(false);
+            await work.CallbackAsync(context, combinedTokenSource.Token).ConfigureAwait(false);
         }
 
         private void OnRequestServerShutdown(string message)
