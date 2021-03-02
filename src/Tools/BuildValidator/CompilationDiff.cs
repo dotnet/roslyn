@@ -58,9 +58,9 @@ namespace BuildValidator
             OriginalPath = originalPath;
         }
 
-        public static CompilationDiff CreatePlaceholder(FileInfo originalBinaryPath)
+        public static CompilationDiff CreatePlaceholder(FileInfo originalBinaryPath, bool isError)
         {
-            return new CompilationDiff(originalBinaryPath.FullName, areEqual: null);
+            return new CompilationDiff(originalBinaryPath.FullName, areEqual: isError ? false : null);
         }
 
         public static unsafe CompilationDiff Create(

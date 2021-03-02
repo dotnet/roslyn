@@ -68,9 +68,13 @@ namespace BuildValidator
             throw new Exception($"Could not find referenced assembly {referenceInfo}");
         }
 
-        public ImmutableArray<MetadataReference> ResolveReferences(ImmutableArray<MetadataReferenceInfo> references)
+        public bool TryResolveReferences(ImmutableArray<MetadataReferenceInfo> references, out ImmutableArray<MetadataReference> results)
         {
-            CacheNames(references);
+            if (!CacheNames(references))
+            {
+                results = default;
+                return false;
+            }
 
             var builder = ImmutableArray.CreateBuilder<MetadataReference>(references.Length);
             foreach (var reference in references)
@@ -84,15 +88,16 @@ namespace BuildValidator
                         embedInteropTypes: reference.EmbedInteropTypes)));
             }
 
-            return builder.MoveToImmutable();
+            results = builder.MoveToImmutable();
+            return true;
         }
 
-        public void CacheNames(ImmutableArray<MetadataReferenceInfo> references)
+        public bool CacheNames(ImmutableArray<MetadataReferenceInfo> references)
         {
             if (references.All(r => _cache.ContainsKey(r.Mvid)))
             {
                 // All references have already been cached, no reason to look in the file system
-                return;
+                return true;
             }
 
             foreach (var directory in _indexDirectories)
@@ -110,19 +115,16 @@ namespace BuildValidator
 
                         if (GetMvidForFile(file) is not { } mvid)
                         {
-                            _logger.LogTrace($"Could not get MVID for {file.FullName}");
                             continue;
                         }
 
                         if (_cache.ContainsKey(mvid))
                         {
-                            _logger.LogTrace($"Already in cache: {file.FullName} - {mvid}");
                             continue;
                         }
 
                         if (mvid != reference.Mvid)
                         {
-                            _logger.LogTrace($"Mvid doesn't match reference: {file.FullName} - {mvid} - {reference.Mvid}");
                             continue;
                         }
 
@@ -135,13 +137,15 @@ namespace BuildValidator
             var uncached = references.Where(m => !_cache.ContainsKey(m.Mvid)).ToArray();
             if (uncached.Any())
             {
-                using var _ = _logger.BeginScope($"Missing metadata references:");
+                using var _ = _logger.BeginScope($"Missing {uncached.Length} metadata references:");
                 foreach (var missingReference in uncached)
                 {
                     _logger.LogError($@"{missingReference.Name} - {missingReference.Mvid}");
                 }
-                throw new Exception($"Cannot resolve {uncached.Length} references");
+                return false;
             }
+
+            return true;
         }
 
         private static Guid? GetMvidForFile(FileInfo fileInfo)
