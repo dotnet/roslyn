@@ -481,7 +481,7 @@ Imports System
 class C
     public sub new(s as string)
         If String.IsNullOrEmpty(s) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(s)}")}"", NameOf(s))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(s)}").Replace("""", """""")}"", NameOf(s))
         End If
     end sub
 end class", index:=1)
@@ -503,7 +503,7 @@ Imports System
 class C
     public sub new(s as string)
         If String.IsNullOrWhiteSpace(s) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{NameOf(s)}")}"", NameOf(s))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_whitespace, "{NameOf(s)}").Replace("""", """""")}"", NameOf(s))
         End If
     end sub
 end class", index:=2)
@@ -556,15 +556,15 @@ Imports System
 class C
     public sub new(a as string, b as string, c as string)
         If String.IsNullOrEmpty(a) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(a)}")}"", NameOf(a))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(a)}").Replace("""", """""")}"", NameOf(a))
         End If
 
         If String.IsNullOrEmpty(b) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}")}"", NameOf(b))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}").Replace("""", """""")}"", NameOf(b))
         End If
 
         If String.IsNullOrEmpty(c) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(c)}")}"", NameOf(c))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(c)}").Replace("""", """""")}"", NameOf(c))
         End If
     end sub
 end class", index:=3)
@@ -586,7 +586,7 @@ Imports System
 class C
     public sub new(a as boolean, b as string, c as object)
         If String.IsNullOrEmpty(b) Then
-            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}")}"", NameOf(b))
+            Throw New ArgumentException($""{String.Format(FeaturesResources._0_cannot_be_null_or_empty, "{NameOf(b)}").Replace("""", """""")}"", NameOf(b))
         End If
 
         If c Is Nothing Then
