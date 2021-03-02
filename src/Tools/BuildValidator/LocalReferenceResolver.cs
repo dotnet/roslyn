@@ -87,9 +87,9 @@ namespace BuildValidator
             return builder.MoveToImmutable();
         }
 
-        public void CacheNames(ImmutableArray<MetadataReferenceInfo> names)
+        public void CacheNames(ImmutableArray<MetadataReferenceInfo> references)
         {
-            if (names.All(r => _cache.ContainsKey(r.Mvid)))
+            if (references.All(r => _cache.ContainsKey(r.Mvid)))
             {
                 // All references have already been cached, no reason to look in the file system
                 return;
@@ -101,31 +101,39 @@ namespace BuildValidator
                 {
                     // A single file name can have multiple MVID, so compare by name first then
                     // open the files to check the MVID 
-                    var potentialMatches = names.Where(m => FileNameEqualityComparer.Instance.Equals(m.FileInfo, file));
-
-                    if (!potentialMatches.Any())
+                    foreach (var reference in references)
                     {
-                        continue;
-                    }
+                        if (reference.FileInfo.Name != file.Name)
+                        {
+                            continue;
+                        }
 
-                    if (GetMvidForFile(file) is not { } mvid || _cache.ContainsKey(mvid))
-                    {
-                        continue;
-                    }
+                        _logger.LogTrace($"Cache candidate: {reference.FileInfo.FullName}");
+                        if (GetMvidForFile(file) is not { } mvid)
+                        {
+                            _logger.LogTrace($"Could not get MVID for {reference.FileInfo.FullName}");
+                            continue;
+                        }
 
-                    var matchedReference = potentialMatches.FirstOrDefault(m => m.Mvid == mvid);
-                    if (matchedReference.FileInfo is null)
-                    {
-                        continue;
-                    }
+                        if (_cache.ContainsKey(mvid))
+                        {
+                            _logger.LogTrace($"Already in cache: {reference.FileInfo.FullName}");
+                            continue;
+                        }
 
-                    _logger.LogTrace($"Caching [{mvid}, {file.FullName}]");
-                    _cache[mvid] = file.FullName;
+                        if (mvid != reference.Mvid)
+                        {
+                            _logger.LogTrace($"Mvid doesn't match reference: {reference.FileInfo.FullName} - {reference.Mvid} - {mvid}");
+                            continue;
+                        }
+
+                        _logger.LogTrace($"Caching [{mvid}, {file.FullName}]");
+                        _cache[mvid] = file.FullName;
+                    }
                 }
             }
 
-            var uncached = names.Where(m => !_cache.ContainsKey(m.Mvid)).ToArray();
-
+            var uncached = references.Where(m => !_cache.ContainsKey(m.Mvid)).ToArray();
             if (uncached.Any())
             {
                 using var _ = _logger.BeginScope($"Missing metadata references:");
