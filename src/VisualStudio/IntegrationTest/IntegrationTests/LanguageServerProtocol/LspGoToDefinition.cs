@@ -34,7 +34,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.LanguageServerProtocol
         /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1286575
         /// </summary>
         [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
-        [ConditionalFact]
         public override void GoToDefinitionWithMultipleResults()
         {
             TestGoToDefinitionWithMultipleResults(declarationWindowName: "'PartialClass' references");
