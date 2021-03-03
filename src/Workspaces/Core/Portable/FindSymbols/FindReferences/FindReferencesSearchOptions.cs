@@ -62,38 +62,49 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public FindReferencesSearchOptions(
             bool associatePropertyReferencesWithSpecificAccessor,
             bool cascade,
-            bool @explicit)
+            bool @explicit,
+            bool unidirectionalHierarchyCascade)
         {
             AssociatePropertyReferencesWithSpecificAccessor = associatePropertyReferencesWithSpecificAccessor;
             Cascade = cascade;
             Explicit = @explicit;
+            UnidirectionalHierarchyCascade = unidirectionalHierarchyCascade;
         }
 
         public FindReferencesSearchOptions With(
             Optional<bool> associatePropertyReferencesWithSpecificAccessor = default,
             Optional<bool> cascade = default,
-            Optional<bool> @explicit = default)
+            Optional<bool> @explicit = default,
+            Optional<bool> unidirectionalHierarchyCascade = default)
         {
             var newAssociatePropertyReferencesWithSpecificAccessor = associatePropertyReferencesWithSpecificAccessor.HasValue ? associatePropertyReferencesWithSpecificAccessor.Value : AssociatePropertyReferencesWithSpecificAccessor;
             var newCascade = cascade.HasValue ? cascade.Value : Cascade;
             var newExplicit = @explicit.HasValue ? @explicit.Value : Explicit;
+            var newUnidirectionalHierarchyCascade = unidirectionalHierarchyCascade.HasValue ? unidirectionalHierarchyCascade.Value : Explicit;
 
             if (newAssociatePropertyReferencesWithSpecificAccessor == AssociatePropertyReferencesWithSpecificAccessor &&
                 newCascade == Cascade &&
-                newExplicit == Explicit)
+                newExplicit == Explicit &&
+                newUnidirectionalHierarchyCascade == UnidirectionalHierarchyCascade)
             {
                 return this;
             }
 
-            return new FindReferencesSearchOptions(newAssociatePropertyReferencesWithSpecificAccessor, newCascade, newExplicit);
+            return new FindReferencesSearchOptions(
+                newAssociatePropertyReferencesWithSpecificAccessor,
+                newCascade,
+                newExplicit,
+                newUnidirectionalHierarchyCascade);
         }
 
         /// <summary>
-        /// For IDE features, if the user starts searching on an accessor, then we want to give
-        /// results associated with the specific accessor.  Otherwise, if they search on a property,
-        /// then associate everything with the property.
+        /// For IDE features, if the user starts searching on an accessor, then we want to give results associated with
+        /// the specific accessor.  Otherwise, if they search on a property, then associate everything with the
+        /// property.  We also only want to travel an inheritance hierarchy unidirectionally so that we only see potential
+        /// references that could actually reach this particular member.
         /// </summary>
         public static FindReferencesSearchOptions GetFeatureOptionsForStartingSymbol(ISymbol symbol)
-            => Default.With(associatePropertyReferencesWithSpecificAccessor: symbol.IsPropertyAccessor());
+            => Default.With(associatePropertyReferencesWithSpecificAccessor: symbol.IsPropertyAccessor(),
+                            unidirectionalHierarchyCascade: true);
     }
 }

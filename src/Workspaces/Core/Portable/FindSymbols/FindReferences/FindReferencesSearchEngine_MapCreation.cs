@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         if (symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>() is { } service)
                         {
                             symbols = await service.DetermineCascadedSymbolsAsync(
-                                searchSymbol, symbolProject, _cancellationToken).ConfigureAwait(false);
+                                searchSymbol, symbolProject, cascadeDirection, _cancellationToken).ConfigureAwait(false);
                             AddSymbolTasks(result, symbols, symbolTasks);
                         }
 
@@ -177,8 +177,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     Contract.ThrowIfNull(symbol);
                     _cancellationToken.ThrowIfCancellationRequested();
+
+                    // If we're cascading unidirectionally, then keep going in the direction this symbol was found in.
+                    // Otherwise, if we're not unidirectional, then continue to cascade in both directions with this
+                    // symbol.
+                    var finalDirection = _options.UnidirectionalHierarchyCascade
+                        ? cascadeDirection
+                        : FindReferencesCascadeDirection.UpAndDown;
                     symbolTasks.Add(Task.Factory.StartNew(
-                        () => DetermineAllSymbolsCoreAsync(symbol, cascadeDirection, result), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                        () => DetermineAllSymbolsCoreAsync(symbol, finalDirection, result), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                 }
             }
         }
