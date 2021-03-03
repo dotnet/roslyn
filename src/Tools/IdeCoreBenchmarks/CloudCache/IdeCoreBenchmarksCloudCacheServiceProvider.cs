@@ -20,8 +20,8 @@ using Roslyn.Utilities;
 
 namespace CloudCache
 {
-    [ExportWorkspaceService(typeof(ICloudCacheServiceProvider), ServiceLayer.Host), Shared]
-    internal class IdeCoreBenchmarksCloudCacheServiceProvider : ICloudCacheServiceProvider
+    [ExportWorkspaceService(typeof(IRoslynCloudCacheServiceProvider), ServiceLayer.Host), Shared]
+    internal class IdeCoreBenchmarksCloudCacheServiceProvider : IRoslynCloudCacheServiceProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
