@@ -12,6 +12,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
+    /// <summary>
+    /// Base implementation of <see cref="IRoslynCloudCacheService"/> that sits on top of the VS platform's <see
+    /// cref="ICacheService"/>, taking care of all common logic.
+    /// </summary>
     internal abstract class AbstractCloudCacheService : IRoslynCloudCacheService
     {
         protected readonly ICacheService CacheService;
