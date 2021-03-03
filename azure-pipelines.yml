@@ -251,4 +251,4 @@ jobs:
     - template: eng/pipelines/publish-logs.yml
       parameters:
         jobName: Correctness_Rebuild
-        configuration: Debug
+        configuration: Release
