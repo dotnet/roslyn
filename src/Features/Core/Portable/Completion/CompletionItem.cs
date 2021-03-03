@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// changes to other parts of the file.
         /// Complex resolution is used so we only do the minimum amount of work
         /// needed to display completion items. It is performed only for the
-        /// committed item just prior to commit. Thus, it is a good place to put in
-        /// any expensive completion work that does not affect the display of the
-        /// item in the completion list, but is necessary for committing the item.
+        /// committed item just prior to commit. Thus, it is ideal for any expensive
+        /// completion work that does not affect the display of the item in the
+        /// completion list, but is necessary for committing the item.
         /// An example of an item type requiring complex resolution is C#/VB
         /// override completion.
         /// </summary>
