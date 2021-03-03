@@ -253,7 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
 
                 ErrorHandler.ThrowOnFailure(_codeWindow.GetBuffer(out var buffer));
-                var textContainer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer).AsTextContainer();
+                var textContainer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer)?.AsTextContainer();
                 _workspaceRegistration = CodeAnalysis.Workspace.GetWorkspaceRegistration(textContainer);
                 _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
 
