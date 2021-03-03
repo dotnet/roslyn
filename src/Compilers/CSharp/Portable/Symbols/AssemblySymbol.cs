@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag warnings = null, // this is set to collect ambiguity warning for well-known types before C# 7
             bool ignoreCorLibraryDuplicatedTypes = false)
         {
-            // Type from source always wins.
+            // Type from this assembly always wins.
             // After that we look in references, which may yield ambiguities. If `ignoreCorLibraryDuplicatedTypes` is set,
             // corlib does not contribute to ambiguities (corlib loses over other references).
             // For well-known types before C# 7, ambiguities are reported as a warning and the first candidate wins.
@@ -822,9 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 NamedTypeSymbol corLibCandidate = GetTopLevelTypeByMetadataName(CorLibrary, ref metadataName, assemblyOpt);
                 skipCorLibrary = true;
 
-                if (corLibCandidate is not null
-                    && (!isWellKnownType || IsValidWellKnownType(corLibCandidate))
-                    && !corLibCandidate.IsHiddenByCodeAnalysisEmbeddedAttribute())
+                if (isValidCandidate(corLibCandidate, isWellKnownType))
                 {
                     return corLibCandidate;
                 }
@@ -857,17 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 NamedTypeSymbol candidate = GetTopLevelTypeByMetadataName(assembly, ref metadataName, assemblyOpt);
 
-                if (isWellKnownType && !IsValidWellKnownType(candidate))
-                {
-                    candidate = null;
-                }
-
-                if ((object)candidate == null)
-                {
-                    continue;
-                }
-
-                if (candidate.IsHiddenByCodeAnalysisEmbeddedAttribute())
+                if (!isValidCandidate(candidate, isWellKnownType))
                 {
                     continue;
                 }
@@ -911,6 +899,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             assemblies.Free();
             return result;
+
+            bool isValidCandidate(NamedTypeSymbol candidate, bool isWellKnownType)
+            {
+                return candidate is not null
+                    && (!isWellKnownType || IsValidWellKnownType(candidate))
+                    && !candidate.IsHiddenByCodeAnalysisEmbeddedAttribute();
+            }
         }
 
         private bool IsInCorLib(NamedTypeSymbol type)

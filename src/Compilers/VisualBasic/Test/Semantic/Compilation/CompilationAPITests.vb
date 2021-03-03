@@ -2660,7 +2660,7 @@ End Namespace
             End If
         End Sub
 
-        Private Sub GetWellKnownType_Verify(comp As VisualBasicCompilation, expectedAssemblyName As String)
+        Private Shared Sub GetWellKnownType_Verify(comp As VisualBasicCompilation, expectedAssemblyName As String)
             Assert.Equal(expectedAssemblyName, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).ContainingAssembly.Name)
             Assert.Equal(expectedAssemblyName, comp.GetTypeByMetadataName("System.ValueTuple`2").ContainingAssembly.Name)
         End Sub

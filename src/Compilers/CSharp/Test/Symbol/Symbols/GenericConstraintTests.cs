@@ -3878,7 +3878,7 @@ class C : I
                     NamedTypeSymbol iEquatable = compilation.GetWellKnownType(WellKnownType.System_IEquatable_T);
                     Assert.False(iEquatable.IsErrorType());
                     Assert.Equal(1, iEquatable.Arity);
-                    Assert.True(iEquatable == (object)compilation.GetTypeByMetadataName("System.IEquatable`1"));
+                    Assert.Same(iEquatable, compilation.GetTypeByMetadataName("System.IEquatable`1"));
 
                     NamedTypeSymbol iQueryable_T = compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable_T);
                     Assert.True(iQueryable_T.IsErrorType());

@@ -528,7 +528,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 result = Nothing
             End If
 
-            If (IsAcceptableMatchForGetTypeByNameAndArity(result)) Then
+            If IsAcceptableMatchForGetTypeByNameAndArity(result) Then
                 Return result
             End If
 
@@ -548,12 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim corLibCandidate As NamedTypeSymbol = CorLibrary.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
                 skipCorLibrary = True
 
-                If corLibCandidate IsNot Nothing AndAlso
-                    (Not isWellKnownType OrElse IsValidWellKnownType(corLibCandidate)) AndAlso
-                    IsAcceptableMatchForGetTypeByNameAndArity(corLibCandidate) AndAlso
-                    Not corLibCandidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
-                    Not corLibCandidate.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
-
+                If IsValidCandidate(corLibCandidate, isWellKnownType) Then
                     Return corLibCandidate
                 End If
             End If
@@ -571,38 +566,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
 
-                If isWellKnownType AndAlso Not IsValidWellKnownType(candidate) Then
-                    candidate = Nothing
+                If Not IsValidCandidate(candidate, isWellKnownType) OrElse
+                        TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything) Then
+
+                    Continue For
                 End If
 
-                If IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso
-                        Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
-                        Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute() AndAlso
-                        Not TypeSymbol.Equals(candidate, result, TypeCompareKind.ConsiderEverything) Then
-
-                    If (result IsNot Nothing) Then
-                        ' Ambiguity
-                        If ignoreCorLibraryDuplicatedTypes Then
-                            If IsInCorLib(candidate) Then
-                                ' ignore candidate
-                                Continue For
-                            End If
-                            If IsInCorLib(result) Then
-                                ' drop previous result
-                                result = candidate
-                                Continue For
-                            End If
+                If result IsNot Nothing Then
+                    ' Ambiguity
+                    If ignoreCorLibraryDuplicatedTypes Then
+                        If IsInCorLib(candidate) Then
+                            ' ignore candidate
+                            Continue For
                         End If
-
-                        conflicts = (result.ContainingAssembly, candidate.ContainingAssembly)
-                        Return Nothing
+                        If IsInCorLib(result) Then
+                            ' drop previous result
+                            result = candidate
+                            Continue For
+                        End If
                     End If
 
-                    result = candidate
+                    conflicts = (result.ContainingAssembly, candidate.ContainingAssembly)
+                    Return Nothing
                 End If
+
+                result = candidate
             Next
 
             Return result
+        End Function
+
+        Private Function IsValidCandidate(candidate As NamedTypeSymbol, isWellKnownType As Boolean) As Boolean
+
+            Return candidate IsNot Nothing AndAlso
+                (Not isWellKnownType OrElse IsValidWellKnownType(candidate)) AndAlso
+                IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso
+                Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
+                Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute()
         End Function
 
         Private Function IsInCorLib(type As NamedTypeSymbol) As Boolean

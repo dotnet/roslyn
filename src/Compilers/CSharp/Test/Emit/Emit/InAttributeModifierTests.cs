@@ -4418,7 +4418,8 @@ public class Test
             // we prefer the type from corlib
             var m = comp.GlobalNamespace.GetTypeMember("Test").GetMethod("M");
             var attribute = m.RefCustomModifiers.Single().Modifier;
-            Assert.NotNull(attribute.ContainingAssembly.GetTypeByMetadataName("System.Object"));
+            var assembly = ((Symbols.PublicModel.NonSourceAssemblySymbol)attribute.ContainingAssembly).UnderlyingAssemblySymbol;
+            Assert.Same(assembly, assembly.CorLibrary);
         }
 
         [Fact]
