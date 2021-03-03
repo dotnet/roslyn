@@ -103,6 +103,15 @@ jobs:
     configuration: Release
     testArguments: -testCoreClr
 
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows CoreCLR IOperation Debug'
+    jobName: Test_Windows_CoreClr_IOperation_Debug
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testCoreClr -testIOperation -testCompilerOnly
+
 # Unix Build and Test Jobs
 - template: eng/pipelines/build-unix-job.yml
   parameters:
