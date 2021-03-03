@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal sealed class FindReferencesSearchOptions
     {
         public static readonly FindReferencesSearchOptions Default =
-            new(
-                associatePropertyReferencesWithSpecificAccessor: false,
+            new(associatePropertyReferencesWithSpecificAccessor: false,
                 cascade: true,
-                @explicit: true);
+                @explicit: true,
+                unidirectionalHierarchyCascade: false);
 
         /// <summary>
         /// When searching for property, associate specific references we find to the relevant
