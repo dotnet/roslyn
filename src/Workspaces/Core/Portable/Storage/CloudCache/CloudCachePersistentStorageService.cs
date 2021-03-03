@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.Storage
     internal class CloudCachePersistentStorageService : AbstractPersistentStorageService
     {
         private const string StorageExtension = "CloudCache";
-        private readonly ICloudCacheServiceProvider _provider;
+        private readonly IRoslynCloudCacheServiceProvider _provider;
 
         public CloudCachePersistentStorageService(
-            ICloudCacheServiceProvider provider, IPersistentStorageLocationService locationService)
+            IRoslynCloudCacheServiceProvider provider, IPersistentStorageLocationService locationService)
             : base(locationService)
         {
             _provider = provider;

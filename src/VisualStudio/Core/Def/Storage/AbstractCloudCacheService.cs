@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
-    internal abstract class AbstractCloudCacheService : ICloudCacheService
+    internal abstract class AbstractCloudCacheService : IRoslynCloudCacheService
     {
         protected readonly ICacheService CacheService;
 
@@ -21,10 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             CacheService = cacheService;
         }
 
-        private static CacheItemKey Convert(CloudCacheItemKey key)
+        private static CacheItemKey Convert(RoslynCloudCacheItemKey key)
             => new(Convert(key.ContainerKey), key.ItemName) { Version = key.Version };
 
-        private static CacheContainerKey Convert(CloudCacheContainerKey containerKey)
+        private static CacheContainerKey Convert(RoslynCloudCacheContainerKey containerKey)
             => new(containerKey.Component, containerKey.Dimensions);
 
         public abstract void Dispose();
@@ -44,16 +44,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             return ValueTaskFactory.CompletedTask;
         }
 
-        public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
+        public Task<bool> CheckExistsAsync(RoslynCloudCacheItemKey key, CancellationToken cancellationToken)
             => this.CacheService.CheckExistsAsync(Convert(key), cancellationToken);
 
         public ValueTask<string> GetRelativePathBaseAsync(CancellationToken cancellationToken)
             => this.CacheService.GetRelativePathBaseAsync(cancellationToken);
 
-        public Task SetItemAsync(CloudCacheItemKey key, PipeReader reader, bool shareable, CancellationToken cancellationToken)
+        public Task SetItemAsync(RoslynCloudCacheItemKey key, PipeReader reader, bool shareable, CancellationToken cancellationToken)
             => this.CacheService.SetItemAsync(Convert(key), reader, shareable, cancellationToken);
 
-        public Task<bool> TryGetItemAsync(CloudCacheItemKey key, PipeWriter writer, CancellationToken cancellationToken)
+        public Task<bool> TryGetItemAsync(RoslynCloudCacheItemKey key, PipeWriter writer, CancellationToken cancellationToken)
             => this.CacheService.TryGetItemAsync(Convert(key), writer, cancellationToken);
     }
 }

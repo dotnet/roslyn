@@ -15,8 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
-    [ExportWorkspaceService(typeof(ICloudCacheServiceProvider), WorkspaceKind.RemoteWorkspace), Shared]
-    internal class RemoteCloudCacheServiceProvider : ICloudCacheServiceProvider
+    [ExportWorkspaceService(typeof(IRoslynCloudCacheServiceProvider), WorkspaceKind.RemoteWorkspace), Shared]
+    internal class RemoteCloudCacheServiceProvider : IRoslynCloudCacheServiceProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
         {
         }
 
-        public async ValueTask<ICloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
+        public async ValueTask<IRoslynCloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
         {
             var serviceBroker = GlobalServiceBroker.GetGlobalInstance();
 

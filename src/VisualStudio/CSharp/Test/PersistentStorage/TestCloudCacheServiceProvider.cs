@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
-    internal class TestCloudCacheServiceProvider : ICloudCacheServiceProvider
+    internal class TestCloudCacheServiceProvider : IRoslynCloudCacheServiceProvider
     {
         private readonly IThreadingContext _threadingContext;
         private readonly string _relativePathBase;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _relativePathBase = relativePathBase;
         }
 
-        public async ValueTask<ICloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
+        public async ValueTask<IRoslynCloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
         {
             // Directly access VS' CacheService through their library and not as a brokered service. Then create our
             // wrapper CloudCacheService directly on that instance.

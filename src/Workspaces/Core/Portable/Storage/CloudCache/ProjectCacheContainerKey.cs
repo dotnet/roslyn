@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Storage
         /// <summary>
         /// Container key explicitly for the project itself.
         /// </summary>
-        public readonly CloudCacheContainerKey? ContainerKey;
+        public readonly RoslynCloudCacheContainerKey? ContainerKey;
 
         /// <summary>
         /// Cache from document green nodes to the container keys we've computed for it. We can avoid computing these
         /// container keys when called repeatedly for the same documents.
         /// </summary>
-        private readonly ConditionalWeakTable<TextDocumentState, StrongBox<CloudCacheContainerKey?>> _documentToContainerKey = new();
-        private readonly ConditionalWeakTable<TextDocumentState, StrongBox<CloudCacheContainerKey?>>.CreateValueCallback _documentToContainerKeyCallback;
+        private readonly ConditionalWeakTable<TextDocumentState, StrongBox<RoslynCloudCacheContainerKey?>> _documentToContainerKey = new();
+        private readonly ConditionalWeakTable<TextDocumentState, StrongBox<RoslynCloudCacheContainerKey?>>.CreateValueCallback _documentToContainerKeyCallback;
 
         public ProjectCacheContainerKey(string relativePathBase, ProjectKey projectKey)
         {
@@ -39,10 +39,10 @@ namespace Microsoft.CodeAnalysis.Storage
                 relativePathBase, DocumentKey.ToDocumentKey(projectKey, ds)));
         }
 
-        public CloudCacheContainerKey? GetValue(TextDocumentState state)
+        public RoslynCloudCacheContainerKey? GetValue(TextDocumentState state)
             => _documentToContainerKey.GetValue(state, _documentToContainerKeyCallback).Value;
 
-        public static CloudCacheContainerKey? CreateProjectContainerKey(
+        public static RoslynCloudCacheContainerKey? CreateProjectContainerKey(
             string relativePathBase, ProjectKey projectKey)
         {
             // Creates a container key for this project.  The container key is a mix of the project's name, relative
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.Storage
                 .Add($"{nameof(ProjectKey)}.{nameof(ProjectKey.FilePath)}", relativePath)
                 .Add($"{nameof(ProjectKey)}.{nameof(ProjectKey.ParseOptionsChecksum)}", projectKey.ParseOptionsChecksum.ToString());
 
-            return new CloudCacheContainerKey("Roslyn.Project", dimensions);
+            return new RoslynCloudCacheContainerKey("Roslyn.Project", dimensions);
         }
 
-        public static CloudCacheContainerKey? CreateDocumentContainerKey(
+        public static RoslynCloudCacheContainerKey? CreateDocumentContainerKey(
             string relativePathBase,
             DocumentKey documentKey)
         {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 .Add($"{nameof(DocumentKey)}.{nameof(DocumentKey.Name)}", documentKey.Name)
                 .Add($"{nameof(DocumentKey)}.{nameof(DocumentKey.FilePath)}", relativePath);
 
-            return new CloudCacheContainerKey("Roslyn.Document", dimensions);
+            return new RoslynCloudCacheContainerKey("Roslyn.Document", dimensions);
         }
     }
 }

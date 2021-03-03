@@ -30,7 +30,7 @@ namespace CloudCache
             Console.WriteLine($"Instantiated {nameof(IdeCoreBenchmarksCloudCacheServiceProvider)}");
         }
 
-        public async ValueTask<ICloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
+        public async ValueTask<IRoslynCloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
         {
             var authorizationServiceClient = new AuthorizationServiceClient(new AuthorizationServiceMock());
             var solutionService = new SolutionServiceMock();
@@ -52,7 +52,7 @@ namespace CloudCache
             return new IdeCoreBenchmarksCloudCacheService(cacheService);
         }
 
-        private class IdeCoreBenchmarksCloudCacheService : ICloudCacheService
+        private class IdeCoreBenchmarksCloudCacheService : IRoslynCloudCacheService
         {
             private readonly ICacheService _cacheService;
 
@@ -61,10 +61,10 @@ namespace CloudCache
                 _cacheService = cacheService;
             }
 
-            private static CacheItemKey Convert(CloudCacheItemKey key)
+            private static CacheItemKey Convert(RoslynCloudCacheItemKey key)
                 => new(Convert(key.ContainerKey), key.ItemName) { Version = key.Version };
 
-            private static CacheContainerKey Convert(CloudCacheContainerKey containerKey)
+            private static CacheContainerKey Convert(RoslynCloudCacheContainerKey containerKey)
                 => new(containerKey.Component, containerKey.Dimensions);
 
             public void Dispose()
@@ -73,16 +73,16 @@ namespace CloudCache
             public ValueTask DisposeAsync()
                 => (_cacheService as IAsyncDisposable)?.DisposeAsync() ?? ValueTaskFactory.CompletedTask;
 
-            public Task<bool> CheckExistsAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
+            public Task<bool> CheckExistsAsync(RoslynCloudCacheItemKey key, CancellationToken cancellationToken)
                 => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);
 
             public ValueTask<string> GetRelativePathBaseAsync(CancellationToken cancellationToken)
                 => _cacheService.GetRelativePathBaseAsync(cancellationToken);
 
-            public Task SetItemAsync(CloudCacheItemKey key, PipeReader reader, bool shareable, CancellationToken cancellationToken)
+            public Task SetItemAsync(RoslynCloudCacheItemKey key, PipeReader reader, bool shareable, CancellationToken cancellationToken)
                 => _cacheService.SetItemAsync(Convert(key), reader, shareable, cancellationToken);
 
-            public Task<bool> TryGetItemAsync(CloudCacheItemKey key, PipeWriter writer, CancellationToken cancellationToken)
+            public Task<bool> TryGetItemAsync(RoslynCloudCacheItemKey key, PipeWriter writer, CancellationToken cancellationToken)
                 => _cacheService.TryGetItemAsync(Convert(key), writer, cancellationToken);
         }
     }

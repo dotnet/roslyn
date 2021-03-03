@@ -16,8 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
-    [ExportWorkspaceService(typeof(ICloudCacheServiceProvider), ServiceLayer.Host), Shared]
-    internal class VisualStudioCloudCacheServiceProvider : ICloudCacheServiceProvider
+    [ExportWorkspaceService(typeof(IRoslynCloudCacheServiceProvider), ServiceLayer.Host), Shared]
+    internal class VisualStudioCloudCacheServiceProvider : IRoslynCloudCacheServiceProvider
     {
         private readonly IAsyncServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
-        public async ValueTask<ICloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
+        public async ValueTask<IRoslynCloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
         {
             var serviceContainer = await _serviceProvider.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>().ConfigureAwait(false);
             var serviceBroker = serviceContainer.GetFullAccessServiceBroker();

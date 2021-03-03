@@ -8,8 +8,8 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
-    internal interface ICloudCacheServiceProvider : IWorkspaceService
+    internal interface IRoslynCloudCacheServiceProvider : IWorkspaceService
     {
-        ValueTask<ICloudCacheService> CreateCacheAsync(CancellationToken cancellationToken);
+        ValueTask<IRoslynCloudCacheService> CreateCacheAsync(CancellationToken cancellationToken);
     }
 }

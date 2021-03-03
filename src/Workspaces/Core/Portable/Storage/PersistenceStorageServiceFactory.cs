@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Storage
                     return new SQLitePersistentStorageService(_connectionPoolService, locationService);
 
                 case StorageDatabase.CloudCache:
-                    var provider = workspaceServices.GetService<ICloudCacheServiceProvider>();
+                    var provider = workspaceServices.GetService<IRoslynCloudCacheServiceProvider>();
                     if (provider == null && mustSucceed)
-                        throw new InvalidOperationException($"Could not obtain {nameof(ICloudCacheServiceProvider)}");
+                        throw new InvalidOperationException($"Could not obtain {nameof(IRoslynCloudCacheServiceProvider)}");
 
                     return provider == null
                         ? NoOpPersistentStorageService.Instance

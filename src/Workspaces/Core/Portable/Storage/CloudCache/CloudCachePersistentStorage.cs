@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Storage
     internal class CloudCachePersistentStorage : AbstractPersistentStorage
     {
         private static readonly ObjectPool<byte[]> s_byteArrayPool = new(() => new byte[Checksum.HashSize]);
-        private static readonly CloudCacheContainerKey s_solutionKey = new("Roslyn.Solution");
+        private static readonly RoslynCloudCacheContainerKey s_solutionKey = new("Roslyn.Solution");
 
         /// <summary>
         /// Cache from project green nodes to the container keys we've computed for it (and the documents inside of it).
@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Storage
         /// <summary>
         /// Underlying cache service (owned by platform team) responsible for actual storage and retrieval of data.
         /// </summary>
-        private readonly ICloudCacheService _cacheService;
+        private readonly IRoslynCloudCacheService _cacheService;
 
         private readonly ConditionalWeakTable<ProjectState, ProjectCacheContainerKey>.CreateValueCallback _projectToContainerKeyCallback;
 
         public CloudCachePersistentStorage(
             SolutionKey solutionKey,
-            ICloudCacheService cacheService,
+            IRoslynCloudCacheService cacheService,
             string workingFolderPath,
             string relativePathBase,
             string databaseFilePath)
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// Maps our own roslyn key to the appropriate key to use for the cloud cache system.  To avoid lots of
         /// allocations we cache these (weakly) so if the same keys are used we can use the same platform keys.
         /// </summary>
-        private CloudCacheContainerKey? GetContainerKey(ProjectKey projectKey)
+        private RoslynCloudCacheContainerKey? GetContainerKey(ProjectKey projectKey)
         {
             var state = projectKey.ProjectState;
             return state != null
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// Maps our own roslyn key to the appropriate key to use for the cloud cache system.  To avoid lots of
         /// allocations we cache these (weakly) so if the same keys are used we can use the same platform keys.
         /// </summary>
-        private CloudCacheContainerKey? GetContainerKey(DocumentKey documentKey)
+        private RoslynCloudCacheContainerKey? GetContainerKey(DocumentKey documentKey)
         {
             var projectState = documentKey.Project.ProjectState;
             var documentState = documentKey.DocumentState;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Storage
         public override Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, string name, Checksum checksum, CancellationToken cancellationToken)
             => ChecksumMatchesAsync(name, checksum, GetContainerKey(documentKey), cancellationToken);
 
-        private async Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
+        private async Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, RoslynCloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
             // If we failed to get a container key (for example, because the client is referencing a file not under the
             // solution folder) then we can't proceed.
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Storage
             using var bytes = s_byteArrayPool.GetPooledObject();
             checksum.WriteTo(bytes.Object);
 
-            return await _cacheService.CheckExistsAsync(new CloudCacheItemKey(containerKey.Value, name, bytes.Object), cancellationToken).ConfigureAwait(false);
+            return await _cacheService.CheckExistsAsync(new RoslynCloudCacheItemKey(containerKey.Value, name, bytes.Object), cancellationToken).ConfigureAwait(false);
         }
 
         public override Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Storage
         public override Task<Stream?> ReadStreamAsync(DocumentKey documentKey, string name, Checksum? checksum, CancellationToken cancellationToken)
             => ReadStreamAsync(name, checksum, GetContainerKey(documentKey), cancellationToken);
 
-        private async Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
+        private async Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, RoslynCloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
             // If we failed to get a container key (for example, because teh client is referencing a file not under the
             // solution folder) then we can't proceed.
@@ -119,18 +119,18 @@ namespace Microsoft.CodeAnalysis.Storage
 
             if (checksum == null)
             {
-                return await ReadStreamAsync(new CloudCacheItemKey(containerKey.Value, name), cancellationToken).ConfigureAwait(false);
+                return await ReadStreamAsync(new RoslynCloudCacheItemKey(containerKey.Value, name), cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 using var bytes = s_byteArrayPool.GetPooledObject();
                 checksum.WriteTo(bytes.Object);
 
-                return await ReadStreamAsync(new CloudCacheItemKey(containerKey.Value, name, bytes.Object), cancellationToken).ConfigureAwait(false);
+                return await ReadStreamAsync(new RoslynCloudCacheItemKey(containerKey.Value, name, bytes.Object), cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task<Stream?> ReadStreamAsync(CloudCacheItemKey key, CancellationToken cancellationToken)
+        private async Task<Stream?> ReadStreamAsync(RoslynCloudCacheItemKey key, CancellationToken cancellationToken)
         {
             var pipe = new Pipe();
             var result = await _cacheService.TryGetItemAsync(key, pipe.Writer, cancellationToken).ConfigureAwait(false);
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Storage
         public override Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             => WriteStreamAsync(name, stream, checksum, GetContainerKey(documentKey), cancellationToken);
 
-        private async Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
+        private async Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, RoslynCloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
             // If we failed to get a container key (for example, because teh client is referencing a file not under the
             // solution folder) then we can't proceed.
@@ -173,18 +173,18 @@ namespace Microsoft.CodeAnalysis.Storage
 
             if (checksum == null)
             {
-                return await WriteStreamAsync(new CloudCacheItemKey(containerKey.Value, name), stream, cancellationToken).ConfigureAwait(false);
+                return await WriteStreamAsync(new RoslynCloudCacheItemKey(containerKey.Value, name), stream, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 using var bytes = s_byteArrayPool.GetPooledObject();
                 checksum.WriteTo(bytes.Object);
 
-                return await WriteStreamAsync(new CloudCacheItemKey(containerKey.Value, name, bytes.Object), stream, cancellationToken).ConfigureAwait(false);
+                return await WriteStreamAsync(new RoslynCloudCacheItemKey(containerKey.Value, name, bytes.Object), stream, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task<bool> WriteStreamAsync(CloudCacheItemKey key, Stream stream, CancellationToken cancellationToken)
+        private async Task<bool> WriteStreamAsync(RoslynCloudCacheItemKey key, Stream stream, CancellationToken cancellationToken)
         {
             await _cacheService.SetItemAsync(key, PipeReader.Create(stream), shareable: false, cancellationToken).ConfigureAwait(false);
             return true;

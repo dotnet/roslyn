@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
     /// <summary>
     /// Tiny wrappers that takes the platform <see cref="ICacheService"/> and wraps it to our own layers as an <see
-    /// cref="ICloudCacheService"/>.
+    /// cref="IRoslynCloudCacheService"/>.
     /// </summary>
     internal class VisualStudioCloudCacheService : AbstractCloudCacheService
     {
