@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private async Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, RoslynCloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
-            // If we failed to get a container key (for example, because teh client is referencing a file not under the
+            // If we failed to get a container key (for example, because the client is referencing a file not under the
             // solution folder) then we can't proceed.
             if (containerKey == null)
                 return null;
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private async Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, RoslynCloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
-            // If we failed to get a container key (for example, because teh client is referencing a file not under the
+            // If we failed to get a container key (for example, because the client is referencing a file not under the
             // solution folder) then we can't proceed.
             if (containerKey == null)
                 return false;
