@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void GoToClassDeclaration()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -49,7 +49,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void GoToDefinitionOpensProvisionalTabIfDocumentNotAlreadyOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -74,18 +74,15 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public virtual void GoToDefinitionWithMultipleResults()
-        {
-            TestGoToDefinitionWithMultipleResults(declarationWindowName: "'PartialClass' declarations");
-        }
-
-        protected void TestGoToDefinitionWithMultipleResults(string declarationWindowName)
         {
             SetUpEditor(
 @"partial class /*Marker*/ $$PartialClass { }
 
 partial class PartialClass { int i = 0; }");
+
+            var declarationWindowName = VisualStudio.IsUsingLspEditor ? "'PartialClass' references" : "'PartialClass' declarations";
 
             VisualStudio.Editor.GoToDefinition(declarationWindowName);
 
