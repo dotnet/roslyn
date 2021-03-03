@@ -56,6 +56,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// those interface methods.  This is useful for cases where the client only wants references that could lead to
         /// this symbol actually being called into at runtime.
         /// </summary>
+        /// <remarks>
+        /// There are cases where a client will not want this behavior.  An example of that is 'Rename'.  In rename,
+        /// there is a implicit link between members in a hierarchy with the same name (and appropriate signature).  For example, in:
+        ///
+        /// <code>
+        /// interface I { void Goo(); }
+        /// class C1 : I { public void Goo() { } }
+        /// class C2 : I { public void Goo() { } }
+        /// </code>
+        /// 
+        /// If <c>C1.Goo</c> is renamed, this will need to rename <c>C2.Goo</c> as well to keep the code properly
+        /// compiling.  So, by default 'Rename' will cascade to all of these so it can appropriately update them.  This
+        /// option is the more relevant with knowing if a particular reference would actually result in a call to the
+        /// original member, not if it has a relation to the original member.
+        /// </remarks>
         [DataMember(Order = 3)]
         public bool UnidirectionalHierarchyCascade { get; }
 
