@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -75,7 +76,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             ThreadPool.SetMinThreads(Math.Max(workerThreads, NumThreads), completionPortThreads);
         }
 
-        internal abstract AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string rootFolder);
+        internal abstract AbstractPersistentStorageService GetStorageService(
+            OptionSet options, IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string rootFolder);
 
         public void Dispose()
         {
@@ -894,13 +896,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var locationService = new MockPersistentStorageLocationService(solution.Id, _persistentFolder.Path);
 
             _storageService = GetStorageService(
-                 (IMefHostExportProvider)solution.Workspace.Services.HostServices, locationService, faultInjector, _persistentFolder.Path);
+                solution.Options, (IMefHostExportProvider)solution.Workspace.Services.HostServices,
+                 locationService, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(solution, checkBranchId: true, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
             {
-                Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
+                Assert.NotEqual(NoOpPersistentStorage.TestAccessor.StorageInstance, storage);
             }
 
             return storage;
@@ -914,13 +917,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var locationService = new MockPersistentStorageLocationService(solutionKey.Id, _persistentFolder.Path);
 
             _storageService = GetStorageService(
-                (IMefHostExportProvider)workspace.Services.HostServices, locationService, faultInjector, _persistentFolder.Path);
+                workspace.Options, (IMefHostExportProvider)workspace.Services.HostServices, locationService, faultInjector, _persistentFolder.Path);
             var storage = await _storageService.GetStorageAsync(workspace, solutionKey, checkBranchId: true, CancellationToken.None);
 
             // If we're injecting faults, we expect things to be strange
             if (faultInjector == null)
             {
-                Assert.NotEqual(NoOpPersistentStorage.Instance, storage);
+                Assert.NotEqual(NoOpPersistentStorage.TestAccessor.StorageInstance, storage);
             }
 
             return storage;

@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Storage;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     public class CloudCachePersistentStorageTests : AbstractPersistentStorageTests
     {
         internal override AbstractPersistentStorageService GetStorageService(
-            IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
+            OptionSet options, IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
         {
             var provider = new TestCloudCacheServiceProvider(
                 exportProvider.GetExports<IThreadingContext>().Single().Value, relativePathBase);

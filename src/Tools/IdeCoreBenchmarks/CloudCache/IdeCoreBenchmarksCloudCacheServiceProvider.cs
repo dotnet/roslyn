@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -17,7 +16,6 @@ using Microsoft.VisualStudio.Cache;
 using Microsoft.VisualStudio.Cache.SQLite;
 using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
-using Roslyn.Utilities;
 
 namespace CloudCache
 {
