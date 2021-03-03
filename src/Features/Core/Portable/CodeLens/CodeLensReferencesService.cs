@@ -22,15 +22,20 @@ namespace Microsoft.CodeAnalysis.CodeLens
     internal sealed class CodeLensReferencesService : ICodeLensReferencesService
     {
         private static readonly SymbolDisplayFormat MethodDisplayFormat =
-            new(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            new(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType);
 
-        // Set ourselves as an implicit invocation of FindReferences.  This will cause the finding operation to operate
-        // in serial, not parallel.  We're running ephemerally in the BG and do not want to saturate the system with
-        // work that then slows the user down.
+        /// <summary>
+        /// Set ourselves as an implicit invocation of FindReferences.  This will cause the finding operation to operate
+        /// in serial, not parallel.  We're running ephemerally in the BG and do not want to saturate the system with
+        /// work that then slows the user down.  Also, only process the inheritance hierarchy unidirectionally.  We want
+        /// to find references that could actually call into a particular, not references to other members that could
+        /// never actually call into this member.
+        /// </summary>
         private static readonly FindReferencesSearchOptions s_nonParallelSearch =
-            FindReferencesSearchOptions.Default.With(@explicit: false);
+            FindReferencesSearchOptions.Default.With(
+                @explicit: false,
+                unidirectionalHierarchyCascade: true);
 
         private static async Task<T?> FindAsync<T>(Solution solution, DocumentId documentId, SyntaxNode syntaxNode,
             Func<CodeLensFindReferencesProgress, Task<T>> onResults, Func<CodeLensFindReferencesProgress, Task<T>> onCapped,

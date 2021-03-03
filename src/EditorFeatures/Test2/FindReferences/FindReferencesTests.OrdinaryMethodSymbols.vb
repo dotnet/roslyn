@@ -3628,12 +3628,12 @@ End Class
             public virtual void {|Definition:Goo|}() {}
         }
 
-        class D1 : I1, I2
+        class D1 : B, I1, I2
         {
             public override void {|Definition:Goo|}() {}
         }
 
-        class D2 : I1
+        class D2 : B, I1
         {
             public override void {|Definition:Goo|}() {}
         }
@@ -3664,14 +3664,14 @@ End Class
             public virtual void Goo() {}
         }
 
-        class D1 : I1, I2
+        class D1 : B, I1, I2
         {
             public override void {|Definition:Goo|}() {}
         }
 
-        class D2 : I1
+        class D2 : B, I1
         {
-            public override void {|Definition:Goo|}() {}
+            public override void Goo() {}
         }
         </Document>
     </Project>
@@ -3700,12 +3700,12 @@ End Class
             public virtual void {|Definition:$$Goo|}() {}
         }
 
-        class D1 : I1, I2
+        class D1 : B, I1, I2
         {
             public override void {|Definition:Goo|}() {}
         }
 
-        class D2 : I1
+        class D2 : B, I1
         {
             public override void {|Definition:Goo|}() {}
         }
@@ -3736,12 +3736,12 @@ End Class
             public virtual void {|Definition:Goo|}() {}
         }
 
-        class D1 : I1, I2
+        class D1 : B, I1, I2
         {
             public override void {|Definition:$$Goo|}() {}
         }
 
-        class D2 : I1
+        class D2 : B, I1
         {
             public override void Goo() {}
         }
@@ -3772,12 +3772,12 @@ End Class
             public virtual void {|Definition:Goo|}() {}
         }
 
-        class D1 : I1, I2
+        class D1 : B, I1, I2
         {
             public override void Goo() {}
         }
 
-        class D2 : I1
+        class D2 : B, I1
         {
             public override void {|Definition:$$Goo|}() {}
         }
