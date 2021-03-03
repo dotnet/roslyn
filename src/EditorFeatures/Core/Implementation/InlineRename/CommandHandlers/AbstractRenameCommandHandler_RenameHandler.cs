@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             return args.SubjectBuffer.TryGetWorkspace(out var workspace) &&
                 workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
-                args.SubjectBuffer.SupportsRename();
+                args.SubjectBuffer.SupportsRename() && !args.SubjectBuffer.IsInLspEditorContext();
         }
 
         private static void ShowErrorDialog(Workspace workspace, string message)
