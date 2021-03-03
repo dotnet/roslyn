@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return new((IChecksummedPersistentStorage?)null);
             }
 
-            Contract.ThrowIfNull(solutionKey.FilePath);
+            if (solutionKey.FilePath == null)
+                return NoOpPersistentStorage.Instance;
 
             return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,
