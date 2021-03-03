@@ -28198,5 +28198,27 @@ namespace System.Runtime.CompilerServices
 </member>
 ", constructor.GetDocumentationCommentXml());
         }
+
+        [Fact, WorkItem(51590, "https://github.com/dotnet/roslyn/issues/51590")]
+        public void SealedIncomplete()
+        {
+            var source = @"
+public sealed record(";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS1001: Identifier expected
+                // public sealed record(
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 21),
+                // (2,22): error CS1026: ) expected
+                // public sealed record(
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 22),
+                // (2,22): error CS1514: { expected
+                // public sealed record(
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 22),
+                // (2,22): error CS1513: } expected
+                // public sealed record(
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 22)
+                );
+        }
     }
 }
