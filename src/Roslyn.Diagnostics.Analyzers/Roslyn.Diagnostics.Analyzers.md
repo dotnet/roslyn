@@ -81,7 +81,7 @@ Part exported with MEFv2 must be marked with the 'SharedAttribute'.
 |Category|RoslynDiagnosticsReliability|
 |Enabled|True|
 |Severity|Warning|
-|CodeFix|False|
+|CodeFix|True|
 ---
 
 ## RS0032: Test exports should not be discoverable

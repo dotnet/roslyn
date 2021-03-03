@@ -436,6 +436,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 }
 
                 builder.AppendLine(ReleaseTrackingHelper.TableTitleNewRules);
+                builder.AppendLine();
                 builder.AppendLine(ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1);
                 builder.Append(ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2);
             }
@@ -449,6 +450,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 }
 
                 builder.AppendLine(ReleaseTrackingHelper.TableTitleChangedRules);
+                builder.AppendLine();
                 builder.AppendLine(ReleaseTrackingHelper.TableHeaderChangedRulesLine1);
                 builder.Append(ReleaseTrackingHelper.TableHeaderChangedRulesLine2);
             }

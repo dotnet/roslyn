@@ -375,6 +375,10 @@
   <data name="ApplyTraitToContainingType" xml:space="preserve">
     <value>Apply trait to containing type</value>
   </data>
+  <data name="AddSharedAttribute" xml:space="preserve">
+    <value>Add 'Shared' attribute</value>
+    <comment>{Locked="Shared"}</comment>
+  </data>
   <data name="DoNotCopyValueNoFieldOfCopyableTypeDescription" xml:space="preserve">
     <value>A field with a non-copyable type cannot be a member of a copyable type. The containing type can be made non-copyable or converted to a reference type, or the field can be removed or converted to a copyable type.</value>
   </data>
