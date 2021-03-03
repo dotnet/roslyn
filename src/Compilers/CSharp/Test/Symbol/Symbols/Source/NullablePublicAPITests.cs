@@ -4991,7 +4991,7 @@ namespace System
             AssertEx.Equal("(System.String a, System.String b)", model.GetTypeInfo(tupleLiteral).Type.ToTestDisplayString(includeNonNullable: false));
         }
 
-        [Fact]
+        [Fact, WorkItem(51461, "https://github.com/dotnet/roslyn/issues/51461")]
         public void LambdaInBadExpression()
         {
             var comp = CreateCompilation(@"
