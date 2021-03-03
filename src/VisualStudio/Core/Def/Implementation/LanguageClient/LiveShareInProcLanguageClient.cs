@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -47,6 +48,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public override string Name => "Live Share C#/Visual Basic Language Server Client";
 
         protected internal override VSServerCapabilities GetCapabilities()
-            => _defaultCapabilitiesProvider.GetCapabilities();
+        {
+            var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
+            var isLspEditorEnabled = experimentationService.IsExperimentEnabled(VisualStudioWorkspaceContextService.LspEditorFeatureFlagName);
+
+            // If the preview feature flag to turn on the LSP editor in local scenarios is on, advertise no capabilities for this Live Share
+            // LSP server as LSP requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and remote scenarios.
+            if (isLspEditorEnabled)
+            {
+                return new VSServerCapabilities
+                {
+                    TextDocumentSync = new TextDocumentSyncOptions
+                    {
+                        OpenClose = false,
+                        Change = TextDocumentSyncKind.None,
+                    }
+                };
+            }
+
+            return _defaultCapabilitiesProvider.GetCapabilities();
+        }
     }
 }

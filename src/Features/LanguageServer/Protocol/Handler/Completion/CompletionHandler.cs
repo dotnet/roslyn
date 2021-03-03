@@ -215,13 +215,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var completeDisplayText = stringBuilder.ToString();
                 stringBuilder.Clear();
 
-                // The TextEdits for override and partial method completions are provided in the resolve handler.
-                // We do not provide them in this handler.
-                // HACK: We should not be accessing the completion item's properties directly.
-                // See https://github.com/dotnet/roslyn/issues/51396.
-                item.Properties.TryGetValue("Modifiers", out var modifier);
-                var isOverrideOrPartialMethodCompletion = modifier != null && (modifier.Contains("Override") || modifier.Contains("Partial"));
-
                 var completionItem = new TCompletionItem
                 {
                     Label = completeDisplayText,
@@ -239,13 +232,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
                 };
 
-                // Override and partial method completions are always populated in the resolve handler, so we
-                // leave both TextEdit and InsertText unpopulated in these cases.
-                if (isOverrideOrPartialMethodCompletion)
+                // Complex text edits (e.g. override and partial method completions) are always populated in the
+                // resolve handler, so we leave both TextEdit and InsertText unpopulated in these cases.
+                if (item.IsComplexTextEdit)
                 {
                     // Razor C# is currently the only language client that supports LSP.InsertTextFormat.Snippet.
                     // We can enable it for regular C# once LSP is used for local completion.
-                    if (snippetsSupported && clientName == ProtocolConstants.RazorCSharp)
+                    if (snippetsSupported)
                     {
                         completionItem.InsertTextFormat = LSP.InsertTextFormat.Snippet;
                     }

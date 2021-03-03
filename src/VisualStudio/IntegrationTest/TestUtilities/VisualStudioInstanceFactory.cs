@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
 using Roslyn.Utilities;
@@ -312,6 +313,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
             var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
 
+            var usingLspEditor = string.Equals(Environment.GetEnvironmentVariable("ROSLYN_LSPEDITOR"), "true", StringComparison.OrdinalIgnoreCase);
+
             if (_firstLaunch)
             {
                 if (majorVersion == 16)
@@ -331,6 +334,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
+
+                var lspRegistryValue = usingLspEditor ? "1" : "0";
+                var lspFeatureFlagName = VisualStudioWorkspaceContextService.LspEditorFeatureFlagName.Replace(".", "\\");
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\{lspFeatureFlagName}\" Value dword {lspRegistryValue}")).WaitForExit();
+                Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\Telemetry\Channels", "fileLogger", 1, RegistryValueKind.DWord);
 
                 // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.
                 // We no longer set this value, but it could be in place from an earlier test run on the same machine.
@@ -368,6 +376,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             processStartInfo.Environment.Remove("DOTNET_INSTALL_DIR");
             processStartInfo.Environment.Remove("DotNetRoot");
             processStartInfo.Environment.Remove("DotNetTool");
+
+            if (usingLspEditor)
+            {
+                // When running under the LSP editor set logging to verbose to ensure LSP client logs are captured.
+                processStartInfo.Environment.Add("LogLevel", "Verbose");
+            }
 
             // The first element of the path in CI is a .dotnet used for the Roslyn build. Make sure to remove that.
             if (processStartInfo.Environment.TryGetValue("BUILD_SOURCESDIRECTORY", out var sourcesDirectory))

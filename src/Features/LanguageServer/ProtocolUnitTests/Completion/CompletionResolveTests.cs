@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         }
 
         [Fact]
+        [WorkItem(51125, "https://github.com/dotnet/roslyn/issues/51125")]
         public async Task TestResolveOverridesCompletionItemAsync()
         {
             var markup =
@@ -88,6 +89,7 @@ class B : A
         }
 
         [Fact]
+        [WorkItem(51125, "https://github.com/dotnet/roslyn/issues/51125")]
         public async Task TestResolveOverridesCompletionItem_SnippetsEnabledAsync()
         {
             var markup =
@@ -138,6 +140,7 @@ class B : A
         }
 
         [Fact]
+        [WorkItem(51125, "https://github.com/dotnet/roslyn/issues/51125")]
         public async Task TestResolveOverridesCompletionItem_SnippetsEnabled_CaretOutOfSnippetScopeAsync()
         {
             var markup =
