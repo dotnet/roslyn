@@ -1093,8 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 node = parent;
             }
 
-            // Patterns are never bindable (though their constituent types/exprs may be).
-            return node is PatternSyntax ? null : node;
+            return node;
         }
 
         public IEnumerable<SyntaxNode> GetConstructors(SyntaxNode? root, CancellationToken cancellationToken)
