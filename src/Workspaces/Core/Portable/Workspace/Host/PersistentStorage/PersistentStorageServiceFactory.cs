@@ -24,6 +24,6 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => NoOpPersistentStorageService.Instance;
+            => NoOpPersistentStorageService.GetOrThrow(workspaceServices.Workspace.Options);
     }
 }

@@ -40,32 +40,27 @@ namespace Microsoft.CodeAnalysis.Storage
 #if !DOTNET_BUILD_FROM_SOURCE
             var optionService = workspaceServices.GetRequiredService<IOptionService>();
             var database = optionService.GetOption(StorageOptions.Database);
-            var mustSucceed = workspaceServices.Workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed);
+            var options = workspaceServices.Workspace.Options;
 
             var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
-            if (locationService == null && mustSucceed)
-                throw new InvalidOperationException($"Could not obtain {nameof(IPersistentStorageLocationService)}");
-
-            if (locationService == null)
-                return NoOpPersistentStorageService.Instance;
-
-            switch (database)
+            if (locationService != null)
             {
-                case StorageDatabase.SQLite:
-                    return new SQLitePersistentStorageService(_connectionPoolService, locationService);
+                switch (database)
+                {
+                    case StorageDatabase.SQLite:
+                        return new SQLitePersistentStorageService(options, _connectionPoolService, locationService);
 
-                case StorageDatabase.CloudCache:
-                    var provider = workspaceServices.GetService<IRoslynCloudCacheServiceProvider>();
-                    if (provider == null && mustSucceed)
-                        throw new InvalidOperationException($"Could not obtain {nameof(IRoslynCloudCacheServiceProvider)}");
+                    case StorageDatabase.CloudCache:
+                        var provider = workspaceServices.GetService<IRoslynCloudCacheServiceProvider>();
 
-                    return provider == null
-                        ? NoOpPersistentStorageService.Instance
-                        : new CloudCachePersistentStorageService(provider, locationService);
+                        return provider == null
+                            ? NoOpPersistentStorageService.GetOrThrow(options)
+                            : new CloudCachePersistentStorageService(provider, locationService);
+                }
             }
 #endif
 
-            return NoOpPersistentStorageService.Instance;
+            return NoOpPersistentStorageService.GetOrThrow(options);
         }
     }
 }

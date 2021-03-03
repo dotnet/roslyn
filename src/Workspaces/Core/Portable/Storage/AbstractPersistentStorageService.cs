@@ -62,12 +62,7 @@ namespace Microsoft.CodeAnalysis.Storage
             Workspace workspace, SolutionKey solutionKey, Solution? bulkLoadSnapshot, bool checkBranchId, CancellationToken cancellationToken)
         {
             if (!DatabaseSupported(solutionKey, checkBranchId))
-            {
-                if (workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed))
-                    throw new InvalidOperationException("Database was not supported");
-
-                return new(NoOpPersistentStorage.Instance);
-            }
+                return new(NoOpPersistentStorage.GetOrThrow(workspace.Options));
 
             return GetStorageWorkerAsync(workspace, solutionKey, bulkLoadSnapshot, cancellationToken);
         }
@@ -87,12 +82,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
                 var workingFolder = TryGetWorkingFolder(workspace, solutionKey, bulkLoadSnapshot);
                 if (workingFolder == null)
-                {
-                    if (workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed))
-                        throw new InvalidOperationException("Could not find storage folder to place database in");
-
-                    return NoOpPersistentStorage.Instance;
-                }
+                    return NoOpPersistentStorage.GetOrThrow(workspace.Options);
 
                 // If we already had some previous cached service, let's let it start cleaning up
                 if (_currentPersistentStorage != null)
@@ -166,10 +156,7 @@ namespace Microsoft.CodeAnalysis.Storage
             if (result != null)
                 return result;
 
-            if (workspace.Options.GetOption(StorageOptions.DatabaseMustSucceed))
-                throw new InvalidOperationException($"{nameof(CreatePersistentStorageAsync)} failed");
-
-            return NoOpPersistentStorage.Instance;
+            return NoOpPersistentStorage.GetOrThrow(workspace.Options);
         }
 
         private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(
