@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var newAssociatePropertyReferencesWithSpecificAccessor = associatePropertyReferencesWithSpecificAccessor.HasValue ? associatePropertyReferencesWithSpecificAccessor.Value : AssociatePropertyReferencesWithSpecificAccessor;
             var newCascade = cascade.HasValue ? cascade.Value : Cascade;
             var newExplicit = @explicit.HasValue ? @explicit.Value : Explicit;
-            var newUnidirectionalHierarchyCascade = unidirectionalHierarchyCascade.HasValue ? unidirectionalHierarchyCascade.Value : Explicit;
+            var newUnidirectionalHierarchyCascade = unidirectionalHierarchyCascade.HasValue ? unidirectionalHierarchyCascade.Value : UnidirectionalHierarchyCascade;
 
             if (newAssociatePropertyReferencesWithSpecificAccessor == AssociatePropertyReferencesWithSpecificAccessor &&
                 newCascade == Cascade &&

@@ -443,7 +443,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromReference(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromReference_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -480,11 +480,52 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromDefinition(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromReference_Feature(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:Goo|}();
+        }
+
+        class C1 : I1
+        {
+            public void {|Definition:Goo|}()
+            {
+            }
+        }
+
+        interface I2 : I1
+        {
+            void {|Definition:Goo|}();
+            void Bar();
+        }
+
+        class C2 : I2
+        {
+            public void Bar()
+            {
+                [|Goo$$|]();
+            }
+
+            public void {|Definition:Goo|}();
+            {
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromDefinition_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -521,7 +562,48 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromDefinition_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:Go$$o|}();
+        }
+
+        class C1 : I1
+        {
+            public void {|Definition:Goo|}()
+            {
+            }
+        }
+
+        interface I2 : I1
+        {
+            void {|Definition:Goo|}();
+            void Bar();
+        }
+
+        class C2 : I2
+        {
+            public void Bar()
+            {
+                [|Goo|]();
+            }
+
+            public void {|Definition:Goo|}();
+            {
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -1398,7 +1480,7 @@ End Interface
 
         <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface2(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface2_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1425,12 +1507,44 @@ End Interface
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
         End Function
 
         <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface3(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface2_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+    interface I<T>
+    {
+        void {|Definition:F|}();
+    }
+
+    class Base<U> : I<U>
+    {
+        void I<U>.{|Definition:$$F|}() { }
+    }
+
+    class Derived<U, V> : Base<U>, I<V>
+    {
+        public void {|Definition:F|}()
+        {
+            [|F|]();
+        }
+    }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface3_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1457,12 +1571,44 @@ End Interface
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
         End Function
 
         <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface4(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface3_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+    interface I<T>
+    {
+        void {|Definition:F|}();
+    }
+
+    class Base<U> : I<U>
+    {
+        void I<U>.{|Definition:F|}() { }
+    }
+
+    class Derived<U, V> : Base<U>, I<V>
+    {
+        public void {|Definition:$$F|}()
+        {
+            [|F|]();
+        }
+    }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface4_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1489,7 +1635,39 @@ End Interface
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
+        End Function
+
+        <WorkItem(539033, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539033")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCascadeOrdinaryMethodFromGenericInterface4_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            <![CDATA[
+    interface I<T>
+    {
+        void {|Definition:F|}();
+    }
+
+    class Base<U> : I<U>
+    {
+        void I<U>.{|Definition:F|}() { }
+    }
+
+    class Derived<U, V> : Base<U>, I<V>
+    {
+        public void {|Definition:F|}()
+        {
+            [|$$F|]();
+        }
+    }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
         End Function
 
         <WorkItem(539046, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539046")>
