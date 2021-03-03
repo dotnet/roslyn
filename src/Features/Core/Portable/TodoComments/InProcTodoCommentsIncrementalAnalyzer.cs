@@ -5,9 +5,8 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.TodoComments;
 
-namespace Microsoft.CodeAnalysis.Editor.TodoComments
+namespace Microsoft.CodeAnalysis.TodoComments
 {
     internal sealed class InProcTodoCommentsIncrementalAnalyzer : AbstractTodoCommentsIncrementalAnalyzer
     {

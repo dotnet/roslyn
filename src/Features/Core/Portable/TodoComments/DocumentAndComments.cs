@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.TodoComments;
 
-namespace Microsoft.CodeAnalysis.Editor.TodoComments
+namespace Microsoft.CodeAnalysis.TodoComments
 {
     internal readonly struct DocumentAndComments
     {

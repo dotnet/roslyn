@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.CodeAnalysis.TodoComments;
 
-namespace Microsoft.CodeAnalysis.Editor.TodoComments
+namespace Microsoft.CodeAnalysis.TodoComments
 {
     /// <remarks>Note: this is explicitly <b>not</b> exported.  We don't want the workspace
     /// to automatically load this.  Instead, VS waits until it is ready
