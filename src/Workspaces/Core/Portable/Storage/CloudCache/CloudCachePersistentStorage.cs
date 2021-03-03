@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Storage
 
         private async Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
-            // If we failed to get a container key (for example, because teh client is referencing a file not under the
+            // If we failed to get a container key (for example, because the client is referencing a file not under the
             // solution folder) then we can't proceed.
             if (containerKey == null)
                 return false;
