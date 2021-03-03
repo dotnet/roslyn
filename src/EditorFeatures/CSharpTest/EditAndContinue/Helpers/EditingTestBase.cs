@@ -78,16 +78,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         /// <summary>
         /// Gets method edits on the current level of the source hierarchy. This means that edits on lower labeled levels of the hierarchy are not expected to be returned.
         /// </summary>
-        internal static EditScript<SyntaxNode> GetMethodEdits(string src1, string src2, MethodKind kind = MethodKind.Regular)
+        internal static EditScript<SyntaxNode> GetMethodEdits(string src1, string src2, MethodKind kind = MethodKind.Regular, string? additionalDeclarations = null)
         {
-            var match = GetMethodMatch(src1, src2, kind);
+            var match = GetMethodMatch(src1, src2, kind, additionalDeclarations);
             return match.GetTreeEdits();
         }
 
-        internal static Match<SyntaxNode> GetMethodMatch(string src1, string src2, MethodKind kind = MethodKind.Regular)
+        internal static Match<SyntaxNode> GetMethodMatch(string src1, string src2, MethodKind kind = MethodKind.Regular, string? additionalDeclarations = null)
         {
-            var m1 = MakeMethodBody(src1, kind);
-            var m2 = MakeMethodBody(src2, kind);
+            var m1 = MakeMethodBody(src1, kind, additionalDeclarations);
+            var m2 = MakeMethodBody(src2, kind, additionalDeclarations);
 
             var diagnostics = new ArrayBuilder<RudeEditDiagnostic>();
             var match = CreateAnalyzer().GetTestAccessor().ComputeBodyMatch(m1, m2, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), diagnostics, out var oldHasStateMachineSuspensionPoint, out var newHasStateMachineSuspensionPoint);
@@ -119,9 +119,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static BlockSyntax MakeMethodBody(
             string bodySource,
-            MethodKind kind = MethodKind.Regular)
+            MethodKind kind = MethodKind.Regular,
+            string additionalDeclarations = null)
         {
             var source = WrapMethodBodyWithClass(bodySource, kind);
+
+            if (additionalDeclarations is not null)
+            {
+                source += "\n\n" + additionalDeclarations;
+            }
 
             var tree = ParseSource(source);
             var root = tree.GetRoot();
