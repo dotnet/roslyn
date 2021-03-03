@@ -992,6 +992,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End Select
         End Function
 
+        Friend Overrides Function IsRecordPrimaryConstructorParameter(declaration As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Friend Overrides Function IsRecordPrimaryConstructorProperty(declaration As SyntaxNode) As Boolean
+            Return False
+        End Function
+
         Private Shared Function GetInitializerExpression(equalsValue As EqualsValueSyntax, asClause As AsClauseSyntax) As ExpressionSyntax
             If equalsValue IsNot Nothing Then
                 Return equalsValue.Value

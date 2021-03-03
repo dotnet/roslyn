@@ -423,6 +423,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool IsDeclarationWithInitializer(SyntaxNode declaration);
 
         /// <summary>
+        /// Return true if the declaration is a parameter that is part of a records primary constructor.
+        /// </summary>
+        internal abstract bool IsRecordPrimaryConstructorParameter(SyntaxNode declaration);
+
+        /// <summary>
+        /// Return true if the declaration is a property that represents one of the parameters in a records primary constructor.
+        /// </summary>
+        internal abstract bool IsRecordPrimaryConstructorProperty(SyntaxNode declaration);
+
+        /// <summary>
         /// Return true if the declaration is a constructor declaration to which field/property initializers are emitted. 
         /// </summary>
         internal abstract bool IsConstructorWithMemberInitializers(SyntaxNode declaration);
@@ -2295,7 +2305,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         continue;
                                     }
 
-                                    if (!newSymbol.IsImplicitlyDeclared)
+                                    if (IsRecordPrimaryConstructorProperty(edit.OldNode))
+                                    {
+                                        // When deleting a property of a record that represents a primary constructor parameter we need to mark each
+                                        // part of the property as processed so that they don't become delete edits.
+                                        var oldProperty = (IPropertySymbol)oldSymbol;
+                                        if (oldProperty.GetMethod is not null)
+                                        {
+                                            processedSymbols.Add(oldProperty.GetMethod);
+                                        }
+                                        if (oldProperty.SetMethod is not null)
+                                        {
+                                            processedSymbols.Add(oldProperty.SetMethod);
+                                        }
+                                    }
+                                    else if (!newSymbol.IsImplicitlyDeclared)
                                     {
                                         // Ignore the delete. The new symbol is explicitly declared and thus there will be an insert edit that will issue a semantic update.
                                         continue;
@@ -2308,8 +2332,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         continue;
                                     }
 
-                                    // If a constructor is deleted and replaced by an implicit one the update needs to aggregate updates to all data member initializers.
-                                    if (IsConstructorWithMemberInitializers(edit.OldNode))
+                                    // If a constructor is deleted and replaced by an implicit one the update needs to aggregate updates to all data member initializers,
+                                    // or if a property is deleted that is part of a records primary constructor, which is effectivelly moving from an explicit to implicit
+                                    // initializer.
+                                    if (IsConstructorWithMemberInitializers(edit.OldNode) ||
+                                        IsRecordPrimaryConstructorProperty(edit.OldNode))
                                     {
                                         processedSymbols.Remove(oldSymbol);
                                         DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newDeclaration: null, syntaxMap, oldSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
@@ -2423,11 +2450,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         var oldNode = GetSymbolDeclarationSyntax(oldSymbol.DeclaringSyntaxReferences[0], cancellationToken);
                                         var newNode = edit.NewNode;
 
-                                        // Compiler generate members of records have a declaring syntax reference to the record declaration itself
-                                        // but their explicitly implement counterparts reference the actual member. Therefore if only one of the nodes
-                                        // points to a record declaration it must be a new explicit implementation.
-                                        // Since there is no real old syntax node for these, we can't compute declaration or body edits.
-                                        if (IsRecordDeclaration(oldNode) == IsRecordDeclaration(newNode))
+                                        // Compiler generated methods of records have a declaring syntax reference to the record declaration itself
+                                        // but their explicitly implement counterparts reference the actual member. Compiler generated properties
+                                        // of records reference the parameter that names them. Based on this, we can detect a new explicit implementation
+                                        // of a record member by checking if the declaration kind has changed.
+                                        // Since there is no useful old syntax node for these members, we can't compute declaration or body edits.
+                                        if (oldNode.RawKind == newNode.RawKind)
                                         {
                                             // Compare the old declaration syntax of the symbol with its new declaration and report rude edits
                                             // if it changed in any way that's not allowed.
@@ -2474,7 +2502,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         // we don't need to aggregate syntax map from all initializers for the constructor update semantic edit.
                                         if (IsConstructorWithMemberInitializers(newNode) ||
                                             IsDeclarationWithInitializer(oldNode) ||
-                                            IsDeclarationWithInitializer(newNode))
+                                            IsDeclarationWithInitializer(newNode) ||
+                                            IsRecordPrimaryConstructorParameter(oldNode) ||
+                                            IsRecordPrimaryConstructorParameter(newNode))
                                         {
                                             processedSymbols.Remove(newSymbol);
                                             DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
@@ -3010,31 +3040,48 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     var newCtorKey = SymbolKey.Create(newCtor, cancellationToken);
 
+                    var syntaxMapToUse = aggregateSyntaxMap;
+
                     ISymbol? oldCtor;
                     if (!newCtor.IsImplicitlyDeclared)
                     {
                         // Constructors have to have a single declaration syntax, they can't be partial
                         var newDeclaration = GetSymbolDeclarationSyntax(newCtor.DeclaringSyntaxReferences.Single(), cancellationToken);
 
-                        // Constructor that doesn't contain initializers had a corresponding semantic edit produced previously 
-                        // or was not edited. In either case we should not produce a semantic edit for it.
-                        if (!IsConstructorWithMemberInitializers(newDeclaration))
+                        // Compiler generated constructors of records still have a declaring syntax reference,
+                        // but it points to the actual record declaration, not a constructor declaration
+                        if (IsRecordDeclaration(newDeclaration))
                         {
-                            continue;
+                            // We don't have the syntax for the old constructor so can't produce a map
+                            syntaxMapToUse = null;
                         }
-
-                        // If no initializer updates were made in the type we only need to produce semantic edits for constructors
-                        // whose body has been updated, otherwise we need to produce edits for all constructors that include initializers.
-                        // If changes were made to initializers or constructors of a partial type in another document they will be merged
-                        // when aggregating semantic edits from all changed documents. Rude edits resulting from those changes, if any, will
-                        // be reported in the document they were made in.
-                        if (!anyInitializerUpdatesInCurrentDocument && !updatesInCurrentDocument.ChangedDeclarations.ContainsKey(newDeclaration))
+                        else
                         {
-                            continue;
+                            // Constructor that doesn't contain initializers had a corresponding semantic edit produced previously 
+                            // or was not edited. In either case we should not produce a semantic edit for it.
+                            if (!IsConstructorWithMemberInitializers(newDeclaration))
+                            {
+                                continue;
+                            }
+
+                            // If no initializer updates were made in the type we only need to produce semantic edits for constructors
+                            // whose body has been updated, otherwise we need to produce edits for all constructors that include initializers.
+                            // If changes were made to initializers or constructors of a partial type in another document they will be merged
+                            // when aggregating semantic edits from all changed documents. Rude edits resulting from those changes, if any, will
+                            // be reported in the document they were made in.
+                            if (!anyInitializerUpdatesInCurrentDocument && !updatesInCurrentDocument.ChangedDeclarations.ContainsKey(newDeclaration))
+                            {
+                                continue;
+                            }
                         }
 
                         // To avoid costly SymbolKey resolution we first try to match the constructor in the current document
                         // and special case parameter-less constructor.
+
+                        // In the case of records, newDeclaration will point to the record declaration, and hence this
+                        // actually finds the old record declaration, but that is actually sufficient for our needs, as all
+                        // we're using it for is detecting an update, and any changes to the standard record constructors must
+                        // be an update by definition.
                         if (topMatch.TryGetOldNode(newDeclaration, out var oldDeclaration))
                         {
                             Contract.ThrowIfNull(oldModel);
@@ -3078,15 +3125,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        // New constructor is implicitly declared so it must be parameterless.
-                        //
-                        // Instance constructor:
-                        //   Its presence indicates there are no other instance constructors in the new type and therefore
-                        //   there must be a single parameterless instance constructor in the old type (constructors with parameters can't be removed).
-                        //
-                        // Static constructor:
-                        //    Static constructor is always parameterless and not implicitly generated if there are no static initializers.
-                        oldCtor = TryGetParameterlessConstructor(oldType, isStatic);
+                        if (newCtor.Parameters.Length == 0 || isStatic)
+                        {
+                            // New constructor is implicitly declared so it must be parameterless.
+                            //
+                            // Instance constructor:
+                            //   Its presence indicates there are no other instance constructors in the new type and therefore
+                            //   there must be a single parameterless instance constructor in the old type (constructors with parameters can't be removed).
+                            //
+                            // Static constructor:
+                            //    Static constructor is always parameterless and not implicitly generated if there are no static initializers.
+                            oldCtor = TryGetParameterlessConstructor(oldType, isStatic);
+                        }
+                        else
+                        {
+                            // Copy constructor of a record is implicit, but has a parameter.
+                            oldCtor = oldType.InstanceConstructors.Single(c => c.Parameters.Length == 1 && SymbolEqualityComparer.Default.Equals(c.Parameters[0].Type, c.ContainingType));
+                            syntaxMapToUse = null;
+                        }
+
                         Contract.ThrowIfFalse(isStatic || oldCtor != null);
                     }
 
@@ -3095,7 +3152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         semanticEdits.Add(new SemanticEditInfo(
                             SemanticEditKind.Update,
                             newCtorKey,
-                            aggregateSyntaxMap,
+                            syntaxMapToUse,
                             syntaxMapTree: isPartialEdit ? newSyntaxTree : null,
                             partialType: isPartialEdit ? SymbolKey.Create(newType, cancellationToken) : null));
                     }

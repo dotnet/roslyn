@@ -1554,6 +1554,42 @@ public abstract record C<T>
             edits.VerifyRudeDiagnostics();
         }
 
+        [Fact]
+        public void Record_ImplementSynthesized_Property()
+        {
+            var src1 = "record C(int X);";
+            var src2 = @"record C(int X)
+{
+    public int X { get; init; }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[0]),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[1]));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_UnImplementSynthesized_Property()
+        {
+            var src1 = @"record C(int X)
+{
+    public int X { get; init; }
+}";
+            var src2 = "record C(int X);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[0]),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[1]));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
         #endregion
 
         #region Enums
