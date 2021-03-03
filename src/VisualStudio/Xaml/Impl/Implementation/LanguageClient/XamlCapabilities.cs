@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
@@ -26,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
                 OpenClose = false
             },
             SupportsDiagnosticRequests = true,
+            OnTypeRenameProvider = new DocumentOnTypeRenameOptions { WordPattern = OnTypeRenameHandler.NamePattern },
         };
 
         /// <summary>
