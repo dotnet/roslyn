@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.TodoComments
+namespace Microsoft.CodeAnalysis.Editor.TodoComments
 {
     /// <remarks>Note: this is explicitly <b>not</b> exported.  We don't want the workspace
     /// to automatically load this.  Instead, VS waits until it is ready
