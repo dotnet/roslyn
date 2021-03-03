@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 
             var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             return linkedSymbols.SelectAsArray(s => (s, cascadeDirection));
-
         }
 
         public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
