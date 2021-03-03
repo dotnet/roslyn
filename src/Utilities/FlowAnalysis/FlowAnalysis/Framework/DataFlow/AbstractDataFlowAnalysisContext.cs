@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
-        protected abstract void ComputeHashCodePartsSpecific(Action<int> builder);
+        protected abstract void ComputeHashCodePartsSpecific(Action<int> addPart);
 
         protected sealed override void ComputeHashCodeParts(Action<int> addPart)
         {

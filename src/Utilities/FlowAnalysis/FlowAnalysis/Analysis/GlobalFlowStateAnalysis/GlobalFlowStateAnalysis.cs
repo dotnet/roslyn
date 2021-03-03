@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             return dataFlowAnalysisResult.With(operationVisitor.GetGlobalValuesMap());
         }
 
-        protected override GlobalFlowStateBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, GlobalFlowStateAnalysisData data)
-            => new(basicBlock, data);
+        protected override GlobalFlowStateBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, GlobalFlowStateAnalysisData blockAnalysisData)
+            => new(basicBlock, blockAnalysisData);
     }
 }
