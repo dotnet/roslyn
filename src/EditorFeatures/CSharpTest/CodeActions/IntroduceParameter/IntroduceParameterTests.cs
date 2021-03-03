@@ -254,7 +254,7 @@ class TestClass
 {
     private void M(int x, int y, int z)
     {
-        return M(x, y, z, x * y * z);
+        return x * y * z;
     }
 
     void M(int x, int y, int z, int v) 

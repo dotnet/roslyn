@@ -8,10 +8,12 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.IntroduceVariable;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -41,6 +43,14 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var newArgument = SyntaxFactory.Argument((ExpressionSyntax)expression.WithoutAnnotations(ExpressionAnnotationKind));
             return arguments.Add(newArgument);
         }
+
+        /*protected override IMethodSymbol GenerateNewMethodSymbol(SemanticDocument document, ExpressionSyntax expression, IMethodSymbol methodSymbol, string parameterName, CancellationToken cancellationToken)
+        {
+            var typeSymbol = document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            var newMethodIdentifier = methodSymbol.Name + "_" + parameterName;
+            var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, name: newMethodIdentifier, returnType: typeSymbol);
+            return newMethod;
+        }*/
 
         protected override bool IsMethodDeclaration(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement) || node.IsKind(SyntaxKind.MethodDeclaration) || node.IsKind(SyntaxKind.SimpleLambdaExpression);
