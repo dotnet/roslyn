@@ -7087,5 +7087,24 @@ public class Person { public Person(int id) { } }
 public class Student : Person { public Student() : $$base(0) { } }
 ", MainDescription("Person.Person(int id)"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")]
+        public async Task TestVarPattern()
+        {
+            await TestAsync(
+@"class C
+{
+    string M() { }
+
+    void M2()
+    {
+      if (M() is va$$r x && x.Length > 0)
+      {
+      }
+    }
+}",
+                MainDescription("class System.String"));
+        }
     }
 }
