@@ -5,11 +5,11 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InheritanceChainMargin;
-using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
 {
-    internal class InheritanceMarginTag : ITag
+    internal class InheritanceMarginTag : IGlyphTag
     {
         public readonly TaggedText DescriptionText;
         public readonly int LineNumber;
@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
             NavigationFunc = navigationFunc;
         }
 
-        public static InheritanceMarginTag FromInheritanceInfo(InheritanceInfo inheritanceInfo)
+        public static InheritanceMarginTag FromInheritanceInfo(InheritanceChainItem inheritanceChainItem)
         {
-
+            return null;
         }
     }
 }

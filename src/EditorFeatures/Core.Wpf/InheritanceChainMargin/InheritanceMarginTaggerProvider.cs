@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-            => TaggerEventSources.Compose(TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.Medium, AsyncListener));
+            => TaggerEventSources.Compose(TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener));
 
         protected override async Task ProduceTagsAsync(
             TaggerContext<InheritanceMarginTag> context,
@@ -43,6 +43,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
             int? caretPosition)
         {
             var document = spanToTag.Document;
+            if (document == null)
+            {
+                return;
+            }
+
             var cancellationToken = context.CancellationToken;
             var inheritanceMarginInfoService = document.GetRequiredLanguageService<IInheritanceChainInfoService>();
             var inheritanceInfoForDocument = await inheritanceMarginInfoService.GetInheritanceInfoForLineAsync(document, cancellationToken).ConfigureAwait(false);

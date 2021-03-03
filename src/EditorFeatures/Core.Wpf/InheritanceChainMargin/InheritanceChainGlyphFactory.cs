@@ -6,13 +6,18 @@ using System.Windows;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
-namespace Microsoft.CodeAnalysis.Editor.Margin.InheritanceChainMargin
+namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
 {
     internal class InheritanceChainGlyphFactory : IGlyphFactory
     {
-        public UIElement GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
+        public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
         {
-            return new InheritanceChainMargin();
+            if (tag is InheritanceMarginTag)
+            {
+                return new InheritanceChainMargin();
+            }
+
+            return null;
         }
     }
 }
