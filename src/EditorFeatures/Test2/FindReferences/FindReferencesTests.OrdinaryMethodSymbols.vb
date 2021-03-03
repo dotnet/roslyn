@@ -3607,5 +3607,184 @@ End Class
             Await TestAPIAndFeature(input, kind, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
         End Function
 
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFeatureHierarchyCascade1(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:$$Goo|}();
+        }
+
+        interface I2
+        {
+            void Goo();
+        }
+
+        class B : I1
+        {
+            public virtual void {|Definition:Goo|}() {}
+        }
+
+        class D1 : I1, I2
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+
+        class D2 : I1
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFeatureHierarchyCascade2(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void Goo();
+        }
+
+        interface I2
+        {
+            void {|Definition:$$Goo|}();
+        }
+
+        class B : I1
+        {
+            public virtual void Goo() {}
+        }
+
+        class D1 : I1, I2
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+
+        class D2 : I1
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFeatureHierarchyCascade3(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:Goo|}();
+        }
+
+        interface I2
+        {
+            void Goo();
+        }
+
+        class B : I1
+        {
+            public virtual void {|Definition:$$Goo|}() {}
+        }
+
+        class D1 : I1, I2
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+
+        class D2 : I1
+        {
+            public override void {|Definition:Goo|}() {}
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFeatureHierarchyCascade4(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:Goo|}();
+        }
+
+        interface I2
+        {
+            void {|Definition:Goo|}();
+        }
+
+        class B : I1
+        {
+            public virtual void {|Definition:Goo|}() {}
+        }
+
+        class D1 : I1, I2
+        {
+            public override void {|Definition:$$Goo|}() {}
+        }
+
+        class D2 : I1
+        {
+            public override void Goo() {}
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestFeatureHierarchyCascade5(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        interface I1
+        {
+            void {|Definition:Goo|}();
+        }
+
+        interface I2
+        {
+            void Goo();
+        }
+
+        class B : I1
+        {
+            public virtual void {|Definition:Goo|}() {}
+        }
+
+        class D1 : I1, I2
+        {
+            public override void Goo() {}
+        }
+
+        class D2 : I1
+        {
+            public override void {|Definition:$$Goo|}() {}
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
+        End Function
     End Class
 End Namespace
