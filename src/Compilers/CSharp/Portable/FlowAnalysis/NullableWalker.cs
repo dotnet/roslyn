@@ -5010,6 +5010,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var argumentNoConversion = argumentsNoConversions[i];
                     var argument = i < arguments.Length ? arguments[i] : argumentsNoConversions[i];
+
+                    // we disable nullable warnings on default arguments
+                    var previousDisableDiagnostics = _disableDiagnostics;
+                    _disableDiagnostics |= defaultArguments[i];
+
                     VisitArgumentConversionAndInboundAssignmentsAndPreConditions(
                         GetConversionIfApplicable(argument, argumentNoConversion),
                         argumentNoConversion,
@@ -5020,6 +5025,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameterAnnotations,
                         results[i],
                         invokedAsExtensionMethod && i == 0);
+
+                    _disableDiagnostics = previousDisableDiagnostics;
 
                     if (results[i].RValueType.IsNotNull || isExpandedParamsArgument)
                     {
