@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             if (this.CacheService is IAsyncDisposable asyncDisposable)
             {
                 _threadingContext.JoinableTaskFactory.Run(
-                    async () => await asyncDisposable.DisposeAsync().ConfigureAwait(false));
+                    () => asyncDisposable.DisposeAsync().AsTask());
             }
             else if (this.CacheService is IDisposable disposable)
             {
