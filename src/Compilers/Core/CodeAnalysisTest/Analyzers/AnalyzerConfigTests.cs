@@ -177,15 +177,18 @@ my_prop2 = my val2");
                 properties);
         }
 
-        [Fact]
-        public void EndOfLineComments()
+        [Theory]
+        [WorkItem(44596, "https://github.com/dotnet/roslyn/issues/44596")]
+        [InlineData(";")]
+        [InlineData("#")]
+        public void EndOfLineComments(string commentStartCharacter)
         {
-            var config = ParseConfigFile(@"
-my_prop2 = my val2 # Comment");
+            var config = ParseConfigFile($@"
+my_prop2 = my val2 {commentStartCharacter} Not A Comment");
 
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my_prop2", "my val2") },
+                new[] { KeyValuePair.Create("my_prop2", $"my val2 {commentStartCharacter} Not A Comment") },
                 properties);
         }
 
