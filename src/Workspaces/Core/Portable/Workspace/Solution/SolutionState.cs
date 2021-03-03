@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
-        public SolutionState WithProjectDocumentsOrder(ProjectId projectId, ImmutableArray<DocumentId> documentIds)
+        public SolutionState WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
             if (projectId == null)
             {
