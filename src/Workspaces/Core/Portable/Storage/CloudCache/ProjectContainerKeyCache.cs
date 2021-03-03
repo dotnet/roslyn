@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.PersistentStorage;
@@ -15,32 +16,40 @@ namespace Microsoft.CodeAnalysis.Storage
     /// store a lot of date in them (like their 'dimensions' dictionary.  We don't want to continually recreate these as
     /// we read/write date to the db.
     /// </summary>
-    internal class ContainerKeyCache
+    internal class ProjectContainerKeyCache
     {
         private static readonly ImmutableSortedDictionary<string, string?> EmptyDimensions = ImmutableSortedDictionary.Create<string, string?>(StringComparer.Ordinal);
 
         /// <summary>
         /// Container key explicitly for the project itself.
         /// </summary>
-        public readonly RoslynCloudCacheContainerKey? ContainerKey;
+        public readonly RoslynCloudCacheContainerKey? ProjectContainerKey;
 
         /// <summary>
         /// Cache from document green nodes to the container keys we've computed for it. We can avoid computing these
         /// container keys when called repeatedly for the same documents.
         /// </summary>
-        private readonly ConditionalWeakTable<TextDocumentState, StrongBox<RoslynCloudCacheContainerKey?>> _documentToContainerKey = new();
-        private readonly ConditionalWeakTable<TextDocumentState, StrongBox<RoslynCloudCacheContainerKey?>>.CreateValueCallback _documentToContainerKeyCallback;
+        /// <remarks>
+        /// We can use a normal Dictionary here instead of a <see cref="ConditionalWeakTable{TKey, TValue}"/> as
+        /// instances of <see cref="ProjectContainerKeyCache"/> are always owned in a context where the <see
+        /// cref="ProjectState"/> is alive.  As that instance is alive, all <see cref="TextDocumentState"/>s the project
+        /// points at will be held alive strongly too.
+        /// </remarks>
+        private readonly Dictionary<TextDocumentState, RoslynCloudCacheContainerKey?> _documentToContainerKey = new();
+        private readonly Func<TextDocumentState, RoslynCloudCacheContainerKey?> _documentToContainerKeyCallback;
 
-        public ContainerKeyCache(string relativePathBase, ProjectKey projectKey)
+        public ProjectContainerKeyCache(string relativePathBase, ProjectKey projectKey)
         {
-            ContainerKey = CreateProjectContainerKey(relativePathBase, projectKey);
+            ProjectContainerKey = CreateProjectContainerKey(relativePathBase, projectKey);
 
-            _documentToContainerKeyCallback = ds => new(CreateDocumentContainerKey(
-                relativePathBase, DocumentKey.ToDocumentKey(projectKey, ds)));
+            _documentToContainerKeyCallback = ds => CreateDocumentContainerKey(relativePathBase, DocumentKey.ToDocumentKey(projectKey, ds));
         }
 
-        public RoslynCloudCacheContainerKey? GetValue(TextDocumentState state)
-            => _documentToContainerKey.GetValue(state, _documentToContainerKeyCallback).Value;
+        public RoslynCloudCacheContainerKey? GetDocumentContainerKey(TextDocumentState state)
+        {
+            lock (_documentToContainerKey)
+                return _documentToContainerKey.GetOrAdd(state, _documentToContainerKeyCallback);
+        }
 
         public static RoslynCloudCacheContainerKey? CreateProjectContainerKey(
             string relativePathBase, ProjectKey projectKey)
