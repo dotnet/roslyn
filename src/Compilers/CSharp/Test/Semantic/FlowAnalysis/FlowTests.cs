@@ -2034,11 +2034,12 @@ class C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
         [Theory]
         [InlineData("true", "false")]
         [InlineData("FIELD_TRUE", "FIELD_FALSE")]
         [InlineData("LOCAL_TRUE", "LOCAL_FALSE")]
+        [InlineData("true || false", "true && false")]
+        [InlineData("!false", "!true")]
         public void IfConditionalConstant(string @true, string @false)
         {
             var source = @"
@@ -2094,6 +2095,63 @@ class C
                 //                 y = x; // 2
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(35, 21)
                 );
+        }
+
+        [Fact]
+        public void IfConditional_ComplexCondition_ConstantConsequence()
+        {
+            var source = @"
+class C
+{
+    bool M0(int x) => true;
+
+    void M1(bool b)
+    {
+        int x;
+        _ = (b && M0(x = 0) ? true : false)
+            ? x.ToString()
+            : x.ToString(); // 1
+    }
+
+    void M2(bool b)
+    {
+        int x;
+        _ = (b && M0(x = 0) ? false : true)
+            ? x.ToString() // 2
+            : x.ToString();
+    }
+
+    void M3(bool b)
+    {
+        int x;
+        _ = (b || M0(x = 0) ? true : false)
+            ? x.ToString() // 3
+            : x.ToString();
+    }
+
+    void M4(bool b)
+    {
+        int x;
+        _ = (b || M0(x = 0) ? false : true)
+            ? x.ToString()
+            : x.ToString(); // 4
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,15): error CS0165: Use of unassigned local variable 'x'
+                //             : x.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(11, 15),
+                // (18,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(18, 15),
+                // (26,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(26, 15),
+                // (35,15): error CS0165: Use of unassigned local variable 'x'
+                //             : x.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(35, 15));
         }
 
         [WorkItem(545352, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545352")]
