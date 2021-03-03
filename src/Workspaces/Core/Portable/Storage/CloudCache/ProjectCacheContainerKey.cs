@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 return null;
 
             // We have to have a file path for this project
-            if (string.IsNullOrEmpty(projectKey.FilePath))
+            if (RoslynString.IsNullOrEmpty(projectKey.FilePath))
                 return null;
 
             // The file path has to be relative to the base path the DB is associated with (either the solution-path or
