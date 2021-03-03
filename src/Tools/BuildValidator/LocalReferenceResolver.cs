@@ -115,6 +115,7 @@ namespace BuildValidator
 
                         if (GetMvidForFile(file) is not { } mvid)
                         {
+                            _logger.LogWarning($@"Could not read MVID from ""{file.FullName}""");
                             continue;
                         }
 
