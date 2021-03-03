@@ -110,11 +110,9 @@ stages:
     - task: PowerShell@2
       displayName: Merge master-vs-deps into source branch
       inputs:
-        filePath: 'scripts\merge-vs-deps.ps1'        
-        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          arguments: '-userName "$(Build.RequestedFor)" -userEmail $(Build.RequestedForEmail)'
+        filePath: 'scripts\merge-vs-deps.ps1'
         ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-          arguments: '-userName "$(Build.RequestedFor)" -userEmail $(Build.RequestedForEmail) -accessToken $(dn-bot-dnceng-build-rw-code-rw)'
+          arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
       condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"

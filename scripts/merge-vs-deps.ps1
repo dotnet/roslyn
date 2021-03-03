@@ -1,11 +1,9 @@
 [CmdletBinding(PositionalBinding=$false)]
-Param(
-    [string]$userName,
-    [string]$userEmail,
-    [string]$accessToken = "")
+Param([string]$accessToken = "")
 
-git config user.name $userName
-git config user.email $userEmail   
+# name and email are only used for merge commit, it doesn't really matter what we put in there.    
+git config user.name "RoslynValidation"
+git config user.email "validation@roslyn.net"   
 
 if ($accessToken -eq "") {
     git pull origin master-vs-deps
