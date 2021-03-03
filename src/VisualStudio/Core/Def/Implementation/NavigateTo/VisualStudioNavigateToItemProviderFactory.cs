@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
@@ -25,8 +26,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
             _workspace = workspace;
         }
 
-        public bool TryCreateNavigateToItemProvider(IServiceProvider serviceProvider, out INavigateToItemProvider provider)
+        public bool TryCreateNavigateToItemProvider(IServiceProvider serviceProvider, out INavigateToItemProvider? provider)
         {
+            // Let LSP handle goto when running under the LSP editor.
+            if (_workspace.Services.GetRequiredService<IWorkspaceContextService>().IsInLspEditorContext())
+            {
+                provider = null;
+                return false;
+            }
+
             provider = new NavigateToItemProvider(_workspace, _asyncListener);
             return true;
         }

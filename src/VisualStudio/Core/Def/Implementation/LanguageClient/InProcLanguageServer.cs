@@ -105,6 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public Task<InitializeResult> InitializeAsync(InitializeParams initializeParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
+
             _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
             return Task.FromResult(new InitializeResult
             {
