@@ -15,14 +15,12 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
     /// </summary>
     internal readonly struct SolutionKey
     {
-        public readonly SolutionState? SolutionState;
         public readonly SolutionId Id;
         public readonly string? FilePath;
         public readonly bool IsPrimaryBranch;
 
-        public SolutionKey(SolutionState? solutionState, SolutionId id, string? filePath, bool isPrimaryBranch)
+        public SolutionKey(SolutionId id, string? filePath, bool isPrimaryBranch)
         {
-            SolutionState = solutionState;
             Id = id;
             FilePath = filePath;
             IsPrimaryBranch = isPrimaryBranch;
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             => ToSolutionKey(solution.State);
 
         public static SolutionKey ToSolutionKey(SolutionState solutionState)
-            => new(solutionState, solutionState.Id, solutionState.FilePath, solutionState.BranchId == solutionState.Workspace.PrimaryBranchId);
+            => new(solutionState.Id, solutionState.FilePath, solutionState.BranchId == solutionState.Workspace.PrimaryBranchId);
 
         public SerializableSolutionKey Dehydrate()
             => new(Id, FilePath, IsPrimaryBranch);
@@ -58,6 +56,6 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public SolutionKey Rehydrate()
-            => new(solutionState: null, Id, FilePath, IsPrimaryBranch);
+            => new(Id, FilePath, IsPrimaryBranch);
     }
 }

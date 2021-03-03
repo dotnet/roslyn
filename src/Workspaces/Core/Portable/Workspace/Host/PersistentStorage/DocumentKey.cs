@@ -17,10 +17,16 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
     {
         public readonly ProjectKey Project;
 
-        public readonly TextDocumentState? DocumentState;
         public readonly DocumentId Id;
         public readonly string? FilePath;
         public readonly string Name;
+
+        /// <summary>
+        /// Optional link back to the original <see cref="TextDocumentState"/> that was used to create this key. Can be
+        /// used by clients that could benefit from using the original state as an identity key for some purpose.
+        /// Clients must not be dependent on this and should still succeed even if <see langword="null"/>.
+        /// </summary>
+        public readonly TextDocumentState? DocumentState;
 
         public DocumentKey(ProjectKey project, TextDocumentState? documentState, DocumentId id, string? filePath, string name)
         {

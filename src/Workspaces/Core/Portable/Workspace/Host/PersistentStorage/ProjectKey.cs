@@ -17,11 +17,17 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
     {
         public readonly SolutionKey Solution;
 
-        public readonly ProjectState? ProjectState;
         public readonly ProjectId Id;
         public readonly string? FilePath;
         public readonly string Name;
         public readonly Checksum ParseOptionsChecksum;
+
+        /// <summary>
+        /// Optional link back to the original <see cref="ProjectState"/> that was used to create this key. Can be used
+        /// by clients that could benefit from using the original state as an identity key for some purpose. Clients
+        /// must not be dependent on this and should still succeed even if <see langword="null"/>.
+        /// </summary>
+        public readonly ProjectState? ProjectState;
 
         public ProjectKey(SolutionKey solution, ProjectState? projectState, ProjectId id, string? filePath, string name, Checksum parseOptionsChecksum)
         {
