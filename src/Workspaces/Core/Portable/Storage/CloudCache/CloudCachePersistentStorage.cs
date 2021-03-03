@@ -27,14 +27,13 @@ namespace Microsoft.CodeAnalysis.Storage
         /// Cache from project green nodes to the container keys we've computed for it (and the documents inside of it).
         /// We can avoid computing these container keys when called repeatedly for the same projects/documents.
         /// </summary>
-        private static readonly ConditionalWeakTable<ProjectState, ProjectCacheContainerKey> s_projectToContainerKey = new();
+        private static readonly ConditionalWeakTable<ProjectState, ContainerKeyCache> s_projectToContainerKey = new();
+        private readonly ConditionalWeakTable<ProjectState, ContainerKeyCache>.CreateValueCallback _projectToContainerKeyCallback;
 
         /// <summary>
         /// Underlying cache service (owned by platform team) responsible for actual storage and retrieval of data.
         /// </summary>
         private readonly IRoslynCloudCacheService _cacheService;
-
-        private readonly ConditionalWeakTable<ProjectState, ProjectCacheContainerKey>.CreateValueCallback _projectToContainerKeyCallback;
 
         public CloudCachePersistentStorage(
             SolutionKey solutionKey,
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Storage
             var state = projectKey.ProjectState;
             return state != null
                 ? s_projectToContainerKey.GetValue(state, _projectToContainerKeyCallback).ContainerKey
-                : ProjectCacheContainerKey.CreateProjectContainerKey(this.SolutionFilePath, projectKey);
+                : ContainerKeyCache.CreateProjectContainerKey(this.SolutionFilePath, projectKey);
         }
 
         /// <summary>
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Storage
             var documentState = documentKey.DocumentState;
             return projectState != null && documentState != null
                 ? s_projectToContainerKey.GetValue(projectState, _projectToContainerKeyCallback).GetValue(documentState)
-                : ProjectCacheContainerKey.CreateDocumentContainerKey(this.SolutionFilePath, documentKey);
+                : ContainerKeyCache.CreateDocumentContainerKey(this.SolutionFilePath, documentKey);
         }
 
         public override Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)

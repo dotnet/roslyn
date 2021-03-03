@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Storage
     /// store a lot of date in them (like their 'dimensions' dictionary.  We don't want to continually recreate these as
     /// we read/write date to the db.
     /// </summary>
-    internal class ProjectCacheContainerKey
+    internal class ContainerKeyCache
     {
         private static readonly ImmutableSortedDictionary<string, string?> EmptyDimensions = ImmutableSortedDictionary.Create<string, string?>(StringComparer.Ordinal);
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Storage
         private readonly ConditionalWeakTable<TextDocumentState, StrongBox<RoslynCloudCacheContainerKey?>> _documentToContainerKey = new();
         private readonly ConditionalWeakTable<TextDocumentState, StrongBox<RoslynCloudCacheContainerKey?>>.CreateValueCallback _documentToContainerKeyCallback;
 
-        public ProjectCacheContainerKey(string relativePathBase, ProjectKey projectKey)
+        public ContainerKeyCache(string relativePathBase, ProjectKey projectKey)
         {
             ContainerKey = CreateProjectContainerKey(relativePathBase, projectKey);
 
