@@ -24824,6 +24824,11 @@ namespace System
             var tuple3 = comp3.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
             Assert.False(tuple3.IsErrorType());
             Assert.Equal(libWithVTRef.Display, tuple3.ContainingAssembly.MetadataName.ToString());
+
+            var libWithVTRef2 = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }).EmitToImageReference();
+            var comp4 = CreateEmptyCompilation("", references: new[] { libWithVTRef, libWithVTRef2, corlibWithVTRef });
+            var tuple4 = comp4.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
+            Assert.True(tuple4.IsErrorType());
         }
 
         [Fact]

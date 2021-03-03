@@ -4608,7 +4608,7 @@ class UsePia
         }
 
         [Fact, WorkItem(50696, "https://github.com/dotnet/roslyn/issues/50696")]
-        public void PickAmbiguousAttributeFromCorlib()
+        public void PickAmbiguousTypeFromCorlib()
         {
             var corlib_cs = @"
 namespace System
@@ -4741,7 +4741,8 @@ public class C
                 var comp = CreateEmptyCompilation(source, references: new[] { corlibWithIsExternalInitRef, libWithIsExternalInitRef },
                     options: TestOptions.DebugDll.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
                 comp.VerifyEmitDiagnostics();
-                verify(comp, "libWithIsExternalInit");
+                Assert.Equal("libWithIsExternalInit", comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsExternalInit).ContainingAssembly.Name);
+                Assert.Equal("corlibWithIsExternalInit", comp.GetTypeByMetadataName("System.Runtime.CompilerServices.IsExternalInit").ContainingAssembly.Name);
             }
 
             static void verify(CSharpCompilation comp, string expectedAssemblyName)

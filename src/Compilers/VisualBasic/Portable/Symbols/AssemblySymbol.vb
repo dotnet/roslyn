@@ -539,16 +539,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Then try corlib, when finding a result there means we've found the final result
-            If Not ignoreCorLibraryDuplicatedTypes Then
-                Dim corLibcandidate As NamedTypeSymbol = CorLibrary.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+            Dim skipCorLibrary = False
 
-                If corLibcandidate IsNot Nothing AndAlso
-                    (Not isWellKnownType OrElse IsValidWellKnownType(corLibcandidate)) AndAlso
-                    IsAcceptableMatchForGetTypeByNameAndArity(corLibcandidate) AndAlso
-                    Not corLibcandidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
-                    Not corLibcandidate.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+            If CorLibrary IsNot Me AndAlso
+                Not CorLibrary.IsMissing AndAlso
+                Not ignoreCorLibraryDuplicatedTypes Then
 
-                    Return corLibcandidate
+                Dim corLibCandidate As NamedTypeSymbol = CorLibrary.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                skipCorLibrary = True
+
+                If corLibCandidate IsNot Nothing AndAlso
+                    (Not isWellKnownType OrElse IsValidWellKnownType(corLibCandidate)) AndAlso
+                    IsAcceptableMatchForGetTypeByNameAndArity(corLibCandidate) AndAlso
+                    Not corLibCandidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
+                    Not corLibCandidate.IsHiddenByCodeAnalysisEmbeddedAttribute() Then
+
+                    Return corLibCandidate
                 End If
             End If
 
@@ -557,7 +563,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             For i As Integer = 0 To references.Length - 1 Step 1
                 Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol AndAlso references(i).IsMissing)) ' Non-source assemblies can have missing references
-                Dim candidate As NamedTypeSymbol = references(i).LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+                Dim reference = references(i)
+
+                If skipCorLibrary AndAlso reference Is CorLibrary Then
+                    Continue For
+                End If
+
+                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
 
                 If isWellKnownType AndAlso Not IsValidWellKnownType(candidate) Then
                     candidate = Nothing
