@@ -94,7 +94,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// committed item just prior to the commit. Thus, it is a good place to
         /// put in any expensive completion work that does not affect the display
         /// of the item in the completion list, but is necessary for committing the
-        /// item.
+        /// item. An example of an item type requiring complex resolution is C#/VB
+        /// override completion.
         /// </summary>
         public bool IsComplexTextEdit { get; }
 
