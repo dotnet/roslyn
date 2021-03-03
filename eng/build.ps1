@@ -417,10 +417,7 @@ function TestUsingRunTests() {
     $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 
     if ($lspEditor) {
-      $args += " --testfilter FullyQualifiedName~Roslyn.VisualStudio.IntegrationTests.LanguageServerProtocol|Editor=LanguageServerProtocol"
-    }
-    else {
-      $args += " --testfilter FullyQualifiedName!~Roslyn.VisualStudio.IntegrationTests.LanguageServerProtocol"
+      $args += " --testfilter Editor=LanguageServerProtocol"
     }
   }
 
