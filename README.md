@@ -6,7 +6,7 @@
 
 <p align="center"><a href="https://gitter.im/dotnet/roslyn?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge&amp;utm_content=badge" rel="nofollow"><img            src="https://camo.githubusercontent.com/5dbac0213da25c445bd11f168587c11a200ba153ef3014e8408e462e410169b3/68747470733a2f2f6261646765732e6769747465722e696d2f4a6f696e253230436861742e737667" alt="Join the chat at https://gitter.im/dotnet/roslyn" data-canonical-src="https://badges.gitter.im/Join%20Chat.svg" style="max-width:100%;"></a> <a href="http://aka.ms/discord-csharp-roslyn" rel="nofollow"><img src="https://camo.githubusercontent.com/1ea6a95121cbf4179d411e853681838825392a7f0ae7e6bb1e03f4ea37c8fd5d/68747470733a2f2f646973636f72646170702e636f6d2f6170692f6775696c64732f3134333836373833393238323032303335322f7769646765742e706e67" alt="Chat on Discord" data-canonical-src="https://discordapp.com/api/guilds/143867839282020352/widget.png" style="max-width:100%;"></a></p>
 
-Roslyn is the open-source C# and Visual Basic compilers with an API surface for building code analysis tools.
+Roslyn is the open-source implementation of both the C# and Visual Basic compilers with an API surface for building code analysis tools.
 
 ### C# and Visual Basic Language Feature Suggestions
 
@@ -19,7 +19,7 @@ If you want to suggest a new feature for the C# or Visual Basic languages go her
 
 All work on the C# and Visual Basic compiler happens directly on [GitHub](https://github.com/dotnet/roslyn). Both core team members and external contributors send pull requests which go through the same review process.
 
-If you are interested in fixing issues and contributing directly to the code base, a great way to get started is to ask some questions on [GitHub Discussions](https://github.com/dotnet/roslyn/discussions)! Then check out our [contributing guide](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Contributing-Code.md) which covers the following:
+If you are interested in fixing issues and contributing directly to the code base, a great way to get started is to ask some questions on [GitHub Discussions](https://github.com/dotnet/roslyn/discussions)! Then check out our [contributing guide](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md) which covers the following:
 
 - [Coding guidelines](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Contributing-Code.md)
 - [The development workflow, including debugging and running tests](https://github.com/dotnet/roslyn/blob/master/docs/contributing/Building%2C%20Debugging%2C%20and%20Testing%20on%20Windows.md)
@@ -31,7 +31,7 @@ If you are interested in fixing issues and contributing directly to the code bas
 
 The Roslyn community can be found on [GitHub Discussions](https://github.com/dotnet/roslyn/discussions), where you can ask questions, voice ideas, and share your projects.
 
-To chat with other community members, you can join the Roslyn [Gitter](https://gitter.im/dotnet/roslyn) or [Discord](https://discord.com/invite/tGJvv88).
+To chat with other community members, you can join the Roslyn [Discord](https://discord.com/invite/tGJvv88) or [Gitter](https://gitter.im/dotnet/roslyn).
 
 Our [Code of Conduct](CODE-OF-CONDUCT.md) applies to all Roslyn community channels and has adopted the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
