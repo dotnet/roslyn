@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             if (solutionKey.FilePath == null)
-                return NoOpPersistentStorage.Instance;
+                return new(NoOpPersistentStorage.Instance);
 
             return new(SQLitePersistentStorage.TryCreate(
                 _connectionPoolService,
