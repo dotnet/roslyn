@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             countdown.Wait();
 
-            Assert.Equal(new List<Exception>(), exceptions);
+            Assert.Empty(exceptions);
         }
 
         protected Solution CreateOrOpenSolution(bool nullPaths = false)
