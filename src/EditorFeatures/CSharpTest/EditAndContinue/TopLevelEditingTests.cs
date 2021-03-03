@@ -1514,6 +1514,46 @@ public abstract record C<T>
             edits.VerifyRudeDiagnostics();
         }
 
+        [Fact]
+        public void Record_ImplementSynthesized_ToString()
+        {
+            var src1 = "record C { }";
+            var src2 = @"record C
+{
+    public override string ToString()
+    {
+        return ""R"";
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.ToString")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_UnImplementSynthesized_ToString()
+        {
+            var src1 = @"record C
+{
+    public override string ToString()
+    {
+        return ""R"";
+    }
+}";
+            var src2 = "record C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.ToString")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
         #endregion
 
         #region Enums

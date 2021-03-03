@@ -946,6 +946,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node.IsKind(SyntaxKind.InterfaceBlock)
         End Function
 
+        Friend Overrides Function IsRecordDeclaration(node As SyntaxNode) As Boolean
+            ' No records in VB
+            Return False
+        End Function
+
         Friend Overrides Function TryGetContainingTypeDeclaration(node As SyntaxNode) As SyntaxNode
             Return node.Parent.FirstAncestorOrSelf(Of TypeBlockSyntax)() ' TODO: EnbumBlock?
         End Function
