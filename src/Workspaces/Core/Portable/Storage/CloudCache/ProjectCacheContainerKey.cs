@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Storage
         public static CloudCacheContainerKey? CreateProjectContainerKey(
             string relativePathBase, ProjectKey projectKey)
         {
-            // Creates a container key for this project.  THe container key is a mix of the project's name, relative
+            // Creates a container key for this project.  The container key is a mix of the project's name, relative
             // file path (to the solution), and optional parse options.
 
             // If we don't have a valid solution path, we can't store anything.
