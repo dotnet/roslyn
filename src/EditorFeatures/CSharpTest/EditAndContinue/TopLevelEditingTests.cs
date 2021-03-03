@@ -9728,6 +9728,18 @@ class C
         }
 
         [Fact]
+        public void PropertyDelete()
+        {
+            var src1 = "class C { int P { get { return 1; } } }";
+            var src2 = "class C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.property_, "P")));
+        }
+
+        [Fact]
         public void PropertyReorder1()
         {
             var src1 = "class C { int P { get { return 1; } } int Q { get { return 1; } }  }";
