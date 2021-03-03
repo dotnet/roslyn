@@ -1,0 +1,24 @@
+From 23af45da9c3fc6718a7d6e1ddcb4891374d40309 Mon Sep 17 00:00:00 2001
+From: adaggarwal <aditya.aggarwal@microsoft.com>
+Date: Wed, 20 Nov 2019 22:31:11 +0000
+Subject: [PATCH 2/5] Do not build NET Fx binaries in source build
+
+---
+ eng/Versions.props | 2 +-
+ 1 file changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/eng/Versions.props b/eng/Versions.props
+index e7eb20eff11..dc3a737f86a 100644
+--- a/eng/Versions.props
++++ b/eng/Versions.props
+@@ -253,7 +253,7 @@
+     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
+     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
+     <UsingToolVSSDK>true</UsingToolVSSDK>
+-    <UsingToolNetFrameworkReferenceAssemblies>true</UsingToolNetFrameworkReferenceAssemblies>
++    <UsingToolNetFrameworkReferenceAssemblies Condition="'$(DotNetBuildFromSource)' != 'true'">true</UsingToolNetFrameworkReferenceAssemblies>
+     <UsingToolIbcOptimization>true</UsingToolIbcOptimization>
+     <UsingToolVisualStudioIbcTraining>true</UsingToolVisualStudioIbcTraining>
+     <UsingToolXliff>true</UsingToolXliff>
+--
+2.18.0

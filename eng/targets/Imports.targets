@@ -168,14 +168,15 @@
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.CompareVersions" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.SingleError" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
 
-  <Target Name="_CheckRequiredMSBuildVersion" BeforeTargets="BeforeBuild">
+  <!-- The SourceBuild condition is temporary as the Arcade intermediate package contains a reference package which breaks this task -->
+  <Target Name="_CheckRequiredMSBuildVersion" Condition="'$(DotNetBuildFromSource)' != 'true'" BeforeTargets="BeforeBuild">
     <CompareVersions Left="$(MSBuildVersion)" Right="$(MinimumMSBuildVersion)">
       <Output TaskParameter="Result" PropertyName="_VersionComparisonResult"/>
     </CompareVersions>
   
     <SingleError Text="The msbuild version $(MSBuildVersion) is below the minimum required version $(MinimumMSBuildVersion)"
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
-  </Target> 
+  </Target>
 
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 

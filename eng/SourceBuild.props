@@ -1,0 +1,23 @@
+<Project>
+
+  <PropertyGroup>
+    <GitHubRepositoryName>roslyn</GitHubRepositoryName>
+    <SourceBuildManagedOnly>true</SourceBuildManagedOnly>
+  </PropertyGroup>
+
+  <Target Name="ApplySourceBuildPatchFiles"
+          Condition="
+            '$(ArcadeBuildFromSource)' == 'true' and
+            '$(ArcadeInnerBuildFromSource)' == 'true'"
+          BeforeTargets="Execute">
+    <ItemGroup>
+      <SourceBuildPatchFile Include="$(RepositoryEngineeringDir)source-build-patches\*.patch" />
+    </ItemGroup>
+
+    <Exec
+      Command="git apply --ignore-whitespace --whitespace=nowarn &quot;%(SourceBuildPatchFile.FullPath)&quot;"
+      WorkingDirectory="$(RepoRoot)"
+      Condition="'@(SourceBuildPatchFile)' != ''" />
+  </Target>
+
+</Project>

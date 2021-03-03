@@ -229,9 +229,6 @@ function MakeBootstrapBuild {
 }
 
 function BuildSolution {
-  local solution="Compilers.sln"
-  echo "$solution:"
-
   InitializeToolset
   local toolset_build_proj=$_InitializeToolset
 
@@ -240,8 +237,6 @@ function BuildSolution {
     bl="/bl:\"$log_dir/Build.binlog\""
     export RoslynCommandLineLogFile="$log_dir/vbcscompiler.log"
   fi
-
-  local projects="$repo_root/$solution"
 
   UNAME="$(uname)"
   # NuGet often exceeds the limit of open files on Mac and Linux
@@ -293,7 +288,6 @@ function BuildSolution {
   MSBuild $toolset_build_proj \
     $bl \
     /p:Configuration=$configuration \
-    /p:Projects="$projects" \
     /p:RepoRoot="$repo_root" \
     /p:Restore=$restore \
     /p:Build=$build \
@@ -306,7 +300,7 @@ function BuildSolution {
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
-    /p:DotNetBuildFromSource=$source_build \
+    /p:ArcadeBuildFromSource=$source_build \
     $test_runtime \
     $mono_tool \
     $generate_documentation_file \

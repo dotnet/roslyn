@@ -1,0 +1,36 @@
+From eee8808e3b9ebb9ec66835858b1ad46ec8d5688f Mon Sep 17 00:00:00 2001
+From: Omair Majid <omajid@redhat.com>
+Date: Mon, 9 Nov 2020 18:43:03 -0500
+Subject: [PATCH] Build Microsoft.CodeAnalysis for source-build
+
+---
+ src/NuGet/Microsoft.CodeAnalysis.Package.csproj | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/NuGet/Microsoft.CodeAnalysis.Package.csproj b/src/NuGet/Microsoft.CodeAnalysis.Package.csproj
+index ac7d9993db0..a25843f0e1c 100644
+--- a/src/NuGet/Microsoft.CodeAnalysis.Package.csproj
++++ b/src/NuGet/Microsoft.CodeAnalysis.Package.csproj
+@@ -2,11 +2,13 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+   <PropertyGroup>
+     <TargetFrameworks>net472;netstandard2.0</TargetFrameworks>
++    <TargetFrameworks Condition="'$(DotNetBuildFromSource)' == 'true'">netstandard2.0</TargetFrameworks>
+ 
+     <!-- NuGet -->
+     <IsPackable>true</IsPackable>
+     <PackageId>Microsoft.CodeAnalysis</PackageId>
+     <IncludeBuildOutput>false</IncludeBuildOutput>
++    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+     <PackageDescription>
+       .NET Compiler Platform ("Roslyn").
+ 
+@@ -25,4 +27,4 @@
+     <ProjectReference Include="..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+     <ProjectReference Include="..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+   </ItemGroup>
+-</Project>
+\ No newline at end of file
++</Project>
+-- 
+2.26.2

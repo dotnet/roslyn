@@ -1,0 +1,305 @@
+From ed6e61977542a2fb1f69da41eb9806a4212d4046 Mon Sep 17 00:00:00 2001
+From: Davis Goodin <dagood@microsoft.com>
+Date: Mon, 28 Dec 2020 18:21:27 -0600
+Subject: [PATCH] Build Roslyn as net6.0 in source-build
+
+Set compilers package targetframework to net6.0.
+Update _RoslynTargetDirectoryName for net6.0
+
+Fixups for new types and changes introduced with net5.0:
+
+* Disable some warnings to let code continue to compile.
+
+* Remove S.Runtime.InteropServices.WindowsRuntime using. Doesn't exist
+  and doesn't seem necessary in net6.0.
+---
+ Directory.Build.props                         |  5 +++
+ Directory.Build.targets                       | 12 +++++++
+ eng/Versions.props                            |  4 +++
+ src/Compilers/CSharp/csc/csc.csproj           |  2 +-
+ .../Microsoft.Build.Tasks.CodeAnalysis.csproj |  2 +-
+ src/Compilers/Core/MSBuildTask/Utilities.cs   | 14 ++++----
+ .../VBCSCompiler/ClientConnectionHandler.cs   |  1 -
+ .../Server/VBCSCompiler/VBCSCompiler.csproj   |  4 +--
+ src/Compilers/VisualBasic/vbc/vbc.csproj      |  2 +-
+ ...Microsoft.NETCore.Compilers.Package.csproj |  2 +-
+ .../CoreClrCompilerArtifacts.targets          | 36 +++++++++----------
+ ...osoft.Net.Compilers.Toolset.Package.csproj | 16 ++++-----
+ .../Microsoft.Net.Compilers.Toolset.props     |  2 +-
+ 13 files changed, 62 insertions(+), 40 deletions(-)
+
+diff --git a/Directory.Build.props b/Directory.Build.props
+index 05f2dcec7d6..e468e163eb6 100644
+--- a/Directory.Build.props
++++ b/Directory.Build.props
+@@ -2,5 +2,10 @@
+ <Project>
+   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+   <Import Project="eng\targets\Settings.props" />
++
++  <PropertyGroup>
++    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS8600;CS8602;CS8603;CS8604;CS8605;CS8777</WarningsNotAsErrors>
++  </PropertyGroup>
++
+ </Project>
+ 
+diff --git a/Directory.Build.targets b/Directory.Build.targets
+index 8f38a48cd95..c8ba19fdf98 100644
+--- a/Directory.Build.targets
++++ b/Directory.Build.targets
+@@ -2,4 +2,16 @@
+ <Project>
+   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+   <Import Project="eng\targets\Imports.targets" />
++
++  <!--
++    Swap out netcoreapp3.1 -> net6.0 in projects. Projects can use $(TargetFrameworkForNETSDK)
++    directly. Doing this in the root Directory.Build.targets just reduces the chance of conflicts
++    with the source-build patch.
++  -->
++  <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
++    <!-- Keep netstandard2.0: seems like we pack netstandard2.0 rather than net6.0 for VB. -->
++    <KeepTargetFrameworks Condition="$(TargetFrameworks.Contains('netstandard2.0'))">netstandard2.0</KeepTargetFrameworks>
++    <TargetFrameworks Condition="$(TargetFrameworks.Contains('netcoreapp3.1'))">$(TargetFrameworkForNETSDK);$(KeepTargetFrameworks)</TargetFrameworks>
++  </PropertyGroup>
++
+ </Project>
+diff --git a/eng/Versions.props b/eng/Versions.props
+index 1cad2918891..a7e80667b4a 100644
+--- a/eng/Versions.props
++++ b/eng/Versions.props
+@@ -25,6 +25,10 @@
+     </MinorVersion>
+     <MicrosoftNetCompilersToolsetVersion>3.10.0-2.21151.4</MicrosoftNetCompilersToolsetVersion>
+   </PropertyGroup>
++  <PropertyGroup>
++    <TargetFrameworkForNETSDK>netcoreapp3.1</TargetFrameworkForNETSDK>
++    <TargetFrameworkForNETSDK Condition="'$(DotNetBuildFromSource)' == 'true'">net6.0</TargetFrameworkForNETSDK>
++  </PropertyGroup>
+   <PropertyGroup>
+     <!-- Versions used by several individual references below -->
+     <RoslynDiagnosticsNugetPackageVersion>3.3.3-beta1.21105.3</RoslynDiagnosticsNugetPackageVersion>
+diff --git a/src/Compilers/CSharp/csc/csc.csproj b/src/Compilers/CSharp/csc/csc.csproj
+index 01e6741bb09..0d1b86f4a69 100644
+--- a/src/Compilers/CSharp/csc/csc.csproj
++++ b/src/Compilers/CSharp/csc/csc.csproj
+@@ -18,7 +18,7 @@
+     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+   </ItemGroup>
+   <ItemGroup>
+-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
++    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))" />
+   </ItemGroup>
+   <ItemGroup>
+     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
+diff --git a/src/Compilers/Core/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.csproj b/src/Compilers/Core/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.csproj
+index 9802a8ebac0..f3b6f741aa1 100644
+--- a/src/Compilers/Core/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.csproj
++++ b/src/Compilers/Core/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.csproj
+@@ -54,7 +54,7 @@
+   <ItemGroup>
+     <PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
+     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" />
+-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
++    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))" />
+   </ItemGroup>
+   <ItemGroup>
+     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
+diff --git a/src/Compilers/Core/MSBuildTask/Utilities.cs b/src/Compilers/Core/MSBuildTask/Utilities.cs
+index 74da0c2bdd3..b6af0715406 100644
+--- a/src/Compilers/Core/MSBuildTask/Utilities.cs
++++ b/src/Compilers/Core/MSBuildTask/Utilities.cs
+@@ -154,12 +154,14 @@ internal static void DeleteNoThrow(string path)
+ 
+         internal static string? TryGetAssemblyPath(Assembly assembly)
+         {
+-            if (assembly.GlobalAssemblyCache)
+-            {
+-                return null;
+-            }
+-
+-            if (assembly.CodeBase is { } codebase)
++            // Removed: error CS0618: 'Assembly.GlobalAssemblyCache' is obsolete: 'The Global Assembly Cache is not supported.'
++            // if (assembly.GlobalAssemblyCache)
++            // {
++            //     return null;
++            // }
++
++            // error CS0618: 'Assembly.CodeBase' is obsolete: 'Assembly.CodeBase and Assembly.EscapedCodeBase are only included for .NET Framework compatibility. Use Assembly.Location instead.'
++            if (assembly.Location is { } codebase)
+             {
+                 var uri = new Uri(codebase);
+                 return uri.IsFile ? uri.LocalPath : assembly.Location;
+diff --git a/src/Compilers/Server/VBCSCompiler/ClientConnectionHandler.cs b/src/Compilers/Server/VBCSCompiler/ClientConnectionHandler.cs
+index 6bda91e310b..ce7b044b208 100644
+--- a/src/Compilers/Server/VBCSCompiler/ClientConnectionHandler.cs
++++ b/src/Compilers/Server/VBCSCompiler/ClientConnectionHandler.cs
+@@ -8,7 +8,6 @@
+ using System.IO;
+ using System.IO.Pipes;
+ using System.Net.Sockets;
+-using System.Runtime.InteropServices.WindowsRuntime;
+ using System.Text;
+ using System.Threading;
+ using System.Threading.Tasks;
+diff --git a/src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj b/src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj
+index ec4dd26af5c..f43748ae3da 100644
+--- a/src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj
++++ b/src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj
+@@ -17,8 +17,8 @@
+     <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+   </ItemGroup>
+   <ItemGroup>
+-    <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netcoreapp3.1'" />
+-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
++    <Reference Include="System.Configuration" Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))" />
++    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))" />
+   </ItemGroup>
+   <ItemGroup>
+     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
+diff --git a/src/Compilers/VisualBasic/vbc/vbc.csproj b/src/Compilers/VisualBasic/vbc/vbc.csproj
+index 48843d2c542..4432fa0a2f2 100644
+--- a/src/Compilers/VisualBasic/vbc/vbc.csproj
++++ b/src/Compilers/VisualBasic/vbc/vbc.csproj
+@@ -17,7 +17,7 @@
+     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+   </ItemGroup>
+   <ItemGroup>
+-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
++    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))" />
+   </ItemGroup>
+   <ItemGroup>
+     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
+diff --git a/src/NuGet/Microsoft.NETCore.Compilers/Microsoft.NETCore.Compilers.Package.csproj b/src/NuGet/Microsoft.NETCore.Compilers/Microsoft.NETCore.Compilers.Package.csproj
+index dcb5df09f24..0f3093bdc54 100644
+--- a/src/NuGet/Microsoft.NETCore.Compilers/Microsoft.NETCore.Compilers.Package.csproj
++++ b/src/NuGet/Microsoft.NETCore.Compilers/Microsoft.NETCore.Compilers.Package.csproj
+@@ -1,7 +1,7 @@
+ ﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+ <Project Sdk="Microsoft.NET.Sdk">
+   <PropertyGroup>
+-    <TargetFramework>netcoreapp3.1</TargetFramework>
++    <TargetFramework>$(TargetFrameworkForNETSDK)</TargetFramework>
+ 
+     <IsPackable>true</IsPackable>
+     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+diff --git a/src/NuGet/Microsoft.Net.Compilers.Toolset/CoreClrCompilerArtifacts.targets b/src/NuGet/Microsoft.Net.Compilers.Toolset/CoreClrCompilerArtifacts.targets
+index 45590df74bb..f34eea8d105 100644
+--- a/src/NuGet/Microsoft.Net.Compilers.Toolset/CoreClrCompilerArtifacts.targets
++++ b/src/NuGet/Microsoft.Net.Compilers.Toolset/CoreClrCompilerArtifacts.targets
+@@ -3,36 +3,36 @@
+ <Project>
+   <Target Name="InitializeCoreClrCompilerArtifacts">
+     <ItemGroup>
+-      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp3.1\publish\*.targets" />
+-      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp3.1\publish\Microsoft.Build.Tasks.CodeAnalysis.dll" />
+-      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\netcoreapp3.1\publish\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" />
++      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\*.targets" />
++      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\Microsoft.Build.Tasks.CodeAnalysis.dll" />
++      <CoreClrCompilerToolsArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" />
+ 
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.dll" />
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netcoreapp3.1\**\Microsoft.CodeAnalysis.resources.dll" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\$(TargetFrameworkForNETSDK)\Microsoft.CodeAnalysis.dll" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\$(TargetFrameworkForNETSDK)\**\Microsoft.CodeAnalysis.resources.dll" />
+ 
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.dll" />
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netcoreapp3.1\**\Microsoft.CodeAnalysis.CSharp.resources.dll" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\$(TargetFrameworkForNETSDK)\Microsoft.CodeAnalysis.CSharp.dll" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\$(TargetFrameworkForNETSDK)\**\Microsoft.CodeAnalysis.CSharp.resources.dll" />
+ 
+       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" />
+       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" />
+ 
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\csc.dll" />
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\csc.deps.json" />
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\csc.runtimeconfig.json" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\csc.dll" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\csc.deps.json" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\csc.runtimeconfig.json" />
+ 
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp3.1\publish\vbc.dll" />
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp3.1\publish\vbc.deps.json" />
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\netcoreapp3.1\publish\vbc.runtimeconfig.json" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\vbc.dll" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\vbc.deps.json" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)vbc\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\vbc.runtimeconfig.json" />
+ 
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp3.1\publish\VBCSCompiler.dll" />
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp3.1\publish\VBCSCompiler.deps.json" />
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\netcoreapp3.1\publish\VBCSCompiler.runtimeconfig.json" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\VBCSCompiler.dll" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\VBCSCompiler.deps.json" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)VBCSCompiler\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\VBCSCompiler.runtimeconfig.json" />
+ 
+       <!-- References that are either not in the target framework or are a higher version -->
+       <!-- N.B.: The backslashes below cannot be replaced with forward slashes.
+          https://github.com/NuGet/Home/issues/3584 -->
+-      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\System.*.dll"/>
+-      <CoreClrCompilerBinRuntimesArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\netcoreapp3.1\publish\runtimes\**" />
++      <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\System.*.dll"/>
++      <CoreClrCompilerBinRuntimesArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\$(TargetFrameworkForNETSDK)\publish\runtimes\**" />
+     </ItemGroup>
+   </Target>
+ </Project>
+diff --git a/src/NuGet/Microsoft.Net.Compilers.Toolset/Microsoft.Net.Compilers.Toolset.Package.csproj b/src/NuGet/Microsoft.Net.Compilers.Toolset/Microsoft.Net.Compilers.Toolset.Package.csproj
+index cefd5f48e0f..6aab5fae98b 100644
+--- a/src/NuGet/Microsoft.Net.Compilers.Toolset/Microsoft.Net.Compilers.Toolset.Package.csproj
++++ b/src/NuGet/Microsoft.Net.Compilers.Toolset/Microsoft.Net.Compilers.Toolset.Package.csproj
+@@ -26,7 +26,7 @@
+     <NoWarn>$(NoWarn);NU5100;NU5128</NoWarn>
+ 
+     <_DependsOn Condition="'$(TargetFramework)' == 'net472'">InitializeDesktopCompilerArtifacts</_DependsOn>
+-    <_DependsOn Condition="'$(TargetFramework)' == 'netcoreapp3.1'">InitializeCoreClrCompilerArtifacts</_DependsOn>
++    <_DependsOn Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))">InitializeCoreClrCompilerArtifacts</_DependsOn>
+   </PropertyGroup>
+ 
+   <ItemGroup>
+@@ -39,18 +39,18 @@
+                       Targets="Publish"
+                       ReferenceOutputAssembly="false"
+                       SkipGetTargetFrameworkProperties="true"
+-                      Condition="'$(TargetFramework)' == 'netcoreapp3.1'"
+-                      SetTargetFramework="TargetFramework=netcoreapp3.1" />
++                      Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))"
++                      SetTargetFramework="TargetFramework=$(TargetFramework)" />
+   </ItemGroup>
+ 
+   <Target Name="_GetFilesToPackage" DependsOnTargets="$(_DependsOn)">
+     <ItemGroup>
+       <_File Include="@(DesktopCompilerArtifact)" TargetDir="tasks/net472"/>
+       <_File Include="@(DesktopCompilerResourceArtifact)" TargetDir="tasks/net472"/>
+-      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/netcoreapp3.1"/>
+-      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/netcoreapp3.1"/>
+-      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/netcoreapp3.1/bincore"/>
+-      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/netcoreapp3.1/bincore/runtimes"/>
++      <_File Include="@(CoreClrCompilerBuildArtifact)" TargetDir="tasks/$(TargetFrameworkForNETSDK)"/>
++      <_File Include="@(CoreClrCompilerToolsArtifact)" TargetDir="tasks/$(TargetFrameworkForNETSDK)"/>
++      <_File Include="@(CoreClrCompilerBinArtifact)" TargetDir="tasks/$(TargetFrameworkForNETSDK)/bincore"/>
++      <_File Include="@(CoreClrCompilerBinRuntimesArtifact)" TargetDir="tasks/$(TargetFrameworkForNETSDK)/bincore/runtimes"/>
+      
+       <_File Include="$(MSBuildProjectDirectory)\build\**\*.*" Condition="'$(TargetFramework)' == 'net472' or '$(DotNetBuildFromSource)' == 'true'" TargetDir="build" />
+      
+@@ -59,5 +59,5 @@
+   </Target>
+ 
+   <Import Project="DesktopCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'net472'" />
+-  <Import Project="CoreClrCompilerArtifacts.targets" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
++  <Import Project="CoreClrCompilerArtifacts.targets" Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'netcoreapp3.1'))" />
+ </Project>
+diff --git a/src/NuGet/Microsoft.Net.Compilers.Toolset/build/Microsoft.Net.Compilers.Toolset.props b/src/NuGet/Microsoft.Net.Compilers.Toolset/build/Microsoft.Net.Compilers.Toolset.props
+index 157388e0be7..aac3dcdee92 100644
+--- a/src/NuGet/Microsoft.Net.Compilers.Toolset/build/Microsoft.Net.Compilers.Toolset.props
++++ b/src/NuGet/Microsoft.Net.Compilers.Toolset/build/Microsoft.Net.Compilers.Toolset.props
+@@ -2,7 +2,7 @@
+ <Project>
+ 
+   <PropertyGroup>
+-    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">netcoreapp3.1</_RoslynTargetDirectoryName>   
++    <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' == 'Core'">net6.0</_RoslynTargetDirectoryName>   
+     <_RoslynTargetDirectoryName Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_RoslynTargetDirectoryName>   
+     <_RoslynTasksDirectory>$(MSBuildThisFileDirectory)..\tasks\$(_RoslynTargetDirectoryName)\</_RoslynTasksDirectory>
+     <RoslynTasksAssembly>$(_RoslynTasksDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll</RoslynTasksAssembly> 
+-- 
+2.28.0.windows.1
+
