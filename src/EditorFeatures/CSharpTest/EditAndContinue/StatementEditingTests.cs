@@ -10330,7 +10330,6 @@ int G1(int[] p) { return p[2]; }
             edits.VerifyEdits(@"Update [x = y with { X = 1, Y = 1 }]@6 -> [x = y with { X = 1, Y = 2 }]@6");
         }
 
-
         #endregion
     }
 }
