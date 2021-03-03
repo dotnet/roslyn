@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     {
                         if (symbolEqualityComparerType != null &&
                             possibleMethodTypes.Contains(method.ContainingType.OriginalDefinition) &&
-                            HasFirstTypeArgumentSymbolType(method, symbolType) &&
+                            IsBehavingOnSymbolType(method, symbolType) &&
                             !invocationOperation.Arguments.Any(arg => IsSymbolType(arg.Value, symbolEqualityComparerType)))
                         {
                             context.ReportDiagnostic(invocationOperation.CreateDiagnostic(CollectionRule));
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             static bool IsNotInstanceInvocationOrNotOnSymbol(IInvocationOperation invocationOperation, INamedTypeSymbol symbolType)
                 => invocationOperation.Instance is null || IsSymbolType(invocationOperation.Instance, symbolType);
 
-            static bool HasFirstTypeArgumentSymbolType(IMethodSymbol? method, INamedTypeSymbol symbolType)
+            static bool IsBehavingOnSymbolType(IMethodSymbol? method, INamedTypeSymbol symbolType)
             {
                 if (method is null)
                 {
@@ -190,14 +191,20 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 }
                 else if (!method.TypeArguments.IsEmpty)
                 {
-                    return IsSymbolType(method.TypeArguments[0], symbolType);
+                    var destinationTypeIndex = method.TypeParameters
+                        .Select((type, index) => type.Name == "TKey" ? index : -1)
+                        .FirstOrDefault(x => x >= 0);
+
+                    Debug.Assert(destinationTypeIndex < method.TypeArguments.Length);
+
+                    return IsSymbolType(method.TypeArguments[destinationTypeIndex], symbolType);
                 }
                 else if (method.ReducedFrom != null && !method.ReducedFrom.TypeArguments.IsEmpty)
                 {
                     // We are in the case where the ReducedFrom has TypeArguments but the original method doesn't.
                     // This seems to happen only for VB.NET and the only workaround is to force the construction
                     // of the ReducedFrom.
-                    return HasFirstTypeArgumentSymbolType(method.GetConstructedReducedFrom(), symbolType);
+                    return IsBehavingOnSymbolType(method.GetConstructedReducedFrom(), symbolType);
                 }
                 else
                 {

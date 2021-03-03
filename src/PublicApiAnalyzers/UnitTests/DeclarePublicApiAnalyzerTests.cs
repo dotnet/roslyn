@@ -1531,6 +1531,45 @@ C.Property.set -> void";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
+        [Theory]
+        [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
+        [InlineData("\r\n")] // Windows line ending.
+        [InlineData("\n")] // Linux line ending.
+        public async Task TestUseExistingLineEndings(string lineEnding)
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int Field1;
+    public int Field2;
+    public int {|RS0016:Field3|}; // Newly added field, not in current public API.
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = $"C{lineEnding}C.Field1 -> int{lineEnding}C.Field2 -> int";
+            var fixedUnshippedText = $"C{lineEnding}C.Field1 -> int{lineEnding}C.Field2 -> int{lineEnding}C.Field3 -> int";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        [WorkItem(4749, "https://github.com/dotnet/roslyn-analyzers/issues/4749")]
+        public async Task TestUseOSLineEnding()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int {|RS0016:Field1|}; // Newly added field, not in current public API.
+}
+";
+            var shippedText = @"";
+            var unshippedText = $"C";
+            var fixedUnshippedText = $"C{Environment.NewLine}C.Field1 -> int";
+            await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
         [Fact]
         public async Task TestSimpleMissingMember_Fix_WithoutNullability()
         {
@@ -2217,7 +2256,7 @@ C2.C2() -> void";
             await VerifyCSharpAdditionalFileFixAsync(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
-        [WindowsOnlyTheory]
+        [Theory]
         [InlineData("", "")]
         [InlineData("\r\n", "\r\n")]
         [InlineData("\r\n\r\n", "\r\n")]
