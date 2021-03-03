@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 // Finally, methods can cascade through virtual/override inheritance.  NOTE(cyrusn):
                 // We only need to go up or down one level.  Then, when we're finding references on
                 // those members, we'll end up traversing the entire hierarchy.
-                var overrides = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Up)
+                var overrides = cascadeDirection.HasFlag(FindReferencesCascadeDirection.Down)
                     ? await SymbolFinder.FindOverridesArrayAsync(symbol, solution, projects, cancellationToken).ConfigureAwait(false)
                     : ImmutableArray<ISymbol>.Empty;
 

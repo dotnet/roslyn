@@ -334,7 +334,7 @@ public class M<T> : I1<T>, I3<T>
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharp_PropertyFromGenericInterface1_Streaming(host As TestHost) As Task
+        Public Async Function TestCSharp_PropertyFromGenericInterface1_Feature(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -354,7 +354,7 @@ interface I2
  
 interface I3<T> : I2
 {
-    new T {|Definition:Name|} { get; set; }
+    new T Name { get; set; }
 }
  
 public class M<T> : I1<T>, I3<T>
@@ -445,7 +445,7 @@ public class M<T> : I1<T>, I3<T>
 
         <WorkItem(539885, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539885")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestCSharp_PropertyFromGenericInterface3_Streaming(host As TestHost) As Task
+        Public Async Function TestCSharp_PropertyFromGenericInterface3_FEature(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -455,7 +455,7 @@ using System;
  
 interface I1<T>
 {
-    T {|Definition:Name|} { get; set; }
+    T Name { get; set; }
 }
  
 interface I2

@@ -582,7 +582,7 @@ interface I<X>
 class C : I<int>, I<string>
 {
     public void {|Definition:$$Goo|}(int x) { }
-    public void {|Definition:Goo|}(string x) { }
+    public void Goo(string x) { }
 }
 ]]>
         </Document>
@@ -629,7 +629,7 @@ interface I<X>
 
 class C : I<int>, I<string>
 {
-    public void {|Definition:Goo|}(int x) { }
+    public void Goo(int x) { }
     public void {|Definition:$$Goo|}(string x) { }
 }
 ]]>

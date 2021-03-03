@@ -394,7 +394,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestOrdinaryMethodOverride_InMetadata(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestOrdinaryMethodOverride_InMetadata_Api(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -411,7 +411,28 @@ class C
         </Document>
     </Project>
 </Workspace>
-            Await TestAPIAndFeature(input, kind, host)
+            Await TestAPI(input, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestOrdinaryMethodOverride_InMetadata_Feature(host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            // Will walk up to Object.ToString
+            public override string {|Definition:To$$String|}() { }
+        }
+        class O
+        {
+            public override string ToString() { }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestStreamingFeature(input, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -484,7 +505,7 @@ class C
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromReference_Feature(kind As TestKind, host As TestHost) As Task
+        Public Async Function TestOrdinaryMethodInterfaceInheritance_FromReference_Feature(host As TestHost) As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -496,7 +517,7 @@ class C
 
         class C1 : I1
         {
-            public void {|Definition:Goo|}()
+            public void Goo()
             {
             }
         }
@@ -585,7 +606,7 @@ class C
 
         interface I2 : I1
         {
-            void {|Definition:Goo|}();
+            void Goo();
             void Bar();
         }
 
@@ -1530,9 +1551,9 @@ End Interface
 
     class Derived<U, V> : Base<U>, I<V>
     {
-        public void {|Definition:F|}()
+        public void F()
         {
-            [|F|]();
+            F();
         }
     }
 ]]>
@@ -1589,7 +1610,7 @@ End Interface
 
     class Base<U> : I<U>
     {
-        void I<U>.{|Definition:F|}() { }
+        void I<U>.F() { }
     }
 
     class Derived<U, V> : Base<U>, I<V>
@@ -1653,7 +1674,7 @@ End Interface
 
     class Base<U> : I<U>
     {
-        void I<U>.{|Definition:F|}() { }
+        void I<U>.F() { }
     }
 
     class Derived<U, V> : Base<U>, I<V>
