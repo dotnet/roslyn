@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.Storage
     internal class CloudCachePersistentStorage : AbstractPersistentStorage
     {
         private static readonly ObjectPool<byte[]> s_byteArrayPool = new(() => new byte[Checksum.HashSize]);
+
+        /// <remarks>
+        /// We do not need to store anything specific about the solution in this key as the platform cloud cache is
+        /// already keyed to the current solution.  So this just allows us to store values considering that as the root.
+        /// </remarks>
         private static readonly RoslynCloudCacheContainerKey s_solutionKey = new("Roslyn.Solution");
 
         /// <summary>
