@@ -89,6 +89,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// may impact performance. For example, an edit may be complex if it needs
         /// to format or type check the resulting code, or make complex non-local
         /// changes to other parts of the file.
+        /// Complex resolution is used so we only do the minimum amount of work
+        /// needed to display completion items. It is performed only for the
+        /// committed item just prior to the commit. Thus, it is a good place to
+        /// put in any expensive completion work that does not affect the display
+        /// of the item in the completion list, but is necessary for committing the
+        /// item.
         /// </summary>
         public bool IsComplexTextEdit { get; }
 
