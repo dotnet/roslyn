@@ -15,6 +15,7 @@ using Microsoft.ServiceHub.Framework.Services;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Cache;
 using Microsoft.VisualStudio.Cache.SQLite;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Roslyn.Utilities;
 
@@ -52,38 +53,23 @@ namespace CloudCache
             return new IdeCoreBenchmarksCloudCacheService(cacheService);
         }
 
-        private class IdeCoreBenchmarksCloudCacheService : IRoslynCloudCacheService
+        private class IdeCoreBenchmarksCloudCacheService : AbstractCloudCacheService
         {
-            private readonly ICacheService _cacheService;
-
-            public IdeCoreBenchmarksCloudCacheService(ICacheService cacheService)
+            public IdeCoreBenchmarksCloudCacheService(ICacheService cacheService) : base(cacheService)
             {
-                _cacheService = cacheService;
             }
 
-            private static CacheItemKey Convert(RoslynCloudCacheItemKey key)
-                => new(Convert(key.ContainerKey), key.ItemName) { Version = key.Version };
-
-            private static CacheContainerKey Convert(RoslynCloudCacheContainerKey containerKey)
-                => new(containerKey.Component, containerKey.Dimensions);
-
-            public void Dispose()
-                => (_cacheService as IDisposable)?.Dispose();
-
-            public ValueTask DisposeAsync()
-                => (_cacheService as IAsyncDisposable)?.DisposeAsync() ?? ValueTaskFactory.CompletedTask;
-
-            public Task<bool> CheckExistsAsync(RoslynCloudCacheItemKey key, CancellationToken cancellationToken)
-                => _cacheService.CheckExistsAsync(Convert(key), cancellationToken);
-
-            public ValueTask<string> GetRelativePathBaseAsync(CancellationToken cancellationToken)
-                => _cacheService.GetRelativePathBaseAsync(cancellationToken);
-
-            public Task SetItemAsync(RoslynCloudCacheItemKey key, PipeReader reader, bool shareable, CancellationToken cancellationToken)
-                => _cacheService.SetItemAsync(Convert(key), reader, shareable, cancellationToken);
-
-            public Task<bool> TryGetItemAsync(RoslynCloudCacheItemKey key, PipeWriter writer, CancellationToken cancellationToken)
-                => _cacheService.TryGetItemAsync(Convert(key), writer, cancellationToken);
+            public override void Dispose()
+            {
+                if (this.CacheService is IAsyncDisposable asyncDisposable)
+                {
+                    asyncDisposable.DisposeAsync().AsTask().Wait();
+                }
+                else if (this.CacheService is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
     }
 }
