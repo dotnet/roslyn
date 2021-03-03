@@ -709,40 +709,29 @@ namespace Microsoft.CodeAnalysis
             return CreateNewStateForChangedAnalyzerConfigDocuments(newDocumentStates);
         }
 
-        public ProjectState UpdateDocumentsOrder(ImmutableArray<DocumentId> documentIds)
+        public ProjectState UpdateDocumentsOrder(ImmutableList<DocumentId> documentIds)
         {
-            if (documentIds.IsEmpty)
-            {
-                throw new ArgumentOutOfRangeException("The specified documents are empty.", nameof(documentIds));
-            }
-
-            if (documentIds.Length != DocumentStates.Count)
+            if (documentIds.Count != DocumentStates.Count)
             {
                 throw new ArgumentException($"The specified documents do not equal the project document count.", nameof(documentIds));
             }
 
-            var hasOrderChanged = false;
-
-            for (var i = 0; i < documentIds.Length; i++)
-            {
-                if (DocumentStates.Ids[i] != documentIds[i])
-                {
-                    hasOrderChanged = true;
-                    break;
-                }
-            }
-
-            if (!hasOrderChanged)
+            if (documentIds.SequenceEqual(DocumentStates.Ids))
             {
                 return this;
             }
 
-            var reorderedStates = documentIds.Select(id =>
-                DocumentStates.GetState(id) ?? throw new InvalidOperationException($"The document '{id}' does not exist in the project."));
+            foreach (var id in documentIds)
+            {
+                if (!DocumentStates.Contains(id))
+                {
+                    throw new InvalidOperationException($"The document '{id}' does not exist in the project.");
+                }
+            }
 
             return With(
                 projectInfo: ProjectInfo.WithVersion(Version.GetNewerVersion()),
-                documentStates: new(reorderedStates));
+                documentStates: DocumentStates.WithCompilationOrder(documentIds));
         }
 
         private void GetLatestDependentVersions(

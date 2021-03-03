@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Solution WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
-            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds.ToImmutableArray());
+            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
             if (newState == _state)
             {
                 return this;
