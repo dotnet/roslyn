@@ -800,7 +800,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // 3. (Later) the values in the map can be read to avoid providing new values for equivalent parameters.
             var newArguments = _state._arguments;
 
-            if (_state._method is not null)
+            if (_state._method is null || !_state._method.Parameters.Any())
+            {
+                // If we didn't have any previous parameters, then there is only the placeholder in the snippet.
+                // We don't want to lose what the user has typed there, if they typed something
+                if (ExpansionSession.GetFieldValue(PlaceholderSnippetField, out var placeholderValue) == VSConstants.S_OK &&
+                    placeholderValue.Length > 0)
+                {
+                    if (method.Parameters.Any())
+                    {
+                        newArguments = newArguments.SetItem(method.Parameters[0].Name, placeholderValue);
+                    }
+                    else
+                    {
+                        // TODO: if the user is typing before signature help updated the model, and we have no parameters here,
+                        // should we still create a new snippet that has the existing placeholder text?
+                    }
+                }
+            }
+            else if (_state._method is not null)
             {
                 foreach (var previousParameter in _state._method.Parameters)
                 {
