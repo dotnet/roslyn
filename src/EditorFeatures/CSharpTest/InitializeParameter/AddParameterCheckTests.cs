@@ -1781,9 +1781,9 @@ class C
 }",
                 ExpectedDiagnostics = {
                     // /0/Test0.cs(6,12): error CS0501: 'C.C(string)' must declare a body because it is not marked abstract, extern, or partial
-                    DiagnosticResult.CompilerError("CS0501").WithSpan(6, 12, 6, 13).WithArguments("C.C(string)"),
+                    DiagnosticResult.CompilerError("CS0501").WithLocation(6, 12).WithArguments("C.C(string)"),
                     // /0/Test0.cs(6,23): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(6, 23, 6, 23),
+                    DiagnosticResult.CompilerError("CS1002").WithLocation(6, 23),
                 },
                 FixedState =
                 {
@@ -2004,13 +2004,13 @@ class C
                 new[]
                 {
                     // /0/Test0.cs(8,12): error CS0103: The name 'x' does not exist in the current context
-                    DiagnosticResult.CompilerError("CS0103").WithSpan(8, 12, 8, 13).WithArguments("x"),
+                    DiagnosticResult.CompilerError("CS0103").WithLocation(8, 12).WithArguments("x"),
                     // /0/Test0.cs(8,13): error CS1002: ; expected
-                    DiagnosticResult.CompilerError("CS1002").WithSpan(8, 13, 8, 13),
+                    DiagnosticResult.CompilerError("CS1002").WithLocation(8, 13),
                     // /0/Test0.cs(8,13): error CS1026: ) expected
-                    DiagnosticResult.CompilerError("CS1026").WithSpan(8, 13, 8, 13),
+                    DiagnosticResult.CompilerError("CS1026").WithLocation(8, 13),
                     // /0/Test0.cs(8,13): error CS1026: ) expected
-                    DiagnosticResult.CompilerError("CS1026").WithSpan(8, 13, 8, 13),
+                    DiagnosticResult.CompilerError("CS1026").WithLocation(8, 13),
                 }, code);
         }
 
