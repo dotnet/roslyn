@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public Test()
             {
-                MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
-
                 SolutionTransforms.Add((solution, projectId) =>
                 {
                     var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
