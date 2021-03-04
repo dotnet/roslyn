@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
@@ -22,17 +22,14 @@ namespace Microsoft.CodeAnalysis.Remote.Host
     /// broker here for these services to use.
     /// </summary>
     // Note: this Export is only so MEF picks up the exported member internally.
-    [Export]
-    internal class GlobalServiceBrokerManager
+    [Export(typeof(IGlobalServiceBroker)), Shared]
+    internal class GlobalServiceBroker : IGlobalServiceBroker
     {
-        [Export]
-        public static readonly IGlobalServiceBroker Instance = new GlobalServiceBroker();
-
         private static IServiceBroker? s_instance;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GlobalServiceBrokerManager()
+        public GlobalServiceBroker()
         {
         }
 
@@ -41,19 +38,12 @@ namespace Microsoft.CodeAnalysis.Remote.Host
             Interlocked.CompareExchange(ref s_instance, serviceBroker, null);
         }
 
-        private class GlobalServiceBroker : IGlobalServiceBroker
+        public IServiceBroker Instance
         {
-            public GlobalServiceBroker()
+            get
             {
-            }
-
-            public IServiceBroker Instance
-            {
-                get
-                {
-                    Contract.ThrowIfNull(s_instance, "Global service broker not registered");
-                    return s_instance;
-                }
+                Contract.ThrowIfNull(s_instance, "Global service broker not registered");
+                return s_instance;
             }
         }
     }
