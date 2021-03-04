@@ -47,37 +47,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             }.RunAsync();
         }
 
-        private static async Task TestWithUseBlockBodyExceptAccessor(string code, string fixedCode)
-        {
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = fixedCode,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },
-                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible },
-                }
-            }.RunAsync();
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseExpressionBody1()
         {
             var code = @"
 class C
 {
-    int this[int i]
+    int Bar() { return 0; }
+
+    {|IDE0026:int this[int i]
     {
         get
         {
-            [|return|] Bar();
+            return Bar();
         }
-    }
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int this[int i] => Bar();
 }";
             await TestWithUseExpressionBody(code, fixedCode);
@@ -89,6 +79,8 @@ class C
             var code = @"
 class C
 {
+    int Bar() { return 0; }
+
     int this[int i]
     {
         get
@@ -110,6 +102,8 @@ class C
             var code = @"
 class C
 {
+    void Bar() { }
+
     int this[int i]
     {
         set
@@ -125,17 +119,21 @@ class C
         public async Task TestUseExpressionBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    int this[int i]
+    {|IDE0026:int this[int i]
     {
         get
         {
-            [|throw|] new NotImplementedException();
+            throw new NotImplementedException();
         }
-    }
+    }|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int this[int i] => throw new NotImplementedException();
@@ -147,17 +145,21 @@ class C
         public async Task TestUseExpressionBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    int this[int i]
+    {|IDE0026:int this[int i]
     {
         get
         {
-            [|throw|] new NotImplementedException(); // comment
+            throw new NotImplementedException(); // comment
         }
-    }
+    }|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int this[int i] => throw new NotImplementedException(); // comment
@@ -171,11 +173,15 @@ class C
             var code = @"
 class C
 {
-    int this[int i] [|=>|] Bar();
+    int Bar() { return 0; }
+
+    {|IDE0026:int this[int i] => Bar();|}
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int this[int i]
     {
         get
@@ -194,31 +200,47 @@ class C
             var code = @"
 class C
 {
-    int this[int i] [|=>|] Bar();
+    int Bar() { return 0; }
+
+    {|IDE0026:int this[int i] => Bar();|}
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int this[int i]
     {
-        get
-        {
-            return Bar();
-        }
+        get => Bar();
     }
 }";
-            await TestWithUseBlockBodyExceptAccessor(code, fixedCode);
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible },
+                },
+                NumberOfFixAllIterations = 2,
+                NumberOfIncrementalIterations = 2,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    int this[int i] [|=>|] throw new NotImplementedException();
+    {|IDE0026:int this[int i] => throw new NotImplementedException();|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int this[int i]
@@ -236,11 +258,15 @@ class C
         public async Task TestUseBlockBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    int this[int i] [|=>|] throw new NotImplementedException(); // comment
+    {|IDE0026:int this[int i] => throw new NotImplementedException();|} // comment
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int this[int i]
