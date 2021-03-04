@@ -111,23 +111,21 @@ using F = System.IO;
 
             var tree = comp.SyntaxTrees.Single();
             var binder = comp.GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot(), inUsing: false);
-            var scratchImports = binder.GetImports(basesBeingResolved: null);
+            var scratchImports = binder.ImportChain.Imports;
             var scratchExternAliases = scratchImports.ExternAliases;
             Assert.Equal(2, scratchExternAliases.Length);
 
             var externAlias1 = scratchExternAliases[0];
             var externAlias2 = new AliasAndExternAliasDirective(
-                AliasSymbol.CreateCustomDebugInfoAlias(scratchExternAliases[1].Alias.Target, externAlias1.ExternAliasDirective.Identifier, binder.ContainingMemberOrLambda),
-                 externAlias1.ExternAliasDirective);
+                AliasSymbol.CreateCustomDebugInfoAlias(scratchExternAliases[1].Alias.Target, externAlias1.ExternAliasDirective.Identifier, binder.ContainingMemberOrLambda, isExtern: true),
+                 externAlias1.ExternAliasDirective, skipInLookup: false);
 
-            var imports1 = Imports.FromCustomDebugInfo(
-                comp,
+            var imports1 = Imports.Create(
                 ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
                 ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
                 ImmutableArray.Create(externAlias1));
 
-            var imports2 = Imports.FromCustomDebugInfo(
-                comp,
+            var imports2 = Imports.Create(
                 ImmutableDictionary<string, AliasAndUsingDirective>.Empty,
                 ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty,
                 ImmutableArray.Create(externAlias2));
@@ -150,7 +148,7 @@ using F = System.IO;
 
             var factories = trees.Select(tree => comp.GetBinderFactory(tree));
             var binders = factories.Select(factory => factory.GetImportsBinder((CSharpSyntaxNode)factory.SyntaxTree.GetRoot(), inUsing: false));
-            var imports = binders.Select(binder => binder.GetImports(basesBeingResolved: null));
+            var imports = binders.Select(binder => binder.ImportChain.Imports);
             Assert.DoesNotContain(Imports.Empty, imports);
             return imports.ToArray();
         }

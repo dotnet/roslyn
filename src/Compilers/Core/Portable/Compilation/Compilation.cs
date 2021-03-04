@@ -3140,7 +3140,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void MarkImportDirectiveAsUsed(SyntaxNode node)
+        internal void MarkImportDirectiveAsUsed(SyntaxReference node)
         {
             MarkImportDirectiveAsUsed(node.SyntaxTree, node.Span.Start);
         }

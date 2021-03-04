@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         private readonly CSharpCompilationOptions _options;
-        private readonly Lazy<Imports> _globalImports;
+        private readonly Lazy<UsingsFromOptionsAndDiagnostics> _usingsFromOptions;
+        private readonly Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>> _globalImports;
         private readonly Lazy<Imports> _previousSubmissionImports;
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
@@ -446,7 +447,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.builtInOperators = new BuiltInOperators(this);
             _scriptClass = new Lazy<ImplicitNamedTypeSymbol?>(BindScriptClass);
-            _globalImports = new Lazy<Imports>(BindGlobalImports);
+            _globalImports = new Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>>(BindGlobalImports);
+            _usingsFromOptions = new Lazy<UsingsFromOptionsAndDiagnostics>(BindUsingsFromOptions);
             _previousSubmissionImports = new Lazy<Imports>(ExpandPreviousSubmissionImports);
             _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
@@ -1423,9 +1425,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
-        internal Imports GlobalImports => _globalImports.Value;
+        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports => _globalImports.Value;
 
-        private Imports BindGlobalImports() => Imports.FromGlobalUsings(this);
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
+        {
+            var usingsFromoptions = UsingsFromOptions;
+            var previousSubmission = PreviousSubmission;
+            var previousSubmissionImports = previousSubmission is object ? Imports.ExpandPreviousSubmissionImports(previousSubmission.GlobalImports, this) : ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty;
+
+            if (usingsFromoptions.UsingNamespacesOrTypes.IsEmpty)
+            {
+                return previousSubmissionImports;
+            }
+            else if (previousSubmissionImports.IsEmpty)
+            {
+                return usingsFromoptions.UsingNamespacesOrTypes;
+            }
+
+            var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
+            var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
+
+            boundUsings.AddRange(usingsFromoptions.UsingNamespacesOrTypes);
+            uniqueUsings.AddAll(usingsFromoptions.UsingNamespacesOrTypes.Select(static unt => unt.NamespaceOrType));
+
+            foreach (var previousUsing in previousSubmissionImports)
+            {
+                if (uniqueUsings.Add(previousUsing.NamespaceOrType))
+                {
+                    boundUsings.Add(previousUsing);
+                }
+            }
+
+            uniqueUsings.Free();
+
+            return boundUsings.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Global imports not including those from previous submissions.
+        /// </summary>
+        private UsingsFromOptionsAndDiagnostics UsingsFromOptions => _usingsFromOptions.Value;
+
+        private UsingsFromOptionsAndDiagnostics BindUsingsFromOptions() => UsingsFromOptionsAndDiagnostics.FromOptions(this);
 
         /// <summary>
         /// Imports declared by this submission (null if this isn't one).
@@ -1442,8 +1483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Imports.Empty;
             }
 
-            var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
-            return binder.GetImports(basesBeingResolved: null);
+            return ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).GetImports((CSharpSyntaxNode)tree.GetRoot(), basesBeingResolved: null);
         }
 
         /// <summary>
@@ -2272,14 +2312,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);
         }
 
-        /// <summary>
-        /// Returns imported symbols for the given declaration.
-        /// </summary>
-        internal Imports GetImports(SingleNamespaceDeclaration declaration)
-        {
-            return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports(basesBeingResolved: null);
-        }
-
         private AliasSymbol CreateGlobalNamespaceAlias()
         {
             return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace);
@@ -2775,7 +2807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, CancellationToken cancellationToken = default)
         {
-            GlobalImports.Complete(cancellationToken);
+            UsingsFromOptions.Complete(this, cancellationToken);
 
             SourceLocation? location = null;
             if (syntaxTree != null)
@@ -4183,6 +4215,167 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override bool Matches(string name)
                 => _name == name;
+        }
+
+        private class UsingsFromOptionsAndDiagnostics
+        {
+            public static readonly UsingsFromOptionsAndDiagnostics Empty = new UsingsFromOptionsAndDiagnostics() { UsingNamespacesOrTypes = ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty, Diagnostics = null };
+
+            public ImmutableArray<NamespaceOrTypeAndUsingDirective> UsingNamespacesOrTypes { get; init; }
+            public DiagnosticBag? Diagnostics { get; init; }
+
+            // completion state that tracks whether validation was done/not done/currently in process. 
+            private SymbolCompletionState _state;
+
+            public static UsingsFromOptionsAndDiagnostics FromOptions(CSharpCompilation compilation)
+            {
+                var usings = compilation.Options.Usings;
+
+                if (usings.Length == 0)
+                {
+                    return Empty;
+                }
+
+                var diagnostics = new DiagnosticBag();
+                var usingsBinder = new InContainerBinder(compilation.GlobalNamespace, new BuckStopsHereBinder(compilation));
+                var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
+                var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
+
+                foreach (string @using in usings)
+                {
+                    if (!@using.IsValidClrNamespaceName())
+                    {
+                        continue;
+                    }
+
+                    string[] identifiers = @using.Split('.');
+                    NameSyntax qualifiedName = SyntaxFactory.IdentifierName(identifiers[0]);
+
+                    for (int j = 1; j < identifiers.Length; j++)
+                    {
+                        qualifiedName = SyntaxFactory.QualifiedName(left: qualifiedName, right: SyntaxFactory.IdentifierName(identifiers[j]));
+                    }
+
+                    var directiveDiagnostics = BindingDiagnosticBag.GetInstance();
+                    Debug.Assert(directiveDiagnostics.DiagnosticBag is object);
+                    Debug.Assert(directiveDiagnostics.DependenciesBag is object);
+
+                    var imported = usingsBinder.BindNamespaceOrTypeSymbol(qualifiedName, directiveDiagnostics).NamespaceOrTypeSymbol;
+                    if (uniqueUsings.Add(imported))
+                    {
+                        boundUsings.Add(new NamespaceOrTypeAndUsingDirective(imported, null, dependencies: directiveDiagnostics.DependenciesBag.ToImmutableArray()));
+                    }
+
+                    diagnostics.AddRange(directiveDiagnostics.DiagnosticBag);
+                    directiveDiagnostics.Free();
+                }
+
+                if (diagnostics.IsEmptyWithoutResolution)
+                {
+                    diagnostics = null;
+                }
+
+                uniqueUsings.Free();
+
+                if (boundUsings.Count == 0 && diagnostics is null)
+                {
+                    boundUsings.Free();
+                    return Empty;
+                }
+
+                return new UsingsFromOptionsAndDiagnostics() { UsingNamespacesOrTypes = boundUsings.ToImmutableAndFree(), Diagnostics = diagnostics };
+            }
+
+            internal void Complete(CSharpCompilation compilation, CancellationToken cancellationToken)
+            {
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var incompletePart = _state.NextIncompletePart;
+                    switch (incompletePart)
+                    {
+                        case CompletionPart.StartValidatingImports:
+                            {
+                                if (_state.NotePartComplete(CompletionPart.StartValidatingImports))
+                                {
+                                    Validate(compilation);
+                                    _state.NotePartComplete(CompletionPart.FinishValidatingImports);
+                                }
+                            }
+                            break;
+
+                        case CompletionPart.FinishValidatingImports:
+                            // some other thread has started validating imports (otherwise we would be in the case above) so
+                            // we just wait for it to both finish and report the diagnostics.
+                            Debug.Assert(_state.HasComplete(CompletionPart.StartValidatingImports));
+                            _state.SpinWaitComplete(CompletionPart.FinishValidatingImports, cancellationToken);
+                            break;
+
+                        case CompletionPart.None:
+                            return;
+
+                        default:
+                            // any other values are completion parts intended for other kinds of symbols
+                            _state.NotePartComplete(CompletionPart.All & ~CompletionPart.ImportsAll);
+                            break;
+                    }
+
+                    _state.SpinWaitComplete(incompletePart, cancellationToken);
+                }
+            }
+
+            private void Validate(CSharpCompilation compilation)
+            {
+                if (this == Empty)
+                {
+                    return;
+                }
+
+                DiagnosticBag semanticDiagnostics = compilation.DeclarationDiagnostics;
+                var diagnostics = BindingDiagnosticBag.GetInstance();
+                Debug.Assert(diagnostics.DiagnosticBag is object);
+                Debug.Assert(diagnostics.DependenciesBag is object);
+
+                var corLibrary = compilation.SourceAssembly.CorLibrary;
+                var conversions = new TypeConversions(corLibrary);
+                foreach (var @using in UsingNamespacesOrTypes)
+                {
+                    diagnostics.Clear();
+                    diagnostics.AddDependencies(@using.Dependencies);
+
+                    NamespaceOrTypeSymbol target = @using.NamespaceOrType;
+
+                    // Check if `using static` directives meet constraints.
+                    Debug.Assert(@using.UsingDirective is null);
+                    if (target.IsType)
+                    {
+                        var typeSymbol = (TypeSymbol)target;
+                        var location = NoLocation.Singleton;
+                        typeSymbol.CheckAllConstraints(compilation, conversions, location, diagnostics);
+                    }
+
+                    semanticDiagnostics.AddRange(diagnostics.DiagnosticBag);
+
+                    recordImportDependencies(target);
+                }
+
+                if (Diagnostics != null && !Diagnostics.IsEmptyWithoutResolution)
+                {
+                    semanticDiagnostics.AddRange(Diagnostics.AsEnumerable());
+                }
+
+                diagnostics.Free();
+
+                void recordImportDependencies(NamespaceOrTypeSymbol target)
+                {
+                    if (target.IsNamespace)
+                    {
+                        diagnostics.AddAssembliesUsedByNamespaceReference((NamespaceSymbol)target);
+                    }
+
+                    compilation.AddUsedAssemblies(diagnostics.DependenciesBag);
+                }
+            }
         }
     }
 }

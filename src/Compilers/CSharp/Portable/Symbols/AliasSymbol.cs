@@ -48,22 +48,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class AliasSymbol : Symbol
     {
         private readonly ImmutableArray<Location> _locations;  // NOTE: can be empty for the "global" alias.
+        private readonly string _aliasName;
+        private readonly bool _isExtern;
+        private readonly Symbol? _containingSymbol;
 
-        protected AliasSymbol(ImmutableArray<Location> locations)
+        protected AliasSymbol(string aliasName, Symbol? containingSymbol, ImmutableArray<Location> locations, bool isExtern)
         {
+            Debug.Assert(locations.Length == 1 || (locations.IsEmpty && aliasName == "global")); // It looks like equality implementation depends on this condition.
+
             _locations = locations;
+            _aliasName = aliasName;
+            _isExtern = isExtern;
+            _containingSymbol = containingSymbol;
         }
 
         // For the purposes of SemanticModel, it is convenient to have an AliasSymbol for the "global" namespace that "global::" binds
         // to. This alias symbol is returned only when binding "global::" (special case code).
         internal static AliasSymbol CreateGlobalNamespaceAlias(NamespaceSymbol globalNamespace)
         {
-            return new AliasSymbolFromTarget(globalNamespace, "global", globalNamespace, ImmutableArray<Location>.Empty);
+            return new AliasSymbolFromResolvedTarget(globalNamespace, "global", globalNamespace, ImmutableArray<Location>.Empty, isExtern: false);
         }
 
-        internal static AliasSymbol CreateCustomDebugInfoAlias(NamespaceOrTypeSymbol targetSymbol, SyntaxToken aliasToken, Symbol? containingSymbol)
+        internal static AliasSymbol CreateCustomDebugInfoAlias(NamespaceOrTypeSymbol targetSymbol, SyntaxToken aliasToken, Symbol? containingSymbol, bool isExtern)
         {
-            return new AliasSymbolFromTarget(targetSymbol, aliasToken.ValueText, containingSymbol, ImmutableArray.Create(aliasToken.GetLocation()));
+            return new AliasSymbolFromResolvedTarget(targetSymbol, aliasToken.ValueText, containingSymbol, ImmutableArray.Create(aliasToken.GetLocation()), isExtern);
         }
 
         internal AliasSymbol ToNewSubmission(CSharpCompilation compilation)
@@ -78,12 +86,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var expandedGlobalNamespace = compilation.GlobalNamespace;
             var expandedNamespace = Imports.ExpandPreviousSubmissionNamespace((NamespaceSymbol)previousTarget, expandedGlobalNamespace);
-            return new AliasSymbolFromTarget(expandedNamespace, Name, ContainingSymbol, _locations);
+            return new AliasSymbolFromResolvedTarget(expandedNamespace, Name, ContainingSymbol, _locations, _isExtern);
         }
 
-        public abstract override string Name
+        public sealed override string Name
         {
-            get;
+            get
+            {
+                return _aliasName;
+            }
         }
 
         public override SymbolKind Kind
@@ -119,9 +130,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public abstract override bool IsExtern
+        public sealed override bool IsExtern
         {
-            get;
+            get
+            {
+                return _isExtern;
+            }
         }
 
         public override bool IsSealed
@@ -186,9 +200,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// return that as the "containing" symbol, even though the alias isn't a member of the
         /// namespace as such.
         /// </summary>
-        public abstract override Symbol? ContainingSymbol
+        public sealed override Symbol? ContainingSymbol
         {
-            get;
+            get
+            {
+                return _containingSymbol;
+            }
         }
 
         internal override TResult Accept<TArg, TResult>(CSharpSymbolVisitor<TArg, TResult> visitor, TArg a)
@@ -260,41 +277,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class AliasSymbolFromSyntax : AliasSymbol
     {
-        private readonly SyntaxToken _aliasName;
-        private readonly Binder _binder;
-
+        private readonly SyntaxReference _directive;
         private SymbolCompletionState _state;
         private NamespaceOrTypeSymbol? _aliasTarget;
 
         // lazy binding
-        private readonly NameSyntax? _aliasTargetName;
-        private readonly bool _isExtern;
         private BindingDiagnosticBag? _aliasTargetDiagnostics;
 
-        internal AliasSymbolFromSyntax(Binder binder, UsingDirectiveSyntax syntax)
-            : base(ImmutableArray.Create(syntax.Alias!.Name.Identifier.GetLocation()))
+        internal AliasSymbolFromSyntax(SourceNamespaceSymbol containingSymbol, UsingDirectiveSyntax syntax)
+            : base(syntax.Alias!.Name.Identifier.ValueText, containingSymbol, ImmutableArray.Create(syntax.Alias!.Name.Identifier.GetLocation()), isExtern: false)
         {
             Debug.Assert(syntax.Alias is object);
 
-            _aliasName = syntax.Alias.Name.Identifier;
-            _binder = binder;
-            _aliasTargetName = syntax.Name;
+            _directive = syntax.GetReference();
         }
 
-        internal AliasSymbolFromSyntax(Binder binder, ExternAliasDirectiveSyntax syntax)
-            : base(ImmutableArray.Create(syntax.Identifier.GetLocation()))
+        internal AliasSymbolFromSyntax(SourceNamespaceSymbol containingSymbol, ExternAliasDirectiveSyntax syntax)
+            : base(syntax.Identifier.ValueText, containingSymbol, ImmutableArray.Create(syntax.Identifier.GetLocation()), isExtern: true)
         {
-            _aliasName = syntax.Identifier;
-            _binder = binder;
-            _isExtern = true;
-        }
-
-        public override string Name
-        {
-            get
-            {
-                return _aliasName.ValueText;
-            }
+            _directive = syntax.GetReference();
         }
 
         /// <summary>
@@ -309,28 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsExtern
-        {
-            get
-            {
-                return _isExtern;
-            }
-        }
-
-        /// <summary>
-        /// Using aliases in C# are always contained within a namespace declaration, or at the top
-        /// level within a compilation unit, within the implicit unnamed namespace declaration.  We
-        /// return that as the "containing" symbol, even though the alias isn't a member of the
-        /// namespace as such.
-        /// </summary>
-        public override Symbol? ContainingSymbol
-        {
-            get
-            {
-                return _binder.ContainingMemberOrLambda;
-            }
-        }
-
         // basesBeingResolved is only used to break circular references.
         internal override NamespaceOrTypeSymbol GetAliasTarget(ConsList<TypeSymbol>? basesBeingResolved)
         {
@@ -342,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 NamespaceOrTypeSymbol symbol = this.IsExtern ?
                     ResolveExternAliasTarget(newDiagnostics) :
-                    ResolveAliasTarget(_aliasTargetName, newDiagnostics, basesBeingResolved);
+                    ResolveAliasTarget(((UsingDirectiveSyntax)_directive.GetSyntax()).Name, newDiagnostics, basesBeingResolved);
 
                 if ((object?)Interlocked.CompareExchange(ref _aliasTarget, symbol, null) == null)
                 {
@@ -379,9 +358,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private NamespaceSymbol ResolveExternAliasTarget(BindingDiagnosticBag diagnostics)
         {
             NamespaceSymbol? target;
-            if (!_binder.Compilation.GetExternAliasTarget(_aliasName.ValueText, out target))
+            if (!ContainingSymbol!.DeclaringCompilation.GetExternAliasTarget(Name, out target))
             {
-                diagnostics.Add(ErrorCode.ERR_BadExternAlias, _aliasName.GetLocation(), _aliasName.ValueText!);
+                diagnostics.Add(ErrorCode.ERR_BadExternAlias, Locations[0], Name);
             }
 
             RoslynDebug.Assert(target is object);
@@ -390,9 +369,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return target;
         }
 
-        private NamespaceOrTypeSymbol ResolveAliasTarget(NameSyntax? syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
+        private NamespaceOrTypeSymbol ResolveAliasTarget(NameSyntax syntax, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol>? basesBeingResolved)
         {
-            var declarationBinder = _binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
+            var declarationBinder = ContainingSymbol!.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax).WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
             return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved).NamespaceOrTypeSymbol;
         }
 
@@ -402,26 +381,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class AliasSymbolFromTarget : AliasSymbol
+    internal sealed class AliasSymbolFromResolvedTarget : AliasSymbol
     {
-        private readonly string _aliasName;
-        private readonly Symbol? _containingSymbol;
         private readonly NamespaceOrTypeSymbol _aliasTarget;
 
-        internal AliasSymbolFromTarget(NamespaceOrTypeSymbol target, string aliasName, Symbol? containingSymbol, ImmutableArray<Location> locations)
-            : base(locations)
+        internal AliasSymbolFromResolvedTarget(NamespaceOrTypeSymbol target, string aliasName, Symbol? containingSymbol, ImmutableArray<Location> locations, bool isExtern)
+            : base(aliasName, containingSymbol, locations, isExtern)
         {
-            _aliasName = aliasName;
-            _containingSymbol = containingSymbol;
             _aliasTarget = target;
-        }
-
-        public override string Name
-        {
-            get
-            {
-                return _aliasName;
-            }
         }
 
         /// <summary>
@@ -433,28 +400,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return _aliasTarget;
-            }
-        }
-
-        public override bool IsExtern
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Using aliases in C# are always contained within a namespace declaration, or at the top
-        /// level within a compilation unit, within the implicit unnamed namespace declaration.  We
-        /// return that as the "containing" symbol, even though the alias isn't a member of the
-        /// namespace as such.
-        /// </summary>
-        public override Symbol? ContainingSymbol
-        {
-            get
-            {
-                return _containingSymbol;
             }
         }
 

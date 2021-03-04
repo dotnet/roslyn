@@ -1933,24 +1933,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Binder binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
-            var imports = binder.GetImports(basesBeingResolved: null);
-            var alias = imports.UsingAliases[declarationSyntax.Alias.Name.Identifier.ValueText];
 
-            if ((object)alias.Alias == null)
+            for (; binder != null; binder = binder.Next)
             {
-                // Case: no aliases
-                return null;
+                var usingAliases = binder.UsingAliases;
+
+                if (!usingAliases.IsDefault)
+                {
+                    foreach (var alias in usingAliases)
+                    {
+                        if (alias.Alias.Locations[0].SourceSpan == declarationSyntax.Alias.Name.Span)
+                        {
+                            return alias.Alias.GetPublicSymbol();
+                        }
+                    }
+
+                    break;
+                }
             }
-            else if (alias.Alias.Locations[0].SourceSpan == declarationSyntax.Alias.Name.Span)
-            {
-                // Case: first alias (there may be others)
-                return alias.Alias.GetPublicSymbol();
-            }
-            else
-            {
-                // Case: multiple aliases, not the first (see DevDiv #9368)
-                return new AliasSymbolFromSyntax(binder, declarationSyntax).GetPublicSymbol();
-            }
+
+            return null;
         }
 
         /// <summary>
@@ -1964,18 +1966,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(declarationSyntax);
 
             var binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
-            var imports = binder.GetImports(basesBeingResolved: null);
 
-            // TODO: If this becomes a bottleneck, put the extern aliases in a dictionary, as for using aliases.
-            foreach (var alias in imports.ExternAliases)
+            for (; binder != null; binder = binder.Next)
             {
-                if (alias.Alias.Locations[0].SourceSpan == declarationSyntax.Identifier.Span)
+                var externAliases = binder.ExternAliases;
+
+                if (!externAliases.IsDefault)
                 {
-                    return alias.Alias.GetPublicSymbol();
+                    foreach (var alias in externAliases)
+                    {
+                        if (alias.Alias.Locations[0].SourceSpan == declarationSyntax.Identifier.Span)
+                        {
+                            return alias.Alias.GetPublicSymbol();
+                        }
+                    }
+
+                    break;
                 }
             }
 
-            return new AliasSymbolFromSyntax(binder, declarationSyntax).GetPublicSymbol();
+            return null;
         }
 
         /// <summary>
