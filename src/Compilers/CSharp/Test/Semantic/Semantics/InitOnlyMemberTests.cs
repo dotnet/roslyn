@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     [CompilerTrait(CompilerFeature.InitOnlySetters)]
     public class InitOnlyMemberTests : CompilingTestBase
     {
-        // Spec: https://github.com/dotnet/csharplang/blob/master/proposals/init.md
+        // Spec: https://github.com/dotnet/csharplang/blob/main/proposals/init.md
 
         // https://github.com/dotnet/roslyn/issues/44685
         // test dynamic scenario
