@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis.Options
     internal static class OptionsExtensions
     {
         public static Option<CodeStyleOption<T>> ToPublicOption<T>(this Option2<CodeStyleOption2<T>> option)
-            where T : notnull
         {
             RoslynDebug.Assert(option != null);
 
@@ -21,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public static PerLanguageOption<CodeStyleOption<T>> ToPublicOption<T>(this PerLanguageOption2<CodeStyleOption2<T>> option)
-            where T : notnull
         {
             RoslynDebug.Assert(option != null);
 

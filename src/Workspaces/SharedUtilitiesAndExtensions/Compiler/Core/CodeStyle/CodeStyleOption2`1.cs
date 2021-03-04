@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// then those values will write back as false/true.
     /// </summary>
     internal partial class CodeStyleOption2<T> : ICodeStyleOption, IEquatable<CodeStyleOption2<T>?>
-        where T : notnull
     {
         static CodeStyleOption2()
         {
@@ -83,10 +82,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             new("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", GetTypeNameForSerialization()),
-                new XAttribute(nameof(Value), GetValueForSerialization()),
+                new XAttribute(nameof(Value), GetValueForSerialization()!),
                 new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
-        private object GetValueForSerialization()
+        private object? GetValueForSerialization()
         {
             if (typeof(T) == typeof(string))
             {
