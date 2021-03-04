@@ -386,7 +386,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 if (!tabbedInsideSnippetField)
                 {
                     ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
-                    _state.Clear();
                 }
 
                 return tabbedInsideSnippetField;
@@ -404,7 +403,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 if (!tabbedInsideSnippetField)
                 {
                     ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
-                    _state.Clear();
                 }
 
                 return tabbedInsideSnippetField;
@@ -418,7 +416,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (ExpansionSession != null)
             {
                 ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
-                _state.Clear();
                 return true;
             }
 
@@ -451,7 +448,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
 
                 ExpansionSession.EndCurrentExpansion(fLeaveCaret: leaveCaret ? 1 : 0);
-                _state.Clear();
 
                 return !leaveCaret;
             }
@@ -496,7 +492,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 // This expansion is not derived from a symbol, so make sure the state isn't tracking any symbol
                 // information
-                _state.ClearSymbolInformation();
+                Debug.Assert(!_state.IsFullMethodCallSnippet);
                 return true;
             }
 
@@ -524,12 +520,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 var doc = new DOMDocumentClass();
                 if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
                 {
-                    _state._methods = methodSymbols;
-                    _state._method = null;
-
                     if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
                     {
-                        Debug.Assert(_state._methods == methodSymbols);
+                        Debug.Assert(_state._expansionSession != null);
+                        _state._methodNameForInsertFullMethodCall = methodName;
                         Debug.Assert(_state._method == null);
 
                         if (_signatureHelpControllerProvider.GetController(TextView, SubjectBuffer) is { } controller)
@@ -545,10 +539,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         editorCommandHandlerService.Execute((view, buffer) => new InvokeSignatureHelpCommandArgs(view, buffer), nextCommandHandler: null);
 
                         return true;
-                    }
-                    else
-                    {
-                        _state.Clear();
                     }
                 }
             }
@@ -741,24 +731,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var symbolName = _state._method?.Name ?? _state._methods.FirstOrDefault()?.Name;
-            if (symbolName != method.Name)
+            if (_state._methodNameForInsertFullMethodCall is null || _state._methodNameForInsertFullMethodCall != method.Name)
             {
                 // Signature Help is showing a signature that wasn't part of the set this argument value completion
                 // session was created from. It's unclear how this state should be handled, so we stop processing
                 // Signature Help updates for the current session.
                 // TODO: https://github.com/dotnet/roslyn/issues/50636
-                _state.ClearSymbolInformation();
-                return;
-            }
-
-            if (_state._methods.IsDefaultOrEmpty)
-            {
-                // Signature Help is showing a set of overloads that don't match the overloads from the point where the
-                // argument completion session first started. It's unclear how this state should be handled, so we stop
-                // processing Signature Help updates for the current session.
-                // TODO: https://github.com/dotnet/roslyn/issues/50636
-                _state.ClearSymbolInformation();
+                ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
                 return;
             }
 
@@ -766,7 +745,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             if (document is null)
             {
                 // Couldn't identify the current document
-                _state.ClearSymbolInformation();
+                ExpansionSession.EndCurrentExpansion(fLeaveCaret: 1);
                 return;
             }
 
@@ -788,7 +767,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // field. Methods with no arguments still have an empty "placeholder" snippet field representing the initial
             // caret position when the snippet is created.
             var textSpan = new VsTextSpan[1];
-            if (ExpansionSession is null || ExpansionSession.GetSnippetSpan(textSpan) != VSConstants.S_OK)
+            if (ExpansionSession.GetSnippetSpan(textSpan) != VSConstants.S_OK)
             {
                 return;
             }
@@ -865,18 +844,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var doc = new DOMDocumentClass();
             if (doc.loadXML(snippet.ToString(SaveOptions.OmitDuplicateNamespaces)))
             {
-                // Avoid clearing symbol information when InsertSpecificExpansion ends the current snippet session; the
-                // new session will need the same information to carry argument values forward.
-                _state._preserveSymbols = true;
-
-                _state._method = method;
-                var previousMethods = _state._methods;
-
                 if (expansion.InsertSpecificExpansion(doc, adjustedTextSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
                 {
-                    _state._preserveSymbols = false;
-                    Debug.Assert(_state._methods == previousMethods);
-                    Debug.Assert(_state._method == method);
+                    Debug.Assert(_state._expansionSession != null);
+                    _state._methodNameForInsertFullMethodCall = method.Name;
+                    _state._method = method;
                     _state._arguments = newArguments;
 
                     // On this path, the closing parenthesis is not part of the updated snippet, so there is no way for
@@ -892,10 +864,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         ExpansionSession.SetEndSpan(textSpan[0]);
                     }
                 }
-                else
-                {
-                    _state.Clear();
-                }
             }
         }
 
@@ -906,13 +874,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 _earlyEndExpansionHappened = true;
             }
 
-            // This call to EndExpansion may be a reentrant call to the client within a call to InsertSpecificExpansion
-            // (the current snippet session, if any, is terminated by the platform automatically as part of creating
-            // inserting a new snippet). Since _state may contain symbol information used by snippet functions during
-            // the creation of the new snippet, we only want to clear symbol information if the state hasn't set the
-            // _preserveSymbols flag.
-            _state.ClearActiveSession();
-            _state.ClearSymbolInformationUnlessPreserved();
+            _state.Clear();
 
             _indentCaretOnCommit = false;
 
@@ -972,9 +934,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 _earlyEndExpansionHappened = false;
 
-                // This expansion was chosen from the snippet picker, and not derived from a symbol. Make sure the state
-                // isn't tracking any symbol information.
-                _state.ClearSymbolInformation();
                 hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out _state._expansionSession);
 
                 if (_earlyEndExpansionHappened)
@@ -1166,27 +1125,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             public IVsExpansionSession? _expansionSession;
 
             /// <summary>
-            /// The set of symbols initially identified as candidates for providing arguments. When a snippet is
-            /// constructed with parameters for a specific symbol, <see cref="_method"/> will identify the specific
-            /// symbol from within this collection matching the current session.
+            /// The name of the method that we have invoked insert full method call on. Null if the session is
+            /// a regular snippets session.
             /// </summary>
-            /// <remarks>
-            /// <para>This collection might not contain <see cref="_method"/>, particularly in cases where
-            /// <see cref="GetReferencedSymbolsToLeftOfCaretAsync"/> returns only a subset of the available overloads.
-            /// One simple case can be seen in Visual Basic code invoking <see cref="int.ToString()"/>:</para>
-            ///
-            /// <code>
-            /// Dim x = 0
-            /// x.ToString$$
-            /// </code>
-            ///
-            /// <para>When <see cref="GetReferencedSymbolsToLeftOfCaretAsync"/> is invoked at the caret location,
-            /// <see cref="int.ToString()"/> is returned, but other overloads like <see cref="int.ToString(string)"/>
-            /// are not. This is due to the fact that parentheses are optional for invocations that do not have any
-            /// parameters, as opposed to the equivalent C# case where <c>ToString</c> would refer to a method
-            /// group.</para>
-            /// </remarks>
-            public ImmutableArray<IMethodSymbol> _methods;
+            public string? _methodNameForInsertFullMethodCall;
 
             /// <summary>
             /// The current symbol presented in an Argument Provider snippet session. This may be null if Signature Help
@@ -1202,71 +1144,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             public ImmutableDictionary<string, string> _arguments = ImmutableDictionary.Create<string, string>();
 
             /// <summary>
-            /// When moving between Signature Help overloads, the snippet session used for argument providers is cleared
-            /// and recreated. When <see langword="true"/>, this field instructs the snippet client to avoid clearing
-            /// symbol information when a snippet session is cleared, and is used in cases where a new snippet session
-            /// is being created to use the same symbols.
-            /// </summary>
-            public bool _preserveSymbols;
-
-            /// <summary>
             /// <see langword="true"/> if the current snippet session is a Full Method Call snippet session; otherwise,
             /// <see langword="false"/> if there is no current snippet session or if the current snippet session is a normal snippet.
             /// </summary>
-            public bool IsFullMethodCallSnippet => _expansionSession is not null && !_methods.IsDefaultOrEmpty;
+            public bool IsFullMethodCallSnippet => _expansionSession is not null && _methodNameForInsertFullMethodCall is not null;
 
-            /// <summary>
-            /// Clear the snippet session state.
-            /// </summary>
-            /// <remarks>
-            /// This is the primary method is used to clear the snippet state when a snippet is being dismissed. The
-            /// logic is separated into helper methods as part of an IDE workaround for the fact that a snippet session
-            /// cannot dynamically add or remove placeholders. The placeholder changes used for the Full Method Call
-            /// feature work by dismissing the current session and immediately starting a new one in its place; in these
-            /// cases we dismiss the <see cref="_expansionSession"/> instance but leave the symbol information in place
-            /// for use by the next (replacement) session.
-            /// </remarks>
             public void Clear()
             {
-                ClearActiveSession();
-                ClearSymbolInformation();
-            }
-
-            /// <summary>
-            /// Clear the active expansion session from the state.
-            /// </summary>
-            public void ClearActiveSession()
-            {
                 _expansionSession = null;
-            }
-
-            /// <summary>
-            /// Clears symbol information from the current snippet state, unless the state is configured to preserve
-            /// symbol information.
-            /// </summary>
-            /// <remarks>
-            /// This method only clears symbol information when <see cref="_preserveSymbols"/> is
-            /// <see langword="false"/>.
-            /// </remarks>
-            public void ClearSymbolInformationUnlessPreserved()
-            {
-                if (_preserveSymbols)
-                    return;
-
-                ClearSymbolInformation();
-            }
-
-            /// <summary>
-            /// Clears symbol information from the current snippet state.
-            /// </summary>
-            /// <remarks>
-            /// This method always clears symbol information, including setting <see cref="_preserveSymbols"/> to
-            /// <see langword="false"/>.
-            /// </remarks>
-            public void ClearSymbolInformation()
-            {
-                _preserveSymbols = false;
-                _methods = default;
+                _methodNameForInsertFullMethodCall = null;
                 _method = null;
                 _arguments = _arguments.Clear();
             }
