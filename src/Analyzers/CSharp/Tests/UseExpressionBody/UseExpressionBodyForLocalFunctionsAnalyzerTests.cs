@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
@@ -38,13 +39,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             }.RunAsync();
         }
 
-        private static async Task TestWithUseBlockBody(string code, string fixedCode)
+        private static async Task TestWithUseBlockBody(string code, string fixedCode, ReferenceAssemblies? referenceAssemblies = null)
         {
             await new VerifyCS.Test
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.Never } }
+                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, ExpressionBodyPreference.Never } },
+                ReferenceAssemblies = referenceAssemblies ?? ReferenceAssemblies.Default,
             }.RunAsync();
         }
 
@@ -54,17 +56,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             var code = @"
 class C
 {
+    void Test() { }
+
     void Goo()
     {
-        void Bar()
+        {|IDE0061:void Bar()
         {
-            [|Test|]();
-        }
+            Test();
+        }|}
     }
 }";
             var fixedCode = @"
 class C
 {
+    void Test() { }
+
     void Goo()
     {
         void Bar() => Test();
@@ -79,17 +85,21 @@ class C
             var code = @"
 class C
 {
+    int Test() { return 0; }
+
     void Goo()
     {
-        int Bar()
+        {|IDE0061:int Bar()
         {
-            return [|Test|]();
-        }
+            return Test();
+        }|}
     }
 }";
             var fixedCode = @"
 class C
 {
+    int Test() { return 0; }
+
     void Goo()
     {
         int Bar() => Test();
@@ -102,22 +112,26 @@ class C
         public async Task TestUseExpressionBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    int Goo()
+    void Goo()
     {
-        int Bar()
+        {|IDE0061:int Bar()
         {
-            [|throw|] new NotImplementedException();
-        }
+            throw new NotImplementedException();
+        }|}
     }
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
-    int Goo()
+    void Goo()
     {
-        int Bar() => [|throw|] new NotImplementedException();
+        int Bar() => throw new NotImplementedException();
     }
 }";
             await TestWithUseExpressionBody(code, fixedCode);
@@ -127,22 +141,26 @@ class C
         public async Task TestUseExpressionBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    int Goo()
+    void Goo()
     {
-        int Bar()
+        {|IDE0061:int Bar()
         {
-            [|throw|] new NotImplementedException(); // comment
-        }
+            throw new NotImplementedException(); // comment
+        }|}
     }
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
-    int Goo()
+    void Goo()
     {
-        int Bar() => [|throw|] new NotImplementedException(); // comment
+        int Bar() => throw new NotImplementedException(); // comment
     }
 }";
             await TestWithUseExpressionBody(code, fixedCode);
@@ -154,7 +172,7 @@ class C
             var code = @"
 class C
 {
-    int Goo()
+    void Goo()
     {
         int Bar()
         {
@@ -173,18 +191,18 @@ class C
             var code = @"
 class C
 {
-    int Goo()
+    void Goo()
     {
-        int Bar()
+        {|IDE0061:int Bar()
         {
-            [|return|] 1 + 2 + 3;
-        }
+            return 1 + 2 + 3;
+        }|}
     }
 }";
             var fixedCode = @"
 class C
 {
-    int Goo()
+    void Goo()
     {
         int Bar() => 1 + 2 + 3;
     }
@@ -198,14 +216,18 @@ class C
             var code = @"
 class C
 {
+    void Test() { }
+
     void Goo()
     {
-        void Bar() => [|Test()|];
+        {|IDE0061:void Bar() => Test();|}
     }
 }";
             var fixedCode = @"
 class C
 {
+    void Test() { }
+
     void Goo()
     {
         void Bar()
@@ -223,15 +245,19 @@ class C
             var code = @"
 class C
 {
-    int Goo()
+    int Test() { return 0; }
+
+    void Goo()
     {
-        int Bar() => [|Test|]();
+        {|IDE0061:int Bar() => Test();|}
     }
 }";
             var fixedCode = @"
 class C
 {
-    int Goo()
+    int Test() { return 0; }
+
+    void Goo()
     {
         int Bar()
         {
@@ -246,17 +272,21 @@ class C
         public async Task TestUseBlockBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    int Goo()
+    void Goo()
     {
-        int Bar() => [|throw|] new NotImplementedException();
+        {|IDE0061:int Bar() => throw new NotImplementedException();|}
     }
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
-    int Goo()
+    void Goo()
     {
         int Bar()
         {
@@ -271,17 +301,21 @@ class C
         public async Task TestUseBlockBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    int Goo()
+    void Goo()
     {
-        int Bar() => [|throw|] new NotImplementedException(); // comment
+        {|IDE0061:int Bar() => throw new NotImplementedException();|} // comment
     }
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
-    int Goo()
+    void Goo()
     {
         int Bar()
         {
@@ -298,18 +332,22 @@ class C
             var code = @"
 class C
 {
+    void Test() { }
+
     void Goo()
     {
-        void Bar()
+        {|IDE0061:void Bar()
         {
             // Comment
-            [|Test|]();
-        }
+            Test();
+        }|}
     }
 }";
             var fixedCode = @"
 class C
 {
+    void Test() { }
+
     void Goo()
     {
         void Bar() =>
@@ -326,19 +364,23 @@ class C
             var code = @"
 class C
 {
-    int Goo()
+    int Test() { return 0; }
+
+    void Goo()
     {
-        int Bar()
+        {|IDE0061:int Bar()
         {
             // Comment
-            return [|Test|]();
-        }
+            return Test();
+        }|}
     }
 }";
             var fixedCode = @"
 class C
 {
-    int Goo()
+    int Test() { return 0; }
+
+    void Goo()
     {
         int Bar() =>
             // Comment
@@ -352,20 +394,28 @@ class C
         public async Task TestComments3()
         {
             var code = @"
+using System;
+
 class C
 {
+    Exception Test() { return new Exception(); }
+
     void Goo()
     {
-        void Bar()
+        {|IDE0061:void Bar()
         {
             // Comment
-            throw [|Test|]();
-        }
+            throw Test();
+        }|}
     }
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
+    Exception Test() { return new Exception(); }
+
     void Goo()
     {
         void Bar() =>
@@ -382,17 +432,21 @@ class C
             var code = @"
 class C
 {
+    void Test() { }
+
     void Goo()
     {
-        void Bar()
+        {|IDE0061:void Bar()
         {
-            [|Test|](); // Comment
-        }
+            Test(); // Comment
+        }|}
     }
 }";
             var fixedCode = @"
 class C
 {
+    void Test() { }
+
     void Goo()
     {
         void Bar() => Test(); // Comment
@@ -407,18 +461,22 @@ class C
             var code = @"
 class C
 {
-    int Goo()
+    int Test() { return 0; }
+
+    void Goo()
     {
-        int Bar()
+        {|IDE0061:int Bar()
         {
-            return [|Test|](); // Comment
-        }
+            return Test(); // Comment
+        }|}
     }
 }";
             var fixedCode = @"
 class C
 {
-    int Goo()
+    int Test() { return 0; }
+
+    void Goo()
     {
         int Bar() => Test(); // Comment
     }
@@ -430,19 +488,27 @@ class C
         public async Task TestComments6()
         {
             var code = @"
+using System;
+
 class C
 {
+    Exception Test() { return new Exception(); }
+
     void Goo()
     {
-        void Bar()
+        {|IDE0061:void Bar()
         {
-            throw [|Test|](); // Comment
-        }
+            throw Test(); // Comment
+        }|}
     }
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
+    Exception Test() { return new Exception(); }
+
     void Goo()
     {
         void Bar() => throw Test(); // Comment
@@ -462,12 +528,12 @@ class Program
 {
     void Method()
     {
-        void Bar()
+        {|IDE0061:void Bar()
         {
 #if DEBUG
-            [|Console|].WriteLine();
+            Console.WriteLine();
 #endif
-        }
+        }|}
     }
 }";
             var fixedCode = @"
@@ -499,14 +565,14 @@ class Program
 {
     void Method()
     {
-        void Bar()
+        {|IDE0061:void Bar()
         {
 #if DEBUG
-            [|Console|].WriteLine(a);
+            Console.WriteLine(0);
 #else
-            Console.WriteLine(b);
+            Console.WriteLine(1);
 #endif
-        }
+        }|}
     }
 }";
             var fixedCode = @"
@@ -519,9 +585,9 @@ class Program
     {
         void Bar() =>
 #if DEBUG
-            Console.WriteLine(a);
+            Console.WriteLine(0);
 #else
-            Console.WriteLine(b);
+            Console.WriteLine(1);
 #endif
 
     }
@@ -539,10 +605,10 @@ class C
 {
     async Task Goo()
     {
-        async Task Bar() [|=>|] await Test();
+        {|IDE0061:async Task Bar() => await Test();|}
     }
 
-    Task Test() { }
+    Task Test() { return Task.CompletedTask; }
 }";
             var fixedCode = @"
 using System.Threading.Tasks;
@@ -557,7 +623,7 @@ class C
         }
     }
 
-    Task Test() { }
+    Task Test() { return Task.CompletedTask; }
 }";
             await TestWithUseBlockBody(code, fixedCode);
         }
@@ -572,10 +638,10 @@ class C
 {
     async void Goo()
     {
-        async void Bar() [|=>|] await Test();
+        {|IDE0061:async void Bar() => await Test();|}
     }
 
-    Task Test() { }
+    Task Test() { return Task.CompletedTask; }
 }";
             var fixedCode = @"
 using System.Threading.Tasks;
@@ -590,7 +656,7 @@ class C
         }
     }
 
-    Task Test() { }
+    Task Test() { return Task.CompletedTask; }
 }";
             await TestWithUseBlockBody(code, fixedCode);
         }
@@ -603,19 +669,19 @@ using System.Threading.Tasks;
 
 class C
 {
-    async ValueTask Goo() 
+    void Goo() 
     {
-        async ValueTask Test() [|=>|] await Bar();
+        {|IDE0061:async ValueTask Test() => await Bar();|}
     }
 
-    Task Bar() { }
+    Task Bar() { return Task.CompletedTask; }
 }";
             var fixedCode = @"
 using System.Threading.Tasks;
 
 class C
 {
-    async ValueTask Goo() 
+    void Goo() 
     {
         async ValueTask Test()
         {
@@ -623,9 +689,9 @@ class C
         }
     }
 
-    Task Bar() { }
+    Task Bar() { return Task.CompletedTask; }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBody(code, fixedCode, ReferenceAssemblies.NetStandard.NetStandard21);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -636,19 +702,19 @@ using System.Threading.Tasks;
 
 class C
 {
-    async Task<int> Goo()
+    void Goo()
     {
-        Task<int> Test() [|=>|] Bar();
+        {|IDE0061:Task<int> Test() => Bar();|}
     }
 
-    Task<int> Bar() { }
+    Task<int> Bar() { return Task.FromResult(0); }
 }";
             var fixedCode = @"
 using System.Threading.Tasks;
 
 class C
 {
-    async Task<int> Goo()
+    void Goo()
     {
         Task<int> Test()
         {
@@ -656,7 +722,7 @@ class C
         }
     }
 
-    Task<int> Bar() { }
+    Task<int> Bar() { return Task.FromResult(0); }
 }";
             await TestWithUseBlockBody(code, fixedCode);
         }
@@ -669,19 +735,19 @@ using System.Threading.Tasks;
 
 class C
 {
-    Task Goo() 
+    void Goo()
     {
-        Task Test() [|=>|] Bar();
+        {|IDE0061:Task Test() => Bar();|}
     }
 
-    Task Bar() { }
+    Task Bar() { return Task.CompletedTask; }
 }";
             var fixedCode = @"
 using System.Threading.Tasks;
 
 class C
 {
-    Task Goo() 
+    void Goo()
     {
         Task Test()
         {
@@ -689,7 +755,7 @@ class C
         }
     }
 
-    Task Bar() { }
+    Task Bar() { return Task.CompletedTask; }
 }";
             await TestWithUseBlockBody(code, fixedCode);
         }
@@ -700,17 +766,21 @@ class C
             var code = @"
 class C
 {
+    void NestedTest() { }
+
     void Goo()
     {
         void Bar()
         {
-            void Test() => [|NestedTest()|];
+            {|IDE0061:void Test() => NestedTest();|}
         }
     }
 }";
             var fixedCode = @"
 class C
 {
+    void NestedTest() { }
+
     void Goo()
     {
         void Bar()
@@ -731,20 +801,24 @@ class C
             var code = @"
 class C
 {
+    void NestedTest() { }
+
     void Goo()
     {
         void Bar()
         {
-            void Test()
+            {|IDE0061:void Test()
             {
-                [|NestedTest()|];
-            }
+                NestedTest();
+            }|}
         }
     }
 }";
             var fixedCode = @"
 class C
 {
+    void NestedTest() { }
+
     void Goo()
     {
         void Bar()
