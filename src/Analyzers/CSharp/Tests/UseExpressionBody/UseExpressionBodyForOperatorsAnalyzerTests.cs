@@ -44,14 +44,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             var code = @"
 class C
 {
-    public static C operator +(C c1, C c2)
+    private static C Bar() { return new C(); }
+
+    {|IDE0024:public static C operator {|CS0161:+|}(C c1, C c2)
     {
-        [|Bar|]();
-    }
+        Bar();
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    private static C Bar() { return new C(); }
+
     public static C operator +(C c1, C c2) => Bar();
 }";
             await TestWithUseExpressionBody(code, fixedCode);
@@ -63,14 +67,18 @@ class C
             var code = @"
 class C
 {
-    public static C operator +(C c1, C c2)
+    private static C Bar() { return new C(); }
+
+    {|IDE0024:public static C operator +(C c1, C c2)
     {
-        return [|Bar|]();
-    }
+        return Bar();
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    private static C Bar() { return new C(); }
+
     public static C operator +(C c1, C c2) => Bar();
 }";
             await TestWithUseExpressionBody(code, fixedCode);
@@ -80,14 +88,18 @@ class C
         public async Task TestUseExpressionBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    public static C operator +(C c1, C c2)
+    {|IDE0024:public static C operator +(C c1, C c2)
     {
-        [|throw|] new NotImplementedException();
-    }
+        throw new NotImplementedException();
+    }|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public static C operator +(C c1, C c2) => throw new NotImplementedException();
@@ -99,14 +111,18 @@ class C
         public async Task TestUseExpressionBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    public static C operator +(C c1, C c2)
+    {|IDE0024:public static C operator +(C c1, C c2)
     {
-        [|throw|] new NotImplementedException(); // comment
-    }
+        throw new NotImplementedException(); // comment
+    }|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public static C operator +(C c1, C c2) => throw new NotImplementedException(); // comment
@@ -120,11 +136,15 @@ class C
             var code = @"
 class C
 {
-    public static C operator +(C c1, C c2) [|=>|] Bar();
+    private static C Bar() { return new C(); }
+
+    {|IDE0024:public static C operator +(C c1, C c2) => Bar();|}
 }";
             var fixedCode = @"
 class C
 {
+    private static C Bar() { return new C(); }
+
     public static C operator +(C c1, C c2)
     {
         return Bar();
@@ -137,11 +157,15 @@ class C
         public async Task TestUseBlockBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    public static C operator +(C c1, C c2) [|=>|] throw new NotImplementedException();
+    {|IDE0024:public static C operator +(C c1, C c2) => throw new NotImplementedException();|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public static C operator +(C c1, C c2)
@@ -156,11 +180,15 @@ class C
         public async Task TestUseBlockBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    public static C operator +(C c1, C c2) [|=>|] throw new NotImplementedException(); // comment
+    {|IDE0024:public static C operator +(C c1, C c2) => throw new NotImplementedException();|} // comment
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public static C operator +(C c1, C c2)
