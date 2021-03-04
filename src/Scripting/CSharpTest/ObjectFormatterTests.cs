@@ -451,7 +451,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         }
 
         // This method and the class below emulate the behaviour of Enumerable.Range
-        // in .NET Core
+        // in .NET Core. We use a custom type since not all runtime implementations
+        // (e.g. Mono) apply precisely the same attributes, but we want to test behavior
+        // under a specific set of attributes.
         private static IEnumerable<int> Range_Core(int start, int count)
             => new CoreRangeIterator(start, count);
 
