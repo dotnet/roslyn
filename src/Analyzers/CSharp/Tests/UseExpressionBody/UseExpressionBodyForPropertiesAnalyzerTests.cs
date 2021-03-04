@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -31,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible },
                     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never },
-                }
+                },
+                MarkupOptions = MarkupOptions.None,
             }.RunAsync();
         }
 
@@ -45,21 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never },
                     { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never },
-                }
-            }.RunAsync();
-        }
-
-        private static async Task TestWithUseBlockBodyExceptAccessor(string code, string fixedCode)
-        {
-            await new VerifyCS.Test
-            {
-                TestCode = code,
-                FixedCode = fixedCode,
-                Options =
-                {
-                    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never },
-                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible },
-                }
+                },
+                MarkupOptions = MarkupOptions.None,
             }.RunAsync();
         }
 
@@ -69,17 +58,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             var code = @"
 class C
 {
-    int Goo
+    int Bar() { return 0; }
+
+    {|IDE0025:int Goo
     {
         get
         {
-            [|return|] Bar();
+            return Bar();
         }
-    }
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int Goo => Bar();
 }";
             await TestWithUseExpressionBody(code, fixedCode);
@@ -91,6 +84,8 @@ class C
             var code = @"
 class C
 {
+    int Bar() { return 0; }
+
     int Goo
     {
         get
@@ -110,8 +105,14 @@ class C
         public async Task TestMissingWithAttribute()
         {
             var code = @"
+using System;
+
+class AAttribute : Attribute {}
+
 class C
 {
+    int Bar() { return 0; }
+
     int Goo
     {
         [A]
@@ -130,6 +131,8 @@ class C
             var code = @"
 class C
 {
+    void Bar() { }
+
     int Goo
     {
         set
@@ -145,17 +148,21 @@ class C
         public async Task TestUseExpressionBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    int Goo
+    {|IDE0025:int Goo
     {
         get
         {
-            [|throw|] new NotImplementedException();
+            throw new NotImplementedException();
         }
-    }
+    }|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int Goo => throw new NotImplementedException();
@@ -167,17 +174,21 @@ class C
         public async Task TestUseExpressionBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    int Goo
+    {|IDE0025:int Goo
     {
         get
         {
-            [|throw|] new NotImplementedException(); // comment
+            throw new NotImplementedException(); // comment
         }
-    }
+    }|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int Goo => throw new NotImplementedException(); // comment
@@ -191,11 +202,15 @@ class C
             var code = @"
 class C
 {
-    int Goo [|=>|] Bar();
+    int Bar() { return 0; }
+
+    {|IDE0025:int Goo => Bar();|}
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int Goo
     {
         get
@@ -214,31 +229,48 @@ class C
             var code = @"
 class C
 {
-    int Goo [|=>|] Bar();
+    int Bar() { return 0; }
+
+    {|IDE0025:int Goo => Bar();|}
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int Goo
     {
-        get
-        {
-            return Bar();
-        }
+        get => Bar();
     }
 }";
-            await TestWithUseBlockBodyExceptAccessor(code, fixedCode);
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never },
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenPossible },
+                },
+                MarkupOptions = MarkupOptions.None,
+                NumberOfFixAllIterations = 2,
+                NumberOfIncrementalIterations = 2,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUseBlockBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    int Goo [|=>|] throw new NotImplementedException();
+    {|IDE0025:int Goo => throw new NotImplementedException();|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int Goo
@@ -256,11 +288,15 @@ class C
         public async Task TestUseBlockBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    int Goo [|=>|] throw new NotImplementedException(); // comment
+    {|IDE0025:int Goo => throw new NotImplementedException();|} // comment
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int Goo
@@ -282,7 +318,7 @@ class C
 class C
 {
     private string _prop = ""HELLO THERE!"";
-    public string Prop { get { [|return|] _prop; } }
+    {|IDE0025:public string Prop { get { return _prop; } }|}
 
     public string OtherThing => ""Pickles"";
 }";
@@ -304,21 +340,27 @@ class C
             var code = @"
 class C
 {
-    int Goo
+    int Bar() { return 0; }
+    int Baz() { return 0; }
+
+    {|IDE0025:int Goo
     {
         get
         {
 #if true
-            [|return|] Bar();
+            return Bar();
 #else
             return Baz();
 #endif
         }
-    }
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+    int Baz() { return 0; }
+
     int Goo =>
 #if true
             Bar();
@@ -337,21 +379,27 @@ class C
             var code = @"
 class C
 {
-    int Goo
+    int Bar() { return 0; }
+    int Baz() { return 0; }
+
+    {|IDE0025:int Goo
     {
         get
         {
 #if false
             return Bar();
 #else
-            [|return|] Baz();
+            return Baz();
 #endif
         }
-    }
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+    int Baz() { return 0; }
+
     int Goo =>
 #if false
             return Bar();
@@ -370,6 +418,9 @@ class C
             var code = @"
 class C
 {
+    int Bar() { return 0; }
+    int Baz() { return 0; }
+
     int Goo =>
 #if true
             Bar();
@@ -387,6 +438,9 @@ class C
             var code = @"
 class C
 {
+    int Bar() { return 0; }
+    int Baz() { return 0; }
+
     int Goo =>
 #if false
             Bar();
@@ -401,12 +455,13 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestMoveTriviaFromExpressionToReturnStatement()
         {
+            // TODO: This test is unrelated to properties. It should be moved to UseExpressionBodyForMethodsAnalyzerTests.
             var code = @"
 class C
 {
-    int Goo(int i) [|=>|]
+    {|IDE0022:int Goo(int i) =>
         //comment
-        i * i;
+        i * i;|}
 }";
             var fixedCode = @"
 class C
@@ -428,7 +483,7 @@ class C
 using System;
 class C
 {
-    int Goo [|=>|] throw new NotImplementedException();
+    {|IDE0025:int Goo => {|CS8059:throw new NotImplementedException()|};|}
 }";
             var fixedCode = @"
 using System;
@@ -453,8 +508,8 @@ class C
 using System;
 class C
 {
-    int Goo [|=>|] throw new NotImplementedException();
-    int Bar [|=>|] throw new NotImplementedException();
+    {|IDE0025:int Goo => {|CS8059:throw new NotImplementedException()|};|}
+    {|IDE0025:int Bar => {|CS8059:throw new NotImplementedException()|};|}
 }";
             var fixedCode = @"
 using System;
