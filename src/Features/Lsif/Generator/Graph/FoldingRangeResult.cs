@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
-    /// Represents a foldingRangeResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#request-textdocumentfoldingrange for further details.
+    /// Represents a foldingRangeResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#request-textdocumentfoldingrange for further details.
     /// </summary>
     internal sealed class FoldingRangeResult : Vertex
     {

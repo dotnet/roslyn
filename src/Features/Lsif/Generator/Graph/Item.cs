@@ -5,7 +5,7 @@
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
-    /// Represents a single item that points to a range from a result. See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#request-textdocumentreferences
+    /// Represents a single item that points to a range from a result. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#request-textdocumentreferences
     /// for an example of item edges.
     /// </summary>
     internal sealed class Item : Edge

@@ -12,7 +12,7 @@
 [bool]$binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $ci }
 
 # Set to true to use the pipelines logger which will enable Azure logging output.
-# https://github.com/Microsoft/azure-pipelines-tasks/blob/main/docs/authoring/commands.md
+# https://github.com/Microsoft/azure-pipelines-tasks/blob/master/docs/authoring/commands.md
 # This flag is meant as a temporary opt-opt for the feature while validate it across
 # our consumers. It will be deleted in the future.
 [bool]$pipelinesLog = if (Test-Path variable:pipelinesLog) { $pipelinesLog } else { $ci }

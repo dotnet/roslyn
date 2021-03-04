@@ -7,7 +7,7 @@ using System;
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
-    /// Represents a top-level project. See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#the-project-vertex for further details.
+    /// Represents a top-level project. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#the-project-vertex for further details.
     /// </summary>
     internal sealed class LsifProject : Vertex
     {
