@@ -7122,7 +7122,7 @@ public class Student : Person { public Student() : $$base(0) { } }
       }
     }
 }",
-                MainDescription("(local variable) string? x"));
+                MainDescription($"({FeaturesResources.local_variable}) string? x"));
         }
     }
 }
