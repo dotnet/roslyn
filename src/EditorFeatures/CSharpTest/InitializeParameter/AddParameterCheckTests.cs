@@ -1644,16 +1644,12 @@ class C
 
         [WorkItem(51338, "https://github.com/dotnet/roslyn/issues/51338")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [UseCulture("de-DE", "de-DE")]
         public async Task TestSpecialStringCheck3()
         {
-            var culture = CultureInfo.CurrentUICulture;
-            try
+            await new VerifyCS.Test
             {
-                CultureInfo.CurrentUICulture = new CultureInfo("de-DE", useUserOverride: false);
-
-                await new VerifyCS.Test
-                {
-                    TestCode = @"
+                TestCode = @"
 using System;
 
 class C
@@ -1662,7 +1658,7 @@ class C
     {
     }
 }",
-                    FixedCode = $@"
+                FixedCode = $@"
 using System;
 
 class C
@@ -1675,14 +1671,9 @@ class C
         }}
     }}
 }}",
-                    CodeActionIndex = 1,
-                    CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrEmpty_check
-                }.RunAsync();
-            }
-            finally
-            {
-                CultureInfo.CurrentUICulture = culture;
-            }
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrEmpty_check
+            }.RunAsync();
         }
 
         [WorkItem(19173, "https://github.com/dotnet/roslyn/issues/19173")]
