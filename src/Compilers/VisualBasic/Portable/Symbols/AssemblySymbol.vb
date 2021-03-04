@@ -598,8 +598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function IsValidCandidate(candidate As NamedTypeSymbol, isWellKnownType As Boolean) As Boolean
 
-            Return candidate IsNot Nothing AndAlso
-                (Not isWellKnownType OrElse IsValidWellKnownType(candidate)) AndAlso
+            Return (Not isWellKnownType OrElse IsValidWellKnownType(candidate)) AndAlso
                 IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso
                 Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
                 Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute()
