@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
@@ -62,11 +61,10 @@ namespace Microsoft.CodeAnalysis.Storage
         /// Maps our own roslyn key to the appropriate key to use for the cloud cache system.  To avoid lots of
         /// allocations we cache these (weakly) so if the same keys are used we can use the same platform keys.
         /// </summary>
-        private RoslynCloudCacheContainerKey? GetContainerKey(ProjectKey projectKey)
+        private RoslynCloudCacheContainerKey? GetContainerKey(ProjectKey projectKey, Project? project)
         {
-            var state = projectKey.ProjectState;
-            return state != null
-                ? s_projectToContainerKey.GetValue(state, _projectToContainerKeyCallback).ProjectContainerKey
+            return project != null
+                ? s_projectToContainerKey.GetValue(project.State, _projectToContainerKeyCallback).ProjectContainerKey
                 : ProjectContainerKeyCache.CreateProjectContainerKey(this.SolutionFilePath, projectKey);
         }
 
@@ -74,23 +72,22 @@ namespace Microsoft.CodeAnalysis.Storage
         /// Maps our own roslyn key to the appropriate key to use for the cloud cache system.  To avoid lots of
         /// allocations we cache these (weakly) so if the same keys are used we can use the same platform keys.
         /// </summary>
-        private RoslynCloudCacheContainerKey? GetContainerKey(DocumentKey documentKey)
+        private RoslynCloudCacheContainerKey? GetContainerKey(
+            DocumentKey documentKey, Document? document)
         {
-            var projectState = documentKey.Project.ProjectState;
-            var documentState = documentKey.DocumentState;
-            return projectState != null && documentState != null
-                ? s_projectToContainerKey.GetValue(projectState, _projectToContainerKeyCallback).GetDocumentContainerKey(documentState)
+            return document != null
+                ? s_projectToContainerKey.GetValue(document.Project.State, _projectToContainerKeyCallback).GetDocumentContainerKey(document.State)
                 : ProjectContainerKeyCache.CreateDocumentContainerKey(this.SolutionFilePath, documentKey);
         }
 
         public override Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
             => ChecksumMatchesAsync(name, checksum, s_solutionKey, cancellationToken);
 
-        public override Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, string name, Checksum checksum, CancellationToken cancellationToken)
-            => ChecksumMatchesAsync(name, checksum, GetContainerKey(projectKey), cancellationToken);
+        protected override Task<bool> ChecksumMatchesAsync(ProjectKey projectKey, Project? project, string name, Checksum checksum, CancellationToken cancellationToken)
+            => ChecksumMatchesAsync(name, checksum, GetContainerKey(projectKey, project), cancellationToken);
 
-        public override Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, string name, Checksum checksum, CancellationToken cancellationToken)
-            => ChecksumMatchesAsync(name, checksum, GetContainerKey(documentKey), cancellationToken);
+        protected override Task<bool> ChecksumMatchesAsync(DocumentKey documentKey, Document? document, string name, Checksum checksum, CancellationToken cancellationToken)
+            => ChecksumMatchesAsync(name, checksum, GetContainerKey(documentKey, document), cancellationToken);
 
         private async Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, RoslynCloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
@@ -108,11 +105,11 @@ namespace Microsoft.CodeAnalysis.Storage
         public override Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
             => ReadStreamAsync(name, checksum, s_solutionKey, cancellationToken);
 
-        public override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(name, checksum, GetContainerKey(projectKey), cancellationToken);
+        protected override Task<Stream?> ReadStreamAsync(ProjectKey projectKey, Project? project, string name, Checksum? checksum, CancellationToken cancellationToken)
+            => ReadStreamAsync(name, checksum, GetContainerKey(projectKey, project), cancellationToken);
 
-        public override Task<Stream?> ReadStreamAsync(DocumentKey documentKey, string name, Checksum? checksum, CancellationToken cancellationToken)
-            => ReadStreamAsync(name, checksum, GetContainerKey(documentKey), cancellationToken);
+        protected override Task<Stream?> ReadStreamAsync(DocumentKey documentKey, Document? document, string name, Checksum? checksum, CancellationToken cancellationToken)
+            => ReadStreamAsync(name, checksum, GetContainerKey(documentKey, document), cancellationToken);
 
         private async Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, RoslynCloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {
@@ -162,11 +159,11 @@ namespace Microsoft.CodeAnalysis.Storage
         public override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
             => WriteStreamAsync(name, stream, checksum, s_solutionKey, cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => WriteStreamAsync(name, stream, checksum, GetContainerKey(projectKey), cancellationToken);
+        protected override Task<bool> WriteStreamAsync(ProjectKey projectKey, Project? project, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => WriteStreamAsync(name, stream, checksum, GetContainerKey(projectKey, project), cancellationToken);
 
-        public override Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
-            => WriteStreamAsync(name, stream, checksum, GetContainerKey(documentKey), cancellationToken);
+        protected override Task<bool> WriteStreamAsync(DocumentKey documentKey, Document? document, string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
+            => WriteStreamAsync(name, stream, checksum, GetContainerKey(documentKey, document), cancellationToken);
 
         private async Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, RoslynCloudCacheContainerKey? containerKey, CancellationToken cancellationToken)
         {

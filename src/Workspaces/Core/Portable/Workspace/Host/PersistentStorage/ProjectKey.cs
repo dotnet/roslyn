@@ -22,17 +22,9 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         public readonly string Name;
         public readonly Checksum ParseOptionsChecksum;
 
-        /// <summary>
-        /// Optional link back to the original <see cref="ProjectState"/> that was used to create this key. Can be used
-        /// by clients that could benefit from using the original state as an identity key for some purpose. Clients
-        /// must not be dependent on this and should still succeed even if <see langword="null"/>.
-        /// </summary>
-        public readonly ProjectState? ProjectState;
-
-        public ProjectKey(SolutionKey solution, ProjectState? projectState, ProjectId id, string? filePath, string name, Checksum parseOptionsChecksum)
+        public ProjectKey(SolutionKey solution, ProjectId id, string? filePath, string name, Checksum parseOptionsChecksum)
         {
             Solution = solution;
-            ProjectState = projectState;
             Id = id;
             FilePath = filePath;
             Name = name;
@@ -46,7 +38,7 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             => ToProjectKey(SolutionKey.ToSolutionKey(solutionState), projectState);
 
         public static ProjectKey ToProjectKey(SolutionKey solutionKey, ProjectState projectState)
-            => new(solutionKey, projectState, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
+            => new(solutionKey, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
 
         public SerializableProjectKey Dehydrate()
             => new(Solution.Dehydrate(), Id, FilePath, Name, ParseOptionsChecksum);
@@ -80,6 +72,6 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public ProjectKey Rehydrate()
-            => new(Solution.Rehydrate(), projectState: null, Id, FilePath, Name, ParseOptionsChecksum);
+            => new(Solution.Rehydrate(), Id, FilePath, Name, ParseOptionsChecksum);
     }
 }

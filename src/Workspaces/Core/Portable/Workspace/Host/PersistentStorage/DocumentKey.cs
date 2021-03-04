@@ -21,17 +21,9 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         public readonly string? FilePath;
         public readonly string Name;
 
-        /// <summary>
-        /// Optional link back to the original <see cref="TextDocumentState"/> that was used to create this key. Can be
-        /// used by clients that could benefit from using the original state as an identity key for some purpose.
-        /// Clients must not be dependent on this and should still succeed even if <see langword="null"/>.
-        /// </summary>
-        public readonly TextDocumentState? DocumentState;
-
-        public DocumentKey(ProjectKey project, TextDocumentState? documentState, DocumentId id, string? filePath, string name)
+        public DocumentKey(ProjectKey project, DocumentId id, string? filePath, string name)
         {
             Project = project;
-            DocumentState = documentState;
             Id = id;
             FilePath = filePath;
             Name = name;
@@ -41,7 +33,7 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             => ToDocumentKey(ProjectKey.ToProjectKey(document.Project), document.State);
 
         public static DocumentKey ToDocumentKey(ProjectKey projectKey, TextDocumentState state)
-            => new(projectKey, state, state.Id, state.FilePath, state.Name);
+            => new(projectKey, state.Id, state.FilePath, state.Name);
 
         public SerializableDocumentKey Dehydrate()
             => new(Project.Dehydrate(), Id, FilePath, Name);
@@ -71,6 +63,6 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public DocumentKey Rehydrate()
-            => new(Project.Rehydrate(), documentState: null, Id, FilePath, Name);
+            => new(Project.Rehydrate(), Id, FilePath, Name);
     }
 }
