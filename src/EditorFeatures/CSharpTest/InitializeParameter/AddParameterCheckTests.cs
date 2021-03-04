@@ -1769,7 +1769,15 @@ class C
 {
     public C(string s[||])
 }",
-                FixedCode = @"
+                ExpectedDiagnostics = {
+                    // /0/Test0.cs(6,12): error CS0501: 'C.C(string)' must declare a body because it is not marked abstract, extern, or partial
+                    DiagnosticResult.CompilerError("CS0501").WithSpan(6, 12, 6, 13).WithArguments("C.C(string)"),
+                    // /0/Test0.cs(6,23): error CS1002: ; expected
+                    DiagnosticResult.CompilerError("CS1002").WithSpan(6, 23, 6, 23),
+                },
+                FixedState =
+                {
+                    Sources = { @"
 using System;
 
 class C
@@ -1781,8 +1789,9 @@ class C
             throw new ArgumentNullException(nameof(s));
         }
     }
-}",
-                CompilerDiagnostics = CompilerDiagnostics.None
+}" },
+                    InheritanceMode = StateInheritanceMode.Explicit
+                }
             }.RunAsync();
         }
 
