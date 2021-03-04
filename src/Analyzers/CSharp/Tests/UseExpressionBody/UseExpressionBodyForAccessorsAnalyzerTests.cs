@@ -72,17 +72,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             var code = @"
 class C
 {
+    int Bar() { return 0; }
+
     int Goo
     {
-        get
+        {|IDE0027:get
         {
-            [|return|] Bar();
-        }
+            return Bar();
+        }|}
     }
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int Goo
     {
         get => Bar();
@@ -94,20 +98,25 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUpdatePropertyInsteadOfAccessor()
         {
+            // TODO: Should this test move to properties tests?
             var code = @"
 class C
 {
-    int Goo
+    int Bar() { return 0; }
+
+    {|IDE0025:int Goo
     {
         get
         {
-            [|return|] Bar();
+            return Bar();
         }
-    }
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int Goo => Bar();
 }";
             await TestWithUseExpressionBodyIncludingPropertiesAndIndexers(code, fixedCode);
@@ -119,17 +128,21 @@ class C
             var code = @"
 class C
 {
+    int Bar() { return 0; }
+
     int this[int i]
     {
-        get
+        {|IDE0027:get
         {
-            [|return|] Bar();
-        }
+            return Bar();
+        }|}
     }
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int this[int i]
     {
         get => Bar();
@@ -141,20 +154,25 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
         public async Task TestUpdateIndexerIfIndexerAndAccessorCanBeUpdated()
         {
+            // TODO: Should this test move to indexers tests?
             var code = @"
 class C
 {
-    int this[int i]
+    int Bar() { return 0; }
+
+    {|IDE0026:int this[int i]
     {
         get
         {
-            [|return|] Bar();
+            return Bar();
         }
-    }
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int this[int i] => Bar();
 }";
             await TestWithUseExpressionBodyIncludingPropertiesAndIndexers(code, fixedCode);
@@ -166,20 +184,24 @@ class C
             var code = @"
 class C
 {
+    void Bar() { }
+
     int Goo
     {
-        set
+        {|IDE0027:set
         {
-            [|Bar|]();
-        }
+            Bar();
+        }|}
     }
 }";
             var fixedCode = @"
 class C
 {
+    void Bar() { }
+
     int Goo
     {
-        set => [|Bar|]();
+        set => Bar();
     }
 }";
             await TestWithUseExpressionBody(code, fixedCode);
@@ -191,6 +213,8 @@ class C
             await VerifyCS.VerifyAnalyzerAsync(@"
 class C
 {
+    void Bar() { }
+
     int Goo
     {
         set => Bar();
@@ -202,17 +226,21 @@ class C
         public async Task TestUseExpressionBody3()
         {
             var code = @"
+using System;
+
 class C
 {
     int Goo
     {
-        get
+        {|IDE0027:get
         {
-            [|throw|] new NotImplementedException();
-        }
+            throw new NotImplementedException();
+        }|}
     }
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int Goo
@@ -227,17 +255,21 @@ class C
         public async Task TestUseExpressionBody4()
         {
             var code = @"
+using System;
+
 class C
 {
     int Goo
     {
-        get
+        {|IDE0027:get
         {
-            [|throw|] new NotImplementedException(); // comment
-        }
+            throw new NotImplementedException(); // comment
+        }|}
     }
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int Goo
@@ -254,14 +286,18 @@ class C
             var code = @"
 class C
 {
+    int Bar() { return 0; }
+
     int Goo
     {
-        get [|=>|] Bar();
+        {|IDE0027:get => Bar();|}
     }
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int Goo
     {
         get
@@ -279,14 +315,18 @@ class C
             var code = @"
 class C
 {
+    void Bar() { }
+
     int Goo
     {
-        set [|=>|] Bar();
+        {|IDE0027:set => Bar();|}
         }
     }";
             var fixedCode = @"
 class C
 {
+    void Bar() { }
+
     int Goo
     {
         set
@@ -302,14 +342,18 @@ class C
         public async Task TestUseBlockBody3()
         {
             var code = @"
+using System;
+
 class C
 {
     int Goo
     {
-        get [|=>|] throw new NotImplementedException();
+        {|IDE0027:get => throw new NotImplementedException();|}
         }
     }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int Goo
@@ -327,14 +371,18 @@ class C
         public async Task TestUseBlockBody4()
         {
             var code = @"
+using System;
+
 class C
 {
     int Goo
     {
-        get [|=>|] throw new NotImplementedException(); // comment
+        {|IDE0027:get => throw new NotImplementedException();|} // comment
     }
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     int Goo
@@ -357,7 +405,7 @@ class C
 {
     C this[int index]
     {
-        get [|=>|] default;
+        get => default;
     }
 }";
             await new VerifyCS.Test
@@ -366,9 +414,9 @@ class C
                 FixedCode = code,
                 Options =
                 {
-                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenOnSingleLine },
-                    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenOnSingleLine },
-                    { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenOnSingleLine },
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.None },
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.None },
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.WhenOnSingleLine, NotificationOption2.None },
                 }
             }.RunAsync();
         }
@@ -380,11 +428,15 @@ class C
             var code = @"
 class C
 {
-    int Goo { get [|=>|] Bar(); }
+    int Bar() { return 0; }
+
+    int Goo { {|IDE0027:get => Bar();|} }
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
     int Goo
     {
         get
@@ -403,11 +455,29 @@ class C
             var code = @"
 class C
 {
-    int Goo { get [|=>|] Bar(); set [|=>|] Bar(); }
+    int Bar() { return 0; }
+
+    int Goo { {|IDE0027:get => Bar();|} {|IDE0027:set => Bar();|} }
 }";
             var fixedCode = @"
 class C
 {
+    int Bar() { return 0; }
+
+    int Goo
+    {
+        get { return Bar(); }
+        set
+        {
+            Bar();
+        }
+    }
+}";
+            var batchFixedCode = @"
+class C
+{
+    int Bar() { return 0; }
+
     int Goo
     {
         get
@@ -421,7 +491,18 @@ class C
         }
     }
 }";
-            await TestWithUseBlockBodyIncludingPropertiesAndIndexers(code, fixedCode);
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                BatchFixedCode = batchFixedCode,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never  },
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.Never },
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, ExpressionBodyPreference.Never },
+                },
+            }.RunAsync();
         }
 
         [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
@@ -432,7 +513,7 @@ class C
 using System;
 class C
 {
-    int Goo { get [|=>|] throw new NotImplementedException(); }
+    int Goo { {|IDE0027:get {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|} }
 }";
             var fixedCode = @"
 using System;
@@ -457,8 +538,8 @@ class C
 using System;
 class C
 {
-    int Goo { get [|=>|] throw new NotImplementedException(); }
-    int Bar { get [|=>|] throw new NotImplementedException(); }
+    int Goo { {|IDE0027:get {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|} }
+    int Bar { {|IDE0027:get {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|} }
 }";
             var fixedCode = @"
 using System;
