@@ -47,14 +47,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             var code = @"
 class C
 {
-    public C()
+    void Bar() { }
+
+    {|IDE0021:public C()
     {
-        [|Bar|]();
-    }
+        Bar();
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    void Bar() { }
+
     public C() => Bar();
 }";
             await TestWithUseExpressionBody(code, fixedCode);
@@ -66,15 +70,23 @@ class C
             var code = @"
 class C
 {
-    public C()
+    int a;
+
+    {|IDE0021:public C()
     {
-        a = [|Bar|]();
-    }
+        a = Bar();
+    }|}
+
+    int Bar() { return 0; }
 }";
             var fixedCode = @"
 class C
 {
+    int a;
+
     public C() => a = Bar();
+
+    int Bar() { return 0; }
 }";
             await TestWithUseExpressionBody(code, fixedCode);
         }
@@ -83,14 +95,18 @@ class C
         public async Task TestUseExpressionBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    public C()
+    {|IDE0021:public C()
     {
-        [|throw|] new NotImplementedException();
-    }
+        throw new NotImplementedException();
+    }|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public C() => throw new NotImplementedException();
@@ -102,14 +118,18 @@ class C
         public async Task TestUseExpressionBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    public C()
+    {|IDE0021:public C()
     {
-        [|throw|] new NotImplementedException(); // comment
-    }
+        throw new NotImplementedException(); // comment
+    }|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public C() => throw new NotImplementedException(); // comment
@@ -123,7 +143,9 @@ class C
             var code = @"
 class C
 {
-    public C() [|=>|] Bar();
+    {|IDE0021:public C() => Bar();|}
+
+    void Bar() { }
 }";
             var fixedCode = @"
 class C
@@ -132,6 +154,8 @@ class C
     {
         Bar();
     }
+
+    void Bar() { }
 }";
             await TestWithUseBlockBody(code, fixedCode);
         }
@@ -142,15 +166,23 @@ class C
             var code = @"
 class C
 {
-    public C() [|=>|] a = Bar();
+    int a;
+
+    {|IDE0021:public C() => a = Bar();|}
+
+    int Bar() { return 0; }
 }";
             var fixedCode = @"
 class C
 {
+    int a;
+
     public C()
     {
         a = Bar();
     }
+
+    int Bar() { return 0; }
 }";
             await TestWithUseBlockBody(code, fixedCode);
         }
@@ -159,11 +191,15 @@ class C
         public async Task TestUseBlockBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    public C() [|=>|] throw new NotImplementedException();
+    {|IDE0021:public C() => throw new NotImplementedException();|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public C()
@@ -178,11 +214,15 @@ class C
         public async Task TestUseBlockBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    public C() [|=>|] throw new NotImplementedException(); // comment
+    {|IDE0021:public C() => throw new NotImplementedException();|} // comment
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public C()
@@ -201,7 +241,7 @@ class C
 using System;
 class C
 {
-    public C() [|=>|] throw new NotImplementedException();
+    {|IDE0021:public C() {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|}
 }";
             var fixedCode = @"
 using System;
@@ -223,8 +263,8 @@ class C
 using System;
 class C
 {
-    public C() [|=>|] throw new NotImplementedException();
-    public C(int i) [|=>|] throw new NotImplementedException();
+    {|IDE0021:public C() {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|}
+    {|IDE0021:public C(int i) {|CS8059:=> {|CS8059:throw new NotImplementedException()|}|};|}
 }";
             var fixedCode = @"
 using System;
