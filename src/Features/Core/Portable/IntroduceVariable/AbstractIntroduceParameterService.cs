@@ -127,22 +127,20 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var parameterName = GetNewParameterName(document, expression, cancellationToken);
 
             var annotatedExpression = new SyntaxAnnotation(ExpressionAnnotationKind);
-            var annotatedNewMethod = new SyntaxAnnotation(ExpressionInNewMethod);
 
             var annotatedSemanticDocument = await GetAnnotatedSemanticDocumentAsync(document, annotatedExpression, expression, cancellationToken).ConfigureAwait(false);
             var annotatedExpressionWithinDocument = (TExpressionSyntax)annotatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode()!;
             var methodSymbolInfo = GetMethodSymbolFromExpression(annotatedSemanticDocument, annotatedExpressionWithinDocument, cancellationToken)!;
             var newMethodIdentifier = methodSymbolInfo.Name + "_" + parameterName;
             var updatedOverloadSolution = await IntroduceMethodOverloadAsync(annotatedSemanticDocument,
-                annotatedExpressionWithinDocument, methodSymbolInfo, newMethodIdentifier, annotatedNewMethod, cancellationToken).ConfigureAwait(false);
+                annotatedExpressionWithinDocument, methodSymbolInfo, newMethodIdentifier, cancellationToken).ConfigureAwait(false);
             var updatedOverloadDocument = await SemanticDocument.CreateAsync(updatedOverloadSolution.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(false);
-            annotatedExpressionWithinDocument = (TExpressionSyntax)updatedOverloadDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode()!;
-            var annotatedMethodWithinDocument = updatedOverloadDocument.Root.GetAnnotatedNodesAndTokens(annotatedNewMethod).Single().AsNode()!;
             var methodCallSites = await FindCallSitesAsync(updatedOverloadDocument, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
 
-            var updatedInvocationsSolution = await RewriteCallSitesWithNewMethodAsync(updatedOverloadDocument, annotatedMethodWithinDocument, newMethodIdentifier, methodCallSites, cancellationToken).ConfigureAwait(false);
-
-            var updatedSolutionWithParameter = await AddParameterToMethodHeaderAsync(updatedOverloadDocument, annotatedExpressionWithinDocument, parameterName, cancellationToken).ConfigureAwait(false);
+            var updatedInvocationsSolution = await RewriteCallSitesWithNewMethodAsync(updatedOverloadDocument, newMethodIdentifier, methodCallSites, cancellationToken).ConfigureAwait(false);
+            var updatedInvocationsDocument = await SemanticDocument.CreateAsync(updatedInvocationsSolution.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(false);
+            annotatedExpressionWithinDocument = (TExpressionSyntax)updatedInvocationsDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode()!;
+            var updatedSolutionWithParameter = await AddParameterToMethodHeaderAsync(updatedInvocationsDocument, annotatedExpressionWithinDocument, parameterName, cancellationToken).ConfigureAwait(false);
             var updatedSemanticDocument = await SemanticDocument.CreateAsync(updatedSolutionWithParameter.GetDocument(document.Document.Id), cancellationToken).ConfigureAwait(false);
 
             var newExpression = (TExpressionSyntax)updatedSemanticDocument.Root.GetAnnotatedNodesAndTokens(annotatedExpression).Single().AsNode()!;
@@ -289,7 +287,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                                                   TExpressionSyntax expression,
                                                                   IMethodSymbol methodSymbol,
                                                                   string newMethodIdentifier,
-                                                                  SyntaxAnnotation annotation,
                                                                   CancellationToken cancellationToken)
         {
             var document = semanticDocument.Document;
@@ -312,7 +309,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, name: newMethodIdentifier, returnType: typeSymbol);
             var methodDeclarations = new List<SyntaxNode>
             {
-                generator.MethodDeclaration(newMethod, returnExpression).WithAdditionalAnnotations(annotation)
+                generator.MethodDeclaration(newMethod, returnExpression)
             };
 
             var newRoot = generator.InsertNodesBefore(root, methodExpression, methodDeclarations);
@@ -324,7 +321,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// arguments and rewrites the call site with the updated expression as a new argument
         /// </summary>
         private static async Task<Solution> RewriteCallSitesWithNewMethodAsync(SemanticDocument semanticDocument,
-                                                                         SyntaxNode newMethod,
                                                                          string newMethodIdentifier,
                                                                          ImmutableDictionary<Document, List<TInvocationExpressionSyntax>> callSites,
                                                                          CancellationToken cancellationToken)
@@ -359,9 +355,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         var invocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
                         var methodName = generator.IdentifierName(newMethodIdentifier);
                         var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-                        var newMethodInvocation = generator.InvocationExpression(expressionFromInvocation.WithoutTrivia(), invocationArguments);
+                        var newMethodInvocation = generator.InvocationExpression(methodName, invocationArguments);
                         var allArguments = invocationArguments.Add(newMethodInvocation);
-                        editor.ReplaceNode(invocationExpression, editor.Generator.InvocationExpression(methodName, allArguments));
+                        editor.ReplaceNode(invocationExpression, editor.Generator.InvocationExpression(expressionFromInvocation, allArguments));
                     }
 
                     var newRoot = editor.GetChangedRoot();

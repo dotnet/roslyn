@@ -156,12 +156,12 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Public Sub M(x As Integer, y As Integer, z As Integer)
-        Return M(x, y, z, x * y * z)
-    End Sub
+    Public Function M_v(x As Integer, y As Integer, z As Integer) As Integer
+        Return x * y * z
+    End Function
 
     Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
-        Dim num As Integer = v
+        Dim num As Integer = {|Rename:v|}
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
@@ -181,12 +181,16 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
+    Public Function M_v(x As Integer, y As Integer, z As Integer) As Integer
+        Return x * y * z
+    End Function
+
     Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
         Dim num As Integer = {|Rename:v|}
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
-        M(z, y, x)
+        M(z, y, x, M_v(z, y, x))
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
