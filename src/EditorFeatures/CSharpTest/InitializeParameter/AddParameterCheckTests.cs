@@ -1293,11 +1293,11 @@ using System;
 
 class C
 {
-    public C([||]string)
+    public C([||]string{|CS1001:)|}
     {
     }
 }";
-            await VerifyCS.VerifyRefactoringAsync(code, DiagnosticResult.CompilerError("CS1001").WithSpan(6, 20, 6, 21), code);
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
