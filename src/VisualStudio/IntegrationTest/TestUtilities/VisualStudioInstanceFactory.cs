@@ -167,6 +167,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ImmutableHashSet<string> supportedPackageIds;
             string installationPath;
 
+            var isUsingLspEditor = IsUsingLspEditor();
+
             if (shouldStartNewInstance)
             {
                 // We are starting a new instance, so ensure we close the currently running instance, if it exists
@@ -178,7 +180,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 var instanceVersion = instance.GetInstallationVersion();
                 var majorVersion = int.Parse(instanceVersion.Substring(0, instanceVersion.IndexOf('.')));
-                hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion);
+                hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion, isUsingLspEditor);
 
                 var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
                 if (procDumpInfo != null)
@@ -208,7 +210,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 _currentlyRunningInstance.Close(exitHostProcess: false);
             }
 
-            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
+            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath, isUsingLspEditor);
         }
 
         private static IEnumerable<ISetupInstance> EnumerateVisualStudioInstances()
@@ -308,12 +310,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             throw new Exception(string.Join(Environment.NewLine, messages));
         }
 
-        private static Process StartNewVisualStudioProcess(string installationPath, int majorVersion)
+        private static Process StartNewVisualStudioProcess(string installationPath, int majorVersion, bool isUsingLspEditor)
         {
             var vsExeFile = Path.Combine(installationPath, @"Common7\IDE\devenv.exe");
             var vsRegEditExeFile = Path.Combine(installationPath, @"Common7\IDE\VsRegEdit.exe");
-
-            var usingLspEditor = string.Equals(Environment.GetEnvironmentVariable("ROSLYN_LSPEDITOR"), "true", StringComparison.OrdinalIgnoreCase);
 
             if (_firstLaunch)
             {
@@ -335,7 +335,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
 
-                var lspRegistryValue = usingLspEditor ? "1" : "0";
+                var lspRegistryValue = isUsingLspEditor ? "1" : "0";
                 var lspFeatureFlagName = VisualStudioWorkspaceContextService.LspEditorFeatureFlagName.Replace(".", "\\");
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\{lspFeatureFlagName}\" Value dword {lspRegistryValue}")).WaitForExit();
                 Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\Telemetry\Channels", "fileLogger", 1, RegistryValueKind.DWord);
@@ -377,7 +377,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             processStartInfo.Environment.Remove("DotNetRoot");
             processStartInfo.Environment.Remove("DotNetTool");
 
-            if (usingLspEditor)
+            if (isUsingLspEditor)
             {
                 // When running under the LSP editor set logging to verbose to ensure LSP client logs are captured.
                 processStartInfo.Environment.Add("LogLevel", "Verbose");
@@ -411,6 +411,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
             return Path.GetDirectoryName(assemblyPath);
+        }
+
+        private static bool IsUsingLspEditor()
+        {
+            return string.Equals(Environment.GetEnvironmentVariable("ROSLYN_LSPEDITOR"), "true", StringComparison.OrdinalIgnoreCase);
         }
 
         public void Dispose()

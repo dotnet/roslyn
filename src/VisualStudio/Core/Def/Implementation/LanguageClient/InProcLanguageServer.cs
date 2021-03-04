@@ -488,6 +488,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 autoInsertParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
+        [JsonRpcMethod(MSLSPMethods.OnTypeRenameName, UseSingleObjectParameterDeserialization = true)]
+        public Task<DocumentOnTypeRenameResponseItem?> GetTypeRenameAsync(DocumentOnTypeRenameParams renameParams, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return _requestDispatcher.ExecuteRequestAsync<DocumentOnTypeRenameParams, DocumentOnTypeRenameResponseItem?>(_queue, MSLSPMethods.OnTypeRenameName,
+                renameParams, _clientCapabilities, _clientName, cancellationToken);
+        }
+
         [JsonRpcMethod(Methods.TextDocumentDidChangeName, UseSingleObjectParameterDeserialization = true)]
         public Task<object> HandleDocumentDidChangeAsync(DidChangeTextDocumentParams didChangeParams, CancellationToken cancellationToken)
         {
