@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((options & LookupOptions.LabelsOnly) == 0)
             {
                 // Add types within namespaces imported through usings, but don't add nested namespaces.
-                LookupOptions usingOptions = (options & ~(LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly)) | LookupOptions.MustNotBeNamespace;
+                options = (options & ~(LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly)) | LookupOptions.MustNotBeNamespace;
 
                 // look in all using namespaces
                 foreach (var namespaceSymbol in this.GetUsings(basesBeingResolved: null))
