@@ -96,7 +96,7 @@ while (($# > 0)); do
       echo "  --help                         Print help and exit"
       echo ""
       echo "Advanced settings:"
-      echo "  --framework <value>            The framework to run, if not running in main"
+      echo "  --framework <value>            The framework to run, if not running in master"
       echo "  --compliationmode <value>      The compilation mode if not passing --configurations"
       echo "  --sourcedirectory <value>      The directory of the sources. Defaults to env:BUILD_SOURCESDIRECTORY"
       echo "  --repository <value>           The name of the repository in the <owner>/<repository name> format. Defaults to env:BUILD_REPOSITORY_NAME"
@@ -173,7 +173,7 @@ if [[ "$run_from_perf_repo" = true ]]; then
     performance_directory=$workitem_directory
     setup_arguments="--perf-hash $commit_sha $common_setup_arguments"
 else
-    git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance $performance_directory
+    git clone --branch master --depth 1 --quiet https://github.com/dotnet/performance $performance_directory
     
     docs_directory=$performance_directory/docs
     mv $docs_directory $workitem_directory

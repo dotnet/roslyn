@@ -225,7 +225,7 @@ function New-ScriptShim {
     # WinShimmer is a small .NET Framework program that creates .exe shims to bootstrapped programs
     # Many of the checks for installed programs expect a .exe extension for Windows tools, rather
     # than a .bat or .cmd file.
-    # Source: https://github.com/dotnet/arcade/tree/main/src/WinShimmer
+    # Source: https://github.com/dotnet/arcade/tree/master/src/WinShimmer
     if (-Not (Test-Path "$ShimDirectory\WinShimmer\winshimmer.exe")) {
       $InstallStatus = DownloadAndExtract -Uri "$BaseUri/windows/winshimmer/WinShimmer.zip" `
                                           -InstallDirectory $ShimDirectory\WinShimmer `

@@ -1,6 +1,6 @@
 Param(
   [string] $Repository,
-  [string] $BranchName="main",
+  [string] $BranchName="master",
   [string] $GdnFolder,
   [string] $AzureDevOpsAccessToken,
   [string] $PushReason

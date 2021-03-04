@@ -3,7 +3,7 @@ Param(
   [string] $NugetPackageDirectory,                                                         # Required: directory where NuGet packages are installed (not needed if GuardianCliLocation is specified)
   [string] $GuardianCliLocation,                                                           # Optional: Direct location of Guardian CLI executable if GuardianPackageName & NugetPackageDirectory are not specified
   [string] $Repository=$env:BUILD_REPOSITORY_NAME,                                         # Required: the name of the repository (e.g. dotnet/arcade)
-  [string] $BranchName=$env:BUILD_SOURCEBRANCH,                                            # Optional: name of branch or version of gdn settings; defaults to main
+  [string] $BranchName=$env:BUILD_SOURCEBRANCH,                                            # Optional: name of branch or version of gdn settings; defaults to master
   [string] $SourceDirectory=$env:BUILD_SOURCESDIRECTORY,                                   # Required: the directory where source files are located
   [string] $ArtifactsDirectory = (Join-Path $env:BUILD_SOURCESDIRECTORY ("artifacts")),    # Required: the directory where build artifacts are located
   [string] $AzureDevOpsAccessToken,                                                        # Required: access token for dnceng; should be provided via KeyVault

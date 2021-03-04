@@ -24,7 +24,7 @@ function SetupCredProvider {
   Write-Host "Setting up Cred Provider NuGet plugin in the agent..."
   Write-Host "Getting 'installcredprovider.ps1' from 'https://github.com/microsoft/artifacts-credprovider'..."
 
-  $url = 'https://raw.githubusercontent.com/microsoft/artifacts-credprovider/main/helpers/installcredprovider.ps1'
+  $url = 'https://raw.githubusercontent.com/microsoft/artifacts-credprovider/master/helpers/installcredprovider.ps1'
   
   Write-Host "Writing the contents of 'installcredprovider.ps1' locally..."
   Invoke-WebRequest $url -OutFile installcredprovider.ps1
