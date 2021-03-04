@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Commands;
 using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
@@ -24,5 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
         public ClassifiedTextElement Description { get; set; }
         public ImageElement Icon { get; set; }
         public ISymbol Symbol { get; set; }
+        public XamlEventDescription? EventDescription { get; set; }
     }
 }
