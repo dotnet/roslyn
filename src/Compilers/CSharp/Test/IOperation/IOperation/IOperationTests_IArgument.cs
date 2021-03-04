@@ -4037,6 +4037,47 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        [WorkItem(39868, "https://github.com/dotnet/roslyn/issues/39868")]
+        public void NullableDefaultArgument_NullableEnumFromMetadata()
+        {
+            string source = @"
+#nullable enable
+
+public enum E { E1 = 1 }
+
+class C
+{
+    void M0(E? e = E.E1) { }
+
+    void M1()
+    {
+        /*<bind>*/M0();/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M0();')
+  Expression: 
+    IInvocationOperation ( void C.M0([E? e = 1])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M0()')
+      Instance Receiver: 
+        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M0')
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: e) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'M0()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: E?, IsImplicit) (Syntax: 'M0()')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'M0()')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+";
+
+            var comp = CreateCompilation(source);
+            VerifyOperationTreeForTest<StatementSyntax>(comp, expectedOperationTree);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void UndefinedMethod()
         {
             string source = @"
