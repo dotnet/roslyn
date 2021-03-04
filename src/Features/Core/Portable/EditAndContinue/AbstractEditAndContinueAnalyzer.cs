@@ -2503,8 +2503,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         if (IsConstructorWithMemberInitializers(newNode) ||
                                             IsDeclarationWithInitializer(oldNode) ||
                                             IsDeclarationWithInitializer(newNode) ||
-                                            IsRecordPrimaryConstructorParameter(oldNode) ||
-                                            IsRecordPrimaryConstructorParameter(newNode))
+                                            IsRecordPrimaryConstructorParameter(oldNode))
                                         {
                                             processedSymbols.Remove(newSymbol);
                                             DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
@@ -2546,6 +2545,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     // We disallow moving a data member of a partial type with explicit layout even when it actually does not change the layout.
                                     // We could compare the exact order of the members but the scenario is unlikely to occur.
                                     ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, edit.NewNode, newModel, ref lazyLayoutAttribute);
+
+                                    // If a property or field is added to a record then the implicit constructors change.
+                                    if (newSymbol is IPropertySymbol or IFieldSymbol && newSymbol.ContainingType.IsRecord)
+                                    {
+                                        processedSymbols.Remove(newSymbol);
+                                        DeferConstructorEdit(oldContainingType, newSymbol.ContainingType, edit.NewNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
+                                    }
                                 }
                                 else
                                 {
@@ -3125,7 +3131,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                     else
                     {
-                        if (newCtor.Parameters.Length == 0 || isStatic)
+                        if (newCtor.Parameters.Length == 1)
+                        {
+                            // New constructor is implicitly declared with a parameter, so its the copy constructor of a record
+                            Debug.Assert(oldType.IsRecord);
+                            Debug.Assert(newType.IsRecord);
+
+                            // We only need an edit for this if the number of properties or fields on the record has changed. Changes to
+                            // initializers, or whether the property is part of the primary constructor, will still come through this code
+                            // path because they need an edit to the other constructor, but not the copy construcor.
+                            if (oldType.GetMembers().OfType<IPropertySymbol>().Count() == newType.GetMembers().OfType<IPropertySymbol>().Count() &&
+                                oldType.GetMembers().OfType<IFieldSymbol>().Count() == newType.GetMembers().OfType<IFieldSymbol>().Count())
+                            {
+                                continue;
+                            }
+
+                            oldCtor = oldType.InstanceConstructors.Single(c => c.Parameters.Length == 1 && SymbolEqualityComparer.Default.Equals(c.Parameters[0].Type, c.ContainingType));
+                            syntaxMapToUse = null;
+                        }
+                        else
                         {
                             // New constructor is implicitly declared so it must be parameterless.
                             //
@@ -3136,12 +3160,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             // Static constructor:
                             //    Static constructor is always parameterless and not implicitly generated if there are no static initializers.
                             oldCtor = TryGetParameterlessConstructor(oldType, isStatic);
-                        }
-                        else
-                        {
-                            // Copy constructor of a record is implicit, but has a parameter.
-                            oldCtor = oldType.InstanceConstructors.Single(c => c.Parameters.Length == 1 && SymbolEqualityComparer.Default.Equals(c.Parameters[0].Type, c.ContainingType));
-                            syntaxMapToUse = null;
                         }
 
                         Contract.ThrowIfFalse(isStatic || oldCtor != null);

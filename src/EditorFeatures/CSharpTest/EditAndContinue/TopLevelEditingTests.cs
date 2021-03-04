@@ -1555,6 +1555,64 @@ public abstract record C<T>
         }
 
         [Fact]
+        public void Record_AddProperty_Primary()
+        {
+            var src1 = "record C(int X);";
+            var src2 = @"record C(int X, int Y);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "int Y", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Record_AddProperty_NotPrimary()
+        {
+            var src1 = "record C(int X);";
+            var src2 = @"record C(int X)
+{
+    public int Y { get; set; }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_AddField()
+        {
+            var src1 = "record C(int X) { }";
+            var src2 = @"record C(int X) { private int _y; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_DeleteField()
+        {
+            var src1 = "record C(int X) { private int _y; }";
+            var src2 = @"record C(int X) { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.field, "_y")));
+        }
+
+        [Fact]
         public void Record_ImplementSynthesized_Property()
         {
             var src1 = "record C(int X);";
@@ -1566,8 +1624,7 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[0]),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[1]));
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")));
 
             edits.VerifyRudeDiagnostics();
         }
@@ -1584,10 +1641,64 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[0]),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors[1]));
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")));
 
             edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_Property_Delete_Primary()
+        {
+            var src1 = @"record C(int X)
+{
+    public int X { get; init; }
+}";
+            var src2 = "record C();";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "record C", FeaturesResources.parameter),
+                Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.auto_property, "X")));
+        }
+
+        [Fact]
+        public void Record_Property_Delete_NotPrimary()
+        {
+            var src1 = @"record C(int X)
+{
+    public int Y { get; init; }
+}";
+            var src2 = "record C(int X);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.auto_property, "Y")));
+        }
+
+        [Fact]
+        public void Record_PropertyInitializer_Update_NotPrimary()
+        {
+            var src1 = "record C { int X { get; } = 0; }";
+            var src2 = "record C { int X { get; } = 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters.Length == 0), preserveLocalVariables: true));
+        }
+
+        [Fact]
+        public void Record_PropertyInitializer_Update_Primary()
+        {
+            var src1 = "record C(int X) { int X { get; } = 0; }";
+            var src2 = "record C(int X) { int X { get; } = 1; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")));
         }
 
         #endregion
