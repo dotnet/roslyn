@@ -895,19 +895,21 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
-            if (projectId == null)
+            var oldProject = GetRequiredProjectState(projectId);
+
+            if (documentIds.Count != oldProject.DocumentStates.Count)
             {
-                throw new ArgumentNullException(nameof(projectId));
+                throw new ArgumentException($"The specified documents do not equal the project document count.", nameof(documentIds));
             }
 
-            if (documentIds == null)
+            foreach (var id in documentIds)
             {
-                throw new ArgumentNullException(nameof(documentIds));
+                if (!oldProject.DocumentStates.Contains(id))
+                {
+                    throw new InvalidOperationException($"The document '{id}' does not exist in the project.");
+                }
             }
 
-            CheckContainsProject(projectId);
-
-            var oldProject = this.GetProjectState(projectId)!;
             var newProject = oldProject.UpdateDocumentsOrder(documentIds);
 
             if (oldProject == newProject)
@@ -915,7 +917,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+            return ForkProject(newProject, new CompilationAndGeneratorDriverTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
         }
 
         /// <summary>

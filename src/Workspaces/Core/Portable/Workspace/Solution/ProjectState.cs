@@ -711,22 +711,9 @@ namespace Microsoft.CodeAnalysis
 
         public ProjectState UpdateDocumentsOrder(ImmutableList<DocumentId> documentIds)
         {
-            if (documentIds.Count != DocumentStates.Count)
-            {
-                throw new ArgumentException($"The specified documents do not equal the project document count.", nameof(documentIds));
-            }
-
             if (documentIds.SequenceEqual(DocumentStates.Ids))
             {
                 return this;
-            }
-
-            foreach (var id in documentIds)
-            {
-                if (!DocumentStates.Contains(id))
-                {
-                    throw new InvalidOperationException($"The document '{id}' does not exist in the project.");
-                }
             }
 
             return With(
