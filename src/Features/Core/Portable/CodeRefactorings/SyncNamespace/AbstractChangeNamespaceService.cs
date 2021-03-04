@@ -744,7 +744,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var fixedDocument = editor.GetChangedDocument();
             root = await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var result = (fixedDocument, containers.SelectAsArray(c => root.GetCurrentNode(c)!));
+            var result = (fixedDocument, containers.SelectAsArray(c => root.GetCurrentNode(c)
+                ?? throw new InvalidOperationException("Can't get SyntaxNode from GetCurrentNode.")));
 
             return result;
         }
