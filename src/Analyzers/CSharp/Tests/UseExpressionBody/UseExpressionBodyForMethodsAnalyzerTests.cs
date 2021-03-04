@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
                 TestCode = code,
                 FixedCode = fixedCode,
                 LanguageVersion = version,
-                Options =
-                { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ExpressionBodyPreference.WhenPossible } }
             }.RunAsync();
         }
 
@@ -38,8 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             {
                 TestCode = code,
                 FixedCode = fixedCode,
-                Options =
-                { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement } }
+                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, ExpressionBodyPreference.Never } }
             }.RunAsync();
         }
 
