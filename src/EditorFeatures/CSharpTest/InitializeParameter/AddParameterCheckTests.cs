@@ -66,6 +66,7 @@ class C
         {
             await new VerifyCS.Test
             {
+                LanguageVersion = LanguageVersion.CSharp6,
                 TestCode = @"
 using System;
 
@@ -87,8 +88,7 @@ class C
             throw new ArgumentNullException(nameof(s));
         }
     }
-}",
-                LanguageVersion = LanguageVersion.CSharp6
+}"
             }.RunAsync();
         }
 
@@ -224,9 +224,9 @@ partial class C
 }";
             await new VerifyCS.Test
             {
+                LanguageVersion = LanguageVersion.CSharp9,
                 TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9
+                FixedCode = code
             }.RunAsync();
         }
 
@@ -263,9 +263,9 @@ partial class C
 }";
             await new VerifyCS.Test
             {
+                LanguageVersion = LanguageVersion.CSharp9,
                 TestCode = code,
-                FixedCode = code,
-                LanguageVersion = LanguageVersion.CSharp9
+                FixedCode = code
             }.RunAsync();
         }
 
@@ -306,6 +306,7 @@ partial class C
         {
             await new VerifyCS.Test
             {
+                LanguageVersion = LanguageVersion.CSharp9,
                 TestCode = @"
 using System;
 
@@ -331,8 +332,7 @@ partial class C
             throw new ArgumentNullException(nameof(s));
         }
     }
-}",
-                LanguageVersion = LanguageVersion.CSharp9
+}"
             }.RunAsync();
         }
 
@@ -373,6 +373,7 @@ partial class C
         {
             await new VerifyCS.Test
             {
+                LanguageVersion = LanguageVersion.CSharp9,
                 TestCode = @"
 using System;
 
@@ -398,8 +399,7 @@ partial class C
     }
 
     public partial void M(string s);
-}",
-                LanguageVersion = LanguageVersion.CSharp9
+}"
             }.RunAsync();
         }
 
@@ -732,6 +732,7 @@ class C
         {
             await new VerifyCS.Test
             {
+                LanguageVersion = LanguageVersion.CSharp6,
                 TestCode = @"
 using System;
 
@@ -760,8 +761,7 @@ class C
 
         S = s;
     }
-}",
-                LanguageVersion = LanguageVersion.CSharp6
+}"
             }.RunAsync();
         }
 
