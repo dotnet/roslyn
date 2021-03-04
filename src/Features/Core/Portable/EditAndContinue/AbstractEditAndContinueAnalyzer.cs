@@ -433,6 +433,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract bool IsRecordPrimaryConstructorProperty(SyntaxNode declaration);
 
         /// <summary>
+        /// Returns true if the symbol in question is a known synthesized member of a record
+        /// </summary>
+        internal abstract bool IsRecordSynthesizedMember(ISymbol member);
+
+        /// <summary>
         /// Return true if the declaration is a constructor declaration to which field/property initializers are emitted. 
         /// </summary>
         internal abstract bool IsConstructorWithMemberInitializers(SyntaxNode declaration);
@@ -2546,11 +2551,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                     // We could compare the exact order of the members but the scenario is unlikely to occur.
                                     ReportTypeLayoutUpdateRudeEdits(diagnostics, newSymbol, edit.NewNode, newModel, ref lazyLayoutAttribute);
 
-                                    // If a property or field is added to a record then the implicit constructors change.
+                                    // If a property or field is added to a record then the implicit constructors change,
+                                    // and we need to mark a number of other synthesized members as having changed.
                                     if (newSymbol is IPropertySymbol or IFieldSymbol && newSymbol.ContainingType.IsRecord)
                                     {
                                         processedSymbols.Remove(newSymbol);
                                         DeferConstructorEdit(oldContainingType, newSymbol.ContainingType, edit.NewNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
+
+                                        ReportRecordSynthesizedMembersChanged(newContainingType, semanticEdits);
                                     }
                                 }
                                 else
@@ -2796,6 +2804,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return semanticEdits.ToImmutable();
         }
 
+        private void ReportRecordSynthesizedMembersChanged(INamedTypeSymbol recordType, ArrayBuilder<SemanticEditInfo> semanticEdits)
+        {
+            foreach (var member in recordType.GetMembers())
+            {
+                if (IsRecordSynthesizedMember(member))
+                {
+                    var symbolKey = SymbolKey.Create(member);
+                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, null, null, null));
+                }
+            }
+        }
+
         private void ReportDeletedMemberRudeEdit(
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             EditScript<SyntaxNode> editScript,
@@ -2988,7 +3008,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 constructorEdits.Add(newType, constructorEdit = new ConstructorEdit(oldType));
             }
 
-            if (newDeclaration != null)
+            if (newDeclaration != null && !constructorEdit.ChangedDeclarations.ContainsKey(newDeclaration))
             {
                 constructorEdit.ChangedDeclarations.Add(newDeclaration, syntaxMap);
             }
@@ -3058,7 +3078,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // but it points to the actual record declaration, not a constructor declaration
                         if (IsRecordDeclaration(newDeclaration))
                         {
-                            // We don't have the syntax for the old constructor so can't produce a map
+                            // TODO: This is the positional record constructor but we only need an edit for it if
+                            //       a field or property has changed that has an initializer
+                            //      if (!updatesInCurrentDocument.ChangedDeclarations.Keys.Any(IsDeclarationWithInitializer)) continue;
+
+                            // We don't have a syntax map because the constructor is not delcared in syntax
                             syntaxMapToUse = null;
                         }
                         else

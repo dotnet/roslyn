@@ -1052,6 +1052,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             && record.ParameterList is not null
             && record.ParameterList.Parameters.Any(p => p.Identifier.ValueText.Equals(name));
 
+        internal override bool IsRecordSynthesizedMember(ISymbol member)
+            => false; // TODO: member.Name.Equals("PrintMembers") etc.
+
         internal override bool IsConstructorWithMemberInitializers(SyntaxNode constructorDeclaration)
             => constructorDeclaration is ConstructorDeclarationSyntax ctor && (ctor.Initializer == null || ctor.Initializer.IsKind(SyntaxKind.BaseConstructorInitializer));
 

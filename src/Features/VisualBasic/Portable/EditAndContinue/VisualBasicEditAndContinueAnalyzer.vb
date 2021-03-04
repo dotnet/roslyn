@@ -1000,6 +1000,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return False
         End Function
 
+        Friend Overrides Function IsRecordSynthesizedMember(member As ISymbol) As Boolean
+            Return False
+        End Function
+
         Private Shared Function GetInitializerExpression(equalsValue As EqualsValueSyntax, asClause As AsClauseSyntax) As ExpressionSyntax
             If equalsValue IsNot Nothing Then
                 Return equalsValue.Value

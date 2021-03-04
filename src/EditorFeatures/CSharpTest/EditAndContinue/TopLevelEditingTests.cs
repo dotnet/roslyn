@@ -1579,8 +1579,29 @@ public abstract record C<T>
 
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")), // TODO: Is this superfluous?
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
+            // TODO: also edits for PrintMembers, GetHashCode, Equals(R)
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_AddProperty_NotPrimary_WithInitializer()
+        {
+            var src1 = "record C(int X);";
+            var src2 = @"record C(int X)
+{
+    public int Y { get; set; } = 1;
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
+            // TODO: also edits for PrintMembers, GetHashCode, Equals(R)
 
             edits.VerifyRudeDiagnostics();
         }
@@ -1589,7 +1610,24 @@ public abstract record C<T>
         public void Record_AddField()
         {
             var src1 = "record C(int X) { }";
-            var src2 = @"record C(int X) { private int _y; }";
+            var src2 = "record C(int X) { private int _y; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")), // TODO: Is this superfluous?
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
+            // TODO: also edits for PrintMembers, GetHashCode, Equals(R)
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_AddField_WithInitializer()
+        {
+            var src1 = "record C(int X) { }";
+            var src2 = "record C(int X) { private int _y = 1; }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -1597,6 +1635,24 @@ public abstract record C<T>
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
+            // TODO: also edits for PrintMembers, GetHashCode, Equals(R)
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_AddField_WithExistingInitializer()
+        {
+            var src1 = "record C(int X) { private int _y = 1; }";
+            var src2 = "record C(int X) { private int _y = 1; private int _z; }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._z")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")), // TODO: Is this superfluous?
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
+            // TODO: also edits for PrintMembers, GetHashCode, Equals(R)
 
             edits.VerifyRudeDiagnostics();
         }
@@ -1605,7 +1661,7 @@ public abstract record C<T>
         public void Record_DeleteField()
         {
             var src1 = "record C(int X) { private int _y; }";
-            var src2 = @"record C(int X) { }";
+            var src2 = "record C(int X) { }";
 
             var edits = GetTopEdits(src1, src2);
 
@@ -1635,6 +1691,40 @@ public abstract record C<T>
             var src1 = @"record C(int X)
 {
     public int X { get; init; }
+}";
+            var src2 = "record C(int X);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_UnImplementSynthesized_Property_WithInitializer()
+        {
+            var src1 = @"record C(int X)
+{
+    public int X { get; init; } = 1;
+}";
+            var src2 = "record C(int X);";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_UnImplementSynthesized_Property_WithInitializerMatchingCompilerGenerated()
+        {
+            var src1 = @"record C(int X)
+{
+    public int X { get; init; } = X;
 }";
             var src2 = "record C(int X);";
 
