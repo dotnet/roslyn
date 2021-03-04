@@ -116,12 +116,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 // An in-memory database in shared cache is automatically deleted and memory is reclaimed when the last
                 // connection to that database closes.
 
-                // Using `?mode=memory&cache=shared as writecache` at the end ensures all connections (to the on-disk
+                // Using `file::memory:?cache=shared as writecache` at the end ensures all connections (to the on-disk
                 // db) see the same db (https://sqlite.org/inmemorydb.html) and the same data when reading and writing.
                 // i.e. if one connection writes data to this, another connection will see that data when reading.
                 // Without this, each connection would get their own private memory db independent of all other
                 // connections.
-                connection.ExecuteCommand($"attach database '{new Uri(databasePath).AbsoluteUri}?mode=memory&cache=shared' as {Database.WriteCache.GetName()};");
+                connection.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {Database.WriteCache.GetName()};");
 
                 return connection;
             }
