@@ -44,14 +44,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             var code = @"
 class C
 {
-    public static implicit operator C(int i)
+    static int Bar() { return 0; }
+
+    {|IDE0023:public static implicit operator {|CS0161:C|}(int i)
     {
-        [|Bar|]();
-    }
+        Bar();
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    static int Bar() { return 0; }
+
     public static implicit operator C(int i) => Bar();
 }";
             await TestWithUseExpressionBody(code, fixedCode);
@@ -63,14 +67,18 @@ class C
             var code = @"
 class C
 {
-    public static implicit operator C(int i)
+    static int Bar() { return 0; }
+
+    {|IDE0023:public static implicit operator C(int i)
     {
-        return [|Bar|]();
-    }
+        return Bar();
+    }|}
 }";
             var fixedCode = @"
 class C
 {
+    static int Bar() { return 0; }
+
     public static implicit operator C(int i) => Bar();
 }";
             await TestWithUseExpressionBody(code, fixedCode);
@@ -80,14 +88,18 @@ class C
         public async Task TestUseExpressionBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    public static implicit operator C(int i)
+    {|IDE0023:public static implicit operator C(int i)
     {
-        [|throw|] new NotImplementedException();
-    }
+        throw new NotImplementedException();
+    }|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public static implicit operator C(int i) => throw new NotImplementedException();
@@ -99,14 +111,18 @@ class C
         public async Task TestUseExpressionBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    public static implicit operator C(int i)
+    {|IDE0023:public static implicit operator C(int i)
     {
-        [|throw|] new NotImplementedException(); // comment
-    }
+        throw new NotImplementedException(); // comment
+    }|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public static implicit operator C(int i) => throw new NotImplementedException(); // comment
@@ -120,11 +136,15 @@ class C
             var code = @"
 class C
 {
-    public static implicit operator C(int i) [|=>|] Bar();
+    static int Bar() { return 0; }
+
+    {|IDE0023:public static implicit operator C(int i) => Bar();|}
 }";
             var fixedCode = @"
 class C
 {
+    static int Bar() { return 0; }
+
     public static implicit operator C(int i)
     {
         return Bar();
@@ -137,11 +157,15 @@ class C
         public async Task TestUseBlockBody3()
         {
             var code = @"
+using System;
+
 class C
 {
-    public static implicit operator C(int i) [|=>|] throw new NotImplementedException();
+    {|IDE0023:public static implicit operator C(int i) => throw new NotImplementedException();|}
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public static implicit operator C(int i)
@@ -156,11 +180,15 @@ class C
         public async Task TestUseBlockBody4()
         {
             var code = @"
+using System;
+
 class C
 {
-    public static implicit operator C(int i) [|=>|] throw new NotImplementedException(); // comment
+    {|IDE0023:public static implicit operator C(int i) => throw new NotImplementedException();|} // comment
 }";
             var fixedCode = @"
+using System;
+
 class C
 {
     public static implicit operator C(int i)
