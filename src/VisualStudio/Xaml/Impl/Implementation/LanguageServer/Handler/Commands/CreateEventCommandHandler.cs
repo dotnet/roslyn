@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(ExecuteCommandParams request)
-            => ((JToken)request.Arguments.FirstOrDefault())?.ToObject<TextDocumentIdentifier>();
+            => ((JToken)request.Arguments.First()).ToObject<TextDocumentIdentifier>();
 
         public override async Task<object> HandleRequestAsync(ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
