@@ -5,7 +5,7 @@
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
-    /// Represents a definitionResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#request-textdocumentdefinition for further details.
+    /// Represents a definitionResult vertex for serialization. See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#request-textdocumentdefinition for further details.
     /// </summary>
     internal sealed class DefinitionResult : Vertex
     {

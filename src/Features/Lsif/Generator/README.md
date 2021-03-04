@@ -1,5 +1,5 @@
 ﻿This tool consumes a project or solution and generates a Language Server Index Format file per the
-[LSIF specification](https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md).
+[LSIF specification](https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md).
 
 # Command Line Switches
 ## Specifying the Project to Process

@@ -6,7 +6,7 @@ Param(
   [string] $darcVersion = '1.1.0-beta.19175.6',         # darc's version
   [string] $graphvizVersion = '2.38',                   # GraphViz version
   [switch] $includeToolset                              # Whether the graph should include toolset dependencies or not. i.e. arcade, optimization. For more about
-                                                        # toolset dependencies see https://github.com/dotnet/arcade/blob/master/Documentation/Darc.md#toolset-vs-product-dependencies
+                                                        # toolset dependencies see https://github.com/dotnet/arcade/blob/main/Documentation/Darc.md#toolset-vs-product-dependencies
 )
 
 $ErrorActionPreference = "Stop"

@@ -1,7 +1,7 @@
 Param(
   [string] $GuardianCliLocation,
   [string] $Repository,
-  [string] $BranchName="master",
+  [string] $BranchName="main",
   [string] $WorkingDirectory,
   [string] $AzureDevOpsAccessToken,
   [string] $GuardianLoggerLevel="Standard"

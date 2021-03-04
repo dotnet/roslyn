@@ -1610,7 +1610,7 @@ namespace Microsoft.CodeAnalysis
         /// The string returned from this function represents the inputs to the compiler which impact determinism.  It is 
         /// meant to be inline with the specification here:
         /// 
-        ///     - https://github.com/dotnet/roslyn/blob/master/docs/compilers/Deterministic%20Inputs.md
+        ///     - https://github.com/dotnet/roslyn/blob/main/docs/compilers/Deterministic%20Inputs.md
         /// 
         /// Issue #8193 tracks filling this out to the full specification. 
         /// 

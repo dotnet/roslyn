@@ -7,7 +7,7 @@ using System;
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 {
     /// <summary>
-    /// Represents the document vertex that contains all the <see cref="Range"/>s. See https://github.com/Microsoft/language-server-protocol/blob/master/indexFormat/specification.md#ranges for examples.
+    /// Represents the document vertex that contains all the <see cref="Range"/>s. See https://github.com/Microsoft/language-server-protocol/blob/main/indexFormat/specification.md#ranges for examples.
     /// </summary>
     internal sealed class LsifDocument : Vertex
     {

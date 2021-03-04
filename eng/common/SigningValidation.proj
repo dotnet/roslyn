@@ -37,7 +37,7 @@
     <ItemGroup>
       <!--
         Documentation for these arguments is available here:
-        https://github.com/dotnet/arcade/tree/master/src/SignCheck
+        https://github.com/dotnet/arcade/tree/main/src/SignCheck
       -->
       <SignCheckArgs Include="--recursive" />
       <SignCheckArgs Include="--traverse-subfolders" />

@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "lady","lake","land","language","large","last","late","laugh","law","lay","lead","learn","least","leave",
                 "led","left","leg","length","less","let","letter","level","lie","life","lift","light","like","line","liquid",
                 "list","listen","little","live","locate","log","lone","long","look","lost","lot","loud","love","low",
-                "machine","made","magnet","main","major","make","man","many","map","mark","market","mass","master","match",
+                "machine","made","magnet","main","major","make","man","many","map","mark","market","mass","main","match",
                 "material","matter","may","me","mean","meant","measure","meat","meet","melody","men","metal","method",
                 "middle","might","mile","milk","million","mind","mine","minute","miss","mix","modern","molecule","moment",
                 "money","month","moon","more","morning","most","mother","motion","mount","mountain","mouth","move","much",

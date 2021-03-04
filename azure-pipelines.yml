@@ -1,15 +1,15 @@
 # Branches that trigger a build on commit
 trigger:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*
 
 # Branches that trigger builds on PR
 pr:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*

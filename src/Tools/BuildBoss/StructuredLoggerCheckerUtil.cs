@@ -14,7 +14,7 @@ namespace BuildBoss
     /// <summary>
     /// This type invokes the analyzer here:
     /// 
-    ///   https://github.com/KirillOsenkov/MSBuildStructuredLog/blob/master/src/StructuredLogger/Analyzers/DoubleWritesAnalyzer.cs
+    ///   https://github.com/KirillOsenkov/MSBuildStructuredLog/blob/main/src/StructuredLogger/Analyzers/DoubleWritesAnalyzer.cs
     ///
     /// </summary>
     internal sealed class StructuredLoggerCheckerUtil : ICheckerUtil
