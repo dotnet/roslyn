@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Commands;
+using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 

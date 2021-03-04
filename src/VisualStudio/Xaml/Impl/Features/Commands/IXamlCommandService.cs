@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Commands
     internal interface IXamlCommandService : ILanguageService
     {
         /// <summary>
-        /// Execute the <paramref name="command"/> with the <paramref name="commandArguments"/> on server
+        /// Execute the <paramref name="command"/> with the <paramref name="commandArguments"/>
         /// </summary>
         /// <param name="document">TextDocument command was triggered on</param>
         /// <param name="command">The command that will be executed</param>

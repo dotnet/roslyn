@@ -4,7 +4,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Commands
+namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion
 {
     internal struct XamlEventDescription
     {

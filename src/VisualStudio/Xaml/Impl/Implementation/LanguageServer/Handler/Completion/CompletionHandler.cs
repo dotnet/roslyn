@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 {
                     CommandIdentifier = StringConstants.CreateEventHandlerCommand,
                     Arguments = new object[] { textDocument, xamlCompletion.EventDescription },
-                    Title = Resources.CreateEventHandler
+                    Title = "Create Event Handler"
                 };
             }
 
