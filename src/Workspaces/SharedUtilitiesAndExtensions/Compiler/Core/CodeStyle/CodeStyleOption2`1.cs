@@ -82,18 +82,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             new("CodeStyleOption", // Ensure that we use "CodeStyleOption" as the name for back compat.
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", GetTypeNameForSerialization()),
-                new XAttribute(nameof(Value), GetValueForSerialization()!),
+                new XAttribute(nameof(Value), GetValueForSerialization()),
                 new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
-        private object? GetValueForSerialization()
+        private object GetValueForSerialization()
         {
             if (typeof(T) == typeof(string))
             {
-                return Value;
+                return Value!;
             }
             else if (typeof(T) == typeof(bool))
             {
-                return Value;
+                return Value!;
             }
             else if (IsZeroOrOneValueOfEnum())
             {
