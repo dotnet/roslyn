@@ -416,80 +416,16 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return Label.ForStatementPart;
             }
 
+            // ************************************
+            // Top and statement syntax
+            // ************************************
+
+            // These nodes can appear during top level and statement processing, so we put them in this first
+            // switch for simplicity. Statement specific, and top level specific cases are handled below.
             switch (kind)
             {
-                // ************************************
-                // Top syntax
-                // ************************************
-
                 case SyntaxKind.CompilationUnit:
                     return Label.CompilationUnit;
-
-                case SyntaxKind.GlobalStatement:
-                    // TODO:
-                    isLeaf = true;
-                    return Label.Ignored;
-
-                case SyntaxKind.ExternAliasDirective:
-                    isLeaf = true;
-                    return Label.ExternAliasDirective;
-
-                case SyntaxKind.UsingDirective:
-                    isLeaf = true;
-                    return Label.UsingDirective;
-
-                case SyntaxKind.NamespaceDeclaration:
-                    return Label.NamespaceDeclaration;
-
-                // Need to add support for records (tracked by https://github.com/dotnet/roslyn/issues/44877)
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                    return Label.TypeDeclaration;
-
-                case SyntaxKind.EnumDeclaration:
-                    return Label.EnumDeclaration;
-
-                case SyntaxKind.DelegateDeclaration:
-                    return Label.DelegateDeclaration;
-
-                case SyntaxKind.FieldDeclaration:
-                case SyntaxKind.EventFieldDeclaration:
-                    return Label.FieldDeclaration;
-
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    return Label.ConversionOperatorDeclaration;
-
-                case SyntaxKind.OperatorDeclaration:
-                    return Label.OperatorDeclaration;
-
-                case SyntaxKind.DestructorDeclaration:
-                    isLeaf = true;
-                    return Label.DestructorDeclaration;
-
-                case SyntaxKind.PropertyDeclaration:
-                    return Label.PropertyDeclaration;
-
-                case SyntaxKind.IndexerDeclaration:
-                    return Label.IndexerDeclaration;
-
-                case SyntaxKind.EventDeclaration:
-                    return Label.EventDeclaration;
-
-                case SyntaxKind.EnumMemberDeclaration:
-                    // not a leaf because an attribute may be applied
-                    return Label.EnumMemberDeclaration;
-
-                case SyntaxKind.AccessorList:
-                    return Label.AccessorList;
-
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.InitAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                    isLeaf = true;
-                    return Label.AccessorDeclaration;
 
                 case SyntaxKind.TypeParameterList:
                     return Label.TypeParameterList;
@@ -517,20 +453,46 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     isLeaf = true;
                     return Label.Attribute;
 
-                // ************************************
-                // Statement syntax
-                // ************************************
+                case SyntaxKind.ConstructorDeclaration:
+                    // Root when matching constructor bodies.
+                    return Label.ConstructorDeclaration;
+            }
 
+            if (_compareStatementSyntax)
+            {
+                return ClassifyStatementSyntax(kind, node, out isLeaf);
+            }
+
+            return ClassifyTopSyntax(kind, out isLeaf);
+        }
+
+        private static Label ClassifyStatementSyntax(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
+        {
+            isLeaf = false;
+
+            // ************************************
+            // Statement syntax
+            // ************************************
+
+            // These nodes could potentially be seen as top level syntax, but we only want them labelled
+            // during statement syntax so they have to be kept separate.
+            //
+            // For example when top level sees something like this:
+            //
+            //      private int X => new Func(() => { return 1 })();
+            //
+            // It needs to go through the entire lambda to know if that property def has changed
+            // but if we start labelling things, like ReturnStatement in the above example, then
+            // it will stop. Given that a block bodied lambda can have any statements a user likes
+            // the whole set has to be dealt with separately.
+            switch (kind)
+            {
                 // Notes:
                 // A descendant of a leaf node may be a labeled node that we don't want to visit if 
                 // we are comparing its parent node (used for lambda bodies).
                 // 
                 // Expressions are ignored but they may contain nodes that should be matched by tree comparer.
                 // (e.g. lambdas, declaration expressions). Descending to these nodes is handled in EnumerateChildren.
-
-                case SyntaxKind.ConstructorDeclaration:
-                    // Root when matching constructor bodies.
-                    return Label.ConstructorDeclaration;
 
                 case SyntaxKind.LocalDeclarationStatement:
                     return Label.LocalDeclarationStatement;
@@ -646,11 +608,6 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.FinallyClause:
                     return Label.FinallyClause;
 
-                case SyntaxKind.LocalFunctionStatement:
-                case SyntaxKind.AnonymousMethodExpression:
-                    // Note: Lambda expression is only labeled for statements, see below
-                    return Label.NestedFunction;
-
                 case SyntaxKind.FromClause:
                     // The first from clause of a query is not a lambda.
                     // We have to assign it a label different from "FromClauseLambda"
@@ -733,53 +690,123 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.AwaitExpression:
                     return Label.AwaitExpression;
-            }
 
-            // These nodes could be seen during top or statement processing, but need different results
-            if (_compareStatementSyntax)
-            {
-                // Statement syntax
-                switch (kind)
-                {
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                    case SyntaxKind.SimpleLambdaExpression:
-                        return Label.NestedFunction;
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.LocalFunctionStatement:
+                    return Label.NestedFunction;
 
-                    case SyntaxKind.VariableDeclaration:
-                        return Label.LocalVariableDeclaration;
+                case SyntaxKind.VariableDeclaration:
+                    return Label.LocalVariableDeclaration;
 
-                    case SyntaxKind.VariableDeclarator:
-                        return Label.LocalVariableDeclarator;
+                case SyntaxKind.VariableDeclarator:
+                    return Label.LocalVariableDeclarator;
 
-                    case SyntaxKind.Block:
-                        return Label.Block;
-                }
-            }
-            else
-            {
-                // Top syntax
-                switch (kind)
-                {
-                    case SyntaxKind.VariableDeclaration:
-                        return Label.FieldVariableDeclaration;
-
-                    case SyntaxKind.VariableDeclarator:
-                        // For top syntax, a variable declarator is a leaf node
-                        isLeaf = true;
-                        return Label.FieldVariableDeclarator;
-
-                    case SyntaxKind.MethodDeclaration:
-                        return Label.MethodDeclaration;
-
-                    case SyntaxKind.ConstructorDeclaration:
-                        return Label.ConstructorDeclaration;
-                }
+                case SyntaxKind.Block:
+                    return Label.Block;
             }
 
             // If we got this far, its an unlabelled node. Since just about any node can
-            // contain a lambda, isLeaf must be true for statement syntax but for top
+            // contain a lambda, isLeaf must be false for statement syntax.
+            return Label.Ignored;
+        }
+
+        private static Label ClassifyTopSyntax(SyntaxKind kind, out bool isLeaf)
+        {
+            isLeaf = false;
+
+            // ************************************
+            // Top syntax
+            // ************************************
+
+            // More the most part these nodes will only appear in top syntax but its easier to
+            // keep them separate so we can more easily discern was is shared, above.
+            switch (kind)
+            {
+                case SyntaxKind.GlobalStatement:
+                    // TODO:
+                    isLeaf = true;
+                    return Label.Ignored;
+
+                case SyntaxKind.ExternAliasDirective:
+                    isLeaf = true;
+                    return Label.ExternAliasDirective;
+
+                case SyntaxKind.UsingDirective:
+                    isLeaf = true;
+                    return Label.UsingDirective;
+
+                case SyntaxKind.NamespaceDeclaration:
+                    return Label.NamespaceDeclaration;
+
+                // Need to add support for records (tracked by https://github.com/dotnet/roslyn/issues/44877)
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                    return Label.TypeDeclaration;
+
+                case SyntaxKind.MethodDeclaration:
+                    return Label.MethodDeclaration;
+
+                case SyntaxKind.EnumDeclaration:
+                    return Label.EnumDeclaration;
+
+                case SyntaxKind.DelegateDeclaration:
+                    return Label.DelegateDeclaration;
+
+                case SyntaxKind.FieldDeclaration:
+                case SyntaxKind.EventFieldDeclaration:
+                    return Label.FieldDeclaration;
+
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    return Label.ConversionOperatorDeclaration;
+
+                case SyntaxKind.OperatorDeclaration:
+                    return Label.OperatorDeclaration;
+
+                case SyntaxKind.DestructorDeclaration:
+                    isLeaf = true;
+                    return Label.DestructorDeclaration;
+
+                case SyntaxKind.PropertyDeclaration:
+                    return Label.PropertyDeclaration;
+
+                case SyntaxKind.IndexerDeclaration:
+                    return Label.IndexerDeclaration;
+
+                case SyntaxKind.EventDeclaration:
+                    return Label.EventDeclaration;
+
+                case SyntaxKind.EnumMemberDeclaration:
+                    // not a leaf because an attribute may be applied
+                    return Label.EnumMemberDeclaration;
+
+                case SyntaxKind.AccessorList:
+                    return Label.AccessorList;
+
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.InitAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    isLeaf = true;
+                    return Label.AccessorDeclaration;
+
+                // Note: These last two do actually appear as statement syntax, but mean something
+                // different and hence have a different label
+                case SyntaxKind.VariableDeclaration:
+                    return Label.FieldVariableDeclaration;
+
+                case SyntaxKind.VariableDeclarator:
+                    // For top syntax, a variable declarator is a leaf node
+                    isLeaf = true;
+                    return Label.FieldVariableDeclarator;
+            }
+
+            // If we got this far, its an unlabelled node. For top
             // syntax, we don't need to descend into any ignored nodes
-            isLeaf = !_compareStatementSyntax;
+            isLeaf = true;
             return Label.Ignored;
         }
 

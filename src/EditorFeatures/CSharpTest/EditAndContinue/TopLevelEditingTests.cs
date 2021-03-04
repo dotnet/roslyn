@@ -10214,6 +10214,62 @@ class C
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
         }
 
+        [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
+        public void IndexerWithExpressionBody_Update_LiftedParameter_3()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int this[int a] => new Func<int>(() => { return a + 1; })();
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int this[int a] => new Func<int>(() => { return 2; })();   // not capturing a anymore
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] => new Func<int>(() => { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(() => { return 2; })();]@35");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
+        }
+
+        [Fact, WorkItem(51297, "https://github.com/dotnet/roslyn/issues/51297")]
+        public void IndexerWithExpressionBody_Update_LiftedParameter_4()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    int this[int a] => new Func<int>(delegate { return a + 1; })();
+}
+";
+            var src2 = @"
+using System;
+
+class C
+{
+    int this[int a] => new Func<int>(delegate { return 2; })();   // not capturing a anymore
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [int this[int a] => new Func<int>(delegate { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(delegate { return 2; })();]@35");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
+        }
+
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
         public void Indexer_ExpressionBodyToBlockBody()
         {
