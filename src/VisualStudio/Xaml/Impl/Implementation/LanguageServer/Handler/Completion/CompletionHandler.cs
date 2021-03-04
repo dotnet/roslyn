@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     internal class CompletionHandler : AbstractStatelessRequestHandler<CompletionParams, CompletionList?>
     {
         public override string Method => Methods.TextDocumentCompletionName;
+        private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -95,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 {
                     CommandIdentifier = StringConstants.CreateEventHandlerCommand,
                     Arguments = new object[] { textDocument, xamlCompletion.EventDescription },
-                    Title = "Create Event Handler"
+                    Title = CreateEventHandlerCommandTitle
                 };
             }
 
