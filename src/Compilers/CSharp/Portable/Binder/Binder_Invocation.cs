@@ -1415,7 +1415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         defaultValue.Syntax,
                         defaultValue,
                         conversion,
-                        isCast: !conversion.IsImplicit,
+                        isCast: conversion.IsExplicit,
                         new ConversionGroup(conversion, parameter.TypeWithAnnotations),
                         parameterType,
                         diagnostics);
