@@ -24,10 +24,5 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
             LineNumber = lineNumber;
             NavigationFunc = navigationFunc;
         }
-
-        public static InheritanceMarginTag FromInheritanceInfo(InheritanceChainItem inheritanceChainItem)
-        {
-            return null;
-        }
     }
 }

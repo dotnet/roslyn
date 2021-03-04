@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
             }
 
             var cancellationToken = context.CancellationToken;
-            var inheritanceMarginInfoService = document.GetRequiredLanguageService<IInheritanceChainInfoService>();
+            var inheritanceMarginInfoService = document.GetRequiredLanguageService<IInheritanceChainService>();
             var inheritanceInfoForDocument = await inheritanceMarginInfoService.GetInheritanceInfoForLineAsync(document, cancellationToken).ConfigureAwait(false);
 
             foreach (var info in inheritanceInfoForDocument)

@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.InheritanceChainMargin
 {
-    internal interface IInheritanceChainInfoService : ILanguageService
+    internal interface IInheritanceChainService : ILanguageService
     {
-        Task<ImmutableArray<InheritanceChainItem>> GetInheritanceInfoForLineAsync(
+        Task<ImmutableArray<MemberInheritanceInfo>> GetInheritanceInfoForLineAsync(
             Document document,
             CancellationToken cancellationToken);
     }
