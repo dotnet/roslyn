@@ -18,15 +18,18 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
     [ExportWorkspaceService(typeof(IRoslynCloudCacheServiceProvider), WorkspaceKind.RemoteWorkspace), Shared]
     internal class RemoteCloudCacheServiceProvider : IRoslynCloudCacheServiceProvider
     {
+        private readonly IGlobalServiceBroker _globalServiceBroker;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteCloudCacheServiceProvider()
+        public RemoteCloudCacheServiceProvider(IGlobalServiceBroker globalServiceBroker)
         {
+            _globalServiceBroker = globalServiceBroker;
         }
 
         public async ValueTask<IRoslynCloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
         {
-            var serviceBroker = GlobalServiceBroker.GetGlobalInstance();
+            var serviceBroker = _globalServiceBroker.Instance;
 
 #pragma warning disable ISB001 // Dispose of proxies
             // cache service will be disposed inside RemoteCloudCacheService.Dispose
