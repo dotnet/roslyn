@@ -6,6 +6,7 @@
 
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -483,7 +484,8 @@ class C
         }}
     }}
 }}",
-                CodeActionIndex = 3
+                CodeActionIndex = 3,
+                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
             }.RunAsync();
         }
 
@@ -534,7 +536,8 @@ class C
         }}
     }}
 }}",
-                CodeActionIndex = 0
+                CodeActionIndex = 0,
+                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
             }.RunAsync();
         }
 
@@ -570,7 +573,8 @@ class C
         }}
     }}
 }}",
-                CodeActionIndex = 3
+                CodeActionIndex = 3,
+                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
             }.RunAsync();
         }
 
@@ -611,7 +615,8 @@ class C
         }}
     }}
 }}",
-                CodeActionIndex = 3
+                CodeActionIndex = 3,
+                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
             }.RunAsync();
         }
 
@@ -652,7 +657,8 @@ class C
         }
     }
 }",
-                CodeActionIndex = 1
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
             }.RunAsync();
         }
 
@@ -693,7 +699,8 @@ class C
         }
     }
 }",
-                CodeActionIndex = 1
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
             }.RunAsync();
         }
 
@@ -1594,7 +1601,8 @@ class C
         }}
     }}
 }}",
-                CodeActionIndex = 1
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrEmpty_check
             }.RunAsync();
         }
 
@@ -1625,7 +1633,8 @@ class C
         }}
     }}
 }}",
-                CodeActionIndex = 2
+                CodeActionIndex = 2,
+                CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrWhiteSpace_check
             }.RunAsync();
         }
 
@@ -1662,7 +1671,8 @@ class C
         }}
     }}
 }}",
-                    CodeActionIndex = 1
+                    CodeActionIndex = 1,
+                    CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrEmpty_check
                 }.RunAsync();
             }
             finally
@@ -1717,7 +1727,8 @@ class Program
         }}
     }}
 }}",
-                CodeActionIndex = 1
+                CodeActionIndex = 1,
+                CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrEmpty_check
             };
             test.Options.Add(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOptions2.FalseWithSuggestionEnforcement);
             await test.RunAsync();
