@@ -775,7 +775,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task RespectUseThrowExpressionOption()
         {
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = @"
 using System;
@@ -805,10 +805,12 @@ class C
 
         S = s;
     }
-}"
-            };
-            test.Options.Add(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement);
-            await test.RunAsync();
+}",
+                Options =
+                {
+                    {  CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement }
+                }
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -877,7 +879,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateExpressionBody3()
         {
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = @"
 using System;
@@ -909,10 +911,12 @@ class C
     private void Init()
     {
     }
-}"
-            };
-            test.Options.Add(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
-            await test.RunAsync();
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement }
+                }
+            }.RunAsync();
         }
 
         [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
@@ -1703,7 +1707,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestRespectPredefinedTypePreferences()
         {
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = @"
 using System;
@@ -1728,10 +1732,12 @@ class Program
     }}
 }}",
                 CodeActionIndex = 1,
-                CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrEmpty_check
-            };
-            test.Options.Add(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOptions2.FalseWithSuggestionEnforcement);
-            await test.RunAsync();
+                CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrEmpty_check,
+                Options =
+                {
+                    { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOptions2.FalseWithSuggestionEnforcement }
+                }
+            }.RunAsync();
         }
 
         [WorkItem(19172, "https://github.com/dotnet/roslyn/issues/19172")]
@@ -1740,7 +1746,7 @@ class Program
         [InlineData((int)PreferBracesPreference.WhenMultiline)]
         public async Task TestPreferNoBlock(int preferBraces)
         {
-            var test = new VerifyCS.Test
+            await new VerifyCS.Test
             {
                 TestCode = @"
 using System;
@@ -1761,10 +1767,12 @@ class C
         if (s is null)
             throw new ArgumentNullException(nameof(s));
     }
-}"
-            };
-            test.Options.Add(CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent));
-            await test.RunAsync();
+}",
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferBraces, new CodeStyleOption2<PreferBracesPreference>((PreferBracesPreference)preferBraces, NotificationOption2.Silent) }
+                }
+            }.RunAsync();
         }
 
         [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
