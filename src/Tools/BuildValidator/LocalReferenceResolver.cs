@@ -113,6 +113,12 @@ namespace BuildValidator
                             continue;
                         }
 
+                        // Don't consider R2R references
+                        if (reference.FileInfo.FullName.IndexOf(Path.DirectorySeparatorChar + "R2R" + Path.DirectorySeparatorChar, FileNameEqualityComparer.StringComparison) >= 0)
+                        {
+                            continue;
+                        }
+
                         if (Util.GetMvidForFile(file.FullName) is not { } mvid)
                         {
                             _logger.LogWarning($@"Could not read MVID from ""{file.FullName}""");

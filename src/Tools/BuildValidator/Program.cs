@@ -82,6 +82,7 @@ namespace BuildValidator
             var excludePatternList = new List<string>(excludePattern ?? Array.Empty<string>());
             excludePatternList.Add(Regex.Escape(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar));
             excludePatternList.Add(Regex.Escape(Path.DirectorySeparatorChar + "ref" + Path.DirectorySeparatorChar));
+            excludePatternList.Add(Regex.Escape(Path.DirectorySeparatorChar + "R2R" + Path.DirectorySeparatorChar));
             excludePatternList.Add(@"\.resources\.dll");
 
             var options = new Options(assembliesPath, referencesPath, excludePatternList.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
