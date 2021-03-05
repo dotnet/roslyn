@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -46,9 +47,9 @@ class Program
     }
 }";
             CompileAndVerify(sourceB, references: new[] { refA }, expectedOutput:
-@"True
+$@"True
 True
-True");
+{ExecutionConditionUtil.IsCoreClr}"); // Activator.CreateInstance<T>() ignores constructor on desktop framework.
         }
 
         [InlineData("public")]

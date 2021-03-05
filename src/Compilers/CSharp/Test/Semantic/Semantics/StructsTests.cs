@@ -485,22 +485,15 @@ public class C
 { 
     void M() 
     { 
-        S s = new S();
-        System.Console.WriteLine(s);
-        s = default(S);
+        S s = default(S);
         System.Console.WriteLine(s);
     }
 }
 ";
-
-            // Uses initobj for both
-            // CONSIDER: This is the dev10 behavior, but it seems like a bug.
-            // Shouldn't there be an error for trying to call an inaccessible ctor?
             var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
-
             CompileAndVerify(comp).VerifyIL("C.M", @"
 {
-  // Code size       39 (0x27)
+  // Code size       20 (0x14)
   .maxstack  1
   .locals init (S V_0)
   IL_0000:  ldloca.s   V_0
@@ -508,13 +501,24 @@ public class C
   IL_0008:  ldloc.0
   IL_0009:  box        ""S""
   IL_000e:  call       ""void System.Console.WriteLine(object)""
-  IL_0013:  ldloca.s   V_0
-  IL_0015:  initobj    ""S""
-  IL_001b:  ldloc.0
-  IL_001c:  box        ""S""
-  IL_0021:  call       ""void System.Console.WriteLine(object)""
-  IL_0026:  ret
+  IL_0013:  ret
 }");
+
+            csharpSource = @"
+public class C 
+{ 
+    void M() 
+    { 
+        S s = new S();
+        System.Console.WriteLine(s);
+    }
+}
+";
+            comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            comp.VerifyDiagnostics(
+                // (6,19): error CS0122: 'S.S()' is inaccessible due to its protection level
+                //         S s = new S();
+                Diagnostic(ErrorCode.ERR_BadAccess, "S").WithArguments("S.S()").WithLocation(6, 19));
         }
 
         [WorkItem(543934, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543934")]
