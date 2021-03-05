@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 // Compat: Filter out nested types as they are children of most closest containing namespace.
                 var members = namedType.GetMembers().Where(m => m.Kind != SymbolKind.NamedType);
 
+#pragma warning disable IDE0078 // Use pattern matching - https://github.com/dotnet/roslyn/issues/51691
 #if LEGACY_CODE_METRICS_MODE
                 // Legacy mode skips metrics for field/property/event symbols, and explicitly includes accessors as methods.
                 members = members.Where(m => m.Kind is not SymbolKind.Field and not SymbolKind.Property and not SymbolKind.Event);
@@ -47,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeMetrics
                 // Filter out accessors as they are children of their associated symbols, for which we generate a separate node.
                 members = members.Where(m => m.Kind != SymbolKind.Method || ((IMethodSymbol)m).AssociatedSymbol == null);
 #endif
+#pragma warning restore IDE0078 // Use pattern matching
 
                 ImmutableArray<CodeAnalysisMetricData> children = await ComputeAsync(members, context).ConfigureAwait(false);
 

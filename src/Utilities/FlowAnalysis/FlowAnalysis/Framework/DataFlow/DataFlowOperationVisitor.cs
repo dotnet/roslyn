@@ -584,7 +584,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     AnalysisEntity analysisEntity = kvp.Value;
 
                     // Escape parameter values on exit, except for ref/out parameters in interprocedural analysis.
+#pragma warning disable IDE0078 // Use pattern matching - https://github.com/dotnet/roslyn/issues/51691
                     if (parameter.RefKind == RefKind.None || DataFlowAnalysisContext.InterproceduralAnalysisData == null)
+#pragma warning restore IDE0078 // Use pattern matching
                     {
                         EscapeValueForParameterOnExit(parameter, analysisEntity);
                     }
