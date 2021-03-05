@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         /// Other event sources we're composing over.  If they fire, we should reclassify.  However, after they fire, we
         /// should also refire an event once we get the next full compilation ready.
         /// </summary>
-        private readonly ITaggerEventSource[] _eventSources;
+        private readonly ITaggerEventSource _underlyingSource;
 
         /// <summary>
         /// Queue of work to go compute the compilations.
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _subjectBuffer = subjectBuffer;
             _delay = delay;
             _asyncListener = asyncListener;
-            _eventSources = eventSources;
+            _underlyingSource = TaggerEventSources.Compose(eventSources);
 
             _workQueue = new AsynchronousSerialWorkQueue(threadingContext, asyncListener);
         }
@@ -55,32 +56,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         public void Connect()
         {
             // When we are connected to, connect to all our underlying sources and have them notify us when they've changed.
-            _eventSources.Do(s =>
-            {
-                s.Connect();
-                s.Changed += OnEventSourceChanged;
-            });
+            _underlyingSource.Connect();
+            _underlyingSource.Changed += OnEventSourceChanged;
         }
 
         public void Disconnect()
         {
-            _eventSources.Do(s =>
-            {
-                s.Changed -= OnEventSourceChanged;
-                s.Disconnect();
-            });
+            _underlyingSource.Changed -= OnEventSourceChanged;
+            _underlyingSource.Disconnect();
         }
 
         public event EventHandler UIUpdatesPaused
         {
-            add { _eventSources.Do(s => s.UIUpdatesPaused += value); }
-            remove { _eventSources.Do(s => s.UIUpdatesPaused -= value); }
+            add { _underlyingSource.UIUpdatesPaused += value; }
+            remove { _underlyingSource.UIUpdatesPaused -= value; }
         }
 
         public event EventHandler UIUpdatesResumed
         {
-            add { _eventSources.Do(s => s.UIUpdatesResumed += value); }
-            remove { _eventSources.Do(s => s.UIUpdatesResumed -= value); }
+            add { _underlyingSource.UIUpdatesResumed += value; }
+            remove { _underlyingSource.UIUpdatesResumed -= value; }
         }
 
         private void OnEventSourceChanged(object? sender, TaggerEventArgs args)
@@ -100,13 +95,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // if we hear about a flurry of notifications.
             _workQueue.CancelCurrentWork();
             _workQueue.EnqueueBackgroundTask(async c =>
-            {
-                await document.Project.GetCompilationAsync(c).ConfigureAwait(false);
-                this.Changed?.Invoke(this, new TaggerEventArgs(_delay));
-            },
-            $"{nameof(CompilationAvailableTaggerEventSource)}.{nameof(OnEventSourceChanged)}",
-            500,
-            _workQueue.CancellationToken);
+                {
+                    await document.Project.GetCompilationAsync(c).ConfigureAwait(false);
+                    this.Changed?.Invoke(this, new TaggerEventArgs(_delay));
+                },
+                $"{nameof(CompilationAvailableTaggerEventSource)}.{nameof(OnEventSourceChanged)}",
+                500,
+                _workQueue.CancellationToken);
         }
     }
 }
