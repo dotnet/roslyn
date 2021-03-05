@@ -1449,7 +1449,7 @@ namespace Microsoft.CodeAnalysis
 
                     analyzerTimeColumn = getFormattedTime(executionTime);
                     analyzerPercentageColumn = getFormattedPercentage(percentage);
-                    analyzerNameColumn = getFormattedAnalyzerName($"   {kvp.Key} ({string.Join(", ", kvp.Key.SupportedDiagnostics.Select(d => d.Id))})");
+                    analyzerNameColumn = getFormattedAnalyzerName($"   {kvp.Key} ({string.Join(", ", kvp.Key.SupportedDiagnostics.Select(d => d.Id).Distinct().OrderBy(id => id)})");
 
                     consoleOutput.WriteLine(analyzerTimeColumn + analyzerPercentageColumn + analyzerNameColumn);
                 }
