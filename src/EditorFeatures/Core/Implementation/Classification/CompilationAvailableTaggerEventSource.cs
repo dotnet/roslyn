@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     /// </summary>
     internal class CompilationAvailableTaggerEventSource : ITaggerEventSource
     {
-        private readonly object _gate = new();
         private readonly ITextBuffer _subjectBuffer;
         private readonly TaggerDelay _delay;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -32,18 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         /// </summary>
         private readonly ITaggerEventSource[] _eventSources;
 
-        private bool _disconnected;
-
-        private readonly AsynchronousSerialWorkQueue _workQueue;
         /// <summary>
-        /// Outstanding task we issue when we get an even 
+        /// Queue of work to go compute the compilations.
         /// </summary>
-        private Task<Compilation?> _getCompilationTask = Task.FromResult<Compilation?>(null);
-        private CancellationTokenSource _tokenSource = new();
+        private readonly AsynchronousSerialWorkQueue _workQueue;
 
         public CompilationAvailableTaggerEventSource(
             ITextBuffer subjectBuffer,
             TaggerDelay delay,
+            IThreadingContext threadingContext,
             IAsynchronousOperationListener asyncListener,
             params ITaggerEventSource[] eventSources)
         {
@@ -51,50 +46,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _delay = delay;
             _asyncListener = asyncListener;
             _eventSources = eventSources;
+
+            _workQueue = new AsynchronousSerialWorkQueue(threadingContext, asyncListener);
         }
 
         public event EventHandler<TaggerEventArgs>? Changed;
 
         public void Connect()
         {
-            _eventSources.Do(p =>
+            // When we are connected to, connect to all our underlying sources and have them notify us when they've changed.
+            _eventSources.Do(s =>
             {
-                p.Connect();
-                p.Changed += OnEventSourceChanged;
+                s.Connect();
+                s.Changed += OnEventSourceChanged;
             });
         }
 
         public void Disconnect()
         {
-            _disconnected = true;
-            _tokenSource.Cancel();
-            _tokenSource.Dispose();
-            _eventSources.Do(p =>
+            _eventSources.Do(s =>
             {
-                p.Changed -= OnEventSourceChanged;
-                p.Disconnect();
+                s.Changed -= OnEventSourceChanged;
+                s.Disconnect();
             });
         }
 
         public event EventHandler UIUpdatesPaused
         {
-            add { _eventSources.Do(p => p.UIUpdatesPaused += value); }
-            remove { _eventSources.Do(p => p.UIUpdatesPaused -= value); }
+            add { _eventSources.Do(s => s.UIUpdatesPaused += value); }
+            remove { _eventSources.Do(s => s.UIUpdatesPaused -= value); }
         }
 
         public event EventHandler UIUpdatesResumed
         {
-            add { _eventSources.Do(p => p.UIUpdatesResumed += value); }
-            remove { _eventSources.Do(p => p.UIUpdatesResumed -= value); }
+            add { _eventSources.Do(s => s.UIUpdatesResumed += value); }
+            remove { _eventSources.Do(s => s.UIUpdatesResumed -= value); }
         }
 
         private void OnEventSourceChanged(object? sender, TaggerEventArgs args)
         {
             // First, notify anyone listening to us that something definitely changed.
             this.Changed?.Invoke(this, args);
-
-            if (_disconnected)
-                return;
 
             var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -104,38 +96,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return;
 
             // Now, attempt to cancel any existing work to get the compilation for this project, and kick off a new
-            // piece of work in the future to do so.
-            lock (_gate)
+            // piece of work in the future to do so.  Do this after a delay so we can appropriately throttle ourselves
+            // if we hear about a flurry of notifications.
+            _workQueue.CancelCurrentWork();
+            _workQueue.EnqueueBackgroundTask(async c =>
             {
-                _tokenSource.Cancel();
-                _tokenSource.Dispose();
-                _tokenSource = new CancellationTokenSource();
-                var cancellationToken = _tokenSource.Token;
-
-                // Keep track that we're doing async work in tests.
-                var asyncToken = _asyncListener.BeginAsyncOperation(nameof(OnEventSourceChanged));
-                _getCompilationTask = _getCompilationTask.ContinueWithAfterDelay(
-                    _ => GetCompilationAndFireChangedEventAsync(document, asyncToken, cancellationToken),
-                    cancellationToken,
-                    500,
-                    // Ensure we run the callback outside of the lock.
-                    TaskContinuationOptions.RunContinuationsAsynchronously,
-                    TaskScheduler.Default).Unwrap();
-            }
-        }
-
-        private async Task<Compilation?> GetCompilationAndFireChangedEventAsync(
-            Document document, IAsyncToken asyncToken, CancellationToken cancellationToken)
-        {
-            using (asyncToken)
-            {
-                // Wait for the actual compilation to be available.
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                // And then fire an event so we know to reclassify.
+                await document.Project.GetCompilationAsync(c).ConfigureAwait(false);
                 this.Changed?.Invoke(this, new TaggerEventArgs(_delay));
-                return compilation;
-            }|
+            },
+            $"{nameof(CompilationAvailableTaggerEventSource)}.{nameof(OnEventSourceChanged)}",
+            500,
+            _workQueue.CancellationToken);
         }
     }
 }
