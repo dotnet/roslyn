@@ -314,4 +314,7 @@
   <data name="Blank_line_not_allowed_after_constructor_initializer_colon" xml:space="preserve">
     <value>Blank line not allowed after constructor initializer colon</value>
   </data>
+  <data name="Use_constant_interpolated_string" xml:space="preserve">
+    <value>Use constant interpolated string</value>
+  </data>
 </root>
