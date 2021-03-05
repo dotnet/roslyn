@@ -54,8 +54,9 @@ namespace BuildValidator
                 var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false);
                 if (!sourceText.GetChecksum().AsSpan().SequenceEqual(sourceFileInfo.Hash))
                 {
-                    _logger.LogError($@"File ""{onDiskPath}"" has incorrect hash");
+                    throw new Exception($@"File ""{onDiskPath}"" has incorrect hash");
                 }
+
                 return new ResolvedSource(onDiskPath, sourceText, sourceFileInfo);
             }
 

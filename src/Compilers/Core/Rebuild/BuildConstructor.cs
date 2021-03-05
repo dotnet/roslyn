@@ -81,6 +81,76 @@ namespace BuildValidator
             }
 
             throw new InvalidDataException("Did not find language in compilation options");
+<<<<<<< HEAD:src/Compilers/Core/Rebuild/BuildConstructor.cs
+=======
+
+            void logResolvedMetadataReferences()
+            {
+                using var _ = _logger.BeginScope("Metadata References");
+                for (var i = 0; i < metadataReferenceInfos.Length; i++)
+                {
+                    _logger.LogInformation($@"""{metadataReferences[i].Display}"" - {metadataReferenceInfos[i].Mvid}");
+                }
+            }
+
+            void logResolvedSources()
+            {
+                using var _ = _logger.BeginScope("Source Names");
+                foreach (var resolvedSource in sources)
+                {
+                    var sourceFileInfo = resolvedSource.SourceFileInfo;
+                    var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
+                    var embeddedCompressedHash = sourceFileInfo.EmbeddedCompressedHash is { } compressedHash
+                        ? ("[uncompressed]" + BitConverter.ToString(compressedHash).Replace("-", ""))
+                        : null;
+                    _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash} - {embeddedCompressedHash}");
+                }
+            }
+        }
+
+        private ImmutableArray<SourceLink> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader)
+        {
+            using var _ = _logger.BeginScope("Source Links");
+            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
+            if (sourceLinks.IsDefault)
+            {
+                _logger.LogInformation("No source links found in pdb");
+                sourceLinks = ImmutableArray<SourceLink>.Empty;
+            }
+            else
+            {
+                foreach (var link in sourceLinks)
+                {
+                    _logger.LogInformation($@"""{link.Prefix}"": ""{link.Replace}""");
+                }
+            }
+            return sourceLinks;
+        }
+
+        private ImmutableArray<ResolvedSource>? ResolveSources(
+            ImmutableArray<SourceFileInfo> sourceFileInfos,
+            ImmutableArray<SourceLink> sourceLinks,
+            Encoding encoding)
+        {
+            _logger.LogInformation("Locating source files");
+
+            var sources = ImmutableArray.CreateBuilder<ResolvedSource>();
+            bool isError = false;
+            foreach (var sourceFileInfo in sourceFileInfos)
+            {
+                try
+                {
+                    sources.Add(_sourceResolver.ResolveSource(sourceFileInfo, sourceLinks, encoding));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error resolving {sourceFileInfo.SourceFilePath}: {ex.Message}");
+                    isError = true;
+                }
+            }
+
+            return isError ? sources.ToImmutable() : null;
+>>>>>>> 376748dd936 (Fixup):src/Tools/BuildValidator/BuildConstructor.cs
         }
 
         private Compilation CreateCSharpCompilation(

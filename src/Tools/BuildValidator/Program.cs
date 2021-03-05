@@ -141,16 +141,10 @@ namespace BuildValidator
 
                 void logAssemblyInfos()
                 {
-                    logger.LogInformation("Logging file names with multiple MVIDs");
-                    var group = assemblyInfos.GroupBy(x => x.FileName, FileNameEqualityComparer.StringComparer);
-                    foreach (var element in group.Where(x => x.Count() > 1))
+                    logger.LogInformation("Assemblies to be validated");
+                    foreach (var assemblyInfo in assemblyInfos.OrderBy(x => x.FileName, FileNameEqualityComparer.StringComparer))
                     {
-                        var name = element.First().FileName;
-                        logger.LogInformation($"{name}");
-                        foreach (var assemblyInfo in element)
-                        {
-                            logger.LogInformation($"\t{assemblyInfo.Mvid} - {assemblyInfo.FilePath}");
-                        }
+                        logger.LogInformation($"\t {assemblyInfo.FilePath} - {assemblyInfo.Mvid}");
                     }
                 }
             }
@@ -159,7 +153,6 @@ namespace BuildValidator
                 logger.LogError(ex, ex.Message);
                 throw;
             }
-
         }
 
         private static AssemblyInfo[] GetAssemblyInfos(
@@ -319,7 +312,11 @@ namespace BuildValidator
                 logResolvedMetadataReferences();
 
                 var sourceLinks = ResolveSourceLinks(optionsReader, logger);
-                var sources = sourceResolver.ResolveSources(sourceFileInfos, sourceLinks, encoding);
+                if (ResolveSources(sourceFileInfos, sourceLinks, encoding) is not { } sources)
+                {
+                    _logger.LogError($"Failed to resolve sources");
+                    return (compilation: null, isError: true);
+                }
                 logResolvedSources();
 
                 var (compilation, isError) = buildConstructor.CreateCompilation(
