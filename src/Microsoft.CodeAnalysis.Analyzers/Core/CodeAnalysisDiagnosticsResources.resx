@@ -257,7 +257,7 @@
     <value>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</value>
   </data>
   <data name="OverrideGetFixAllProviderDescription" xml:space="preserve">
-    <value>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/master/docs/analyzers/FixAllProvider.md for further details.</value>
+    <value>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</value>
   </data>
   <data name="OverrideGetFixAllProviderCodeFixTitle" xml:space="preserve">
     <value>Override GetFixAllProvider.</value>
@@ -494,7 +494,7 @@
     <value>Enable analyzer release tracking for the analyzer project containing rule '{0}'</value>
   </data>
   <data name="EnableAnalyzerReleaseTrackingRuleDescription" xml:space="preserve">
-    <value>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</value>
+    <value>Enabling release tracking for analyzer packages helps in tracking and documenting the analyzer diagnostics that ship and/or change with each analyzer release. See details at https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md.</value>
   </data>
   <data name="DefineDiagnosticTitleCorrectlyMessage" xml:space="preserve">
     <value>The diagnostic title should not contain a period, nor any line return character, nor any leading or trailing whitespaces</value>

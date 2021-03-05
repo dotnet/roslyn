@@ -13,7 +13,7 @@ namespace Analyzer.Utilities
 {
     /// <summary>
     /// Provider that allows analyzers to easily find and use
-    /// <see href="https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Using%20Additional%20Files.md">additional files</see>.
+    /// <see href="https://github.com/dotnet/roslyn/blob/main/docs/analyzers/Using%20Additional%20Files.md">additional files</see>.
     /// </summary>
     internal class AdditionalFileProvider
     {
