@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Storage
             : base(workingFolderPath, relativePathBase, databaseFilePath)
         {
             _cacheService = cacheService;
-            _projectToContainerKeyCacheCallback = ps => new(relativePathBase, ProjectKey.ToProjectKey(solutionKey, ps));
+            _projectToContainerKeyCacheCallback = ps => new ProjectContainerKeyCache(relativePathBase, ProjectKey.ToProjectKey(solutionKey, ps));
         }
 
         public override void Dispose()
