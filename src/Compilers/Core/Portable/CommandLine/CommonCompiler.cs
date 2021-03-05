@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis
                                 var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, tree.FilePath);
                                 if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
                                 {
-                                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                                 }
 
                                 var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
