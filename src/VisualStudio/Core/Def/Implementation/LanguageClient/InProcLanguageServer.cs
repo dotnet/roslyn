@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
 
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
-            var logger = await CreateLoggerAsync(asyncServiceProvider, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+            var logger = await CreateLoggerAsync(asyncServiceProvider, languageClient.GetType().Name, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
             return new InProcLanguageServer(
                 languageClient,
@@ -140,6 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         private static async Task<LogHubLspLogger?> CreateLoggerAsync(
             VSShell.IAsyncServiceProvider? asyncServiceProvider,
+            string serverName,
             string? clientName,
             JsonRpc jsonRpc,
             CancellationToken cancellationToken)
@@ -147,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             if (asyncServiceProvider == null)
                 return null;
 
-            var logName = $"Roslyn.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
+            var logName = $"Roslyn.{serverName}.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
             var logId = new LogId(logName, new ServiceMoniker(typeof(InProcLanguageServer).FullName));
 
             var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(asyncServiceProvider).ConfigureAwait(false);
