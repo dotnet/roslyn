@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <Compile Include="..\..\VisualStudio\Core\Def\Storage\AbstractCloudCacheService.cs" Link="CloudCache\AbstractCloudCacheService.cs" />
+    <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\AbstractMockRoslynCloudCacheServiceProvider.cs" Link="CloudCache\AbstractMockRoslynCloudCacheServiceProvider.cs" />
     <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\AuthorizationServiceMock.cs" Link="CloudCache\AuthorizationServiceMock.cs" />
     <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\FileSystemServiceMock.cs" Link="CloudCache\FileSystemServiceMock.cs" />
     <Compile Include="..\..\VisualStudio\CSharp\Test\PersistentStorage\Mocks\ServiceBrokerMock.cs" Link="CloudCache\ServiceBrokerMock.cs" />
