@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 // When building for source-build, there is no sqlite dependency
 #if !DOTNET_BUILD_FROM_SOURCE
 using Microsoft.CodeAnalysis.SQLite.v2;
+using Microsoft.CodeAnalysis.Storage.CloudCache;
 #endif
 
 namespace Microsoft.CodeAnalysis.Storage
@@ -51,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Storage
                         return new SQLitePersistentStorageService(options, _connectionPoolService, locationService);
 
                     case StorageDatabase.CloudCache:
-                        var provider = workspaceServices.GetService<IRoslynCloudCacheServiceProvider>();
+                        var factory = workspaceServices.GetService<ICloudCacheStorageServiceFactory>();
 
-                        return provider == null
+                        return factory == null
                             ? NoOpPersistentStorageService.GetOrThrow(options)
-                            : new CloudCachePersistentStorageService(provider, locationService);
+                            : factory.Create(locationService);
                 }
             }
 #endif

@@ -8,21 +8,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Storage;
+using Microsoft.VisualStudio.RpcContracts.Caching;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Storage
+namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
-    internal class CloudCachePersistentStorageService : AbstractPersistentStorageService
+    internal abstract class AbstractCloudCachePersistentStorageService : AbstractPersistentStorageService
     {
         private const string StorageExtension = "CloudCache";
-        private readonly IRoslynCloudCacheServiceProvider _provider;
 
-        public CloudCachePersistentStorageService(
-            IRoslynCloudCacheServiceProvider provider, IPersistentStorageLocationService locationService)
+        protected AbstractCloudCachePersistentStorageService(
+            IPersistentStorageLocationService locationService)
             : base(locationService)
         {
-            _provider = provider;
         }
+
+        protected abstract ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken);
+        protected abstract AbstractCloudCachePersistentStorage CreatePersistentStorage(ICacheService cacheService, SolutionKey solutionKey, string workingFolderPath, string relativePathBase, string databaseFilePath);
 
         protected override string GetDatabaseFilePath(string workingFolderPath)
         {
@@ -39,12 +42,12 @@ namespace Microsoft.CodeAnalysis.Storage
         protected override async ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
             SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
         {
-            var cacheService = await _provider.CreateCacheAsync(cancellationToken).ConfigureAwait(false);
+            var cacheService = await this.CreateCacheServiceAsync(cancellationToken).ConfigureAwait(false);
             var relativePathBase = await cacheService.GetRelativePathBaseAsync(cancellationToken).ConfigureAwait(false);
             if (string.IsNullOrEmpty(relativePathBase))
                 return null;
 
-            return new CloudCachePersistentStorage(solutionKey, cacheService, workingFolderPath, relativePathBase, databaseFilePath);
+            return CreatePersistentStorage(cacheService, solutionKey, workingFolderPath, relativePathBase, databaseFilePath);
         }
     }
 }

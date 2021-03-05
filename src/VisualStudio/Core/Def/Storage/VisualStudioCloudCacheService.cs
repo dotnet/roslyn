@@ -4,21 +4,23 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
-    /// <summary>
-    /// Tiny wrappers that takes the platform <see cref="ICacheService"/> and wraps it to our own layers as an <see
-    /// cref="IRoslynCloudCacheService"/>.
-    /// </summary>
-    internal class VisualStudioCloudCacheService : AbstractCloudCacheService
+    internal class VisualStudioCloudCachePersistentStorage : AbstractCloudCachePersistentStorage
     {
         private readonly IThreadingContext _threadingContext;
 
-        public VisualStudioCloudCacheService(IThreadingContext threadingContext, ICacheService cacheService)
-            : base(cacheService)
+        public VisualStudioCloudCachePersistentStorage(
+            IThreadingContext threadingContext,
+            ICacheService cacheService,
+            SolutionKey solutionKey,
+            string workingFolderPath,
+            string relativePathBase,
+            string databaseFilePath)
+            : base(cacheService, solutionKey, workingFolderPath, relativePathBase, databaseFilePath)
         {
             _threadingContext = threadingContext;
         }

@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.VisualStudio.RpcContracts.Caching;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Storage
+namespace Microsoft.VisualStudio.LanguageServices.Storage
 {
     /// <summary>
     /// Cache of our own internal roslyn storage keys to the equivalent platform cloud cache keys.  Cloud cache keys can
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Storage
         /// <summary>
         /// Container key explicitly for the project itself.
         /// </summary>
-        public readonly RoslynCloudCacheContainerKey? ProjectContainerKey;
+        public readonly CacheContainerKey? ProjectContainerKey;
 
         /// <summary>
         /// Cache from document green nodes to the container keys we've computed for it. We can avoid computing these
@@ -35,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Storage
         /// cref="ProjectState"/> is alive.  As that instance is alive, all <see cref="TextDocumentState"/>s the project
         /// points at will be held alive strongly too.
         /// </remarks>
-        private readonly Dictionary<TextDocumentState, RoslynCloudCacheContainerKey?> _documentToContainerKey = new();
-        private readonly Func<TextDocumentState, RoslynCloudCacheContainerKey?> _documentToContainerKeyCallback;
+        private readonly Dictionary<TextDocumentState, CacheContainerKey?> _documentToContainerKey = new();
+        private readonly Func<TextDocumentState, CacheContainerKey?> _documentToContainerKeyCallback;
 
         public ProjectContainerKeyCache(string relativePathBase, ProjectKey projectKey)
         {
@@ -45,13 +47,13 @@ namespace Microsoft.CodeAnalysis.Storage
             _documentToContainerKeyCallback = ds => CreateDocumentContainerKey(relativePathBase, DocumentKey.ToDocumentKey(projectKey, ds));
         }
 
-        public RoslynCloudCacheContainerKey? GetDocumentContainerKey(TextDocumentState state)
+        public CacheContainerKey? GetDocumentContainerKey(TextDocumentState state)
         {
             lock (_documentToContainerKey)
                 return _documentToContainerKey.GetOrAdd(state, _documentToContainerKeyCallback);
         }
 
-        public static RoslynCloudCacheContainerKey? CreateProjectContainerKey(
+        public static CacheContainerKey? CreateProjectContainerKey(
             string relativePathBase, ProjectKey projectKey)
         {
             // Creates a container key for this project.  The container key is a mix of the project's name, relative
@@ -76,10 +78,10 @@ namespace Microsoft.CodeAnalysis.Storage
                 .Add($"{nameof(ProjectKey)}.{nameof(ProjectKey.FilePath)}", relativePath)
                 .Add($"{nameof(ProjectKey)}.{nameof(ProjectKey.ParseOptionsChecksum)}", projectKey.ParseOptionsChecksum.ToString());
 
-            return new RoslynCloudCacheContainerKey("Roslyn.Project", dimensions);
+            return new CacheContainerKey("Roslyn.Project", dimensions);
         }
 
-        public static RoslynCloudCacheContainerKey? CreateDocumentContainerKey(
+        public static CacheContainerKey? CreateDocumentContainerKey(
             string relativePathBase,
             DocumentKey documentKey)
         {
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 .Add($"{nameof(DocumentKey)}.{nameof(DocumentKey.Name)}", documentKey.Name)
                 .Add($"{nameof(DocumentKey)}.{nameof(DocumentKey.FilePath)}", relativePath);
 
-            return new RoslynCloudCacheContainerKey("Roslyn.Document", dimensions);
+            return new CacheContainerKey("Roslyn.Document", dimensions);
         }
     }
 }
