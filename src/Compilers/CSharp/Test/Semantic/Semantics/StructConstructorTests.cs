@@ -49,7 +49,7 @@ class Program
             CompileAndVerify(sourceB, references: new[] { refA }, expectedOutput:
 $@"True
 True
-{ExecutionConditionUtil.IsCoreClr}"); // Activator.CreateInstance<T>() ignores constructor on desktop framework.
+{ExecutionConditionUtil.IsCoreClr}"); // Desktop framework ignores constructor in Activator.CreateInstance<T>() where T : struct.
         }
 
         [InlineData("public")]

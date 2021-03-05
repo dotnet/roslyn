@@ -1318,6 +1318,7 @@ hasRelatedInterfaces:
         /// </summary>
         private static bool? HasPublicParameterlessConstructor(NamedTypeSymbol type)
         {
+            Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
             foreach (var constructor in type.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)
