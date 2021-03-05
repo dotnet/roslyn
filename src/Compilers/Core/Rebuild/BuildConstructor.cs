@@ -81,31 +81,6 @@ namespace BuildValidator
             }
 
             throw new InvalidDataException("Did not find language in compilation options");
-<<<<<<< HEAD:src/Compilers/Core/Rebuild/BuildConstructor.cs
-=======
-
-            void logResolvedMetadataReferences()
-            {
-                using var _ = _logger.BeginScope("Metadata References");
-                for (var i = 0; i < metadataReferenceInfos.Length; i++)
-                {
-                    _logger.LogInformation($@"""{metadataReferences[i].Display}"" - {metadataReferenceInfos[i].Mvid}");
-                }
-            }
-
-            void logResolvedSources()
-            {
-                using var _ = _logger.BeginScope("Source Names");
-                foreach (var resolvedSource in sources)
-                {
-                    var sourceFileInfo = resolvedSource.SourceFileInfo;
-                    var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
-                    var embeddedCompressedHash = sourceFileInfo.EmbeddedCompressedHash is { } compressedHash
-                        ? ("[uncompressed]" + BitConverter.ToString(compressedHash).Replace("-", ""))
-                        : null;
-                    _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash} - {embeddedCompressedHash}");
-                }
-            }
         }
 
         private ImmutableArray<SourceLink> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader)
@@ -149,8 +124,7 @@ namespace BuildValidator
                 }
             }
 
-            return isError ? sources.ToImmutable() : null;
->>>>>>> 376748dd936 (Fixup):src/Tools/BuildValidator/BuildConstructor.cs
+            return isError ? null : sources.ToImmutable();
         }
 
         private Compilation CreateCSharpCompilation(
