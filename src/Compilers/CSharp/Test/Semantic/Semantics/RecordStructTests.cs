@@ -569,12 +569,8 @@ public class C : Base
 unsafe record struct S7;
 ";
 
-            var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (16,22): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                // unsafe record struct S7;
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S7").WithLocation(16, 22)
-                );
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
             Assert.Equal(Accessibility.Internal, comp.GlobalNamespace.GetTypeMember("S1").DeclaredAccessibility);
             Assert.Equal(Accessibility.Public, comp.GlobalNamespace.GetTypeMember("S2").DeclaredAccessibility);
             Assert.Equal(Accessibility.Internal, comp.GlobalNamespace.GetTypeMember("S3").DeclaredAccessibility);
