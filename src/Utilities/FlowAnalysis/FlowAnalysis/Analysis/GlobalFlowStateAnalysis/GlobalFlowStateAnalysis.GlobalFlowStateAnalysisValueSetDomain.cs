@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 Debug.Assert(value1.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
                 Debug.Assert(value2.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
 
+                if (value1 == value2)
+                {
+                    return value1;
+                }
+
                 return new GlobalFlowStateAnalysisValueSet(value1, value2);
             }
 
