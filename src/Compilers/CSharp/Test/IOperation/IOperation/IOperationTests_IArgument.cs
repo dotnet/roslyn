@@ -4039,7 +4039,7 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         [WorkItem(39868, "https://github.com/dotnet/roslyn/issues/39868")]
-        public void NullableDefaultArgument_NullableEnumFromMetadata()
+        public void NullableEnumDefaultArgument_NonZeroValue()
         {
             string source = @"
 #nullable enable
