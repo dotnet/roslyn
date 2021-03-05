@@ -508,11 +508,17 @@ namespace Analyzer.Utilities.Extensions
 
         private static readonly ImmutableArray<OperationKind> s_LambdaAndLocalFunctionKinds =
             ImmutableArray.Create(OperationKind.AnonymousFunction, OperationKind.LocalFunction);
+
         public static bool IsWithinLambdaOrLocalFunction(this IOperation operation, [NotNullWhen(true)] out IOperation? containingLambdaOrLocalFunctionOperation)
         {
             containingLambdaOrLocalFunctionOperation = operation.GetAncestor(s_LambdaAndLocalFunctionKinds);
             return containingLambdaOrLocalFunctionOperation != null;
         }
+
+        public static bool IsWithinExpressionTree(this IOperation operation, [NotNullWhen(true)] INamedTypeSymbol? linqExpressionTreeType)
+            => linqExpressionTreeType != null
+                && operation.GetAncestor(s_LambdaAndLocalFunctionKinds)?.Parent?.Type?.OriginalDefinition is { } lambdaType
+                && linqExpressionTreeType.Equals(lambdaType);
 
         public static ITypeSymbol? GetPatternType(this IPatternOperation pattern)
         {
@@ -806,7 +812,7 @@ namespace Analyzer.Utilities.Extensions
             return parameterOrderedArguments.ToImmutableArray();
         }
 
-        // Copied from roslyn https://github.com/dotnet/roslyn/blob/master/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/OperationExtensions.cs#L25
+        // Copied from roslyn https://github.com/dotnet/roslyn/blob/main/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/OperationExtensions.cs#L25
 
 #if CODEANALYSIS_V3_OR_BETTER
         /// <summary>

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
     {
         internal class GlobalFlowStateAnalysisValueSetDomain : AbstractValueDomain<GlobalFlowStateAnalysisValueSet>
         {
-            public static GlobalFlowStateAnalysisValueSetDomain Instance = new GlobalFlowStateAnalysisValueSetDomain();
+            public static GlobalFlowStateAnalysisValueSetDomain Instance = new();
 
             private GlobalFlowStateAnalysisValueSetDomain() { }
 

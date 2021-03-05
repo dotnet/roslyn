@@ -331,13 +331,17 @@ End Class
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic(CSharpRegisterActionAnalyzer.StartActionWithOnlyEndActionRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(GetExpectedArguments(parameterName, kind));
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, string parameterName, StartActionKind kind) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic(BasicRegisterActionAnalyzer.StartActionWithOnlyEndActionRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(GetExpectedArguments(parameterName, kind));
 
         private static string[] GetExpectedArguments(string parameterName, StartActionKind kind)

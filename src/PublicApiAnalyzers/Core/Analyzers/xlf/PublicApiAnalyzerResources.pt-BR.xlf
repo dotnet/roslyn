@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="AnnotatePublicApiDescription">
         <source>All public types and members should be declared with nullability annotations in PublicAPI.txt. This draws attention to API nullability changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Todos os tipos e membros públicos devem ser declarados com anotações de nulidade no PublicAPI.txt. Isso chama a atenção para as alterações de nulidade da API no histórico de revisões de código e de controle do código-fonte e ajuda a evitar alterações da falha.</target>
+        <target state="translated">Todos os tipos e membros públicos devem ser declarados com anotações de nulidade no PublicAPI.txt. Isso chama a atenção para as alterações de nulidade da API no histórico de revisões de código e de controle do código-fonte e ajuda a evitar alterações interruptivas.</target>
         <note />
       </trans-unit>
       <trans-unit id="AnnotatePublicApiMessage">
@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="DeclarePublicApiDescription">
         <source>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Todos os tipos e membros públicos devem ser declarados no PublicAPI.txt. Isso chama a atenção para as alterações da API no histórico de revisões de código e de controle do código-fonte e ajuda a evitar alterações da falha.</target>
+        <target state="translated">Todos os tipos e membros públicos devem ser declarados no PublicAPI.txt. Isso chama a atenção para as alterações da API no histórico de revisões de código e de controle do código-fonte e ajuda a evitar alterações interruptivas.</target>
         <note />
       </trans-unit>
       <trans-unit id="DeclarePublicApiMessage">
@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="RemoveDeletedApiDescription">
         <source>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</source>
-        <target state="translated">Quando um tipo ou membro público é removido, a entrada correspondente no PublicAPI.txt também deve ser removida. Isso chama a atenção para alterações da API no histórico de revisões de código e de controle do código-fonte e ajuda a evitar alterações da falha.</target>
+        <target state="translated">Quando um tipo ou membro público é removido, a entrada correspondente no PublicAPI.txt também deve ser removida. Isso chama a atenção para alterações da API no histórico de revisões de código e de controle do código-fonte e ajuda a evitar alterações interruptivas.</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveDeletedApiMessage">

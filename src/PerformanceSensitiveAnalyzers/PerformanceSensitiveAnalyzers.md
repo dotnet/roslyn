@@ -9,7 +9,7 @@ One way to resolve this issue is setting `GeneratePerformanceSensitiveAttribute`
 
 For example, given the dependecy graph below, if project A has IVT for project B, and project C has IVT for project D and project E. You need to set `GeneratePerformanceSensitiveAttribute` to true in A and C, and false in B, D and E.
 
-```
+```text
      A
      |
     / \
@@ -30,7 +30,7 @@ Internally, this is implemented in the `Microsoft.CodeAnalysis.PerformanceSensit
 
   <ItemGroup Condition="'$(GeneratePerformanceSensitiveAttribute)' == 'true' and Exists($(PerformanceSensitiveAttributePath))">
     <Compile Include="$(PerformanceSensitiveAttributePath)" Visible="false" />
-    
+
     <!-- Make sure the source file is embedded in PDB to support Source Link -->
     <EmbeddedFiles Condition="'$(DebugType)' != 'none'" Include="$(PerformanceSensitiveAttributePath)" />
   </ItemGroup>

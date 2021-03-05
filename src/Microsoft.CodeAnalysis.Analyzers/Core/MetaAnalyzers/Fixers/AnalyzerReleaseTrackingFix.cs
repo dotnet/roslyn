@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 " + CommonAnalyzerReleaseTrackingContent;
         internal const string UnshippedAnalyzerReleaseTrackingFileDefaultContent = @"; Unshipped analyzer release
 " + CommonAnalyzerReleaseTrackingContent;
-        private const string CommonAnalyzerReleaseTrackingContent = @"; https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+        private const string CommonAnalyzerReleaseTrackingContent = @"; https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
 
 ";
 
@@ -436,6 +436,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 }
 
                 builder.AppendLine(ReleaseTrackingHelper.TableTitleNewRules);
+                builder.AppendLine();
                 builder.AppendLine(ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine1);
                 builder.Append(ReleaseTrackingHelper.TableHeaderNewOrRemovedRulesLine2);
             }
@@ -449,6 +450,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
                 }
 
                 builder.AppendLine(ReleaseTrackingHelper.TableTitleChangedRules);
+                builder.AppendLine();
                 builder.AppendLine(ReleaseTrackingHelper.TableHeaderChangedRulesLine1);
                 builder.Append(ReleaseTrackingHelper.TableHeaderChangedRulesLine2);
             }

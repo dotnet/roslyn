@@ -250,13 +250,17 @@ End Class
         }
 
         private static DiagnosticResult GetCSharpExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyCS.Diagnostic(CSharpRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(unsupportedSymbolKind);
 
         private static DiagnosticResult GetBasicExpectedDiagnostic(int line, int column, SymbolKind unsupportedSymbolKind) =>
+#pragma warning disable RS0030 // Do not used banned APIs
             VerifyVB.Diagnostic(BasicRegisterActionAnalyzer.UnsupportedSymbolKindArgumentRule)
                 .WithLocation(line, column)
+#pragma warning restore RS0030 // Do not used banned APIs
                 .WithArguments(unsupportedSymbolKind);
     }
 }
