@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                    height: Math.Max(parent1.Height, parent2.Height) + 1,
                    GlobalFlowStateAnalysisValueSetKind.Known)
         {
+            Debug.Assert(parent1 != parent2);
         }
 
         public ImmutableHashSet<IAbstractAnalysisValue> AnalysisValues { get; }
