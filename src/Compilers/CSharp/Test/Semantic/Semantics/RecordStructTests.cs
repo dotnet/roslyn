@@ -566,10 +566,15 @@ public class C : Base
     protected internal record struct S5;
     new record struct S6;
 }
+unsafe record struct S7;
 ";
 
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (16,22): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe record struct S7;
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S7").WithLocation(16, 22)
+                );
             Assert.Equal(Accessibility.Internal, comp.GlobalNamespace.GetTypeMember("S1").DeclaredAccessibility);
             Assert.Equal(Accessibility.Public, comp.GlobalNamespace.GetTypeMember("S2").DeclaredAccessibility);
             Assert.Equal(Accessibility.Internal, comp.GlobalNamespace.GetTypeMember("S3").DeclaredAccessibility);
@@ -876,30 +881,72 @@ public record struct S
         public void TypeDeclaration_DifferentPartials()
         {
             var src = @"
-partial record struct S;
-partial struct S { }
+partial record struct S1;
+partial struct S1 { }
 
 partial struct S2 { }
 partial record struct S2;
 
-partial record class C { }
-partial record C;
+partial record struct S3;
+partial record S3 { }
+
+partial record struct S4;
+partial record class S4 { }
+
+partial record struct S5;
+partial class S5 { }
+
+partial record struct S6;
+partial interface S6 { }
+
+partial record class C1;
+partial struct C1 { }
 
 partial record class C2;
-partial class C2 { }
+partial record struct C2 { }
+
+partial record class C3 { }
+partial record C3;
+
+partial record class C4;
+partial class C4 { }
+
+partial record class C5;
+partial interface C5 { }
 ";
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (3,16): error CS0261: Partial declarations of 'S' must be all classes, all record classes, all structs, all record structs, or all interfaces
-                // partial struct S { }
-                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "S").WithArguments("S").WithLocation(3, 16),
+                // (3,16): error CS0261: Partial declarations of 'S1' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // partial struct S1 { }
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "S1").WithArguments("S1").WithLocation(3, 16),
                 // (6,23): error CS0261: Partial declarations of 'S2' must be all classes, all record classes, all structs, all record structs, or all interfaces
                 // partial record struct S2;
                 Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "S2").WithArguments("S2").WithLocation(6, 23),
-                // (12,15): error CS0261: Partial declarations of 'C2' must be all classes, all record classes, all structs, all record structs, or all interfaces
-                // partial class C2 { }
-                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "C2").WithArguments("C2").WithLocation(12, 15)
+                // (9,16): error CS0261: Partial declarations of 'S3' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // partial record S3 { }
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "S3").WithArguments("S3").WithLocation(9, 16),
+                // (12,22): error CS0261: Partial declarations of 'S4' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // partial record class S4 { }
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "S4").WithArguments("S4").WithLocation(12, 22),
+                // (15,15): error CS0261: Partial declarations of 'S5' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // partial class S5 { }
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "S5").WithArguments("S5").WithLocation(15, 15),
+                // (18,19): error CS0261: Partial declarations of 'S6' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // partial interface S6 { }
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "S6").WithArguments("S6").WithLocation(18, 19),
+                // (21,16): error CS0261: Partial declarations of 'C1' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // partial struct C1 { }
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "C1").WithArguments("C1").WithLocation(21, 16),
+                // (24,23): error CS0261: Partial declarations of 'C2' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // partial record struct C2 { }
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "C2").WithArguments("C2").WithLocation(24, 23),
+                // (30,15): error CS0261: Partial declarations of 'C4' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // partial class C4 { }
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "C4").WithArguments("C4").WithLocation(30, 15),
+                // (33,19): error CS0261: Partial declarations of 'C5' must be all classes, all record classes, all structs, all record structs, or all interfaces
+                // partial interface C5 { }
+                Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "C5").WithArguments("C5").WithLocation(33, 19)
                 );
         }
 
