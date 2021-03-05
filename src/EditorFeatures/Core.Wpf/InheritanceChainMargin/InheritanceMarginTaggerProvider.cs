@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -15,15 +16,18 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
 {
     [Export(typeof(IViewTaggerProvider))]
-    [Shared]
-    internal class InheritanceMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
+    [Name(nameof(InheritanceMarginTaggerProvider))]
+    [TagType(typeof(InheritanceMarginTag))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    internal class InheritanceMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>, ITaggerProvider
     {
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceMarginTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -32,10 +36,22 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
                 listenerProvider.GetListener(FeatureAttribute.InheritanceChainMargin),
                 notificationService)
         {
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-            => TaggerEventSources.Compose(TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener));
+        {
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
+            return TaggerEventSources.Compose(
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.Short, AsyncListener),
+                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate));
+        }
 
         protected override async Task ProduceTagsAsync(
             TaggerContext<InheritanceMarginTag> context,
@@ -51,13 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
             var cancellationToken = context.CancellationToken;
             var inheritanceMarginInfoService = document.GetRequiredLanguageService<IInheritanceChainService>();
             var inheritanceInfoForDocument = await inheritanceMarginInfoService.GetInheritanceInfoForLineAsync(document, cancellationToken).ConfigureAwait(false);
-
-            foreach (var info in inheritanceInfoForDocument)
-            {
-                context.AddTag(new TagSpan<InheritanceMarginTag>(
-                    spanToTag.SnapshotSpan,
-                    InheritanceMarginTag.FromInheritanceInfo(info)));
-            }
         }
     }
 }

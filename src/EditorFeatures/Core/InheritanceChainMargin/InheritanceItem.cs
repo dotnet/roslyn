@@ -17,43 +17,39 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
         Overriden,
     }
 
-    internal class MemberInheritanceInfo
+    internal class InheritanceInfo
     {
-        public readonly string MemberDisplayName;
+        public readonly TaggedText MemberTaggedText;
 
-        public readonly int MemberDeclarationLineNumber;
+        public readonly int GlyphLineNumber;
 
         public readonly ImmutableArray<InheritanceItem> InheritanceItems;
 
-        public MemberInheritanceInfo(
-            string memberDisplayName,
-            int memberDeclarationLineNumber,
+        public InheritanceInfo(
+            TaggedText memberTaggedText,
+            int glyphLineNumber,
             ImmutableArray<InheritanceItem> inheritanceItems)
         {
-            MemberDisplayName = memberDisplayName;
-            MemberDeclarationLineNumber = memberDeclarationLineNumber;
+            MemberTaggedText = memberTaggedText;
+            GlyphLineNumber = glyphLineNumber;
             InheritanceItems = inheritanceItems;
         }
     }
 
     internal class InheritanceItem
     {
-        public readonly string ItemKind;
-
-        public readonly string Name;
+        public readonly TaggedText MemberTaggedText;
 
         public readonly Relationship RelationToMember;
 
         public readonly ImmutableArray<InheritanceItemNavigator> Navigators;
 
         public InheritanceItem(
-            string itemKind,
-            string name,
+            TaggedText memberTaggedText,
             Relationship relationToMember,
             ImmutableArray<InheritanceItemNavigator> navigators)
         {
-            ItemKind = itemKind;
-            Name = name;
+            MemberTaggedText = memberTaggedText;
             RelationToMember = relationToMember;
             Navigators = navigators;
         }
@@ -61,12 +57,12 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
 
     internal class InheritanceItemNavigator
     {
-        public readonly string TargetDescription;
+        public readonly TaggedText Descriptions;
         public readonly Func<Task> NavigationFunc;
 
-        public InheritanceItemNavigator(string targetDescription, Func<Task> navigationFunc)
+        public InheritanceItemNavigator(TaggedText descriptions, Func<Task> navigationFunc)
         {
-            TargetDescription = targetDescription;
+            Descriptions = descriptions;
             NavigationFunc = navigationFunc;
         }
     }

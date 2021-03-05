@@ -5,13 +5,14 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.InheritanceChainMargin
 {
     internal interface IInheritanceChainService : ILanguageService
     {
-        Task<ImmutableArray<MemberInheritanceInfo>> GetInheritanceInfoForLineAsync(
+        Task<ImmutableArray<DefinitionItem>> GetInheritanceInfoForLineAsync(
             Document document,
             CancellationToken cancellationToken);
     }
