@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected bool IsConditionalState;
 
         /// <summary>
+        /// The state after a conditional access when the conditional access's value is non-null.
+        /// </summary>
+        protected TLocalState StateWhenNotNull;
+
+        /// <summary>
         /// Indicates that the transfer function for a particular node (the function mapping the
         /// state before the node to the state after the node) is not monotonic, in the sense that
         /// it can change the state in either direction in the lattice. If the transfer function is
@@ -2455,27 +2460,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
+#nullable enable
+
+        public override BoundNode? VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
             VisitRvalue(node.LeftOperand);
             if (IsConstantNull(node.LeftOperand))
             {
-                VisitRvalue(node.RightOperand);
+                Visit(node.RightOperand);
             }
             else
             {
-                var savedState = this.State.Clone();
+                var savedState = node.LeftOperand is BoundConditionalAccess
+                    ? StateWhenNotNull
+                    : State.Clone();
                 if (node.LeftOperand.ConstantValue != null)
                 {
                     SetUnreachable();
                 }
-                VisitRvalue(node.RightOperand);
-                Join(ref this.State, ref savedState);
+                Visit(node.RightOperand);
+                if (IsConditionalState)
+                {
+                    Join(ref StateWhenTrue, ref savedState);
+                    Join(ref StateWhenFalse, ref savedState);
+                }
+                else
+                {
+                    Join(ref this.State, ref savedState);
+                }
             }
             return null;
         }
 
-        public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
+        public override BoundNode? VisitConditionalAccess(BoundConditionalAccess node)
         {
             VisitRvalue(node.Receiver);
 
@@ -2491,11 +2508,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SetUnreachable();
                 }
 
-                VisitRvalue(node.AccessExpression);
-                Join(ref this.State, ref savedState);
+                // We want to preserve StateWhenNotNull from accesses in the same "chain":
+                // a?.b(out x)?.c(out y); // expected to preserve StateWhenNotNull from both ?.b(out x) and ?.c(out y)
+                // but not accesses in nested expressions:
+                // a?.b(out x, c?.d(out y)); // expected to preserve StateWhenNotNull from a?.b(out x, ...) but not from c?.d(out y)
+                BoundExpression cursor = node.AccessExpression;
+                while (cursor is BoundConditionalAccess innerCondAccess)
+                {
+                    // we assume that non-conditional accesses can never contain conditional accesses from the same "chain".
+                    // that is, we never have to dig through non-conditional accesses to find and handle conditional accesses.
+                    VisitRvalue(innerCondAccess.Receiver);
+                    cursor = innerCondAccess.AccessExpression;
+                }
+
+                Debug.Assert(cursor is BoundExpression);
+                VisitRvalue(cursor);
+
+                StateWhenNotNull = State;
+                State = savedState;
+                Join(ref State, ref StateWhenNotNull);
             }
             return null;
         }
+
+#nullable disable
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
@@ -2628,7 +2664,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitConditionalOperatorCore(node, node.IsRef, node.Condition, node.Consequence, node.Alternative);
         }
 
-        protected virtual BoundNode VisitConditionalOperatorCore(
+#nullable enable
+
+        protected virtual BoundNode? VisitConditionalOperatorCore(
             BoundExpression node,
             bool isByRef,
             BoundExpression condition,
@@ -2674,6 +2712,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+#nullable disable
 
         private void VisitConditionalOperand(TLocalState state, BoundExpression operand, bool isByRef)
         {
