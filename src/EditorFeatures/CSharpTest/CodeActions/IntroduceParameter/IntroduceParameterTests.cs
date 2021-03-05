@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
                 @"using System;
                 class TestClass
                 {
-                    private int M(int x, int y, int z)
+                    private int M_v(int x, int y, int z)
                     {
                         return x * y * z;
                     }

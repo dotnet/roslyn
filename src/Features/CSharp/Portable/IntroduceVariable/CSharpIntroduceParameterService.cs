@@ -35,12 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override SeparatedSyntaxList<SyntaxNode> AddArgumentToArgumentList(SeparatedSyntaxList<SyntaxNode> invocationArguments, SyntaxNode newArgumentExpression)
         {
-            return invocationArguments.Add(SyntaxFactory.Argument((ExpressionSyntax)newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation)));
+            return invocationArguments.Add(SyntaxFactory.Argument((ExpressionSyntax)newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation)));
         }
 
         protected override ImmutableArray<SyntaxNode> AddExpressionArgumentToArgumentList(ImmutableArray<SyntaxNode> arguments, SyntaxNode expression)
         {
-            var newArgument = SyntaxFactory.Argument((ExpressionSyntax)expression.WithoutAnnotations(ExpressionAnnotationKind));
+            var newArgument = SyntaxFactory.Argument((ExpressionSyntax)expression);
             return arguments.Add(newArgument);
         }
 
