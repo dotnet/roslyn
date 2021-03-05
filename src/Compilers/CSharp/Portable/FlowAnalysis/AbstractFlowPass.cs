@@ -1115,7 +1115,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node) => null;
 
-        public override BoundNode VisitLocal(BoundLocal node) => null;
+        public override BoundNode VisitLocal(BoundLocal node)
+        {
+            SplitIfBooleanConstant(node);
+            return null;
+        }
 
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
@@ -1459,7 +1463,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLiteral(BoundLiteral node)
         {
+            SplitIfBooleanConstant(node);
             return null;
+        }
+
+        protected void SplitIfBooleanConstant(BoundExpression node)
+        {
+            if (node.ConstantValue is { IsBoolean: true, BooleanValue: bool booleanValue })
+            {
+                var unreachable = UnreachableState();
+                Split();
+                if (booleanValue)
+                {
+                    StateWhenFalse = unreachable;
+                }
+                else
+                {
+                    StateWhenTrue = unreachable;
+                }
+            }
         }
 
         public override BoundNode VisitMethodDefIndex(BoundMethodDefIndex node)
@@ -1929,6 +1951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
             VisitFieldAccessInternal(node.ReceiverOpt, node.FieldSymbol);
+            SplitIfBooleanConstant(node);
             return null;
         }
 
@@ -2619,23 +2642,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 VisitConditionalOperand(alternativeState, alternative, isByRef);
                 VisitConditionalOperand(consequenceState, consequence, isByRef);
-                // it may be a boolean state at this point.
             }
             else if (IsConstantFalse(condition))
             {
                 VisitConditionalOperand(consequenceState, consequence, isByRef);
                 VisitConditionalOperand(alternativeState, alternative, isByRef);
-                // it may be a boolean state at this point.
             }
             else
             {
+                // at this point, the state is conditional after a conditional expression if:
+                // 1. the state is conditional after the consequence, or
+                // 2. the state is conditional after the alternative
+
                 VisitConditionalOperand(consequenceState, consequence, isByRef);
-                Unsplit();
-                consequenceState = this.State;
+                var conditionalAfterConsequence = IsConditionalState;
+                var (afterConsequenceWhenTrue, afterConsequenceWhenFalse) = conditionalAfterConsequence ? (StateWhenTrue, StateWhenFalse) : (State, State);
+
                 VisitConditionalOperand(alternativeState, alternative, isByRef);
-                Unsplit();
-                Join(ref this.State, ref consequenceState);
-                // it may not be a boolean state at this point (5.3.3.28)
+                if (!conditionalAfterConsequence && !IsConditionalState)
+                {
+                    // simplify in the common case
+                    Join(ref this.State, ref afterConsequenceWhenTrue);
+                }
+                else
+                {
+                    Split();
+                    Join(ref this.StateWhenTrue, ref afterConsequenceWhenTrue);
+                    Join(ref this.StateWhenFalse, ref afterConsequenceWhenFalse);
+                }
             }
 
             return null;

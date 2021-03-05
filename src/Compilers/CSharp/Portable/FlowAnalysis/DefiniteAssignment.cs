@@ -1891,6 +1891,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Diagnostics.Add(ErrorCode.ERR_FixedLocalInLambda, new SourceLocation(node.Syntax), localSymbol);
             }
+
+            SplitIfBooleanConstant(node);
             return null;
         }
 
