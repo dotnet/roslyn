@@ -58,7 +58,8 @@ namespace RoslynPublish
             }
 
             var gitHubAuth = new GitHubAuth(authToken: gitHubToken, user: gitHubUserName, email: gitHubEmail);
-            var updater = new GitHubVersionsRepoUpdater(gitHubAuth, owner, "versions");
+            var factory = new VersionsRepoUpdaterFactory(new NupkgInfoFactory(new PackageArchiveReaderFactory()));
+            var updater = factory.CreateGitHubVersionsRepoUpdater(gitHubAuth, owner, "versions");
             var packages = Directory.EnumerateFiles(nugetDir, searchPattern: "*.nupkg");
             var versionsPath = $"build-info/dotnet/roslyn/{channel}";
             await updater.UpdateBuildInfoAsync(

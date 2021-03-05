@@ -385,4 +385,5 @@
       <Reference Remove="@(Reference)" Condition=" '%(FileName)' == 'Microsoft.VisualBasic' or '%(FileName)' == 'Microsoft.VisualBasic.Core' " />
     </ItemGroup>
   </Target>
+
 </Project>
