@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Storage
         /// Cache from project green nodes to the container keys we've computed for it (and the documents inside of it).
         /// We can avoid computing these container keys when called repeatedly for the same projects/documents.
         /// </summary>
-        private static readonly ConditionalWeakTable<ProjectState, ProjectContainerKeyCache> s_projectToContainerKey = new();
-        private readonly ConditionalWeakTable<ProjectState, ProjectContainerKeyCache>.CreateValueCallback _projectToContainerKeyCallback;
+        private static readonly ConditionalWeakTable<ProjectState, ProjectContainerKeyCache> s_projectToContainerKeyCache = new();
+        private readonly ConditionalWeakTable<ProjectState, ProjectContainerKeyCache>.CreateValueCallback _projectToContainerKeyCacheCallback;
 
         /// <summary>
         /// Underlying cache service (owned by platform team) responsible for actual storage and retrieval of data.
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Storage
             : base(workingFolderPath, relativePathBase, databaseFilePath)
         {
             _cacheService = cacheService;
-            _projectToContainerKeyCallback = ps => new(relativePathBase, ProjectKey.ToProjectKey(solutionKey, ps));
+            _projectToContainerKeyCacheCallback = ps => new(relativePathBase, ProjectKey.ToProjectKey(solutionKey, ps));
         }
 
         public override void Dispose()
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Storage
         private RoslynCloudCacheContainerKey? GetContainerKey(ProjectKey projectKey, Project? project)
         {
             return project != null
-                ? s_projectToContainerKey.GetValue(project.State, _projectToContainerKeyCallback).ProjectContainerKey
+                ? s_projectToContainerKeyCache.GetValue(project.State, _projectToContainerKeyCacheCallback).ProjectContainerKey
                 : ProjectContainerKeyCache.CreateProjectContainerKey(this.SolutionFilePath, projectKey);
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Storage
             DocumentKey documentKey, Document? document)
         {
             return document != null
-                ? s_projectToContainerKey.GetValue(document.Project.State, _projectToContainerKeyCallback).GetDocumentContainerKey(document.State)
+                ? s_projectToContainerKeyCache.GetValue(document.Project.State, _projectToContainerKeyCacheCallback).GetDocumentContainerKey(document.State)
                 : ProjectContainerKeyCache.CreateDocumentContainerKey(this.SolutionFilePath, documentKey);
         }
 
