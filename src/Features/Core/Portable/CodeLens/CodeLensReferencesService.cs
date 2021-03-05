@@ -240,13 +240,12 @@ namespace Microsoft.CodeAnalysis.CodeLens
 
         private static async Task<ReferenceMethodDescriptor> TryGetMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
         {
-            var doc = solution.GetDocument(commonLocation.SourceTree);
-            if (doc == null)
+            var document = solution.GetDocument(commonLocation.SourceTree);
+            if (document == null)
             {
                 return null;
             }
 
-            var document = await solution.GetDocumentAsync(doc.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var fullName = GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
 
