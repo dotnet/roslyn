@@ -487,7 +487,7 @@ Public Interface I
 End Interface
 
 Public NotInheritable Class Class1
-    Implements I, IList(Of Integer)
+    Implements I, ICollection(Of Integer)
 
     Public ReadOnly Property Count As Integer Implements ICollection(Of Integer).Count
         Get
@@ -501,15 +501,6 @@ Public NotInheritable Class Class1
         End Get
     End Property
 
-    Default Public Property Item(index As Integer) As Integer Implements IList(Of Integer).Item
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As Integer)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
     Public Sub Add(item As Integer) Implements I.Add
         Throw New NotImplementedException()
     End Sub
@@ -519,14 +510,6 @@ Public NotInheritable Class Class1
     End Sub
 
     Public Sub CopyTo(array() As Integer, arrayIndex As Integer) Implements ICollection(Of Integer).CopyTo
-        Throw New NotImplementedException()
-    End Sub
-
-    Public Sub Insert(index As Integer, item As Integer) Implements IList(Of Integer).Insert
-        Throw New NotImplementedException()
-    End Sub
-
-    Public Sub RemoveAt(index As Integer) Implements IList(Of Integer).RemoveAt
         Throw New NotImplementedException()
     End Sub
 
@@ -542,10 +525,6 @@ Public NotInheritable Class Class1
         Throw New NotImplementedException()
     End Function
 
-    Public Function IndexOf(item As Integer) As Integer Implements IList(Of Integer).IndexOf
-        Throw New NotImplementedException()
-    End Function
-
     Public Function Remove(item As Integer) As Boolean Implements ICollection(Of Integer).Remove
         Throw New NotImplementedException()
     End Function
@@ -556,7 +535,7 @@ Public NotInheritable Class Class1
 End Class
 
 Public NotInheritable Class Class2
-    Implements IList(Of Integer)
+    Implements ICollection(Of Integer)
 
     Public ReadOnly Property Count As Integer Implements ICollection(Of Integer).Count
         Get
@@ -568,15 +547,6 @@ Public NotInheritable Class Class2
         Get
             Throw New NotImplementedException()
         End Get
-    End Property
-
-    Default Public Property Item(index As Integer) As Integer Implements IList(Of Integer).Item
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As Integer)
-            Throw New NotImplementedException()
-        End Set
     End Property
 
     Public Sub {|Definition:Add|}(item As Integer) Implements ICollection(Of Integer).[|Add|]
@@ -591,23 +561,11 @@ Public NotInheritable Class Class2
         Throw New NotImplementedException()
     End Sub
 
-    Public Sub Insert(index As Integer, item As Integer) Implements IList(Of Integer).Insert
-        Throw New NotImplementedException()
-    End Sub
-
-    Public Sub RemoveAt(index As Integer) Implements IList(Of Integer).RemoveAt
-        Throw New NotImplementedException()
-    End Sub
-
     Public Function Contains(item As Integer) As Boolean Implements ICollection(Of Integer).Contains
         Throw New NotImplementedException()
     End Function
 
     Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
-        Throw New NotImplementedException()
-    End Function
-
-    Public Function IndexOf(item As Integer) As Integer Implements IList(Of Integer).IndexOf
         Throw New NotImplementedException()
     End Function
 
@@ -622,7 +580,7 @@ End Class
 
 Public NotInheritable Class Test
     Public Sub Goo()
-        Dim c1 = DirectCast(New Class1(), IList(Of Integer))
+        Dim c1 = DirectCast(New Class1(), ICollection(Of Integer))
         Dim c2 As New Class1
         Dim c3 As New Class2
         c2.Add(3)
@@ -651,7 +609,7 @@ Public Interface I
 End Interface
 
 Public NotInheritable Class Class1
-    Implements I, IList(Of Integer)
+    Implements I, ICollection(Of Integer)
 
     Public ReadOnly Property Count As Integer Implements ICollection(Of Integer).Count
         Get
@@ -665,15 +623,6 @@ Public NotInheritable Class Class1
         End Get
     End Property
 
-    Default Public Property Item(index As Integer) As Integer Implements IList(Of Integer).Item
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As Integer)
-            Throw New NotImplementedException()
-        End Set
-    End Property
-
     Public Sub Add(item As Integer) Implements I.Add
         Throw New NotImplementedException()
     End Sub
@@ -683,14 +632,6 @@ Public NotInheritable Class Class1
     End Sub
 
     Public Sub CopyTo(array() As Integer, arrayIndex As Integer) Implements ICollection(Of Integer).CopyTo
-        Throw New NotImplementedException()
-    End Sub
-
-    Public Sub Insert(index As Integer, item As Integer) Implements IList(Of Integer).Insert
-        Throw New NotImplementedException()
-    End Sub
-
-    Public Sub RemoveAt(index As Integer) Implements IList(Of Integer).RemoveAt
         Throw New NotImplementedException()
     End Sub
 
@@ -706,10 +647,6 @@ Public NotInheritable Class Class1
         Throw New NotImplementedException()
     End Function
 
-    Public Function IndexOf(item As Integer) As Integer Implements IList(Of Integer).IndexOf
-        Throw New NotImplementedException()
-    End Function
-
     Public Function Remove(item As Integer) As Boolean Implements ICollection(Of Integer).Remove
         Throw New NotImplementedException()
     End Function
@@ -720,7 +657,7 @@ Public NotInheritable Class Class1
 End Class
 
 Public NotInheritable Class Class2
-    Implements IList(Of Integer)
+    Implements ICollection(Of Integer)
 
     Public ReadOnly Property Count As Integer Implements ICollection(Of Integer).Count
         Get
@@ -732,15 +669,6 @@ Public NotInheritable Class Class2
         Get
             Throw New NotImplementedException()
         End Get
-    End Property
-
-    Default Public Property Item(index As Integer) As Integer Implements IList(Of Integer).Item
-        Get
-            Throw New NotImplementedException()
-        End Get
-        Set(value As Integer)
-            Throw New NotImplementedException()
-        End Set
     End Property
 
     Public Sub {|Definition:Add|}(item As Integer) Implements ICollection(Of Integer).[|Add|]
@@ -755,23 +683,11 @@ Public NotInheritable Class Class2
         Throw New NotImplementedException()
     End Sub
 
-    Public Sub Insert(index As Integer, item As Integer) Implements IList(Of Integer).Insert
-        Throw New NotImplementedException()
-    End Sub
-
-    Public Sub RemoveAt(index As Integer) Implements IList(Of Integer).RemoveAt
-        Throw New NotImplementedException()
-    End Sub
-
     Public Function Contains(item As Integer) As Boolean Implements ICollection(Of Integer).Contains
         Throw New NotImplementedException()
     End Function
 
     Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
-        Throw New NotImplementedException()
-    End Function
-
-    Public Function IndexOf(item As Integer) As Integer Implements IList(Of Integer).IndexOf
         Throw New NotImplementedException()
     End Function
 
@@ -786,7 +702,7 @@ End Class
 
 Public NotInheritable Class Test
     Public Sub Goo()
-        Dim c1 = DirectCast(New Class1(), IList(Of Integer))
+        Dim c1 = DirectCast(New Class1(), ICollection(Of Integer))
         Dim c2 As New Class1
         Dim c3 As New Class2
         c2.Add(3)
