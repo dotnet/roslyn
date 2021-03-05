@@ -67,10 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // 
             // Note: when the user scrolls, we will try to reclassify as soon as possible.  That way
             // we appear semantically unclassified for a very short amount of time.
-            return TaggerEventSources.Compose(
+            return new CompilationAvailableTaggerEventSource(
+                subjectBuffer, Delay,
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, this.AsyncListener),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay)));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
