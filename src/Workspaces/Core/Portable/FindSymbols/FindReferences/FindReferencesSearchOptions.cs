@@ -113,10 +113,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// For IDE features, if the user starts searching on an accessor, then we want to give results associated with
-        /// the specific accessor.  Otherwise, if they search on a property, then associate everything with the
-        /// property.  We also only want to travel an inheritance hierarchy unidirectionally so that we only see potential
-        /// references that could actually reach this particular member.
+        /// Returns the appropriate options for a given symbol for the specific 'Find References' feature.  This should
+        /// not be used for other features (like 'Rename').  For the 'Find References' feature, if the user starts
+        /// searching on an accessor, then we want to give results associated with the specific accessor.  Otherwise, if
+        /// they search on a property, then associate everything with the property.  We also only want to travel an
+        /// inheritance hierarchy unidirectionally so that we only see potential references that could actually reach
+        /// this particular member.
         /// </summary>
         public static FindReferencesSearchOptions GetFeatureOptionsForStartingSymbol(ISymbol symbol)
             => Default.With(associatePropertyReferencesWithSpecificAccessor: symbol.IsPropertyAccessor(),
