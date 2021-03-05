@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            var document = null;
+            Document document = null;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var fullName = GetEnclosingMethod(semanticModel, commonLocation, cancellationToken)?.ToDisplayString(MethodDisplayFormat);
 
