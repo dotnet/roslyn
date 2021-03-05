@@ -113,7 +113,7 @@ namespace BuildValidator
                             continue;
                         }
 
-                        if (GetMvidForFile(file) is not { } mvid)
+                        if (Util.GetMvidForFile(file.FullName) is not { } mvid)
                         {
                             _logger.LogWarning($@"Could not read MVID from ""{file.FullName}""");
                             continue;
@@ -149,23 +149,5 @@ namespace BuildValidator
             return true;
         }
 
-        private static Guid? GetMvidForFile(FileInfo fileInfo)
-        {
-            using (var stream = fileInfo.OpenRead())
-            {
-                PEReader reader = new PEReader(stream);
-
-                if (reader.HasMetadata)
-                {
-                    var metadataReader = reader.GetMetadataReader();
-                    var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                    return metadataReader.GetGuid(mvidHandle);
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
     }
 }

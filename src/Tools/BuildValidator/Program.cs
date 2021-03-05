@@ -28,25 +28,27 @@ namespace BuildValidator
     /// from the PE and attempts to rebuild the source using that information. It then checks
     /// that the new build output is the same as the original build
     /// </summary>
-    class Program
+    internal class Program
     {
-        const int ExitSuccess = 0;
-        const int ExitFailure = 1;
-
-        private static readonly Regex[] s_ignorePatterns = new Regex[]
+        internal record AssemblyInfo(string FilePath, Guid Mvid)
         {
-            new Regex(@"\\runtimes?\\"),
-            new Regex(@"\\ref\\"),
-            new Regex(@"\.resources?\.")
-        };
+            internal string FileName => Path.GetFileName(FilePath);
+        }
+
+        internal const int ExitSuccess = 0;
+        internal const int ExitFailure = 1;
 
         static int Main(string[] args)
         {
+            System.Diagnostics.Trace.Listeners.Clear();
             var rootCommand = new RootCommand
             {
                 new Option<string>(
                     "--assembliesPath", "Path to assemblies to rebuild (can be specified one or more times)"
                 ) { IsRequired = true, Argument = { Arity = ArgumentArity.OneOrMore } },
+                new Option<string>(
+                    "--excludePattern", "Pattern to exclude assemblies"
+                ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
                 new Option<string>(
                     "--sourcePath", "Path to sources to use in rebuild"
                 ) { IsRequired = true },
@@ -66,18 +68,23 @@ namespace BuildValidator
                     "--debugPath", "Path to output debug info. Defaults to the user temp directory. Note that a unique debug path should be specified for every instance of the tool running with `--debug` enabled."
                 )
             };
-            rootCommand.Handler = CommandHandler.Create<string[], string, string[]?, bool, bool, bool, string>(HandleCommand);
+            rootCommand.Handler = CommandHandler.Create(new Func<string[], string[]?, string, string[]?, bool, bool, bool, string, int>(HandleCommand));
             return rootCommand.Invoke(args);
         }
 
-        static int HandleCommand(string[] assembliesPath, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)
+        static int HandleCommand(string[] assembliesPath, string[]? excludePattern, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)
         {
             // If user provided a debug path then assume we should write debug outputs.
             debug |= debugPath is object;
             debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
             referencesPath ??= Array.Empty<string>();
 
-            var options = new Options(assembliesPath, referencesPath, sourcePath, verbose, quiet, debug, debugPath);
+            var excludePatternList = new List<string>(excludePattern ?? Array.Empty<string>());
+            excludePatternList.Add(Regex.Escape(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar));
+            excludePatternList.Add(Regex.Escape(Path.DirectorySeparatorChar + "ref" + Path.DirectorySeparatorChar));
+            excludePatternList.Add(@"\.resources\.dll");
+
+            var options = new Options(assembliesPath, referencesPath, excludePatternList.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
 
             // TODO: remove the DemoLoggerProvider or convert it to something more permanent
             var loggerFactory = LoggerFactory.Create(builder =>
@@ -115,19 +122,89 @@ namespace BuildValidator
                     }
                 }
 
-                var filesToValidate = artifactsDirs.SelectMany(dir =>
-                        dir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
-                            .Concat(dir.EnumerateFiles("*.dll", SearchOption.AllDirectories)))
-                    .Distinct(FileNameEqualityComparer.Instance);
+                var sourceResolver = new LocalSourceResolver(options, loggerFactory);
+                var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
 
-                var success = ValidateFiles(filesToValidate, options, loggerFactory);
+                var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
+
+                var assemblyInfos = GetAssemblyInfos(
+                    options.AssembliesPaths,
+                    options.ExcludePatterns,
+                    logger);
+
+                logAssemblyInfos();
+
+                var success = ValidateFiles(assemblyInfos.Select(x => new FileInfo(x.FilePath)), buildConstructor, logger, options);
+
                 Console.Out.Flush();
                 return success ? ExitSuccess : ExitFailure;
+
+                void logAssemblyInfos()
+                {
+                    logger.LogInformation("Logging file names with multiple MVIDs");
+                    var group = assemblyInfos.GroupBy(x => x.FileName, FileNameEqualityComparer.StringComparer);
+                    foreach (var element in group.Where(x => x.Count() > 1))
+                    {
+                        var name = element.First().FileName;
+                        logger.LogInformation($"{name}");
+                        foreach (var assemblyInfo in element)
+                        {
+                            logger.LogInformation($"\t{assemblyInfo.Mvid} - {assemblyInfo.FilePath}");
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, ex.Message);
                 throw;
+            }
+
+        }
+
+        private static AssemblyInfo[] GetAssemblyInfos(
+            IEnumerable<string> assemblySearchPaths,
+            IEnumerable<string> excludePatterns,
+            ILogger logger)
+        {
+            var excludeRegex = excludePatterns.Select(x => new Regex(x, RegexOptions.IgnoreCase | RegexOptions.Compiled)).ToList();
+            var map = new Dictionary<Guid, AssemblyInfo>();
+            foreach (var directory in assemblySearchPaths)
+            {
+                foreach (var filePath in getAssemblyPaths(directory))
+                {
+                    if (excludeRegex.Any(x => x.IsMatch(filePath)))
+                    {
+                        logger.LogInformation($"Skipping excluded file {filePath}");
+                        continue;
+                    }
+
+                    if (Util.GetMvidForFile(filePath) is not { } mvid)
+                    {
+                        logger.LogError($"Skipping non-pe file {filePath}");
+                        continue;
+                    }
+
+                    if (map.TryGetValue(mvid, out var assemblyInfo))
+                    {
+                        // It's okay for the assembly to be duplicated in the search path.
+                        logger.LogInformation("Duplicate assembly path have same MVID");
+                        logger.LogInformation($"\t{filePath}");
+                        logger.LogInformation($"\t{assemblyInfo.FilePath}");
+                        continue;
+                    }
+
+                    map[mvid] = new AssemblyInfo(filePath, mvid);
+                }
+            }
+
+            return map.Values.OrderBy(x => x.FileName).ToArray();
+
+            static IEnumerable<string> getAssemblyPaths(string directory)
+            {
+                var exePaths = Directory.EnumerateFiles(directory, "*.exe", SearchOption.AllDirectories);
+                var dllPaths = Directory.EnumerateFiles(directory, "*.dll", SearchOption.AllDirectories);
+                return Enumerable.Concat(exePaths, dllPaths);
             }
         }
 
@@ -204,12 +281,6 @@ namespace BuildValidator
             LocalSourceResolver sourceResolver,
             LocalReferenceResolver referenceResolver)
         {
-            if (s_ignorePatterns.Any(r => r.IsMatch(originalBinary.FullName)))
-            {
-                logger.LogTrace($"Ignoring {originalBinary.FullName}");
-                return null;
-            }
-
             MetadataReaderProvider? pdbReaderProvider = null;
 
             try

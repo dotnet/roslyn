@@ -12,6 +12,7 @@ namespace BuildValidator
     internal record Options(
         string[] AssembliesPaths,
         string[] ReferencesPaths,
+        string[] ExcludePatterns,
         string SourcePath,
         bool Verbose,
         bool Quiet,
