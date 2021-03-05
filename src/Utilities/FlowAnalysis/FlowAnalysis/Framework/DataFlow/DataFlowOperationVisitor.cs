@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 DataFlowAnalysisContext.WellKnownTypeProvider,
                 getPointsToAbstractValue: HasPointsToAnalysisResult ?
                     GetPointsToAbstractValue :
-                    (Func<IOperation, PointsToAbstractValue>?)null,
+                    null,
                 getIsInsideAnonymousObjectInitializer: () => IsInsideAnonymousObjectInitializer,
                 getIsLValueFlowCapture: IsLValueFlowCapture,
                 containingTypeSymbol: analysisContext.OwningSymbol.ContainingType,
