@@ -897,6 +897,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (emitResult.Success)
                     {
+                        Contract.ThrowIfNull(emitResult.Baseline);
+
                         var updatedMethodTokens = updatedMethods.SelectAsArray(h => MetadataTokens.GetToken(h));
 
                         // Determine all active statements whose span changed and exception region span deltas.
