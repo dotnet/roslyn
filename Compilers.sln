@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -167,6 +167,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodeStyleConfigFileGenerator", "src\CodeStyle\Tools\CodeStyleConfigFileGenerator.csproj", "{432F4461-E198-44AA-8022-9E8C06A17C93}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Collections", "src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.shproj", "{E919DD77-34F8-4F57-8058-4D3FF4C2B241}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A96E75DE-00B5-4563-B55D-E4C1C490B4DA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compilers", "Compilers", "{898075F4-1B40-462A-8B73-34A4446500E0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{84315B88-08C9-4C51-ACC7-6216C439A98F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebuild", "src\Compilers\Core\Rebuild\Rebuild.csproj", "{26F14E55-B9A1-4936-BB5C-C1A413C3854E}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -467,6 +475,10 @@ Global
 		{432F4461-E198-44AA-8022-9E8C06A17C93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{432F4461-E198-44AA-8022-9E8C06A17C93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{432F4461-E198-44AA-8022-9E8C06A17C93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26F14E55-B9A1-4936-BB5C-C1A413C3854E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26F14E55-B9A1-4936-BB5C-C1A413C3854E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26F14E55-B9A1-4936-BB5C-C1A413C3854E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26F14E55-B9A1-4936-BB5C-C1A413C3854E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -542,6 +554,9 @@ Global
 		{9B25E472-DF94-4E24-9F5D-E487CE5A91FB} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{432F4461-E198-44AA-8022-9E8C06A17C93} = {B20208C3-D3A6-4020-A274-6BE3786D29FB}
 		{E919DD77-34F8-4F57-8058-4D3FF4C2B241} = {3CDEA9FB-CD44-4AB4-98A8-5537AAA2169B}
+		{898075F4-1B40-462A-8B73-34A4446500E0} = {A96E75DE-00B5-4563-B55D-E4C1C490B4DA}
+		{84315B88-08C9-4C51-ACC7-6216C439A98F} = {898075F4-1B40-462A-8B73-34A4446500E0}
+		{26F14E55-B9A1-4936-BB5C-C1A413C3854E} = {84315B88-08C9-4C51-ACC7-6216C439A98F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}
