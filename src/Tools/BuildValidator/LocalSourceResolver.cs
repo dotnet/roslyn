@@ -69,5 +69,21 @@ namespace BuildValidator
 
             throw new FileNotFoundException(pdbDocumentPath);
         }
+
+        internal ImmutableArray<ResolvedSource> ResolveSources(
+            ImmutableArray<SourceFileInfo> sourceFileInfos,
+            ImmutableArray<SourceLink> sourceLinks,
+            Encoding encoding)
+        {
+            _logger.LogInformation("Locating source files");
+
+            var sources = ImmutableArray.CreateBuilder<ResolvedSource>();
+            foreach (var sourceFileInfo in sourceFileInfos)
+            {
+                sources.Add(ResolveSource(sourceFileInfo, sourceLinks, encoding));
+            }
+
+            return sources.ToImmutable();
+        }
     }
 }
