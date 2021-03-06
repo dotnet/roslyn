@@ -1168,12 +1168,12 @@ class C1
         public async Task BreakMode_RudeEdits_SourceGenerators()
         {
             var sourceV1 = @"
-// GENERATE: class G { int X1 => 1; }
+/* GENERATE: class G { int X1 => 1; } */
 
 class C { int Y => 1; } 
 ";
             var sourceV2 = @"
-// GENERATE: class G { int X2 => 1; }
+/* GENERATE: class G { int X2 => 1; } */
 
 class C { int Y => 2; }
 ";
@@ -2210,7 +2210,8 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
 
         private static void GenerateSource(GeneratorExecutionContext context)
         {
-            const string Marker = "// GENERATE: ";
+            const string OpeningMarker = "/* GENERATE:";
+            const string ClosingMarker = "*/";
 
             foreach (var syntaxTree in context.Compilation.SyntaxTrees)
             {
@@ -2231,12 +2232,12 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
 
             void Generate(string source, string fileName)
             {
-                var index = source.IndexOf(Marker);
+                var index = source.IndexOf(OpeningMarker);
                 if (index > 0)
                 {
-                    index += Marker.Length;
-                    var eoln = source.IndexOf('\n', index) + 1;
-                    context.AddSource($"Generated_{fileName}", source[index..eoln]);
+                    index += OpeningMarker.Length;
+                    var closing = source.IndexOf(ClosingMarker, index);
+                    context.AddSource($"Generated_{fileName}", source[index..closing].Trim());
                 }
             }
         }
@@ -2245,12 +2246,12 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
         public async Task BreakMode_ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate()
         {
             var sourceV1 = @"
-// GENERATE: class G { int X => 1; }
+/* GENERATE: class G { int X => 1; } */
 
 class C { int Y => 1; } 
 ";
             var sourceV2 = @"
-// GENERATE: class G { int X => 2; }
+/* GENERATE: class G { int X => 2; } */
 
 class C { int Y => 2; }
 ";
@@ -2289,13 +2290,76 @@ class C { int Y => 2; }
         }
 
         [Fact]
+        public async Task BreakMode_ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate_LineChanges()
+        {
+            var sourceV1 = @"
+/* GENERATE:
+class G
+{
+    int M() 
+    {
+        return 1;
+    }
+}
+*/
+";
+            var sourceV2 = @"
+/* GENERATE:
+class G
+{
+
+    int M() 
+    {
+        return 1;
+    }
+}
+*/
+";
+
+            var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
+
+            using var workspace = CreateWorkspace();
+            var project = AddDefaultTestProject(workspace, sourceV1, generator);
+
+            var moduleId = EmitLibrary(sourceV1, generator: generator);
+            LoadLibraryToDebuggee(moduleId);
+
+            var service = CreateEditAndContinueService(workspace);
+            var debuggingSession = StartDebuggingSession(service);
+            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+
+            // change the source (valid edit):
+            var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            workspace.ChangeDocument(document1.Id, SourceText.From(sourceV2, Encoding.UTF8));
+
+            // validate solution update status and emit:
+            var (updates, emitDiagnostics) = await service.EmitSolutionUpdateAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, CancellationToken.None).ConfigureAwait(false);
+            Assert.Empty(emitDiagnostics);
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+
+            // check emitted delta:
+            var delta = updates.Updates.Single();
+            Assert.Empty(delta.ActiveStatements);
+
+            var lineUpdate = delta.SequencePoints.Single();
+            AssertEx.Equal(new[] { "3 -> 4" }, lineUpdate.LineUpdates.Select(edit => $"{edit.OldLine} -> {edit.NewLine}"));
+            Assert.NotEmpty(delta.ILDelta);
+            Assert.NotEmpty(delta.MetadataDelta);
+            Assert.NotEmpty(delta.PdbDelta);
+            Assert.Empty(delta.UpdatedMethods);
+
+            EndEditSession(service);
+            EndDebuggingSession(service);
+        }
+
+        [Fact]
         public async Task BreakMode_ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentInsert()
         {
             var sourceV1 = @"
 partial class C { int X = 1; } 
 ";
             var sourceV2 = @"
-// GENERATE: partial class C { int Y = 2; }
+/* GENERATE: partial class C { int Y = 2; } */
 
 partial class C { int X = 1; }
 ";
@@ -2341,10 +2405,10 @@ class C { int Y => 1; }
 ";
 
             var additionalSourceV1 = @"
-// GENERATE: class G { int X => 1; }
+/* GENERATE: class G { int X => 1; } */
 ";
             var additionalSourceV2 = @"
-// GENERATE: class G { int X => 2; }
+/* GENERATE: class G { int X => 2; } */
 ";
 
             var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
