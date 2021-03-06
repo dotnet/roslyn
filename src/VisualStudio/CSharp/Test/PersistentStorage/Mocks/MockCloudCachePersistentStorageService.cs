@@ -2,33 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// Copy of https://devdiv.visualstudio.com/DevDiv/_git/VS.CloudCache?path=%2Ftest%2FMicrosoft.VisualStudio.Cache.Tests%2FMocks&_a=contents&version=GBmain
-// Try to keep in sync and avoid unnecessary changes here.
-
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Storage;
-using Microsoft.CodeAnalysis.Storage.CloudCache;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Cache;
 using Microsoft.VisualStudio.Cache.SQLite;
+using Microsoft.VisualStudio.LanguageServices.Storage;
+using Microsoft.VisualStudio.RpcContracts.Caching;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
 {
-    internal abstract class AbstractMockCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
+    internal class MockCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
     {
         private readonly string _relativePathBase;
+        private readonly Action<ICacheService> _disposeCacheService;
 
-        protected AbstractMockRoslynCloudCacheServiceProvider(string relativePathBase)
+        public MockCloudCachePersistentStorageService(
+            IPersistentStorageLocationService locationService,
+            string relativePathBase,
+            Action<ICacheService> disposeCacheService)
+            : base(locationService)
         {
             _relativePathBase = relativePathBase;
+            _disposeCacheService = disposeCacheService;
         }
 
-        protected abstract IRoslynCloudCacheService CreateService(CacheService cacheService);
+        protected override void DisposeCacheService(ICacheService cacheService)
+            => _disposeCacheService(cacheService);
 
-        public async ValueTask<IRoslynCloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
+        protected override async ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
         {
             // Directly access VS' CacheService through their library and not as a brokered service. Then create our
             // wrapper CloudCacheService directly on that instance.
@@ -49,8 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
             var pool = new SqliteConnectionPool();
             var activeContext = await pool.ActivateContextAsync(someContext, default);
             var cacheService = new CacheService(activeContext, serviceBroker, authorizationServiceClient, pool);
-
-            return CreateService(cacheService);
+            return cacheService;
         }
     }
 }

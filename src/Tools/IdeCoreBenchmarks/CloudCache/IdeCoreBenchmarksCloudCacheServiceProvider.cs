@@ -4,46 +4,38 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks;
-using Microsoft.VisualStudio.Cache;
-using Microsoft.VisualStudio.LanguageServices.Storage;
-using Microsoft.VisualStudio.RpcContracts.Caching;
 
 namespace CloudCache
 {
-    [ExportWorkspaceService(typeof(IRoslynCloudCacheServiceProvider), ServiceLayer.Host), Shared]
-    internal class IdeCoreBenchmarksCloudCacheServiceProvider : AbstractMockRoslynCloudCacheServiceProvider
+    [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), ServiceLayer.Host), Shared]
+    internal class IdeCoreBenchmarksCloudCacheServiceProvider : ICloudCacheStorageServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public IdeCoreBenchmarksCloudCacheServiceProvider()
-            : base(@"C:\github\roslyn")
         {
             Console.WriteLine($"Instantiated {nameof(IdeCoreBenchmarksCloudCacheServiceProvider)}");
         }
 
-        protected override IRoslynCloudCacheService CreateService(CacheService cacheService)
-            => new IdeCoreBenchmarksCloudCacheService(cacheService);
-
-        private class IdeCoreBenchmarksCloudCacheService : AbstractCloudCacheService
+        public AbstractPersistentStorageService Create(IPersistentStorageLocationService locationService)
         {
-            public IdeCoreBenchmarksCloudCacheService(ICacheService cacheService) : base(cacheService)
-            {
-            }
-
-            public override void Dispose()
-            {
-                if (this.CacheService is IAsyncDisposable asyncDisposable)
+            return new MockCloudCachePersistentStorageService(
+                locationService, @"C:\github\roslyn", cs =>
                 {
-                    asyncDisposable.DisposeAsync().AsTask().Wait();
-                }
-                else if (this.CacheService is IDisposable disposable)
-                {
-                    disposable.Dispose();
-                }
-            }
+                    if (cs is IAsyncDisposable asyncDisposable)
+                    {
+                        asyncDisposable.DisposeAsync().AsTask().Wait();
+                    }
+                    else if (cs is IDisposable disposable)
+                    {
+                        disposable.Dispose();
+                    }
+                });
         }
     }
 }
