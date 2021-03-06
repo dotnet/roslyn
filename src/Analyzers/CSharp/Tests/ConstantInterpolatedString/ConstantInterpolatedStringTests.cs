@@ -94,7 +94,7 @@ public class C
                 TestCode = @"
 using System.Diagnostics;
 
-[DebuggerDisplay(""{"" + nameof(C) + ""}"")]
+[DebuggerDisplay([|""{"" + nameof(C) + ""}""|])]
 public class C { }
 ",
                 LanguageVersion = s_minimumSupportedVersion,
