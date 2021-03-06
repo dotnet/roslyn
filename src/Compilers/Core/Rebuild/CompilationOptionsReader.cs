@@ -18,7 +18,6 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace BuildValidator
 {
@@ -105,27 +104,6 @@ namespace BuildValidator
                 : Encoding.GetEncoding(encodingString);
 
             return encoding;
-        }
-
-        public ImmutableArray<SourceLink> GetSourceLinksOpt()
-        {
-            var sourceLinkUTF8 = GetSourceLinkUTF8();
-            if (sourceLinkUTF8 is null)
-            {
-                return default;
-            }
-
-            var parseResult = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null });
-            return parseResult.documents.Select(makeSourceLink).ToImmutableArray();
-
-            static SourceLink makeSourceLink(KeyValuePair<string, string> entry)
-            {
-                // TODO: determine if this subsitution is correct
-                var (key, value) = (entry.Key, entry.Value); // TODO: use Deconstruct in .NET Core
-                var prefix = key.Remove(key.LastIndexOf("*"));
-                var replace = value.Remove(value.LastIndexOf("*"));
-                return new SourceLink(prefix, replace);
-            }
         }
 
         public byte[]? GetSourceLinkUTF8()

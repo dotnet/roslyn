@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Newtonsoft.Json;
 
 namespace BuildValidator
 {
@@ -295,7 +296,16 @@ namespace BuildValidator
         private static ImmutableArray<SourceLink> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader, ILogger logger)
         {
             using var _ = logger.BeginScope("Source Links");
-            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
+
+            var sourceLinkUTF8 = compilationOptionsReader.GetSourceLinkUTF8();
+            if (sourceLinkUTF8 is null)
+            {
+                return default;
+            }
+
+            var parseResult = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null });
+            var sourceLinks = parseResult.documents.Select(makeSourceLink).ToImmutableArray();
+
             if (sourceLinks.IsDefault)
             {
                 logger.LogInformation("No source links found in pdb");
@@ -309,6 +319,15 @@ namespace BuildValidator
                 }
             }
             return sourceLinks;
+
+            static SourceLink makeSourceLink(KeyValuePair<string, string> entry)
+            {
+                // TODO: determine if this subsitution is correct
+                var (key, value) = (entry.Key, entry.Value); // TODO: use Deconstruct in .NET Core
+                var prefix = key.Remove(key.LastIndexOf("*"));
+                var replace = value.Remove(value.LastIndexOf("*"));
+                return new SourceLink(prefix, replace);
+            }
         }
     }
 }
