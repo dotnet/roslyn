@@ -119,24 +119,30 @@ namespace BuildValidator
                             continue;
                         }
 
-                        if (Util.GetMvidForFile(file.FullName) is not { } mvid)
+                        if (Util.GetPortableExecutableInfo(file.FullName) is not { } peInfo)
                         {
                             _logger.LogWarning($@"Could not read MVID from ""{file.FullName}""");
                             continue;
                         }
 
-                        if (_cache.ContainsKey(mvid))
+                        if (peInfo.IsReadyToRun)
+                        {
+                            _logger.LogWarning($@"Skipping ReadyToRun ""{file.FullName}""");
+                            continue;
+                        }
+
+                        if (_cache.ContainsKey(peInfo.Mvid))
                         {
                             continue;
                         }
 
-                        if (mvid != reference.Mvid)
+                        if (peInfo.Mvid != reference.Mvid)
                         {
                             continue;
                         }
 
-                        _logger.LogTrace($"Caching [{mvid}, {file.FullName}]");
-                        _cache[mvid] = file.FullName;
+                        _logger.LogTrace($"Caching [{peInfo.Mvid}, {file.FullName}]");
+                        _cache[peInfo.Mvid] = file.FullName;
                     }
                 }
             }

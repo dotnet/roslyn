@@ -82,7 +82,6 @@ namespace BuildValidator
             var excludePatternList = new List<string>(excludePattern ?? Array.Empty<string>());
             excludePatternList.Add(Regex.Escape(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar));
             excludePatternList.Add(Regex.Escape(Path.DirectorySeparatorChar + "ref" + Path.DirectorySeparatorChar));
-            excludePatternList.Add(Regex.Escape(Path.DirectorySeparatorChar + "R2R" + Path.DirectorySeparatorChar));
             excludePatternList.Add(@"\.resources\.dll");
 
             var options = new Options(assembliesPath, referencesPath, excludePatternList.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
@@ -173,13 +172,19 @@ namespace BuildValidator
                         continue;
                     }
 
-                    if (Util.GetMvidForFile(filePath) is not { } mvid)
+                    if (Util.GetPortableExecutableInfo(filePath) is not { } peInfo)
                     {
                         logger.LogError($"Skipping non-pe file {filePath}");
                         continue;
                     }
 
-                    if (map.TryGetValue(mvid, out var assemblyInfo))
+                    if (peInfo.IsReadyToRun)
+                    {
+                        logger.LogError($"Skipping ReadyToRun file {filePath}");
+                        continue;
+                    }
+
+                    if (map.TryGetValue(peInfo.Mvid, out var assemblyInfo))
                     {
                         // It's okay for the assembly to be duplicated in the search path.
                         logger.LogInformation("Duplicate assembly path have same MVID");
@@ -188,7 +193,7 @@ namespace BuildValidator
                         continue;
                     }
 
-                    map[mvid] = new AssemblyInfo(filePath, mvid);
+                    map[peInfo.Mvid] = new AssemblyInfo(filePath, peInfo.Mvid);
                 }
             }
 

@@ -9,22 +9,53 @@ using System.Reflection.PortableExecutable;
 
 namespace BuildValidator
 {
+    internal sealed record PortableExecutableInfo(string FilePath, Guid Mvid, bool IsReadyToRun);
     internal static class Util
     {
-        internal static Guid? GetMvidForFile(string filePath)
+        internal static PortableExecutableInfo? GetPortableExecutableInfo(string filePath)
         {
             using var stream = File.OpenRead(filePath);
-            var reader = new PEReader(stream);
-
-            if (reader.HasMetadata)
+            var peReader = new PEReader(stream);
+            if (GetMvidForFile(peReader) is { } mvid)
             {
-                var metadataReader = reader.GetMetadataReader();
+                var isReadyToRun = IsReadyToRunImage(peReader);
+                return new PortableExecutableInfo(filePath, mvid, isReadyToRun);
+            }
+
+            return null;
+        }
+
+        internal static Guid? GetMvidForFile(PEReader peReader)
+        {
+            if (peReader.HasMetadata)
+            {
+                var metadataReader = peReader.GetMetadataReader();
                 var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
                 return metadataReader.GetGuid(mvidHandle);
             }
             else
             {
                 return null;
+            }
+        }
+
+        internal static bool IsReadyToRunImage(PEReader peReader)
+        {
+            if (peReader.PEHeaders is null ||
+                peReader.PEHeaders.PEHeader is null ||
+                peReader.PEHeaders.CorHeader is null)
+            {
+                return false;
+            }
+
+            if ((peReader.PEHeaders.CorHeader.Flags & CorFlags.ILLibrary) == 0)
+            {
+                PEExportTable exportTable = peReader.GetExportTable();
+                return exportTable.TryGetValue("RTR_HEADER", out _);
+            }
+            else
+            {
+                return peReader.PEHeaders.CorHeader.ManagedNativeHeaderDirectory.Size != 0;
             }
         }
     }
