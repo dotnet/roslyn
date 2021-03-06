@@ -8,6 +8,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.ServiceHub.Framework.Services;
 using Microsoft.VisualStudio;
@@ -16,7 +17,7 @@ using Microsoft.VisualStudio.Cache.SQLite;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
 {
-    internal abstract class AbstractMockRoslynCloudCacheServiceProvider : IRoslynCloudCacheServiceProvider
+    internal abstract class AbstractMockCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
     {
         private readonly string _relativePathBase;
 

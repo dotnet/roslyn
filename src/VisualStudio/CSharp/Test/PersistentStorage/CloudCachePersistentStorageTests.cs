@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var provider = new TestCloudCacheServiceProvider(
                 exportProvider.GetExports<IThreadingContext>().Single().Value, relativePathBase);
 
-            return new CloudCachePersistentStorageService(provider, locationService);
+            return new VisualStudioCloudCachePersistentStorage(provider, locationService);
         }
     }
 }

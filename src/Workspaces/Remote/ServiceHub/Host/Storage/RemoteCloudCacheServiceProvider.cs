@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote.Host;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Storage;
@@ -30,10 +31,8 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
             _globalServiceBroker = globalServiceBroker;
         }
 
-        public IPersistentStorageService Create(IPersistentStorageLocationService locationService)
-        {
-            return new RemoteCloudCachePersistentStorageService(_globalServiceBroker, locationService);
-        }
+        public AbstractPersistentStorageService Create(IPersistentStorageLocationService locationService)
+            => new RemoteCloudCachePersistentStorageService(_globalServiceBroker, locationService);
 
         private class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
         {

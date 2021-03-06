@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PersistentStorage;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Microsoft.VisualStudio.Shell;
@@ -34,10 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
         }
 
-        public IPersistentStorageService Create(IPersistentStorageLocationService locationService)
-        {
-            return new VisualStudioCloudCacheStorageService(_serviceProvider, _threadingContext, locationService);
-        }
+        public AbstractPersistentStorageService Create(IPersistentStorageLocationService locationService)
+            => new VisualStudioCloudCacheStorageService(_serviceProvider, _threadingContext, locationService);
 
         private class VisualStudioCloudCacheStorageService : AbstractCloudCachePersistentStorageService
         {
