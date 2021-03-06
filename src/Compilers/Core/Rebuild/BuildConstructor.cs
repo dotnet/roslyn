@@ -11,10 +11,12 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
@@ -81,7 +83,6 @@ namespace BuildValidator
             throw new InvalidDataException("Did not find language in compilation options");
         }
 
-        #region CSharp
         private Compilation CreateCSharpCompilation(
             string fileName,
             CompilationOptionsReader optionsReader,
@@ -175,9 +176,6 @@ namespace BuildValidator
                 _ => throw new InvalidDataException($"Optimization \"{optimizationLevel}\" level not recognized")
             };
 
-        #endregion
-
-        #region Visual Basic
         private Compilation CreateVisualBasicCompilation(
             string fileName,
             CompilationOptionsReader optionsReader,
@@ -272,6 +270,66 @@ namespace BuildValidator
             static bool? ToBool(string value) => bool.TryParse(value, out var boolValue) ? boolValue : null;
             static T? ToEnum<T>(string value) where T : struct => Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
         }
-        #endregion
+
+        public static unsafe EmitResult Emit(
+            Stream rebuildPeStream,
+            FileInfo originalBinaryPath,
+            CompilationOptionsReader optionsReader,
+            Compilation producedCompilation,
+            ILogger logger,
+            CancellationToken cancellationToken)
+        {
+            var peHeader = optionsReader.PeReader.PEHeaders.PEHeader!;
+            var win32Resources = optionsReader.PeReader.GetSectionData(peHeader.ResourceTableDirectory.RelativeVirtualAddress);
+            using var win32ResourceStream = new UnmanagedMemoryStream(win32Resources.Pointer, win32Resources.Length);
+
+            var sourceLink = optionsReader.GetSourceLinkUTF8();
+
+            var embeddedTexts = producedCompilation.SyntaxTrees
+                    .Select(st => (path: st.FilePath, text: st.GetText()))
+                    .Where(pair => pair.text.CanBeEmbedded)
+                    .Select(pair => EmbeddedText.FromSource(pair.path, pair.text))
+                    .ToImmutableArray();
+
+            var debugEntryPoint = getDebugEntryPoint();
+
+            var emitResult = producedCompilation.Emit(
+                peStream: rebuildPeStream,
+                pdbStream: null,
+                xmlDocumentationStream: null,
+                win32Resources: win32ResourceStream,
+                useRawWin32Resources: true,
+                manifestResources: optionsReader.GetManifestResources(),
+                options: new EmitOptions(
+                    debugInformationFormat: DebugInformationFormat.Embedded,
+                    highEntropyVirtualAddressSpace: (peHeader.DllCharacteristics & DllCharacteristics.HighEntropyVirtualAddressSpace) != 0,
+                    subsystemVersion: SubsystemVersion.Create(peHeader.MajorSubsystemVersion, peHeader.MinorSubsystemVersion)),
+                debugEntryPoint: debugEntryPoint,
+                metadataPEStream: null,
+                pdbOptionsBlobReader: optionsReader.GetMetadataCompilationOptionsBlobReader(),
+                sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null,
+                embeddedTexts: embeddedTexts,
+                cancellationToken: cancellationToken);
+
+            return emitResult;
+
+            IMethodSymbol? getDebugEntryPoint()
+            {
+                if (optionsReader.GetMainTypeName() is { } mainTypeName &&
+                    optionsReader.GetMainMethodName() is { } mainMethodName)
+                {
+                    var typeSymbol = producedCompilation.GetTypeByMetadataName(mainTypeName);
+                    if (typeSymbol is object)
+                    {
+                        var methodSymbols = typeSymbol
+                            .GetMembers(mainMethodName)
+                            .OfType<IMethodSymbol>();
+                        return methodSymbols.FirstOrDefault();
+                    }
+                }
+
+                return null;
+            }
+        }
     }
 }

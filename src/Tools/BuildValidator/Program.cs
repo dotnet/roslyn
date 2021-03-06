@@ -260,26 +260,8 @@ namespace BuildValidator
                     return CompilationDiff.CreatePlaceholder(originalBinary, isError);
                 }
 
-                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), logger, options);
+                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, logger, options);
                 return compilationDiff;
-
-                IMethodSymbol? getDebugEntryPoint()
-                {
-                    if (optionsReader.GetMainTypeName() is { } mainTypeName &&
-                        optionsReader.GetMainMethodName() is { } mainMethodName)
-                    {
-                        var typeSymbol = compilation.GetTypeByMetadataName(mainTypeName);
-                        if (typeSymbol is object)
-                        {
-                            var methodSymbols = typeSymbol
-                                .GetMembers(mainMethodName)
-                                .OfType<IMethodSymbol>();
-                            return methodSymbols.FirstOrDefault();
-                        }
-                    }
-
-                    return null;
-                }
 
                 void logResolvedMetadataReferences()
                 {
