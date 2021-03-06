@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var symbol = semanticModel.GetDeclaredSymbol(method, cancellationToken) as IMethodSymbol;
                 if (symbol is not null && IsTask(symbol.ReturnType))
                 {
-                    context.AddItem(CommonCompletionItem.Create("await", string.Empty, CompletionItemRules.Default, inlineDescription: "Make container async"));
+                    context.AddItem(CommonCompletionItem.Create("await", string.Empty, CompletionItemRules.Default, glyph: Glyph.Keyword, inlineDescription: CSharpFeaturesResources.Make_container_async));
                 }
             }
 

@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         return false;
                     }
 
-                    if (node.IsKind(SyntaxKind.LockStatement, out LockStatementSyntax lockStatement))
+                    if (node.IsKind(SyntaxKind.LockStatement, out LockStatementSyntax? lockStatement))
                     {
                         if (lockStatement.Statement != null &&
                             !lockStatement.Statement.IsMissing &&
