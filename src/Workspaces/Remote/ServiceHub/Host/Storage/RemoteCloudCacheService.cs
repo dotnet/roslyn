@@ -3,15 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
-    internal class RemoteCloudCacheService : AbstractCloudCacheService
+    internal class RemoteCloudCachePersistentStorage : AbstractCloudCachePersistentStorage
     {
-        public RemoteCloudCacheService(ICacheService cacheService)
-            : base(cacheService)
+        public RemoteCloudCachePersistentStorage(
+            ICacheService cacheService,
+            SolutionKey solutionKey,
+            string workingFolderPath,
+            string relativePathBase,
+            string databaseFilePath)
+            : base(cacheService, solutionKey, workingFolderPath, relativePathBase, databaseFilePath)
         {
         }
 

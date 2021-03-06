@@ -6,38 +6,60 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote.Host;
-using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Storage.CloudCache;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.RpcContracts.Caching;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Storage
 {
-    [ExportWorkspaceService(typeof(IRoslynCloudCacheServiceProvider), WorkspaceKind.RemoteWorkspace), Shared]
-    internal class RemoteCloudCacheServiceProvider : IRoslynCloudCacheServiceProvider
+    [ExportWorkspaceService(typeof(ICloudCacheStorageServiceFactory), WorkspaceKind.RemoteWorkspace), Shared]
+    internal class RemoteCloudCacheStorageServiceFactory : ICloudCacheStorageServiceFactory
     {
         private readonly IGlobalServiceBroker _globalServiceBroker;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteCloudCacheServiceProvider(IGlobalServiceBroker globalServiceBroker)
+        public RemoteCloudCacheStorageServiceFactory(IGlobalServiceBroker globalServiceBroker)
         {
             _globalServiceBroker = globalServiceBroker;
         }
 
-        public async ValueTask<IRoslynCloudCacheService> CreateCacheAsync(CancellationToken cancellationToken)
+        public IPersistentStorageService Create(IPersistentStorageLocationService locationService)
         {
-            var serviceBroker = _globalServiceBroker.Instance;
+            return new RemoteCloudCachePersistentStorageService(_globalServiceBroker, locationService);
+        }
+
+        private class RemoteCloudCachePersistentStorageService : AbstractCloudCachePersistentStorageService
+        {
+            private readonly IGlobalServiceBroker _globalServiceBroker;
+
+            public RemoteCloudCachePersistentStorageService(IGlobalServiceBroker globalServiceBroker, IPersistentStorageLocationService locationService)
+                : base(locationService)
+            {
+                _globalServiceBroker = globalServiceBroker;
+            }
+
+            protected override async ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
+            {
+                var serviceBroker = _globalServiceBroker.Instance;
 
 #pragma warning disable ISB001 // Dispose of proxies
-            // cache service will be disposed inside RemoteCloudCacheService.Dispose
-            var cacheService = await serviceBroker.GetProxyAsync<ICacheService>(VisualStudioServices.VS2019_10.CacheService, cancellationToken: cancellationToken).ConfigureAwait(false);
+                // cache service will be disposed inside RemoteCloudCacheService.Dispose
+                var cacheService = await serviceBroker.GetProxyAsync<ICacheService>(VisualStudioServices.VS2019_10.CacheService, cancellationToken: cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
-            Contract.ThrowIfNull(cacheService);
-            return new RemoteCloudCacheService(cacheService);
+                Contract.ThrowIfNull(cacheService);
+                return cacheService;
+            }
+
+            protected override AbstractCloudCachePersistentStorage CreatePersistentStorage(ICacheService cacheService, SolutionKey solutionKey, string workingFolderPath, string relativePathBase, string databaseFilePath)
+                => new RemoteCloudCachePersistentStorage(cacheService, solutionKey, workingFolderPath, relativePathBase, databaseFilePath);
         }
     }
 }
