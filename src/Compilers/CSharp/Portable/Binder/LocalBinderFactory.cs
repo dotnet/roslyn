@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.ExpressionBody, enclosing);
         }
 
+        // PROTOTYPE(record-structs): update for record structs
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
             Debug.Assert(node.ParameterList is object);

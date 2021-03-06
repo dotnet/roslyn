@@ -565,6 +565,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        // PROTOTYPE(record-structs): update for record structs (is there a way to recognize a record struct from PE?)
+        internal override bool IsRecordStruct => false;
+
         public override Accessibility DeclaredAccessibility
         {
             get

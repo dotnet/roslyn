@@ -1912,6 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
+            // PROTOTYPE(record-structs): update for record structs
             Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax || ((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
 
             // The common case is that the type inherits directly from object.

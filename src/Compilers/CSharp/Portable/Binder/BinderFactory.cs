@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal InMethodBinder GetRecordConstructorInMethodBinder(SynthesizedRecordConstructor constructor)
         {
+            // PROTOTYPE(record-structs): update for record structs
             RecordDeclarationSyntax typeDecl = constructor.GetSyntax();
 
             var extraInfo = NodeUsage.ConstructorBodyOrInitializer;

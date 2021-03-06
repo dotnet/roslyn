@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PrimaryConstructorBaseType:
                     return true;
 
+                // PROTOTYPE(record-structs): update for record structs
                 case SyntaxKind.RecordDeclaration:
                     return ((RecordDeclarationSyntax)syntax).ParameterList is object;
 

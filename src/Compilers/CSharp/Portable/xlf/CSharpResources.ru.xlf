@@ -4152,8 +4152,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
-        <target state="translated">Все разделяемые объявления "{0}" должны относиться к одному типу (классы, записи, структуры или интерфейсы).</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
+        <target state="needs-review-translation">Все разделяемые объявления "{0}" должны относиться к одному типу (классы, записи, структуры или интерфейсы).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

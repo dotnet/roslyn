@@ -4152,8 +4152,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all records, all structs, or all interfaces</source>
-        <target state="translated">Partielle Deklarationen von "{0}" müssen entweder nur Klassen, nur Datensätze, nur Strukturen oder nur Schnittstellen sein.</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
+        <target state="needs-review-translation">Partielle Deklarationen von "{0}" müssen entweder nur Klassen, nur Datensätze, nur Strukturen oder nur Schnittstellen sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

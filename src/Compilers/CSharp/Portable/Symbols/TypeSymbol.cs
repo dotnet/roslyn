@@ -2253,6 +2253,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetITypeSymbol(DefaultNullableAnnotation);
         }
 
+        // PROTOTYPE(record-structs): rename to IsRecordClass?
         internal abstract bool IsRecord { get; }
+
+        internal abstract bool IsRecordStruct { get; }
     }
 }

@@ -181,6 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case AccessorDeclarationSyntax accessor:
                     model = (accessor.Body != null || accessor.ExpressionBody != null) ? GetOrAddModel(node) : null;
                     break;
+                // PROTOTYPE(record-structs): update for record structs
                 case RecordDeclarationSyntax { ParameterList: { }, PrimaryConstructorBaseType: { } } recordDeclaration when TryGetSynthesizedRecordConstructor(recordDeclaration) is SynthesizedRecordConstructor:
                     model = GetOrAddModel(recordDeclaration);
                     break;
@@ -804,6 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             !LookupPosition.IsInConstructorParameterScope(position, constructorDecl) &&
                             !LookupPosition.IsInParameterList(position, constructorDecl);
                         break;
+                    // PROTOTYPE(record-structs): update for record structs
                     case SyntaxKind.RecordDeclaration:
                         {
                             var recordDecl = (RecordDeclarationSyntax)memberDecl;
@@ -873,6 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                    GetOrAddModel(constructorDecl) : null;
                         }
 
+                    // PROTOTYPE(record-structs): update for record structs
                     case SyntaxKind.RecordDeclaration:
                         {
                             var recordDecl = (RecordDeclarationSyntax)memberDecl;
@@ -1091,6 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return createMethodBodySemanticModel(memberDecl, symbol);
                     }
 
+                // PROTOTYPE(record-structs): update for record structs
                 case SyntaxKind.RecordDeclaration:
                     {
                         SynthesizedRecordConstructor symbol = TryGetSynthesizedRecordConstructor((RecordDeclarationSyntax)node);
@@ -2022,6 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method;
 
+            // PROTOTYPE(record-structs): update for record structs
             if (memberDecl is RecordDeclarationSyntax recordDecl && recordDecl.ParameterList == paramList)
             {
                 method = TryGetSynthesizedRecordConstructor(recordDecl);
@@ -2369,6 +2374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override Func<SyntaxNode, bool> GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol)
         {
+            // PROTOTYPE(record-structs): update for record structs
             switch (declaredNode)
             {
                 case CompilationUnitSyntax unit when SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(Compilation, unit, fallbackToMainEntryPoint: false) is SynthesizedSimpleProgramEntryPointSymbol entryPoint:

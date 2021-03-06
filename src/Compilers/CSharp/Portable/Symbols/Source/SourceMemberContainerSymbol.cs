@@ -275,7 +275,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     break;
                 case TypeKind.Struct:
-                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Ref | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
+                    allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
+
+                    if (!this.IsRecordStruct)
+                    {
+                        allowedModifiers |= DeclarationModifiers.Ref;
+                    }
+
                     break;
                 case TypeKind.Interface:
                     allowedModifiers |= DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
@@ -826,6 +832,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsRecordStruct
+        {
+            get
+            {
+                return this.declaration.Declarations[0].Kind == DeclarationKind.RecordStruct;
+            }
+        }
+
         public override bool IsImplicitlyDeclared
         {
             get
@@ -1148,6 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // PROTOTYPE(record-structs): update for record structs
                 return (IsTupleType || IsRecord) ? GetMembers().Select(m => m.Name) : this.declaration.MemberNames;
             }
         }
@@ -1317,6 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Symbol>.Empty;
         }
 
+        // PROTOTYPE(record-structs): update for record structs
         /// <remarks>
         /// For source symbols, there can only be a valid clone method if this is a record, which is a
         /// simple syntax check. This will need to change when we generalize cloning, but it's a good
@@ -1327,6 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
+            // PROTOTYPE(record-structs): update for record structs
             if (_lazyMembersDictionary != null || declaration.MemberNames.Contains(name) || declaration.Kind == DeclarationKind.Record)
             {
                 return GetMembers(name);
@@ -1493,6 +1510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
             Debug.Assert(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
 
+            // PROTOTYPE(record-structs): update for record structs
             if ((declared is object && (declared.NonTypeMembers.Contains(m => m == (object)member) || declared.RecordPrimaryConstructor == (object)member)) ||
                 Volatile.Read(ref _lazyMembersAndInitializers)?.NonTypeMembers.Contains(m => m == (object)member) == true)
             {
@@ -1637,7 +1655,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckRecordMemberNames(BindingDiagnosticBag diagnostics)
         {
-            if (declaration.Kind != DeclarationKind.Record)
+            if (declaration.Kind != DeclarationKind.Record &&
+                declaration.Kind != DeclarationKind.RecordStruct)
             {
                 return;
             }
@@ -2245,6 +2264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            // PROTOTYPE(record-structs): update for record structs
             if (IsRecord)
             {
                 // For records the warnings reported below are simply going to echo record specific errors,
@@ -2537,6 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers;
             public readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers;
             public readonly bool HaveIndexers;
+            // PROTOTYPE(record-structs): update for record structs
             public readonly RecordDeclarationSyntax? RecordDeclarationWithParameters;
             public readonly SynthesizedRecordConstructor? RecordPrimaryConstructor;
             public readonly bool IsNullableEnabledForInstanceConstructorsAndFields;
@@ -2927,6 +2948,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
+                        // PROTOTYPE(record-structs): update for record structs
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         AddNonTypeMembers(builder, typeDecl.Members, diagnostics);
                         break;
@@ -3915,6 +3938,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (method.MethodKind)
                     {
                         case MethodKind.Constructor:
+                            // PROTOTYPE(record-structs): update for record structs
                             // Ignore the record copy constructor
                             if (!IsRecord ||
                                 !(SynthesizedRecordCopyCtor.HasCopyConstructorSignature(method) && method is not SynthesizedRecordConstructor))
