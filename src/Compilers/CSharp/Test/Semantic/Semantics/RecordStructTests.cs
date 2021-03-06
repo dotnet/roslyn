@@ -326,6 +326,7 @@ public data struct S(int x, int y)
         [Fact]
         public void RecordStructLanguageVersion()
         {
+            // PROTOTYPE(record-structs): can we improve the error recovery, maybe treating this as a record struct with missing `record`?
             var src1 = @"
 struct Point(int x, int y);
 ";
@@ -440,6 +441,12 @@ struct E
     record struct Point(int x, int y);
 }
 ";
+            var src4 = @"
+namespace NS
+{
+    record struct Point { }
+}
+";
             var comp = CreateCompilation(src1, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (4,17): error CS1514: { expected
@@ -470,6 +477,13 @@ struct E
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(4, 12)
                 );
 
+            comp = CreateCompilation(src4, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (4,12): error CS8652: The feature 'record structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     record struct Point { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "struct").WithArguments("record structs").WithLocation(4, 12)
+                );
+
             comp = CreateCompilation(src1);
             comp.VerifyDiagnostics(
                 // (4,17): error CS1514: { expected
@@ -490,6 +504,9 @@ struct E
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src3);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation(src4);
             comp.VerifyDiagnostics();
         }
 
