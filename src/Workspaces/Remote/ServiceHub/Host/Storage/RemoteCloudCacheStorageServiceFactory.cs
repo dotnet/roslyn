@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote.Host;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Storage.CloudCache;
@@ -44,6 +43,18 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 _globalServiceBroker = globalServiceBroker;
             }
 
+            protected override void DisposeCacheService(ICacheService cacheService)
+            {
+                if (cacheService is IAsyncDisposable asyncDisposable)
+                {
+                    asyncDisposable.DisposeAsync().AsTask().Wait();
+                }
+                else if (cacheService is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
+
             protected override async ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken)
             {
                 var serviceBroker = _globalServiceBroker.Instance;
@@ -56,9 +67,6 @@ namespace Microsoft.CodeAnalysis.Remote.Storage
                 Contract.ThrowIfNull(cacheService);
                 return cacheService;
             }
-
-            protected override AbstractCloudCachePersistentStorage CreatePersistentStorage(ICacheService cacheService, SolutionKey solutionKey, string workingFolderPath, string relativePathBase, string databaseFilePath)
-                => new RemoteCloudCachePersistentStorage(cacheService, solutionKey, workingFolderPath, relativePathBase, databaseFilePath);
         }
     }
 }

@@ -24,22 +24,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         {
         }
 
+        protected abstract void DisposeCacheService(ICacheService cacheService);
         protected abstract ValueTask<ICacheService> CreateCacheServiceAsync(CancellationToken cancellationToken);
-        protected abstract AbstractCloudCachePersistentStorage CreatePersistentStorage(ICacheService cacheService, SolutionKey solutionKey, string workingFolderPath, string relativePathBase, string databaseFilePath);
 
-        protected override string GetDatabaseFilePath(string workingFolderPath)
+        protected sealed override string GetDatabaseFilePath(string workingFolderPath)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
             return Path.Combine(workingFolderPath, StorageExtension);
         }
 
-        protected override bool ShouldDeleteDatabase(Exception exception)
+        protected sealed override bool ShouldDeleteDatabase(Exception exception)
         {
             // CloudCache owns the db, so we don't have to delete anything ourselves.
             return false;
         }
 
-        protected override async ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
+        protected sealed override async ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(
             SolutionKey solutionKey, string workingFolderPath, string databaseFilePath, CancellationToken cancellationToken)
         {
             var cacheService = await this.CreateCacheServiceAsync(cancellationToken).ConfigureAwait(false);
@@ -47,7 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             if (string.IsNullOrEmpty(relativePathBase))
                 return null;
 
-            return CreatePersistentStorage(cacheService, solutionKey, workingFolderPath, relativePathBase, databaseFilePath);
+            return new CloudCachePersistentStorage(
+                cacheService, solutionKey, workingFolderPath, relativePathBase, databaseFilePath, this.DisposeCacheService);
         }
     }
 }

@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
     /// Implementation of Roslyn's <see cref="IPersistentStorage"/> sitting on top of the platform's cloud storage
     /// system.
     /// </summary>
-    internal abstract class AbstractCloudCachePersistentStorage : AbstractPersistentStorage
+    internal class CloudCachePersistentStorage : AbstractPersistentStorage
     {
         private static readonly ObjectPool<byte[]> s_byteArrayPool = new(() => new byte[Checksum.HashSize]);
 
@@ -41,27 +41,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         /// <summary>
         /// Underlying cache service (owned by platform team) responsible for actual storage and retrieval of data.
         /// </summary>
-        protected readonly ICacheService CacheService;
+        private readonly ICacheService _cacheService;
+        private readonly Action<ICacheService> _disposeCacheService;
 
-        protected AbstractCloudCachePersistentStorage(
+        public CloudCachePersistentStorage(
             ICacheService cacheService,
             SolutionKey solutionKey,
             string workingFolderPath,
             string relativePathBase,
-            string databaseFilePath)
+            string databaseFilePath,
+            Action<ICacheService> disposeCacheService)
             : base(workingFolderPath, relativePathBase, databaseFilePath)
         {
-            CacheService = cacheService;
+            _cacheService = cacheService;
+            _disposeCacheService = disposeCacheService;
             _projectToContainerKeyCacheCallback = ps => new ProjectContainerKeyCache(relativePathBase, ProjectKey.ToProjectKey(solutionKey, ps));
         }
 
+        public sealed override void Dispose()
+            => _disposeCacheService(_cacheService);
+
         public sealed override ValueTask DisposeAsync()
         {
-            if (this.CacheService is IAsyncDisposable asyncDisposable)
+            if (this._cacheService is IAsyncDisposable asyncDisposable)
             {
                 return asyncDisposable.DisposeAsync();
             }
-            else if (this.CacheService is IDisposable disposable)
+            else if (this._cacheService is IDisposable disposable)
             {
                 disposable.Dispose();
                 return ValueTaskFactory.CompletedTask;
@@ -112,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             using var bytes = s_byteArrayPool.GetPooledObject();
             checksum.WriteTo(bytes.Object);
 
-            return await CacheService.CheckExistsAsync(new CacheItemKey(containerKey.Value, name) { Version = bytes.Object }, cancellationToken).ConfigureAwait(false);
+            return await _cacheService.CheckExistsAsync(new CacheItemKey(containerKey.Value, name) { Version = bytes.Object }, cancellationToken).ConfigureAwait(false);
         }
 
         public sealed override Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken)
@@ -147,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
         private async Task<Stream?> ReadStreamAsync(CacheItemKey key, CancellationToken cancellationToken)
         {
             var pipe = new Pipe();
-            var result = await CacheService.TryGetItemAsync(key, pipe.Writer, cancellationToken).ConfigureAwait(false);
+            var result = await _cacheService.TryGetItemAsync(key, pipe.Writer, cancellationToken).ConfigureAwait(false);
             if (!result)
                 return null;
 
@@ -200,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
 
         private async Task<bool> WriteStreamAsync(CacheItemKey key, Stream stream, CancellationToken cancellationToken)
         {
-            await CacheService.SetItemAsync(key, PipeReader.Create(stream), shareable: false, cancellationToken).ConfigureAwait(false);
+            await _cacheService.SetItemAsync(key, PipeReader.Create(stream), shareable: false, cancellationToken).ConfigureAwait(false);
             return true;
         }
     }
