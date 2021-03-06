@@ -51,8 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             {
                 TextDocumentSync = new TextDocumentSyncOptions
                 {
-                    Change = TextDocumentSyncKind.Incremental,
-                    OpenClose = true,
+                    Change = TextDocumentSyncKind.None,
+                    OpenClose = false,
                 },
                 SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode),
                 // This flag ensures that ctrl+, search locally uses the old editor APIs so that only ctrl+Q search is powered via LSP.
