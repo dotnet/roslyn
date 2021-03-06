@@ -13,14 +13,6 @@ using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
-    internal record ResolvedSource(
-        string? OnDiskPath,
-        SourceText SourceText,
-        SourceFileInfo SourceFileInfo)
-    {
-        public string DisplayPath => OnDiskPath ?? ("[embedded]" + SourceFileInfo.SourceFilePath);
-    }
-
     internal class LocalSourceResolver
     {
         private readonly Options _options;

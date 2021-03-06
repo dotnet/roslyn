@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 
 namespace BuildValidator
 {
-    internal readonly struct MetadataReferenceInfo
+    public readonly struct MetadataReferenceInfo
     {
         public readonly int Timestamp;
         public readonly int ImageSize;

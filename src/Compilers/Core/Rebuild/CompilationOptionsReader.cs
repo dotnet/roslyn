@@ -22,30 +22,7 @@ using Newtonsoft.Json;
 
 namespace BuildValidator
 {
-    internal readonly struct SourceFileInfo
-    {
-        internal string SourceFilePath { get; }
-        internal SourceHashAlgorithm HashAlgorithm { get; }
-        internal byte[] Hash { get; }
-        internal SourceText? EmbeddedText { get; }
-        internal byte[]? EmbeddedCompressedHash { get; }
-
-        internal SourceFileInfo(
-            string sourceFilePath,
-            SourceHashAlgorithm hashAlgorithm,
-            byte[] hash,
-            SourceText? embeddedText,
-            byte[]? embeddedCompressedHash)
-        {
-            SourceFilePath = sourceFilePath;
-            HashAlgorithm = hashAlgorithm;
-            Hash = hash;
-            EmbeddedText = embeddedText;
-            EmbeddedCompressedHash = embeddedCompressedHash;
-        }
-    }
-
-    internal class CompilationOptionsReader
+    public class CompilationOptionsReader
     {
         // GUIDs specified in https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#document-table-0x30
         public static readonly Guid HashAlgorithmSha1 = unchecked(new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60));
@@ -92,7 +69,7 @@ namespace BuildValidator
             return reader;
         }
 
-        public bool TryGetMetadataCompilationOptions([NotNullWhen(true)] out MetadataCompilationOptions? options)
+        internal bool TryGetMetadataCompilationOptions([NotNullWhen(true)] out MetadataCompilationOptions? options)
         {
             if (_metadataCompilationOptions is null && TryGetMetadataCompilationOptionsBlobReader(out var optionsBlob))
             {
@@ -103,7 +80,7 @@ namespace BuildValidator
             return options != null;
         }
 
-        public MetadataCompilationOptions GetMetadataCompilationOptions()
+        internal MetadataCompilationOptions GetMetadataCompilationOptions()
         {
             if (_metadataCompilationOptions is null)
             {

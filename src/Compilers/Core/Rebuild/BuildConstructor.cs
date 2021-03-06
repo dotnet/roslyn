@@ -24,7 +24,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace BuildValidator
 {
-    internal class BuildConstructor
+    public class BuildConstructor
     {
         private readonly ILogger _logger;
 
