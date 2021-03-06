@@ -79,12 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 Debug.Assert(value1.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
                 Debug.Assert(value2.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
 
-                if (value1 == value2)
-                {
-                    return value1;
-                }
-
-                return new GlobalFlowStateAnalysisValueSet(value1, value2);
+                return GlobalFlowStateAnalysisValueSet.CreateWithParents(value1, value2);
             }
 
             public static GlobalFlowStateAnalysisValueSet Intersect(GlobalFlowStateAnalysisValueSet value1, GlobalFlowStateAnalysisValueSet value2)
@@ -220,7 +215,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                     }
                     else
                     {
-                        result = new GlobalFlowStateAnalysisValueSet(sets, value1.Parents, value1.Height, GlobalFlowStateAnalysisValueSetKind.Known);
+                        result = GlobalFlowStateAnalysisValueSet.Create(sets, value1.Parents, value1.Height);
                     }
 
                     return true;

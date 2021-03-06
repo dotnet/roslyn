@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         public static readonly GlobalFlowStateAnalysisValueSet Unknown = new GlobalFlowStateAnalysisValueSet(
             ImmutableHashSet<IAbstractAnalysisValue>.Empty, ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, 0, GlobalFlowStateAnalysisValueSetKind.Unknown);
 
-        public GlobalFlowStateAnalysisValueSet(
+        private GlobalFlowStateAnalysisValueSet(
             ImmutableHashSet<IAbstractAnalysisValue> analysisValues,
             ImmutableHashSet<GlobalFlowStateAnalysisValueSet> parents,
             int height,
@@ -40,18 +40,49 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             Kind = kind;
         }
 
-        public GlobalFlowStateAnalysisValueSet(IAbstractAnalysisValue analysisValue)
-            : this(ImmutableHashSet.Create(analysisValue), ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, height: 0, GlobalFlowStateAnalysisValueSetKind.Known)
+        public static GlobalFlowStateAnalysisValueSet Create(
+            ImmutableHashSet<IAbstractAnalysisValue> analysisValues,
+            ImmutableHashSet<GlobalFlowStateAnalysisValueSet> parents,
+            int height)
         {
+            Debug.Assert(!analysisValues.IsEmpty || !parents.IsEmpty);
+            return new(analysisValues, parents, height, GlobalFlowStateAnalysisValueSetKind.Known);
         }
 
-        public GlobalFlowStateAnalysisValueSet(GlobalFlowStateAnalysisValueSet parent1, GlobalFlowStateAnalysisValueSet parent2)
-            : this(ImmutableHashSet<IAbstractAnalysisValue>.Empty,
-                   ImmutableHashSet.Create(parent1, parent2),
-                   height: Math.Max(parent1.Height, parent2.Height) + 1,
-                   GlobalFlowStateAnalysisValueSetKind.Known)
+        public static GlobalFlowStateAnalysisValueSet Create(IAbstractAnalysisValue analysisValue)
+            => new(ImmutableHashSet.Create(analysisValue), ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, height: 0, GlobalFlowStateAnalysisValueSetKind.Known);
+
+        public static GlobalFlowStateAnalysisValueSet CreateWithParents(GlobalFlowStateAnalysisValueSet parent1, GlobalFlowStateAnalysisValueSet parent2)
         {
-            Debug.Assert(parent1 != parent2);
+            Debug.Assert(parent1.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
+            Debug.Assert(parent2.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
+
+            if (Equals(parent1, parent2))
+            {
+                return parent1;
+            }
+
+            if (parent1.Height == 0 && parent1.AnalysisValues.IsSubsetOf(parent2.AnalysisValues))
+            {
+                return parent2;
+            }
+
+            if (parent2.Height == 0 && parent2.AnalysisValues.IsSubsetOf(parent1.AnalysisValues))
+            {
+                return parent1;
+            }
+
+            if (parent1.Height == parent2.Height &&
+                parent1.AnalysisValues.Count == parent2.AnalysisValues.Count &&
+                Equals(parent1, parent2.GetNegatedValue()))
+            {
+                return Empty;
+            }
+
+            return new(ImmutableHashSet<IAbstractAnalysisValue>.Empty,
+                       ImmutableHashSet.Create(parent1, parent2),
+                       height: Math.Max(parent1.Height, parent2.Height) + 1,
+                       GlobalFlowStateAnalysisValueSetKind.Known);
         }
 
         public ImmutableHashSet<IAbstractAnalysisValue> AnalysisValues { get; }
@@ -66,7 +97,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             var newHeight = Height + newRoot.Height + 1;
             if (Parents.IsEmpty)
             {
-                return new GlobalFlowStateAnalysisValueSet(AnalysisValues, ImmutableHashSet.Create(newRoot), newHeight, GlobalFlowStateAnalysisValueSetKind.Known);
+                return GlobalFlowStateAnalysisValueSet.Create(AnalysisValues, ImmutableHashSet.Create(newRoot), newHeight);
             }
 
             using var parentsBuilder = PooledHashSet<GlobalFlowStateAnalysisValueSet>.GetInstance();
@@ -75,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 parentsBuilder.Add(parent.WithRootParent(newRoot));
             }
 
-            return new GlobalFlowStateAnalysisValueSet(AnalysisValues, parentsBuilder.ToImmutable(), newHeight, GlobalFlowStateAnalysisValueSetKind.Known);
+            return GlobalFlowStateAnalysisValueSet.Create(AnalysisValues, parentsBuilder.ToImmutable(), newHeight);
         }
 
         internal GlobalFlowStateAnalysisValueSet WithAdditionalAnalysisValues(GlobalFlowStateAnalysisValueSet newAnalysisValuesSet, bool negate)
@@ -94,8 +125,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
 
             if (newAnalysisValues.Height == 0)
             {
-                return new GlobalFlowStateAnalysisValueSet(
-                    AnalysisValues.AddRange(newAnalysisValues.AnalysisValues), Parents, Height, GlobalFlowStateAnalysisValueSetKind.Known);
+                return GlobalFlowStateAnalysisValueSet.Create(
+                    AnalysisValues.AddRange(newAnalysisValues.AnalysisValues), Parents, Height);
             }
 
             return newAnalysisValues.WithRootParent(this);
@@ -108,7 +139,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             if (Height == 0 && AnalysisValues.Count == 1)
             {
                 var negatedAnalysisValues = ImmutableHashSet.Create(AnalysisValues.Single().GetNegatedValue());
-                return new GlobalFlowStateAnalysisValueSet(negatedAnalysisValues, Parents, Height, Kind);
+                return GlobalFlowStateAnalysisValueSet.Create(negatedAnalysisValues, Parents, Height);
             }
             else if (Height > 0 && AnalysisValues.Count == 0)
             {
@@ -119,7 +150,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                 var parentsBuilder = ImmutableHashSet.CreateBuilder<GlobalFlowStateAnalysisValueSet>();
                 foreach (var analysisValue in AnalysisValues)
                 {
-                    parentsBuilder.Add(new GlobalFlowStateAnalysisValueSet(analysisValue.GetNegatedValue()));
+                    parentsBuilder.Add(GlobalFlowStateAnalysisValueSet.Create(analysisValue.GetNegatedValue()));
                 }
 
                 int height;
@@ -136,7 +167,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                     height = 1;
                 }
 
-                return new GlobalFlowStateAnalysisValueSet(ImmutableHashSet<IAbstractAnalysisValue>.Empty, parentsBuilder.ToImmutable(), height, Kind);
+                return GlobalFlowStateAnalysisValueSet.Create(ImmutableHashSet<IAbstractAnalysisValue>.Empty, parentsBuilder.ToImmutable(), height);
             }
 
             static GlobalFlowStateAnalysisValueSet GetNegateValueFromParents(ImmutableHashSet<GlobalFlowStateAnalysisValueSet> parents)
@@ -160,7 +191,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
                     }
                 }
 
-                return new GlobalFlowStateAnalysisValueSet(analysisValuesBuilder.ToImmutable(), parentsBuilder.ToImmutable(), height, GlobalFlowStateAnalysisValueSetKind.Known);
+                return GlobalFlowStateAnalysisValueSet.Create(analysisValuesBuilder.ToImmutable(), parentsBuilder.ToImmutable(), height);
             }
         }
 
