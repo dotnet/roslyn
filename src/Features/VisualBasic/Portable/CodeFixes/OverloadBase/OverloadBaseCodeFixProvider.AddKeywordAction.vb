@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
 
                 Dim propertyStatement = TryCast(node, PropertyStatementSyntax)
                 If propertyStatement IsNot Nothing Then
-                    newNode = propertyStatement.WithoutLeadingTrivia().AddModifiers(SyntaxFactory.Token(_modifier))
+                    newNode = propertyStatement.AddModifiers(SyntaxFactory.Token(_modifier))
                 End If
 
                 Dim methodStatement = TryCast(node, MethodStatementSyntax)
