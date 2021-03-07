@@ -262,7 +262,7 @@ namespace N$$.P
         End Function
 
         <WorkItem(44459, "https://github.com/dotnet/roslyn/issues/44459")>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/44459"), CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestSelectUsingOverUshort(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -983,9 +983,7 @@ class Variable
                     .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendBackspace()
-                ' This completionImplementation is hard-selected because the suggestion mode never triggers on backspace
-                ' See issue https://github.com/dotnet/roslyn/issues/15302
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
 
                 state.SendTypeChars(", var as")
                 state.SendBackspace()
@@ -993,7 +991,7 @@ class Variable
 
                 state.SendTypeChars(")")
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("(var as, var a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("(var a, var a)", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -1016,9 +1014,7 @@ class Variable
                     .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
 
                 state.SendBackspace()
-                ' This completionImplementation is hard-selected because the suggestion mode never triggers on backspace
-                ' See issue https://github.com/dotnet/roslyn/issues/15302
-                Await state.AssertSelectedCompletionItem(displayText:="as", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
 
                 state.SendTypeChars(", var as")
                 state.SendBackspace()
@@ -1031,7 +1027,7 @@ class Variable
                 Assert.Contains("            )", caretLine.GetText(), StringComparison.Ordinal)
 
                 Dim previousLine = caretLine.Snapshot.Lines(caretLine.LineNumber - 1)
-                Assert.Contains("(var as, var a", previousLine.GetText(), StringComparison.Ordinal)
+                Assert.Contains("(var a, var a", previousLine.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -3000,7 +2996,7 @@ class C
         End Function
 
         <WorkItem(5487, "https://github.com/dotnet/roslyn/issues/5487")>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/48870"), CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitCharTypedAtTheBeginingOfTheFilterSpan(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -3516,7 +3512,7 @@ class C
         End Class
 
         <WorkItem(1015893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015893")>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/48870"), CombinatorialData>
+        <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function BackspaceDismissesIfComputationIsIncomplete(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -5278,6 +5274,46 @@ class C
                 Assert.Equal("    #endregion", state.GetLineFromCurrentCaretPosition().GetText())
                 Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
 
+            End Using
+        End Function
+
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/49861")>
+        <InlineData("r")>
+        <InlineData("load")>
+        <WorkItem(49861, "https://github.com/dotnet/roslyn/issues/49861")>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function PathDirective(directive As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    #   <%= directive %>  $$
+}
+                              </Document>)
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
+
+                state.SendTypeChars("""")
+
+                Assert.Equal($"    #   {directive}  """, state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertCompletionSession()
+
+                state.SendTypeChars("x")
+
+                Assert.Equal($"    #   {directive}  ""x", state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertCompletionSession()
+
+                state.SendBackspace()
+
+                Assert.Equal($"    #   {directive}  """, state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertCompletionSession()
+
+                state.SendBackspace()
+
+                Assert.Equal($"    #   {directive}  ", state.GetLineFromCurrentCaretPosition().GetText())
+                Await state.AssertNoCompletionSession()
             End Using
         End Function
 
@@ -8438,6 +8474,33 @@ public unsafe class AA
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuggestionModeWithDeletionTrigger(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                           <Document><![CDATA[
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    public static void Baz(List<int> list)
+    {
+        var xml = 0;
+        list.FirstOrDefault(xx$$)
+    }
+}]]></Document>,
+                           showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
+
+                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem("xml", isSoftSelected:=True).ConfigureAwait(True)
+            End Using
+        End Function
+
         ' Simulates a situation where IntelliCode provides items not included into the Rolsyn original list.
         ' We want to ignore these items in CommitIfUnique.
         ' This situation should not happen. Tests with this provider were added to cover protective scenarios.
@@ -8456,6 +8519,73 @@ public unsafe class AA
             Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
                 Await MyBase.ProvideCompletionsAsync(context).ConfigureAwait(False)
                 context.AddItem(CompletionItem.Create(displayText:="★ Length2", filterText:="Length"))
+            End Function
+        End Class
+
+        <WorkItem(49813, "https://github.com/dotnet/roslyn/issues/49813")>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCaseSensitiveMatchWithLowerMatchPriority(showCompletionInArgumentLists As Boolean) As Task
+            ' PreselectionProvider will provide an item "★ length" with filter text "length",
+            ' which is a case-insentive match to typed text "Length", but with higher match priority.
+            ' In this case, we need to make sure the case-sensitive match "Length" is selected.
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+struct Range
+{
+    public (int Offset, int Length) GetOffsetAndLength(int length) => (0, 0);
+}
+
+class Repro
+{
+    public int Length { get; }
+
+    public void Test(Range x)
+    {
+        var (offset, length) = x.GetOffsetAndLength(Length$$);
+    }
+}
+                              </Document>,
+                              extraExportedTypes:={GetType(PreselectionProvider)}.ToList(),
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                Dim workspace = state.Workspace
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, True)))
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"★ length", "length", "Length"})
+                Await state.AssertSelectedCompletionItem("Length", isHardSelected:=True)
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                state.SendBackspace()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContainAll({"★ length", "length", "Length"})
+                Await state.AssertSelectedCompletionItem("Length", isHardSelected:=True)
+            End Using
+        End Function
+
+        ' Simulate the situation that some provider (e.g. IntelliCode) provides items with higher match priority that only match case-insensitively.
+        <ExportCompletionProvider(NameOf(PreselectionProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class PreselectionProvider
+            Inherits CommonCompletionProvider
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                Dim rules = CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection).WithMatchPriority(MatchPriority.Preselect)
+                context.AddItem(CompletionItem.Create(displayText:="★ length", filterText:="length", rules:=rules))
+                Return Task.CompletedTask
+            End Function
+
+            Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+                Return True
             End Function
         End Class
     End Class

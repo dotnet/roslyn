@@ -183,11 +183,13 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
+                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
+                pdbOptionsBlobReader: null,
                 testData: new CompilationTestData() { SymWriterFactory = _ => new MockSymUnmanagedWriter() });
 
             result.Diagnostics.Verify(
@@ -214,11 +216,13 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
+                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
+                pdbOptionsBlobReader: null,
                 testData: new CompilationTestData() { SymWriterFactory = SymWriterTestUtilities.ThrowingFactory });
 
             result.Diagnostics.Verify(
@@ -245,11 +249,13 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
+                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
+                pdbOptionsBlobReader: null,
                 testData: new CompilationTestData() { SymWriterFactory = SymWriterTestUtilities.ThrowingFactory });
 
             result.Diagnostics.Verify(
@@ -276,11 +282,13 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
+                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
                 sourceLinkStream: null,
                 embeddedTexts: null,
+                pdbOptionsBlobReader: null,
                 testData: new CompilationTestData() { SymWriterFactory = _ => throw new DllNotFoundException("xxx") });
 
             result.Diagnostics.Verify(
@@ -605,7 +613,7 @@ class C {{ public static void Main() => System.Console.WriteLine(@""{verbatim}""
 ", format: DebugInformationFormat.PortablePdb);
 
             // Native PDBs only support spans with line delta <= 127 (7 bit)
-            // https://github.com/Microsoft/microsoft-pdb/blob/master/include/cvinfo.h#L4621
+            // https://github.com/Microsoft/microsoft-pdb/blob/main/include/cvinfo.h#L4621
             c.VerifyPdb("C.Main", @"
 <symbols>
   <files>
@@ -9044,31 +9052,22 @@ class Program
           </sequencePoints>
           <scope startOffset=""0x0"" endOffset=""0x1b5"">
             <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x1b5"" attributes=""0"" />
-            <scope startOffset=""0x1"" endOffset=""0x1b4"">
-              <local name=""x"" il_index=""1"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
-              <local name=""y"" il_index=""2"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
-              <local name=""z"" il_index=""3"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
-              <local name=""p"" il_index=""4"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
-              <local name=""q"" il_index=""5"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
-              <local name=""p"" il_index=""6"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
-              <local name=""z"" il_index=""7"" il_start=""0x1"" il_end=""0x1b4"" attributes=""0"" />
-              <scope startOffset=""0x14d"" endOffset=""0x15e"">
-                <local name=""x"" il_index=""1"" il_start=""0x14d"" il_end=""0x15e"" attributes=""0"" />
-              </scope>
-              <scope startOffset=""0x163"" endOffset=""0x16a"">
-                <local name=""y"" il_index=""2"" il_start=""0x163"" il_end=""0x16a"" attributes=""0"" />
-                <local name=""z"" il_index=""3"" il_start=""0x163"" il_end=""0x16a"" attributes=""0"" />
-              </scope>
-              <scope startOffset=""0x191"" endOffset=""0x198"">
-                <local name=""p"" il_index=""4"" il_start=""0x191"" il_end=""0x198"" attributes=""0"" />
-                <local name=""q"" il_index=""5"" il_start=""0x191"" il_end=""0x198"" attributes=""0"" />
-              </scope>
-              <scope startOffset=""0x198"" endOffset=""0x19f"">
-                <local name=""p"" il_index=""6"" il_start=""0x198"" il_end=""0x19f"" attributes=""0"" />
-              </scope>
-              <scope startOffset=""0x19f"" endOffset=""0x1a7"">
-                <local name=""z"" il_index=""7"" il_start=""0x19f"" il_end=""0x1a7"" attributes=""0"" />
-              </scope>
+            <scope startOffset=""0x14d"" endOffset=""0x15e"">
+              <local name=""x"" il_index=""1"" il_start=""0x14d"" il_end=""0x15e"" attributes=""0"" />
+            </scope>
+            <scope startOffset=""0x163"" endOffset=""0x16a"">
+              <local name=""y"" il_index=""2"" il_start=""0x163"" il_end=""0x16a"" attributes=""0"" />
+              <local name=""z"" il_index=""3"" il_start=""0x163"" il_end=""0x16a"" attributes=""0"" />
+            </scope>
+            <scope startOffset=""0x191"" endOffset=""0x198"">
+              <local name=""p"" il_index=""4"" il_start=""0x191"" il_end=""0x198"" attributes=""0"" />
+              <local name=""q"" il_index=""5"" il_start=""0x191"" il_end=""0x198"" attributes=""0"" />
+            </scope>
+            <scope startOffset=""0x198"" endOffset=""0x19f"">
+              <local name=""p"" il_index=""6"" il_start=""0x198"" il_end=""0x19f"" attributes=""0"" />
+            </scope>
+            <scope startOffset=""0x19f"" endOffset=""0x1a7"">
+              <local name=""z"" il_index=""7"" il_start=""0x19f"" il_end=""0x1a7"" attributes=""0"" />
             </scope>
           </scope>
         </method>

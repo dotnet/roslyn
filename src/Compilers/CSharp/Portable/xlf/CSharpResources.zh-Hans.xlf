@@ -9237,11 +9237,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">找不到与嵌入互操作类型“{0}”相匹配的互操作类型。是否缺少程序集引用?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">不支持按引用返回类型“ref {0}”。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">存储在“{1}”中的模块名“{0}”必须与其文件名匹配。</target>

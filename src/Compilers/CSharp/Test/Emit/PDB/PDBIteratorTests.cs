@@ -1599,12 +1599,14 @@ public class C
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 MethodDebugInformation (index: 0x31, size: 40): 
-==================================================
-1: nil
-2: nil
-3: nil
-4: nil
-5:
+================================================
+   IL   
+================================================
+1: nil  
+2: nil  
+3: nil  
+4: nil  
+5:      
 {
   Kickoff Method: 0x06000001 (MethodDef)
   Locals: 0x11000001 (StandAloneSig)
@@ -1615,12 +1617,11 @@ MethodDebugInformation (index: 0x31, size: 40):
   IL_0030: <hidden>
   IL_0037: (5, 44) - (5, 45)
 }
-6: nil
-7: nil
-8: nil
-9: nil
-a: nil
-",
+6: nil  
+7: nil  
+8: nil  
+9: nil  
+a: nil",
                 writer.ToString());
         }
     }

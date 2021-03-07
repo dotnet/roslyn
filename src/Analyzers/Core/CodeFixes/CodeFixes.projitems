@@ -22,6 +22,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractChangeNamespaceToMatchFolderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractChangeNamespaceToMatchFolderCodeFixProvider.CustomFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\AbstractMultipleBlankLinesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\AbstractOrderModifiersCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\AbstractPopulateSwitchCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PopulateSwitch\AbstractPopulateSwitchExpressionCodeFixProvider.cs" />

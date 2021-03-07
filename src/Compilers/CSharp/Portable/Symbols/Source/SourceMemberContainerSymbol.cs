@@ -149,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private Flags _flags;
         private ImmutableArray<DiagnosticInfo> _managedKindUseSiteDiagnostics;
+        private ImmutableArray<AssemblySymbol> _managedKindUseSiteDependencies;
 
         private readonly DeclarationModifiers _declModifiers;
         private readonly NamespaceOrTypeSymbol _containingSymbol;
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceMemberContainerTypeSymbol(
             NamespaceOrTypeSymbol containingSymbol,
             MergedTypeDeclaration declaration,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             TupleExtraData? tupleData = null)
             : base(tupleData)
         {
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarationModifiers MakeModifiers(TypeKind typeKind, DiagnosticBag diagnostics)
+        private DeclarationModifiers MakeModifiers(TypeKind typeKind, BindingDiagnosticBag diagnostics)
         {
             Symbol containingSymbol = this.ContainingSymbol;
             DeclarationModifiers defaultAccess;
@@ -326,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private DeclarationModifiers MakeAndCheckTypeModifiers(
             DeclarationModifiers defaultAccess,
             DeclarationModifiers allowedModifiers,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out bool modifierErrors)
         {
             modifierErrors = false;
@@ -430,16 +431,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         _ => null
                     };
 
-                    ReportTypeNamedRecord(identifier?.Text, this.DeclaringCompilation, diagnostics, identifier?.GetLocation() ?? Location.None);
+                    ReportTypeNamedRecord(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
                 }
             }
 
             return result;
         }
 
-        internal static void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag diagnostics, Location location)
+        internal static void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
         {
-            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) &&
+            if (diagnostics is object && name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) &&
                 compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
             {
                 diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location, name);
@@ -460,8 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return state.HasComplete(part);
         }
 
-        protected abstract void CheckBase(DiagnosticBag diagnostics);
-        protected abstract void CheckInterfaces(DiagnosticBag diagnostics);
+        protected abstract void CheckBase(BindingDiagnosticBag diagnostics);
+        protected abstract void CheckInterfaces(BindingDiagnosticBag diagnostics);
 
         internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
@@ -480,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishBaseType:
                         if (state.NotePartComplete(CompletionPart.StartBaseType))
                         {
-                            var diagnostics = DiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBag.GetInstance();
                             CheckBase(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishBaseType);
@@ -492,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishInterfaces:
                         if (state.NotePartComplete(CompletionPart.StartInterfaces))
                         {
-                            var diagnostics = DiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBag.GetInstance();
                             CheckInterfaces(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
                             state.NotePartComplete(CompletionPart.FinishInterfaces);
@@ -536,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case CompletionPart.FinishMemberChecks:
                         if (state.NotePartComplete(CompletionPart.StartMemberChecks))
                         {
-                            var diagnostics = DiagnosticBag.GetInstance();
+                            var diagnostics = BindingDiagnosticBag.GetInstance();
                             AfterMembersChecks(diagnostics);
                             AddDeclarationDiagnostics(diagnostics);
 
@@ -716,21 +717,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ManagedKind GetManagedKind(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             var managedKind = _flags.ManagedKind;
-            if (managedKind == ManagedKind.Unknown || _managedKindUseSiteDiagnostics.IsDefault)
+            if (managedKind == ManagedKind.Unknown)
             {
-                HashSet<DiagnosticInfo>? managedKindUseSiteDiagnostics = null;
-                managedKind = base.GetManagedKind(ref managedKindUseSiteDiagnostics);
-                ImmutableInterlocked.InterlockedExchange(ref _managedKindUseSiteDiagnostics, managedKindUseSiteDiagnostics.ToImmutableArrayOrEmpty());
+                var managedKindUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(ContainingAssembly);
+                managedKind = base.GetManagedKind(ref managedKindUseSiteInfo);
+                ImmutableInterlocked.InterlockedInitialize(ref _managedKindUseSiteDiagnostics, managedKindUseSiteInfo.Diagnostics?.ToImmutableArray() ?? ImmutableArray<DiagnosticInfo>.Empty);
+                ImmutableInterlocked.InterlockedInitialize(ref _managedKindUseSiteDependencies, managedKindUseSiteInfo.Dependencies?.ToImmutableArray() ?? ImmutableArray<AssemblySymbol>.Empty);
                 _flags.SetManagedKind(managedKind);
             }
 
-            if (!_managedKindUseSiteDiagnostics.IsEmpty)
+            if (useSiteInfo.AccumulatesDiagnostics)
             {
-                useSiteDiagnostics ??= new HashSet<DiagnosticInfo>();
-                useSiteDiagnostics.AddAll(_managedKindUseSiteDiagnostics);
+                ImmutableArray<DiagnosticInfo> useSiteDiagnostics = _managedKindUseSiteDiagnostics;
+                // Ensure we have the latest value from the field
+                useSiteDiagnostics = ImmutableInterlocked.InterlockedCompareExchange(ref _managedKindUseSiteDiagnostics, useSiteDiagnostics, useSiteDiagnostics);
+                Debug.Assert(!useSiteDiagnostics.IsDefault);
+                useSiteInfo.AddDiagnostics(useSiteDiagnostics);
+            }
+
+            if (useSiteInfo.AccumulatesDependencies)
+            {
+                ImmutableArray<AssemblySymbol> useSiteDependencies = _managedKindUseSiteDependencies;
+                // Ensure we have the latest value from the field
+                useSiteDependencies = ImmutableInterlocked.InterlockedCompareExchange(ref _managedKindUseSiteDependencies, useSiteDependencies, useSiteDependencies);
+                Debug.Assert(!useSiteDependencies.IsDefault);
+                useSiteInfo.AddDependencies(useSiteDependencies);
             }
 
             return managedKind;
@@ -1168,7 +1182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyTypeMembers == null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 if (Interlocked.CompareExchange(ref _lazyTypeMembers, MakeTypeMembers(diagnostics), null) == null)
                 {
                     AddDeclarationDiagnostics(diagnostics);
@@ -1182,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyTypeMembers;
         }
 
-        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(DiagnosticBag diagnostics)
+        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(BindingDiagnosticBag diagnostics)
         {
             var symbols = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             var conflictDict = new Dictionary<(string, int), SourceNamedTypeSymbol>();
@@ -1236,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckMemberNameDistinctFromType(Symbol member, DiagnosticBag diagnostics)
+        private void CheckMemberNameDistinctFromType(Symbol member, BindingDiagnosticBag diagnostics)
         {
             switch (this.TypeKind)
             {
@@ -1425,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return membersAndInitializers;
             }
 
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
             membersAndInitializers = BuildMembersAndInitializers(diagnostics);
 
             var alreadyKnown = Interlocked.CompareExchange(ref _lazyMembersAndInitializers, membersAndInitializers, null);
@@ -1451,6 +1465,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Conditional("DEBUG")]
         internal void AssertMemberExposure(Symbol member, bool forDiagnostics = false)
         {
+            if (member is FieldSymbol && forDiagnostics && this.IsTupleType)
+            {
+                // There is a problem with binding types of fields in tuple types.
+                // Skipping verification for them temporarily. 
+                return;
+            }
+
             if (member is NamedTypeSymbol type)
             {
                 Debug.Assert(forDiagnostics);
@@ -1465,6 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (member is FieldSymbol field && field.AssociatedSymbol is EventSymbol e)
             {
                 Debug.Assert(forDiagnostics);
+                // Backing fields for field-like events are not added to the members list.
                 member = e;
             }
 
@@ -1501,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyMembersDictionary == null)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 var membersDictionary = MakeAllMembers(diagnostics);
 
                 if (Interlocked.CompareExchange(ref _lazyMembersDictionary, membersDictionary, null) == null)
@@ -1523,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return membersAndInitializers.NonTypeMembers.Where(IsInstanceFieldOrEvent);
         }
 
-        protected void AfterMembersChecks(DiagnosticBag diagnostics)
+        protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)
         {
             if (IsInterface)
             {
@@ -1605,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckMemberNamesDistinctFromType(DiagnosticBag diagnostics)
+        private void CheckMemberNamesDistinctFromType(BindingDiagnosticBag diagnostics)
         {
             foreach (var member in GetMembersAndInitializers().NonTypeMembers)
             {
@@ -1613,7 +1635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckRecordMemberNames(DiagnosticBag diagnostics)
+        private void CheckRecordMemberNames(BindingDiagnosticBag diagnostics)
         {
             if (declaration.Kind != DeclarationKind.Record)
             {
@@ -1626,7 +1648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckMemberNameConflicts(DiagnosticBag diagnostics)
+        private void CheckMemberNameConflicts(BindingDiagnosticBag diagnostics)
         {
             Dictionary<string, ImmutableArray<Symbol>> membersByName = GetMembersByName();
 
@@ -1812,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // Report a name conflict; the error is reported on the location of method1.
         // UNDONE: Consider adding a secondary location pointing to the second method.
-        private void ReportMethodSignatureCollision(DiagnosticBag diagnostics, SourceMemberMethodSymbol method1, SourceMemberMethodSymbol method2)
+        private void ReportMethodSignatureCollision(BindingDiagnosticBag diagnostics, SourceMemberMethodSymbol method1, SourceMemberMethodSymbol method2)
         {
             switch (method1, method2)
             {
@@ -1860,7 +1882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(ErrorCode.ERR_MemberAlreadyExists, method1.Locations[0], methodName, this);
         }
 
-        private void CheckIndexerNameConflicts(DiagnosticBag diagnostics, Dictionary<string, ImmutableArray<Symbol>> membersByName)
+        private void CheckIndexerNameConflicts(BindingDiagnosticBag diagnostics, Dictionary<string, ImmutableArray<Symbol>> membersByName)
         {
             PooledHashSet<string>? typeParameterNames = null;
             if (this.Arity > 0)
@@ -1912,7 +1934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckIndexerSignatureCollisions(
             PropertySymbol indexer,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             Dictionary<string, ImmutableArray<Symbol>> membersByName,
             Dictionary<PropertySymbol, PropertySymbol> indexersBySignature,
             ref string? lastIndexerName)
@@ -1958,7 +1980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckSpecialMemberErrors(DiagnosticBag diagnostics)
+        private void CheckSpecialMemberErrors(BindingDiagnosticBag diagnostics)
         {
             var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
             foreach (var member in this.GetMembersUnordered())
@@ -1967,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckTypeParameterNameConflicts(DiagnosticBag diagnostics)
+        private void CheckTypeParameterNameConflicts(BindingDiagnosticBag diagnostics)
         {
             if (this.TypeKind == TypeKind.Delegate)
             {
@@ -1990,7 +2012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckAccessorNameConflicts(DiagnosticBag diagnostics)
+        private void CheckAccessorNameConflicts(BindingDiagnosticBag diagnostics)
         {
             // Report errors where property and event accessors
             // conflict with other members of the same name.
@@ -2034,7 +2056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
-                        var diagnostics = DiagnosticBag.GetInstance();
+                        var diagnostics = BindingDiagnosticBag.GetInstance();
                         var value = (int)CheckStructCircularity(diagnostics).ToThreeState();
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
@@ -2051,7 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool CheckStructCircularity(DiagnosticBag diagnostics)
+        private bool CheckStructCircularity(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(TypeKind == TypeKind.Struct);
 
@@ -2059,7 +2081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return HasStructCircularity(diagnostics);
         }
 
-        private bool HasStructCircularity(DiagnosticBag diagnostics)
+        private bool HasStructCircularity(BindingDiagnosticBag diagnostics)
         {
             foreach (var valuesByName in GetMembersByName().Values)
             {
@@ -2099,7 +2121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private void CheckForProtectedInStaticClass(DiagnosticBag diagnostics)
+        private void CheckForProtectedInStaticClass(BindingDiagnosticBag diagnostics)
         {
             if (!IsStatic)
             {
@@ -2128,7 +2150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckForUnmatchedOperators(DiagnosticBag diagnostics)
+        private void CheckForUnmatchedOperators(BindingDiagnosticBag diagnostics)
         {
             // SPEC: The true and false unary operators require pairwise declaration.
             // SPEC: A compile-time error occurs if a class or struct declares one
@@ -2157,7 +2179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForEqualityAndGetHashCode(diagnostics);
         }
 
-        private void CheckForUnmatchedOperator(DiagnosticBag diagnostics, string operatorName1, string operatorName2)
+        private void CheckForUnmatchedOperator(BindingDiagnosticBag diagnostics, string operatorName1, string operatorName2)
         {
             var ops1 = this.GetOperators(operatorName1);
             var ops2 = this.GetOperators(operatorName2);
@@ -2166,7 +2188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static void CheckForUnmatchedOperator(
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             ImmutableArray<MethodSymbol> ops1,
             ImmutableArray<MethodSymbol> ops2,
             string operatorName2)
@@ -2215,7 +2237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private void CheckForEqualityAndGetHashCode(DiagnosticBag diagnostics)
+        private void CheckForEqualityAndGetHashCode(BindingDiagnosticBag diagnostics)
         {
             if (this.IsInterfaceType())
             {
@@ -2269,7 +2291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private void CheckFiniteFlatteningGraph(DiagnosticBag diagnostics)
+        private void CheckFiniteFlatteningGraph(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(ReferenceEquals(this, this.OriginalDefinition));
             if (AllTypeArgumentCount() == 0) return;
@@ -2320,7 +2342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckSequentialOnPartialType(DiagnosticBag diagnostics)
+        private void CheckSequentialOnPartialType(BindingDiagnosticBag diagnostics)
         {
             if (!IsPartial || this.Layout.Kind != LayoutKind.Sequential)
             {
@@ -2399,7 +2421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private Dictionary<string, ImmutableArray<Symbol>> MakeAllMembers(DiagnosticBag diagnostics)
+        private Dictionary<string, ImmutableArray<Symbol>> MakeAllMembers(BindingDiagnosticBag diagnostics)
         {
             Dictionary<string, ImmutableArray<Symbol>> membersByName;
             var membersAndInitializers = GetMembersAndInitializers();
@@ -2452,16 +2474,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool HaveIndexers;
             public RecordDeclarationSyntax? RecordDeclarationWithParameters;
             public SynthesizedRecordConstructor? RecordPrimaryConstructor;
-
-            /// <summary>
-            /// Index into <see cref="InstanceInitializers"/> for the set of initializers that we'll need
-            /// to patch when adding the initializers for record positional members.
-            /// </summary>
-            public int InstanceInitializersIndexForRecordDeclarationWithParameters = -1;
             public bool IsNullableEnabledForInstanceConstructorsAndFields;
             public bool IsNullableEnabledForStaticConstructorsAndFields;
 
-            public DeclaredMembersAndInitializers ToReadOnlyAndFree()
+            public DeclaredMembersAndInitializers ToReadOnlyAndFree(CSharpCompilation compilation)
             {
                 return new DeclaredMembersAndInitializers(
                     NonTypeMembers.ToImmutableAndFree(),
@@ -2470,9 +2486,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     HaveIndexers,
                     RecordDeclarationWithParameters,
                     RecordPrimaryConstructor,
-                    InstanceInitializersIndexForRecordDeclarationWithParameters,
                     isNullableEnabledForInstanceConstructorsAndFields: IsNullableEnabledForInstanceConstructorsAndFields,
-                    isNullableEnabledForStaticConstructorsAndFields: IsNullableEnabledForStaticConstructorsAndFields);
+                    isNullableEnabledForStaticConstructorsAndFields: IsNullableEnabledForStaticConstructorsAndFields,
+                    compilation);
             }
 
             public void UpdateIsNullableEnabledForConstructorsAndFields(bool useStatic, CSharpCompilation compilation, CSharpSyntaxNode syntax)
@@ -2523,12 +2539,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly bool HaveIndexers;
             public readonly RecordDeclarationSyntax? RecordDeclarationWithParameters;
             public readonly SynthesizedRecordConstructor? RecordPrimaryConstructor;
-
-            /// <summary>
-            /// Index into <see cref="InstanceInitializers"/> for the set of initializers that we'll need
-            /// to patch when adding the initializers for record positional members.
-            /// </summary>
-            public readonly int InstanceInitializersIndexForRecordDeclarationWithParameters;
             public readonly bool IsNullableEnabledForInstanceConstructorsAndFields;
             public readonly bool IsNullableEnabledForStaticConstructorsAndFields;
 
@@ -2545,13 +2555,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool haveIndexers,
                 RecordDeclarationSyntax? recordDeclarationWithParameters,
                 SynthesizedRecordConstructor? recordPrimaryConstructor,
-                int instanceInitializersIndexForRecordDeclarationWithParameters,
                 bool isNullableEnabledForInstanceConstructorsAndFields,
-                bool isNullableEnabledForStaticConstructorsAndFields)
+                bool isNullableEnabledForStaticConstructorsAndFields,
+                CSharpCompilation compilation)
             {
                 Debug.Assert(!nonTypeMembers.IsDefault);
-                Debug.Assert(!staticInitializers.IsDefault);
-                Debug.Assert(!instanceInitializers.IsDefault);
+                AssertInitializers(staticInitializers, compilation);
+                AssertInitializers(instanceInitializers, compilation);
 
                 Debug.Assert(!nonTypeMembers.Any(s => s is TypeSymbol));
                 Debug.Assert(recordDeclarationWithParameters is object == recordPrimaryConstructor is object);
@@ -2562,9 +2572,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.HaveIndexers = haveIndexers;
                 this.RecordDeclarationWithParameters = recordDeclarationWithParameters;
                 this.RecordPrimaryConstructor = recordPrimaryConstructor;
-                this.InstanceInitializersIndexForRecordDeclarationWithParameters = instanceInitializersIndexForRecordDeclarationWithParameters;
                 this.IsNullableEnabledForInstanceConstructorsAndFields = isNullableEnabledForInstanceConstructorsAndFields;
                 this.IsNullableEnabledForStaticConstructorsAndFields = isNullableEnabledForStaticConstructorsAndFields;
+            }
+
+            [Conditional("DEBUG")]
+            public static void AssertInitializers(ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers, CSharpCompilation compilation)
+            {
+                Debug.Assert(!initializers.IsDefault);
+                if (initializers.IsEmpty)
+                {
+                    return;
+                }
+
+                foreach (ImmutableArray<FieldOrPropertyInitializer> group in initializers)
+                {
+                    Debug.Assert(!group.IsDefaultOrEmpty);
+                }
+
+                for (int i = 0; i < initializers.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        Debug.Assert(LexicalSortKey.Compare(new LexicalSortKey(initializers[i - 1].First().Syntax, compilation), new LexicalSortKey(initializers[i].Last().Syntax, compilation)) < 0);
+                    }
+
+                    if (i + 1 < initializers.Length)
+                    {
+                        Debug.Assert(LexicalSortKey.Compare(new LexicalSortKey(initializers[i].First().Syntax, compilation), new LexicalSortKey(initializers[i + 1].Last().Syntax, compilation)) < 0);
+                    }
+
+                    if (initializers[i].Length != 1)
+                    {
+                        Debug.Assert(LexicalSortKey.Compare(new LexicalSortKey(initializers[i].First().Syntax, compilation), new LexicalSortKey(initializers[i].Last().Syntax, compilation)) < 0);
+                    }
+                }
             }
         }
 
@@ -2601,33 +2643,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> mergeInitializers()
                 {
-                    var groupCount = declaredMembers.InstanceInitializers.Length;
-                    var groupsBuilder = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance(groupCount);
-                    for (int i = 0; i < groupCount; i++)
-                    {
-                        var declaredInitializers = declaredMembers.InstanceInitializers[i];
-                        if (i == declaredMembers.InstanceInitializersIndexForRecordDeclarationWithParameters)
-                        {
-                            var insertedInitializers = InstanceInitializersForPositionalMembers;
-#if DEBUG
-                            if (declaredInitializers.Length > 0)
-                            {
-                                // initializers should be added in syntax order:
-                                Debug.Assert(insertedInitializers[insertedInitializers.Count - 1].Syntax.SyntaxTree == declaredInitializers[0].Syntax.SyntaxTree);
-                                Debug.Assert(insertedInitializers[insertedInitializers.Count - 1].Syntax.Span.Start < declaredInitializers[0].Syntax.Span.Start);
-                            }
-#endif
+                    Debug.Assert(InstanceInitializersForPositionalMembers.Count != 0);
+                    Debug.Assert(declaredMembers.RecordPrimaryConstructor is object);
+                    Debug.Assert(declaredMembers.RecordDeclarationWithParameters is object);
+                    Debug.Assert(declaredMembers.RecordDeclarationWithParameters.SyntaxTree == InstanceInitializersForPositionalMembers[0].Syntax.SyntaxTree);
+                    Debug.Assert(declaredMembers.RecordDeclarationWithParameters.Span.Contains(InstanceInitializersForPositionalMembers[0].Syntax.Span.Start));
 
-                            insertedInitializers.AddRange(declaredInitializers);
-                            groupsBuilder.Add(insertedInitializers.ToImmutableAndFree());
-                        }
-                        else
+                    var groupCount = declaredMembers.InstanceInitializers.Length;
+
+                    if (groupCount == 0)
+                    {
+                        return ImmutableArray.Create(InstanceInitializersForPositionalMembers.ToImmutableAndFree());
+                    }
+
+                    var compilation = declaredMembers.RecordPrimaryConstructor.DeclaringCompilation;
+                    var sortKey = new LexicalSortKey(InstanceInitializersForPositionalMembers.First().Syntax, compilation);
+
+                    int insertAt;
+
+                    for (insertAt = 0; insertAt < groupCount; insertAt++)
+                    {
+                        if (LexicalSortKey.Compare(sortKey, new LexicalSortKey(declaredMembers.InstanceInitializers[insertAt][0].Syntax, compilation)) < 0)
                         {
-                            groupsBuilder.Add(declaredInitializers);
+                            break;
                         }
                     }
 
-                    return groupsBuilder.ToImmutableAndFree();
+                    ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> groupsBuilder;
+
+                    if (insertAt != groupCount &&
+                        declaredMembers.RecordDeclarationWithParameters.SyntaxTree == declaredMembers.InstanceInitializers[insertAt][0].Syntax.SyntaxTree &&
+                        declaredMembers.RecordDeclarationWithParameters.Span.Contains(declaredMembers.InstanceInitializers[insertAt][0].Syntax.Span.Start))
+                    {
+                        // Need to merge into the previous group
+                        var declaredInitializers = declaredMembers.InstanceInitializers[insertAt];
+                        var insertedInitializers = InstanceInitializersForPositionalMembers;
+#if DEBUG
+                        // initializers should be added in syntax order:
+                        Debug.Assert(insertedInitializers[insertedInitializers.Count - 1].Syntax.SyntaxTree == declaredInitializers[0].Syntax.SyntaxTree);
+                        Debug.Assert(insertedInitializers[insertedInitializers.Count - 1].Syntax.Span.Start < declaredInitializers[0].Syntax.Span.Start);
+#endif
+
+                        insertedInitializers.AddRange(declaredInitializers);
+
+                        groupsBuilder = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance(groupCount);
+                        groupsBuilder.AddRange(declaredMembers.InstanceInitializers, insertAt);
+                        groupsBuilder.Add(insertedInitializers.ToImmutableAndFree());
+                        groupsBuilder.AddRange(declaredMembers.InstanceInitializers, insertAt + 1, groupCount - (insertAt + 1));
+                        Debug.Assert(groupsBuilder.Count == groupCount);
+                    }
+                    else
+                    {
+                        Debug.Assert(!declaredMembers.InstanceInitializers.Any(g => declaredMembers.RecordDeclarationWithParameters.SyntaxTree == g[0].Syntax.SyntaxTree &&
+                                                                                    declaredMembers.RecordDeclarationWithParameters.Span.Contains(g[0].Syntax.Span.Start)));
+                        groupsBuilder = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance(groupCount + 1);
+                        groupsBuilder.AddRange(declaredMembers.InstanceInitializers, insertAt);
+                        groupsBuilder.Add(InstanceInitializersForPositionalMembers.ToImmutableAndFree());
+                        groupsBuilder.AddRange(declaredMembers.InstanceInitializers, insertAt, groupCount - insertAt);
+                        Debug.Assert(groupsBuilder.Count == groupCount + 1);
+                    }
+
+                    var result = groupsBuilder.ToImmutableAndFree();
+
+                    DeclaredMembersAndInitializers.AssertInitializers(result, compilation);
+                    return result;
                 }
             }
 
@@ -2693,7 +2772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected virtual MembersAndInitializers? BuildMembersAndInitializers(DiagnosticBag diagnostics)
+        protected virtual MembersAndInitializers? BuildMembersAndInitializers(BindingDiagnosticBag diagnostics)
         {
             var declaredMembersAndInitializers = getDeclaredMembersAndInitializers();
             if (declaredMembersAndInitializers is null)
@@ -2729,7 +2808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 declaredMembersAndInitializers = buildDeclaredMembersAndInitializers(diagnostics);
 
                 var alreadyKnown = Interlocked.CompareExchange(ref _lazyDeclaredMembersAndInitializers, declaredMembersAndInitializers, DeclaredMembersAndInitializers.UninitializedSentinel);
@@ -2749,7 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // This should not attempt to bind any method parameters as that would cause
             // the members being built to be captured in the binder cache before the final
             // list of members is determined.
-            DeclaredMembersAndInitializers? buildDeclaredMembersAndInitializers(DiagnosticBag diagnostics)
+            DeclaredMembersAndInitializers? buildDeclaredMembersAndInitializers(BindingDiagnosticBag diagnostics)
             {
                 var builder = new DeclaredMembersAndInitializersBuilder();
                 AddDeclaredNontypeMembers(builder, diagnostics);
@@ -2787,11 +2866,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return builder.ToReadOnlyAndFree();
+                return builder.ToReadOnlyAndFree(DeclaringCompilation);
             }
         }
 
-        private void AddSynthesizedMembers(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, DiagnosticBag diagnostics)
+        private void AddSynthesizedMembers(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
             switch (TypeKind)
             {
@@ -2809,7 +2888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+        private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
         {
             foreach (var decl in this.declaration.Declarations)
             {
@@ -2838,26 +2917,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.NamespaceDeclaration:
                         // The members of a global anonymous type is in a syntax tree of a namespace declaration or a compilation unit.
-                        AddNonTypeMembers(builder, instanceInitializers: null, ((NamespaceDeclarationSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, ((NamespaceDeclarationSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.CompilationUnit:
-                        AddNonTypeMembers(builder, instanceInitializers: null, ((CompilationUnitSyntax)syntax).Members, diagnostics);
+                        AddNonTypeMembers(builder, ((CompilationUnitSyntax)syntax).Members, diagnostics);
                         break;
 
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
                         var typeDecl = (TypeDeclarationSyntax)syntax;
-                        AddNonTypeMembers(builder, instanceInitializers: null, typeDecl.Members, diagnostics);
+                        AddNonTypeMembers(builder, typeDecl.Members, diagnostics);
                         break;
 
                     case SyntaxKind.RecordDeclaration:
                         var recordDecl = (RecordDeclarationSyntax)syntax;
-                        AddNonTypeMembers(builder,
-                            instanceInitializers: noteRecordParameters(recordDecl, builder, diagnostics),
-                            recordDecl.Members,
-                            diagnostics);
+                        noteRecordParameters(recordDecl, builder, diagnostics);
+                        AddNonTypeMembers(builder, recordDecl.Members, diagnostics);
                         break;
 
                     default:
@@ -2865,12 +2942,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            ArrayBuilder<FieldOrPropertyInitializer>? noteRecordParameters(RecordDeclarationSyntax syntax, DeclaredMembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+            void noteRecordParameters(RecordDeclarationSyntax syntax, DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
             {
                 var parameterList = syntax.ParameterList;
                 if (parameterList is null)
                 {
-                    return null;
+                    return;
                 }
 
                 if (builder.RecordDeclarationWithParameters is null)
@@ -2885,15 +2962,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
                     }
-
-                    // Keep track of which instance initializers we'll want to update when we synthesize record properties
-                    builder.InstanceInitializersIndexForRecordDeclarationWithParameters = builder.InstanceInitializers.Count;
-                    return ArrayBuilder<FieldOrPropertyInitializer>.GetInstance();
                 }
                 else
                 {
                     diagnostics.Add(ErrorCode.ERR_MultipleRecordParameterLists, parameterList.Location);
-                    return null;
                 }
             }
         }
@@ -2905,7 +2977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void MergePartialMembers(
             ref Dictionary<string, ImmutableArray<Symbol>> membersByName,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var memberNames = ArrayBuilder<string>.GetInstance(membersByName.Count);
             memberNames.AddRange(membersByName.Keys);
@@ -3028,7 +3100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckForMemberConflictWithPropertyAccessor(
             PropertySymbol propertySymbol,
             bool getNotSet,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!propertySymbol.IsExplicitInterfaceImplementation); // checked by caller
 
@@ -3076,7 +3148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckForMemberConflictWithEventAccessor(
             EventSymbol eventSymbol,
             bool isAdder,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!eventSymbol.IsExplicitInterfaceImplementation); // checked by caller
 
@@ -3166,7 +3238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 eventSymbol.Type.Equals(methodParams[0].Type, TypeCompareKind.AllIgnoreOptions);
         }
 
-        private void AddEnumMembers(DeclaredMembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        private void AddEnumMembers(DeclaredMembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             // The previous enum constant used to calculate subsequent
             // implicit enum constants. (This is the most recent explicit
@@ -3230,7 +3302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckInterfaceMembers(ImmutableArray<Symbol> nonTypeMembers, DiagnosticBag diagnostics)
+        private static void CheckInterfaceMembers(ImmutableArray<Symbol> nonTypeMembers, BindingDiagnosticBag diagnostics)
         {
             foreach (var member in nonTypeMembers)
             {
@@ -3238,7 +3310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void CheckInterfaceMember(Symbol member, DiagnosticBag diagnostics)
+        private static void CheckInterfaceMember(Symbol member, BindingDiagnosticBag diagnostics)
         {
             switch (member.Kind)
             {
@@ -3293,7 +3365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void CheckForStructDefaultConstructors(
             ArrayBuilder<Symbol> members,
             bool isEnum,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             foreach (var s in members)
             {
@@ -3315,7 +3387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckForStructBadInitializers(DeclaredMembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
+        private void CheckForStructBadInitializers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(TypeKind == TypeKind.Struct);
 
@@ -3329,7 +3401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddSynthesizedRecordMembersIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, DiagnosticBag diagnostics)
+        private void AddSynthesizedRecordMembersIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
             if (declaration.Kind != DeclarationKind.Record)
             {
@@ -3364,7 +3436,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!(paramList is null))
             {
                 Debug.Assert(declaredMembersAndInitializers.RecordDeclarationWithParameters is object);
-                Debug.Assert(declaredMembersAndInitializers.InstanceInitializersIndexForRecordDeclarationWithParameters >= 0);
 
                 var ctor = declaredMembersAndInitializers.RecordPrimaryConstructor;
                 Debug.Assert(ctor is object);
@@ -3797,7 +3868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return thisEquals;
             }
 
-            void reportStaticOrNotOverridableAPIInRecord(Symbol symbol, DiagnosticBag diagnostics)
+            void reportStaticOrNotOverridableAPIInRecord(Symbol symbol, BindingDiagnosticBag diagnostics)
             {
                 if (!IsSealed &&
                     ((!symbol.IsAbstract && !symbol.IsVirtual && !symbol.IsOverride) || symbol.IsSealed))
@@ -3825,7 +3896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void AddSynthesizedConstructorsIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, DiagnosticBag diagnostics)
+        private void AddSynthesizedConstructorsIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
             //we're not calling the helpers on NamedTypeSymbol base, because those call
             //GetMembers and we're inside a GetMembers call ourselves (i.e. stack overflow)
@@ -3905,13 +3976,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddNonTypeMembers(
             DeclaredMembersAndInitializersBuilder builder,
-            ArrayBuilder<FieldOrPropertyInitializer>? instanceInitializers,
             SyntaxList<MemberDeclarationSyntax> members,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if (members.Count == 0)
             {
-                AddInitializers(builder.InstanceInitializers, instanceInitializers);
                 return;
             }
 
@@ -3919,6 +3988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var bodyBinder = this.GetBinder(firstMember);
 
             ArrayBuilder<FieldOrPropertyInitializer>? staticInitializers = null;
+            ArrayBuilder<FieldOrPropertyInitializer>? instanceInitializers = null;
             var compilation = DeclaringCompilation;
 
             foreach (var m in members)

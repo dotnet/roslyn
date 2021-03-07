@@ -9232,11 +9232,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">找不到符合內嵌 Interop 類型 '{0}' 的 Interop 類型。是否遺漏了組件參考?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">不支援傳址方式傳回類型 'ref {0}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">儲存在 '{1}' 中的模組名稱 '{0}'，必須符合其檔案名稱。</target>

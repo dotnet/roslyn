@@ -33,6 +33,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)EnforceOnBuild.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IDEDiagnosticIdToOptionMappingHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\AbstractConsecutiveStatementPlacementDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\AbstractMultipleBlankLinesDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractMatchFolderAndNamespaceDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\MatchFolderAndNamespaceConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RemoveRedundantEquality\AbstractRemoveRedundantEqualityDiagnosticAnalyzer.cs" />

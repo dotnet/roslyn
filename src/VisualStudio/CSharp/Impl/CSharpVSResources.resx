@@ -631,4 +631,13 @@
     <value>Add missing using directives on paste</value>
     <comment>'using' is a C# keyword and should not be localized</comment>
   </data>
+  <data name="Allow_embedded_statements_on_same_line" xml:space="preserve">
+    <value>Allow embedded statements on same line</value>
+  </data>
+  <data name="Allow_blank_lines_between_consecutive_braces" xml:space="preserve">
+    <value>Allow blank lines between consecutive braces</value>
+  </data>
+  <data name="Allow_bank_line_after_colon_in_constructor_initializer" xml:space="preserve">
+    <value>Allow blank line after colon in constructor initializer</value>
+  </data>
 </root>

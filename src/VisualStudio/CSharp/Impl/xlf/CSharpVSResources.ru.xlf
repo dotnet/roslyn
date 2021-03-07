@@ -7,6 +7,21 @@
         <target state="translated">Добавить недостающие директивы using при вставке</target>
         <note>'using' is a C# keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Allow_bank_line_after_colon_in_constructor_initializer">
+        <source>Allow blank line after colon in constructor initializer</source>
+        <target state="new">Allow blank line after colon in constructor initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_blank_lines_between_consecutive_braces">
+        <source>Allow blank lines between consecutive braces</source>
+        <target state="new">Allow blank lines between consecutive braces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_embedded_statements_on_same_line">
+        <source>Allow embedded statements on same line</source>
+        <target state="new">Allow embedded statements on same line</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
         <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
         <target state="translated">Применять все правила форматирования C# (отступ, перенос по словам, задание интервала)</target>

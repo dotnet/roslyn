@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal abstract class AbstractFormatDocumentHandlerBase<RequestType, ResponseType> : AbstractStatelessRequestHandler<RequestType, ResponseType>
     {
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         protected async Task<LSP.TextEdit[]> GetTextEditsAsync(RequestContext context, CancellationToken cancellationToken, LSP.Range? range = null)
         {

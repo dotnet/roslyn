@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {

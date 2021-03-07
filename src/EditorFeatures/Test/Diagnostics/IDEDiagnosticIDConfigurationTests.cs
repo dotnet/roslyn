@@ -421,6 +421,21 @@ dotnet_diagnostic.IDE0120.severity = %value%
 
 # IDE0130
 dotnet_diagnostic.IDE0130.severity = %value%
+
+# IDE2000
+dotnet_diagnostic.IDE2000.severity = %value%
+
+# IDE2001
+dotnet_diagnostic.IDE2001.severity = %value%
+
+# IDE2002
+dotnet_diagnostic.IDE2002.severity = %value%
+
+# IDE2003
+dotnet_diagnostic.IDE2003.severity = %value%
+
+# IDE2004
+dotnet_diagnostic.IDE2004.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -573,6 +588,12 @@ dotnet_diagnostic.IDE1008.severity = %value%
 
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
+
+# IDE2000
+dotnet_diagnostic.IDE2000.severity = %value%
+
+# IDE2003
+dotnet_diagnostic.IDE2003.severity = %value%
 ";
             VerifyConfigureSeverityCore(expected, LanguageNames.VisualBasic);
         }
@@ -955,14 +976,17 @@ csharp_style_prefer_not_pattern = true
 # IDE0090, ImplicitObjectCreationWhenTypeIsApparent
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 
+# IDE0100
+No editorconfig based code style option
+
 # IDE0110
 No editorconfig based code style option
 
 # IDE0120
 No editorconfig based code style option
 
-# IDE0100
-No editorconfig based code style option
+# IDE0130, PreferNamespaceAndFolderMatchStructure
+dotnet_style_namespace_match_folder = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
@@ -976,8 +1000,20 @@ No editorconfig based code style option
 # IDE1008
 No editorconfig based code style option
 
-# IDE0130, PreferNamespaceAndFolderMatchStructure
-dotnet_style_namespace_match_folder = true
+# IDE2000, AllowMultipleBlankLines
+dotnet_style_allow_multiple_blank_lines_experimental = true
+
+# IDE2001, AllowEmbeddedStatementsOnSameLine
+csharp_style_allow_embedded_statements_on_same_line_experimental = true
+
+# IDE2002, AllowBlankLinesBetweenConsecutiveBraces
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
+
+# IDE2003, AllowStatementImmediatelyAfterBlock
+dotnet_style_allow_statement_immediately_after_block_experimental = true
+
+# IDE2004, AllowBlankLineAfterColonInConstructorInitializer
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);
@@ -1172,6 +1208,12 @@ No editorconfig based code style option
 
 # IDE0120
 No editorconfig based code style option
+
+# IDE2000, AllowMultipleBlankLines
+dotnet_style_allow_multiple_blank_lines_experimental = true
+
+# IDE2003, AllowStatementImmediatelyAfterBlock
+dotnet_style_allow_statement_immediately_after_block_experimental = true
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.VisualBasic);

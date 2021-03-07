@@ -9232,11 +9232,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">Не удается найти тип взаимодействия, соответствующий внедренному типу взаимодействия "{0}". Возможно, отсутствует ссылка на сборку.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Возвращаемый тип By-reference "ref {0}" не поддерживается.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">Имя модуля "{0}", сохраненное в "{1}", должно соответствовать его имени файла.</target>

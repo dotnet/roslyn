@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override string Method => LSP.Methods.TextDocumentSignatureHelpName;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

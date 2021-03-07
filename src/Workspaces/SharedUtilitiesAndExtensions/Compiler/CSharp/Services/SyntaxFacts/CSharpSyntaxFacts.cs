@@ -1726,6 +1726,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 return ImmutableArray<SyntaxNode>.Empty;
         }
 
+        public bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is CastExpressionSyntax;
+
         public bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is CastExpressionSyntax;
 

@@ -13264,7 +13264,8 @@ expectedOutput: "-100");
                 emittingPdb: false,
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
-                diagnostics: diagnostics,
+                emitMethodBodies: true,
+                diagnostics: new BindingDiagnosticBag(diagnostics),
                 filterOpt: null,
                 entryPointOpt: null,
                 cancellationToken: CancellationToken.None);

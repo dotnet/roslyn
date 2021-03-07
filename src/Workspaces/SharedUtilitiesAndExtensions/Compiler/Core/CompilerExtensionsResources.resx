@@ -276,4 +276,7 @@
   <data name="Segment_size_must_be_power_of_2_greater_than_1" xml:space="preserve">
     <value>Segment size must be power of 2 greater than 1</value>
   </data>
+  <data name="New_line_preferences" xml:space="preserve">
+    <value>New line preferences</value>
+  </data>
 </root>
