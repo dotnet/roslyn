@@ -2177,5 +2177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
             => node is InterpolatedStringExpressionSyntax interpolatedString &&
                 interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+
+        public bool IsNamespaceMemberDeclaration(SyntaxNode node)
+            => SyntaxFacts.IsNamespaceMemberDeclaration(node.Kind());
     }
 }

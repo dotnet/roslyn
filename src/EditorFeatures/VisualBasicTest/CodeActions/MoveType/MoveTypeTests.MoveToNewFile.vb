@@ -314,5 +314,34 @@ end class
             Await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText)
         End Function
+
+        <WorkItem(51564, "https://github.com/dotnet/roslyn/issues/51564")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)>
+        Public Async Function TestMoveNestedClassWithoutDuplicatingMembers() As Task
+            Dim code = "
+Public Class Outer
+    Private i As Integer
+
+    [||]Public Class Inner
+    End Class
+End Class
+"
+            Dim codeAfterMove = "
+Partial Public Class Outer
+    Private i As Integer
+End Class
+"
+
+            Dim expectedDocumentName = "Inner.vb"
+            Dim destinationDocumentText = "
+Partial Public Class Outer
+    Public Class Inner
+    End Class
+End Class
+"
+
+            Await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText)
+        End Function
     End Class
 End Namespace
