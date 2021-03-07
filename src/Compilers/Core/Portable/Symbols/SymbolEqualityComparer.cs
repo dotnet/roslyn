@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis
     public sealed class SymbolEqualityComparer : IEqualityComparer<ISymbol?>
     {
         /// <summary>
-        /// Compares two <see cref="ISymbol"/> instances based on the default comparison rules, equivalent to calling <see cref="IEquatable{ISymbol}.Equals(ISymbol)"/>
+        /// Compares two <see cref="ISymbol"/> instances based on the default comparison rules, equivalent to calling <see cref="IEquatable{ISymbol}.Equals(ISymbol)"/>.
         /// </summary>
         public static readonly SymbolEqualityComparer Default = new SymbolEqualityComparer(TypeCompareKind.AllNullableIgnoreOptions);
 
         /// <summary>
-        /// Compares  two <see cref="ISymbol"/> instances, considering their nullability
+        /// Compares  two <see cref="ISymbol"/> instances, considering that a reference type and the same nullable reference type are not equal.
         /// </summary>
         public static readonly SymbolEqualityComparer IncludeNullability = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything2); //TODO: should this be explicitly *not* compare everything
 
