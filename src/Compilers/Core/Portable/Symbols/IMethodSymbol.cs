@@ -219,12 +219,14 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         SignatureCallingConvention CallingConvention { get; }
 
+#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved - our TFM doesn't contain this enum member which was introduced in .NET 5.0
         /// <summary>
         /// Modifier types that are considered part of the calling convention of this method, if the <see cref="MethodKind"/> is <see cref="MethodKind.FunctionPointerSignature"/>
         /// and the <see cref="CallingConvention"/> is <see cref="SignatureCallingConvention.Unmanaged"/>. If this is not a function pointer signature or the calling convention is
         /// not unmanaged, this is an empty array. Order and duplication of these modifiers reflect source/metadata order and duplication, whichever this symbol came from.
         /// </summary>
         ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes { get; }
+#pragma warning restore CS1574 // XML comment has cref attribute that could not be resolved
 
         /// <summary>
         /// Returns a symbol (e.g. property, event, etc.) associated with the method.

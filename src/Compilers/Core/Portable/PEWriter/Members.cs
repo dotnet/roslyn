@@ -18,6 +18,17 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 namespace Microsoft.Cci
 {
     /// <summary>
+    /// Lists SignatureCallingConvention members that are not available in our TFMs.
+    /// We don't want to have a dependency on System.Reflection NuGet package due to:
+    /// https://github.com/dotnet/roslyn/issues/50832
+    /// </summary>
+    internal enum SignatureCallingConventionEx : byte
+    {
+        // https://github.com/dotnet/runtime/blob/79ae74f5ca5c8a6fe3a48935e85bd7374959c570/src/libraries/System.Reflection.Metadata/src/System/Reflection/Metadata/Signatures/SignatureCallingConvention.cs#L46
+        Unmanaged = 0x9,
+    }
+
+    /// <summary>
     /// Specifies how the caller passes parameters to the callee and who cleans up the stack.
     /// </summary>
     [Flags]
@@ -58,7 +69,7 @@ namespace Microsoft.Cci
         /// Extensible calling convention protocol. This represents either the union of calling convention modopts after the paramcount specifier
         /// in IL, or platform default if none are present
         /// </summary>
-        Unmanaged = SignatureCallingConvention.Unmanaged,
+        Unmanaged = (int)SignatureCallingConventionEx.Unmanaged,
 
         /// <summary>
         /// The convention for calling a generic method.
@@ -85,7 +96,7 @@ namespace Microsoft.Cci
             | SignatureCallingConvention.ThisCall
             | SignatureCallingConvention.FastCall
             | SignatureCallingConvention.VarArgs
-            | SignatureCallingConvention.Unmanaged;
+            | (SignatureCallingConvention)SignatureCallingConventionEx.Unmanaged;
 
         private const SignatureAttributes SignatureAttributesMask =
             SignatureAttributes.Generic
@@ -103,7 +114,7 @@ namespace Microsoft.Cci
         }
 
         internal static bool IsValid(this SignatureCallingConvention convention)
-            => convention <= SignatureCallingConvention.VarArgs || convention == SignatureCallingConvention.Unmanaged;
+            => convention <= SignatureCallingConvention.VarArgs || convention == (SignatureCallingConvention)SignatureCallingConventionEx.Unmanaged;
 
         internal static SignatureCallingConvention ToSignatureConvention(this CallingConvention convention)
             => (SignatureCallingConvention)convention & SignatureCallingConventionMask;
