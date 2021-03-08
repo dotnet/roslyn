@@ -102,18 +102,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private async Task<ConcurrentSet<ISymbol>> DetermineAllSymbolsAsync(
-            ISymbol symbol)
+            ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)
         {
             using (Logger.LogBlock(FunctionId.FindReference_DetermineAllSymbolsAsync, _cancellationToken))
             {
                 var result = new ConcurrentSet<ISymbol>(MetadataUnifyingEquivalenceComparer.Instance);
-                await DetermineAllSymbolsCoreAsync(symbol, result).ConfigureAwait(false);
+                await DetermineAllSymbolsCoreAsync(symbol, cascadeDirection, result).ConfigureAwait(false);
                 return result;
             }
         }
 
         private async Task DetermineAllSymbolsCoreAsync(
-            ISymbol symbol, ConcurrentSet<ISymbol> result)
+            ISymbol symbol, FindReferencesCascadeDirection cascadeDirection, ConcurrentSet<ISymbol> result)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         using var _ = ArrayBuilder<Task>.GetInstance(out var symbolTasks);
 
                         var symbols = await f.DetermineCascadedSymbolsAsync(
-                            searchSymbol, _solution, projects, _options, _cancellationToken).ConfigureAwait(false);
+                            searchSymbol, _solution, projects, _options, cascadeDirection, _cancellationToken).ConfigureAwait(false);
                         AddSymbolTasks(result, symbols, symbolTasks);
 
                         // Defer to the language to see if it wants to cascade here in some special way.
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         if (symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>() is { } service)
                         {
                             symbols = await service.DetermineCascadedSymbolsAsync(
-                                searchSymbol, symbolProject, _cancellationToken).ConfigureAwait(false);
+                                searchSymbol, symbolProject, cascadeDirection, _cancellationToken).ConfigureAwait(false);
                             AddSymbolTasks(result, symbols, symbolTasks);
                         }
 
@@ -168,17 +168,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private void AddSymbolTasks(
             ConcurrentSet<ISymbol> result,
-            ImmutableArray<ISymbol> symbols,
+            ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)> symbols,
             ArrayBuilder<Task> symbolTasks)
         {
             if (!symbols.IsDefault)
             {
-                foreach (var child in symbols)
+                foreach (var (symbol, cascadeDirection) in symbols)
                 {
-                    Contract.ThrowIfNull(child);
+                    Contract.ThrowIfNull(symbol);
                     _cancellationToken.ThrowIfCancellationRequested();
+
+                    // If we're cascading unidirectionally, then keep going in the direction this symbol was found in.
+                    // Otherwise, if we're not unidirectional, then continue to cascade in both directions with this
+                    // symbol.
+                    var finalDirection = _options.UnidirectionalHierarchyCascade
+                        ? cascadeDirection
+                        : FindReferencesCascadeDirection.UpAndDown;
                     symbolTasks.Add(Task.Factory.StartNew(
-                        () => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
+                        () => DetermineAllSymbolsCoreAsync(symbol, finalDirection, result), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
                 }
             }
         }

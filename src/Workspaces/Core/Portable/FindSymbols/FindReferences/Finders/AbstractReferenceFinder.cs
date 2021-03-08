@@ -26,9 +26,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public const string ContainingTypeInfoPropertyName = "ContainingTypeInfo";
         public const string ContainingMemberInfoPropertyName = "ContainingMemberInfo";
 
-        public abstract Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        public abstract Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken);
+            FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
+            CancellationToken cancellationToken);
 
         public abstract Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project>? projects, CancellationToken cancellationToken);
 
@@ -932,20 +933,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
 
-        public override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        public override Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
+            CancellationToken cancellationToken)
         {
             if (options.Cascade &&
                 symbol is TSymbol typedSymbol &&
                 CanFind(typedSymbol))
             {
                 return DetermineCascadedSymbolsAsync(
-                    typedSymbol,
-                    solution, projects, options, cancellationToken);
+                    typedSymbol, solution, projects, options, cascadeDirection, cancellationToken);
             }
 
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>();
         }
 
         protected virtual Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(
@@ -955,11 +956,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 solution, symbol, projects, cancellationToken);
         }
 
-        protected virtual Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected virtual Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             TSymbol symbol, Solution solution, IImmutableSet<Project>? projects,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
+            CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            return SpecializedTasks.EmptyImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>();
         }
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentUsingSymbolNameAsync(

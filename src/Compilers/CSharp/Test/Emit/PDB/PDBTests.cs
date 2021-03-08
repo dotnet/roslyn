@@ -183,6 +183,7 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
+                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
@@ -215,6 +216,7 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
+                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
@@ -247,6 +249,7 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
+                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
@@ -279,6 +282,7 @@ public class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
+                useRawWin32Resources: false,
                 manifestResources: null,
                 options: null,
                 debugEntryPoint: null,
@@ -609,7 +613,7 @@ class C {{ public static void Main() => System.Console.WriteLine(@""{verbatim}""
 ", format: DebugInformationFormat.PortablePdb);
 
             // Native PDBs only support spans with line delta <= 127 (7 bit)
-            // https://github.com/Microsoft/microsoft-pdb/blob/master/include/cvinfo.h#L4621
+            // https://github.com/Microsoft/microsoft-pdb/blob/main/include/cvinfo.h#L4621
             c.VerifyPdb("C.Main", @"
 <symbols>
   <files>

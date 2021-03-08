@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 if (ctor.Initializer != null)
                 {
-                    bodyTokens = ctor.Initializer.DescendantTokens().Concat(bodyTokens);
+                    bodyTokens = ctor.Initializer.DescendantTokens().Concat(bodyTokens ?? Enumerable.Empty<SyntaxToken>());
                 }
             }
 

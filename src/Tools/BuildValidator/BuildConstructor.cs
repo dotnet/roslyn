@@ -40,7 +40,7 @@ namespace BuildValidator
             _logger = logger;
         }
 
-        public Compilation? CreateCompilation(CompilationOptionsReader compilationOptionsReader, string fileName)
+        public (Compilation? compilation, bool isError) CreateCompilation(CompilationOptionsReader compilationOptionsReader, string fileName)
         {
             // We try to handle assemblies missing compilation options gracefully by skipping them.
             // However, if an assembly has some bad combination of data, for example if it contains
@@ -49,7 +49,7 @@ namespace BuildValidator
                 || pdbCompilationOptions.Length == 0)
             {
                 _logger.LogInformation($"{fileName} did not contain compilation options in its PDB");
-                return null;
+                return (compilation: null, isError: false);
             }
 
             var metadataReferenceInfos = compilationOptionsReader.GetMetadataReferences();
@@ -57,7 +57,11 @@ namespace BuildValidator
             var sourceFileInfos = compilationOptionsReader.GetSourceFileInfos(encoding);
 
             _logger.LogInformation("Locating metadata references");
-            var metadataReferences = _referenceResolver.ResolveReferences(metadataReferenceInfos);
+            if (!_referenceResolver.TryResolveReferences(metadataReferenceInfos, out var metadataReferences))
+            {
+                _logger.LogError($"Failed to rebuild {fileName} due to missing metadata references");
+                return (compilation: null, isError: true);
+            }
             logResolvedMetadataReferences();
 
             var sourceLinks = ResolveSourceLinks(compilationOptionsReader);
@@ -89,7 +93,8 @@ namespace BuildValidator
                     }
                 }
 
-                return hadError ? null : compilation;
+                compilation = hadError ? null : compilation;
+                return (compilation, isError: compilation is null);
             }
 
             throw new InvalidDataException("Did not find language in compilation options");

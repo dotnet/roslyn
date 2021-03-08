@@ -33,8 +33,8 @@ try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
 
-  # Verify no PROTOTYPE marker left in master
-  if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "master") {
+  # Verify no PROTOTYPE marker left in main
+  if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
     Write-Host "Checking no PROTOTYPE markers in compiler source"
     $prototypes = Get-ChildItem -Path src/Compilers/*.cs, src/Compilers/*.vb,src/Compilers/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
     if ($prototypes) {
