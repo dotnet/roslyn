@@ -4,15 +4,16 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Xunit;
 
 namespace Roslyn.Test.Utilities.TestGenerators
 {
-    internal class SingleFileArtifactProducer : IArtifactProducer
+    [DiagnosticAnalyzer(LanguageNames.CSharp), ArtifactProducer]
+    internal class SingleFileArtifactProducer : DiagnosticAnalyzer
     {
         private readonly string _content;
         private readonly string _hintName;
@@ -23,15 +24,86 @@ namespace Roslyn.Test.Utilities.TestGenerators
             _hintName = hintName;
         }
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
 
-        public void Initialize(AnalysisContext context, ArtifactContext artifactContext)
+        public override void Initialize(AnalysisContext context)
         {
+            Assert.True(context.TryGetArtifactContext(out var artifactContext));
             context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext));
         }
 
         private void AnalyzeCompilation(CompilationAnalysisContext context, ArtifactContext artifactContext)
         {
+            artifactContext.WriteArtifact(this._hintName, SourceText.From(_content, Encoding.UTF8));
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    internal class DiagnosticAnalyzerWithoutArtifactProducerAttribute : DiagnosticAnalyzer
+    {
+        private readonly string _content;
+        private readonly string _hintName;
+
+        public DiagnosticAnalyzerWithoutArtifactProducerAttribute(string content, string hintName = "generatedFile")
+        {
+            _content = content;
+            _hintName = hintName;
+        }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(new DiagnosticDescriptor("TEST0000", "Title", "Message", "Category", DiagnosticSeverity.Error, isEnabledByDefault: true));
+
+        public override void Initialize(AnalysisContext context)
+        {
+            Assert.True(context.TryGetArtifactContext(out var artifactContext));
+            context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext));
+        }
+
+        private void AnalyzeCompilation(CompilationAnalysisContext context, ArtifactContext artifactContext)
+        {
+            artifactContext.WriteArtifact(this._hintName, SourceText.From(_content, Encoding.UTF8));
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp), ArtifactProducer]
+    internal class DiagnosticAnalyzerWithoutCommandLineArgGetsNoContext : DiagnosticAnalyzer
+    {
+        private readonly string _content;
+        private readonly string _hintName;
+
+        public DiagnosticAnalyzerWithoutCommandLineArgGetsNoContext(string content, string hintName = "generatedFile")
+        {
+            _content = content;
+            _hintName = hintName;
+        }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(new DiagnosticDescriptor("TEST0000", "Title", "Message", "Category", DiagnosticSeverity.Error, isEnabledByDefault: true));
+
+        public override void Initialize(AnalysisContext context)
+        {
+            Assert.False(context.TryGetArtifactContext(out var artifactContext));
+        }
+    }
+
+    [DiagnosticAnalyzer(LanguageNames.CSharp), ArtifactProducer]
+    internal class DiagnosticAnalyzerWithoutCommandLineArgThrowsWhenUsingContext : DiagnosticAnalyzer
+    {
+        private readonly string _content;
+        private readonly string _hintName;
+
+        public DiagnosticAnalyzerWithoutCommandLineArgThrowsWhenUsingContext(string content, string hintName = "generatedFile")
+        {
+            _content = content;
+            _hintName = hintName;
+        }
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(new DiagnosticDescriptor("TEST0000", "Title", "Message", "Category", DiagnosticSeverity.Error, isEnabledByDefault: true));
+
+        public override void Initialize(AnalysisContext context)
+        {
+            Assert.False(context.TryGetArtifactContext(out var artifactContext));
             artifactContext.WriteArtifact(this._hintName, SourceText.From(_content, Encoding.UTF8));
         }
     }
@@ -43,7 +115,8 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
-    internal class CallbackArtifactProducer : IArtifactProducer
+    [DiagnosticAnalyzer(LanguageNames.CSharp), ArtifactProducer]
+    internal class CallbackArtifactProducer : DiagnosticAnalyzer
     {
         private readonly Action<AnalysisContext> _onInit;
         private readonly Action<CompilationAnalysisContext> _onExecute;
@@ -56,11 +129,13 @@ namespace Roslyn.Test.Utilities.TestGenerators
             _source = source;
         }
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
 
-        public void Initialize(AnalysisContext context, ArtifactContext artifactContext)
+        public override void Initialize(AnalysisContext context)
         {
             _onInit(context);
+
+            Assert.True(context.TryGetArtifactContext(out var artifactContext));
             context.RegisterCompilationAction(c => Execute(c, artifactContext));
         }
 
@@ -81,7 +156,8 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
-    internal class DoNotCloseStreamArtifactProducer : IArtifactProducer
+    [DiagnosticAnalyzer(LanguageNames.CSharp), ArtifactProducer]
+    internal class DoNotCloseStreamArtifactProducer : DiagnosticAnalyzer
     {
         private readonly string _content;
         private readonly string _hintName;
@@ -92,10 +168,11 @@ namespace Roslyn.Test.Utilities.TestGenerators
             _hintName = hintName;
         }
 
-        public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
 
-        public void Initialize(AnalysisContext context, ArtifactContext artifactContext)
+        public override void Initialize(AnalysisContext context)
         {
+            Assert.True(context.TryGetArtifactContext(out var artifactContext));
             context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext));
         }
 

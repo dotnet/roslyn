@@ -297,14 +297,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            if (analyzer.GetType().CustomAttributes.Any(c => c.AttributeType == typeof(ArtifactProducerAttribute)))
+            var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
+
+            if (analyzer.GetType().GetCustomAttributes(typeof(ArtifactProducerAttribute), inherit: true).Length > 0 &&
+                supportedDiagnostics.Length == 0)
             {
-                // artifact producers only run if we're generating output files to disk (and thus have an artifact
-                // stream). Otherwise they are suppressed as there's no purpose running them.
+                // If we're an artifact producer and we both don't ever produce diagnostics *and* we're can't write to
+                // disk, then we're definitely suppressed as we can have no impact on the system at all.
                 return analyzerExecutor.CreateArtifactStream == null;
             }
 
-            var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
             analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
 

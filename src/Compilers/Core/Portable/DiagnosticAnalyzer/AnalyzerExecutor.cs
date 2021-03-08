@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope)
         {
-            var artifactContext = analyzer.GetType().GetCustomAttributes(typeof(ArtifactProducerAttribute), true).Length > 0
+            var artifactContext = analyzer.GetType().GetCustomAttributes(typeof(ArtifactProducerAttribute), inherit: true).Length > 0
                     ? new ArtifactContext(CreateArtifactStream)
                     : (ArtifactContext?)null;
 
