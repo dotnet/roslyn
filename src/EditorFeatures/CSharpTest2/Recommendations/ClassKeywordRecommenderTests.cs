@@ -346,5 +346,12 @@ using Bar;"));
 @"class C {
     new $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRecord()
+        {
+            await VerifyKeywordAsync(
+@"record $$");
+        }
     }
 }
