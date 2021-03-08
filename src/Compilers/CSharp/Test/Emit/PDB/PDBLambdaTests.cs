@@ -1381,5 +1381,93 @@ class C
 }
 ", sequencePoints: "C+<>c.<F>b__0_0");
         }
+
+        [Fact]
+        public void WithExpression()
+        {
+            var source = MarkedSource(WithWindowsLineBreaks(@"
+using System;
+record R(int X);
+
+class Test
+{
+    public static void M(int a)
+    <M><C:0>{
+        var x = new R(1);
+        var y = x with
+        {
+            X = new Func<int>(() => <L:0.0>a)()
+        };
+    }
+}
+"), removeTags: true); // We're validating offsets so need to remove tags entirely
+
+            // Use NetCoreApp in order to use records
+            var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            compilation.VerifyPdbLambdasAndClosures(source);
+        }
+
+        [Fact]
+        public void WithExpression_2()
+        {
+            var source = MarkedSource(WithWindowsLineBreaks(@"
+using System;
+record R(int X, int Y);
+
+class Test
+{
+    public static void M(int a)
+    <M><C:0>{
+        var x = new R(1, 2);
+        var b = 1;
+        var y = x with
+        {
+            X = new Func<int>(() => <L:0.0>a)(),
+            Y = new Func<int>(() => <L:1.0>b)()
+        };
+    }
+}
+"), removeTags: true); // We're validating offsets so need to remove tags entirely
+
+            // Use NetCoreApp in order to use records
+            var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            compilation.VerifyPdbLambdasAndClosures(source);
+        }
+
+        [Fact]
+        public void WithExpression_3()
+        {
+            var source = MarkedSource(WithWindowsLineBreaks(@"
+using System;
+record R(int X, int Y);
+record Z(int A, R R);
+
+class Test
+{
+    public static void M(int a)
+    <M><C:0>{
+        var r = new R(1, 2);
+        var x = new Z(1, new R(2, 3));
+        var b = 1;
+        var y = x with
+        {
+            A = new Func<int>(() => <L:0.0>a)(),
+            R = r with
+            {
+                X = 4,
+                Y = new Func<int>(() => <L:1.0>b)()
+            }
+        };
+    }
+}
+"), removeTags: true); // We're validating offsets so need to remove tags entirely
+
+            // Use NetCoreApp in order to use records
+            var compilation = CreateCompilation(source.Tree, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
+
+            compilation.VerifyPdbLambdasAndClosures(source);
+        }
     }
 }
