@@ -1,0 +1,19 @@
+<UserControl x:Class="Roslyn.ComponentDebugger.DebuggerOptions"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="Auto"
+             HorizontalAlignment="Left"
+             VerticalAlignment="Top">
+    <Grid Margin="0,2,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="158" />
+            <ColumnDefinition Width="350" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <!-- https://github.com/dotnet/roslyn-sdk/issues/730 : Localization -->
+        <Label Margin="4,4,3,5">Target Project:</Label>
+        <ComboBox Grid.Column="1" Margin="5,7,2,6" ItemsSource="{Binding ProjectNames}" SelectedIndex="{Binding SelectedProjectIndex, Mode=TwoWay}" />
+    </Grid>
+</UserControl>

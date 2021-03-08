@@ -30,6 +30,7 @@
     <Asset Type="Microsoft.VisualStudio.ItemTemplate" Path="VBRefactoring"/>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Roslyn.SyntaxVisualizer.Extension" Path="|Roslyn.SyntaxVisualizer.Extension;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Roslyn.ComponentDebugger" Path="|Roslyn.ComponentDebugger|" />
   </Assets>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
