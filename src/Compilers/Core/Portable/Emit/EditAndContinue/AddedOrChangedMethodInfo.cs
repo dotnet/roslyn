@@ -2,15 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
-    internal struct AddedOrChangedMethodInfo
+    internal readonly struct AddedOrChangedMethodInfo
     {
         public readonly DebugId MethodId;
 
@@ -22,67 +21,77 @@ namespace Microsoft.CodeAnalysis.Emit
         public readonly ImmutableArray<ClosureDebugInfo> ClosureDebugInfo;
 
         // state machines:
-        public readonly string StateMachineTypeNameOpt;
+        public readonly string? StateMachineTypeName;
         public readonly ImmutableArray<EncHoistedLocalInfo> StateMachineHoistedLocalSlotsOpt;
-        public readonly ImmutableArray<Cci.ITypeReference> StateMachineAwaiterSlotsOpt;
+        public readonly ImmutableArray<Cci.ITypeReference?> StateMachineAwaiterSlotsOpt;
 
         public AddedOrChangedMethodInfo(
             DebugId methodId,
             ImmutableArray<EncLocalInfo> locals,
             ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
             ImmutableArray<ClosureDebugInfo> closureDebugInfo,
-            string stateMachineTypeNameOpt,
+            string? stateMachineTypeName,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlotsOpt,
-            ImmutableArray<Cci.ITypeReference> stateMachineAwaiterSlotsOpt)
+            ImmutableArray<Cci.ITypeReference?> stateMachineAwaiterSlotsOpt)
         {
             // An updated method will carry its id over,
             // an added method id has generation set to the current generation ordinal.
             Debug.Assert(methodId.Generation >= 0);
 
             // each state machine has to have awaiters:
-            Debug.Assert(stateMachineAwaiterSlotsOpt.IsDefault == (stateMachineTypeNameOpt == null));
+            Debug.Assert(stateMachineAwaiterSlotsOpt.IsDefault == (stateMachineTypeName == null));
 
             // a state machine might not have hoisted variables:
-            Debug.Assert(stateMachineHoistedLocalSlotsOpt.IsDefault || (stateMachineTypeNameOpt != null));
+            Debug.Assert(stateMachineHoistedLocalSlotsOpt.IsDefault || (stateMachineTypeName != null));
 
-            this.MethodId = methodId;
-            this.Locals = locals;
-            this.LambdaDebugInfo = lambdaDebugInfo;
-            this.ClosureDebugInfo = closureDebugInfo;
-            this.StateMachineTypeNameOpt = stateMachineTypeNameOpt;
-            this.StateMachineHoistedLocalSlotsOpt = stateMachineHoistedLocalSlotsOpt;
-            this.StateMachineAwaiterSlotsOpt = stateMachineAwaiterSlotsOpt;
+            MethodId = methodId;
+            Locals = locals;
+            LambdaDebugInfo = lambdaDebugInfo;
+            ClosureDebugInfo = closureDebugInfo;
+            StateMachineTypeName = stateMachineTypeName;
+            StateMachineHoistedLocalSlotsOpt = stateMachineHoistedLocalSlotsOpt;
+            StateMachineAwaiterSlotsOpt = stateMachineAwaiterSlotsOpt;
         }
 
         public AddedOrChangedMethodInfo MapTypes(SymbolMatcher map)
         {
-            var mappedLocals = ImmutableArray.CreateRange(this.Locals, MapLocalInfo, map);
-            var mappedHoistedLocalSlots = StateMachineHoistedLocalSlotsOpt.IsDefault ? StateMachineHoistedLocalSlotsOpt : ImmutableArray.CreateRange(StateMachineHoistedLocalSlotsOpt, MapHoistedLocalSlot, map);
-            var mappedAwaiterSlots = StateMachineAwaiterSlotsOpt.IsDefault ? StateMachineAwaiterSlotsOpt : ImmutableArray.CreateRange(StateMachineAwaiterSlotsOpt, map.MapReference);
+            var mappedLocals = ImmutableArray.CreateRange(Locals, MapLocalInfo, map);
 
-            return new AddedOrChangedMethodInfo(this.MethodId, mappedLocals, LambdaDebugInfo, ClosureDebugInfo, StateMachineTypeNameOpt, mappedHoistedLocalSlots, mappedAwaiterSlots);
+            var mappedHoistedLocalSlots = StateMachineHoistedLocalSlotsOpt.IsDefault ? default :
+                ImmutableArray.CreateRange(StateMachineHoistedLocalSlotsOpt, MapHoistedLocalSlot, map);
+
+            var mappedAwaiterSlots = StateMachineAwaiterSlotsOpt.IsDefault ? default :
+                ImmutableArray.CreateRange(StateMachineAwaiterSlotsOpt, static (typeRef, map) => (typeRef is null) ? null : map.MapReference(typeRef), map);
+
+            return new AddedOrChangedMethodInfo(MethodId, mappedLocals, LambdaDebugInfo, ClosureDebugInfo, StateMachineTypeName, mappedHoistedLocalSlots, mappedAwaiterSlots);
         }
 
         private static EncLocalInfo MapLocalInfo(EncLocalInfo info, SymbolMatcher map)
         {
             Debug.Assert(!info.IsDefault);
-            if (info.IsUnused)
+            if (info.Type is null)
             {
                 Debug.Assert(info.Signature != null);
                 return info;
             }
 
-            return new EncLocalInfo(info.SlotInfo, map.MapReference(info.Type), info.Constraints, info.Signature);
+            var typeRef = map.MapReference(info.Type);
+            RoslynDebug.AssertNotNull(typeRef);
+
+            return new EncLocalInfo(info.SlotInfo, typeRef, info.Constraints, info.Signature);
         }
 
         private static EncHoistedLocalInfo MapHoistedLocalSlot(EncHoistedLocalInfo info, SymbolMatcher map)
         {
-            if (info.IsUnused)
+            if (info.Type is null)
             {
                 return info;
             }
 
-            return new EncHoistedLocalInfo(info.SlotInfo, map.MapReference(info.Type));
+            var typeRef = map.MapReference(info.Type);
+            RoslynDebug.AssertNotNull(typeRef);
+
+            return new EncHoistedLocalInfo(info.SlotInfo, typeRef);
         }
     }
 }
