@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-            var expected = await CreateCompletionItemAsync("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
-                completionParams, document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters).ConfigureAwait(false);
+            var expected = await CreateCompletionItemAsync(label: "A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
+                completionParams, document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters, insertText: "A").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -119,7 +119,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
-                completionParams, document, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{', ';', '.')).ConfigureAwait(false);
+                completionParams, document, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{', ';', '.'),
+                insertText: "A").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -177,13 +178,14 @@ class A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync(
-                "d", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, sortText: "0000").ConfigureAwait(false);
+                label: "d", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, insertText: "d", sortText: "0000").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
         }
 
         [Fact]
+        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsAsync()
         {
             var markup =
@@ -192,28 +194,73 @@ class A
 {
     void M()
     {
-        new Regex(""\\{|caret:|}"");
+        new Regex(""{|caret:|}"");
     }
 }";
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var completionParams = CreateCompletionParams(
                 locations["caret"].Single(),
-                invokeKind: LSP.VSCompletionInvokeKind.Typing,
-                triggerCharacter: "\\",
-                triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+                invokeKind: LSP.VSCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
 
-            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+            var solution = testLspServer.GetCurrentSolution();
+            var document = solution.Projects.First().Documents.First();
+
+            // Set to use prototype completion behavior (i.e. feature flag).
+            var options = solution.Workspace.Options.WithChangedOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, LanguageNames.CSharp, true);
+            Assert.True(solution.Workspace.TryApplyChanges(solution.WithOptions(options)));
+
+            var textEdit = GenerateTextEdit(@"\\A", startLine: 5, startChar: 19, endLine: 5, endChar: 19);
 
             var expected = await CreateCompletionItemAsync(
-                "\\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, sortText: "0000").ConfigureAwait(false);
+                label: @"\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, textEdit: textEdit,
+                sortText: "0000").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
         }
 
         [Fact]
-        [WorkItem(47743, "https://github.com/dotnet/roslyn/issues/47743")]
-        public async Task TestGetRegexCompletionsTargetTypedAsync()
+        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        public async Task TestGetRegexLiteralCompletionsAsync()
+        {
+            var markup =
+@"using System.Text.RegularExpressions;
+class A
+{
+    void M()
+    {
+        new Regex(@""\{|caret:|}"");
+    }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(),
+                invokeKind: LSP.VSCompletionInvokeKind.Explicit,
+                triggerCharacter: "\\",
+                triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+
+            var solution = testLspServer.GetCurrentSolution();
+            var document = solution.Projects.First().Documents.First();
+
+            // Set to use prototype completion behavior (i.e. feature flag).
+            var options = solution.Workspace.Options.WithChangedOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, LanguageNames.CSharp, true);
+            Assert.True(solution.Workspace.TryApplyChanges(solution.WithOptions(options)));
+
+            var textEdit = GenerateTextEdit(@"\A", startLine: 5, startChar: 20, endLine: 5, endChar: 21);
+
+            var expected = await CreateCompletionItemAsync(
+                label: @"\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, textEdit: textEdit,
+                sortText: "0000").ConfigureAwait(false);
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            AssertJsonEquals(expected, results.Items.First());
+        }
+
+        [Fact]
+        [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
+        public async Task TestGetRegexCompletionsReplaceTextAsync()
         {
             var markup =
 @"using System.Text.RegularExpressions;
@@ -231,10 +278,18 @@ class A
                 triggerCharacter: "\\",
                 triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
 
-            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+            var solution = testLspServer.GetCurrentSolution();
+            var document = solution.Projects.First().Documents.First();
+
+            // Set to use prototype completion behavior (i.e. feature flag).
+            var options = solution.Workspace.Options.WithChangedOption(CompletionOptions.ForceRoslynLSPCompletionExperiment, LanguageNames.CSharp, true);
+            Assert.True(solution.Workspace.TryApplyChanges(solution.WithOptions(options)));
+
+            var textEdit = GenerateTextEdit(@"\\A", startLine: 5, startChar: 23, endLine: 5, endChar: 25);
 
             var expected = await CreateCompletionItemAsync(
-                "\\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, sortText: "0000").ConfigureAwait(false);
+                label: @"\A", LSP.CompletionItemKind.Text, new string[] { "Text" }, completionParams, document, textEdit: textEdit,
+                sortText: "0000").ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -331,6 +386,60 @@ class A
 
             // By default, completion doesn't trigger on deletion.
             Assert.Null(results);
+        }
+
+        [Fact]
+        public async Task TestDoNotProvideOverrideTextEditsOrInsertTextAsync()
+        {
+            var markup =
+@"abstract class A
+{
+    public abstract void M();
+}
+
+class B : A
+{
+    override {|caret:|}
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(),
+                invokeKind: LSP.VSCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Null(results.Items.First().TextEdit);
+            Assert.Null(results.Items.First().InsertText);
+        }
+
+        [Fact]
+        public async Task TestDoNotProvidePartialMethodTextEditsOrInsertTextAsync()
+        {
+            var markup =
+@"partial class C
+{
+    partial void Method();
+}
+
+partial class C
+{
+    partial {|caret:|}
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var completionParams = CreateCompletionParams(
+                locations["caret"].Single(),
+                invokeKind: LSP.VSCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
+                triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Null(results.Items.First().TextEdit);
+            Assert.Null(results.Items.First().InsertText);
         }
 
         private static async Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)

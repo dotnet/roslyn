@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression MakeInvocationExpression(
             BinderFlags flags,
             SyntaxNode node,
-            BoundExpression? receiver,
+            BoundExpression receiver,
             string methodName,
             ImmutableArray<BoundExpression> args,
             BindingDiagnosticBag diagnostics,
@@ -657,12 +657,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public BoundExpression InstanceCall(BoundExpression? receiver, string name, BoundExpression arg)
+        public BoundExpression InstanceCall(BoundExpression receiver, string name, BoundExpression arg)
         {
             return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray.Create(arg), this.Diagnostics);
         }
 
-        public BoundExpression InstanceCall(BoundExpression? receiver, string name)
+        public BoundExpression InstanceCall(BoundExpression receiver, string name)
         {
             return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray<BoundExpression>.Empty, this.Diagnostics);
         }

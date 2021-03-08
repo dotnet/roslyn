@@ -2273,7 +2273,7 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-04-18.md,
+            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
             // we don't want to allow only one accessor to have an implementation.
             compilation1.VerifyDiagnostics(
                 // (11,9): error CS0501: 'I1.P1.set' must declare a body because it is not marked abstract, extern, or partial
@@ -2326,7 +2326,7 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-04-18.md,
+            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
             // we don't want to allow only one accessor to have an implementation.
             compilation1.VerifyDiagnostics(
                 // (6,9): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
@@ -3636,7 +3636,7 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-04-18.md,
+            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
             // we don't want to allow only one accessor to have an implementation.
             compilation1.VerifyDiagnostics(
                 // (11,9): error CS0501: 'I1.this[int].set' must declare a body because it is not marked abstract, extern, or partial
@@ -3689,7 +3689,7 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-04-18.md,
+            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
             // we don't want to allow only one accessor to have an implementation.
             compilation1.VerifyDiagnostics(
                 // (6,9): error CS0501: 'I1.this[int].get' must declare a body because it is not marked abstract, extern, or partial
@@ -30669,7 +30669,7 @@ class Test12 : I8
                                                  targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-14.md,
+                // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-06-14.md,
                 // we do not require interfaces to have a most specific implementation of all members. Therefore, there are no
                 // errors in this compilation.
                 compilation2.VerifyDiagnostics();
@@ -33931,7 +33931,7 @@ class Test5 : I8
                                                      targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-14.md,
+                // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-06-14.md,
                 // we do not require interfaces to have a most specific implementation of all members. Therefore, there are no
                 // errors in this compilation.
                 compilation2.VerifyDiagnostics();
@@ -35953,7 +35953,7 @@ class Test12 : I8
                                                      targetFramework: TargetFramework.NetCoreApp);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-14.md,
+                // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-06-14.md,
                 // we do not require interfaces to have a most specific implementation of all members. Therefore, there are no
                 // errors in this compilation.
                 compilation2.VerifyDiagnostics();

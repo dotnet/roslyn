@@ -748,6 +748,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         // event EventHandler Bar {add; remove;}
         private static bool ShouldRemoveBraceForAccessorDeclaration(AccessorDeclarationSyntax accessorDeclarationNode, int caretPosition)
             => accessorDeclarationNode.Body != null
+               && accessorDeclarationNode.Body.Statements.IsEmpty()
                && accessorDeclarationNode.ExpressionBody == null
                && accessorDeclarationNode.Parent != null
                && accessorDeclarationNode.Parent.IsParentKind(SyntaxKind.PropertyDeclaration)

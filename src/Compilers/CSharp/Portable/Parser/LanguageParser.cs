@@ -2247,8 +2247,6 @@ tryAgain:
                         token = this.AddError(token, ErrorCode.ERR_MemberNeedsType);
                         var voidType = _syntaxFactory.PredefinedType(token);
 
-                        var identifier = this.EatToken();
-
                         if (!IsScript)
                         {
                             if (tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(attributes, ref afterAttributesPoint, out result))
@@ -2258,6 +2256,7 @@ tryAgain:
                         }
                         else
                         {
+                            var identifier = this.EatToken();
                             return this.ParseMethodDeclaration(attributes, modifiers, voidType, explicitInterfaceOpt: null, identifier: identifier, typeParameterList: null);
                         }
                     }
