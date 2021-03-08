@@ -28,6 +28,10 @@ prepare_machine=${prepare_machine:-false}
 # True to restore toolsets and dependencies.
 restore=${restore:-true}
 
+# Allows restoring .NET Core Runtimes and SDKs from alternative feeds
+runtimeSourceFeed=${runtimeSourceFeed:-""}
+runtimeSourceFeedKey=${runtimeSourceFeedKey:-""}
+
 # Adjusts msbuild verbosity level.
 verbosity=${verbosity:-'minimal'}
 
