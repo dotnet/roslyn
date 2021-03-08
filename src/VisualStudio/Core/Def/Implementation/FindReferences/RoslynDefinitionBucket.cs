@@ -42,7 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public static RoslynDefinitionBucket Create(
                 StreamingFindUsagesPresenter presenter,
                 AbstractTableDataSourceFindUsagesContext context,
-                DefinitionItem definitionItem)
+                DefinitionItem definitionItem,
+                bool expandedByDefault)
             {
                 var isPrimary = definitionItem.Properties.ContainsKey(DefinitionItem.Primary);
 
@@ -50,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var name = $"{(isPrimary ? 0 : 1)} {definitionItem.DisplayParts.JoinText()} {definitionItem.GetHashCode()}";
 
                 return new RoslynDefinitionBucket(
-                    name, expandedByDefault: true, presenter, context, definitionItem);
+                    name, expandedByDefault, presenter, context, definitionItem);
             }
 
             public bool TryNavigateTo(bool isPreview, CancellationToken cancellationToken)

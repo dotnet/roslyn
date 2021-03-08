@@ -49,7 +49,7 @@ End Class
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=badStream,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing)
 
                 AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
@@ -12536,7 +12536,7 @@ End Class
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(0))
 
@@ -12553,7 +12553,7 @@ BC42312: XML documentation comments must precede member or type declarations.
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(0),
                     filterSpanWithinTree:=New Text.TextSpan(0, 0))
@@ -12566,7 +12566,7 @@ BC42312: XML documentation comments must precede member or type declarations.
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing,
                     filterTree:=comp.SyntaxTrees(1))
 
@@ -12583,7 +12583,7 @@ BC42312: XML documentation comments must precede member or type declarations.
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing,
                     filterTree:=Nothing)
 
@@ -12603,7 +12603,7 @@ BC42312: XML documentation comments must precede member or type declarations.
                     comp,
                     assemblyName:=Nothing,
                     xmlDocStream:=Nothing,
-                    diagnostics:=diags,
+                    diagnostics:=New BindingDiagnosticBag(diags),
                     cancellationToken:=Nothing,
                     filterTree:=Nothing,
                     filterSpanWithinTree:=New Text.TextSpan(0, 0))

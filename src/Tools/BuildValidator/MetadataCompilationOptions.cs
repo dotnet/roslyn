@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Diagnostics.CodeAnalysis;
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
@@ -20,11 +21,18 @@ namespace BuildValidator
 
         public int Length => _options.Length;
 
+        public bool TryGetUniqueOption(ILogger logger, string optionName, [NotNullWhen(true)] out string? value)
+        {
+            var result = TryGetUniqueOption(optionName, out value);
+            logger.LogInformation($"{optionName} - {value}");
+            return result;
+        }
+
         /// <summary>
         /// Attempts to get an option value. Returns false if the option value does not 
         /// exist OR if it exists more than once
         /// </summary>
-        public bool TryGetUniqueOption(string optionName, out string? value)
+        public bool TryGetUniqueOption(string optionName, [NotNullWhen(true)] out string? value)
         {
             value = null;
 

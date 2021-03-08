@@ -8023,8 +8023,9 @@ return default;
 
             var comp = CreateCompilation(text, options: TestOptions.DebugDll, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1)
+                // (1,1): error CS8805: Program using top-level statements must be an executable.
+                // System.Console.WriteLine("Hi!");
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, @"System.Console.WriteLine(""Hi!"");").WithLocation(1, 1)
                 );
         }
 
@@ -8035,8 +8036,9 @@ return default;
 
             var comp = CreateCompilation(text, options: TestOptions.ReleaseModule, parseOptions: DefaultParseOptions);
             comp.VerifyEmitDiagnostics(
-                // error CS8805: Program using top-level statements must be an executable.
-                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable).WithLocation(1, 1)
+                // (1,1): error CS8805: Program using top-level statements must be an executable.
+                // System.Console.WriteLine("Hi!");
+                Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, @"System.Console.WriteLine(""Hi!"");").WithLocation(1, 1)
                 );
         }
 

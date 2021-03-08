@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 internal ValueCollection(ImmutableSegmentedDictionary<TKey, TValue>.Builder dictionary)
                 {
                     Debug.Assert(dictionary is not null);
-                    _dictionary = dictionary;
+                    _dictionary = dictionary!;
                 }
 
                 public int Count => _dictionary.Count;

@@ -11825,6 +11825,7 @@ BC31407: Event 'Public Event evtTest3 As I1.evtTest1EventHandler' cannot impleme
                                                          ~~~~~~~~~~~
                  ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1, expectedErrors1)
+            CompilationUtils.AssertTheseEmitDiagnostics(compilation1, expectedErrors1)
         End Sub
 
         <Fact>
@@ -12401,6 +12402,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
                           ~~~~~~~~~~~
     ]]></errors>
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation, expectedErrors)
+            CompilationUtils.AssertTheseEmitDiagnostics(compilation, expectedErrors)
         End Sub
 
         <Fact()>

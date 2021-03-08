@@ -147,15 +147,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal static BoundExpression ConvertToLocalType(CSharpCompilation compilation, BoundExpression expr, TypeSymbol type, DiagnosticBag diagnostics)
         {
+            var bindingDiagnostics = new BindingDiagnosticBag(diagnostics);
+
             if (type.IsPointerType())
             {
                 var syntax = expr.Syntax;
                 var intPtrType = compilation.GetSpecialType(SpecialType.System_IntPtr);
-                Binder.ReportUseSiteDiagnostics(intPtrType, diagnostics, syntax);
+                Binder.ReportUseSite(intPtrType, bindingDiagnostics, syntax);
                 MethodSymbol conversionMethod;
-                if (Binder.TryGetSpecialTypeMember(compilation, SpecialMember.System_IntPtr__op_Explicit_ToPointer, syntax, diagnostics, out conversionMethod))
+                if (Binder.TryGetSpecialTypeMember(compilation, SpecialMember.System_IntPtr__op_Explicit_ToPointer, syntax, bindingDiagnostics, out conversionMethod))
                 {
-                    var temp = ConvertToLocalTypeHelper(compilation, expr, intPtrType, diagnostics);
+                    var temp = ConvertToLocalTypeHelper(compilation, expr, intPtrType, bindingDiagnostics);
                     expr = BoundCall.Synthesized(
                         syntax,
                         receiverOpt: null,
@@ -173,16 +175,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
             }
 
-            return ConvertToLocalTypeHelper(compilation, expr, type, diagnostics);
+            return ConvertToLocalTypeHelper(compilation, expr, type, bindingDiagnostics);
         }
 
-        private static BoundExpression ConvertToLocalTypeHelper(CSharpCompilation compilation, BoundExpression expr, TypeSymbol type, DiagnosticBag diagnostics)
+        private static BoundExpression ConvertToLocalTypeHelper(CSharpCompilation compilation, BoundExpression expr, TypeSymbol type, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(diagnostics.DiagnosticBag != null);
+
             // NOTE: This conversion can fail if some of the types involved are from not-yet-loaded modules.
             // For example, if System.Exception hasn't been loaded, then this call will fail for $stowedexception.
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = compilation.Conversions.ClassifyConversionFromExpression(expr, type, ref useSiteDiagnostics);
-            diagnostics.Add(expr.Syntax, useSiteDiagnostics);
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
+            var conversion = compilation.Conversions.ClassifyConversionFromExpression(expr, type, ref useSiteInfo);
+            diagnostics.Add(expr.Syntax, useSiteInfo);
             Debug.Assert(conversion.IsValid || diagnostics.HasAnyErrors());
 
             return BoundConversion.Synthesized(

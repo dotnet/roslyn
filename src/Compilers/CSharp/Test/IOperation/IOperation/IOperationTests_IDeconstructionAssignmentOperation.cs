@@ -660,28 +660,28 @@ Block[B0] - Entry
     CaptureIds: [2] [3] [4]
     .locals {R2}
     {
-        CaptureIds: [1]
+        CaptureIds: [0]
         .locals {R3}
         {
-            CaptureIds: [0]
+            CaptureIds: [1]
             Block[B1] - Block
                 Predecessors: [B0]
                 Statements (1)
-                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1')
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1')
                       Value: 
                         IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c1')
 
                 Jump if True (Regular) to Block[B3]
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'c1')
                       Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'c1')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'c1')
                     Leaving: {R3}
 
                 Next (Regular) Block[B2]
             Block[B2] - Block
                 Predecessors: [B1]
                 Statements (1)
-                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.fI1')
+                    IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.fI1')
                       Value: 
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '.fI1')
                           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -689,7 +689,7 @@ Block[B0] - Entry
                           Operand: 
                             IFieldReferenceOperation: System.Int32 C.fI1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '.fI1')
                               Instance Receiver: 
-                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'c1')
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'c1')
 
                 Next (Regular) Block[B4]
                     Leaving: {R3}
@@ -698,7 +698,7 @@ Block[B0] - Entry
         Block[B3] - Block
             Predecessors: [B1]
             Statements (1)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1')
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1')
                   Value: 
                     IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'c1')
 
@@ -710,7 +710,7 @@ Block[B0] - Entry
                   Value: 
                     IInvalidOperation (OperationKind.Invalid, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
                       Children(1):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
+                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
 
             Next (Regular) Block[B5]
                 Leaving: {R2}

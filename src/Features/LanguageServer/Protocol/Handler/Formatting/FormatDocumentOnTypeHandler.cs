@@ -17,19 +17,24 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentOnTypeFormattingName, mutatesSolutionState: false)]
-    internal class FormatDocumentOnTypeHandler : IRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
+    [ExportLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(Methods.TextDocumentOnTypeFormattingName)]
+    internal class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]>
     {
+        public override string Method => Methods.TextDocumentOnTypeFormattingName;
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FormatDocumentOnTypeHandler()
         {
         }
 
-        public TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentOnTypeFormattingParams request) => request.TextDocument;
 
-        public async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var edits = new ArrayBuilder<TextEdit>();
             var document = context.Document;

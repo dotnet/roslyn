@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using SQLitePCL;
 
@@ -133,6 +134,16 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         }
 
         public static Result sqlite3_bind_text(SafeSqliteStatementHandle stmt, int index, string val)
+        {
+            using var _ = stmt.Lease();
+            return (Result)raw.sqlite3_bind_text(stmt.DangerousGetWrapper(), index, val);
+        }
+
+        /// <summary>
+        /// <paramref name="val"><see cref="Encoding.UTF8"/> encoded bytes of a text value.  Span
+        /// should not be NUL-terminated.</paramref>
+        /// </summary>
+        public static Result sqlite3_bind_text(SafeSqliteStatementHandle stmt, int index, ReadOnlySpan<byte> val)
         {
             using var _ = stmt.Lease();
             return (Result)raw.sqlite3_bind_text(stmt.DangerousGetWrapper(), index, val);
