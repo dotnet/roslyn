@@ -10,6 +10,8 @@ using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Text;
@@ -31,10 +33,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             }
 
             public bool SupportsCodeFixes(ITextBuffer textBuffer)
-                => SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
+            {
+                return SupportsCodeFixesWorker(GetContainedDocumentId(textBuffer));
+            }
 
             public bool SupportsRefactorings(ITextBuffer textBuffer)
-                => SupportsRefactoringsWorker(GetContainedDocumentId(textBuffer));
+            {
+                return SupportsRefactoringsWorker(GetContainedDocumentId(textBuffer));
+            }
 
             public bool SupportsRename(ITextBuffer textBuffer)
             {
