@@ -92,8 +92,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (metadataId == null)
                 return CreateEmpty(checksum);
 
-            // Try to acquire the data outside the lock.  That way we can avoid any sort of allocations around acquiring
-            // the task for it.
             if (s_metadataIdToInfo.TryGetValue(metadataId, out var infoTask))
             {
                 var info = await infoTask.GetValueAsync(cancellationToken).ConfigureAwait(false);
