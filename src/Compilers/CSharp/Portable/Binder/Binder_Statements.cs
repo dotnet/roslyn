@@ -3447,6 +3447,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// If this binder owns the scope that can declare extern aliases, a set of declared aliases should be returned (even if empty).
+        /// Otherwise, a default instance should be returned. 
+        /// </summary>
+        internal virtual ImmutableArray<AliasAndExternAliasDirective> ExternAliases
+        {
+            get
+            {
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// If this binder owns the scope that can declare using aliases, a set of declared aliases should be returned (even if empty).
+        /// Otherwise, a default instance should be returned. 
+        /// </summary>
+        internal virtual ImmutableArray<AliasAndUsingDirective> UsingAliases
+        {
+            get
+            {
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Perform a lookup for the specified method on the specified expression by attempting to invoke it
         /// </summary>
         /// <param name="receiver">The expression to perform pattern lookup on</param>

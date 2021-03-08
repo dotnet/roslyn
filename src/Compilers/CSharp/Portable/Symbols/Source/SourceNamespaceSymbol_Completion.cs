@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if (locationOpt == null || locationOpt.SourceTree == declaration.SyntaxReference.SyntaxTree)
                                 {
-                                    if (declaration.HasUsings || declaration.HasExternAliases)
+                                    if (declaration.HasGlobalUsings || declaration.HasUsings || declaration.HasExternAliases)
                                     {
-                                        this.DeclaringCompilation.GetImports(declaration).Complete(cancellationToken);
+                                        _aliasesAndUsings[declaration].Complete(this, declaration.SyntaxReference, cancellationToken);
                                     }
                                 }
                             }

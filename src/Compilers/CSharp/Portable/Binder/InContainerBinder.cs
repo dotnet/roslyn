@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A binder that places the members of a symbol in scope.
     /// </summary>
-    internal sealed class InContainerBinder : Binder
+    internal class InContainerBinder : Binder
     {
         private readonly NamespaceOrTypeSymbol _container;
 
@@ -47,11 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var merged = _container as MergedNamespaceSymbol;
                 return ((object)merged != null) ? merged.GetConstituentForCompilation(this.Compilation) : _container;
             }
-        }
-
-        private bool IsSubmissionClass
-        {
-            get { return (_container.Kind == SymbolKind.NamedType) && ((NamedTypeSymbol)_container).IsSubmissionClass; }
         }
 
         private bool IsScriptClass
@@ -88,13 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
             }
-            else if (IsSubmissionClass)
-            {
-                for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
-                {
-                    submission.ScriptClass?.GetExtensionMethods(methods, name, arity, options);
-                }
-            }
         }
 
         internal override TypeWithAnnotations GetIteratorElementType()
@@ -117,12 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.IsClear);
 
-            if (IsSubmissionClass)
-            {
-                this.LookupMembersInternal(result, _container, name, arity, basesBeingResolved, options, originalBinder, diagnose, ref useSiteInfo);
-                return;
-            }
-
             // first lookup members of the namespace
             if ((options & LookupOptions.NamespaceAliasesOnly) == 0)
             {
@@ -130,27 +112,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (result.IsMultiViable)
                 {
-                    if (arity == 0 && _container.IsNamespace)
+                    if (arity == 0)
                     {
                         // symbols cannot conflict with using alias names
-                        Binder binder = this;
-
-                        do
+                        if (Next is WithExternAndUsingAliasesBinder withUsingAliases && withUsingAliases.IsUsingAlias(name, originalBinder.IsSemanticModelBinder, basesBeingResolved))
                         {
-                            binder = binder.Next;
-                        }
-                        while (binder is object && !(binder is ImportsBinder));
-
-                        if (binder is ImportsBinder importsBinder && importsBinder.Container == _container)
-                        {
-                            var imports = importsBinder.GetImports(basesBeingResolved);
-
-                            if (imports.IsUsingAlias(name, originalBinder.IsSemanticModelBinder))
-                            {
-                                CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictAliasAndMember, name, _container);
-                                var error = new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)null, name, arity, diagInfo, unreported: true);
-                                result.SetFrom(LookupResult.Good(error)); // force lookup to be done w/ error symbol as result
-                            }
+                            CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictAliasAndMember, name, _container);
+                            var error = new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)null, name, arity, diagInfo, unreported: true);
+                            result.SetFrom(LookupResult.Good(error)); // force lookup to be done w/ error symbol as result
                         }
                     }
 

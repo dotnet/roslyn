@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         private readonly CSharpCompilationOptions _options;
-        private readonly Lazy<Imports> _globalImports;
+        private readonly Lazy<UsingsFromOptionsAndDiagnostics> _usingsFromOptions;
+        private readonly Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>> _globalImports;
         private readonly Lazy<Imports> _previousSubmissionImports;
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
         private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
@@ -446,7 +447,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.builtInOperators = new BuiltInOperators(this);
             _scriptClass = new Lazy<ImplicitNamedTypeSymbol?>(BindScriptClass);
-            _globalImports = new Lazy<Imports>(BindGlobalImports);
+            _globalImports = new Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>>(BindGlobalImports);
+            _usingsFromOptions = new Lazy<UsingsFromOptionsAndDiagnostics>(BindUsingsFromOptions);
             _previousSubmissionImports = new Lazy<Imports>(ExpandPreviousSubmissionImports);
             _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
@@ -1423,9 +1425,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
-        internal Imports GlobalImports => _globalImports.Value;
+        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports => _globalImports.Value;
 
-        private Imports BindGlobalImports() => Imports.FromGlobalUsings(this);
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
+        {
+            var usingsFromoptions = UsingsFromOptions;
+            var previousSubmission = PreviousSubmission;
+            var previousSubmissionImports = previousSubmission is object ? Imports.ExpandPreviousSubmissionImports(previousSubmission.GlobalImports, this) : ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty;
+
+            if (usingsFromoptions.UsingNamespacesOrTypes.IsEmpty)
+            {
+                return previousSubmissionImports;
+            }
+            else if (previousSubmissionImports.IsEmpty)
+            {
+                return usingsFromoptions.UsingNamespacesOrTypes;
+            }
+
+            var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
+            var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
+
+            boundUsings.AddRange(usingsFromoptions.UsingNamespacesOrTypes);
+            uniqueUsings.AddAll(usingsFromoptions.UsingNamespacesOrTypes.Select(static unt => unt.NamespaceOrType));
+
+            foreach (var previousUsing in previousSubmissionImports)
+            {
+                if (uniqueUsings.Add(previousUsing.NamespaceOrType))
+                {
+                    boundUsings.Add(previousUsing);
+                }
+            }
+
+            uniqueUsings.Free();
+
+            return boundUsings.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Global imports not including those from previous submissions.
+        /// </summary>
+        private UsingsFromOptionsAndDiagnostics UsingsFromOptions => _usingsFromOptions.Value;
+
+        private UsingsFromOptionsAndDiagnostics BindUsingsFromOptions() => UsingsFromOptionsAndDiagnostics.FromOptions(this);
 
         /// <summary>
         /// Imports declared by this submission (null if this isn't one).
@@ -1442,8 +1483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Imports.Empty;
             }
 
-            var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
-            return binder.GetImports(basesBeingResolved: null);
+            return ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).GetImports((CSharpSyntaxNode)tree.GetRoot(), basesBeingResolved: null);
         }
 
         /// <summary>
@@ -2272,14 +2312,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);
         }
 
-        /// <summary>
-        /// Returns imported symbols for the given declaration.
-        /// </summary>
-        internal Imports GetImports(SingleNamespaceDeclaration declaration)
-        {
-            return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports(basesBeingResolved: null);
-        }
-
         private AliasSymbol CreateGlobalNamespaceAlias()
         {
             return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace);
@@ -2775,7 +2807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, CancellationToken cancellationToken = default)
         {
-            GlobalImports.Complete(cancellationToken);
+            UsingsFromOptions.Complete(this, cancellationToken);
 
             SourceLocation? location = null;
             if (syntaxTree != null)

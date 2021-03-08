@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
+        private readonly ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings;
 
         private const int LazyAllMembersIsSorted = 0x1;   // Set if "lazyAllMembers" is sorted.
         private int _flags;
@@ -43,10 +45,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _container = container;
             _mergedDeclaration = mergedDeclaration;
 
+            var builder = ImmutableDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
+
             foreach (var singleDeclaration in mergedDeclaration.Declarations)
             {
+                if (singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings)
+                {
+                    builder.Add(singleDeclaration, new AliasesAndUsings());
+                }
+
                 diagnostics.AddRange(singleDeclaration.Diagnostics);
             }
+
+            _aliasesAndUsings = builder.ToImmutable();
         }
 
         internal MergedNamespaceDeclaration MergedDeclaration
