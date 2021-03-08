@@ -1,4 +1,4 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28503.202
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -485,13 +485,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Coll
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Collections.Package", "src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.Package.csproj", "{0C2E1633-1462-4712-88F4-A0C945BAD3A8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{ACE67B8E-C632-494D-A45A-800AFF4C50DD}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Compilers", "Compilers", "{39C350DA-D29D-40F9-B385-E9D50107F2DD}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{AA011C93-12E5-4AE9-8BC3-0F4112A298C4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rebuild", "src\Compilers\Core\Rebuild\Rebuild.csproj", "{3B14EABC-1A3E-4FA3-9115-61CA9A21394C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebuild", "src\Compilers\Core\Rebuild\Rebuild.csproj", "{B7D29559-4360-434A-B9B9-2C0612287999}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -1268,10 +1262,10 @@ Global
 		{0C2E1633-1462-4712-88F4-A0C945BAD3A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C2E1633-1462-4712-88F4-A0C945BAD3A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C2E1633-1462-4712-88F4-A0C945BAD3A8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3B14EABC-1A3E-4FA3-9115-61CA9A21394C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3B14EABC-1A3E-4FA3-9115-61CA9A21394C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3B14EABC-1A3E-4FA3-9115-61CA9A21394C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3B14EABC-1A3E-4FA3-9115-61CA9A21394C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7D29559-4360-434A-B9B9-2C0612287999}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7D29559-4360-434A-B9B9-2C0612287999}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7D29559-4360-434A-B9B9-2C0612287999}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7D29559-4360-434A-B9B9-2C0612287999}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1493,9 +1487,7 @@ Global
 		{41ED1BFA-FDAD-4FE4-8118-DB23FB49B0B0} = {DC014586-8D07-4DE6-B28E-C0540C59C085}
 		{E919DD77-34F8-4F57-8058-4D3FF4C2B241} = {C2D1346B-9665-4150-B644-075CF1636BAA}
 		{0C2E1633-1462-4712-88F4-A0C945BAD3A8} = {C2D1346B-9665-4150-B644-075CF1636BAA}
-		{39C350DA-D29D-40F9-B385-E9D50107F2DD} = {ACE67B8E-C632-494D-A45A-800AFF4C50DD}
-		{AA011C93-12E5-4AE9-8BC3-0F4112A298C4} = {39C350DA-D29D-40F9-B385-E9D50107F2DD}
-		{3B14EABC-1A3E-4FA3-9115-61CA9A21394C} = {AA011C93-12E5-4AE9-8BC3-0F4112A298C4}
+		{B7D29559-4360-434A-B9B9-2C0612287999} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
