@@ -52,39 +52,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
         public static GlobalFlowStateAnalysisValueSet Create(IAbstractAnalysisValue analysisValue)
             => new(ImmutableHashSet.Create(analysisValue), ImmutableHashSet<GlobalFlowStateAnalysisValueSet>.Empty, height: 0, GlobalFlowStateAnalysisValueSetKind.Known);
 
-        public static GlobalFlowStateAnalysisValueSet CreateWithParents(GlobalFlowStateAnalysisValueSet parent1, GlobalFlowStateAnalysisValueSet parent2)
-        {
-            Debug.Assert(parent1.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
-            Debug.Assert(parent2.Kind == GlobalFlowStateAnalysisValueSetKind.Known);
-
-            if (Equals(parent1, parent2))
-            {
-                return parent1;
-            }
-
-            if (parent1.Height == 0 && parent1.AnalysisValues.IsSubsetOf(parent2.AnalysisValues))
-            {
-                return parent2;
-            }
-
-            if (parent2.Height == 0 && parent2.AnalysisValues.IsSubsetOf(parent1.AnalysisValues))
-            {
-                return parent1;
-            }
-
-            if (parent1.Height == parent2.Height &&
-                parent1.AnalysisValues.Count == parent2.AnalysisValues.Count &&
-                Equals(parent1, parent2.GetNegatedValue()))
-            {
-                return Empty;
-            }
-
-            return new(ImmutableHashSet<IAbstractAnalysisValue>.Empty,
-                       ImmutableHashSet.Create(parent1, parent2),
-                       height: Math.Max(parent1.Height, parent2.Height) + 1,
-                       GlobalFlowStateAnalysisValueSetKind.Known);
-        }
-
         public ImmutableHashSet<IAbstractAnalysisValue> AnalysisValues { get; }
         public ImmutableHashSet<GlobalFlowStateAnalysisValueSet> Parents { get; }
         public int Height { get; }
