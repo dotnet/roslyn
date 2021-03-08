@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
-        public void ProjectCapabilityIsnotAddedWhenRoslynComponentIsUnSpecified()
+        public void ProjectCapabilityIsNotAddedWhenRoslynComponentIsUnspecified()
         {
             XmlReader xmlReader = XmlReader.Create(new StringReader($@"
 <Project>
