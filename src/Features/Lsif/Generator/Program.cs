@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }
                 else
                 {
-                    throw new Exception("Exactly one of either a solution path or a compiler invocation path should be supplied.");
+                    throw new Exception("Exactly one of either a solution path, project path or a compiler invocation path should be supplied.");
                 }
             }
             catch (Exception e)
@@ -123,19 +123,19 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         // we load ILogger prematurely which breaks MSBuildLocator.
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static async Task GenerateWithMSBuildLocatedAsync(
-            FileInfo solutionFile, ILsifJsonWriter lsifWriter, TextWriter logFile,
+            FileInfo solutionOrProjectFile, ILsifJsonWriter lsifWriter, TextWriter logFile,
             Func<MSBuildWorkspace, Task<Solution>> openAsync)
         {
-            await logFile.WriteLineAsync($"Loading {solutionFile.FullName}...");
+            await logFile.WriteLineAsync($"Loading {solutionOrProjectFile.FullName}...");
 
             var solutionLoadStopwatch = Stopwatch.StartNew();
 
             var msbuildWorkspace = MSBuildWorkspace.Create();
-            msbuildWorkspace.WorkspaceFailed += (s, e) => logFile.WriteLine("Error while loading the solution: " + e.Diagnostic.Message);
+            msbuildWorkspace.WorkspaceFailed += (s, e) => logFile.WriteLine("Error while loading: " + e.Diagnostic.Message);
 
             var solution = await openAsync(msbuildWorkspace);
 
-            await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
+            await logFile.WriteLineAsync($"Load completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
             var lsifGenerator = new Generator(lsifWriter);
 
             var totalTimeInGenerationAndCompilationFetchStopwatch = Stopwatch.StartNew();

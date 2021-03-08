@@ -68,23 +68,36 @@ namespace BuildValidator
             throw new Exception($"Could not find referenced assembly {referenceInfo}");
         }
 
-        public ImmutableArray<MetadataReference> ResolveReferences(IEnumerable<MetadataReferenceInfo> references)
+        public bool TryResolveReferences(ImmutableArray<MetadataReferenceInfo> references, out ImmutableArray<MetadataReference> results)
         {
-            var referenceArray = references.ToImmutableArray();
-            CacheNames(referenceArray);
+            if (!CacheNames(references))
+            {
+                results = default;
+                return false;
+            }
 
-            var files = referenceArray.Select(r => GetReferencePath(r));
+            var builder = ImmutableArray.CreateBuilder<MetadataReference>(references.Length);
+            foreach (var reference in references)
+            {
+                var file = GetReferencePath(reference);
+                builder.Add(MetadataReference.CreateFromFile(
+                    file,
+                    new MetadataReferenceProperties(
+                        kind: MetadataImageKind.Assembly,
+                        aliases: reference.ExternAliases,
+                        embedInteropTypes: reference.EmbedInteropTypes)));
+            }
 
-            var metadataReferences = files.Select(f => MetadataReference.CreateFromFile(f)).Cast<MetadataReference>().ToImmutableArray();
-            return metadataReferences;
+            results = builder.MoveToImmutable();
+            return true;
         }
 
-        public void CacheNames(ImmutableArray<MetadataReferenceInfo> names)
+        public bool CacheNames(ImmutableArray<MetadataReferenceInfo> references)
         {
-            if (names.All(r => _cache.ContainsKey(r.Mvid)))
+            if (references.All(r => _cache.ContainsKey(r.Mvid)))
             {
                 // All references have already been cached, no reason to look in the file system
-                return;
+                return true;
             }
 
             foreach (var directory in _indexDirectories)
@@ -93,40 +106,47 @@ namespace BuildValidator
                 {
                     // A single file name can have multiple MVID, so compare by name first then
                     // open the files to check the MVID 
-                    var potentialMatches = names.Where(m => FileNameEqualityComparer.Instance.Equals(m.FileInfo, file));
-
-                    if (!potentialMatches.Any())
+                    foreach (var reference in references)
                     {
-                        continue;
-                    }
+                        if (reference.FileInfo.Name != file.Name)
+                        {
+                            continue;
+                        }
 
-                    if (GetMvidForFile(file) is not { } mvid || _cache.ContainsKey(mvid))
-                    {
-                        continue;
-                    }
+                        if (GetMvidForFile(file) is not { } mvid)
+                        {
+                            _logger.LogWarning($@"Could not read MVID from ""{file.FullName}""");
+                            continue;
+                        }
 
-                    var matchedReference = potentialMatches.FirstOrDefault(m => m.Mvid == mvid);
-                    if (matchedReference.FileInfo is null)
-                    {
-                        continue;
-                    }
+                        if (_cache.ContainsKey(mvid))
+                        {
+                            continue;
+                        }
 
-                    _logger.LogTrace($"Caching [{mvid}, {file.FullName}]");
-                    _cache[mvid] = file.FullName;
+                        if (mvid != reference.Mvid)
+                        {
+                            continue;
+                        }
+
+                        _logger.LogTrace($"Caching [{mvid}, {file.FullName}]");
+                        _cache[mvid] = file.FullName;
+                    }
                 }
             }
 
-            var uncached = names.Where(m => !_cache.ContainsKey(m.Mvid)).ToArray();
-
+            var uncached = references.Where(m => !_cache.ContainsKey(m.Mvid)).ToArray();
             if (uncached.Any())
             {
-                using var _ = _logger.BeginScope($"Missing metadata references:");
+                using var _ = _logger.BeginScope($"Missing {uncached.Length} metadata references:");
                 foreach (var missingReference in uncached)
                 {
                     _logger.LogError($@"{missingReference.Name} - {missingReference.Mvid}");
                 }
-                throw new FileNotFoundException();
+                return false;
             }
+
+            return true;
         }
 
         private static Guid? GetMvidForFile(FileInfo fileInfo)

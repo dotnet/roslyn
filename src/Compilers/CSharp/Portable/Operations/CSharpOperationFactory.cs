@@ -312,6 +312,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: null, constantValue, isImplicit: isImplicit);
 
                 default:
+                    // If you're hitting this because the IOperation test hook has failed, see
+                    // <roslyn-root>/docs/Compilers/IOperation Test Hook.md for instructions on how to fix.
                     throw ExceptionUtilities.UnexpectedValue(boundNode.Kind);
             }
         }
