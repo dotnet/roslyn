@@ -15,25 +15,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IMethodSymbol symbol)
             => symbol.MethodKind.IsPropertyAccessor();
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
             IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             var result = await base.DetermineCascadedSymbolsAsync(
-                symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
+                symbol, solution, projects, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
 
             // If we've been asked to search for specific accessors, then do not cascade.
             // We don't want to produce results for the associated property.
-            if (!options.AssociatePropertyReferencesWithSpecificAccessor)
-            {
-                if (symbol.AssociatedSymbol != null)
-                {
-                    result = result.Add(symbol.AssociatedSymbol);
-                }
-            }
+            if (!options.AssociatePropertyReferencesWithSpecificAccessor && symbol.AssociatedSymbol != null)
+                result = result.Add((symbol.AssociatedSymbol, cascadeDirection));
 
             return result;
         }

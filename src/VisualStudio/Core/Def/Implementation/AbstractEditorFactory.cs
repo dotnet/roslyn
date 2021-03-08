@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// <summary>
     /// The base class of both the Roslyn editor factories.
     /// </summary>
-    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
+    internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactory4, IVsEditorFactoryNotify
     {
         private readonly IComponentModel _componentModel;
         private Microsoft.VisualStudio.OLE.Interop.IServiceProvider? _oleServiceProvider;
@@ -67,6 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             out Guid pguidCmdUI,
             out int pgrfCDW)
         {
+            Contract.ThrowIfNull(_oleServiceProvider);
+
             ppunkDocView = IntPtr.Zero;
             ppunkDocData = IntPtr.Zero;
             pbstrEditorCaption = string.Empty;
@@ -96,25 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Do we need to create a text buffer?
             if (textBuffer == null)
             {
-                var contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
-                var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
-                textBuffer = editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
-
-                if (_encoding)
-                {
-                    if (textBuffer is IVsUserData userData)
-                    {
-                        // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
-                        var hresult = userData.SetData(
-                            VSConstants.VsTextBufferUserDataGuid.VsBufferEncodingPromptOnLoad_guid,
-                            (uint)__PROMPTONLOADFLAGS.codepagePrompt);
-
-                        if (ErrorHandler.Failed(hresult))
-                        {
-                            return hresult;
-                        }
-                    }
-                }
+                textBuffer = (IVsTextBuffer)GetDocumentData(grfCreateDoc, pszMkDocument, vsHierarchy, itemid);
+                Contract.ThrowIfNull(textBuffer, $"Failed to get document data for {pszMkDocument}");
             }
 
             // If the text buffer is marked as read-only, ensure that the padlock icon is displayed
@@ -150,6 +135,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
                     catch
                     {
+                        // Only dispose the designer loader on failure to create a designer.
+                        // The IVSMDDesignerService.CreateDesigner() method in VS passes it into the DesignSurface that gets created
+                        // and is used to perform the actual load (and reloads -- which happen during normal designer operation).
+                        // http://index/?leftProject=Microsoft.VisualStudio.Design&leftSymbol=n8p1tszkfyz7&file=DesignerActivationService.cs&line=629
                         designerLoader.Dispose();
                         throw;
                     }
@@ -178,7 +167,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return VSConstants.S_OK;
         }
 
-        private string? GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
+        public object GetDocumentData(uint grfCreate, string pszMkDocument, IVsHierarchy pHier, uint itemid)
+        {
+            Contract.ThrowIfNull(_oleServiceProvider);
+            var editorAdaptersFactoryService = _componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
+            var contentType = contentTypeRegistryService.GetContentType(ContentTypeName);
+            var textBuffer = editorAdaptersFactoryService.CreateVsTextBufferAdapter(_oleServiceProvider, contentType);
+
+            if (_encoding)
+            {
+                if (textBuffer is IVsUserData userData)
+                {
+                    // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
+                    var hresult = userData.SetData(
+                        VSConstants.VsTextBufferUserDataGuid.VsBufferEncodingPromptOnLoad_guid,
+                        (uint)__PROMPTONLOADFLAGS.codepagePrompt);
+
+                    Marshal.ThrowExceptionForHR(hresult);
+                }
+            }
+
+            return textBuffer;
+        }
+
+        public object GetDocumentView(uint grfCreate, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, uint itemid)
+        {
+            // There is no scenario need currently to implement this method.
+            throw new NotImplementedException();
+        }
+
+        public string GetEditorCaption(string pszMkDocument, string pszPhysicalView, IVsHierarchy pHier, IntPtr punkDocData, out Guid pguidCmdUI)
+        {
+            // It is not possible to get this information without initializing the designer.
+            // There is no other scenario need currently to implement this method.
+            throw new NotImplementedException();
+        }
+
+        public bool ShouldDeferUntilIntellisenseIsReady(uint grfCreate, string pszMkDocument, string pszPhysicalView)
+        {
+            return "Form".Equals(pszPhysicalView, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string GetWinFormsLoaderName(IVsHierarchy vsHierarchy)
         {
             const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
             const string NewLoaderName = "Microsoft.VisualStudio.Design.Core.Serialization.CodeDom.VSCodeDomDesignerLoader";
