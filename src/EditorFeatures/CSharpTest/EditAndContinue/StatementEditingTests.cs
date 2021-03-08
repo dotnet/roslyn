@@ -10298,7 +10298,7 @@ int G1(int[] p) { return p[2]; }
 
         #endregion
 
-        #region Records / With Expressions
+        #region With Expressions
 
         [Fact]
         public void WithExpression_PropertyAdd()
@@ -10323,11 +10323,31 @@ int G1(int[] p) { return p[2]; }
         [Fact]
         public void WithExpression_PropertyChange()
         {
+            var src1 = @"var x = y with { X = 1 };";
+            var src2 = @"var x = y with { Y = 1 };";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [x = y with { X = 1 }]@6 -> [x = y with { Y = 1 }]@6");
+        }
+
+        [Fact]
+        public void WithExpression_PropertyValueChange()
+        {
             var src1 = @"var x = y with { X = 1, Y = 1 };";
             var src2 = @"var x = y with { X = 1, Y = 2 };";
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(@"Update [x = y with { X = 1, Y = 1 }]@6 -> [x = y with { X = 1, Y = 2 }]@6");
+        }
+
+        [Fact]
+        public void WithExpression_PropertyValueReorder()
+        {
+            var src1 = @"var x = y with { X = 1, Y = 1 };";
+            var src2 = @"var x = y with { Y = 1, X = 1 };";
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(@"Update [x = y with { X = 1, Y = 1 }]@6 -> [x = y with { Y = 1, X = 1 }]@6");
         }
 
         #endregion
