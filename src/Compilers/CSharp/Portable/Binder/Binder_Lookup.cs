@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void LookupSymbolInAliases(
+        protected void LookupSymbolInAliases(
             ImmutableDictionary<string, AliasAndUsingDirective> usingAliases,
             ImmutableArray<AliasAndExternAliasDirective> externAliases,
             Binder originalBinder,
@@ -1828,7 +1828,7 @@ symIsHidden:;
             }
         }
 
-        internal void AddLookupSymbolsInfoInAliases(
+        protected void AddLookupSymbolsInfoInAliases(
             ImmutableDictionary<string, AliasAndUsingDirective> usingAliases,
             ImmutableArray<AliasAndExternAliasDirective> externAliases,
             LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)

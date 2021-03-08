@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private Binder MakeNamespaceBinder(CSharpSyntaxNode node, NameSyntax name, Binder outer, bool inUsing)
+            private static Binder MakeNamespaceBinder(CSharpSyntaxNode node, NameSyntax name, Binder outer, bool inUsing)
             {
                 if (name is QualifiedNameSyntax dotted)
                 {
@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (node is NamespaceDeclarationSyntax namespaceDecl)
                 {
-                    outer = AddInImportsBinders((SourceNamespaceSymbol)compilation.SourceModule.GetModuleNamespace(ns), namespaceDecl, outer, inUsing);
+                    outer = AddInImportsBinders((SourceNamespaceSymbol)outer.Compilation.SourceModule.GetModuleNamespace(ns), namespaceDecl, outer, inUsing);
                 }
                 else
                 {
@@ -933,7 +933,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //
                         // Binder chain in regular code:
                         //
-                        // + global namespace with top-level imports
+                        // + compilation unit imported namespaces and types
+                        //   + compilation unit extern and using aliases
+                        //     + global namespace
                         // 
                         var globalNamespace = compilation.GlobalNamespace;
                         result = AddInImportsBinders((SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace, compilationUnit, result, inUsing);

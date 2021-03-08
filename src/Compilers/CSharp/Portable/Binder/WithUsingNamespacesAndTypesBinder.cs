@@ -28,7 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _withImportChainEntry = withImportChainEntry;
         }
 
+#if DEBUG
         internal bool WithImportChainEntry => _withImportChainEntry;
+#endif
 
         internal abstract ImmutableArray<NamespaceOrTypeAndUsingDirective> GetUsings(ConsList<TypeSymbol>? basesBeingResolved);
 
@@ -123,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 methods.RemoveDuplicates();
             }
-
         }
 
         internal override void LookupSymbolsInSingleBinder(

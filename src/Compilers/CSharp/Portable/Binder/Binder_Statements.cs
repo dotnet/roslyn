@@ -3447,7 +3447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If binder owns the scope that can declare extern aliases, a set of declared aliases should be returned (even if empty).
+        /// If this binder owns the scope that can declare extern aliases, a set of declared aliases should be returned (even if empty).
         /// Otherwise, a default instance should be returned. 
         /// </summary>
         internal virtual ImmutableArray<AliasAndExternAliasDirective> ExternAliases
@@ -3459,7 +3459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If binder owns the scope that can declare using aliases, a set of declared aliases should be returned (even if empty).
+        /// If this binder owns the scope that can declare using aliases, a set of declared aliases should be returned (even if empty).
         /// Otherwise, a default instance should be returned. 
         /// </summary>
         internal virtual ImmutableArray<AliasAndUsingDirective> UsingAliases

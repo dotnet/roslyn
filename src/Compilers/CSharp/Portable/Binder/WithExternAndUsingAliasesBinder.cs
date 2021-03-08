@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected WithExternAndUsingAliasesBinder(WithUsingNamespacesAndTypesBinder next)
             : base(next)
         {
+#if DEBUG
             Debug.Assert(!next.WithImportChainEntry);
+#endif 
         }
 
         internal abstract override ImmutableArray<AliasAndUsingDirective> UsingAliases { get; }
