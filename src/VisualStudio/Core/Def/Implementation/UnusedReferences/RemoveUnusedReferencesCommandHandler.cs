@@ -34,7 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
         private readonly Lazy<IReferenceCleanupService> _lazyReferenceCleanupService;
         private readonly RemoveUnusedReferencesDialogProvider _unusedReferenceDialogProvider;
         private readonly VisualStudioWorkspace _workspace;
-        private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
         private readonly IUIThreadOperationExecutor _threadOperationExecutor;
         private IServiceProvider? _serviceProvider;
 
@@ -47,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             VisualStudioWorkspace workspace)
         {
             _unusedReferenceDialogProvider = unusedReferenceDialogProvider;
-            _vsHierarchyItemManager = vsHierarchyItemManager;
             _threadOperationExecutor = threadOperationExecutor;
             _workspace = workspace;
 
@@ -185,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         private ImmutableArray<ReferenceUpdate> GetUnusedReferencesForProject(Solution solution, string projectFilePath, string projectAssetsFile, CancellationToken cancellationToken)
         {
-            ImmutableArray<ReferenceInfo> unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
+            var unusedReferences = ThreadHelper.JoinableTaskFactory.Run(async () =>
             {
                 var projectReferences = await _lazyReferenceCleanupService.Value.GetProjectReferencesAsync(projectFilePath, cancellationToken).ConfigureAwait(true);
                 var references = ProjectAssetsReader.ReadReferences(projectReferences, projectAssetsFile);
