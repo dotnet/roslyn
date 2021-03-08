@@ -218,7 +218,7 @@ namespace BuildValidator
                 if (!pdbOpened || pdbReaderProvider is null)
                 {
                     logger.LogError($"Could not find pdb for {originalBinary.FullName}");
-                    return CompilationDiff.CreatePlaceholder(originalBinary);
+                    return CompilationDiff.CreatePlaceholder(originalBinary, isError: false);
                 }
 
                 using var _ = logger.BeginScope($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
@@ -226,12 +226,12 @@ namespace BuildValidator
                 var pdbReader = pdbReaderProvider.GetMetadataReader();
                 var optionsReader = new CompilationOptionsReader(logger, pdbReader, originalPeReader);
 
-                var compilation = buildConstructor.CreateCompilation(
+                var (compilation, isError) = buildConstructor.CreateCompilation(
                     optionsReader,
                     originalBinary.Name);
                 if (compilation is null)
                 {
-                    return CompilationDiff.CreatePlaceholder(originalBinary);
+                    return CompilationDiff.CreatePlaceholder(originalBinary, isError);
                 }
 
                 var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), logger, options);

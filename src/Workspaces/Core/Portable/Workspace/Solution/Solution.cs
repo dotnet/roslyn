@@ -186,13 +186,21 @@ namespace Microsoft.CodeAnalysis
         /// Gets the document in this solution with the specified document ID.
         /// </summary>
         public Document? GetDocument(DocumentId? documentId)
+            => GetProject(documentId?.ProjectId)?.GetDocument(documentId!);
+
+        /// <summary>
+        /// Gets a document or a source generated document in this solution with the specified document ID.
+        /// </summary>
+        internal ValueTask<Document?> GetDocumentAsync(DocumentId? documentId, bool includeSourceGenerated = false, CancellationToken cancellationToken = default)
         {
-            if (this.ContainsDocument(documentId))
+            var project = GetProject(documentId?.ProjectId);
+            if (project == null)
             {
-                return this.GetProject(documentId.ProjectId)!.GetDocument(documentId);
+                return default;
             }
 
-            return null;
+            Contract.ThrowIfNull(documentId);
+            return project.GetDocumentAsync(documentId, includeSourceGenerated, cancellationToken);
         }
 
         /// <summary>
@@ -516,8 +524,20 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the project documents in the order by the specified document ids.
         /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
         /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="projectId"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="documentIds"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">The solution does not contain <paramref name="projectId"/>.</exception>
+        /// <exception cref="ArgumentException">The number of documents specified in <paramref name="documentIds"/> is not equal to the number of documents in project <paramref name="projectId"/>.</exception>
+        /// <exception cref="InvalidOperationException">Document specified in <paramref name="documentIds"/> does not exist in project <paramref name="projectId"/>.</exception>
         public Solution WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
         {
+            CheckContainsProject(projectId);
+
+            if (documentIds == null)
+            {
+                throw new ArgumentNullException(nameof(documentIds));
+            }
+
             var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
             if (newState == _state)
             {
@@ -1638,7 +1658,7 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<DocumentId>.Empty;
             }
 
-            var documentState = projectState.GetDocumentState(documentId);
+            var documentState = projectState.DocumentStates.GetState(documentId);
             if (documentState == null)
             {
                 // this document no longer exist
