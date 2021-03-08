@@ -11,10 +11,12 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
@@ -24,23 +26,20 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace BuildValidator
 {
-    /// <summary>
-    /// An abstraction for building from a MetadataReaderProvider
-    /// </summary>
-    internal class BuildConstructor
+    public class BuildConstructor
     {
-        private readonly LocalReferenceResolver _referenceResolver;
-        private readonly LocalSourceResolver _sourceResolver;
         private readonly ILogger _logger;
 
-        public BuildConstructor(LocalReferenceResolver referenceResolver, LocalSourceResolver sourceResolver, ILogger logger)
+        public BuildConstructor(ILogger logger)
         {
-            _referenceResolver = referenceResolver;
-            _sourceResolver = sourceResolver;
             _logger = logger;
         }
 
-        public (Compilation? compilation, bool isError) CreateCompilation(CompilationOptionsReader compilationOptionsReader, string fileName)
+        public (Compilation? compilation, bool isError) CreateCompilation(
+            CompilationOptionsReader compilationOptionsReader,
+            string fileName,
+            ImmutableArray<ResolvedSource> sources,
+            ImmutableArray<MetadataReference> metadataReferences)
         {
             // We try to handle assemblies missing compilation options gracefully by skipping them.
             // However, if an assembly has some bad combination of data, for example if it contains
@@ -51,22 +50,6 @@ namespace BuildValidator
                 _logger.LogInformation($"{fileName} did not contain compilation options in its PDB");
                 return (compilation: null, isError: false);
             }
-
-            var metadataReferenceInfos = compilationOptionsReader.GetMetadataReferences();
-            var encoding = compilationOptionsReader.GetEncoding();
-            var sourceFileInfos = compilationOptionsReader.GetSourceFileInfos(encoding);
-
-            _logger.LogInformation("Locating metadata references");
-            if (!_referenceResolver.TryResolveReferences(metadataReferenceInfos, out var metadataReferences))
-            {
-                _logger.LogError($"Failed to rebuild {fileName} due to missing metadata references");
-                return (compilation: null, isError: true);
-            }
-            logResolvedMetadataReferences();
-
-            var sourceLinks = ResolveSourceLinks(compilationOptionsReader);
-            var sources = ResolveSources(sourceFileInfos, sourceLinks, encoding);
-            logResolvedSources();
 
             if (pdbCompilationOptions.TryGetUniqueOption("language", out var language))
             {
@@ -98,67 +81,8 @@ namespace BuildValidator
             }
 
             throw new InvalidDataException("Did not find language in compilation options");
-
-            void logResolvedMetadataReferences()
-            {
-                using var _ = _logger.BeginScope("Metadata References");
-                for (var i = 0; i < metadataReferenceInfos.Length; i++)
-                {
-                    _logger.LogInformation($@"""{metadataReferences[i].Display}"" - {metadataReferenceInfos[i].Mvid}");
-                }
-            }
-
-            void logResolvedSources()
-            {
-                using var _ = _logger.BeginScope("Source Names");
-                foreach (var resolvedSource in sources)
-                {
-                    var sourceFileInfo = resolvedSource.SourceFileInfo;
-                    var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
-                    var embeddedCompressedHash = sourceFileInfo.EmbeddedCompressedHash is { } compressedHash
-                        ? ("[uncompressed]" + BitConverter.ToString(compressedHash).Replace("-", ""))
-                        : null;
-                    _logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash} - {embeddedCompressedHash}");
-                }
-            }
         }
 
-        private ImmutableArray<SourceLink> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader)
-        {
-            using var _ = _logger.BeginScope("Source Links");
-            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
-            if (sourceLinks.IsDefault)
-            {
-                _logger.LogInformation("No source links found in pdb");
-                sourceLinks = ImmutableArray<SourceLink>.Empty;
-            }
-            else
-            {
-                foreach (var link in sourceLinks)
-                {
-                    _logger.LogInformation($@"""{link.Prefix}"": ""{link.Replace}""");
-                }
-            }
-            return sourceLinks;
-        }
-
-        private ImmutableArray<ResolvedSource> ResolveSources(
-            ImmutableArray<SourceFileInfo> sourceFileInfos,
-            ImmutableArray<SourceLink> sourceLinks,
-            Encoding encoding)
-        {
-            _logger.LogInformation("Locating source files");
-
-            var sources = ImmutableArray.CreateBuilder<ResolvedSource>();
-            foreach (var sourceFileInfo in sourceFileInfos)
-            {
-                sources.Add(_sourceResolver.ResolveSource(sourceFileInfo, sourceLinks, encoding));
-            }
-
-            return sources.ToImmutable();
-        }
-
-        #region CSharp
         private Compilation CreateCSharpCompilation(
             string fileName,
             CompilationOptionsReader optionsReader,
@@ -252,9 +176,6 @@ namespace BuildValidator
                 _ => throw new InvalidDataException($"Optimization \"{optimizationLevel}\" level not recognized")
             };
 
-        #endregion
-
-        #region Visual Basic
         private Compilation CreateVisualBasicCompilation(
             string fileName,
             CompilationOptionsReader optionsReader,
@@ -349,6 +270,66 @@ namespace BuildValidator
             static bool? ToBool(string value) => bool.TryParse(value, out var boolValue) ? boolValue : null;
             static T? ToEnum<T>(string value) where T : struct => Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
         }
-        #endregion
+
+        public static unsafe EmitResult Emit(
+            Stream rebuildPeStream,
+            FileInfo originalBinaryPath,
+            CompilationOptionsReader optionsReader,
+            Compilation producedCompilation,
+            ILogger logger,
+            CancellationToken cancellationToken)
+        {
+            var peHeader = optionsReader.PeReader.PEHeaders.PEHeader!;
+            var win32Resources = optionsReader.PeReader.GetSectionData(peHeader.ResourceTableDirectory.RelativeVirtualAddress);
+            using var win32ResourceStream = new UnmanagedMemoryStream(win32Resources.Pointer, win32Resources.Length);
+
+            var sourceLink = optionsReader.GetSourceLinkUTF8();
+
+            var embeddedTexts = producedCompilation.SyntaxTrees
+                    .Select(st => (path: st.FilePath, text: st.GetText()))
+                    .Where(pair => pair.text.CanBeEmbedded)
+                    .Select(pair => EmbeddedText.FromSource(pair.path, pair.text))
+                    .ToImmutableArray();
+
+            var debugEntryPoint = getDebugEntryPoint();
+
+            var emitResult = producedCompilation.Emit(
+                peStream: rebuildPeStream,
+                pdbStream: null,
+                xmlDocumentationStream: null,
+                win32Resources: win32ResourceStream,
+                useRawWin32Resources: true,
+                manifestResources: optionsReader.GetManifestResources(),
+                options: new EmitOptions(
+                    debugInformationFormat: DebugInformationFormat.Embedded,
+                    highEntropyVirtualAddressSpace: (peHeader.DllCharacteristics & DllCharacteristics.HighEntropyVirtualAddressSpace) != 0,
+                    subsystemVersion: SubsystemVersion.Create(peHeader.MajorSubsystemVersion, peHeader.MinorSubsystemVersion)),
+                debugEntryPoint: debugEntryPoint,
+                metadataPEStream: null,
+                pdbOptionsBlobReader: optionsReader.GetMetadataCompilationOptionsBlobReader(),
+                sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null,
+                embeddedTexts: embeddedTexts,
+                cancellationToken: cancellationToken);
+
+            return emitResult;
+
+            IMethodSymbol? getDebugEntryPoint()
+            {
+                if (optionsReader.GetMainTypeName() is { } mainTypeName &&
+                    optionsReader.GetMainMethodName() is { } mainMethodName)
+                {
+                    var typeSymbol = producedCompilation.GetTypeByMetadataName(mainTypeName);
+                    if (typeSymbol is object)
+                    {
+                        var methodSymbols = typeSymbol
+                            .GetMembers(mainMethodName)
+                            .OfType<IMethodSymbol>();
+                        return methodSymbols.FirstOrDefault();
+                    }
+                }
+
+                return null;
+            }
+        }
     }
 }
