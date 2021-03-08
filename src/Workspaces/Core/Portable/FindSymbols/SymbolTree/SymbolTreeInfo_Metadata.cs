@@ -122,6 +122,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            // Important: this captured async lazy may live a long time *without* computing the final results. As such,
+            // it is important that it note capture any large state.  For example, it should not hold onto a Solution
+            // instance.
             var asyncLazy = s_metadataIdToInfo.GetValue(
                 metadata.Id,
                 id => new AsyncLazy<SymbolTreeInfo>(
