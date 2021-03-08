@@ -17,28 +17,34 @@ using Microsoft.CodeAnalysis.Storage.CloudCache;
 namespace Microsoft.CodeAnalysis.Storage
 {
     [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), ServiceLayer.Desktop), Shared]
-    internal class PersistenceStorageServiceFactory : IWorkspaceServiceFactory
+    internal class DesktopPersistenceStorageServiceFactory : IWorkspaceServiceFactory
     {
-#if !DOTNET_BUILD_FROM_SOURCE
-        private readonly SQLiteConnectionPoolService _connectionPoolService;
-#endif
+#if DOTNET_BUILD_FROM_SOURCE
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PersistenceStorageServiceFactory(
-#if !DOTNET_BUILD_FROM_SOURCE
-            SQLiteConnectionPoolService connectionPoolService
-#endif
-            )
+        public DesktopPersistenceStorageServiceFactory(SQLiteConnectionPoolService connectionPoolService)
         {
-#if !DOTNET_BUILD_FROM_SOURCE
-            _connectionPoolService = connectionPoolService;
-#endif
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-#if !DOTNET_BUILD_FROM_SOURCE
+            return NoOpPersistentStorageService.Instance;
+        }
+
+#else
+
+        private readonly SQLiteConnectionPoolService _connectionPoolService;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public DesktopPersistenceStorageServiceFactory(SQLiteConnectionPoolService connectionPoolService)
+        {
+            _connectionPoolService = connectionPoolService;
+        }
+
+        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        {
             var optionService = workspaceServices.GetRequiredService<IOptionService>();
             var database = optionService.GetOption(StorageOptions.Database);
             var options = workspaceServices.Workspace.Options;
@@ -59,9 +65,10 @@ namespace Microsoft.CodeAnalysis.Storage
                             : factory.Create(locationService);
                 }
             }
-#endif
 
             return NoOpPersistentStorageService.GetOrThrow(options);
         }
+
+#endif
     }
 }

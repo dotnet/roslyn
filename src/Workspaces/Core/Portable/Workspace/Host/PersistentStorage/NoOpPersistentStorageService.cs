@@ -13,7 +13,11 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal class NoOpPersistentStorageService : IChecksummedPersistentStorageService
     {
+#if DOTNET_BUILD_FROM_SOURCE
+        public static readonly IPersistentStorageService Instance = new NoOpPersistentStorageService();
+#else
         private static readonly IPersistentStorageService Instance = new NoOpPersistentStorageService();
+#endif
 
         private NoOpPersistentStorageService()
         {
