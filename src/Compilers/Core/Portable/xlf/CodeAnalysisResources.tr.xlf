@@ -12,6 +12,16 @@
         <target state="translated">Bu seçenek için bir dil adı belirtilmelidir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Acquiring_the_ArtifactContext_is_not_allowed_without_specifying_the_ArtifactProducerAttribute">
+        <source>Acquiring the 'ArtifactContext' is not allowed without specifying the 'ArtifactProducerAttribute'.</source>
+        <target state="new">Acquiring the 'ArtifactContext' is not allowed without specifying the 'ArtifactProducerAttribute'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArtifactContext_is_not_available_in_this_configuration">
+        <source>'ArtifactContext' is not available in this configuration.</source>
+        <target state="new">'ArtifactContext' is not available in this configuration.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
         <target state="translated">'{0}' türünü içeren bütünleştirilmiş kod, desteklenmeyen .NET Framework'e başvuruyor.</target>

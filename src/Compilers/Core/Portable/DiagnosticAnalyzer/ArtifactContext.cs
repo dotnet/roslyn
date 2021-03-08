@@ -11,32 +11,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// The base interface for artifact producers that can programmatically generate additional non-code files during a
-    /// compilation.  Artifact generators only run when a compiler is invoked with the <c>generatedartifactsout</c>
-    /// parameter.
+    /// Context object that can be used to create non-source-code streams that are saved to disk during a normal
+    /// compilation.  An <see cref="ArtifactContext"/> can be retrieved by calling <see
+    /// cref="AnalysisContext.TryGetArtifactContext"/>.  However, this call will only succeed if the caller has the <see
+    /// cref="ArtifactProducerAttribute"/> set on them and it is being called in a context where artifact production is
+    /// supported.  In general that will only be when a compiler is invoked with the <c>generatedartifactsout</c>
+    /// argument.
     /// </summary>
-    /// <remarks>
-    /// Normally, an artifact generator will not need to report diagnostics.  However, it may sometimes be necessary if
-    /// errors or other issues arise during generation.  If diagnostic reporting is needed, then the same mechanism are
-    /// available as with normal analyzers.  Specifically, <see cref="SupportedDiagnostics"/> should be overridden to
-    /// state which diagnostics may be produced, and the various context `ReportDiagnostic` calls should be used to
-    /// report them.
-    /// </remarks>
-    public interface IArtifactProducer
-    {
-        /// <summary>
-        /// Returns a set of descriptors for the diagnostics that this artifact producer is capable of producing.
-        /// </summary>
-        ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
-
-        /// <summary>
-        /// Called once at session start to register actions in the analysis context.  <paramref
-        /// name="artifactContext"/> can be used to create or write to streams that will be written
-        /// out as artifacts as the compilation progresses.
-        /// </summary>
-        void Initialize(AnalysisContext analysisContext, ArtifactContext artifactContext);
-    }
-
     public readonly struct ArtifactContext
     {
         /// <summary>
@@ -44,12 +25,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// value as this is only set once during batch compile as that's the only scenario where /generatedartifactsout
         /// can be provided.
         /// </summary>
-        private readonly Func<string, Stream> _createArtifactStream;
+        private readonly Func<string, Stream>? _createArtifactStream;
 
-        internal ArtifactContext(Func<string, Stream> createArtifactStream)
-        {
-            _createArtifactStream = createArtifactStream;
-        }
+        internal ArtifactContext(Func<string, Stream>? createArtifactStream)
+            => _createArtifactStream = createArtifactStream;
+
+        internal bool IsActive => _createArtifactStream != null;
 
         /// <summary>
         /// Writes out an artifact with the contents of <paramref name="source"/>.  The artifact will be written out with utf8 encoding.
@@ -132,36 +113,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// if there is a large amount of data to write, or if there is binary data to write.
         /// </summary>
         /// <remarks>
-        /// There is no locking or ordering guaranteed around this stream.  If an <see cref="IArtifactProducer"/> wants
-        /// to write to this stream from multiple callbacks, it will need to coordinate that work itself internally.
+        /// There is no locking or ordering guaranteed around this stream.  If a client wants to write to this stream
+        /// from multiple callbacks, it will need to coordinate that work itself internally.
         /// </remarks>
         /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
         /// generatedartifactsout path provided to the compiler.</param>
+        /// <exception cref="NotSupportedException">
+        /// If this context was acquired from a call to <see cref="AnalysisContext.TryGetArtifactContext"/> that
+        /// returned <see langword="false"/>.
+        /// </exception>
         public Stream CreateArtifactStream(string fileName)
-            => _createArtifactStream(fileName);
-    }
-
-    /// <summary>
-    /// Wrapper type to allow an IArtifactProducer to flow through the normal DiagnosticAnalyzer codepaths.
-    /// </summary>
-    internal sealed class ArtifactProducerDiagnosticAnalyzer : DiagnosticAnalyzer
-    {
-        public readonly IArtifactProducer ArtifactProducer;
-
-        public ArtifactProducerDiagnosticAnalyzer(IArtifactProducer artifactProducer)
         {
-            ArtifactProducer = artifactProducer;
-        }
+            if (_createArtifactStream == null)
+                throw new NotSupportedException(CodeAnalysisResources.ArtifactContext_is_not_available_in_this_configuration);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ArtifactProducer.SupportedDiagnostics;
-
-#pragma warning disable RS1025 // Configure generated code analysis
-#pragma warning disable RS1026 // Enable concurrent execution
-        public override void Initialize(AnalysisContext context)
-        {
-            throw new InvalidOperationException("Caller should call initialize method on ArtifactProducer instead");
+            return _createArtifactStream(fileName);
         }
-#pragma warning restore RS1025 // Configure generated code analysis
-#pragma warning restore RS1026 // Enable concurrent execution
     }
 }

@@ -3,38 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Place this attribute onto a type to cause it to be considered an artifact producer.
+    /// Place this attribute onto a type to cause it to be considered an artifact producer.  Without this calls to <see
+    /// cref="AnalysisContext.TryGetArtifactContext"/> will throw.  With this, similar calls may succeed or not
+    /// depending on if the caller is used in a context where artifact production is supported or not. In general that
+    /// will only be when a compiler is invoked with the <c>generatedartifactsout</c> argument.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class ArtifactProducerAttribute : Attribute
     {
-        /// <summary>
-        /// The source languages to which this artifact producer applies. See <see cref="LanguageNames"/>.
-        /// </summary>
-        public string[] Languages { get; }
-
-        /// <summary>
-        /// Attribute constructor used to specify the attached class is a artifact producer and indicate which language(s) it supports.
-        /// </summary>
-        /// <param name="firstLanguage">One language to which the producer applies.</param>
-        /// <param name="additionalLanguages">Additional languages to which the producer applies. See <see cref="LanguageNames"/>.</param>
-        public ArtifactProducerAttribute(string firstLanguage, params string[] additionalLanguages)
-        {
-            if (firstLanguage == null)
-                throw new ArgumentNullException(nameof(firstLanguage));
-
-            if (additionalLanguages == null)
-                throw new ArgumentNullException(nameof(additionalLanguages));
-
-            var languages = new string[additionalLanguages.Length + 1];
-            languages[0] = firstLanguage;
-            Array.Copy(additionalLanguages, sourceIndex: 0, languages, destinationIndex: 1, additionalLanguages.Length);
-
-            this.Languages = languages;
-        }
     }
 }

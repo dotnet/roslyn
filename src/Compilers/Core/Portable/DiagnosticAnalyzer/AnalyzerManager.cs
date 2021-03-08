@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -296,9 +297,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            if (analyzer is ArtifactProducerDiagnosticAnalyzer)
+            if (analyzer.GetType().CustomAttributes.Any(c => c.AttributeType == typeof(ArtifactProducerAttribute)))
             {
-                // artifact generators only run if we're generating output files to disk (and thus have an artifact
+                // artifact producers only run if we're generating output files to disk (and thus have an artifact
                 // stream). Otherwise they are suppressed as there's no purpose running them.
                 return analyzerExecutor.CreateArtifactStream == null;
             }

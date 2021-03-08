@@ -21,7 +21,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostSessionStartAnalysisScope _scope;
 
-        public AnalyzerAnalysisContext(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope)
+        public AnalyzerAnalysisContext(
+            DiagnosticAnalyzer analyzer,
+            HostSessionStartAnalysisScope scope,
+            ArtifactContext? artifactContext)
+            : base(artifactContext)
         {
             _analyzer = analyzer;
             _scope = scope;

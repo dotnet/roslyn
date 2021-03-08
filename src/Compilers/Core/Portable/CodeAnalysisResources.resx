@@ -724,4 +724,10 @@
   <data name="ChangesMustBeWithinBoundsOfSourceText" xml:space="preserve">
     <value>Changes must be within bounds of SourceText</value>
   </data>
+  <data name="Acquiring_the_ArtifactContext_is_not_allowed_without_specifying_the_ArtifactProducerAttribute" xml:space="preserve">
+    <value>Acquiring the 'ArtifactContext' is not allowed without specifying the 'ArtifactProducerAttribute'.</value>
+  </data>
+  <data name="ArtifactContext_is_not_available_in_this_configuration" xml:space="preserve">
+    <value>'ArtifactContext' is not available in this configuration.</value>
+  </data>
 </root>

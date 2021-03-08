@@ -44,6 +44,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public abstract class AnalysisContext
     {
+        private readonly ArtifactContext? _artifactContext;
+
+        public AnalysisContext()
+        {
+        }
+
+        protected AnalysisContext(ArtifactContext? artifactContext)
+        {
+            _artifactContext = artifactContext;
+        }
+
+        /// <summary>
+        /// Returns an <see cref="ArtifactContext"/> instance that can be used to write streams of data to disk during
+        /// analyzer or source generation. This method will only succeed if the caller has the <see
+        /// cref="ArtifactProducerAttribute"/> set on them and it is being called in a context where artifact production
+        /// is supported.  In general that will only be when a compiler is invoked with the <c>generatedartifactsout</c>
+        /// argument.
+        /// </summary>
+        /// <exception cref="NotSupportedException">
+        /// If the caller does not have the <see cref="ArtifactProducerAttribute"/> on it.
+        /// </exception>
+        public bool TryGetArtifactContext(out ArtifactContext artifactContext)
+        {
+            if (!_artifactContext.HasValue)
+                throw new NotSupportedException(CodeAnalysisResources.Acquiring_the_ArtifactContext_is_not_allowed_without_specifying_the_ArtifactProducerAttribute);
+
+            artifactContext = _artifactContext.Value;
+            return artifactContext.IsActive;
+        }
+
         /// <summary>
         /// Register an action to be executed at compilation start.
         /// A compilation start action can register other actions and/or collect state information to be used in diagnostic analysis,

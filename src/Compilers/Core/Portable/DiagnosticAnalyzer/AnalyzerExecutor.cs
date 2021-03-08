@@ -318,29 +318,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope)
         {
-            var context = new AnalyzerAnalysisContext(analyzer, sessionScope);
+            var artifactContext = analyzer.GetType().GetCustomAttributes(typeof(ArtifactProducerAttribute), true).Length > 0
+                    ? new ArtifactContext(CreateArtifactStream)
+                    : (ArtifactContext?)null;
+
+            var context = new AnalyzerAnalysisContext(analyzer, sessionScope, artifactContext);
 
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
             ExecuteAndCatchIfThrows(
                 analyzer,
-                data =>
-                {
-                    // If this analyzer is actually an artifact generator, and the compiler is requesting artifacts be
-                    // generated, then actually initialize the generator with the necessary context values it needs to
-                    // generate artifacts.  In all other circumstances, we will not initialize it, and as such it will
-                    // not have any opportunity to register callbacks for us to call into in the future.
-                    if (data.analyzer is ArtifactProducerDiagnosticAnalyzer artifactProducer)
-                    {
-                        if (CreateArtifactStream == null)
-                            return;
-
-                        artifactProducer.ArtifactProducer.Initialize(data.context, new ArtifactContext(CreateArtifactStream));
-                    }
-                    else
-                    {
-                        data.analyzer.Initialize(data.context);
-                    }
-                },
+                data => data.analyzer.Initialize(data.context),
                 (analyzer, context));
         }
 
@@ -1692,9 +1679,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static Diagnostic CreateAnalyzerExceptionDiagnostic(DiagnosticAnalyzer analyzer, Exception e, AnalysisContextInfo? info = null)
         {
-            var analyzerName = analyzer is ArtifactProducerDiagnosticAnalyzer artifactProducer
-                ? artifactProducer.ArtifactProducer.GetType().ToString()
-                : analyzer.ToString();
+            var analyzerName = analyzer.ToString();
             var title = CodeAnalysisResources.CompilerAnalyzerFailure;
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
             var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer)).Trim();
