@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -41,10 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
                 : base(threadingContext, notificationService, editorOptionsFactoryService, projectionBufferFactoryService, listenerProvider)
         {
             _textEditorFactoryService = textEditorFactoryService;
-            if (!Debugger.IsAttached)
-            {
-                Debugger.Launch();
-            }
         }
 
         internal override object? GetCollapsedHintForm(StructureTag structureTag)

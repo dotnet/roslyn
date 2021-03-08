@@ -51,5 +51,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceChainMargin
 
             return builder.ToImmutableArray();
         }
+
+        protected override ImmutableArray<int> GetMemberIdentifiersPosition(TypeDeclarationSyntax typeDeclarationNode)
+        {
+            using var _ = PooledObjects.ArrayBuilder<int>.GetInstance(out var builder);
+            builder.Add(typeDeclarationNode.Identifier.SpanStart);
+            var members = typeDeclarationNode.Members;
+            foreach(var member in members)
+            {
+                if (member is MethodDeclarationSyntax memberDeclarationNode)
+                {
+                    builder.Add(memberDeclarationNode.Identifier.SpanStart);
+                }
+
+                if (member is PropertyDeclarationSyntax propertyDeclarationNode)
+                {
+                    builder.Add(propertyDeclarationNode.Identifier.SpanStart);
+                }
+
+                if (member is IndexerDeclarationSyntax indexerDeclarationNode)
+                {
+                    builder.Add(indexerDeclarationNode.ThisKeyword.SpanStart);
+                }
+
+                if (member is EventDeclarationSyntax eventDeclarationNode)
+                {
+                    builder.Add(eventDeclarationNode.Identifier.SpanStart);
+                }
+
+                // For multiple events that declared in the same EventFieldDeclaration,
+                // add all VariableDeclarators
+                if (member is EventFieldDeclarationSyntax eventFieldDeclarationNode)
+                {
+                    foreach (var variable in eventFieldDeclarationNode.Declaration.Variables)
+                    {
+                        builder.Add(variable.Identifier.SpanStart);
+                    }
+                }
+            }
+
+            return builder.ToImmutableArray();
+        }
     }
 }

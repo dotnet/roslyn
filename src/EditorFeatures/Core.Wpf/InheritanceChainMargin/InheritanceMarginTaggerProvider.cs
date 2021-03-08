@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
     [Name(nameof(InheritanceMarginTaggerProvider))]
     [TagType(typeof(InheritanceMarginTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class InheritanceMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>, ITaggerProvider
+    internal class InheritanceMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -36,21 +36,13 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
                 listenerProvider.GetListener(FeatureAttribute.InheritanceChainMargin),
                 notificationService)
         {
-            if (!Debugger.IsAttached)
-            {
-                Debugger.Launch();
-            }
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
-            if (!Debugger.IsAttached)
-            {
-                Debugger.Launch();
-            }
             return TaggerEventSources.Compose(
-                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.Short, AsyncListener),
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.NearImmediate));
+                TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener),
+                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle));
         }
 
         protected override async Task ProduceTagsAsync(
@@ -66,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
 
             var cancellationToken = context.CancellationToken;
             var inheritanceMarginInfoService = document.GetRequiredLanguageService<IInheritanceChainService>();
-            var inheritanceInfoForDocument = await inheritanceMarginInfoService.GetInheritanceInfoForLineAsync(document, cancellationToken).ConfigureAwait(false);
+            var memberInfo = await inheritanceMarginInfoService.GetInheritanceInfoForLineAsync(document, cancellationToken).ConfigureAwait(false);
         }
     }
 }
