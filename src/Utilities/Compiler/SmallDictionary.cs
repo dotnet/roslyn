@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Analyzer.Utilities
 {
     /// <summary>
-    /// Copied from https://github.com/dotnet/roslyn/blob/master/src/Compilers/Core/Portable/Collections/SmallDictionary.cs
+    /// Copied from https://github.com/dotnet/roslyn/blob/main/src/Compilers/Core/Portable/Collections/SmallDictionary.cs
     /// Dictionary designed to hold small number of items.
     /// Compared to the regular Dictionary, average overhead per-item is roughly the same, but
     /// unlike regular dictionary, this one is based on an AVL tree and as such does not require

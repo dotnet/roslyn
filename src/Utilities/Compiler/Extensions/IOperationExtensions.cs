@@ -812,7 +812,7 @@ namespace Analyzer.Utilities.Extensions
             return parameterOrderedArguments.ToImmutableArray();
         }
 
-        // Copied from roslyn https://github.com/dotnet/roslyn/blob/master/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/OperationExtensions.cs#L25
+        // Copied from roslyn https://github.com/dotnet/roslyn/blob/main/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/Core/Extensions/OperationExtensions.cs#L25
 
 #if CODEANALYSIS_V3_OR_BETTER
         /// <summary>

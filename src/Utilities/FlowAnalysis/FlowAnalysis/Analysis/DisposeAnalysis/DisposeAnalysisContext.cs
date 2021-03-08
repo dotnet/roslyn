@@ -109,12 +109,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
         internal bool TrackInstanceFields { get; }
         internal Func<ISymbol, bool> IsConfiguredToSkipAnalysis { get; }
 
-        protected override void ComputeHashCodePartsSpecific(Action<int> addPart)
+        protected override void ComputeHashCodePartsSpecific(ref RoslynHashCode hashCode)
         {
-            addPart(TrackInstanceFields.GetHashCode());
-            addPart(DisposeOwnershipTransferAtConstructor.GetHashCode());
-            addPart(DisposeOwnershipTransferAtMethodCall.GetHashCode());
-            addPart(HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes));
+            hashCode.Add(TrackInstanceFields.GetHashCode());
+            hashCode.Add(DisposeOwnershipTransferAtConstructor.GetHashCode());
+            hashCode.Add(DisposeOwnershipTransferAtMethodCall.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes));
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(AbstractDataFlowAnalysisContext<DisposeAnalysisData, DisposeAnalysisContext, DisposeAnalysisResult, DisposeAbstractValue> obj)
+        {
+            var other = (DisposeAnalysisContext)obj;
+            return TrackInstanceFields.GetHashCode() == other.TrackInstanceFields.GetHashCode()
+                && DisposeOwnershipTransferAtConstructor.GetHashCode() == other.DisposeOwnershipTransferAtConstructor.GetHashCode()
+                && DisposeOwnershipTransferAtMethodCall.GetHashCode() == other.DisposeOwnershipTransferAtMethodCall.GetHashCode()
+                && HashUtilities.Combine(DisposeOwnershipTransferLikelyTypes) == HashUtilities.Combine(other.DisposeOwnershipTransferLikelyTypes);
         }
     }
 }

@@ -163,12 +163,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.GlobalFlowStateAnalysis
             }
         }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(AnalysisValues));
-            addPart(HashUtilities.Combine(Parents));
-            addPart(Height.GetHashCode());
-            addPart(Kind.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(AnalysisValues));
+            hashCode.Add(HashUtilities.Combine(Parents));
+            hashCode.Add(Height.GetHashCode());
+            hashCode.Add(Kind.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<GlobalFlowStateAnalysisValueSet> obj)
+        {
+            var other = (GlobalFlowStateAnalysisValueSet)obj;
+            return HashUtilities.Combine(AnalysisValues) == HashUtilities.Combine(other.AnalysisValues)
+                && HashUtilities.Combine(Parents) == HashUtilities.Combine(other.Parents)
+                && Height.GetHashCode() == other.Height.GetHashCode()
+                && Kind.GetHashCode() == other.Kind.GetHashCode();
         }
 
         public override string ToString()
