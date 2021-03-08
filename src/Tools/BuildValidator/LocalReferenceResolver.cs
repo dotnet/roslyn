@@ -160,6 +160,5 @@ namespace BuildValidator
 
             return true;
         }
-
     }
 }

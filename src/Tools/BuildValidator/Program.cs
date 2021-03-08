@@ -47,7 +47,7 @@ namespace BuildValidator
                     "--assembliesPath", "Path to assemblies to rebuild (can be specified one or more times)"
                 ) { IsRequired = true, Argument = { Arity = ArgumentArity.OneOrMore } },
                 new Option<string>(
-                    "--excludePattern", "Pattern to exclude assemblies"
+                    "--exclude", "Assemblies to be excluded (substring match)"
                 ) { Argument = { Arity = ArgumentArity.ZeroOrMore } },
                 new Option<string>(
                     "--sourcePath", "Path to sources to use in rebuild"
@@ -72,19 +72,19 @@ namespace BuildValidator
             return rootCommand.Invoke(args);
         }
 
-        static int HandleCommand(string[] assembliesPath, string[]? excludePattern, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)
+        static int HandleCommand(string[] assembliesPath, string[]? exclude, string sourcePath, string[]? referencesPath, bool verbose, bool quiet, bool debug, string? debugPath)
         {
             // If user provided a debug path then assume we should write debug outputs.
             debug |= debugPath is object;
             debugPath ??= Path.Combine(Path.GetTempPath(), $"BuildValidator");
             referencesPath ??= Array.Empty<string>();
 
-            var excludePatternList = new List<string>(excludePattern ?? Array.Empty<string>());
-            excludePatternList.Add(Regex.Escape(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar));
-            excludePatternList.Add(Regex.Escape(Path.DirectorySeparatorChar + "ref" + Path.DirectorySeparatorChar));
-            excludePatternList.Add(@"\.resources\.dll");
+            var excludes = new List<string>(exclude ?? Array.Empty<string>());
+            excludes.Add(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar);
+            excludes.Add(Path.DirectorySeparatorChar + "ref" + Path.DirectorySeparatorChar);
+            excludes.Add(@".resources.dll");
 
-            var options = new Options(assembliesPath, referencesPath, excludePatternList.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
+            var options = new Options(assembliesPath, referencesPath, excludes.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
 
             // TODO: remove the DemoLoggerProvider or convert it to something more permanent
             var loggerFactory = LoggerFactory.Create(builder =>
@@ -129,7 +129,7 @@ namespace BuildValidator
 
                 var assemblyInfos = GetAssemblyInfos(
                     options.AssembliesPaths,
-                    options.ExcludePatterns,
+                    options.Excludes,
                     logger);
 
                 logAssemblyInfos();
@@ -157,16 +157,15 @@ namespace BuildValidator
 
         private static AssemblyInfo[] GetAssemblyInfos(
             IEnumerable<string> assemblySearchPaths,
-            IEnumerable<string> excludePatterns,
+            IEnumerable<string> excludes,
             ILogger logger)
         {
-            var excludeRegex = excludePatterns.Select(x => new Regex(x, RegexOptions.IgnoreCase | RegexOptions.Compiled)).ToList();
             var map = new Dictionary<Guid, AssemblyInfo>();
             foreach (var directory in assemblySearchPaths)
             {
                 foreach (var filePath in getAssemblyPaths(directory))
                 {
-                    if (excludeRegex.Any(x => x.IsMatch(filePath)))
+                    if (excludes.Any(x => filePath.IndexOf(x, FileNameEqualityComparer.StringComparison) >= 0))
                     {
                         logger.LogInformation($"Skipping excluded file {filePath}");
                         continue;
@@ -260,6 +259,7 @@ namespace BuildValidator
                     success = false;
                 }
             }
+
             using (logger.BeginScope("Rebuilds with compilation errors"))
             {
                 foreach (var diff in assembliesCompiled.Where(a => !a.Diagnostics.IsDefaultOrEmpty))
