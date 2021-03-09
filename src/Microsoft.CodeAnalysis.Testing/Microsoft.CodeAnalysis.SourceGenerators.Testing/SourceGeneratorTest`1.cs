@@ -60,8 +60,6 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public override async Task RunAsync(CancellationToken cancellationToken = default)
         {
-            Verify.NotEmpty($"{nameof(TestState)}.{nameof(SolutionState.Sources)}", TestState.Sources);
-
             var analyzers = GetDiagnosticAnalyzers().ToArray();
             var defaultDiagnostic = GetDefaultDiagnostic(analyzers);
             var supportedDiagnostics = analyzers.SelectMany(analyzer => analyzer.SupportedDiagnostics).ToImmutableArray();
