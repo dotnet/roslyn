@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
     internal interface IDefinitionsAndReferencesFactory : IWorkspaceService
     {
-        DefinitionItem GetThirdPartyDefinitionItem(
+        DefinitionItem? GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
 
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// Provides an extension point that allows for other workspace layers to add additional
         /// results to the results found by the FindReferences engine.
         /// </summary>
-        public virtual DefinitionItem GetThirdPartyDefinitionItem(
+        public virtual DefinitionItem? GetThirdPartyDefinitionItem(
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             return null;
@@ -149,22 +147,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                             sourceLocations.Add(documentLocation);
                         }
-                        else
-                        {
-                            // Was this a source generated tree? If so, we don't have a document representaion (yet) so
-                            // we'll create a metadata symbol which will later be handled by the symbol navigation service
-                            // that way. Once we represent generated source trees as propery documents, we'll update the code above
-                            // to correctly make this item.
-                            var project = solution.GetOriginatingProject(definition);
-                            var generatorRunResult = await project.GetGeneratorDriverRunResultAsync(cancellationToken).ConfigureAwait(false);
-
-                            if (generatorRunResult.TryGetGeneratorAndHint(location.SourceTree, out _, out _))
-                            {
-                                return DefinitionItem.CreateMetadataDefinition(
-                                    tags, displayParts, nameDisplayParts, solution,
-                                    definition, properties, displayIfNoReferences);
-                            }
-                        }
                     }
                 }
             }
@@ -215,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             return properties;
         }
 
-        public static async Task<SourceReferenceItem> TryCreateSourceReferenceItemAsync(
+        public static async Task<SourceReferenceItem?> TryCreateSourceReferenceItemAsync(
             this ReferenceLocation referenceLocation,
             DefinitionItem definitionItem,
             bool includeHiddenLocations,

@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly SemanticClassificationBufferTaggerProvider _owner;
             private readonly ITextBuffer _subjectBuffer;
             private readonly ITaggerEventSource _eventSource;
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
 
             private TagSpanIntervalTree<IClassificationTag> _cachedTags_doNotAccessDirectly;
             private SnapshotSpan? _cachedTaggedSpan_doNotAccessDirectly;
@@ -45,7 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _subjectBuffer = subjectBuffer;
 
                 const TaggerDelay Delay = TaggerDelay.Short;
-                _eventSource = TaggerEventSources.Compose(
+
+                // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
+                // semantics (esp. during solution load).  Because of this, we also register to hear when the full
+                // compilation is available so that reclassify and bring ourselves up to date.
+                _eventSource = new CompilationAvailableTaggerEventSource(
+                    subjectBuffer, Delay,
+                    owner.ThreadingContext,
+                    asyncListener,
                     TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, asyncListener),
                     TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
 
@@ -55,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public void Dispose()
             {
                 this.AssertIsForeground();
+                _cancellationTokenSource.Cancel();
                 _eventSource.Changed -= OnEventSourceChanged;
                 _eventSource.Disconnect();
             }
@@ -99,7 +108,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 _owner._notificationService.RegisterNotification(
                     OnEventSourceChanged_OnForeground,
-                    _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider"));
+                    _owner._asyncListener.BeginAsyncOperation("SemanticClassificationBufferTaggerProvider"),
+                    _cancellationTokenSource.Token);
             }
 
             private void OnEventSourceChanged_OnForeground()

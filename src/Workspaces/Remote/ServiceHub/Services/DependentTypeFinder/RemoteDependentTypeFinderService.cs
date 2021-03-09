@@ -36,22 +36,19 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (UserOperationBooster.Boost())
-                {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 
-                    var symbol = await typeAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+                var symbol = await typeAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                    if (symbol is not INamedTypeSymbol namedType)
-                        return ImmutableArray<SerializableSymbolAndProjectId>.Empty;
+                if (symbol is not INamedTypeSymbol namedType)
+                    return ImmutableArray<SerializableSymbolAndProjectId>.Empty;
 
-                    var projects = projectIdsOpt.IsDefault ? null : projectIdsOpt.Select(id => solution.GetRequiredProject(id)).ToImmutableHashSet();
+                var projects = projectIdsOpt.IsDefault ? null : projectIdsOpt.Select(id => solution.GetRequiredProject(id)).ToImmutableHashSet();
 
-                    var types = await DependentTypeFinder.FindTypesInCurrentProcessAsync(namedType, solution, projects, transitive, kind, cancellationToken).ConfigureAwait(false);
+                var types = await DependentTypeFinder.FindTypesInCurrentProcessAsync(namedType, solution, projects, transitive, kind, cancellationToken).ConfigureAwait(false);
 
-                    return types.SelectAsArray(
-                        t => SerializableSymbolAndProjectId.Dehydrate(solution, t, cancellationToken));
-                }
+                return types.SelectAsArray(
+                    t => SerializableSymbolAndProjectId.Dehydrate(solution, t, cancellationToken));
             }, cancellationToken);
         }
     }

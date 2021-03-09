@@ -133,6 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                                 ? textChangeRange
                                 : this.AccumulatedTextChanges.Accumulate(SpecializedCollections.SingletonEnumerable(textChangeRange));
                         }
+
                         break;
 
                     default:

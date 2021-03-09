@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Public Property Position As Object = 0
             Public Property FullDelegateName As String
             Public Property Access As EnvDTE.vsCMAccess = EnvDTE.vsCMAccess.vsCMAccessDefault
-            Public Property CreatePropertyStyleEvent As Boolean = False
+            Public Property CreatePropertyStyleEvent As Boolean
         End Class
 
     End Class

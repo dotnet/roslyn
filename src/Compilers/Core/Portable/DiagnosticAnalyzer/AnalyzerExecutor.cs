@@ -1552,6 +1552,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void ExecuteAndCatchIfThrows<TArg>(DiagnosticAnalyzer analyzer, Action<TArg> analyze, TArg argument, AnalysisContextInfo? info = null)
         {
+            SharedStopwatch timer = default;
+            if (_analyzerExecutionTimeMap != null)
+            {
+                _ = SharedStopwatch.StartNew();
+
+                // This call to StartNew isn't required by the API, but is included to avoid measurement errors
+                // which can occur during periods of high allocation activity. In some cases, calls to Stopwatch
+                // operations can block at their return point on the completion of a background GC operation. When
+                // this occurs, the GC wait time ends up included in the measured time span. In the event the first
+                // call to StartNew blocked on a GC operation, this call to StartNew will most likely occur when the
+                // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
+                // timing data was observed.
+                //
+                // Note that the call to SharedStopwatch.Elapsed is not affected, because the GC wait will occur
+                // after the timer has already recorded its stop time.
+                timer = SharedStopwatch.StartNew();
+            }
+
             var gate = _getAnalyzerGate?.Invoke(analyzer);
             if (gate != null)
             {
@@ -1564,6 +1582,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 ExecuteAndCatchIfThrows_NoLock(analyzer, analyze, argument, info);
             }
+
+            if (_analyzerExecutionTimeMap != null)
+            {
+                var elapsed = timer.Elapsed.Ticks;
+                StrongBox<long> totalTicks = _analyzerExecutionTimeMap.GetOrAdd(analyzer, _ => new StrongBox<long>(0));
+                Interlocked.Add(ref totalTicks.Value, elapsed);
+            }
         }
 
         [PerformanceSensitive(
@@ -1574,33 +1599,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             try
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-
-                SharedStopwatch timer = default;
-                if (_analyzerExecutionTimeMap != null)
-                {
-                    timer = SharedStopwatch.StartNew();
-
-                    // This call to StartNew isn't required by the API, but is included to avoid measurement errors
-                    // which can occur during periods of high allocation activity. In some cases, calls to Stopwatch
-                    // operations can block at their return point on the completion of a background GC operation. When
-                    // this occurs, the GC wait time ends up included in the measured time span. In the event the first
-                    // call to StartNew blocked on a GC operation, this call to StartNew will most likely occur when the
-                    // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
-                    // timing data was observed.
-                    //
-                    // Note that the call to SharedStopwatch.Elapsed is not affected, because the GC wait will occur
-                    // after the timer has already recorded its stop time.
-                    timer = SharedStopwatch.StartNew();
-                }
-
                 analyze(argument);
-
-                if (_analyzerExecutionTimeMap != null)
-                {
-                    var elapsed = timer.Elapsed.Ticks;
-                    StrongBox<long> totalTicks = _analyzerExecutionTimeMap.GetOrAdd(analyzer, _ => new StrongBox<long>(0));
-                    Interlocked.Add(ref totalTicks.Value, elapsed);
-                }
             }
             catch (Exception e) when (ExceptionFilter(e))
             {

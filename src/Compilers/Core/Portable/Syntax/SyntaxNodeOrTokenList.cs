@@ -316,10 +316,13 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxNodeOrTokenList);
             }
 
-            var newGreen = GreenNode.CreateList(items.Select(n => n.UnderlyingNode!))!;
+            var newGreen = GreenNode.CreateList(items, static n => n.RequiredUnderlyingNode)!;
             if (newGreen.IsToken)
             {
-                newGreen = GreenNode.CreateList(new[] { newGreen }, alwaysCreateListNode: true)!;
+                newGreen = Syntax.InternalSyntax.SyntaxList.List(new[]
+                {
+                    new ArrayElement<GreenNode> {Value = newGreen}
+                });
             }
 
             return new SyntaxNodeOrTokenList(newGreen.CreateRed(), 0);

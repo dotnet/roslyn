@@ -322,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                   rewritten.FieldSymbol,
                                                                   rewritten.IsLValue,
                                                                   rewritten.SuppressVirtualCalls,
-                                                                  rewritten.ConstantsInProgressOpt,
+                                                                  constantsInProgressOpt:=Nothing,
                                                                   rewritten.Type))
             End Function
 

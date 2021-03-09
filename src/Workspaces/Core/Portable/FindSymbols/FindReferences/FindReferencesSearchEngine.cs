@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using ProjectToDocumentMap = Dictionary<Project, MultiDictionary<Document, (ISymbol symbol, IReferenceFinder finder)>>;
+    using ProjectToDocumentMap = Dictionary<Project, Dictionary<Document, HashSet<(ISymbol symbol, IReferenceFinder finder)>>>;
 
     internal partial class FindReferencesSearchEngine
     {
@@ -28,6 +28,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly FindReferencesSearchOptions _options;
+
+        /// <summary>
+        /// Scheduler to run our tasks on.  If we're in <see cref="FindReferencesSearchOptions.Explicit"/> mode, we'll
+        /// run all our tasks concurrently.  Otherwise, we will run them serially using <see cref="s_exclusiveScheduler"/>
+        /// </summary>
+        private readonly TaskScheduler _scheduler;
+        private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
 
         public FindReferencesSearchEngine(
             Solution solution,
@@ -45,6 +52,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _options = options;
 
             _progressTracker = progress.ProgressTracker;
+
+            // If we're an explicit invocation, just defer to the threadpool to execute all our work in parallel to get
+            // things done as quickly as possible.  If we're running implicitly, then use a
+            // ConcurrentExclusiveSchedulerPair's exclusive scheduler as that's the most built-in way in the TPL to get
+            // will run things serially.
+            _scheduler = _options.Explicit ? TaskScheduler.Default : s_exclusiveScheduler;
         }
 
         public async Task FindReferencesAsync(ISymbol symbol)
@@ -54,7 +67,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 await using var _ = await _progressTracker.AddSingleItemAsync().ConfigureAwait(false);
 
-                var symbols = await DetermineAllSymbolsAsync(symbol).ConfigureAwait(false);
+                // For the starting symbol, always cascade up and down the inheritance hierarchy.
+                var symbols = await DetermineAllSymbolsAsync(symbol, FindReferencesCascadeDirection.UpAndDown).ConfigureAwait(false);
 
                 var projectMap = await CreateProjectMapAsync(symbols).ConfigureAwait(false);
                 var projectToDocumentMap = await CreateProjectToDocumentMapAsync(projectMap).ConfigureAwait(false);
@@ -87,7 +101,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
 
                 foreach (var (project, documentMap) in projectToDocumentMap)
-                    tasks.Add(Task.Run(() => ProcessProjectAsync(project, documentMap), _cancellationToken));
+                    tasks.Add(Task.Factory.StartNew(() => ProcessProjectAsync(project, documentMap), _cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap());
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }

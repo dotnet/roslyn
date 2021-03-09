@@ -648,5 +648,32 @@ class A
 
             Await VerifyParamHints(input)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.InlineHints)>
+        <WorkItem(48910, "https://github.com/dotnet/roslyn/issues/48910")>
+        Public Async Function TestNullableSuppression() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+#nullable enable
+
+class A
+{
+    void M(string x)
+    {
+    }
+
+    void Main() 
+    {
+        M({|x:|}null!);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input)
+        End Function
     End Class
 End Namespace

@@ -299,7 +299,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected static bool AreSnippetsEnabled(EditorCommandArgs args)
         {
             // Don't execute in cloud environment, should be handled by LSP
-            if (args.SubjectBuffer.IsInCloudEnvironmentClientContext())
+            if (args.SubjectBuffer.IsInLspEditorContext())
             {
                 return false;
             }

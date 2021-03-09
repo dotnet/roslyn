@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -96,10 +94,10 @@ namespace Roslyn.Utilities
             _eventNameToRegistries[eventName] = registries;
         }
 
-        internal class Registry<TEventHandler> : IEquatable<Registry<TEventHandler>>
+        internal class Registry<TEventHandler> : IEquatable<Registry<TEventHandler>?>
             where TEventHandler : class
         {
-            private TEventHandler _handler;
+            private TEventHandler? _handler;
 
             public Registry(TEventHandler handler)
                 => _handler = handler;
@@ -119,7 +117,7 @@ namespace Roslyn.Utilities
             public bool HasHandler(TEventHandler handler)
                 => handler.Equals(_handler);
 
-            public bool Equals(Registry<TEventHandler> other)
+            public bool Equals(Registry<TEventHandler>? other)
             {
                 if (other == null)
                 {
@@ -139,7 +137,7 @@ namespace Roslyn.Utilities
                 return other._handler.Equals(_handler);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
                 => Equals(obj as Registry<TEventHandler>);
 
             public override int GetHashCode()

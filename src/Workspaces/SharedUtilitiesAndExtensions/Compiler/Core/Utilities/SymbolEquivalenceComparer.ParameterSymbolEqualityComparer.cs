@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal partial class SymbolEquivalenceComparer
     {
-        internal class ParameterSymbolEqualityComparer : IEqualityComparer<IParameterSymbol>
+        internal class ParameterSymbolEqualityComparer : IEqualityComparer<IParameterSymbol?>
         {
             private readonly SymbolEquivalenceComparer _symbolEqualityComparer;
             private readonly bool _distinguishRefFromOut;
@@ -27,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             public bool Equals(
-                IParameterSymbol x,
-                IParameterSymbol y,
-                Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies,
+                IParameterSymbol? x,
+                IParameterSymbol? y,
+                Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies,
                 bool compareParameterName,
                 bool isCaseSensitive)
             {
@@ -61,13 +59,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     _symbolEqualityComparer.SignatureTypeEquivalenceComparer.Equals(x.Type, y.Type, equivalentTypesWithDifferingAssemblies);
             }
 
-            public bool Equals(IParameterSymbol x, IParameterSymbol y)
+            public bool Equals(IParameterSymbol? x, IParameterSymbol? y)
                 => this.Equals(x, y, null, false, false);
 
-            public bool Equals(IParameterSymbol x, IParameterSymbol y, bool compareParameterName, bool isCaseSensitive)
+            public bool Equals(IParameterSymbol? x, IParameterSymbol? y, bool compareParameterName, bool isCaseSensitive)
                 => this.Equals(x, y, null, compareParameterName, isCaseSensitive);
 
-            public int GetHashCode(IParameterSymbol x)
+            public int GetHashCode(IParameterSymbol? x)
             {
                 if (x == null)
                 {

@@ -6,14 +6,18 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
+using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
 {
@@ -24,34 +28,54 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
     /// TODO - This can be removed once C# is using LSP for diagnostics.
     /// https://github.com/dotnet/roslyn/issues/42630
     /// </summary>
+    /// <remarks>
+    /// This specifies RunOnHost because in LiveShare we don't want this to activate on the guest instance
+    /// because LiveShare drops the ClientName when it mirrors guest clients, so this client ends up being
+    /// activated solely by its content type, which means it receives requests for normal .cs and .vb files
+    /// even for non-razor projects, which then of course fails because it gets text sync info for documents
+    /// it doesn't know about.
+    /// </remarks>
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ClientName(ClientName)]
+    [RunOnContext(RunningContext.RunOnHost)]
     [Export(typeof(ILanguageClient))]
     internal class RazorInProcLanguageClient : AbstractInProcLanguageClient
     {
-        public const string ClientName = "RazorCSharp";
+        public const string ClientName = ProtocolConstants.RazorCSharp;
 
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
 
         /// <summary>
-        /// Gets the name of the language client (displayed to the user).
+        /// Gets the name of the language client (displayed in yellow bars).
         /// </summary>
-        public override string Name => ServicesVSResources.Razor_CSharp_Language_Server_Client;
+        public override string Name => "Razor C# Language Server Client";
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
-            LanguageServerProtocol languageServerProtocol,
+            CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
+            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider)
-            : base(languageServerProtocol, workspace, listenerProvider, solutionProvider, ClientName)
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
+            IThreadingContext threadingContext,
+            [Import(typeof(SAsyncServiceProvider))] VSShell.IAsyncServiceProvider asyncServiceProvider)
+            : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, ClientName)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected internal override VSServerCapabilities GetCapabilities()
-            => _defaultCapabilitiesProvider.GetCapabilities();
+        {
+            var capabilities = _defaultCapabilitiesProvider.GetCapabilities();
+
+            capabilities.SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
+
+            // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
+            capabilities.WorkspaceSymbolProvider = false;
+
+            return capabilities;
+        }
     }
 }

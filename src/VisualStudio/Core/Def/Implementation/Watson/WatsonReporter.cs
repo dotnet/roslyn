@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         // name our services more consistently to simplify filtering
 
                         // filter logs that are not relevant to Roslyn investigation
-                        if (!name.Contains("-" + ServiceDescriptors.ServiceNamePrefix) &&
+                        if (!name.Contains("-" + ServiceDescriptors.ServiceNameTopLevelPrefix) &&
                             !name.Contains("-" + RemoteServiceName.Prefix) &&
                             !name.Contains("-" + RemoteServiceName.IntelliCodeServiceName) &&
                             !name.Contains("-" + RemoteServiceName.RazorServiceName) &&

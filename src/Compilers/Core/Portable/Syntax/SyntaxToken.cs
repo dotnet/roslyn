@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// True if this token has the specified annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return Node?.HasAnnotation(annotation) ?? false;
         }
@@ -473,14 +474,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new token from this token with the leading trivia specified..
+        /// Creates a new token from this token with the leading trivia specified.
         /// </summary>
         public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
-            var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
-
             return Node != null
-                ? new SyntaxToken(null, Node.WithLeadingTrivia(GreenNode.CreateList(greenList)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithLeadingTrivia(GreenNode.CreateList(trivia, static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 
@@ -505,10 +504,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia>? trivia)
         {
-            var greenList = trivia?.Select(t => t.RequiredUnderlyingNode);
-
             return Node != null
-                ? new SyntaxToken(null, Node.WithTrailingTrivia(GreenNode.CreateList(greenList)), position: 0, index: 0)
+                ? new SyntaxToken(null, Node.WithTrailingTrivia(GreenNode.CreateList(trivia, static t => t.RequiredUnderlyingNode)), position: 0, index: 0)
                 : default(SyntaxToken);
         }
 

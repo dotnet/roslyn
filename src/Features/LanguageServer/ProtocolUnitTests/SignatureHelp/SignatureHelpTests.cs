@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
     }
 
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
             var expected = new LSP.SignatureHelp()
             {
                 ActiveParameter = 0,
@@ -42,14 +42,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
                 Signatures = new LSP.SignatureInformation[] { CreateSignatureInformation("int A.M2(string a)", "M2 is a method.", "a", "") }
             };
 
-            var results = await RunGetSignatureHelpAsync(workspace.CurrentSolution, locations["caret"].Single());
+            var results = await RunGetSignatureHelpAsync(testLspServer, locations["caret"].Single());
             AssertJsonEquals(expected, results);
         }
 
-        private static async Task<LSP.SignatureHelp> RunGetSignatureHelpAsync(Solution solution, LSP.Location caret)
+        private static async Task<LSP.SignatureHelp> RunGetSignatureHelpAsync(TestLspServer testLspServer, LSP.Location caret)
         {
-            var queue = CreateRequestQueue(solution);
-            return await GetLanguageServer(solution).ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp>(queue, LSP.Methods.TextDocumentSignatureHelpName,
+            return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp>(LSP.Methods.TextDocumentSignatureHelpName,
                            CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 

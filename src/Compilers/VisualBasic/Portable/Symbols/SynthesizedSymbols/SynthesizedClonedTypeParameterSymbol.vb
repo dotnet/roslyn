@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Type parameter that represents another type parameter while being applied on a different symbol
     ''' </summary>
     Friend NotInheritable Class SynthesizedClonedTypeParameterSymbol
-        Inherits TypeParameterSymbol
+        Inherits SubstitutableTypeParameterSymbol
 
         Private ReadOnly _typeMapFactory As Func(Of Symbol, TypeSubstitution)
         Private ReadOnly _container As Symbol

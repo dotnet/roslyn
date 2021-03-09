@@ -11,7 +11,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
@@ -3514,6 +3513,44 @@ class C
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            var initializerOperation = model.GetOperation(initializer);
+
+            Assert.Null(initializerOperation.Parent.Parent.Parent);
+            VerifyOperationTree(compilation, initializerOperation.Parent.Parent, @"
+IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ':base(TakeO ... && x1 >= 5)')
+  Expression: 
+    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '(TakeOutPar ... && x1 >= 5)')
+      Children(1):
+          IInvocationOperation ( C..ctor(System.Boolean b)) (OperationKind.Invocation, Type: System.Void) (Syntax: ':base(TakeO ... && x1 >= 5)')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: ':base(TakeO ... && x1 >= 5)')
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'TakeOutPara ...  && x1 >= 5')
+                  IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'TakeOutPara ...  && x1 >= 5')
+                    Left: 
+                      IInvocationOperation (System.Boolean D.TakeOutParam(System.Int32 y, out System.Int32 x)) (OperationKind.Invocation, Type: System.Boolean) (Syntax: 'TakeOutPara ... out int x1)')
+                        Instance Receiver: 
+                          null
+                        Arguments(2):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: y) (OperationKind.Argument, Type: null) (Syntax: 'o')
+                              IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'o')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'out int x1')
+                              IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x1')
+                                ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Right: 
+                      IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'x1 >= 5')
+                        Left: 
+                          ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x1')
+                        Right: 
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
         }
 
         [Fact]
@@ -36182,6 +36219,34 @@ public class C : System.Collections.Generic.List<int>
 }
 ";
             CompileAndVerify(source, expectedOutput: @"1");
+        }
+
+        [Fact]
+        [WorkItem(49997, "https://github.com/dotnet/roslyn/issues/49997")]
+        public void Issue49997()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        if ()
+        .Test1().Test2(out var x1).Test3();
+    }
+}
+
+static class Ext
+{
+    public static void Test3(this Cls x) {}
+}
+";
+            var compilation = CreateCompilation(text);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "Test3").Last();
+            Assert.True(model.GetSymbolInfo(node).IsEmpty);
         }
     }
 

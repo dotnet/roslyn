@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If we have already generated the helper, possibly for another switch
                 // or on another thread, we don't need to regenerate it.
-                var privateImplClass = module.GetPrivateImplClass(syntaxNode, _localRewriter._diagnostics);
+                var privateImplClass = module.GetPrivateImplClass(syntaxNode, _localRewriter._diagnostics.DiagnosticBag);
                 if (privateImplClass.GetMethod(stringPatternInput switch
                 {
                     StringPatternInput.String => CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedStringHashFunctionName,
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     StringPatternInput.ReadOnlySpanChar => _localRewriter._compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__get_Item),
                     _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
                 };
-                if ((object)charsMember == null || charsMember.GetUseSiteDiagnostic() != null)
+                if ((object)charsMember == null || charsMember.HasUseSiteError)
                 {
                     return;
                 }
@@ -904,7 +904,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     StringPatternInput.ReadOnlySpanChar => new SynthesizedSpanSwitchHashMethod(module.SourceModule, privateImplClass, returnType, paramType, isReadOnlySpan: true),
                     _ => throw ExceptionUtilities.UnexpectedValue(stringPatternInput),
                 };
-                privateImplClass.TryAddSynthesizedMethod(method);
+                privateImplClass.TryAddSynthesizedMethod(method.GetCciAdapter());
             }
 
             private void LowerWhenClause(BoundWhenDecisionDagNode whenClause)

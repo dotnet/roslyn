@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,10 +25,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri)
         {
-            return GetDocuments<Document>(solution, documentUri, (s, i) => s.GetRequiredDocument(i));
+            return GetDocuments(solution, documentUri, clientName: null);
         }
 
-        private static ImmutableArray<T> GetDocuments<T>(this Solution solution, Uri documentUri, Func<Solution, DocumentId, T> getDocument) where T : TextDocument
+        public static ImmutableArray<Document> GetDocuments(this Solution solution, Uri documentUri, string? clientName)
+        {
+            var documentIds = GetDocumentIds(solution, documentUri);
+
+            var documents = documentIds.SelectAsArray(id => solution.GetRequiredDocument(id));
+
+            return FilterDocumentsByClientName(documents, clientName);
+        }
+
+        public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, Uri documentUri)
         {
             // TODO: we need to normalize this. but for now, we check both absolute and local path
             //       right now, based on who calls this, solution might has "/" or "\\" as directory
@@ -41,32 +49,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 documentIds = solution.GetDocumentIdsWithFilePath(documentUri.LocalPath);
             }
 
-            return documentIds.SelectAsArray(id => getDocument(solution, id));
+            return documentIds;
         }
 
-        public static (Document?, Solution) GetDocumentAndSolution(this ILspSolutionProvider provider, TextDocumentIdentifier? textDocument, string? clientName)
+        private static ImmutableArray<Document> FilterDocumentsByClientName(ImmutableArray<Document> documents, string? clientName)
         {
-            var solution = provider.GetCurrentSolutionForMainWorkspace();
-            if (textDocument != null)
-            {
-                var document = provider.GetDocument(textDocument, clientName);
-                var solutionOfDocument = document?.Project.Solution;
-
-                return (document, solutionOfDocument ?? solution);
-            }
-
-            return (null, solution);
-        }
-
-        public static ImmutableArray<Document> GetDocuments(this ILspSolutionProvider solutionProvider, Uri uri, string? clientName)
-        {
-            return GetDocuments<Document>(solutionProvider, uri, (s, u, c) => s.GetDocuments(u), clientName);
-        }
-
-        private static ImmutableArray<T> GetDocuments<T>(this ILspSolutionProvider solutionProvider, Uri uri, Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName) where T : TextDocument
-        {
-            var documents = getDocuments(solutionProvider, uri, clientName);
-
             // If we don't have a client name, then we're done filtering
             if (clientName == null)
             {
@@ -86,20 +73,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             });
         }
 
-        public static Document? GetDocument(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, string? clientName = null)
-        {
-            return GetDocument<Document>(solutionProvider, documentIdentifier, (s, d, c) => s.GetDocuments(d, c), clientName);
-        }
+        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
+            => solution.GetDocument(documentIdentifier, clientName: null);
 
-        private static T? GetDocument<T>(this ILspSolutionProvider solutionProvider, TextDocumentIdentifier documentIdentifier, Func<ILspSolutionProvider, Uri, string?, ImmutableArray<T>> getDocuments, string? clientName = null) where T : TextDocument
+        public static Document? GetDocument(this Solution solution, TextDocumentIdentifier documentIdentifier, string? clientName)
         {
-            var documents = getDocuments(solutionProvider, documentIdentifier.Uri, clientName);
-
+            var documents = solution.GetDocuments(documentIdentifier.Uri, clientName);
             if (documents.Length == 0)
             {
                 return null;
             }
 
+            return documents.FindDocumentInProjectContext(documentIdentifier);
+        }
+
+        public static T FindDocumentInProjectContext<T>(this ImmutableArray<T> documents, TextDocumentIdentifier documentIdentifier) where T : TextDocument
+        {
             if (documents.Length > 1)
             {
                 // We have more than one document; try to find the one that matches the right context
@@ -159,5 +148,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
             => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+
+        public static bool IsRazorDocument(this Document document)
+        {
+            // Only razor docs have an ISpanMappingService, so we can use the presence of that to determine if this doc
+            // belongs to them.
+            var spanMapper = document.Services.GetService<ISpanMappingService>();
+            return spanMapper != null;
+        }
     }
 }

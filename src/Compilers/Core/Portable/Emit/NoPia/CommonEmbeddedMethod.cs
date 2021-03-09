@@ -166,8 +166,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters => _typeParameters;
 
-            bool Cci.IMethodDefinition.IsImplicitlyDeclared => true;
-
             bool Cci.IMethodDefinition.HasDeclarativeSecurity => false;
 
             bool Cci.IMethodDefinition.IsAbstract => IsAbstract;
@@ -300,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbolInternal)UnderlyingMethod).GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return UnderlyingMethod.GetInternalSymbol().GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
             }
         }
     }

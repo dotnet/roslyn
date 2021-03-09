@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return null;
                     }
 
-                    if (!memberPath.TryResolve(root, out SyntaxNode memberNode))
+                    if (!memberPath.TryResolve(root, out SyntaxNode? memberNode))
                     {
                         return null;
                     }
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 analyzers = _analyzerProviders.Select(p => ValueTuple.Create(p.Value.CreateIncrementalAnalyzer(workspace), p.Metadata.HighPriorityForActiveFile))
                                                 .Where(t => t.Item1 != null)
                                                 .OrderBy(t => !(t.Item1 is DiagnosticIncrementalAnalyzer))
-                                                .ToImmutableArray();
+                                                .ToImmutableArray()!;
 
                                 _analyzerMap[workspace] = analyzers;
                             }

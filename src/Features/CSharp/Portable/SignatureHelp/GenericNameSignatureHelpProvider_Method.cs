@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -60,11 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             return result;
         }
 
-        private static ITypeSymbol GetContainingType(IMethodSymbol method)
+        private static ITypeSymbol? GetContainingType(IMethodSymbol method)
         {
             var result = method.ReceiverType;
-
-            if (result.Kind != SymbolKind.NamedType || !((INamedTypeSymbol)result).IsScriptClass)
+            if (result is not INamedTypeSymbol namedTypeSymbol || !namedTypeSymbol.IsScriptClass)
             {
                 return result;
             }

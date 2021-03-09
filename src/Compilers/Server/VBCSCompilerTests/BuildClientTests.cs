@@ -21,6 +21,7 @@ using System.Threading;
 using System.IO.Pipes;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -31,14 +32,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private readonly string _pipeName = Guid.NewGuid().ToString("N");
             private readonly BuildPaths _buildPaths;
             private readonly List<ServerData> _serverDataList = new List<ServerData>();
+            private readonly XunitCompilerServerLogger _logger;
             private bool _allowServer = true;
             private int _failedCreatedServerCount = 0;
 
-            public ServerTests()
+            public ServerTests(ITestOutputHelper testOutputHelper)
             {
                 _buildPaths = ServerUtil.CreateBuildPaths(
                     workingDir: Temp.CreateDirectory().Path,
                     tempDir: Temp.CreateDirectory().Path);
+                _logger = new XunitCompilerServerLogger(testOutputHelper);
             }
 
             public override void Dispose()
@@ -59,13 +62,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 language ??= RequestLanguage.CSharpCompile;
                 compileFunc ??= delegate { return 0; };
-                createServerFunc ??= ((_, pipeName) => TryCreateServer(pipeName));
-                return new BuildClient(language.Value, compileFunc, createServerFunc);
+                createServerFunc ??= ((_, pipeName, _) => TryCreateServer(pipeName));
+                return new BuildClient(language.Value, compileFunc, _logger, createServerFunc);
             }
 
-            private ServerData CreateServer(string pipeName, ICompilerServerHost compilerServerHost = null)
+            private ServerData CreateServer(string pipeName)
             {
-                var serverData = ServerUtil.CreateServer(pipeName, compilerServerHost).GetAwaiter().GetResult();
+                var serverData = ServerUtil.CreateServer(_logger, pipeName).GetAwaiter().GetResult();
                 _serverDataList.Add(serverData);
                 return serverData;
             }
@@ -157,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 async Task<bool> tryConnectToNamedPipe(int timeoutMs, CancellationToken cancellationToken)
                 {
-                    using var pipeStream = await BuildServerConnection.TryConnectToServerAsync(pipeName, timeoutMs, cancellationToken);
+                    using var pipeStream = await BuildServerConnection.TryConnectToServerAsync(pipeName, timeoutMs, _logger, cancellationToken);
                     return pipeStream != null;
                 }
             }

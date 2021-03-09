@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
-        internal static ImmutableArray<TypeParameterSymbol> Take(int count)
+        internal static ImmutableArray<TypeParameterSymbol> TakeSymbols(int count)
         {
             if (count > s_parameterPool.Length)
             {
@@ -99,13 +99,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
+        internal static ImmutableArray<TypeWithAnnotations> Take(int count)
+        {
+            if (count > s_parameterPool.Length)
+            {
+                GrowPool(count);
+            }
+
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+
+            for (int i = 0; i < count; i++)
+            {
+                builder.Add(TypeWithAnnotations.Create(GetTypeParameter(i), NullableAnnotation.Ignored));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         public override int Ordinal
         {
             get { return _index; }
         }
 
         // These object are unique (per index).
-        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverrideOpt = null)
+        internal override bool Equals(TypeSymbol t2, TypeCompareKind comparison)
         {
             return ReferenceEquals(this, t2);
         }
@@ -125,7 +142,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override bool IsValueTypeFromConstraintTypes
+        {
+            get { return false; }
+        }
+
         public override bool HasReferenceTypeConstraint
+        {
+            get { return false; }
+        }
+
+        public override bool IsReferenceTypeFromConstraintTypes
         {
             get { return false; }
         }
@@ -173,11 +200,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved(bool canIgnoreNullableContext)
+        internal override void EnsureAllConstraintsAreResolved()
         {
         }
 
-        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool canIgnoreNullableContext)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             return ImmutableArray<TypeWithAnnotations>.Empty;
         }

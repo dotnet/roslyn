@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +24,7 @@ namespace Roslyn.Utilities
         }
 
         public static IEnumerable<T> TopologicalSort<T>(this IEnumerable<T> items, Func<T, IEnumerable<T>> itemsBefore, Func<T, IEnumerable<T>> itemsAfter)
+            where T : notnull
         {
             var combinedItemsBefore = CreateCombinedItemsBefore(items, itemsBefore, itemsAfter);
             return TopologicalSort(items, combinedItemsBefore);
@@ -49,6 +48,7 @@ namespace Roslyn.Utilities
         }
 
         private static Func<T, IEnumerable<T>> CreateCombinedItemsBefore<T>(IEnumerable<T> items, Func<T, IEnumerable<T>> itemsBefore, Func<T, IEnumerable<T>> itemsAfter)
+            where T : notnull
         {
             // create initial list
             var itemToItemsBefore = items.ToDictionary(item => item, item =>

@@ -7,12 +7,16 @@ Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
+#If Not DEBUG Then
+Imports MethodSymbolAdapter = Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol
+#End If
+
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
     Friend NotInheritable Class EmbeddedMethod
         Inherits EmbeddedTypesManager.CommonEmbeddedMethod
 
-        Public Sub New(containingType As EmbeddedType, underlyingMethod As MethodSymbol)
+        Public Sub New(containingType As EmbeddedType, underlyingMethod As MethodSymbolAdapter)
             MyBase.New(containingType, underlyingMethod)
         End Sub
 
@@ -23,126 +27,126 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         End Property
 
         Protected Overrides Function GetCustomAttributesToEmit(moduleBuilder As PEModuleBuilder) As IEnumerable(Of VisualBasicAttributeData)
-            Return UnderlyingMethod.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
+            Return UnderlyingMethod.AdaptedMethodSymbol.GetCustomAttributesToEmit(moduleBuilder.CompilationState)
         End Function
 
         Protected Overrides Function GetParameters() As ImmutableArray(Of EmbeddedParameter)
-            Return EmbeddedTypesManager.EmbedParameters(Me, UnderlyingMethod.Parameters)
+            Return EmbeddedTypesManager.EmbedParameters(Me, UnderlyingMethod.AdaptedMethodSymbol.Parameters)
         End Function
 
         Protected Overrides Function GetTypeParameters() As ImmutableArray(Of EmbeddedTypeParameter)
-            Return UnderlyingMethod.TypeParameters.SelectAsArray(Function(typeParameter, container) New EmbeddedTypeParameter(container, typeParameter), Me)
+            Return UnderlyingMethod.AdaptedMethodSymbol.TypeParameters.SelectAsArray(Function(typeParameter, container) New EmbeddedTypeParameter(container, typeParameter.GetCciAdapter()), Me)
         End Function
 
         Protected Overrides ReadOnly Property IsAbstract As Boolean
             Get
-                Return UnderlyingMethod.IsMustOverride
+                Return UnderlyingMethod.AdaptedMethodSymbol.IsMustOverride
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsAccessCheckedOnOverride As Boolean
             Get
-                Return UnderlyingMethod.IsAccessCheckedOnOverride
+                Return UnderlyingMethod.AdaptedMethodSymbol.IsAccessCheckedOnOverride
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsConstructor As Boolean
             Get
-                Return UnderlyingMethod.MethodKind = MethodKind.Constructor
+                Return UnderlyingMethod.AdaptedMethodSymbol.MethodKind = MethodKind.Constructor
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsExternal As Boolean
             Get
-                Return UnderlyingMethod.IsExternal
+                Return UnderlyingMethod.AdaptedMethodSymbol.IsExternal
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsHiddenBySignature As Boolean
             Get
-                Return UnderlyingMethod.IsHiddenBySignature
+                Return UnderlyingMethod.AdaptedMethodSymbol.IsHiddenBySignature
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsNewSlot As Boolean
             Get
-                Return UnderlyingMethod.IsMetadataNewSlot()
+                Return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataNewSlot()
             End Get
         End Property
 
         Protected Overrides ReadOnly Property PlatformInvokeData As Cci.IPlatformInvokeInformation
             Get
-                Return UnderlyingMethod.GetDllImportData()
+                Return UnderlyingMethod.AdaptedMethodSymbol.GetDllImportData()
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsRuntimeSpecial As Boolean
             Get
-                Return UnderlyingMethod.HasRuntimeSpecialName
+                Return UnderlyingMethod.AdaptedMethodSymbol.HasRuntimeSpecialName
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsSpecialName As Boolean
             Get
-                Return UnderlyingMethod.HasSpecialName
+                Return UnderlyingMethod.AdaptedMethodSymbol.HasSpecialName
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsSealed As Boolean
             Get
-                Return UnderlyingMethod.IsMetadataFinal
+                Return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataFinal
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsStatic As Boolean
             Get
-                Return UnderlyingMethod.IsShared
+                Return UnderlyingMethod.AdaptedMethodSymbol.IsShared
             End Get
         End Property
 
         Protected Overrides ReadOnly Property IsVirtual As Boolean
             Get
-                Return UnderlyingMethod.IsMetadataVirtual()
+                Return UnderlyingMethod.AdaptedMethodSymbol.IsMetadataVirtual()
             End Get
         End Property
 
         Protected Overrides Function GetImplementationAttributes(context As EmitContext) As Reflection.MethodImplAttributes
-            Return UnderlyingMethod.ImplementationAttributes
+            Return UnderlyingMethod.AdaptedMethodSymbol.ImplementationAttributes
         End Function
 
         Protected Overrides ReadOnly Property ReturnValueIsMarshalledExplicitly As Boolean
             Get
-                Return UnderlyingMethod.ReturnValueIsMarshalledExplicitly
+                Return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueIsMarshalledExplicitly
             End Get
         End Property
 
         Protected Overrides ReadOnly Property ReturnValueMarshallingInformation As Cci.IMarshallingInformation
             Get
-                Return UnderlyingMethod.ReturnTypeMarshallingInformation
+                Return UnderlyingMethod.AdaptedMethodSymbol.ReturnTypeMarshallingInformation
             End Get
         End Property
 
         Protected Overrides ReadOnly Property ReturnValueMarshallingDescriptor As ImmutableArray(Of Byte)
             Get
-                Return UnderlyingMethod.ReturnValueMarshallingDescriptor
+                Return UnderlyingMethod.AdaptedMethodSymbol.ReturnValueMarshallingDescriptor
             End Get
         End Property
 
         Protected Overrides ReadOnly Property Visibility As Cci.TypeMemberVisibility
             Get
-                Return PEModuleBuilder.MemberVisibility(UnderlyingMethod)
+                Return PEModuleBuilder.MemberVisibility(UnderlyingMethod.AdaptedMethodSymbol)
             End Get
         End Property
 
         Protected Overrides ReadOnly Property Name As String
             Get
-                Return UnderlyingMethod.MetadataName
+                Return UnderlyingMethod.AdaptedMethodSymbol.MetadataName
             End Get
         End Property
 
         Protected Overrides ReadOnly Property AcceptsExtraArguments As Boolean
             Get
-                Return UnderlyingMethod.IsVararg
+                Return UnderlyingMethod.AdaptedMethodSymbol.IsVararg
             End Get
         End Property
 
@@ -154,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property ContainingNamespace As INamespace
             Get
-                Return UnderlyingMethod.ContainingNamespace
+                Return UnderlyingMethod.AdaptedMethodSymbol.ContainingNamespace.GetCciAdapter()
             End Get
         End Property
     End Class

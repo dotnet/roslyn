@@ -27,15 +27,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         private const string _patternName = "pattern";
 
         /// <summary>
-        /// Cache so that we can reuse the same <see cref="RegexPatternDetector"/> when analyzing a particular semantic
-        /// model.  This saves the time from having to recreate this for every string literal that features examine for
-        /// a particular semantic model.
+        /// Cache so that we can reuse the same <see cref="RegexPatternDetector"/> when analyzing a particular
+        /// compilation model.  This saves the time from having to recreate this for every string literal that features
+        /// examine for a particular compilation.
         /// </summary>
-        private static readonly ConditionalWeakTable<SemanticModel, RegexPatternDetector> _modelToDetector =
-            new();
+        private static readonly ConditionalWeakTable<Compilation, RegexPatternDetector> _modelToDetector = new();
 
         private readonly EmbeddedLanguageInfo _info;
-        private readonly SemanticModel _semanticModel;
         private readonly INamedTypeSymbol _regexType;
         private readonly HashSet<string> _methodNamesOfInterest;
 
@@ -59,42 +57,39 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 .ToDictionary(f => f.Name, f => (RegexOptions)f.GetValue(null), StringComparer.OrdinalIgnoreCase);
 
         public RegexPatternDetector(
-            SemanticModel semanticModel,
             EmbeddedLanguageInfo info,
             INamedTypeSymbol regexType,
             HashSet<string> methodNamesOfInterest)
         {
             _info = info;
-            _semanticModel = semanticModel;
             _regexType = regexType;
             _methodNamesOfInterest = methodNamesOfInterest;
         }
 
         public static RegexPatternDetector TryGetOrCreate(
-            SemanticModel semanticModel, EmbeddedLanguageInfo info)
+            Compilation compilation, EmbeddedLanguageInfo info)
         {
             // Do a quick non-allocating check first.
-            if (_modelToDetector.TryGetValue(semanticModel, out var detector))
+            if (_modelToDetector.TryGetValue(compilation, out var detector))
             {
                 return detector;
             }
 
             return _modelToDetector.GetValue(
-                semanticModel, _ => TryCreate(semanticModel, info));
+                compilation, _ => TryCreate(compilation, info));
         }
 
         private static RegexPatternDetector TryCreate(
-            SemanticModel semanticModel, EmbeddedLanguageInfo info)
+            Compilation compilation, EmbeddedLanguageInfo info)
         {
-            var regexType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Regex).FullName);
+            var regexType = compilation.GetTypeByMetadataName(typeof(Regex).FullName);
             if (regexType == null)
             {
                 return null;
             }
 
             var methodNamesOfInterest = GetMethodNamesOfInterest(regexType, info.SyntaxFacts);
-            return new RegexPatternDetector(
-                semanticModel, info, regexType, methodNamesOfInterest);
+            return new RegexPatternDetector(info, regexType, methodNamesOfInterest);
         }
 
         public static bool IsPossiblyPatternToken(SyntaxToken token, ISyntaxFacts syntaxFacts)
@@ -217,7 +212,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             return result;
         }
 
-        public bool IsRegexPattern(SyntaxToken token, CancellationToken cancellationToken, out RegexOptions options)
+        public bool IsRegexPattern(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken, out RegexOptions options)
         {
             options = default;
             if (!IsPossiblyPatternToken(token, _info.SyntaxFacts))
@@ -249,16 +244,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
                     // Note we do not use GetAllSymbols here because we don't want to incur the
                     // allocation.
-                    var symbolInfo = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken);
+                    var symbolInfo = semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken);
                     var method = symbolInfo.Symbol;
-                    if (TryAnalyzeInvocation(argumentNode, method, cancellationToken, out options))
+                    if (TryAnalyzeInvocation(argumentNode, semanticModel, method, cancellationToken, out options))
                     {
                         return true;
                     }
 
                     foreach (var candidate in symbolInfo.CandidateSymbols)
                     {
-                        if (TryAnalyzeInvocation(argumentNode, candidate, cancellationToken, out options))
+                        if (TryAnalyzeInvocation(argumentNode, semanticModel, candidate, cancellationToken, out options))
                         {
                             return true;
                         }
@@ -273,24 +268,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 {
                     if (syntaxFacts.StringComparer.Compare(nameof(Regex), name) == 0)
                     {
-                        var constructor = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
+                        var constructor = semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
                         if (_regexType.Equals(constructor?.ContainingType))
                         {
                             // Argument to "new Regex".  Need to do deeper analysis
                             return AnalyzeStringLiteral(
-                                argumentNode, cancellationToken, out options);
+                                argumentNode, semanticModel, cancellationToken, out options);
                         }
                     }
                 }
             }
             else if (syntaxFacts.IsImplicitObjectCreationExpression(invocationOrCreation))
             {
-                var constructor = _semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
+                var constructor = semanticModel.GetSymbolInfo(invocationOrCreation, cancellationToken).GetAnySymbol();
                 if (_regexType.Equals(constructor?.ContainingType))
                 {
                     // Argument to "new Regex".  Need to do deeper analysis
                     return AnalyzeStringLiteral(
-                        argumentNode, cancellationToken, out options);
+                        argumentNode, semanticModel, cancellationToken, out options);
                 }
             }
 
@@ -298,7 +293,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         private bool TryAnalyzeInvocation(
-            SyntaxNode argumentNode, ISymbol method,
+            SyntaxNode argumentNode, SemanticModel semanticModel, ISymbol method,
             CancellationToken cancellationToken, out RegexOptions options)
         {
             if (method != null &&
@@ -307,16 +302,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 _regexType.Equals(method.ContainingType))
             {
                 return AnalyzeStringLiteral(
-                    argumentNode, cancellationToken, out options);
+                    argumentNode, semanticModel, cancellationToken, out options);
             }
 
             options = default;
             return false;
         }
 
-        public RegexTree TryParseRegexPattern(SyntaxToken token, CancellationToken cancellationToken)
+        public RegexTree TryParseRegexPattern(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (!this.IsRegexPattern(token, cancellationToken, out var options))
+            if (!this.IsRegexPattern(token, semanticModel, cancellationToken, out var options))
             {
                 return null;
             }
@@ -327,22 +322,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         private bool AnalyzeStringLiteral(
             SyntaxNode argumentNode,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken,
             out RegexOptions options)
         {
             options = default;
 
-            var parameter = _info.SemanticFacts.FindParameterForArgument(_semanticModel, argumentNode, cancellationToken);
+            var parameter = _info.SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
             if (parameter?.Name != _patternName)
             {
                 return false;
             }
 
-            options = GetRegexOptions(argumentNode, cancellationToken);
+            options = GetRegexOptions(argumentNode, semanticModel, cancellationToken);
             return true;
         }
 
-        private RegexOptions GetRegexOptions(SyntaxNode argumentNode, CancellationToken cancellationToken)
+        private RegexOptions GetRegexOptions(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var syntaxFacts = _info.SyntaxFacts;
             var argumentList = argumentNode.Parent;
@@ -354,10 +350,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                     var expr = syntaxFacts.GetExpressionOfArgument(siblingArg);
                     if (expr != null)
                     {
-                        var exprType = _semanticModel.GetTypeInfo(expr, cancellationToken);
+                        var exprType = semanticModel.GetTypeInfo(expr, cancellationToken);
                         if (exprType.Type?.Name == nameof(RegexOptions))
                         {
-                            var constVal = _semanticModel.GetConstantValue(expr, cancellationToken);
+                            var constVal = semanticModel.GetConstantValue(expr, cancellationToken);
                             if (constVal.HasValue)
                             {
                                 return (RegexOptions)(int)constVal.Value;

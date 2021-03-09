@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                 if (symbol.IsOverride)
                 {
-                    var overriddenSymbol = symbol.OverriddenMember();
+                    var overriddenSymbol = symbol.GetOverriddenMember();
 
                     if (overriddenSymbol != null)
                     {
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
         /// <summary>
         /// Gives the First Location for a given Symbol by ordering the locations using DocumentId first and Location starting position second
         /// </summary>
-        private static async Task<Location> GetSymbolLocationAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+        private static async Task<Location?> GetSymbolLocationAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var locations = symbol.Locations;
 

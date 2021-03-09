@@ -248,23 +248,74 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
         }
 
-        // can't load a framework targeting generator, which these are in desktop
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
         public void TestLoadGenerators()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
-            var generators = reference.GetGenerators();
-            Assert.Equal(5, generators.Length);
+            var generators = reference.GetGeneratorsForAllLanguages();
+            var typeNames = generators.Select(g => g.GetType().FullName);
+
+            AssertEx.SetEqual(new[]
+            {
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.BaseGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.FSharpGenerator"
+            }, typeNames);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestLoadGeneratorsWithoutArgumentOnlyLoadsCSharp()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
+            var generators = reference.GetGenerators(LanguageNames.CSharp);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+            var generators2 = reference.GetGenerators();
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            Assert.Equal(generators, generators2);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestLoadCSharpGenerators()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
+            var generators = reference.GetGenerators(LanguageNames.CSharp);
 
             var typeNames = generators.Select(g => g.GetType().FullName);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.BaseGenerator", typeNames);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator", typeNames);
-            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.TestGeneratorNoAttrib", typeNames);
-            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAGenerator", typeNames);
-            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.NotAGenerator", typeNames);
+            AssertEx.SetEqual(new[]
+            {
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.BaseGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator"
+            }, typeNames);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestLoadVisualBasicGenerators()
+        {
+            AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
+            var generators = reference.GetGenerators(LanguageNames.VisualBasic);
+
+            var typeNames = generators.Select(g => g.GetType().FullName);
+            AssertEx.SetEqual(new[]
+            {
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator"
+            }, typeNames);
         }
 
         // can't load a coreclr targeting generator on net framework / mono
@@ -455,4 +506,19 @@ public class Generator : ISourceGenerator
 
     [Generator]
     public class NotAGenerator { }
+
+    [Generator(LanguageNames.CSharp)]
+    public class ExplicitCSharpOnlyGenerator : TestGenerator { }
+
+    [Generator(LanguageNames.VisualBasic)]
+    public class VisualBasicOnlyGenerator : TestGenerator { }
+
+    [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class CSharpAndVisualBasicGenerator : TestGenerator { }
+
+    [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class VisualBasicAndCSharpGenerator : TestGenerator { }
+
+    [Generator(LanguageNames.FSharp)]
+    public class FSharpGenerator : TestGenerator { }
 }

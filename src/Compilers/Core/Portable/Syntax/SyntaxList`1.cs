@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxList<TNode>);
             }
 
-            var newGreen = GreenNode.CreateList(items.Select(n => n.Green));
+            var newGreen = GreenNode.CreateList(items, static n => n.Green);
             return new SyntaxList<TNode>(newGreen!.CreateRed());
         }
 
@@ -374,6 +374,19 @@ namespace Microsoft.CodeAnalysis
             return _node != null;
         }
 
+        internal bool All(Func<TNode, bool> predicate)
+        {
+            foreach (var item in this)
+            {
+                if (!predicate(item))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         // for debugging
         private TNode[] Nodes
         {
@@ -383,7 +396,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get's the enumerator for this list.
         /// </summary>
+#pragma warning disable RS0041 // uses oblivious reference types
         public Enumerator GetEnumerator()
+#pragma warning restore RS0041 // uses oblivious reference types
         {
             return new Enumerator(this);
         }

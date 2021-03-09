@@ -470,6 +470,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ParameterNotNullIfNotNull:
                 case ErrorCode.WRN_ReturnNotNullIfNotNull:
                 case ErrorCode.WRN_AnalyzerReferencesFramework:
+                case ErrorCode.WRN_UnreadRecordParameter:
+                case ErrorCode.WRN_DoNotCompareFunctionPointers:
                     return 1;
                 default:
                     return 0;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -16,8 +14,8 @@ using Microsoft.CodeAnalysis.NavigateTo;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo
 {
     [Shared]
-    [ExportLanguageService(typeof(INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate), LanguageNames.FSharp)]
-    internal class FSharpNavigateToSearchService : INavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdate
+    [ExportLanguageService(typeof(INavigateToSearchService), LanguageNames.FSharp)]
+    internal class FSharpNavigateToSearchService : INavigateToSearchService
     {
         private readonly IFSharpNavigateToSearchService _service;
 

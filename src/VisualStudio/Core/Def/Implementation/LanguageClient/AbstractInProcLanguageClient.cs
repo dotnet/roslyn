@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -15,16 +16,25 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
+using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
     internal abstract class AbstractInProcLanguageClient : ILanguageClient
     {
         private readonly string? _diagnosticsClientName;
+        private readonly VSShell.IAsyncServiceProvider _asyncServiceProvider;
+        private readonly IThreadingContext _threadingContext;
+
+        /// <summary>
+        /// Legacy support for LSP push diagnostics.
+        /// </summary>
+        private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly AbstractRequestHandlerProvider _requestHandlerProvider;
-        private readonly Workspace _workspace;
-        private readonly ILspSolutionProvider _solutionProvider;
+        private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
+        private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+
+        protected readonly Workspace Workspace;
 
         /// <summary>
         /// Created when <see cref="ActivateAsync"/> is called.
@@ -63,17 +73,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         public event AsyncEventHandler<EventArgs>? StopAsync { add { } remove { } }
 
         public AbstractInProcLanguageClient(
-            AbstractRequestHandlerProvider requestHandlerProvider,
+            AbstractRequestDispatcherFactory requestDispatcherFactory,
             VisualStudioWorkspace workspace,
+            IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspSolutionProvider solutionProvider,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            VSShell.IAsyncServiceProvider asyncServiceProvider,
+            IThreadingContext threadingContext,
             string? diagnosticsClientName)
         {
-            _requestHandlerProvider = requestHandlerProvider;
-            _workspace = workspace;
+            _requestDispatcherFactory = requestDispatcherFactory;
+            Workspace = workspace;
+            _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
-            _solutionProvider = solutionProvider;
+            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _diagnosticsClientName = diagnosticsClientName;
+            _asyncServiceProvider = asyncServiceProvider;
+            _threadingContext = threadingContext;
         }
 
         /// <summary>
@@ -81,22 +97,55 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// </summary>
         protected internal abstract VSServerCapabilities GetCapabilities();
 
-        public Task<Connection> ActivateAsync(CancellationToken token)
+        public async Task<Connection?> ActivateAsync(CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(_languageServer?.Running == true, "The language server has not yet shutdown.");
+            // HACK HACK HACK: prevent potential crashes/state corruption during load. Fixes
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1261421
+            //
+            // When we create an LSP server, we compute our server capabilities; this may depend on
+            // reading things like workspace options which will force us to initialize our option persisters.
+            // Unfortunately some of our option persisters currently assert they are first created on the UI
+            // thread. If the first time they're created is because of LSP initialization, we might end up loading
+            // them on a background thread which will throw exceptions and then prevent them from being created
+            // again later.
+            //
+            // The correct fix for this is to fix the threading violations in the option persister code;
+            // asserting a MEF component is constructed on the foreground thread is never allowed, but alas it's
+            // done there. Fixing that isn't difficult but comes with some risk I don't want to take for 16.9;
+            // instead we'll just compute our capabilities here on the UI thread to ensure everything is loaded.
+            // We _could_ consider doing a SwitchToMainThreadAsync in InProcLanguageServer.InitializeAsync
+            // (where the problematic call to GetCapabilites is), but that call is invoked across the StreamJsonRpc
+            // link where it's unclear if VS Threading rules apply. By doing this here, we are dong it in a
+            // VS API that is following VS Threading rules, and it also ensures that the preereqs are loaded
+            // prior to any RPC calls being made.
+            //
+            // https://github.com/dotnet/roslyn/issues/29602 will track removing this hack
+            // since that's the primary offending persister that needs to be addressed.
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _ = GetCapabilities();
+
+            if (_languageServer is not null)
+            {
+                Contract.ThrowIfFalse(_languageServer.HasShutdownStarted, "The language server has not yet been asked to shutdown.");
+
+                await _languageServer.DisposeAsync().ConfigureAwait(false);
+            }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = new InProcLanguageServer(
+            _languageServer = await InProcLanguageServer.CreateAsync(
                 this,
                 serverStream,
                 serverStream,
-                _requestHandlerProvider,
-                _workspace,
+                _requestDispatcherFactory.CreateRequestDispatcher(),
+                Workspace,
+                _diagnosticService,
                 _listenerProvider,
-                _solutionProvider,
-                clientName: _diagnosticsClientName);
+                _lspWorkspaceRegistrationService,
+                _asyncServiceProvider,
+                _diagnosticsClientName,
+                cancellationToken).ConfigureAwait(false);
 
-            return Task.FromResult(new Connection(clientStream, clientStream));
+            return new Connection(clientStream, clientStream);
         }
 
         /// <summary>

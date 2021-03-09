@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             ISyntaxFacts syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                   EnforceOnBuildValues.UseCompoundAssignment,
                    CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -45,12 +46,14 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                 nameof(AnalyzersResources.Use_increment_operator), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
             _incrementDescriptor = CreateDescriptorWithId(
                 IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                EnforceOnBuildValues.UseCompoundAssignment,
                 useIncrementMessage, useIncrementMessage);
 
             var useDecrementMessage = new LocalizableResourceString(
                 nameof(AnalyzersResources.Use_decrement_operator), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
             _decrementDescriptor = CreateDescriptorWithId(
                 IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                EnforceOnBuildValues.UseCompoundAssignment,
                 useDecrementMessage, useDecrementMessage);
         }
 
@@ -111,8 +114,10 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             }
 
             // Don't offer if this is `x = x + 1` inside an obj initializer like:
-            // `new Point { x = x + 1 }`
-            if (_syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(assignmentLeft))
+            // `new Point { x = x + 1 }` or
+            // `new () { x = x + 1 }` or
+            // `p with { x = x + 1 }`
+            if (_syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(assignmentLeft))
             {
                 return;
             }

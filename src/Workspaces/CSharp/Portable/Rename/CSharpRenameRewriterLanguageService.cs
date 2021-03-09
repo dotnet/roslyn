@@ -508,6 +508,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             public override SyntaxNode? VisitInvocationExpression(InvocationExpressionSyntax node)
             {
                 var result = base.VisitInvocationExpression(node);
+                RoslynDebug.AssertNotNull(result);
+
                 if (_invocationExpressionsNeedingConflictChecks.Contains(node))
                 {
                     var renameAnnotation = GetAnnotationForInvocationExpression(node);
@@ -951,10 +953,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     return property.Language == LanguageNames.VisualBasic ? property : null;
                 }
 
-                if (symbol.IsOverride && symbol.OverriddenMember() != null)
+                if (symbol.IsOverride && symbol.GetOverriddenMember() != null)
                 {
-                    var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol.OverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
-
+                    var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol.GetOverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
                     if (originalSourceSymbol != null)
                     {
                         return await GetVBPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);

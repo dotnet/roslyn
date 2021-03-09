@@ -26,7 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
             SyntaxFacts.GetText(SyntaxKind.AbstractKeyword),
             SyntaxFacts.GetText(SyntaxKind.SealedKeyword),
             SyntaxFacts.GetText(SyntaxKind.AsyncKeyword),
-            SyntaxFacts.GetText(SyntaxKind.AwaitKeyword));
+            SyntaxFacts.GetText(SyntaxKind.AwaitKeyword),
+            SyntaxFacts.GetText(SyntaxKind.BaseKeyword),
+            SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

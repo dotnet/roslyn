@@ -78,7 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim text = subjectBuffer.AsTextContainer().CurrentText
             Dim caretPosition = textView.GetCaretPoint(subjectBuffer).Value.Position
 
-            If (caretPosition > 1 AndAlso text(caretPosition - 1) = "?"c AndAlso CodeAnalysis.VisualBasic.SyntaxFacts.IsWhitespace(text(caretPosition - 2))) OrElse
+            If (caretPosition > 1 AndAlso text(caretPosition - 1) = "?"c AndAlso Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsWhitespace(text(caretPosition - 2))) OrElse
                 (caretPosition = 1 AndAlso text(0) = "?"c) Then
 
                 DeleteQuestionMark(subjectBuffer, caretPosition)

@@ -355,9 +355,19 @@ namespace Roslyn.Utilities
             return source.OrderBy(Functions<T>.Identity, comparer);
         }
 
+        public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> source, IComparer<T>? comparer)
+        {
+            return source.OrderByDescending(Functions<T>.Identity, comparer);
+        }
+
         public static IOrderedEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Comparison<T> compare)
         {
             return source.OrderBy(Comparer<T>.Create(compare));
+        }
+
+        public static IOrderedEnumerable<T> OrderByDescending<T>(this IEnumerable<T> source, Comparison<T> compare)
+        {
+            return source.OrderByDescending(Comparer<T>.Create(compare));
         }
 
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>

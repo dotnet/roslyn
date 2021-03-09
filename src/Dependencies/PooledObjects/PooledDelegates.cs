@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
@@ -341,6 +339,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             protected AbstractDelegateWithBoundArgument()
             {
                 BoundDelegate = Bind();
+
+                UnboundDelegate = null!;
+                Argument = default!;
             }
 
             public TBoundDelegate BoundDelegate { get; }
@@ -356,8 +357,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
             public sealed override void ClearAndFree()
             {
-                Argument = default;
-                UnboundDelegate = null;
+                Argument = default!;
+                UnboundDelegate = null!;
                 DefaultDelegatePool<TSelf>.Instance.Free((TSelf)this);
             }
 

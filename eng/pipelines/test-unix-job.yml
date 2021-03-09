@@ -1,3 +1,4 @@
+# Test on Unix using Helix
 parameters:
 - name: testRunName
   type: string
@@ -17,49 +18,39 @@ parameters:
 - name: testArguments
   type: string
   default: ''
-- name: queueName
-  type: string
-  default: ''
-- name: vmImageName
-  type: string
-  default: ''
 
 jobs:
 - job: ${{ parameters.jobName }}
   dependsOn: ${{ parameters.buildJobName }}
   pool:
-    ${{ if ne(parameters.queueName, '') }}:
-      name: NetCorePublic-Pool
-      queue: ${{ parameters.queueName }}
-
-    ${{ if ne(parameters.vmImageName, '') }}:
-      vmImage: ${{ parameters.vmImageName }}
+    # Note that when helix is enabled, the agent running this job is essentially
+    # a thin client that kicks off a helix job and waits for it to complete.
+    # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
+    vmImage: ubuntu-20.04
   timeoutInMinutes: 40
   steps:
-    - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
-      displayName: Restore
+    - checkout: none
 
     - task: DownloadPipelineArtifact@2
+      displayName: Download Test Payload
       inputs:
         artifact: ${{ parameters.testArtifactName }}
-        path: '$(Build.SourcesDirectory)/artifacts/bin' 
+        path: '$(Build.SourcesDirectory)'
 
-    # Work around for files not maintaining permissions after pipeline download
-    # https://github.com/microsoft/azure-pipelines-tasks/issues/6364
-    - bash: find . -name ilasm | xargs chmod 755
-      workingDirectory: '$(Build.SourcesDirectory)/artifacts/bin' 
-
-    - script: ./eng/build.sh --ci --binaryLog --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
-      displayName: Test
-
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
+    - task: ShellScript@2
+      displayName: Rehydrate RunTests
       inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/${{ parameters.configuration }}/*.xml'
-        mergeTestResults: true
-        testRunTitle: ${{ parameters.testRunName }}
-      condition: always()
+        scriptPath: ./artifacts/bin/RunTests/${{ parameters.configuration }}/netcoreapp3.1/rehydrate.sh
+      env:
+        HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
+
+    - task: ShellScript@2
+      inputs:
+        scriptPath: ./eng/build.sh
+        args: --ci --helix --configuration ${{ parameters.configuration }} ${{ parameters.testArguments }}
+      displayName: Test
+      env:
+        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
     - template: publish-logs.yml
       parameters:

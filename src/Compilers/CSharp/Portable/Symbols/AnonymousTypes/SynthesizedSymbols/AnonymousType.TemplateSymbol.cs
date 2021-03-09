@@ -507,6 +507,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
                                         new TypedConstant(Manager.System_String, TypedConstantKind.Primitive, "<Anonymous Type>"))));
             }
+
+            internal override bool HasPossibleWellKnownCloneMethod() => false;
         }
     }
 }

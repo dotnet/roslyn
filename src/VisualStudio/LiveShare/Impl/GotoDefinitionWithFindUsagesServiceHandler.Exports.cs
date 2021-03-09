@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynGoToDefinitionHandler([Import(AllowDefault = true)] IMetadataAsSourceFileService metadataAsSourceService,
-            ILspSolutionProvider solutionProvider) : base(metadataAsSourceService, solutionProvider)
+            ILspWorkspaceRegistrationService workspaceRegistrationService) : base(metadataAsSourceService, workspaceRegistrationService)
         {
         }
     }
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeScriptGoToDefinitionHandler(ILspSolutionProvider solutionProvider) : base(null, solutionProvider)
+        public TypeScriptGoToDefinitionHandler(ILspWorkspaceRegistrationService workspaceRegistrationService) : base(null, workspaceRegistrationService)
         {
         }
     }

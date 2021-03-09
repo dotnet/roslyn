@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var slot in state1.Assigned.TrueBits())
             {
-                if (slot < variableBySlot.Length &&
+                if (slot < variableBySlot.Count &&
                     state2opt?.IsAssigned(slot) != false &&
                     variableBySlot[slot].Symbol is { } symbol &&
                     symbol.Kind != SymbolKind.Field)

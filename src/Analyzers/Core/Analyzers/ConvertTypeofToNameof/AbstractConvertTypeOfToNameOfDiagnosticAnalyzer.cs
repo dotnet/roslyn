@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
     {
         protected AbstractConvertTypeOfToNameOfDiagnosticAnalyzer(LocalizableString title, string language)
             : base(diagnosticId: IDEDiagnosticIds.ConvertTypeOfToNameOfDiagnosticId,
+                  EnforceOnBuildValues.ConvertTypeOfToNameOf,
                   option: null,
                   language: language,
                   title: title)
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             {
                 return;
             }
+
             var location = parent.GetLocation();
             var options = context.Compilation.Options;
             context.ReportDiagnostic(
@@ -81,6 +83,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             {
                 return false;
             }
+
             return typeofOperation.TypeOperand is INamedTypeSymbol namedType && !namedType.IsGenericType;
         }
     }

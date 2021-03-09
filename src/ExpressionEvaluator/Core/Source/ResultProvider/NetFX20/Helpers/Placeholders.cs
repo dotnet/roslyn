@@ -103,7 +103,11 @@ namespace System.Runtime.Versioning
 
 namespace System.Threading
 {
-    public struct CancellationToken
+    public readonly struct CancellationToken
     {
+        /// <summary>
+        /// .NET Framework 2.0 does not support cancellation via <see cref="CancellationToken"/>.
+        /// </summary>
+        public bool IsCancellationRequested => false;
     }
 }

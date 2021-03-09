@@ -10,8 +10,9 @@ src/CodeStyle/ @dotnet/roslyn-ide
 src/Compilers/ @dotnet/roslyn-compiler
 src/EditorFeatures/ @dotnet/roslyn-ide
 
-# If we touch the WPF layer, let the VS for Mac team have an opportunity to sign-off. Any changes made here
-# may also have to be reflected into the EditorFeatures.Cocoa library which doesn't live in this repository.
+# If we touch the WPF layer or Cocoa layers, the VS for Mac team also should take a look. We do this even if it's
+# only touching WPF since the change might also need to be made (and validated) on the Cocoa side of things.
+src/EditorFeatures/Core.Cocoa/ @dotnet/roslyn-ide @dotnet/roslyn-vs-for-mac
 src/EditorFeatures/Core.Wpf/ @dotnet/roslyn-ide @dotnet/roslyn-vs-for-mac
 src/EditorFeatures/CSharp.Wpf/ @dotnet/roslyn-ide @dotnet/roslyn-vs-for-mac
 

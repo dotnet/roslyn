@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
@@ -25,12 +24,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public EmbeddedDiagnostic(string message, TextSpan span)
         {
-            Debug.Assert(message != null);
+            RoslynDebug.AssertNotNull(message);
             Message = message;
             Span = span;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is EmbeddedDiagnostic diagnostic && Equals(diagnostic);
 
         public bool Equals(EmbeddedDiagnostic other)
