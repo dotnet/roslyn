@@ -979,7 +979,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var method = (MethodSymbol)members[index];
 
                     // Don't emit the default value type constructor - the runtime handles that
-                    // PROTOTYPE: Test with explicit parameterless constructor, including private constructor.
                     if (!method.IsDefaultValueTypeConstructor())
                     {
                         yield return method;

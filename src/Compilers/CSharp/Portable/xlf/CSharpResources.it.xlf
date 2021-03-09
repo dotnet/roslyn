@@ -5060,11 +5060,6 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <target state="translated">'{0}': non è possibile fare riferimento a un tipo con un'espressione. Provare con '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'{0}': le strutture non possono contenere inizializzatori di campo o di proprietà delle istanze</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
         <source>Name of destructor must match name of type</source>
         <target state="translated">Il nome del distruttore deve corrispondere al nome del tipo</target>

@@ -5060,11 +5060,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">'{0}': 式から型を参照することはできません。'{1}' を使用してください</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'{0}': 構造体にインスタンス プロパティまたはフィールド初期化子を含めることはできません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
         <source>Name of destructor must match name of type</source>
         <target state="translated">デストラクターの名前を型の名前と同じにしてください</target>

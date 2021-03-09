@@ -401,11 +401,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// NOTE: every struct has a public parameterless constructor either used-defined or default one
+        /// NOTE: every struct has a public parameterless constructor either user-defined or default one
         /// </summary>
         internal static bool IsParameterlessConstructor(this MethodSymbol method)
         {
             return method.MethodKind == MethodKind.Constructor && method.ParameterCount == 0;
+        }
+
+        // PROTOTYPE: Replace this method with method below.
+        internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method)
+        {
+            return method.IsDefaultValueTypeConstructor(requireNoInitializers: false);
         }
 
         /// <summary>
@@ -413,11 +419,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// its own parameterless public constructor.
         /// We do not emit this constructor and do not call it 
         /// </summary>
-        internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method)
+        internal static bool IsDefaultValueTypeConstructor(this MethodSymbol method, bool requireNoInitializers)
         {
-            return method.IsImplicitlyDeclared &&
+            if (method.IsImplicitlyDeclared &&
                    method.ContainingType.IsValueType &&
-                   method.IsParameterlessConstructor();
+                   method.IsParameterlessConstructor())
+            {
+                if (!requireNoInitializers ||
+                    !(method.ContainingType is SourceMemberContainerTypeSymbol { InstanceInitializers: { Length: > 0 } }))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -425,8 +439,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static bool ShouldEmit(this MethodSymbol method)
         {
-            // Don't emit the default value type constructor - the runtime handles that
-            if (method.IsDefaultValueTypeConstructor())
+            // Don't emit the default value type constructor unless there are field initializers.
+            if (method.IsDefaultValueTypeConstructor(requireNoInitializers: true))
             {
                 return false;
             }

@@ -5060,11 +5060,6 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
         <target state="translated">"{0}": não é possível fazer referência a um tipo por meio de uma expressão; ao invés disso, tente "{1}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'{0}': não é possível ter propriedade de instância ou inicializadores de campo em estruturas</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
         <source>Name of destructor must match name of type</source>
         <target state="translated">O nome do destruidor precisa corresponder ao nome do tipo</target>

@@ -153,17 +153,16 @@ struct S
     int a = 2;
     int a { get { return 1; } set {} }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
-    // (4,9): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     int a = 2;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("S").WithLocation(4, 9),
-    // (5,9): error CS0102: The type 'S' already contains a definition for 'a'
-    //     int a { get { return 1; } set {} }
-    Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a").WithLocation(5, 9),
-    // (4,9): warning CS0169: The field 'S.a' is never used
-    //     int a = 2;
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("S.a").WithLocation(4, 9)
-    );
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,9): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     int a = 2;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("parameterless struct constructors").WithLocation(4, 9),
+                // (5,9): error CS0102: The type 'S' already contains a definition for 'a'
+                //     int a { get { return 1; } set {} }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "a").WithArguments("S", "a").WithLocation(5, 9),
+                // (4,9): warning CS0414: The field 'S.a' is assigned but its value is never used
+                //     int a = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("S.a").WithLocation(4, 9));
         }
 
         [Fact]
@@ -204,15 +203,14 @@ struct S
     public decimal R { get; } = 300;
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-    // (4,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public int P { get; set; } = 1;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(4, 16),
-    // (6,20): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public decimal R { get; } = 300;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(6, 20)
-                );
+                // (4,16): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int P { get; set; } = 1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("parameterless struct constructors").WithLocation(4, 16),
+                // (6,20): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public decimal R { get; } = 300;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("parameterless struct constructors").WithLocation(6, 20));
         }
 
         [Fact]
@@ -227,15 +225,14 @@ struct S
     public S(int i) : this() {}
 }";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public int P { get; set; } = 1;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(3, 16),
-    // (5,20): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public decimal R { get; } = 300;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(5, 20)
-);
+                // (3,16): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int P { get; set; } = 1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("parameterless struct constructors").WithLocation(3, 16),
+                // (5,20): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public decimal R { get; } = 300;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("parameterless struct constructors").WithLocation(5, 20));
 
             var global = comp.GlobalNamespace;
             var s = global.GetTypeMember("S");

@@ -13272,7 +13272,7 @@ second",
         }
 
         [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
-        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute()
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_01()
         {
             var code = @"
 namespace System.Runtime.CompilerServices
@@ -13289,6 +13289,54 @@ class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_02()
+        {
+            var code = @"
+#pragma warning disable 414
+namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+        private int F = 1; // requires synthesized parameterless .ctor
+    }
+}
+class Test
+{
+    void M(in int x)
+    {
+    }
+}";
+
+            CreateCompilation(code, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute_03()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+        // explicit parameterless .ctor
+        public IsReadOnlyAttribute() { }
+    }
+}
+class Test
+{
+    void M(in int x)
+    {
+    }
+}";
+
+            CreateCompilation(code, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics().VerifyEmitDiagnostics(
                 // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
                 Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
         }

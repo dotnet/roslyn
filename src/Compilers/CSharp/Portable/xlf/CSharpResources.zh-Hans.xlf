@@ -5065,11 +5065,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">“{0}”: 无法通过表达式引用类型；请尝试“{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">“{0}”: 结构中不能实例属性或字段初始值设定项</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
         <source>Name of destructor must match name of type</source>
         <target state="translated">析构函数的名称必须与类型的名称匹配</target>

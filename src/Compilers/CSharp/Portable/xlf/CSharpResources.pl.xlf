@@ -5060,11 +5060,6 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
         <target state="translated">„{0}”: nie można odwołać się do typu przy użyciu wyrażenia. Spróbuj użyć „{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">„{0}”: nie można umieścić inicjatorów właściwości lub pola wystąpienia w strukturach</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
         <source>Name of destructor must match name of type</source>
         <target state="translated">Nazwa destruktora musi być zgodna z nazwą typu</target>

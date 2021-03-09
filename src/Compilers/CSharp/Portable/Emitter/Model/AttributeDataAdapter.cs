@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.IMethodReference Cci.ICustomAttribute.Constructor(EmitContext context, bool reportDiagnostics)
         {
-            if (this.AttributeConstructor.IsDefaultValueTypeConstructor())
+            if (AttributeConstructor.ContainingType.IsValueType && AttributeConstructor.IsParameterlessConstructor())
             {
                 // Parameter constructors for structs exist in symbol table, but are not emitted.
                 // Produce an error since we cannot use it (instead of crashing):

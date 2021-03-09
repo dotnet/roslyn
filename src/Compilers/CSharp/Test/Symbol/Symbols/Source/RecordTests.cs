@@ -986,15 +986,9 @@ public data struct S(int x, int y)
     public int Z = 0;
 }");
             comp.VerifyDiagnostics(
-                // (5,25): error CS0573: 'S': cannot have instance property or field initializers in structs
-                //     public event Action E = null;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E").WithArguments("S").WithLocation(5, 25),
                 // (5,25): warning CS0414: The field 'S.E' is assigned but its value is never used
                 //     public event Action E = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E").WithArguments("S.E").WithLocation(5, 25),
-                // (6,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-                //     public int Z = 0;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "Z").WithArguments("S").WithLocation(6, 16)
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E").WithArguments("S.E").WithLocation(5, 25)
                 );
         }
 

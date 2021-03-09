@@ -27,17 +27,16 @@ public struct A
     public static int Main() { return 1; }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-    // (4,7): error CS0573: 'A': cannot have instance property or field initializers in structs
-    //     A a = new A();   // CS8036
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("A").WithLocation(4, 7),
-    // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
-    //     A a = new A();   // CS8036
-    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
-    // (4,7): warning CS0169: The field 'A.a' is never used
-    //     A a = new A();   // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7)
-    );
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,7): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     A a = new A();   // CS8036
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a").WithArguments("parameterless struct constructors").WithLocation(4, 7),
+                // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
+                //     A a = new A();   // CS8036
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
+                // (4,7): warning CS0414: The field 'A.a' is assigned but its value is never used
+                //     A a = new A();   // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("A.a").WithLocation(4, 7));
         }
 
         [WorkItem(1075325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
@@ -54,11 +53,12 @@ struct S {
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-    // (3,25): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     event System.Action E = null;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E").WithArguments("S").WithLocation(3, 25)
-                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (3,25): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     event System.Action E = null;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("parameterless struct constructors").WithLocation(3, 25));
+
+            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [WorkItem(1075325, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075325"), WorkItem(343, "CodePlex")]
@@ -625,15 +625,20 @@ public struct X1
     public int I { get { throw null; } set {} } = 9;
 }";
 
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-            // (3,16): error CS8050: Only auto-implemented properties can have initializers.
-            //     public int I {get { throw null; } set {} } = 9;
-            Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16),
-            // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-            //     public int I {get { throw null; } set {} } = 9;
-            Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "I").WithArguments("S").WithLocation(3, 16)
-            );
+                // (3,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     public int I { get { throw null; } set {} } = 9;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16),
+                // (3,16): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int I { get { throw null; } set {} } = 9;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I").WithArguments("parameterless struct constructors").WithLocation(3, 16));
+
+            comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (3,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     public int I { get { throw null; } set {} } = 9;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithArguments("S.I").WithLocation(3, 16));
         }
     }
 }

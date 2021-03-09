@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BindToBogus = 570,
         ERR_CantCallSpecialMethod = 571,
         ERR_BadTypeReference = 572,
-        ERR_FieldInitializerInStruct = 573,
+        //ERR_FieldInitializerInStruct = 573,
         ERR_BadDestructorName = 574,
         ERR_OnlyClassesCanContainDestructors = 575,
         ERR_ConflictAliasAndMember = 576,

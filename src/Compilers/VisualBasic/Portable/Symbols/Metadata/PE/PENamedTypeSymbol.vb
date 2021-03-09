@@ -1187,8 +1187,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Try
                 For Each methodDef In [module].GetMethodsOfTypeOrThrow(_handle)
-                    ' PROTOTYPE: Should we import private parameterless value type constructors to disallow
-                    ' constructing those types? Regardless, we should have a test that records the behavior.
                     If [module].ShouldImportMethod(methodDef, moduleSymbol.ImportOptions) Then
                         methods.Add(methodDef, New PEMethodSymbol(moduleSymbol, Me, methodDef))
                     End If

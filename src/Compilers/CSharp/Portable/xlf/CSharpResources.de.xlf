@@ -5060,11 +5060,6 @@ Wenn solch eine Klasse als Basisklasse verwendet wird und die ableitende Klasse 
         <target state="translated">"{0}": Auf einen Typ kann nicht durch einen Ausdruck verwiesen werden. Verwenden Sie stattdessen "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">"{0}": Instanzenfeld- oder -eigenschaftsinitialisierer können sich nicht in Strukturen befinden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
         <source>Name of destructor must match name of type</source>
         <target state="translated">Der Name des Destruktors muss mit dem Namen des Typs Klasse übereinstimmen.</target>

@@ -5060,11 +5060,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">"{0}": невозможно сослаться на тип через выражение; попытайтесь использовать "{1}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">"{0}": в структуре не могут содержаться инициализаторы свойств или полей экземпляров.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
         <source>Name of destructor must match name of type</source>
         <target state="translated">Имя деструктора должно соответствовать имени типа.</target>

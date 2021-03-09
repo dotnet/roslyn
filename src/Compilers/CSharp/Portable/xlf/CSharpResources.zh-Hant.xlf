@@ -5060,11 +5060,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">'{0}': 不可透過運算式參考類型; 請嘗試改用 '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">'{0}': 結構中不可有執行個體屬性或欄位初始設定式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
         <source>Name of destructor must match name of type</source>
         <target state="translated">解構函式的名稱必須符合類型的名稱</target>

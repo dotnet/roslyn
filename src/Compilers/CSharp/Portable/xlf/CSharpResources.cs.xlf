@@ -5060,11 +5060,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <target state="translated">{0}: Nemůže odkazovat na typ prostřednictvím výrazu. Místo toho zkuste {1}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_FieldInitializerInStruct">
-        <source>'{0}': cannot have instance property or field initializers in structs</source>
-        <target state="translated">{0}: Vlastnosti instancí nebo inicializátory polí nemůžou být ve strukturách.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadDestructorName">
         <source>Name of destructor must match name of type</source>
         <target state="translated">Název destruktoru musí odpovídat názvu typu.</target>
