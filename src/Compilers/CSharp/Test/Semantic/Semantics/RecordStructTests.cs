@@ -984,9 +984,18 @@ partial record struct S3();
                 // (6,25): error CS8863: Only a single record partial declaration may have a parameter list
                 // partial record struct S2();
                 Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(6, 25),
+                // (6,25): error CS0568: Structs cannot contain explicit parameterless constructors
+                // partial record struct S2();
+                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(6, 25),
+                // (8,25): error CS0568: Structs cannot contain explicit parameterless constructors
+                // partial record struct S3();
+                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(8, 25),
                 // (9,25): error CS8863: Only a single record partial declaration may have a parameter list
                 // partial record struct S3();
-                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(9, 25)
+                Diagnostic(ErrorCode.ERR_MultipleRecordParameterLists, "()").WithLocation(9, 25),
+                // (9,25): error CS0568: Structs cannot contain explicit parameterless constructors
+                // partial record struct S3();
+                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(9, 25)
                 );
         }
 
@@ -1058,7 +1067,7 @@ public class C<T>
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Skipped /* init-only */);
+            CompileAndVerify(comp, expectedOutput: "2");
         }
 
         [Fact]
@@ -1444,6 +1453,28 @@ record struct C(int X, int Y)
             var xBackingField = (IFieldSymbol)c.GetMember("<X>k__BackingField");
             Assert.Equal("System.Int32 C.<X>k__BackingField", xBackingField.ToTestDisplayString());
             Assert.False(xBackingField.IsReadOnly);
+        }
+
+        [Fact]
+        public void RecordProperties_01_EmptyParameterList()
+        {
+            // PROTOTYPE(record-structs): we will allow declaring parameterless constructors
+            var src = @"
+using System;
+record struct C()
+{
+    int Z = 345;
+    public static void Main()
+    {
+        var c = new C();
+        Console.Write(c.Z);
+    }
+}";
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (3,16): error CS0568: Structs cannot contain explicit parameterless constructors
+                // record struct C()
+                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(3, 16)
+                );
         }
 
         [Fact]
@@ -1961,7 +1992,7 @@ record struct R(int x);
         public void StaticCtor_ParameterlessPrimaryCtor()
         {
             var src = @"
-record struct R()
+record struct R(int I)
 {
     static R() { }
 }
@@ -1975,7 +2006,7 @@ record struct R()
         public void StaticCtor_CopyCtor()
         {
             var src = @"
-record struct R()
+record struct R(int I)
 {
     static R(R r) { }
 }
@@ -2649,7 +2680,11 @@ record struct C()
     int Property { get; set; } = 42;
 }";
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (2,16): error CS0568: Structs cannot contain explicit parameterless constructors
+                // record struct C()
+                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(2, 16)
+                );
         }
 
         [Fact]
@@ -3060,6 +3095,9 @@ record struct C()
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (2,16): error CS0568: Structs cannot contain explicit parameterless constructors
+                // record struct C()
+                Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "()").WithLocation(2, 16),
                 // (8,19): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //             case C():
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "()").WithArguments("C", "Deconstruct").WithLocation(8, 19),
@@ -3076,7 +3114,7 @@ record struct C()
             var source =
 @"using System;
 
-record struct C()
+record struct C(int I)
 {
     public void Deconstruct()
     {
@@ -3094,7 +3132,7 @@ record struct C()
 
     public static void Main()
     {
-        M(new C());
+        M(new C(42));
     }
 }
 ";
@@ -3213,6 +3251,25 @@ record struct A(int X)
                 // (4,24): error CS8877: Record member 'A.Deconstruct(out int)' may not be static.
                 //     public static void Deconstruct(out int a)
                 Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "Deconstruct").WithArguments("A.Deconstruct(out int)").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void OutVarInPositionalParameterDefaultValue()
+        {
+            var source =
+@"
+record struct A(int X = A.M(out int a) + a)
+{
+    public static int M(out int a)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,25): error CS1736: Default parameter value for 'X' must be a compile-time constant
+                // record struct A(int X = A.M(out int a) + a)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "A.M(out int a) + a").WithArguments("X").WithLocation(2, 25)
                 );
         }
     }

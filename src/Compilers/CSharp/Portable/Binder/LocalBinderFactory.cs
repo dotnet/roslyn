@@ -170,9 +170,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
         {
             Debug.Assert(node.ParameterList is object);
-
-            Binder enclosing = new ExpressionVariableBinder(node, _enclosing);
-            AddToMap(node, enclosing);
         }
 
         public override void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)

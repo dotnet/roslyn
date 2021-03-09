@@ -3362,11 +3362,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(recordStructDecl.ParameterList is object);
 
-            Binder bodyBinder = this.GetBinder(recordStructDecl);
-            Debug.Assert(bodyBinder != null);
-
             return new BoundConstructorMethodBody(recordStructDecl,
-                                                  bodyBinder.GetDeclaredLocalsForScope(recordStructDecl),
+                                                  locals: ImmutableArray<LocalSymbol>.Empty,
                                                   initializer: null,
                                                   blockBody: new BoundBlock(recordStructDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
                                                   expressionBody: null);

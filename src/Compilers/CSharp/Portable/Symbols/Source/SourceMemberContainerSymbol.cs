@@ -2970,8 +2970,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case SyntaxKind.RecordStructDeclaration:
                         var recordStructDecl = (RecordStructDeclarationSyntax)syntax;
-                        noteRecordParameters(recordStructDecl, recordStructDecl.ParameterList, builder, diagnostics);
+                        var parameterList = recordStructDecl.ParameterList;
+                        noteRecordParameters(recordStructDecl, parameterList, builder, diagnostics);
                         AddNonTypeMembers(builder, recordStructDecl.Members, diagnostics);
+
+                        // PROTOTYPE(record-structs): we will allow declaring parameterless constructors
+                        if (parameterList?.ParameterCount == 0)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, parameterList.Location);
+                        }
+
                         break;
 
                     default:
@@ -3427,7 +3435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(TypeKind == TypeKind.Struct);
 
-            if (builder.RecordDeclarationWithParameters is RecordStructDeclarationSyntax { ParameterList: { ParameterCount: >= 0 } })
+            if (builder.RecordDeclarationWithParameters is RecordStructDeclarationSyntax)
             {
                 return;
             }
@@ -3495,7 +3503,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     addDeconstruct(ctor, existingOrAddedMembers);
                 }
 
-                primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
+                if (declaration.Kind == DeclarationKind.Record)
+                {
+                    primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
+                }
             }
 
             // PROTOTYPE(record-structs): update for record structs

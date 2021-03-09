@@ -56,9 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordDeclaration:
                     Debug.Assert(((RecordDeclarationSyntax)node).ParameterList is object);
                     break;
-                case SyntaxKind.RecordStructDeclaration:
-                    Debug.Assert(((RecordStructDeclarationSyntax)node).ParameterList is object);
-                    break;
                 default:
                     Debug.Assert(node is ExpressionSyntax);
                     break;

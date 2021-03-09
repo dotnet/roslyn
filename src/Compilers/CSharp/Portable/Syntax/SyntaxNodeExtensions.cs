@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((RecordDeclarationSyntax)syntax).ParameterList is object;
 
                 case SyntaxKind.RecordStructDeclaration:
-                    return ((RecordStructDeclarationSyntax)syntax).ParameterList is object;
+                    return false;
 
                 default:
                     return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
