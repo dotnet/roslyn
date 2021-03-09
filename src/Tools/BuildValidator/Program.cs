@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
@@ -18,6 +19,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Newtonsoft.Json;
 
 namespace BuildValidator
 {
@@ -113,17 +115,12 @@ namespace BuildValidator
                     }
                 }
 
-                var sourceResolver = new LocalSourceResolver(options, loggerFactory);
-                var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
-
-                var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
-
                 var filesToValidate = artifactsDirs.SelectMany(dir =>
                         dir.EnumerateFiles("*.exe", SearchOption.AllDirectories)
                             .Concat(dir.EnumerateFiles("*.dll", SearchOption.AllDirectories)))
                     .Distinct(FileNameEqualityComparer.Instance);
 
-                var success = ValidateFiles(filesToValidate, buildConstructor, logger, options);
+                var success = ValidateFiles(filesToValidate, options, loggerFactory);
                 Console.Out.Flush();
                 return success ? ExitSuccess : ExitFailure;
             }
@@ -134,13 +131,19 @@ namespace BuildValidator
             }
         }
 
-        // TODO: it feels like "logger" and "options" should be instance variables of something
-        private static bool ValidateFiles(IEnumerable<FileInfo> originalBinaries, BuildConstructor buildConstructor, ILogger logger, Options options)
+        private static bool ValidateFiles(IEnumerable<FileInfo> originalBinaries, Options options, ILoggerFactory loggerFactory)
         {
+            var logger = loggerFactory.CreateLogger<Program>();
+
+            var sourceResolver = new LocalSourceResolver(options, loggerFactory);
+            var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
+
+            var buildConstructor = new BuildConstructor(logger);
+
             var assembliesCompiled = new List<CompilationDiff>();
             foreach (var file in originalBinaries)
             {
-                var compilationDiff = ValidateFile(file, buildConstructor, logger, options);
+                var compilationDiff = ValidateFile(file, buildConstructor, logger, options, sourceResolver, referenceResolver);
 
                 if (compilationDiff is null)
                 {
@@ -193,7 +196,13 @@ namespace BuildValidator
             return success;
         }
 
-        private static CompilationDiff? ValidateFile(FileInfo originalBinary, BuildConstructor buildConstructor, ILogger logger, Options options)
+        private static CompilationDiff? ValidateFile(
+            FileInfo originalBinary,
+            BuildConstructor buildConstructor,
+            ILogger logger,
+            Options options,
+            LocalSourceResolver sourceResolver,
+            LocalReferenceResolver referenceResolver)
         {
             if (s_ignorePatterns.Any(r => r.IsMatch(originalBinary.FullName)))
             {
@@ -226,38 +235,98 @@ namespace BuildValidator
                 var pdbReader = pdbReaderProvider.GetMetadataReader();
                 var optionsReader = new CompilationOptionsReader(logger, pdbReader, originalPeReader);
 
+                var encoding = optionsReader.GetEncoding();
+                var metadataReferenceInfos = optionsReader.GetMetadataReferences();
+                var sourceFileInfos = optionsReader.GetSourceFileInfos(encoding);
+
+                logger.LogInformation("Locating metadata references");
+                if (!referenceResolver.TryResolveReferences(metadataReferenceInfos, out var metadataReferences))
+                {
+                    logger.LogError($"Failed to rebuild {originalBinary.Name} due to missing metadata references");
+                    return CompilationDiff.CreatePlaceholder(originalBinary, isError: true);
+                }
+                logResolvedMetadataReferences();
+
+                var sourceLinks = ResolveSourceLinks(optionsReader, logger);
+                var sources = sourceResolver.ResolveSources(sourceFileInfos, sourceLinks, encoding);
+                logResolvedSources();
+
                 var (compilation, isError) = buildConstructor.CreateCompilation(
                     optionsReader,
-                    originalBinary.Name);
+                    originalBinary.Name,
+                    sources,
+                    metadataReferences);
                 if (compilation is null)
                 {
                     return CompilationDiff.CreatePlaceholder(originalBinary, isError);
                 }
 
-                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, getDebugEntryPoint(), logger, options);
+                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, logger, options);
                 return compilationDiff;
 
-                IMethodSymbol? getDebugEntryPoint()
+                void logResolvedMetadataReferences()
                 {
-                    if (optionsReader.GetMainTypeName() is { } mainTypeName &&
-                        optionsReader.GetMainMethodName() is { } mainMethodName)
+                    using var _ = logger.BeginScope("Metadata References");
+                    for (var i = 0; i < metadataReferenceInfos.Length; i++)
                     {
-                        var typeSymbol = compilation.GetTypeByMetadataName(mainTypeName);
-                        if (typeSymbol is object)
-                        {
-                            var methodSymbols = typeSymbol
-                                .GetMembers(mainMethodName)
-                                .OfType<IMethodSymbol>();
-                            return methodSymbols.FirstOrDefault();
-                        }
+                        logger.LogInformation($@"""{metadataReferences[i].Display}"" - {metadataReferenceInfos[i].Mvid}");
                     }
+                }
 
-                    return null;
+                void logResolvedSources()
+                {
+                    using var _ = logger.BeginScope("Source Names");
+                    foreach (var resolvedSource in sources)
+                    {
+                        var sourceFileInfo = resolvedSource.SourceFileInfo;
+                        var hash = BitConverter.ToString(sourceFileInfo.Hash).Replace("-", "");
+                        var embeddedCompressedHash = sourceFileInfo.EmbeddedCompressedHash is { } compressedHash
+                            ? ("[uncompressed]" + BitConverter.ToString(compressedHash).Replace("-", ""))
+                            : null;
+                        logger.LogInformation($@"""{resolvedSource.DisplayPath}"" - {sourceFileInfo.HashAlgorithm} - {hash} - {embeddedCompressedHash}");
+                    }
                 }
             }
             finally
             {
                 pdbReaderProvider?.Dispose();
+            }
+        }
+
+        private static ImmutableArray<SourceLink> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader, ILogger logger)
+        {
+            using var _ = logger.BeginScope("Source Links");
+
+            var sourceLinkUTF8 = compilationOptionsReader.GetSourceLinkUTF8();
+            if (sourceLinkUTF8 is null)
+            {
+                return default;
+            }
+
+            var parseResult = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null });
+            var sourceLinks = parseResult.documents.Select(makeSourceLink).ToImmutableArray();
+
+            if (sourceLinks.IsDefault)
+            {
+                logger.LogInformation("No source links found in pdb");
+                sourceLinks = ImmutableArray<SourceLink>.Empty;
+            }
+            else
+            {
+                foreach (var link in sourceLinks)
+                {
+                    logger.LogInformation($@"""{link.Prefix}"": ""{link.Replace}""");
+                }
+            }
+            return sourceLinks;
+
+            static SourceLink makeSourceLink(KeyValuePair<string, string> entry)
+            {
+                // TODO: determine if this subsitution is correct
+                var (key, value) = (entry.Key, entry.Value); // TODO: use Deconstruct in .NET Core
+                var prefix = key.Remove(key.LastIndexOf("*"));
+                var replace = value.Remove(value.LastIndexOf("*"));
+                return new SourceLink(prefix, replace);
             }
         }
     }

@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     return _anonymousTypeMap;
                 }
 
-                Debug.Assert(LazyMetadataSymbols != null);
+                RoslynDebug.AssertNotNull(LazyMetadataSymbols);
                 return LazyMetadataSymbols.AnonymousTypes;
             }
         }

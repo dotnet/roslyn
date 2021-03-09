@@ -13,5 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
         public const string XamlFileExtension = ".xaml";
 
         public const string EnableLspIntelliSense = "Xaml.EnableLspIntelliSense";
+
+        public const string CreateEventHandlerCommand = "Xaml.CreateEventHandler";
     }
 }

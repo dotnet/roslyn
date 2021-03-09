@@ -79,6 +79,9 @@ verbosity='minimal'
 runtime_source_feed=''
 runtime_source_feed_key=''
 
+runtimeSourceFeed=''
+runtimeSourceFeedKey=''
+
 properties=''
 while [[ $# > 0 ]]; do
   opt="$(echo "${1/#--/-}" | tr "[:upper:]" "[:lower:]")"
@@ -187,7 +190,7 @@ function InitializeCustomToolset {
 }
 
 function Build {
-  InitializeToolset
+  InitializeToolset $runtimeSourceFeed $runtimeSourceFeedKey
   InitializeCustomToolset
 
   if [[ ! -z "$projects" ]]; then
