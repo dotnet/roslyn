@@ -62,7 +62,7 @@
     <MicrosoftBuildTasksCoreVersion>$(MicrosoftBuildPackagesVersion)</MicrosoftBuildTasksCoreVersion>
     <NuGetVisualStudioContractsVersion>5.7.0</NuGetVisualStudioContractsVersion>
     <!-- This is working around Microsoft.VisualStudio.Shell.15.0 having an unstated conflicting reference on this with NuGet.VisualStudio.Contracts -->
-    <MicrosoftVisualStudioRpcContractsVersion>16.9.63</MicrosoftVisualStudioRpcContractsVersion>
+    <MicrosoftVisualStudioRpcContractsVersion>16.10.11-alpha</MicrosoftVisualStudioRpcContractsVersion>
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
       packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
@@ -116,6 +116,7 @@
     <MicrosoftServiceHubClientVersion>2.7.339</MicrosoftServiceHubClientVersion>
     <MicrosoftServiceHubFrameworkVersion>2.7.339</MicrosoftServiceHubFrameworkVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
+    <MicrosoftVisualStudioCacheVersion>16.10.40-alpha</MicrosoftVisualStudioCacheVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.8.27812-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.8.27812-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>16.9.184-preview</MicrosoftVisualStudioComponentModelHostVersion>
@@ -216,7 +217,7 @@
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.5.1</SystemIOPipesAccessControlVersion>
-    <SystemIOPipelinesVersion>5.0.0</SystemIOPipelinesVersion>
+    <SystemIOPipelinesVersion>5.0.1</SystemIOPipelinesVersion>
     <SystemManagementVersion>5.0.0-preview.8.20407.11</SystemManagementVersion>
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
     <SystemResourcesExtensionsVersion>4.7.1</SystemResourcesExtensionsVersion>
