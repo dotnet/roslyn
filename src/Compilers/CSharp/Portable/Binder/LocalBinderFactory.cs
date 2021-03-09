@@ -167,11 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.PrimaryConstructorBaseType, enclosing);
         }
 
-        public override void VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
-        {
-            Debug.Assert(node.ParameterList is object);
-        }
-
         public override void VisitPrimaryConstructorBaseType(PrimaryConstructorBaseTypeSyntax node)
         {
             Binder enclosing = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);

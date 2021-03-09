@@ -1978,12 +1978,18 @@ readonly record struct C(bool X)
         public void StaticCtor()
         {
             var src = @"
-System.Console.Write(""static ctor"");
+record R(int x)
+{
+    static void Main() { }
 
-record struct R(int x);
+    static R()
+    {
+        System.Console.Write(""static ctor"");
+    }
+}
 ";
 
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "static ctor");
         }
@@ -2043,7 +2049,7 @@ record struct R(int P1) : I
 ";
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "(42, 43, 44)", verify: Verification.Skipped /* init-only */);
+            CompileAndVerify(comp, expectedOutput: "(42, 43, 44)");
         }
 
         [Fact]
@@ -2262,7 +2268,7 @@ record struct R(in int P1);
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)", verify: Verification.Skipped /* init-only */);
+            var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)");
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("R").Constructors.ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -2286,7 +2292,7 @@ record struct R(params int[] Array);
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "(42, 43, 44, 45)", verify: Verification.Skipped /* init-only */);
+            CompileAndVerify(comp, expectedOutput: "(42, 43, 44, 45)");
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("R").Constructors.ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -2309,7 +2315,7 @@ record struct R(int P = 42);
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "0", verify: Verification.Skipped /* init-only */);
+            CompileAndVerify(comp, expectedOutput: "0");
         }
 
         [Fact]
@@ -2326,7 +2332,7 @@ record struct R(int O, int P = 42);
 
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "41 42", verify: Verification.Skipped /* init-only */);
+            CompileAndVerify(comp, expectedOutput: "41 42");
         }
 
         [Fact]
@@ -2347,7 +2353,7 @@ record struct R(int O, int P = 1)
                 // record struct R(int O, int P = 1)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(5, 28)
                 );
-            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
 
             verifier.VerifyIL("R..ctor(int, int)", @"
 {
@@ -2403,7 +2409,7 @@ record struct R(int O, int P = 42)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
 
             verifier.VerifyIL("R..ctor(int, int)", @"
 {
@@ -2441,7 +2447,7 @@ record struct R2<T>(T P) where T : class { }
                 // var r2 = new R2<string?>("R2");
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "string?").WithArguments("R2<T>", "T", "string?").WithLocation(4, 17)
                 );
-            CompileAndVerify(comp, expectedOutput: "(R, R2)", verify: Verification.Skipped /* init-only */);
+            CompileAndVerify(comp, expectedOutput: "(R, R2)");
         }
 
         [Fact]
@@ -2668,7 +2674,7 @@ public record struct X(int a)
 
             var comp = CreateCompilation(source).VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped /* init-only */);
+            CompileAndVerify(comp, expectedOutput: "4243");
         }
 
         [Fact]
@@ -3270,6 +3276,33 @@ record struct A(int X = A.M(out int a) + a)
                 // (2,25): error CS1736: Default parameter value for 'X' must be a compile-time constant
                 // record struct A(int X = A.M(out int a) + a)
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "A.M(out int a) + a").WithArguments("X").WithLocation(2, 25)
+                );
+        }
+
+        [Fact]
+        public void FieldConsideredUnassignedIfInitializationViaProperty()
+        {
+            var source = @"
+record struct Pos(int X)
+{
+    private int x;
+    public int X { get { return x; } set { x = value; } } = X;
+}
+
+record struct Pos2(int X)
+{
+    private int x = X; // value isn't validated by setter
+    public int X { get { return x; } set { x = value; } }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0171: Field 'Pos.x' must be fully assigned before control is returned to the caller
+                // record struct Pos(int X)
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "Pos").WithArguments("Pos.x").WithLocation(2, 15),
+                // (5,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     public int X { get { return x; } set { x = value; } } = X;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithArguments("Pos.X").WithLocation(5, 16)
                 );
         }
     }
