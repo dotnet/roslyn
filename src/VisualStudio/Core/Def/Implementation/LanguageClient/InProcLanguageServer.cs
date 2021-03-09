@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         /// <summary>
         /// Legacy support for LSP push diagnostics.
-        /// 
+        ///
         /// </summary>
         private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListener _listener;
@@ -84,6 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _requestDispatcher = requestDispatcher;
             _workspace = workspace;
             _logger = logger;
+
             _jsonRpc = jsonRpc;
             _jsonRpc.AddLocalRpcTarget(this);
             _jsonRpc.StartListening();
@@ -260,8 +261,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
         private void ExitImpl()
         {
-            Contract.ThrowIfFalse(_shuttingDown, "Shutdown has not been called yet.");
-
             try
             {
                 ShutdownRequestQueue();

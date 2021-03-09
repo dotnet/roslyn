@@ -237,9 +237,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             Contract.ThrowIfNull(context.Solution);
 
-            if (previousResults == null)
-                return;
-
             foreach (var previousResult in previousResults)
             {
                 var textDocument = previousResult.TextDocument;

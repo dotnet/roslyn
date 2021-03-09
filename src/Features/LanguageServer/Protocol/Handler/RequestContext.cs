@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // If we were given a document, find it in whichever workspace it exists in
             if (textDocument is null)
             {
-                _logger.TraceInformation("Request contained no document id");
+                _logger.TraceInformation("Request contained no text document identifier");
             }
             else
             {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var workspace = workspaceSolution.Workspace;
 
             // If we have a cached solution we can use it, unless the workspace solution it was based on
-            // is not the current one. 
+            // is not the current one.
             if (solutionCache is null ||
                 !solutionCache.TryGetValue(workspace, out var cacheInfo) ||
                 workspaceSolution != cacheInfo.workspaceSolution)

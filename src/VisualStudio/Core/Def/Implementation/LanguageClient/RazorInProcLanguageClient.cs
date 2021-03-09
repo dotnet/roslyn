@@ -53,7 +53,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Lsp
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
-            IGlobalOptionService globalOptionService,
             CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IDiagnosticService diagnosticService,
