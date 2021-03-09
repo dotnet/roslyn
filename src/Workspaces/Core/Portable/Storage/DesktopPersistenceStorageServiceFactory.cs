@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -45,13 +46,12 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var optionService = workspaceServices.GetRequiredService<IOptionService>();
-            var database = optionService.GetOption(StorageOptions.Database);
             var options = workspaceServices.Workspace.Options;
-
             var locationService = workspaceServices.GetService<IPersistentStorageLocationService>();
+
             if (locationService != null)
             {
+                var database = GetDatabase(workspaceServices);
                 switch (database)
                 {
                     case StorageDatabase.SQLite:
@@ -67,6 +67,16 @@ namespace Microsoft.CodeAnalysis.Storage
             }
 
             return NoOpPersistentStorageService.GetOrThrow(options);
+        }
+
+        private static StorageDatabase GetDatabase(HostWorkspaceServices workspaceServices)
+        {
+            var experimentationService = workspaceServices.GetService<IExperimentationService>();
+            if (experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.CloudCache) == true)
+                return StorageDatabase.CloudCache;
+
+            var optionService = workspaceServices.GetRequiredService<IOptionService>();
+            return optionService.GetOption(StorageOptions.Database);
         }
 
 #endif
