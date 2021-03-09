@@ -11,3 +11,22 @@
         t2 = (T?)obj;    // ok
     }
     ```
+
+2. https://github.com/dotnet/roslyn/pull/50755 In .NET 5.0.200 (Visual Studio 16.9), an error is reported for a conditional expression when the common type of the two branches cannot be implicitly converted to the target type even if each of the branches can be converted implicitly. Such cases were allowed unintentionally in 5.0.103 (Visual Studio 16.8). This breaking change aligns the compiler behavior with the C# specification and with versions of the compiler before .NET 5.0.
+    ```C#
+    static short F1(bool b)
+    {
+        // 16.7, 16.9          : CS0266: Cannot implicitly convert type 'int' to 'short'
+        // 16.8                : ok
+        // 16.8 -langversion:8 : CS8400: Feature 'target-typed conditional expression' is not available in C# 8.0
+        return b ? 1 : 2;
+    }
+
+    static object F2(bool b, short? a)
+    {
+        // 16.7, 16.9          : int
+        // 16.8                : short
+        // 16.8 -langversion:8 : CS8400: Feature 'target-typed conditional expression' is not available in C# 8.0
+        return a ?? (b ? 1 : 2);
+    }
+    ```
