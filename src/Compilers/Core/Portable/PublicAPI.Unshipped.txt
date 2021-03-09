@@ -10,9 +10,6 @@ Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.WriteArtifact(string! fileNam
 Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.WriteArtifact(string! fileName, string! source) -> void
 Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.WriteArtifact(string! fileName, System.Action<System.IO.Stream!>! writeStream) -> void
 Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.WriteArtifact(string! fileName, System.Text.StringBuilder! builder) -> void
-Microsoft.CodeAnalysis.Diagnostics.IArtifactProducer
-Microsoft.CodeAnalysis.Diagnostics.IArtifactProducer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext! analysisContext, Microsoft.CodeAnalysis.Diagnostics.ArtifactContext artifactContext) -> void
-Microsoft.CodeAnalysis.Diagnostics.IArtifactProducer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor!>
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string! firstLanguage, params string![]! additionalLanguages) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string![]!
 Microsoft.CodeAnalysis.GeneratorExecutionContext.SyntaxContextReceiver.get -> Microsoft.CodeAnalysis.ISyntaxContextReceiver?
