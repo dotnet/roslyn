@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks.Sources;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -921,6 +922,58 @@ namespace Microsoft.CodeAnalysis
             out bool reportAnalyzer,
             out AnalyzerDriver? analyzerDriver)
         {
+            var artifactStreams = new ConcurrentSet<(string filePath, Stream stream)>();
+            try
+            {
+                CompileAndEmit(
+                    touchedFilesLogger,
+                    ref compilation,
+                    analyzers,
+                    generators,
+                    additionalTextFiles,
+                    analyzerConfigSet,
+                    sourceFileAnalyzerConfigOptions,
+                    embeddedTexts,
+                    diagnostics,
+                    artifactStreams,
+                    cancellationToken,
+                    out analyzerCts,
+                    out reportAnalyzer,
+                    out analyzerDriver);
+            }
+            finally
+            {
+                // after running all full compile, flush and close any artifact producer streams that haven't already been closed.
+                FlushAndCloseArtifactStreams(diagnostics, artifactStreams);
+            }
+        }
+
+        private void FlushAndCloseArtifactStreams(DiagnosticBag diagnostics, ConcurrentSet<(string filePath, Stream stream)> artifactStreams)
+        {
+            foreach (var (path, stream) in artifactStreams)
+            {
+                using var disposer = new NoThrowStreamDisposer(stream, path, diagnostics, MessageProvider);
+                if (stream.CanWrite)
+                    stream.Flush();
+            }
+        }
+
+        private void CompileAndEmit(
+            TouchedFileLogger? touchedFilesLogger,
+            ref Compilation compilation,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<ISourceGenerator> generators,
+            ImmutableArray<AdditionalText> additionalTextFiles,
+            AnalyzerConfigSet? analyzerConfigSet,
+            ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
+            ImmutableArray<EmbeddedText?> embeddedTexts,
+            DiagnosticBag diagnostics,
+            ConcurrentSet<(string filePath, Stream stream)> artifactStreams,
+            CancellationToken cancellationToken,
+            out CancellationTokenSource? analyzerCts,
+            out bool reportAnalyzer,
+            out AnalyzerDriver? analyzerDriver)
+        {
             analyzerCts = null;
             reportAnalyzer = false;
             analyzerDriver = null;
@@ -933,7 +986,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             DiagnosticBag? analyzerExceptionDiagnostics = null;
-            var artifactStreams = new ConcurrentSet<(string filePath, Stream stream)>();
             if (!analyzers.IsEmpty || !generators.IsEmpty)
             {
                 var analyzerConfigProvider = CompilerAnalyzerConfigOptionsProvider.Empty;
@@ -1251,22 +1303,9 @@ namespace Microsoft.CodeAnalysis
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            // after running all analyzers, flush and close any artifact producer streams that haven't already been closed.
-            FlushAndCloseArtifactStreams(diagnostics, artifactStreams);
-
             if (!WriteTouchedFiles(diagnostics, touchedFilesLogger, finalXmlFilePath))
             {
                 return;
-            }
-        }
-
-        private void FlushAndCloseArtifactStreams(DiagnosticBag diagnostics, ConcurrentSet<(string filePath, Stream stream)> artifactStreams)
-        {
-            foreach (var (path, stream) in artifactStreams)
-            {
-                using var disposer = new NoThrowStreamDisposer(stream, path, diagnostics, MessageProvider);
-                if (stream.CanWrite)
-                    stream.Flush();
             }
         }
 
