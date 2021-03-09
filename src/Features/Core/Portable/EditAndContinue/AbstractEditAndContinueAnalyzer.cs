@@ -668,6 +668,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
         {
+            // Compiler generated methods of records have a declaring syntax reference to the record declaration itself
+            // but their explicitly implement counterparts reference the actual member. Compiler generated properties
+            // of records reference the parameter that names them. Based on this, we can detect a new explicit implementation
+            // of a record member by checking if the declaration kind has changed.
+            // Since there is no useful "old" syntax node for these members, we can't compute declaration or body edits.
+            if (oldNode.RawKind != newNode.RawKind)
+            {
+                return;
+            }
+
             // Consider replacing following syntax analysis with semantic analysis of the corresponding symbols,
             // or a combination of semantic and syntax analysis (e.g. primarily analyze symbols but fall back
             // to syntax analysis for comparisons of attribute values, optional parameter values, etc.).
@@ -2456,52 +2466,49 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         var oldNode = GetSymbolDeclarationSyntax(oldSymbol.DeclaringSyntaxReferences[0], cancellationToken);
                                         var newNode = edit.NewNode;
 
-                                        // Compiler generated methods of records have a declaring syntax reference to the record declaration itself
-                                        // but their explicitly implement counterparts reference the actual member. Compiler generated properties
-                                        // of records reference the parameter that names them. Based on this, we can detect a new explicit implementation
-                                        // of a record member by checking if the declaration kind has changed.
-                                        // Since there is no useful old syntax node for these members, we can't compute declaration or body edits.
-                                        if (oldNode.RawKind == newNode.RawKind)
+                                        // Compare the old declaration syntax of the symbol with its new declaration and report rude edits
+                                        // if it changed in any way that's not allowed.
+                                        ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode);
+
+                                        // If a node has been inserted but neither old nor new has a body, we can stop processing
+                                        // unless its explicitly implenenting a positional property of a record, in which case we
+                                        // still need to issue constructor edits below.
+                                        var isRecordPrimaryConstructorParameter = IsRecordPrimaryConstructorParameter(oldNode);
+
+                                        var oldBody = TryGetDeclarationBody(oldNode);
+                                        var newBody = TryGetDeclarationBody(newNode);
+                                        if (oldBody == null && newBody == null && !isRecordPrimaryConstructorParameter)
                                         {
-                                            // Compare the old declaration syntax of the symbol with its new declaration and report rude edits
-                                            // if it changed in any way that's not allowed.
-                                            ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode);
+                                            continue;
+                                        }
 
-                                            var oldBody = TryGetDeclarationBody(oldNode);
-                                            var newBody = TryGetDeclarationBody(newNode);
-                                            if (oldBody == null && newBody == null)
-                                            {
-                                                continue;
-                                            }
+                                        if (oldBody != null)
+                                        {
+                                            // The old symbol's declaration syntax may be located in a different document than the old version of the current document.
+                                            var oldSyntaxDocument = oldProject.Solution.GetRequiredDocument(oldNode.SyntaxTree);
+                                            var oldSyntaxModel = await oldSyntaxDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                                            var oldSyntaxText = await oldSyntaxDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                                            if (oldBody != null)
-                                            {
-                                                // The old symbol's declaration syntax may be located in a different document than the old version of the current document.
-                                                var oldSyntaxDocument = oldProject.Solution.GetRequiredDocument(oldNode.SyntaxTree);
-                                                var oldSyntaxModel = await oldSyntaxDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                                                var oldSyntaxText = await oldSyntaxDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                                                // Skip analysis of active statements. We already report rude edit for removal of code containing
-                                                // active statements in the old declaration and don't currently support moving active statements.
-                                                AnalyzeChangedMemberBody(
-                                                    oldNode,
-                                                    newNode,
-                                                    oldBody,
-                                                    newBody,
-                                                    oldSyntaxText,
-                                                    newText,
-                                                    oldSyntaxModel,
-                                                    newModel,
-                                                    oldSymbol,
-                                                    newSymbol,
-                                                    oldActiveStatements: ImmutableArray<ActiveStatement>.Empty,
-                                                    newActiveStatementSpans: ImmutableArray<TextSpan>.Empty,
-                                                    newActiveStatements,
-                                                    newExceptionRegions,
-                                                    diagnostics,
-                                                    out syntaxMap,
-                                                    cancellationToken);
-                                            }
+                                            // Skip analysis of active statements. We already report rude edit for removal of code containing
+                                            // active statements in the old declaration and don't currently support moving active statements.
+                                            AnalyzeChangedMemberBody(
+                                                oldNode,
+                                                newNode,
+                                                oldBody,
+                                                newBody,
+                                                oldSyntaxText,
+                                                newText,
+                                                oldSyntaxModel,
+                                                newModel,
+                                                oldSymbol,
+                                                newSymbol,
+                                                oldActiveStatements: ImmutableArray<ActiveStatement>.Empty,
+                                                newActiveStatementSpans: ImmutableArray<TextSpan>.Empty,
+                                                newActiveStatements,
+                                                newExceptionRegions,
+                                                diagnostics,
+                                                out syntaxMap,
+                                                cancellationToken);
                                         }
 
                                         // If a constructor changes from including initializers to not including initializers
@@ -2509,7 +2516,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         if (IsConstructorWithMemberInitializers(newNode) ||
                                             IsDeclarationWithInitializer(oldNode) ||
                                             IsDeclarationWithInitializer(newNode) ||
-                                            IsRecordPrimaryConstructorParameter(oldNode))
+                                            isRecordPrimaryConstructorParameter)
                                         {
                                             processedSymbols.Remove(newSymbol);
                                             DeferConstructorEdit(oldSymbol.ContainingType, newSymbol.ContainingType, newNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);

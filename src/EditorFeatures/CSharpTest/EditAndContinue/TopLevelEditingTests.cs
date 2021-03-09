@@ -1376,6 +1376,21 @@ class C
         #region Records
 
         [Fact]
+        public void Record_Partial_MovePrimaryConstructor()
+        {
+            var src1 = @"partial record C { }
+partial record C(int X);";
+            var src2 = @"partial record C(int X);
+partial record C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics();
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
         public void Record_Name_Update()
         {
             var src1 = "record C { }";
@@ -9074,6 +9089,28 @@ partial class C
 
             var srcA2 = "partial class C {  }";
             var srcB2 = "partial class C { int F; }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), partialType: "C", preserveLocalVariables: true)
+                        }),
+                });
+        }
+
+        [Fact]
+        public void Field_Partial_DeleteInsert_InitializerUpdate()
+        {
+            var srcA1 = "partial class C { int F = 1; }";
+            var srcB1 = "partial class C { }";
+
+            var srcA2 = "partial class C {  }";
+            var srcB2 = "partial class C { int F = 2; }";
 
             EditAndContinueValidation.VerifySemantics(
                 new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
