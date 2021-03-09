@@ -64,7 +64,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim handled = controller.TryHandleUpKey()
 
             Assert.False(handled)
-            GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
         <WpfFact>
@@ -218,7 +217,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim handled = controller.TryHandleUpKey()
 
             Assert.False(handled)
-            GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
         <WpfFact>
