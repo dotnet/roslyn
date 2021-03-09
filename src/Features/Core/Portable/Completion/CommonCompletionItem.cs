@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Completion
             bool showsWarningIcon = false,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default,
-            string inlineDescription = null)
+            string inlineDescription = null,
+            bool isComplexTextEdit = false)
         {
             tags = tags.NullToEmpty();
 
@@ -54,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 properties: properties,
                 tags: tags,
                 rules: rules,
-                inlineDescription: inlineDescription);
+                inlineDescription: inlineDescription,
+                isComplexTextEdit: isComplexTextEdit);
         }
 
         public static bool HasDescription(CompletionItem item)

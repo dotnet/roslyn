@@ -1729,6 +1729,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             Debug.Assert(Monitor.IsEntered(_gate));
 
+            // We can never make a project reference ourselves. This isn't a meaningful scenario, but if somebody does this by accident
+            // we do want to throw exceptions.
+            if (projectIdWithMetadataReference == referencedProjectId)
+            {
+                return false;
+            }
+
             // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
             // Project instances to get created.
             var projectWithMetadataReference = CurrentSolution.GetProjectState(projectIdWithMetadataReference);
