@@ -12,7 +12,7 @@
     }
     ```
 
-2. https://github.com/dotnet/roslyn/pull/50755 In .NET 5.0.200 (Visual Studio 16.9), an error is reported for a conditional expression when the common type of the two branches cannot be implicitly converted to the target type even if each of the branches can be converted implicitly. Such cases were allowed unintentionally in 5.0.103 (Visual Studio 16.8). This breaking change aligns the compiler behavior with the C# specification and with versions of the compiler before .NET 5.0.
+2. https://github.com/dotnet/roslyn/pull/50755 In .NET 5.0.200 (Visual Studio 16.9), if there is a common type between the two branches of a conditional expression, that type is the type of the conditional expression. This is a breaking change from 5.0.103 (Visual Studio 16.8) which incorrectly used the target type of the conditional expression as the type even if there was a common type between the two branches. This latest change aligns the compiler behavior with the C# specification and with versions of the compiler before .NET 5.0.
     ```C#
     static short F1(bool b)
     {
