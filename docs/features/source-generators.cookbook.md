@@ -691,8 +691,14 @@ var code = "initial code"
 var generated = "expected generated code";
 await new VerifyCS.Test
 {
-    TestCode = code,
-    FixedCode = generated,
+    TestState = 
+    {
+        Sources = { code },
+    },
+    FixedState = 
+    {
+        Sources = { code, generated },
+    }
 }.RunAsync();
 ```
 
