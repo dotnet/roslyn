@@ -744,10 +744,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             {
                 if (useFullSpan || node.Span.Contains(position))
                 {
-                    var kind = node.Kind();
-                    if ((kind != SyntaxKind.GlobalStatement) && (kind != SyntaxKind.IncompleteMember) && (node is MemberDeclarationSyntax))
+                    if (!node.IsKind(SyntaxKind.IncompleteMember) && (node is MemberDeclarationSyntax))
                     {
                         return node;
+                    }
+                    else if (node.IsKind(SyntaxKind.GlobalStatement))
+                    {
+                        return root;
                     }
                 }
 

@@ -319,6 +319,67 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task Assignment_ConstantValue_NoReads_TopLevel_DiscardOption()
+        {
+            var source = @"
+int x;
+{|IDE0059:x|} = 1;
+
+System.Console.WriteLine();
+";
+            // The code fix offered doesn't make much sense. The variable 'x' is still there.
+            var fixedSource = @"
+int x;
+_ = 1;
+
+System.Console.WriteLine();
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task Assignment_ConstantValue_NoReads_TopLevel_UnusedLocalVariableOption()
+        {
+            var source = @"
+int x;
+x = 1; // BUG! No diagnostic is produced
+
+System.Console.WriteLine();
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = source,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.UnusedLocalVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task Assignment_NonConstantValue_NoReads_PreferDiscard()
         {
             var source =
