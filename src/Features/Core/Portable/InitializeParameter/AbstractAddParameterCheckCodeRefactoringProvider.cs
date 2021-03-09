@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         private static SyntaxNode InterpolatedStringText(SyntaxGenerator generator, string text)
         {
-            return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(text));
+            return generator.InterpolatedStringText(generator.InterpolatedStringTextToken(text, text));
         }
     }
 }

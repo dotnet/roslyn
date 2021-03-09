@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -18,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExtensionOrder(After:=NameOf(EmbeddedLanguageCompletionProvider))>
     <[Shared]>
     Friend NotInheritable Class TypeImportCompletionProvider
-        Inherits AbstractTypeImportCompletionProvider
+        Inherits AbstractTypeImportCompletionProvider(Of SimpleImportsClauseSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -31,8 +32,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
 
-        Protected Overrides Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
-            Return ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken)
+        Protected Overrides Function CreateContextAsync(document As Document, position As Integer, usePartialSemantic As Boolean, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
+            Return ImportCompletionProviderHelper.CreateContextAsync(document, position, usePartialSemantic, cancellationToken)
         End Function
 
         Protected Overrides Function GetImportedNamespaces(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableArray(Of String)
@@ -45,6 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Protected Overrides Function ShouldProvideParenthesisCompletionAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of Boolean)
             Return Task.FromResult(False)
+        End Function
+
+        Protected Overrides Function GetAliasDeclarationNodes(node As SyntaxNode) As ImmutableArray(Of SimpleImportsClauseSyntax)
+            ' VB imports can only be placed before any declarations
+            Return node.GetAncestorOrThis(Of CompilationUnitSyntax).Imports.SelectMany(Function(import) import.ImportsClauses).OfType(Of SimpleImportsClauseSyntax).ToImmutableArray()
         End Function
     End Class
 End Namespace

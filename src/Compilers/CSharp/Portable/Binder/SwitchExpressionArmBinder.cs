@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._switchExpressionBinder = switchExpressionBinder;
         }
 
-        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
+        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
             Binder armBinder = this.GetBinder(node);

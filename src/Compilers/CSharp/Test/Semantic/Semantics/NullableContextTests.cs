@@ -61,7 +61,7 @@ class C
     void M() {{}}
 }}";
 
-            var comp = CreateCompilation(source, options: WithNonNullTypes(globalContext));
+            var comp = CreateCompilation(source, options: WithNullable(globalContext));
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -93,7 +93,7 @@ partial class C
     void M2();
 }";
 
-            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
 
             var syntaxTree1 = comp.SyntaxTrees[0];
             var model1 = comp.GetSemanticModel(syntaxTree1);
@@ -454,40 +454,61 @@ class Program
             }
         }
 
-        public static IEnumerable<object[]> AnalyzeMethodsInEnabledContextOnly_01_Data()
+        private static readonly NullableDirectives[] s_nullableDirectives = new[]
+        {
+            new NullableDirectives(new string[0], NullableContextState.State.Unknown, NullableContextState.State.Unknown),
+            new NullableDirectives(new[] { "#nullable disable" }, NullableContextState.State.Disabled, NullableContextState.State.Disabled),
+            new NullableDirectives(new[] { "#nullable enable" }, NullableContextState.State.Enabled, NullableContextState.State.Enabled),
+            new NullableDirectives(new[] { "#nullable restore" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(new[] { "#nullable disable annotations" }, NullableContextState.State.Unknown, NullableContextState.State.Disabled),
+            new NullableDirectives(new[] { "#nullable enable warnings", "#nullable disable annotations", }, NullableContextState.State.Enabled, NullableContextState.State.Disabled),
+            new NullableDirectives(new[] { "#nullable restore warnings", "#nullable disable annotations" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Disabled),
+            new NullableDirectives(new[] { "#nullable enable annotations" }, NullableContextState.State.Unknown, NullableContextState.State.Enabled),
+            new NullableDirectives(new[] { "#nullable disable warnings", "#nullable enable annotations" }, NullableContextState.State.Disabled, NullableContextState.State.Enabled),
+            new NullableDirectives(new[] { "#nullable restore warnings", "#nullable enable annotations" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Enabled),
+            new NullableDirectives(new[] { "#nullable restore annotations" }, NullableContextState.State.Unknown, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(new[] { "#nullable enable warnings" , "#nullable restore annotations" }, NullableContextState.State.Enabled, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(new[] { "#nullable disable warnings", "#nullable restore annotations" }, NullableContextState.State.Disabled, NullableContextState.State.ExplicitlyRestored),
+            new NullableDirectives(new[] { "#nullable disable warnings" }, NullableContextState.State.Disabled, NullableContextState.State.Unknown),
+            new NullableDirectives(new[] { "#nullable enable warnings" }, NullableContextState.State.Enabled, NullableContextState.State.Unknown),
+            new NullableDirectives(new[] { "#nullable restore warnings" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Unknown),
+        };
+
+        // AnalyzeMethodsInEnabledContextOnly_01_Data is split due to https://github.com/dotnet/roslyn/issues/50337
+        public static IEnumerable<object[]> AnalyzeMethodsInEnabledContextOnly_01_Data1()
         {
             var projectSettings = new[]
             {
                 (NullableContextOptions?)null,
                 NullableContextOptions.Disable,
+            };
+
+            foreach (var projectSetting in projectSettings)
+            {
+                foreach (var classDirectives in s_nullableDirectives)
+                {
+                    foreach (var methodDirectives in s_nullableDirectives)
+                    {
+                        yield return new object[] { projectSetting, classDirectives, methodDirectives };
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> AnalyzeMethodsInEnabledContextOnly_01_Data2()
+        {
+            var projectSettings = new[]
+            {
                 NullableContextOptions.Warnings,
                 NullableContextOptions.Annotations,
                 NullableContextOptions.Enable,
             };
-            var nullableDirectives = new[]
-            {
-                new NullableDirectives(new string[0], NullableContextState.State.Unknown, NullableContextState.State.Unknown),
-                new NullableDirectives(new[] { "#nullable disable" }, NullableContextState.State.Disabled, NullableContextState.State.Disabled),
-                new NullableDirectives(new[] { "#nullable enable" }, NullableContextState.State.Enabled, NullableContextState.State.Enabled),
-                new NullableDirectives(new[] { "#nullable restore" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.ExplicitlyRestored),
-                new NullableDirectives(new[] { "#nullable disable annotations" }, NullableContextState.State.Unknown, NullableContextState.State.Disabled),
-                new NullableDirectives(new[] { "#nullable enable warnings", "#nullable disable annotations", }, NullableContextState.State.Enabled, NullableContextState.State.Disabled),
-                new NullableDirectives(new[] { "#nullable restore warnings", "#nullable disable annotations" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Disabled),
-                new NullableDirectives(new[] { "#nullable enable annotations" }, NullableContextState.State.Unknown, NullableContextState.State.Enabled),
-                new NullableDirectives(new[] { "#nullable disable warnings", "#nullable enable annotations" }, NullableContextState.State.Disabled, NullableContextState.State.Enabled),
-                new NullableDirectives(new[] { "#nullable restore warnings", "#nullable enable annotations" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Enabled),
-                new NullableDirectives(new[] { "#nullable restore annotations" }, NullableContextState.State.Unknown, NullableContextState.State.ExplicitlyRestored),
-                new NullableDirectives(new[] { "#nullable enable warnings" , "#nullable restore annotations" }, NullableContextState.State.Enabled, NullableContextState.State.ExplicitlyRestored),
-                new NullableDirectives(new[] { "#nullable disable warnings", "#nullable restore annotations" }, NullableContextState.State.Disabled, NullableContextState.State.ExplicitlyRestored),
-                new NullableDirectives(new[] { "#nullable disable warnings" }, NullableContextState.State.Disabled, NullableContextState.State.Unknown),
-                new NullableDirectives(new[] { "#nullable enable warnings" }, NullableContextState.State.Enabled, NullableContextState.State.Unknown),
-                new NullableDirectives(new[] { "#nullable restore warnings" }, NullableContextState.State.ExplicitlyRestored, NullableContextState.State.Unknown),
-            };
+
             foreach (var projectSetting in projectSettings)
             {
-                foreach (var classDirectives in nullableDirectives)
+                foreach (var classDirectives in s_nullableDirectives)
                 {
-                    foreach (var methodDirectives in nullableDirectives)
+                    foreach (var methodDirectives in s_nullableDirectives)
                     {
                         yield return new object[] { projectSetting, classDirectives, methodDirectives };
                     }
@@ -496,9 +517,22 @@ class Program
         }
 
         [Theory]
-        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data))]
+        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data1))]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_01(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
+        public void AnalyzeMethodsInEnabledContextOnly_01A(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
+        {
+            AnalyzeMethodsInEnabledContextOnly_01_Execute(projectContext, classDirectives, methodDirectives);
+        }
+
+        [Theory]
+        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data2))]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_01B(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
+        {
+            AnalyzeMethodsInEnabledContextOnly_01_Execute(projectContext, classDirectives, methodDirectives);
+        }
+
+        private static void AnalyzeMethodsInEnabledContextOnly_01_Execute(NullableContextOptions? projectContext, NullableDirectives classDirectives, NullableDirectives methodDirectives)
         {
             var sourceA =
 @"#nullable enable
@@ -2140,9 +2174,22 @@ class Program
         }
 
         [Theory]
-        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data))]
+        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data1))]
         [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
-        public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
+        public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_A(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
+        {
+            AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(projectContext, sourceDirectives, speculativeDirectives);
+        }
+
+        [Theory]
+        [MemberData(nameof(AnalyzeMethodsInEnabledContextOnly_01_Data2))]
+        [WorkItem(49746, "https://github.com/dotnet/roslyn/issues/49746")]
+        public void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_B(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
+        {
+            AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(projectContext, sourceDirectives, speculativeDirectives);
+        }
+
+        private static void AnalyzeMethodsInEnabledContextOnly_SpeculativeSemanticModel_Execute(NullableContextOptions? projectContext, NullableDirectives sourceDirectives, NullableDirectives speculativeDirectives)
         {
             // https://github.com/dotnet/roslyn/issues/50234: SyntaxTreeSemanticModel.IsNullableAnalysisEnabledAtSpeculativePosition()
             // does not handle '#nullable restore'.

@@ -249,7 +249,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                GetService().OnSourceFileUpdated(solution.GetRequiredDocument(documentId));
+
+                // TODO: Non-C#/VB documents are not currently serialized to remote workspace.
+                // https://github.com/dotnet/roslyn/issues/47341
+                var document = solution.GetDocument(documentId);
+                if (document != null)
+                {
+                    GetService().OnSourceFileUpdated(document);
+                }
             }, cancellationToken);
         }
     }

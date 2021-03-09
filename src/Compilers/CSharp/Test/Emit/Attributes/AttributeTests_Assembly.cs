@@ -1663,7 +1663,9 @@ class Program
                attrTypeName: "UserDefinedAssemblyAttrAllowMultipleAttribute");
         }
 
-        [Fact, WorkItem(546825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546825")]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39969
+        [WorkItem(546825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546825")]
+        [WorkItem(39969, "https://github.com/dotnet/roslyn/issues/39969")]
         public void Bug16910()
         {
             string mod =

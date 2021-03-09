@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundLambda = New BoundLambda(originalNode.Syntax,
                                    originalNode.LambdaSymbol,
                                    lambdaBody,
-                                   ImmutableArray(Of Diagnostic).Empty,
+                                   ImmutableBindingDiagnostic(Of AssemblySymbol).Empty,
                                    Nothing,
                                    ConversionKind.DelegateRelaxationLevelNone,
                                    MethodConversionKind.Identity)

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -41,6 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public bool ContainsIndexerMemberCref => _contextInfo.ContainsIndexerMemberCref;
         public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
         public bool ContainsGlobalAttributes => _contextInfo.ContainsGlobalAttributes;
+        public bool ContainsConversion => _contextInfo.ContainsConversion;
 
         /// <summary>
         /// Same as <see cref="DeclaredSymbolInfos"/>, just stored as a set for easy containment checks.

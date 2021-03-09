@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SwitchExpressionSyntax SwitchExpressionSyntax;
 
         private BoundExpression _inputExpression;
-        private DiagnosticBag _inputExpressionDiagnostics;
+        private BindingDiagnosticBag _inputExpressionDiagnostics;
 
         internal SwitchExpressionBinder(SwitchExpressionSyntax switchExpressionSyntax, Binder next)
             : base(next)
@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             SwitchExpressionSyntax = switchExpressionSyntax;
         }
 
-        internal override BoundExpression BindSwitchExpressionCore(SwitchExpressionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundExpression BindSwitchExpressionCore(SwitchExpressionSyntax node, Binder originalBinder, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node == SwitchExpressionSyntax);
 
             // Bind switch expression and set the switch governing type.
             var boundInputExpression = InputExpression;
-            diagnostics.AddRange(InputExpressionDiagnostics);
+            diagnostics.AddRange(InputExpressionDiagnostics, allowMismatchInDependencyAccumulation: true);
             ImmutableArray<BoundSwitchExpressionArm> switchArms = BindSwitchExpressionArms(node, originalBinder, diagnostics);
             TypeSymbol naturalType = InferResultType(switchArms, diagnostics);
             bool reportedNotExhaustive = CheckSwitchExpressionExhaustive(node, boundInputExpression, switchArms, out BoundDecisionDag decisionDag, out LabelSymbol defaultLabel, diagnostics);
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundSwitchExpressionArm> switchArms,
             out BoundDecisionDag decisionDag,
             out LabelSymbol defaultLabel,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Infer the result type of the switch expression by looking for a common type
         /// to which every arm's expression can be converted.
         /// </summary>
-        private TypeSymbol InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, DiagnosticBag diagnostics)
+        private TypeSymbol InferResultType(ImmutableArray<BoundSwitchExpressionArm> switchCases, BindingDiagnosticBag diagnostics)
         {
             var seenTypes = Symbols.SpecializedSymbolCollections.GetPooledSymbolHashSetInstance<TypeSymbol>();
             var typesInOrder = ArrayBuilder<TypeSymbol>.GetInstance();
@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             seenTypes.Free();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var commonType = BestTypeInferrer.GetBestType(typesInOrder, Conversions, ref useSiteInfo);
             typesInOrder.Free();
 
             // We've found a candidate common type among those arms that have a type.  Also check that every arm's
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var @case in switchCases)
                 {
-                    if (!this.Conversions.ClassifyImplicitConversionFromExpression(@case.Value, commonType, ref useSiteDiagnostics).Exists)
+                    if (!this.Conversions.ClassifyImplicitConversionFromExpression(@case.Value, commonType, ref useSiteInfo).Exists)
                     {
                         commonType = null;
                         break;
@@ -172,11 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            diagnostics.Add(SwitchExpressionSyntax, useSiteDiagnostics);
+            diagnostics.Add(SwitchExpressionSyntax, useSiteInfo);
             return commonType;
         }
 
-        private ImmutableArray<BoundSwitchExpressionArm> BindSwitchExpressionArms(SwitchExpressionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        private ImmutableArray<BoundSwitchExpressionArm> BindSwitchExpressionArms(SwitchExpressionSyntax node, Binder originalBinder, BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = InputExpression.HasErrors;
             var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance();
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal uint SwitchGoverningValEscape => GetValEscape(InputExpression, LocalScopeDepth);
 
-        protected DiagnosticBag InputExpressionDiagnostics
+        protected BindingDiagnosticBag InputExpressionDiagnostics
         {
             get
             {
@@ -218,14 +218,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inputExpression == null)
             {
-                var switchGoverningDiagnostics = new DiagnosticBag();
+                var switchGoverningDiagnostics = new BindingDiagnosticBag();
                 var boundSwitchGoverningExpression = BindSwitchGoverningExpression(switchGoverningDiagnostics);
                 _inputExpressionDiagnostics = switchGoverningDiagnostics;
                 Interlocked.CompareExchange(ref _inputExpression, boundSwitchGoverningExpression, null);
             }
         }
 
-        private BoundExpression BindSwitchGoverningExpression(DiagnosticBag diagnostics)
+        private BoundExpression BindSwitchGoverningExpression(BindingDiagnosticBag diagnostics)
         {
             var switchGoverningExpression = BindRValueWithoutTargetType(SwitchExpressionSyntax.GoverningExpression, diagnostics);
             if (switchGoverningExpression.Type == (object)null || switchGoverningExpression.Type.IsVoidType())

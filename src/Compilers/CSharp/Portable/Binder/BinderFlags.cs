@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Are we binding for the purpose of an Expression Evaluator
         /// </summary>
-        InEEMethodBinder = 1 << 30,
+        InEEMethodBinder = 1U << 30,
 
         /// <summary>
         /// Skip binding type arguments (we use <see cref="Symbols.PlaceholderTypeArgumentSymbol"/> instead).
