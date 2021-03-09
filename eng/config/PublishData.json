@@ -222,7 +222,7 @@
       "vsBranch": "rel/d16.10",
       "vsMajorVersion": 16
     },
-    "master-vs-deps": {
+    "main-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.10.*",
       "packageFeeds": "default",
@@ -230,7 +230,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
-    "master": {
+    "main": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.10.*",
       "packageFeeds": "arcade",

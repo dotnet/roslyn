@@ -106,6 +106,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return Task.CompletedTask;
             }
 
+            // The LSP client will handle producing tags when running under the LSP editor.
+            // Our tagger implementation should return nothing to prevent conflicts.
+            var workspaceContextService = document?.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+            if (workspaceContextService?.IsInLspEditorContext() == true)
+            {
+                return Task.CompletedTask;
+            }
+
             return SemanticClassificationUtilities.ProduceTagsAsync(context, spanToTag, classificationService, _typeMap);
         }
     }

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Null(data.GetTestAccessor().Items);
 
             Assert.True(data.IsFixedSize);
-            Assert.False(data.IsReadOnly);
+            Assert.True(data.IsReadOnly);
             Assert.False(data.IsSynchronized);
             Assert.Equal(0, data.Length);
             Assert.Null(data.SyncRoot);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var data = new SegmentedArray<IntPtr>(length);
 
             Assert.True(data.IsFixedSize);
-            Assert.False(data.IsReadOnly);
+            Assert.True(data.IsReadOnly);
             Assert.False(data.IsSynchronized);
             Assert.Equal(length, data.Length);
             Assert.Same(data.GetTestAccessor().Items, data.SyncRoot);
@@ -207,6 +207,39 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
 
             Assert.Equal(data.Length, index);
+        }
+
+        [Fact]
+        public void CopyOverlappingEndOfSegment()
+        {
+            var array = new int[2 * SegmentedArray<int>.TestAccessor.SegmentSize];
+            var segmented = new SegmentedArray<int>(2 * SegmentedArray<int>.TestAccessor.SegmentSize);
+            initialize(array, segmented);
+            Assert.Equal(array, segmented);
+
+            var sourceStart = SegmentedArray<int>.TestAccessor.SegmentSize - 128;
+            var destinationStart = SegmentedArray<int>.TestAccessor.SegmentSize - 60;
+            var length = 256;
+            Array.Copy(array, sourceStart, array, destinationStart, length);
+            SegmentedArray.Copy(segmented, sourceStart, segmented, destinationStart, length);
+            Assert.Equal(array, segmented);
+
+            initialize(array, segmented);
+            sourceStart = SegmentedArray<int>.TestAccessor.SegmentSize - 60;
+            destinationStart = SegmentedArray<int>.TestAccessor.SegmentSize - 128;
+            length = 256;
+            Array.Copy(array, sourceStart, array, destinationStart, length);
+            SegmentedArray.Copy(segmented, sourceStart, segmented, destinationStart, length);
+            Assert.Equal(array, segmented);
+
+            static void initialize(int[] array, SegmentedArray<int> segmented)
+            {
+                for (int i = 0; i < array.Length; i++)
+                {
+                    array[i] = i;
+                    segmented[i] = i;
+                }
+            }
         }
     }
 }
