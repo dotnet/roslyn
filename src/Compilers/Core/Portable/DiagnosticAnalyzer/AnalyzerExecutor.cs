@@ -318,6 +318,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope)
         {
+            // If this analyzer can also produce artifacts, then create an appropriate context they can
+            // acquire to write files to as the analysis runs.
             var artifactContext = analyzer.GetType().GetCustomAttributes(typeof(ArtifactProducerAttribute), inherit: true).Length > 0
                     ? new ArtifactContext(CreateArtifactStream)
                     : (ArtifactContext?)null;
