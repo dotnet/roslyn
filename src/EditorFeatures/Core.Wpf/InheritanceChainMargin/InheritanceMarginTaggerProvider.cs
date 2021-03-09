@@ -4,8 +4,8 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -26,16 +26,20 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
     [ContentType(ContentTypeNames.RoslynContentType)]
     internal class InheritanceMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
     {
+        private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceMarginTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
-            IForegroundNotificationService notificationService) : base(
+            IForegroundNotificationService notificationService,
+            IStreamingFindUsagesPresenter streamingFindUsagesPresenter) : base(
                 threadingContext,
                 listenerProvider.GetListener(FeatureAttribute.InheritanceChainMargin),
                 notificationService)
         {
+            _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -57,8 +61,29 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
             }
 
             var cancellationToken = context.CancellationToken;
-            var inheritanceMarginInfoService = document.GetRequiredLanguageService<IInheritanceChainService>();
-            var memberInfo = await inheritanceMarginInfoService.GetInheritanceInfoForLineAsync(document, cancellationToken).ConfigureAwait(false);
+            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceChainService>();
+            if (inheritanceMarginInfoService == null)
+            {
+                return;
+            }
+
+            var lineInheritanceInfo = await inheritanceMarginInfoService
+                .GetInheritanceInfoForLineAsync(
+                    document,
+                    cancellationToken).ConfigureAwait(false);
+
+            if (lineInheritanceInfo.IsEmpty)
+            {
+                return;
+            }
+
+            context.AddTag(new TagSpan<InheritanceMarginTag>(
+                spanToTag.SnapshotSpan,
+                InheritanceMarginTag.FromInheritanceInfo(
+                    ThreadingContext,
+                    _streamingFindUsagesPresenter,
+                    document,
+                    lineInheritanceInfo)));
         }
     }
 }

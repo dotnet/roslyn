@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -14,10 +16,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceChainMargin
 {
-    internal abstract partial class AbstractInheritanceChainService<TTypeDeclarationNode> : IInheritanceChainService
+    internal abstract class AbstractInheritanceChainService<TTypeDeclarationNode> : IInheritanceChainService
         where TTypeDeclarationNode : SyntaxNode
     {
-        public async Task<ImmutableArray<InheritanceMemberInfo>> GetInheritanceInfoForLineAsync(
+        public async Task<ImmutableArray<LineInheritanceInfo>> GetInheritanceInfoForLineAsync(
             Document document,
             CancellationToken cancellationToken)
         {
@@ -28,11 +30,11 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
 
             if (allIdentifierPositions.IsEmpty)
             {
-                return ImmutableArray<InheritanceMemberInfo>.Empty;
+                return ImmutableArray<LineInheritanceInfo>.Empty;
             }
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<InheritanceMemberInfo>.GetInstance(out var builder);
+            using var builder = new LineInheritanceInfoBuilder();
 
             foreach (var identifierPosition in allIdentifierPositions)
             {
@@ -51,11 +53,10 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
                     var item = CreateInheritanceMemberInfo(
                         document,
                         namedTypeSymbol,
-                        lineNumber,
                         baseTypes,
                         derivedTypes,
                         cancellationToken);
-                    builder.Add(item);
+                    builder.AddItem(lineNumber, item);
                 }
 
                 if (symbol is IMethodSymbol or IEventSymbol or IPropertySymbol)
@@ -68,23 +69,21 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
                     var item = CreateInheritanceMemberInfoForMember(
                         document,
                         symbol,
-                        lineNumber,
                         implementingMembers,
                         implementedMembers,
                         overrideMembers,
                         overridenMembers,
                         cancellationToken);
-                    builder.Add(item);
+                    builder.AddItem(lineNumber, item);
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableArrayAndFree();
         }
 
-        private static InheritanceMemberInfo CreateInheritanceMemberInfo(
+        private static InheritanceMemberItem CreateInheritanceMemberInfo(
             Document document,
             INamedTypeSymbol memberSymbol,
-            int lineNumber,
             ImmutableArray<ISymbol> baseSymbols,
             ImmutableArray<ISymbol> derivedTypesSymbols,
             CancellationToken cancellationToken)
@@ -94,14 +93,14 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
                 text: memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
 
             var baseSymbolItems = baseSymbols
-                .SelectAsArray(symbol => CreateInheritanceItem(document, symbol, Relationship.BaseType, cancellationToken));
+                .SelectAsArray(symbol => CreateInheritanceItem(document, symbol, Relationship.Implementing, cancellationToken));
 
             var derivedTypeItems = derivedTypesSymbols
-                .SelectAsArray(symbol => CreateInheritanceItem(document, symbol, Relationship.SubType, cancellationToken));
+                .SelectAsArray(symbol => CreateInheritanceItem(document, symbol, Relationship.Implemented, cancellationToken));
 
-            return new InheritanceMemberInfo(
+            return new InheritanceMemberItem(
                 memberDescription,
-                lineNumber,
+                memberSymbol.GetGlyph(),
                 baseSymbolItems.Concat(derivedTypeItems).ToImmutableArray());
         }
 
@@ -123,14 +122,14 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
 
             return new InheritanceTargetItem(
                 targetDescription,
+                targetSymbol.GetGlyph(),
                 relationshipWithOriginalMember,
                 definitions);
         }
 
-        private static InheritanceMemberInfo CreateInheritanceMemberInfoForMember(
+        private static InheritanceMemberItem CreateInheritanceMemberInfoForMember(
             Document document,
             ISymbol memberSymbol,
-            int lineNumber,
             ImmutableArray<ISymbol> implementingMembers,
             ImmutableArray<ISymbol> implementedMembers,
             ImmutableArray<ISymbol> overrideMembers,
@@ -142,16 +141,17 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
                 text: memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
 
             var implementingMemberItems = implementingMembers
-                .SelectAsArray(symbol => CreateInheritanceItem(document, symbol, Relationship.Implement, cancellationToken));
+                .SelectAsArray(symbol => CreateInheritanceItem(document, symbol, Relationship.Implementing, cancellationToken));
             var implementedMemberItems = implementedMembers
                 .SelectAsArray(symbol => CreateInheritanceItem(document, symbol, Relationship.Implemented, cancellationToken));
             var overrideMembersItems = overrideMembers
-                .SelectAsArray(symbol => CreateInheritanceItem(document, symbol, Relationship.Override, cancellationToken));
+                .SelectAsArray(symbol => CreateInheritanceItem(document, symbol, Relationship.Overriding, cancellationToken));
             var overridenMembersItems = overridingMembers
                 .SelectAsArray(symbol => CreateInheritanceItem(document, symbol, Relationship.Overriden, cancellationToken));
-            return new InheritanceMemberInfo(
+
+            return new InheritanceMemberItem(
                 memberDescription,
-                lineNumber,
+                memberSymbol.GetGlyph(),
                 implementingMemberItems.Concat(implementedMemberItems)
                     .Concat(overrideMembersItems)
                     .Concat(overridenMembersItems));
@@ -311,5 +311,53 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
         protected abstract ImmutableArray<SyntaxNode> GetMembers(TTypeDeclarationNode typeDeclarationNode);
 
         protected abstract ImmutableArray<int> GetMemberIdentifiersPosition(TTypeDeclarationNode typeDeclarationNode);
+    }
+
+
+    internal class LineInheritanceInfoBuilder : IDisposable
+    {
+        private readonly Dictionary<int, ArrayBuilder<InheritanceMemberItem>> _lineNumberToMemberItems;
+
+        public LineInheritanceInfoBuilder()
+        {
+            _lineNumberToMemberItems = new Dictionary<int, ArrayBuilder<InheritanceMemberItem>>();
+        }
+
+        public void AddItem(int lineNumber, InheritanceMemberItem item)
+        {
+            if (_lineNumberToMemberItems.TryGetValue(lineNumber, out var builder))
+            {
+                builder.Add(item);
+            }
+            else
+            {
+                var newBuilder = ArrayBuilder<InheritanceMemberItem>.GetInstance();
+                newBuilder.Add(item);
+                _lineNumberToMemberItems[lineNumber] = newBuilder;
+            }
+        }
+
+        public ImmutableArray<LineInheritanceInfo> ToImmutableArrayAndFree()
+        {
+            using var _ = ArrayBuilder<LineInheritanceInfo>.GetInstance(out var builder);
+            foreach (var (lineNumber, items) in _lineNumberToMemberItems)
+            {
+                builder.Add(new LineInheritanceInfo(lineNumber, items.ToImmutable()));
+            }
+
+            return builder.ToImmutableArray();
+        }
+
+
+        public void Dispose()
+        {
+            if (_lineNumberToMemberItems.Count > 0)
+            {
+                foreach (var (_, items) in _lineNumberToMemberItems)
+                {
+                    items.Free();
+                }
+            }
+        }
     }
 }

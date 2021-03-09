@@ -125,12 +125,12 @@
     <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>16.5.1122001-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>1.1.4322</MicrosoftVisualStudioDesignerInterfacesVersion>
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>16.0.28226-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
-    <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.30</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
+    <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.34</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>16.0.28226-alpha</MicrosoftVisualStudioGraphModelVersion>
-    <MicrosoftVisualStudioImageCatalogVersion>16.8.30406.65-pre</MicrosoftVisualStudioImageCatalogVersion>
+    <MicrosoftVisualStudioImageCatalogVersion>16.10.0-preview-2-31109-075</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>16.8.30406.65-pre</MicrosoftVisualStudioImagingVersion>
-    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>16.8.30406.65</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
+    <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>16.10.0-preview-2-31109-075</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.8.0</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioLanguageVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageVersion>
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.8.27812-alpha</MicrosoftVisualStudioLanguageCallHierarchyVersion>

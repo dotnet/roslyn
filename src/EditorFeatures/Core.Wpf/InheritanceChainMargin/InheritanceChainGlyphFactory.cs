@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.ComponentModel.Composition;
 using System.Windows;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -18,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
     [Name(nameof(InheritanceChainGlyphFactory))]
     internal class InheritanceChainGlyphFactory : IGlyphFactory
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public InheritanceChainGlyphFactory()
+        {
+        }
+
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
         {
             return null;
