@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 textDocument,
                 Trace.CorrelationManager.ActivityId,
                 _logger,
+                _requestTelemetryLogger,
                 callbackAsync: async (context, cancellationToken) =>
                 {
                     // Check if cancellation was requested while this was waiting in the queue
@@ -168,23 +169,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     {
                         var result = await handler.HandleRequestAsync(request, context, cancellationToken).ConfigureAwait(false);
                         completion.SetResult(result);
-
-                        // Update success count for the request
-                        _requestTelemetryLogger.LogSuccess(methodName);
                     }
                     catch (OperationCanceledException ex)
                     {
                         completion.TrySetCanceled(ex.CancellationToken);
-                        _requestTelemetryLogger.LogCancel(methodName);
                     }
                     catch (Exception exception)
                     {
                         // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can react
                         completion.SetException(exception);
-
-                        // Update the failure count for the request.
-                        // Failure details are captured separately in a non fatal watson report.
-                        _requestTelemetryLogger.LogFailure(methodName);
 
                         // Also allow the exception to flow back to the request queue to handle as appropriate
                         throw new InvalidOperationException($"Error handling '{methodName}' request: {exception.Message}", exception);
@@ -211,8 +204,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     var work = await _queue.DequeueAsync().ConfigureAwait(false);
 
-                    // Create a linked cancellation token to cancel any requests in progress when this shuts down
-                    var cancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_cancelSource.Token, work.CancellationToken).Token;
+                    // Record when the work item was been de-queued and the request context preparation started.
+                    work.Metrics.RecordExecutionStart();
 
                     // Restore our activity id so that logging/tracking works across asynchronous calls.
                     Trace.CorrelationManager.ActivityId = work.ActivityId;
@@ -221,7 +214,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     if (work.MutatesSolutionState)
                     {
                         // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        await ExecuteCallbackAsync(work, context, _cancelSource.Token).ConfigureAwait(false);
 
                         // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
                         _lspSolutionCache.Remove(workspace);
@@ -231,7 +224,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                         // Non mutating are fire-and-forget because they are by definition readonly. Any errors
                         // will be sent back to the client but we can still capture errors in queue processing
                         // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
-                        _ = work.CallbackAsync(context, cancellationToken).ReportNonFatalErrorAsync();
+                        _ = ExecuteCallbackAsync(work, context, _cancelSource.Token).ReportNonFatalErrorAsync();
                     }
                 }
             }
@@ -245,6 +238,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _logger.TraceException(e);
                 OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
             }
+        }
+
+        private static async Task ExecuteCallbackAsync(QueueItem work, RequestContext context, CancellationToken queueCancellationToken)
+        {
+            // Create a combined cancellation token to cancel any requests in progress when this shuts down
+            using var combinedTokenSource = queueCancellationToken.CombineWith(work.CancellationToken);
+
+            await work.CallbackAsync(context, combinedTokenSource.Token).ConfigureAwait(false);
         }
 
         private void OnRequestServerShutdown(string message)

@@ -149,11 +149,13 @@ class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
+                useRawWin32Resources: false,
                 manifestResources: null,
                 options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
                 debugEntryPoint: null,
                 sourceLinkStream: new MemoryStream(new byte[] { 1, 2, 3 }),
                 embeddedTexts: null,
+                pdbOptionsBlobReader: null,
                 testData: new CompilationTestData()
                 {
                     SymWriterFactory = metadataProvider => new SymUnmanagedWriterWithoutSourceLinkSupport(metadataProvider)

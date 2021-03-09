@@ -7,6 +7,11 @@
         <target state="translated">대상 배열이 컬렉션의 모든 항목을 복사하기에 충분히 길지 않습니다. 배열 인덱스와 길이를 확인하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arg_BogusIComparer">
+        <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
+        <target state="new">Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">
         <source>Hashtable's capacity overflowed and went negative. Check load factor, capacity and the current size of the table.</source>
         <target state="translated">해시 테이블 용량에 오버플로가 발생하여 음수가 되었습니다. 로드 비율, 용량 및 테이블의 현재 크기를 확인하십시오.</target>

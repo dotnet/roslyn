@@ -90,6 +90,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Tupelelementnamen "{0}" hinzufügen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">Das Hinzufügen von "{0}" zu einer Schnittstellenmethode verhindert das Fortsetzen der Debugsitzung.</target>
@@ -124,6 +129,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">Wechselbedingungen werden nicht erfasst und können nicht benannt werden.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
+        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
+        <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -203,6 +213,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">Die Änderung von "{0}" in "{1}" verhindert, dass die Debugsitzung fortgesetzt wird, weil sich dadurch die Form des Zustandsautomaten verändert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -2336,6 +2351,11 @@ Bei Verwendung des Formatbezeichners "H" ohne weitere benutzerdefinierte Formatb
         <target state="translated">Der benutzerdefinierte Formatbezeichner "HH" (plus beliebig viele zusätzliche H-Bezeichner) repräsentiert die Stunde als eine Zahl zwischen 00 und 23, d. h., die Stunde wird in einem nullbasierten 24-Stunden-Format dargestellt, bei dem die Stunden seit Mitternacht gezählt werden. Ein einstelliger Stundenwert wird mit einer führenden Null formatiert.</target>
         <note />
       </trans-unit>
+      <trans-unit id="code">
+        <source>code</source>
+        <target state="new">code</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">Datumstrennzeichen</target>
@@ -2491,6 +2511,11 @@ Der Standardformatbezeichner "f" repräsentiert eine Kombination aus den Mustern
         <source>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</source>
         <target state="translated">Der Standardformatbezeichner "T" repräsentiert eine benutzerdefinierte Datums- und Uhrzeitformatzeichenfolge, die durch die DateTimeFormatInfo.LongTimePattern-Eigenschaft einer bestimmten Kultur definiert ist. Die benutzerdefinierte Formatzeichenfolge für die invariante Kultur lautet beispielsweise "HH:mm:ss".</target>
         <note />
+      </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="new">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
@@ -2944,11 +2969,6 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
         <target state="translated">Beim Ändern von komplexen Anweisungen, die einen "await"-Ausdruck enthalten, wird die Debuggingsitzung unterbrochen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">Bei Änderungen an der Sichtbarkeit von Konstruktoren wird die Debuggingsitzung unterbrochen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">Nach dem Erfassen der zuvor noch nicht erfassten Variable "{0}" kann die Debugsitzung nicht mehr fortgesetzt werden.</target>
@@ -3155,8 +3175,8 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">Durch Löschen von "{0}" wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">Durch Löschen von "{0}" wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3172,11 +3192,6 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
       <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
         <source>Deleting a method body will prevent the debug session from continuing.</source>
         <target state="translated">Durch Löschen eines Methodenkörpers wird verhindert, dass eine Debuggingsitzung fortgesetzt wird.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
-        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="translated">Eine aktive Anweisung wurde aus der ursprünglichen Methode entfernt. Sie müssen Ihre Änderungen rückgängig machen, um die Debuggingsitzung fortzusetzen oder neu zu starten.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3207,11 +3222,6 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
       <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
         <target state="translated">Durch Ändern des Initialisierers von "{0}" in einem generischen Typen wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
-        <target state="translated">Durch Ändern des Initialisierers von "{0}" in einem partiellen Typ wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
@@ -3265,8 +3275,8 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">Durch Entfernen von "{0}", das eine aktive Anweisung enthält, wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
+        <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">Durch Entfernen von "{0}", das eine aktive Anweisung enthält, wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -3658,6 +3668,11 @@ When this standard format specifier is used, the formatting or parsing operation
 Der Zweck des Formatbezeichners "s" besteht darin, Ergebniszeichenfolgen zu erzeugen, die basierend auf Datums- und Uhrzeitwerten konsistent in aufsteigender oder absteigender Reihenfolge sortiert werden. Obwohl der Standardformatbezeichner "s" einen Datums- und Uhrzeitwert in einem konsistenten Format repräsentiert, wird der Wert des zu formatierenden Objekts für Datum und Uhrzeit bei der Formatierung nicht geändert, um die zugehörige DateTime.Kind-Eigenschaft oder den zugehörigen DateTimeOffset.Offset-Wert widerzuspiegeln. Beispielsweise sind die Ergebniszeichenfolgen, die bei Formatierung der Datums- und Uhrzeitwerte 2014-11-15T18:32:17+00:00 und 2014-11-15T18:32:17+08:00 generiert werden, identisch.
 
 Bei Verwendung dieses Standardformatbezeichners wird zur Formatierung oder Analyse immer die invariante Kultur verwendet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="new">static constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

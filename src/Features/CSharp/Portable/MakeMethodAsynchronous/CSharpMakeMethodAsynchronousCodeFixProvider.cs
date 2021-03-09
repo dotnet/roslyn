@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                 }
             }
 
-            return newReturnType.WithTriviaFrom(returnTypeSyntax);
+            return newReturnType.WithTriviaFrom(returnTypeSyntax).WithAdditionalAnnotations(Simplifier.AddImportsAnnotation);
 
             static TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
             {

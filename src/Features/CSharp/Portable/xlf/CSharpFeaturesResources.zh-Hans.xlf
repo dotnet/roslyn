@@ -222,6 +222,11 @@
         <target state="translated">异步 using 声明</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="extern_alias">
+        <source>extern alias</source>
+        <target state="new">extern alias</target>
+        <note />
+      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt;lambda 表达式&gt;</target>
@@ -586,11 +591,6 @@
         <source>global statement</source>
         <target state="translated">global 语句</target>
         <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="using_namespace">
-        <source>using namespace</source>
-        <target state="translated">using 命名空间</target>
-        <note />
       </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>

@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         public abstract void Dispose();
+        public abstract ValueTask DisposeAsync();
 
         public abstract Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken);
         public abstract Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken);
