@@ -1593,10 +1593,12 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")), // TODO: Is this superfluous?
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-            // TODO: also edits for PrintMembers, GetHashCode, Equals(R)
 
             edits.VerifyRudeDiagnostics();
         }
@@ -1613,10 +1615,12 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-            // TODO: also edits for PrintMembers, GetHashCode, Equals(R)
 
             edits.VerifyRudeDiagnostics();
         }
@@ -1630,10 +1634,12 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")), // TODO: Is this superfluous?
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-            // TODO: also edits for PrintMembers, GetHashCode, Equals(R)
 
             edits.VerifyRudeDiagnostics();
         }
@@ -1647,10 +1653,12 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-            // TODO: also edits for PrintMembers, GetHashCode, Equals(R)
 
             edits.VerifyRudeDiagnostics();
         }
@@ -1664,10 +1672,12 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._z")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")), // TODO: Is this superfluous?
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-            // TODO: also edits for PrintMembers, GetHashCode, Equals(R)
 
             edits.VerifyRudeDiagnostics();
         }

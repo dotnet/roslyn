@@ -9,6 +9,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -1052,8 +1053,30 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             && record.ParameterList is not null
             && record.ParameterList.Parameters.Any(p => p.Identifier.ValueText.Equals(name));
 
-        internal override bool IsRecordSynthesizedMember(ISymbol member)
-            => false; // TODO: member.Name.Equals("PrintMembers") etc.
+        internal override IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(INamedTypeSymbol record)
+        {
+            // All methods that are updated have well known names, and calling GetMembers(string) is
+            // faster than enumerating.
+
+            // When a new field or property is added the PrintMembers, Equals(R) and GetHashCode() methods are updated
+            // We don't need to worry about Deconstruct because it only changes when a new positional parameter
+            // is added, and those are rude edits (due to adding a constructor parameter).
+            // We don't need to worry about the constructors as they are reported elsewhere.
+            yield return record.GetMembers(WellKnownMemberNames.PrintMembersMethodName)
+                .OfType<IMethodSymbol>()
+                .Single(m => m.Parameters.Length == 1 &&
+                    m.Parameters[0].Type.Name == "StringBuilder" &&
+                    m.ReturnType.Name == "Boolean");
+
+            yield return record.GetMembers(WellKnownMemberNames.ObjectEquals)
+                .OfType<IMethodSymbol>()
+                .Single(m => m.Parameters.Length == 1 &&
+                    SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType));
+
+            yield return record.GetMembers(WellKnownMemberNames.ObjectGetHashCode)
+               .OfType<IMethodSymbol>()
+               .Single(m => m.Parameters.Length == 0);
+        }
 
         internal override bool IsConstructorWithMemberInitializers(SyntaxNode constructorDeclaration)
             => constructorDeclaration is ConstructorDeclarationSyntax ctor && (ctor.Initializer == null || ctor.Initializer.IsKind(SyntaxKind.BaseConstructorInitializer));

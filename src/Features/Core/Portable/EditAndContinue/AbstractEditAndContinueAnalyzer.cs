@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Returns true if the symbol in question is a known synthesized member of a record
         /// </summary>
-        internal abstract bool IsRecordSynthesizedMember(ISymbol member);
+        internal abstract IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(INamedTypeSymbol record);
 
         /// <summary>
         /// Return true if the declaration is a constructor declaration to which field/property initializers are emitted. 
@@ -2814,13 +2814,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void ReportRecordSynthesizedMembersChanged(INamedTypeSymbol recordType, ArrayBuilder<SemanticEditInfo> semanticEdits)
         {
-            foreach (var member in recordType.GetMembers())
+            foreach (var member in GetRecordUpdatedSynthesizedMembers(recordType))
             {
-                if (IsRecordSynthesizedMember(member))
-                {
-                    var symbolKey = SymbolKey.Create(member);
-                    semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, null, null, null));
-                }
+                var symbolKey = SymbolKey.Create(member);
+                semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, null, null, null));
             }
         }
 
