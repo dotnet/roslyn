@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
                     ThreadingContext,
                     _streamingFindUsagesPresenter,
                     document,
-                    lineInheritanceInfo)));
+                    lineInheritanceInfo, cancellationToken)));
         }
     }
 }

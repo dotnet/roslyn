@@ -39,7 +39,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
                 .ToImmutableDictionary(
                     keySelector: grouping => grouping.Key,
                     elementSelector: grouping => CreateInheritanceChainMoniker(
-                        grouping.SelectMany(g => g).ToImmutableArray(), cancellationToken));
+                        threadingContext,
+                        streamingFindUsagesPresenter,
+                        document,
+                        grouping.SelectMany(g => g).ToImmutableArray(),
+                        cancellationToken));
             return new InheritanceMarginTag(presentEntriesByLine);
         }
 
@@ -53,57 +57,80 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
             var aggregateRelationship = members
                 .SelectMany(member => member.TargetItems.Select(target => target.RelationToMember))
                 .Aggregate((r1, r2) => r1 | r2);
+            var moniker = GetMonikers(aggregateRelationship);
+            var memberPresentEntries = members
+                .SelectAsArray(member => CreatePresentEntryForItem(threadingContext, streamingFindUsagesPresenter, document, member, cancellationToken));
+            var tooltip = GetTooltip(members);
+            return new InheritanceChainMoniker(moniker, tooltip, memberPresentEntries);
+        }
 
-            if (aggregateRelationship == Relationship.Implemented)
+        private static string GetTooltip(ImmutableArray<InheritanceMemberItem> members)
+        {
+            var tooltip = string.Empty;
+            if (members.Length > 1)
             {
-
+                tooltip = "View all members in the line";
             }
-            else if (aggregateRelationship == Relationship.Implementing)
+            else if (members.Length == 1)
             {
-
+                var member = members[0];
+                var targets = members[0].TargetItems;
+                if (targets.Length == 1)
+                {
+                    var target = targets[0];
+                    tooltip = targets[0].TargetDescription.Text + target.RelationToMember + members[0]  ;
+                }
+                else
+                {
+                    tooltip = member.MemberDescription.Tag + " " + member.MemberDescription.Text + " is ";
+                }
             }
-            else if ()
-            KnownMonikers.Implemented;
-            KnownMonikers.Implementing;
-            KnownMonikers.Overridden;
-            KnownMonikers.Overriding;
-            KnownMonikers.ImplementingOverriden;
-            KnownMonikers.ImplementingOverriding;
 
-
-
-            return new InheritanceChainMoniker();
+            return tooltip;
         }
 
         private static ImageMoniker GetMonikers(Relationship relationship)
             => relationship switch
             {
-                Relationship.Implementing => KnownMonikers.Implementing,
-                Relationship.Implemented => KnownMonikers.Implemented,
                 Relationship.Overriding => KnownMonikers.Overriding,
                 Relationship.Overriden => KnownMonikers.Overridden,
-                Relationship.Implementing | Relationship.Overriding => KnownMonikers.ImplementingOverriden,
+                Relationship.Overriding | Relationship.Overriden => KnownMonikers.Overriding,
+                Relationship.Implementing => KnownMonikers.Implementing,
+                Relationship.Implemented => KnownMonikers.Implemented,
+                Relationship.Implementing | Relationship.Overriding => KnownMonikers.ImplementingOverridden,
                 Relationship.Implementing | Relationship.Overriden => KnownMonikers.ImplementingOverriding,
-                _ => Relationship.Implementing,
-            }
+                Relationship.Implemented | Relationship.Overriden => KnownMonikers.Implementing,
+                _ => throw ExceptionUtilities.UnexpectedValue(relationship)
+            };
 
         private static MemberPresentEntry CreatePresentEntryForItem(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
+            Document document,
             InheritanceMemberItem memberItem,
             CancellationToken cancellationToken)
         {
             var targets = memberItem.TargetItems;
-            var navigableEntries = targets.SelectAsArray(item => new NavigableEntry(item));
-            return new MemberPresentEntry("", navigableEntries);
+            var navigableEntries = targets
+                .SelectAsArray(item => CreatePresentEntryForTarget(threadingContext, streamingFindUsagesPresenter, document, item, cancellationToken));
+            return new MemberPresentEntry("", memberItem.Glyph, navigableEntries);
         }
 
         private static TargetPresentEntry CreatePresentEntryForTarget(
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
+            Document document,
             InheritanceTargetItem targetItem,
             CancellationToken cancellationToken)
-        {
-            var documentSpans = targetItem.TargetDefinitionItems;
-        }
+            => new TargetPresentEntry(
+                threadingContext,
+                streamingFindUsagesPresenter,
+                document,
+                displayContent: targetItem.TargetDescription.Text,
+                glyph: targetItem.Glyph,
+                title: targetItem.TargetDescription.Text,
+                definitionItems: targetItem.TargetDefinitionItems,
+                cancellationToken: cancellationToken);
     }
 
     internal class InheritanceChainMoniker
@@ -144,24 +171,24 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
         private readonly Document _document;
         private readonly CancellationToken _cancellationToken;
         private readonly string _title;
-        private readonly ImmutableArray<DefinitionItem> _items;
+        private readonly ImmutableArray<DefinitionItem> _definitionItems;
 
         public TargetPresentEntry(
-            string displayContent,
-            Glyph glyph,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             Document document,
-            CancellationToken cancellationToken,
+            string displayContent,
+            Glyph glyph,
             string title,
-            ImmutableArray<DefinitionItem> items)
+            ImmutableArray<DefinitionItem> definitionItems,
+            CancellationToken cancellationToken)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
             _document = document;
             _cancellationToken = cancellationToken;
             _title = title;
-            _items = items;
+            _definitionItems = definitionItems;
         }
 
         public Task NavigateToTargetAsync()
@@ -169,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
                 _threadingContext,
                 _document.Project.Solution.Workspace,
                 _title,
-                _items,
+                _definitionItems,
                 _cancellationToken);
     }
 }

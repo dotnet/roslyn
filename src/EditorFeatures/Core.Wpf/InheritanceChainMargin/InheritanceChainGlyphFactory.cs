@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
 
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
         {
+            if (tag is InheritanceMarginTag inheritanceMarginTag)
+            {
+                // Let's create cool UI next
+            }
+
             return null;
         }
     }
