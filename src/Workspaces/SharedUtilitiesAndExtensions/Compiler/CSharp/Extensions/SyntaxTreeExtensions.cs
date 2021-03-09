@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return result;
         }
 
-        public static TypeDeclarationSyntax GetContainingTypeDeclaration(
+        public static TypeDeclarationSyntax? GetContainingTypeDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeDeclarations(position, cancellationToken).FirstOrDefault();
         }
 
-        public static BaseTypeDeclarationSyntax GetContainingTypeOrEnumDeclaration(
+        public static BaseTypeDeclarationSyntax? GetContainingTypeOrEnumDeclaration(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.GetContainingTypeOrEnumDeclarations(position, cancellationToken).FirstOrDefault();

@@ -51,11 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var diffViewer = _differenceViewerService.CreateDifferenceView(diffBuffer, previewRoleSet);
             diffViewer.ViewMode = mode;
 
-            // This code path must be invoked on UI thread.
-            AssertIsForeground();
-
             // We use ConfigureAwait(true) to stay on the UI thread.
-            await diffViewer.SizeToFitAsync(ThreadingContext).ConfigureAwait(true);
+            await diffViewer.SizeToFitAsync(ThreadingContext, cancellationToken: cancellationToken).ConfigureAwait(true);
 
             return diffViewer;
         }

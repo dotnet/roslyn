@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 string xpathValue;
                 if (string.IsNullOrEmpty(pathAttribute?.Value))
                 {
-                    xpathValue = BuildXPathForElement(element.Parent);
+                    xpathValue = BuildXPathForElement(element.Parent!);
                 }
                 else
                 {
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 XContainer temp = new XElement("temp");
                 temp.Add(node);
-                copy = temp.LastNode;
+                copy = temp.LastNode!;
                 temp.RemoveNodes();
             }
 

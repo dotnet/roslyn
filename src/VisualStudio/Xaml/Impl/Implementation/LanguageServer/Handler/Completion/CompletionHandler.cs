@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     internal class CompletionHandler : AbstractStatelessRequestHandler<CompletionParams, CompletionList?>
     {
         public override string Method => Methods.TextDocumentCompletionName;
+        private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
@@ -58,12 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             return new VSCompletionList
             {
-                Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position)).ToArray(),
+                Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position, request.TextDocument)).ToArray(),
                 SuggestionMode = false,
             };
         }
 
-        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position)
+        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position, TextDocumentIdentifier textDocument)
         {
             var item = new VSCompletionItem
             {
@@ -86,6 +87,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 {
                     NewText = xamlCompletion.InsertText,
                     Range = ProtocolConversions.LinePositionToRange(text.Lines.GetLinePositionSpan(xamlCompletion.Span.Value))
+                };
+            }
+
+            if (xamlCompletion.EventDescription.HasValue)
+            {
+                item.Command = new Command()
+                {
+                    CommandIdentifier = StringConstants.CreateEventHandlerCommand,
+                    Arguments = new object[] { textDocument, xamlCompletion.EventDescription },
+                    Title = CreateEventHandlerCommandTitle
                 };
             }
 

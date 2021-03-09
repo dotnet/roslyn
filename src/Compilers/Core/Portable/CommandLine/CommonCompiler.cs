@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis
                                 var path = Path.Combine(Arguments.GeneratedFilesOutputDirectory!, tree.FilePath);
                                 if (Directory.Exists(Arguments.GeneratedFilesOutputDirectory))
                                 {
-                                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                                 }
 
                                 var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
@@ -1449,7 +1449,8 @@ namespace Microsoft.CodeAnalysis
 
                     analyzerTimeColumn = getFormattedTime(executionTime);
                     analyzerPercentageColumn = getFormattedPercentage(percentage);
-                    analyzerNameColumn = getFormattedAnalyzerName("   " + kvp.Key.ToString());
+                    var analyzerIds = string.Join(", ", kvp.Key.SupportedDiagnostics.Select(d => d.Id).Distinct().OrderBy(id => id));
+                    analyzerNameColumn = getFormattedAnalyzerName($"   {kvp.Key} ({analyzerIds})");
 
                     consoleOutput.WriteLine(analyzerTimeColumn + analyzerPercentageColumn + analyzerNameColumn);
                 }

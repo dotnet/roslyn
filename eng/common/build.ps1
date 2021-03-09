@@ -26,6 +26,8 @@ Param(
   [string] $runtimeSourceFeed = '',
   [string] $runtimeSourceFeedKey = '',
   [switch] $help,
+  [string] $runtimeSourceFeed = "",
+  [string] $runtimeSourceFeedKey = "",
   [Parameter(ValueFromRemainingArguments=$true)][String[]]$properties
 )
 
@@ -86,7 +88,7 @@ function InitializeCustomToolset {
 }
 
 function Build {
-  $toolsetBuildProj = InitializeToolset
+  $toolsetBuildProj = InitializeToolset -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
   InitializeCustomToolset
 
   $bl = if ($binaryLog) { '/bl:' + (Join-Path $LogDir 'Build.binlog') } else { '' }
