@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => _createArtifactStream = createArtifactStream;
 
         /// <summary>
-        /// Writes out an artifact with the contents of <paramref name="source"/>.  The artifact will be written out with utf8 encoding.
+        /// Writes out an artifact with the contents of <paramref name="source"/>.  The artifact will be written out
+        /// with utf8 encoding.
         /// </summary>
         /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
         /// <c>generatedartifactsout</c> path provided to the compiler.</param>
@@ -44,10 +45,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Generates an artifact with the contents of <paramref name="builder"/>.  The artifact will be written out with utf8 encoding.
+        /// Generates an artifact with the contents of <paramref name="builder"/>.  The artifact will be written out
+        /// with utf8 encoding.
         /// </summary>
         /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
-        /// generatedartifactsout path provided to the compiler.</param>
+        /// <c>generatedartifactsout</c> path provided to the compiler.</param>
         /// <param name="builder">The string builder containing the contents to generate</param>
         public void WriteArtifact(string fileName, StringBuilder builder)
         {
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Generates an artifact with the contents and encoding specified by <paramref name="sourceText"/>.
         /// </summary>
         /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
-        /// generatedartifactsout path provided to the compiler.</param>
+        /// <c>generatedartifactsout</c> path provided to the compiler.</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to generate</param>
         public void WriteArtifact(string fileName, SourceText sourceText)
         {
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// there is binary data to write.
         /// </summary>
         /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
-        /// generatedartifactsout path provided to the compiler.</param>
+        /// <c>generatedartifactsout</c> path provided to the compiler.</param>
         /// <param name="writeStream">A callback that will be passed the stream to write into.</param>
         public void WriteArtifact(string fileName, Action<Stream> writeStream)
         {
