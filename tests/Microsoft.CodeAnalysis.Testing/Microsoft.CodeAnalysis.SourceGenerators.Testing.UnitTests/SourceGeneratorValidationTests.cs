@@ -39,6 +39,73 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        public async Task AddSimpleFileByGeneratorType()
+        {
+            await new CSharpSourceGeneratorTest<AddEmptyFile>
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"// Comment",
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        @"// Comment",
+                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", string.Empty),
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task AddSimpleFileByGeneratorTypeWithEncoding()
+        {
+            await new CSharpSourceGeneratorTest<AddEmptyFile>
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"// Comment",
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        @"// Comment",
+                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task AddSimpleFileToEmptyProject()
+        {
+            await new CSharpSourceGeneratorTest<AddEmptyFile>
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+                    },
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+                        (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", string.Empty),
+                    },
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
         public async Task AddSimpleFileWithDiagnostic()
         {
             await new CSharpSourceGeneratorTest<AddEmptyFileWithDiagnostic>

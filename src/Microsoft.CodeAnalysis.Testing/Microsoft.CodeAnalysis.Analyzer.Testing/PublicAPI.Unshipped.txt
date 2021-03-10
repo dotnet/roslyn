@@ -208,6 +208,8 @@ Microsoft.CodeAnalysis.Testing.SolutionState.SolutionState(string name, string l
 Microsoft.CodeAnalysis.Testing.SolutionState.WithInheritedValuesApplied(Microsoft.CodeAnalysis.Testing.SolutionState baseState, System.Collections.Immutable.ImmutableArray<string> fixableDiagnostics) -> Microsoft.CodeAnalysis.Testing.SolutionState
 Microsoft.CodeAnalysis.Testing.SolutionState.WithProcessedMarkup(Microsoft.CodeAnalysis.Testing.MarkupOptions markupOptions, Microsoft.CodeAnalysis.DiagnosticDescriptor defaultDiagnostic, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor> supportedDiagnostics, System.Collections.Immutable.ImmutableArray<string> fixableDiagnostics, string defaultPath) -> Microsoft.CodeAnalysis.Testing.SolutionState
 Microsoft.CodeAnalysis.Testing.SourceFileCollection
+Microsoft.CodeAnalysis.Testing.SourceFileCollection.Add((System.Type sourceGeneratorType, string filename, Microsoft.CodeAnalysis.Text.SourceText content) file) -> void
+Microsoft.CodeAnalysis.Testing.SourceFileCollection.Add((System.Type sourceGeneratorType, string filename, string content) file) -> void
 Microsoft.CodeAnalysis.Testing.SourceFileCollection.Add((string filename, string content) file) -> void
 Microsoft.CodeAnalysis.Testing.SourceFileCollection.SourceFileCollection() -> void
 Microsoft.CodeAnalysis.Testing.SourceFileList
