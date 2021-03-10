@@ -21,11 +21,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         End Sub
 
         Protected Overrides Function AddArgumentToArgumentList(invocationArguments As SeparatedSyntaxList(Of SyntaxNode), newArgumentExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
-            Return invocationArguments.Add(SyntaxFactory.SimpleArgument(DirectCast(newArgumentExpression.WithoutAnnotations(ExpressionAnnotationKind).WithAdditionalAnnotations(Simplifier.Annotation), ExpressionSyntax)))
+            Return invocationArguments.Add(SyntaxFactory.SimpleArgument(DirectCast(newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation), ExpressionSyntax)))
         End Function
 
         Protected Overrides Function AddExpressionArgumentToArgumentList(arguments As ImmutableArray(Of SyntaxNode), expression As SyntaxNode) As ImmutableArray(Of SyntaxNode)
-            Dim newArgument = SyntaxFactory.SimpleArgument(DirectCast(expression.WithoutAnnotations(ExpressionAnnotationKind), ExpressionSyntax))
+            Dim newArgument = SyntaxFactory.SimpleArgument(DirectCast(expression, ExpressionSyntax))
             Return arguments.Add(newArgument)
         End Function
 

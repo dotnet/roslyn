@@ -143,7 +143,7 @@ End Class"
         M(z, y, x, z * y* x)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=2)
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -164,7 +164,7 @@ End Class"
         Dim num As Integer = {|Rename:v|}
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await TestInRegularAndScriptAsync(source, expected, index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -193,7 +193,7 @@ End Class"
         M(z, y, x, M_v(z, y, x))
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await TestInRegularAndScriptAsync(source, expected, index:=2)
         End Function
     End Class
 End Namespace

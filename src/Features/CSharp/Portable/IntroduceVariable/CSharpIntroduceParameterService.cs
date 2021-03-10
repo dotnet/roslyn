@@ -44,14 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return arguments.Add(newArgument);
         }
 
-        /*protected override IMethodSymbol GenerateNewMethodSymbol(SemanticDocument document, ExpressionSyntax expression, IMethodSymbol methodSymbol, string parameterName, CancellationToken cancellationToken)
-        {
-            var typeSymbol = document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            var newMethodIdentifier = methodSymbol.Name + "_" + parameterName;
-            var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, name: newMethodIdentifier, returnType: typeSymbol);
-            return newMethod;
-        }*/
-
         protected override bool IsMethodDeclaration(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement) || node.IsKind(SyntaxKind.MethodDeclaration) || node.IsKind(SyntaxKind.SimpleLambdaExpression);
 

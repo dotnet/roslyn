@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             private readonly bool _allOccurrences;
             private readonly bool _trampoline;
+            private readonly bool _overload;
             private readonly TService _service;
             private readonly TExpressionSyntax _expression;
             private readonly SemanticDocument _semanticDocument;
@@ -28,13 +29,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 TService service,
                 TExpressionSyntax expression,
                 bool allOccurrences,
-                bool trampoline)
+                bool trampoline,
+                bool overload)
             {
                 _semanticDocument = document;
                 _service = service;
                 _expression = expression;
                 _allOccurrences = allOccurrences;
                 _trampoline = trampoline;
+                _overload = overload;
                 Title = CreateDisplayText(expression);
             }
 
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             private async Task<Document> GetChangedDocumentCoreAsync(CancellationToken cancellationToken)
             {
-                var solution = await _service.IntroduceParameterAsync(_semanticDocument, _expression, _allOccurrences, _trampoline, cancellationToken).ConfigureAwait(false);
+                var solution = await _service.IntroduceParameterAsync(_semanticDocument, _expression, _allOccurrences, _trampoline, _overload, cancellationToken).ConfigureAwait(false);
                 return solution.GetDocument(_semanticDocument.Document.Id);
             }
 
@@ -61,12 +64,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             private string CreateDisplayText()
-                => (_allOccurrences, _trampoline) switch
+                => (_allOccurrences, _trampoline, _overload) switch
                 {
-                    (true, true) => FeaturesResources.Introduce_new_parameter_overload_for_all_occurrences_of_0,
-                    (true, false) => FeaturesResources.Introduce_parameter_for_all_occurrences_of_0,
-                    (false, true) => FeaturesResources.Introduce_new_parameter_overload_for_0,
-                    (false, false) => FeaturesResources.Introduce_parameter_for_0
+                    (true, true, false) => FeaturesResources.Introduce_parameter_and_extract_method_for_all_occurrences_of_0,
+                    (true, false, false) => FeaturesResources.Introduce_parameter_for_all_occurrences_of_0,
+                    (true, false, true) => FeaturesResources.Introduce_new_parameter_overload_for_all_occurrences_of_0,
+                    (false, true, false) => FeaturesResources.Introduce_parameter_and_extract_method_for_0,
+                    (false, false, true) => FeaturesResources.Introduce_new_parameter_overload_for_0,
+                    (false, false, false) => FeaturesResources.Introduce_parameter_for_0,
+                    _ => throw new System.NotImplementedException()
                 };
         }
     }
