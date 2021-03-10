@@ -3079,18 +3079,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // Constructors have to have a single declaration syntax, they can't be partial
                         var newDeclaration = GetSymbolDeclarationSyntax(newCtor.DeclaringSyntaxReferences.Single(), cancellationToken);
 
-                        // Compiler generated constructors of records still have a declaring syntax reference,
-                        // but it points to the actual record declaration, not a constructor declaration
-                        if (IsRecordDeclaration(newDeclaration))
-                        {
-                            // TODO: This is the positional record constructor but we only need an edit for it if
-                            //       a field or property has changed that has an initializer
-                            //      if (!updatesInCurrentDocument.ChangedDeclarations.Keys.Any(IsDeclarationWithInitializer)) continue;
-
-                            // We don't have a syntax map because the constructor is not delcared in syntax
-                            syntaxMapToUse = null;
-                        }
-                        else
+                        // Compiler generated constructors of records are not implicitly declared, since they
+                        // points to the actual record declaration. We want to skip these checks because we can't
+                        // reason about initializers for them.
+                        if (!IsRecordDeclaration(newDeclaration))
                         {
                             // Constructor that doesn't contain initializers had a corresponding semantic edit produced previously 
                             // or was not edited. In either case we should not produce a semantic edit for it.
@@ -3176,6 +3168,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             }
 
                             oldCtor = oldType.InstanceConstructors.Single(c => c.Parameters.Length == 1 && SymbolEqualityComparer.Default.Equals(c.Parameters[0].Type, c.ContainingType));
+                            // The copy constructor does not have a syntax map
                             syntaxMapToUse = null;
                         }
                         else
