@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.InheritanceChainMargin;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
 {
@@ -91,7 +90,8 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
                 Relationship.Implementing | Relationship.Overriding => KnownMonikers.ImplementingOverridden,
                 Relationship.Implementing | Relationship.Overriden => KnownMonikers.ImplementingOverriding,
                 Relationship.Implemented | Relationship.Overriden => KnownMonikers.Implementing,
-                _ => throw ExceptionUtilities.UnexpectedValue(relationship)
+                // _ => throw ExceptionUtilities.UnexpectedValue(relationship)
+                _ => KnownMonikers.ImplementingOverridden,
             };
 
         private static MemberPresentEntry CreatePresentEntryForItem(

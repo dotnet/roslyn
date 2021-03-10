@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
             if (tag is InheritanceMarginTag inheritanceMarginTag)
             {
                 // Let's create UI next
+                return new InheritanceMargin();
             }
 
             return null;
