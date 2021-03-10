@@ -44,53 +44,6 @@ namespace Microsoft.CodeAnalysis
         Arm64 = 6,
     };
 
-    internal static class PlatformFacts
-    {
-        public static string ToPdbSerializedString(this Platform platform)
-        => platform switch
-        {
-            Platform.AnyCpu => "any-cpu",
-            Platform.AnyCpu32BitPreferred => "any-cpu-32-bit-preferred",
-            Platform.Arm => "arm",
-            Platform.Arm64 => "arm64",
-            Platform.Itanium => "itanium",
-            Platform.X64 => "x64",
-            Platform.X86 => "x86",
-            _ => throw ExceptionUtilities.UnexpectedValue(platform)
-        };
-
-        public static bool TryParsePdbSerializedString(string value, out Platform platform)
-        {
-            switch (value)
-            {
-                case "any-cpu":
-                    platform = Platform.AnyCpu;
-                    return true;
-                case "any-cpu-32-bit-preferred":
-                    platform = Platform.AnyCpu32BitPreferred;
-                    return true;
-                case "arm":
-                    platform = Platform.Arm;
-                    return true;
-                case "arm64":
-                    platform = Platform.Arm64;
-                    return true;
-                case "itanium":
-                    platform = Platform.Itanium;
-                    return true;
-                case "x64":
-                    platform = Platform.X64;
-                    return true;
-                case "x86":
-                    platform = Platform.X86;
-                    return true;
-                default:
-                    platform = default;
-                    return false;
-            }
-        }
-    }
-
     internal static partial class EnumBounds
     {
         internal static bool IsValid(this Platform value)

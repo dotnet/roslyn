@@ -178,17 +178,9 @@ namespace BuildValidator
             };
 
         private static Platform GetPlatform(string? platform)
-            => platform switch
-            {
-                null or "any-cpu" => Platform.AnyCpu,
-                "any-cpu-32-bit-preferred" => Platform.AnyCpu32BitPreferred,
-                "arm" => Platform.Arm,
-                "arm64" => Platform.Arm64,
-                "itanium" => Platform.Itanium,
-                "x64" => Platform.X64,
-                "x86" => Platform.X86,
-                _ => throw new InvalidDataException($"Platform \"{platform}\" not recognized")
-            };
+        => platform is null
+            ? Platform.AnyCpu
+            : (Platform)Enum.Parse(typeof(Platform), platform);
 
         private Compilation CreateVisualBasicCompilation(
             string fileName,
