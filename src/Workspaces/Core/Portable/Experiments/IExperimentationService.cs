@@ -35,5 +35,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string ImportsOnPasteDefaultEnabled = "Roslyn.ImportsOnPasteDefaultEnabled";
         public const string RemoveUnusedReferences = "Roslyn.RemoveUnusedReferences";
         public const string LSPCompletion = "Roslyn.LSP.Completion";
+        public const string CloudCache = "Roslyn.CloudCache";
     }
 }
