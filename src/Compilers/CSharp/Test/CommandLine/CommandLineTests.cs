@@ -13032,7 +13032,6 @@ class C
             ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource } } } });
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13054,7 +13053,6 @@ class C
             ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource } } } });
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13083,7 +13081,6 @@ class C
             ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource2 } } } });
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13114,7 +13111,6 @@ class C
             });
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13135,7 +13131,6 @@ class C
             Assert.Contains("warning AD0001", output);
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13155,7 +13150,6 @@ class C
             Assert.Contains("NotSupportedException", output);
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13174,7 +13168,6 @@ class C
             var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1 });
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13192,7 +13185,6 @@ class C
             Assert.Contains("NullReferenceException", output);
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13213,7 +13205,6 @@ class C
             ValidateWrittenSources(new() { { generatedDir.Path, new() } });
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13238,7 +13229,6 @@ class C
             });
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13254,7 +13244,6 @@ class C
             Assert.Contains("error CS2006: Command-line syntax error: Missing '<text>' for '/generatedartifactsout:' option", output);
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
@@ -13282,7 +13271,6 @@ class C
             Assert.EndsWith("GENERATEDSOURCE.CS", writtenText[1], StringComparison.OrdinalIgnoreCase);
 
             // Clean up temp files
-            CleanupAllGeneratedFiles(src.Path);
             Directory.Delete(dir.Path, true);
         }
 
