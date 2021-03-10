@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System;
 using System.Reflection.PortableExecutable;
 using BuildValidator;
 using Castle.Core.Logging;
@@ -15,18 +17,14 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace Rebuild.UnitTests
+namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
     public class CSharpRebuildTests : CSharpTestBase
     {
+        public static readonly object[][] s_platforms = ((Platform[])Enum.GetValues(typeof(Platform))).Select(p => new[] { (object)p }).ToArray();
+
         [Theory]
-        [InlineData(Platform.Arm64)]
-        [InlineData(Platform.Arm)]
-        [InlineData(Platform.X64)]
-        [InlineData(Platform.Itanium)]
-        [InlineData(Platform.X86)]
-        [InlineData(Platform.AnyCpu)]
-        [InlineData(Platform.AnyCpu32BitPreferred)]
+        [MemberData(nameof(s_platforms))]
         public void Platform_RoundTrip(Platform platform)
         {
             var original = CreateCompilation(

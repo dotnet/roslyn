@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Rebuild.UnitTests</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.Rebuild.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>net5.0;net472</TargetFrameworks>
   </PropertyGroup>
