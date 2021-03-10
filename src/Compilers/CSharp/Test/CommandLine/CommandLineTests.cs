@@ -13025,11 +13025,7 @@ key7 = value7");
             var producer = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer });
-
             ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource } } } });
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -13043,11 +13039,7 @@ key7 = value7");
             var producer = new DoNotCloseStreamArtifactProducer(generatedSource, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer });
-
             ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource } } } });
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -13061,18 +13053,13 @@ key7 = value7");
             var producer1 = new SingleFileArtifactProducer(generatedSource1, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1 });
-
             ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource1 } } } });
 
             var generatedSource2 = "public class D { }";
             var producer2 = new SingleFileArtifactProducer(generatedSource2, "generatedSource.cs");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer2 });
-
             ValidateWrittenSources(new() { { generatedDir.Path, new() { { "generatedSource.cs", generatedSource2 } } } });
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Theory]
@@ -13091,15 +13078,11 @@ key7 = value7");
             var producer2 = new SingleFileArtifactProducer2(source2, Path.Combine("gen2", source2Name));
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1, producer2 });
-
             ValidateWrittenSources(new()
             {
                 { Path.Combine(generatedDir.Path, "gen1"), new() { { source1Name, source1 } } },
                 { Path.Combine(generatedDir.Path, "gen2"), new() { { source2Name, source2 } } }
             });
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -13114,9 +13097,6 @@ key7 = value7");
 
             var output = VerifyOutput(dir, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1, producer2 });
             Assert.Contains("warning AD0001", output);
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -13130,9 +13110,6 @@ key7 = value7");
 
             var output = VerifyOutput(dir, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1 });
             Assert.Contains("NotSupportedException", output);
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -13143,11 +13120,7 @@ key7 = value7");
             var generatedDir = dir.CreateDirectory("generated");
 
             var producer1 = new DiagnosticAnalyzerWithoutCommandLineArgGetsNoContext(" ", "file.cs");
-
-            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1 });
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1 });
         }
 
         [Fact]
@@ -13159,9 +13132,6 @@ key7 = value7");
 
             var output = VerifyOutput(dir, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1 });
             Assert.Contains("NullReferenceException", output);
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -13176,9 +13146,6 @@ key7 = value7");
 
             VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer });
             ValidateWrittenSources(new() { { generatedDir.Path, new() } });
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -13190,15 +13157,11 @@ key7 = value7");
             var generatedSource = "public class D { }";
             var producer = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
 
-            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer });
-
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer });
             ValidateWrittenSources(new()
             {
                 { generatedDirPath, new() { { "generatedSource.cs", generatedSource } } },
             });
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -13208,9 +13171,6 @@ key7 = value7");
             var src = dir.CreateFile("temp.cs").WriteAllText("");
             var output = VerifyOutput(dir, src, expectedErrorCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:", "/langversion:preview", "/out:embed.exe" });
             Assert.Contains("error CS2006: Command-line syntax error: Missing '<text>' for '/generatedartifactsout:' option", output);
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
@@ -13232,9 +13192,6 @@ key7 = value7");
             Assert.Equal(2, writtenText.Length);
             Assert.EndsWith("EMBED.EXE", writtenText[0], StringComparison.OrdinalIgnoreCase);
             Assert.EndsWith("GENERATEDSOURCE.CS", writtenText[1], StringComparison.OrdinalIgnoreCase);
-
-            // Clean up temp files
-            Directory.Delete(dir.Path, true);
         }
 
         [Fact]
