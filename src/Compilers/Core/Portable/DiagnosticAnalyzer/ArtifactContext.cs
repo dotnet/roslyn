@@ -18,19 +18,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// supported.  In general that will only be when a compiler is invoked with the <c>generatedartifactsout</c>
     /// argument.
     /// </summary>
-    public readonly struct ArtifactContext
+    public class ArtifactContext
     {
         /// <summary>
-        /// Callback the compiler can pass into us to actually generate artifacts.  This is safe to hold as a mutable
-        /// value as this is only set once during batch compile as that's the only scenario where /generatedartifactsout
-        /// can be provided.
+        /// Callback the compiler can pass into us to actually generate artifacts.
         /// </summary>
-        private readonly Func<string, Stream>? _createArtifactStream;
+        private readonly Func<string, Stream> _createArtifactStream;
 
-        internal ArtifactContext(Func<string, Stream>? createArtifactStream)
+        internal ArtifactContext(Func<string, Stream> createArtifactStream)
             => _createArtifactStream = createArtifactStream;
-
-        internal bool IsActive => _createArtifactStream != null;
 
         /// <summary>
         /// Writes out an artifact with the contents of <paramref name="source"/>.  The artifact will be written out with utf8 encoding.
@@ -118,16 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </remarks>
         /// <param name="fileName">The file name to generate this artifact into.  Will be concatenated with the
         /// generatedartifactsout path provided to the compiler.</param>
-        /// <exception cref="NotSupportedException">
-        /// If this context was acquired from a call to <see cref="AnalysisContext.TryGetArtifactContext"/> that
-        /// returned <see langword="false"/>.
-        /// </exception>
         public Stream CreateArtifactStream(string fileName)
-        {
-            if (_createArtifactStream == null)
-                throw new NotSupportedException(CodeAnalysisResources.ArtifactContext_is_not_available_in_this_configuration);
-
-            return _createArtifactStream(fileName);
-        }
+            => _createArtifactStream(fileName);
     }
 }

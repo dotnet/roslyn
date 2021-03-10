@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -44,13 +43,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public abstract class AnalysisContext
     {
-        private readonly ArtifactContext? _artifactContext;
+        private readonly Optional<ArtifactContext?> _artifactContext;
 
         public AnalysisContext()
         {
         }
 
-        protected AnalysisContext(ArtifactContext? artifactContext)
+        protected AnalysisContext(Optional<ArtifactContext?> artifactContext)
         {
             _artifactContext = artifactContext;
         }
@@ -64,14 +63,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <exception cref="NotSupportedException">
         /// If the caller does not have the <see cref="ArtifactProducerAttribute"/> on it.
-        /// </exception>
-        public bool TryGetArtifactContext(out ArtifactContext artifactContext)
+        /// </exception>        
+        public bool TryGetArtifactContext([NotNullWhen(true)] out ArtifactContext? artifactContext)
         {
             if (!_artifactContext.HasValue)
                 throw new NotSupportedException(CodeAnalysisResources.Acquiring_the_ArtifactContext_is_not_allowed_without_specifying_the_ArtifactProducerAttribute);
 
             artifactContext = _artifactContext.Value;
-            return artifactContext.IsActive;
+            return artifactContext != null;
         }
 
         /// <summary>

@@ -1,8 +1,8 @@
 Microsoft.CodeAnalysis.ArtifactProducerAttribute
 Microsoft.CodeAnalysis.ArtifactProducerAttribute.ArtifactProducerAttribute() -> void
 Microsoft.CodeAnalysis.CommandLineArguments.GeneratedArtifactsOutputDirectory.get -> string?
-Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.AnalysisContext(Microsoft.CodeAnalysis.Diagnostics.ArtifactContext? artifactContext) -> void
-Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.TryGetArtifactContext(out Microsoft.CodeAnalysis.Diagnostics.ArtifactContext artifactContext) -> bool
+Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.AnalysisContext(Microsoft.CodeAnalysis.Optional<Microsoft.CodeAnalysis.Diagnostics.ArtifactContext?> artifactContext) -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.TryGetArtifactContext(out Microsoft.CodeAnalysis.Diagnostics.ArtifactContext? artifactContext) -> bool
 Microsoft.CodeAnalysis.Diagnostics.ArtifactContext
 Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.ArtifactContext() -> void
 Microsoft.CodeAnalysis.Diagnostics.ArtifactContext.CreateArtifactStream(string! fileName) -> System.IO.Stream!

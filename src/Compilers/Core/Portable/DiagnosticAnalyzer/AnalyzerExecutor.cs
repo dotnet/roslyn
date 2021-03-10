@@ -320,9 +320,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // If this analyzer can also produce artifacts, then create an appropriate context they can
             // acquire to write files to as the analysis runs.
-            var artifactContext = analyzer.GetType().GetCustomAttributes(typeof(ArtifactProducerAttribute), inherit: true).Length > 0
-                    ? new ArtifactContext(CreateArtifactStream)
-                    : (ArtifactContext?)null;
+            var artifactContext = GetArtifactContext(analyzer);
 
             var context = new AnalyzerAnalysisContext(analyzer, sessionScope, artifactContext);
 
@@ -331,6 +329,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzer,
                 data => data.analyzer.Initialize(data.context),
                 (analyzer, context));
+        }
+
+        private Optional<ArtifactContext?> GetArtifactContext(DiagnosticAnalyzer analyzer)
+        {
+            // Check if this is actually an artifact producer or not.  If not, no ArtifactContext at all is provided and
+            // any attempt by the client to get it will throw.
+            if (analyzer.GetType().GetCustomAttributes(typeof(ArtifactProducerAttribute), inherit: true).Length == 0)
+                return default;
+
+            // If we're not in a context where artifacts can actually be produced, then it's still valid to ask for the
+            // ArtifactContext, it will just return null
+            if (CreateArtifactStream == null)
+                return new Optional<ArtifactContext?>(null);
+
+            return new Optional<ArtifactContext?>(new ArtifactContext(CreateArtifactStream));
         }
 
         /// <summary>

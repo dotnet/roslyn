@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public AnalyzerAnalysisContext(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope scope,
-            ArtifactContext? artifactContext)
+            Optional<ArtifactContext?> artifactContext)
             : base(artifactContext)
         {
             _analyzer = analyzer;
