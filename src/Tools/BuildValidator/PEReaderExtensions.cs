@@ -16,7 +16,6 @@ namespace BuildValidator
     public class PEExportTable
     {
         private readonly Dictionary<string, int> _namedExportRva;
-        private readonly Dictionary<int, int> _ordinalRva;
 
         private PEExportTable(PEReader peReader)
         {
@@ -24,7 +23,6 @@ namespace BuildValidator
             Debug.Assert(peReader.PEHeaders.PEHeader is object);
 
             _namedExportRva = new Dictionary<string, int>();
-            _ordinalRva = new Dictionary<int, int>();
 
             DirectoryEntry exportTable = peReader.PEHeaders.PEHeader.ExportTableDirectory;
             if ((exportTable.Size == 0) || (exportTable.RelativeVirtualAddress == 0))
@@ -73,7 +71,6 @@ namespace BuildValidator
             {
                 ushort ordinalIndex = ordinalTableReader.ReadUInt16();
                 ordinalTable[entryIndex] = ordinalIndex;
-                _ordinalRva.Add(entryIndex + minOrdinal, addressTable[ordinalIndex]);
             }
 
             BlobReader namePointerReader = peImage.GetReader(peReader.GetOffset(namePointerRVA), sizeof(int) * namePointerCount);
@@ -100,7 +97,6 @@ namespace BuildValidator
         }
 
         public bool TryGetValue(string exportName, out int rva) => _namedExportRva.TryGetValue(exportName, out rva);
-        public bool TryGetValue(int ordinal, out int rva) => _ordinalRva.TryGetValue(ordinal, out rva);
     }
 
     public static class PEReaderExtensions

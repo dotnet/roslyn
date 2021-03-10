@@ -124,9 +124,7 @@ namespace BuildValidator
 
                 var sourceResolver = new LocalSourceResolver(options, loggerFactory);
                 var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
-
-                var buildConstructor = new BuildConstructor(referenceResolver, sourceResolver, logger);
-
+                var buildConstructor = new BuildConstructor(logger);
                 var assemblyInfos = GetAssemblyInfos(
                     options.AssembliesPaths,
                     options.Excludes,
@@ -134,7 +132,7 @@ namespace BuildValidator
 
                 logAssemblyInfos();
 
-                var success = ValidateFiles(assemblyInfos.Select(x => new FileInfo(x.FilePath)), buildConstructor, logger, options);
+                var success = ValidateFiles(assemblyInfos.Select(x => new FileInfo(x.FilePath)), options, loggerFactory);
 
                 Console.Out.Flush();
                 return success ? ExitSuccess : ExitFailure;
@@ -142,9 +140,9 @@ namespace BuildValidator
                 void logAssemblyInfos()
                 {
                     logger.LogInformation("Assemblies to be validated");
-                    foreach (var assemblyInfo in assemblyInfos.OrderBy(x => x.FileName, FileNameEqualityComparer.StringComparer))
+                    foreach (var assemblyInfo in assemblyInfos)
                     {
-                        logger.LogInformation($"\t {assemblyInfo.FilePath} - {assemblyInfo.Mvid}");
+                        logger.LogInformation($"\t{assemblyInfo.FilePath} - {assemblyInfo.Mvid}");
                     }
                 }
             }
@@ -196,7 +194,7 @@ namespace BuildValidator
                 }
             }
 
-            return map.Values.OrderBy(x => x.FileName).ToArray();
+            return map.Values.OrderBy(x => x.FileName, FileNameEqualityComparer.StringComparer).ToArray();
 
             static IEnumerable<string> getAssemblyPaths(string directory)
             {
@@ -318,10 +316,10 @@ namespace BuildValidator
                 logResolvedMetadataReferences();
 
                 var sourceLinks = ResolveSourceLinks(optionsReader, logger);
-                if (ResolveSources(sourceFileInfos, sourceLinks, encoding) is not { } sources)
+                if (sourceResolver.ResolveSources(sourceFileInfos, sourceLinks, encoding) is not { } sources)
                 {
-                    _logger.LogError($"Failed to resolve sources");
-                    return (compilation: null, isError: true);
+                    logger.LogError($"Failed to resolve sources");
+                    return CompilationDiff.CreatePlaceholder(originalBinary, isError: true);
                 }
                 logResolvedSources();
 

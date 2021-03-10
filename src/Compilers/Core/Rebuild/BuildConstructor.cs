@@ -83,50 +83,6 @@ namespace BuildValidator
             throw new InvalidDataException("Did not find language in compilation options");
         }
 
-        private ImmutableArray<SourceLink> ResolveSourceLinks(CompilationOptionsReader compilationOptionsReader)
-        {
-            using var _ = _logger.BeginScope("Source Links");
-            var sourceLinks = compilationOptionsReader.GetSourceLinksOpt();
-            if (sourceLinks.IsDefault)
-            {
-                _logger.LogInformation("No source links found in pdb");
-                sourceLinks = ImmutableArray<SourceLink>.Empty;
-            }
-            else
-            {
-                foreach (var link in sourceLinks)
-                {
-                    _logger.LogInformation($@"""{link.Prefix}"": ""{link.Replace}""");
-                }
-            }
-            return sourceLinks;
-        }
-
-        private ImmutableArray<ResolvedSource>? ResolveSources(
-            ImmutableArray<SourceFileInfo> sourceFileInfos,
-            ImmutableArray<SourceLink> sourceLinks,
-            Encoding encoding)
-        {
-            _logger.LogInformation("Locating source files");
-
-            var sources = ImmutableArray.CreateBuilder<ResolvedSource>();
-            bool isError = false;
-            foreach (var sourceFileInfo in sourceFileInfos)
-            {
-                try
-                {
-                    sources.Add(_sourceResolver.ResolveSource(sourceFileInfo, sourceLinks, encoding));
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"Error resolving {sourceFileInfo.SourceFilePath}: {ex.Message}");
-                    isError = true;
-                }
-            }
-
-            return isError ? null : sources.ToImmutable();
-        }
-
         private Compilation CreateCSharpCompilation(
             string fileName,
             CompilationOptionsReader optionsReader,
