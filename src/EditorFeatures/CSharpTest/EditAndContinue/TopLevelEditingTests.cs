@@ -1578,7 +1578,7 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "int Y", FeaturesResources.parameter));
+                Diagnostic(RudeEditKind.AddRecordPositionalParameter, "int Y", FeaturesResources.parameter));
         }
 
         [Fact]
@@ -1717,6 +1717,29 @@ public abstract record C<T>
         }
 
         [Fact]
+        public void Record_DeleteProperty_Primary()
+        {
+            var src1 = "record C(int X, int Y) { }";
+            var src2 = "record C(int X) { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.DeleteRecordPositionalParameter, "record C", FeaturesResources.parameter));
+        }
+
+        [Fact]
+        public void Record_DeleteProperty_NotPrimary()
+        {
+            var src1 = "record C(int X) { public int P { get; set; } }";
+            var src2 = "record C(int X) { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.auto_property, "P")));
+        }
+
+        [Fact]
         public void Record_ImplementSynthesized_Property()
         {
             var src1 = "record C(int X);";
@@ -1745,7 +1768,7 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ImplementRecordParameterAsReadOnly, "public int X", FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing));
+                Diagnostic(RudeEditKind.ImplementRecordParameterWithSet, "public int X", "X"));
         }
 
         [Fact]
@@ -1760,7 +1783,7 @@ public abstract record C<T>
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ImplementRecordParameterAsReadOnly, "public int X", FeaturesResources.Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing));
+                Diagnostic(RudeEditKind.ImplementRecordParameterAsReadOnly, "public int X", "X"));
         }
 
         [Fact]
@@ -1812,22 +1835,6 @@ public abstract record C<T>
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true));
 
             edits.VerifyRudeDiagnostics();
-        }
-
-        [Fact]
-        public void Record_Property_Delete_Primary()
-        {
-            var src1 = @"record C(int X)
-{
-    public int X { get; init; }
-}";
-            var src2 = "record C();";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "record C", FeaturesResources.parameter),
-                Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.auto_property, "X")));
         }
 
         [Fact]

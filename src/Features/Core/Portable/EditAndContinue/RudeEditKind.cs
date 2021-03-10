@@ -120,5 +120,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         ImplementRecordParameterAsReadOnly = 92,
         ImplementRecordParameterWithSet = 93,
+        AddRecordPositionalParameter = 94,
+        DeleteRecordPositionalParameter = 95,
     }
 }

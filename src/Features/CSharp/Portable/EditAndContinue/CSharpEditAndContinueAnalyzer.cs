@@ -670,19 +670,31 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             if (oldNode is ParameterSyntax &&
                 newNode is PropertyDeclarationSyntax property)
             {
-                if (property.AccessorList.Accessors.Count == 1)
+                if (property.AccessorList!.Accessors.Count == 1)
                 {
                     // Explicitly implementing a property with only one accessor is a delete of the init accessor, so a rude edit.
                     // Not implementing the get accessor would be a compile error
 
-                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ImplementRecordParameterAsReadOnly, GetDiagnosticSpan(newNode, EditKind.Delete), oldNode, new[] { FeaturesResources.Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing }));
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.ImplementRecordParameterAsReadOnly,
+                        GetDiagnosticSpan(newNode, EditKind.Delete),
+                        oldNode,
+                        new[] {
+                            property.Identifier.ToString()
+                        }));
                 }
                 else if (property.AccessorList.Accessors.Any(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)))
                 {
                     // The compiler implements the properties with an init accessor so explicitly implementing
                     // it with a set accessor is a rude accessor change edit
 
-                    diagnostics.Add(new RudeEditDiagnostic(RudeEditKind.ImplementRecordParameterAsReadOnly, GetDiagnosticSpan(newNode, EditKind.Delete), oldNode, new[] { FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing }));
+                    diagnostics.Add(new RudeEditDiagnostic(
+                        RudeEditKind.ImplementRecordParameterWithSet,
+                        GetDiagnosticSpan(newNode, EditKind.Delete),
+                        oldNode,
+                        new[] {
+                            property.Identifier.ToString()
+                        }));
                 }
             }
         }
@@ -2196,7 +2208,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.Parameter when !_classifyStatementSyntax:
                         // Parameter inserts are allowed for local functions
-                        ReportError(RudeEditKind.Insert);
+                        if (node.Parent?.Parent is RecordDeclarationSyntax)
+                        {
+                            ReportError(RudeEditKind.AddRecordPositionalParameter);
+                        }
+                        else
+                        {
+                            ReportError(RudeEditKind.Insert);
+                        }
                         return;
 
                     case SyntaxKind.EnumMemberDeclaration:
@@ -2285,7 +2304,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     case SyntaxKind.Parameter when !_classifyStatementSyntax:
                     case SyntaxKind.ParameterList when !_classifyStatementSyntax:
-                        ReportError(RudeEditKind.Delete);
+                        if (oldNode.Parent?.Parent is RecordDeclarationSyntax)
+                        {
+                            ReportError(RudeEditKind.DeleteRecordPositionalParameter);
+                        }
+                        else
+                        {
+                            ReportError(RudeEditKind.Delete);
+                        }
                         return;
                 }
 

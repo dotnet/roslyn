@@ -147,6 +147,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             AddRudeEdit(RudeEditKind.ImplementRecordParameterAsReadOnly, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing));
             AddRudeEdit(RudeEditKind.ImplementRecordParameterWithSet, nameof(FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.AddRecordPositionalParameter, nameof(FeaturesResources.Adding_a_positional_parameter_to_a_record_will_prevent_the_debug_session_from_continuing));
+            AddRudeEdit(RudeEditKind.DeleteRecordPositionalParameter, nameof(FeaturesResources.Deleting_a_positional_parameter_from_a_record_will_prevent_the_debug_session_from_continuing));
 
             // VB specific
             AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_will_prevent_the_debug_session_from_continuing));
