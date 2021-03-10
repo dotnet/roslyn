@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal InMethodBinder GetRecordConstructorInMethodBinder(SynthesizedRecordConstructor constructor)
         {
             TypeDeclarationSyntax typeDecl = constructor.GetSyntax();
+            Debug.Assert(typeDecl is RecordDeclarationSyntax);
 
             var extraInfo = NodeUsage.ConstructorBodyOrInitializer;
             var key = BinderFactoryVisitor.CreateBinderCacheKey(typeDecl, extraInfo);
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Binder GetInRecordBodyBinder(TypeDeclarationSyntax typeDecl)
         {
-            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.RecordStructDeclaration);
+            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration); // TODO2
 
             BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Initialize(position: typeDecl.SpanStart, memberDeclarationOpt: null, memberOpt: null);

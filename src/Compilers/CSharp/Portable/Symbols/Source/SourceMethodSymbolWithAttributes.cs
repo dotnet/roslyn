@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return (CSharpSyntaxNode)entryPoint.ReturnTypeSyntax;
                 case RecordDeclarationSyntax recordDecl:
                     return recordDecl;
-                case RecordStructDeclarationSyntax recordStructDecl:
-                    return recordStructDecl;
                 default:
                     return null;
             }

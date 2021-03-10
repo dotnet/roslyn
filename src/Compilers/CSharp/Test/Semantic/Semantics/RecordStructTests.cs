@@ -1991,7 +1991,7 @@ record R(int x)
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "static ctor");
+            CompileAndVerify(comp, expectedOutput: "static ctor", verify: Verification.Skipped /* init-only */);
         }
 
         [Fact]
@@ -2389,7 +2389,7 @@ record struct R(int O, int P = 1)
                 // record struct R(int O, int P = 1)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "P").WithArguments("P").WithLocation(5, 28)
                 );
-            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
 
             verifier.VerifyIL("R..ctor(int, int)", @"
 {
@@ -2445,7 +2445,7 @@ record struct R(int O, int P = 42)
 ";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            var verifier = CompileAndVerify(comp, expectedOutput: "42", verify: Verification.Skipped /* init-only */);
 
             verifier.VerifyIL("R..ctor(int, int)", @"
 {

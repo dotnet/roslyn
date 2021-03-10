@@ -1939,7 +1939,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (constructor is SynthesizedRecordCopyCtor copyCtor)
+            if (constructor is SynthesizedRecordConstructor && constructor.ContainingType.IsStructType())
+            {
+                return null;
+            }
+            else if (constructor is SynthesizedRecordCopyCtor copyCtor)
             {
                 return GenerateBaseCopyConstructorInitializer(copyCtor, diagnostics);
             }
@@ -1967,7 +1971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
                 BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 
-                if (containerNode is RecordDeclarationSyntax or RecordStructDeclarationSyntax)
+                if (containerNode is RecordDeclarationSyntax)
                 {
                     outerBinder = binderFactory.GetInRecordBodyBinder((TypeDeclarationSyntax)containerNode);
                 }
@@ -1993,10 +1997,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case RecordDeclarationSyntax recordDecl:
                         outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
-                        break;
-
-                    case RecordStructDeclarationSyntax recordStructDecl:
-                        outerBinder = binderFactory.GetInRecordBodyBinder(recordStructDecl);
                         break;
 
                     default:
