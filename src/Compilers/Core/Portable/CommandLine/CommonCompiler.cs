@@ -1360,18 +1360,19 @@ namespace Microsoft.CodeAnalysis
         }
 
         private Func<string, Stream> GetArtifactStreamFactory(
-            string directory,
+            string rootDirectory,
             TouchedFileLogger? touchedFilesLogger,
             ConcurrentDictionary<string, Stream> artifactStreams)
         {
             return fileName =>
             {
                 // Get the final destination based on the command line option and file name provided.
-                var path = Path.Combine(directory, fileName);
+                var path = Path.Combine(rootDirectory, fileName);
                 touchedFilesLogger?.AddWritten(path);
 
-                if (Directory.Exists(directory))
-                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                var directory = Path.GetDirectoryName(path);
+                if (!Directory.Exists(directory))
+                    Directory.CreateDirectory(directory);
 
                 return artifactStreams.AddOrUpdate(
                     path,

@@ -13131,8 +13131,8 @@ class C
             var producer1 = new DoNotCloseStreamArtifactProducer(" ", "file.cs");
             var producer2 = new DoNotCloseStreamArtifactProducer(" ", "file.cs");
 
-            var output = VerifyOutput(dir, src, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1, producer2 });
-            Assert.Contains("error CS0016", output);
+            var output = VerifyOutput(dir, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1, producer2 });
+            Assert.Contains("warning AD0001", output);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -13186,12 +13186,10 @@ class C
 class C
 {
 }");
-            var generatedDir = dir.CreateDirectory("generated");
-
             var producer1 = new DiagnosticAnalyzerWithoutCommandLineArgThrowsWhenUsingContext(" ", "file.cs");
 
             var output = VerifyOutput(dir, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1 });
-            Assert.Contains("NotSupportedException", output);
+            Assert.Contains("NullReferenceException", output);
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
@@ -13220,7 +13218,7 @@ class C
         }
 
         [Fact]
-        public void ArtifactProducer_Error_When_GeneratedDir_NotExist()
+        public void ArtifactProducer_NoError_When_GeneratedDir_NotExist()
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText(@"
@@ -13232,8 +13230,12 @@ class C
             var generatedSource = "public class D { }";
             var producer = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
 
-            var output = VerifyOutput(dir, src, expectedErrorCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer });
-            Assert.Contains("CS0016:", output);
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDirPath, "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer });
+
+            ValidateWrittenSources(new()
+            {
+                { generatedDirPath, new() { { "generatedSource.cs", generatedSource } } },
+            });
 
             // Clean up temp files
             CleanupAllGeneratedFiles(src.Path);
