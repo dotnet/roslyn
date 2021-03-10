@@ -666,18 +666,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <see cref="EditKind.Move"/> or <see cref="EditKind.Reorder"/>.
         /// The scenarios include moving a type declaration from one file to another and moving a member of a partial type from one partial declaration to another.
         /// </summary>
-        internal void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
+        internal virtual void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
         {
-            // Compiler generated methods of records have a declaring syntax reference to the record declaration itself
-            // but their explicitly implement counterparts reference the actual member. Compiler generated properties
-            // of records reference the parameter that names them. Based on this, we can detect a new explicit implementation
-            // of a record member by checking if the declaration kind has changed.
-            // Since there is no useful "old" syntax node for these members, we can't compute declaration or body edits.
-            if (oldNode.RawKind != newNode.RawKind)
-            {
-                return;
-            }
-
             // Consider replacing following syntax analysis with semantic analysis of the corresponding symbols,
             // or a combination of semantic and syntax analysis (e.g. primarily analyze symbols but fall back
             // to syntax analysis for comparisons of attribute values, optional parameter values, etc.).

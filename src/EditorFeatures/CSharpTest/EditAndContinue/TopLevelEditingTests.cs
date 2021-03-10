@@ -1734,6 +1734,36 @@ public abstract record C<T>
         }
 
         [Fact]
+        public void Record_ImplementSynthesized_Property_InitToSet()
+        {
+            var src1 = "record C(int X);";
+            var src2 = @"record C(int X)
+{
+    public int X { get; set; }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ImplementRecordParameterAsReadOnly, "public int X", FeaturesResources.Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing));
+        }
+
+        [Fact]
+        public void Record_ImplementSynthesized_Property_MakeReadOnly()
+        {
+            var src1 = "record C(int X);";
+            var src2 = @"record C(int X)
+{
+    public int X { get; }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.ImplementRecordParameterAsReadOnly, "public int X", FeaturesResources.Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing));
+        }
+
+        [Fact]
         public void Record_UnImplementSynthesized_Property()
         {
             var src1 = @"record C(int X)

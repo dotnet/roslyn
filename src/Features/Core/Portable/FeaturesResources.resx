@@ -2818,4 +2818,10 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Convert_to_record" xml:space="preserve">
     <value>Convert to record</value>
   </data>
+  <data name="Implementing_a_record_positional_parameter_0_as_read_only_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Implementing a record positional parameter '{0}' as read only will prevent the debug session from continuing,</value>
+  </data>
+  <data name="Implementing_a_record_positional_parameter_0_with_a_set_accessor_will_prevent_the_debug_session_from_continuing" xml:space="preserve">
+    <value>Implementing a record positional parameter '{0}' with a set accessor will prevent the debug session from continuing.</value>
+  </data>
 </root>
