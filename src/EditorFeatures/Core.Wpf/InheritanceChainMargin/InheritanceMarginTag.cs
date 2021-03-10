@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,49 +20,39 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
 {
     internal class InheritanceMarginTag : IGlyphTag
     {
-        public readonly ImmutableDictionary<int, InheritanceChainMoniker> LineMargins;
+        public readonly ImageMoniker Moniker;
+        public readonly string Tooltip;
+        public readonly ImmutableArray<MemberPresentEntry> Members;
 
-        private InheritanceMarginTag(ImmutableDictionary<int, InheritanceChainMoniker> lineMargins)
+        public InheritanceMarginTag(ImageMoniker moniker, string tooltip, ImmutableArray<MemberPresentEntry> members)
         {
-            LineMargins = lineMargins;
+            Moniker = moniker;
+            Tooltip = tooltip;
+            Members = members;
         }
 
         public static InheritanceMarginTag FromInheritanceInfo(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             Document document,
-            ImmutableArray<LineInheritanceInfo> inheritanceInfo,
+            ImmutableArray<InheritanceMemberItem> membersOnTheLine,
             CancellationToken cancellationToken)
         {
-            var presentEntriesByLine = inheritanceInfo.GroupBy(
-                    info => info.LineNumber,
-                    info => info.InheritanceMembers)
-                .ToImmutableDictionary(
-                    keySelector: grouping => grouping.Key,
-                    elementSelector: grouping => CreateInheritanceChainMoniker(
-                        threadingContext,
-                        streamingFindUsagesPresenter,
-                        document,
-                        grouping.SelectMany(g => g).ToImmutableArray(),
-                        cancellationToken));
-            return new InheritanceMarginTag(presentEntriesByLine);
-        }
+            Debug.Assert(!membersOnTheLine.IsEmpty);
 
-        private static InheritanceChainMoniker CreateInheritanceChainMoniker(
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
-            Document document,
-            ImmutableArray<InheritanceMemberItem> members,
-            CancellationToken cancellationToken)
-        {
-            var aggregateRelationship = members
+            var aggregateRelationship = membersOnTheLine
                 .SelectMany(member => member.TargetItems.Select(target => target.RelationToMember))
                 .Aggregate((r1, r2) => r1 | r2);
             var moniker = GetMonikers(aggregateRelationship);
-            var memberPresentEntries = members
-                .SelectAsArray(member => CreatePresentEntryForItem(threadingContext, streamingFindUsagesPresenter, document, member, cancellationToken));
-            var tooltip = GetTooltip(members);
-            return new InheritanceChainMoniker(moniker, tooltip, memberPresentEntries);
+            var tooltip = GetTooltip(membersOnTheLine);
+            var presentEntriesByLine = membersOnTheLine
+                .SelectAsArray(member => CreatePresentEntryForItem(
+                    threadingContext,
+                    streamingFindUsagesPresenter,
+                    document,
+                    member,
+                    cancellationToken));
+            return new InheritanceMarginTag(moniker, tooltip, presentEntriesByLine);
         }
 
         private static string GetTooltip(ImmutableArray<InheritanceMemberItem> members)
@@ -131,20 +122,6 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
                 title: targetItem.TargetDescription.Text,
                 definitionItems: targetItem.TargetDefinitionItems,
                 cancellationToken: cancellationToken);
-    }
-
-    internal class InheritanceChainMoniker
-    {
-        public readonly ImageMoniker Moniker;
-        public readonly string Tooltip;
-        public readonly ImmutableArray<MemberPresentEntry> Members;
-
-        public InheritanceChainMoniker(ImageMoniker moniker, string tooltip, ImmutableArray<MemberPresentEntry> members)
-        {
-            Moniker = moniker;
-            Tooltip = tooltip;
-            Members = members;
-        }
     }
 
     internal class MemberPresentEntry

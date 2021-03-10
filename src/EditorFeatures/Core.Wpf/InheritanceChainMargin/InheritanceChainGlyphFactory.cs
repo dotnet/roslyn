@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
         {
             if (tag is InheritanceMarginTag inheritanceMarginTag)
             {
-                // Let's create cool UI next
+                // Let's create UI next
             }
 
             return null;

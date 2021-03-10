@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
     internal abstract class AbstractInheritanceChainService<TTypeDeclarationNode> : IInheritanceChainService
         where TTypeDeclarationNode : SyntaxNode
     {
-        public async Task<ImmutableArray<LineInheritanceInfo>> GetInheritanceInfoForLineAsync(
+        public async Task<ImmutableDictionary<int, ImmutableArray<InheritanceMemberItem>>> GetInheritanceInfoForLineAsync(
             Document document,
             CancellationToken cancellationToken)
         {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
 
             if (allIdentifierPositions.IsEmpty)
             {
-                return ImmutableArray<LineInheritanceInfo>.Empty;
+                return ImmutableDictionary<int, ImmutableArray<InheritanceMemberItem>>.Empty;
             }
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
                 }
             }
 
-            return builder.ToImmutableArrayAndFree();
+            return builder.ToImmutable();
         }
 
         private static InheritanceMemberItem CreateInheritanceMemberInfo(
@@ -337,17 +337,10 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
             }
         }
 
-        public ImmutableArray<LineInheritanceInfo> ToImmutableArrayAndFree()
-        {
-            using var _ = ArrayBuilder<LineInheritanceInfo>.GetInstance(out var builder);
-            foreach (var (lineNumber, items) in _lineNumberToMemberItems)
-            {
-                builder.Add(new LineInheritanceInfo(lineNumber, items.ToImmutable()));
-            }
-
-            return builder.ToImmutableArray();
-        }
-
+        public ImmutableDictionary<int, ImmutableArray<InheritanceMemberItem>> ToImmutable()
+            => _lineNumberToMemberItems.ToImmutableDictionary(
+                keySelector: kvp => kvp.Key,
+                elementSelector: kvp => kvp.Value.ToImmutable());
 
         public void Dispose()
         {
@@ -357,6 +350,8 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
                 {
                     items.Free();
                 }
+
+                _lineNumberToMemberItems.Clear();
             }
         }
     }

@@ -14,22 +14,10 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
     [Flags]
     internal enum Relationship
     {
-        Implementing = 0x4,
-        Implemented = 0x8,
-        Overriding = 0x10,
-        Overriden = 0x20,
-    }
-
-    internal class LineInheritanceInfo
-    {
-        public readonly int LineNumber;
-        public readonly ImmutableArray<InheritanceMemberItem> InheritanceMembers;
-
-        public LineInheritanceInfo(int lineNumber, ImmutableArray<InheritanceMemberItem> inheritanceMembers)
-        {
-            LineNumber = lineNumber;
-            InheritanceMembers = inheritanceMembers;
-        }
+        Implementing = 0x1,
+        Implemented = 0x2,
+        Overriding = 0x4,
+        Overriden = 0x8,
     }
 
     internal class InheritanceMemberItem

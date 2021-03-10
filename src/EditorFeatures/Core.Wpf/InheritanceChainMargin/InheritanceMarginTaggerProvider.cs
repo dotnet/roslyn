@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
 {
@@ -77,13 +78,25 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
                 return;
             }
 
-            context.AddTag(new TagSpan<InheritanceMarginTag>(
-                spanToTag.SnapshotSpan,
-                InheritanceMarginTag.FromInheritanceInfo(
-                    ThreadingContext,
-                    _streamingFindUsagesPresenter,
-                    document,
-                    lineInheritanceInfo, cancellationToken)));
+            var snapshot = spanToTag.SnapshotSpan.Snapshot;
+
+            foreach (var (lineNumber, membersOnTheLine) in lineInheritanceInfo)
+            {
+                if (membersOnTheLine.Length > 0)
+                {
+                    var line = snapshot.GetLineFromLineNumber(lineNumber);
+                    var taggedSpan = new SnapshotSpan(snapshot, line.Start, length: line.End - line.Start);
+                    context.AddTag(new TagSpan<InheritanceMarginTag>(
+                        taggedSpan,
+                        InheritanceMarginTag.FromInheritanceInfo(
+                            ThreadingContext,
+                            _streamingFindUsagesPresenter,
+                            document,
+                            membersOnTheLine,
+                            cancellationToken)));
+                }
+            }
+
         }
     }
 }
