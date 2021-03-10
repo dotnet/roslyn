@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
@@ -47,17 +48,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             => ServicesVSResources.CSharp_Visual_Basic_Language_Server_Client;
 
         protected internal override VSServerCapabilities GetCapabilities()
-            => new VSServerCapabilities
+        {
+            var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
+            var isTextSyncEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.LspTextSyncEnabled);
+
+            return new VSServerCapabilities
             {
                 TextDocumentSync = new TextDocumentSyncOptions
                 {
-                    Change = TextDocumentSyncKind.Incremental,
-                    OpenClose = true,
+                    Change = isTextSyncEnabled ? TextDocumentSyncKind.Incremental : TextDocumentSyncKind.None,
+                    OpenClose = isTextSyncEnabled,
                 },
                 SupportsDiagnosticRequests = this.Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode),
                 // This flag ensures that ctrl+, search locally uses the old editor APIs so that only ctrl+Q search is powered via LSP.
                 DisableGoToWorkspaceSymbols = true,
                 WorkspaceSymbolProvider = true,
             };
+        }
     }
 }
