@@ -3289,9 +3289,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RecordDeclarationSyntax recordDecl:
                     return BindRecordConstructorBody(recordDecl, diagnostics);
 
-                case RecordStructDeclarationSyntax recordDecl:
-                    return BindRecordStructConstructorBody(recordDecl);
-
                 case BaseMethodDeclarationSyntax method:
                     if (method.Kind() == SyntaxKind.ConstructorDeclaration)
                     {
@@ -3355,17 +3352,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   bodyBinder.GetDeclaredLocalsForScope(recordDecl),
                                                   initializer,
                                                   blockBody: new BoundBlock(recordDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
-                                                  expressionBody: null);
-        }
-
-        private BoundNode BindRecordStructConstructorBody(RecordStructDeclarationSyntax recordStructDecl)
-        {
-            Debug.Assert(recordStructDecl.ParameterList is object);
-
-            return new BoundConstructorMethodBody(recordStructDecl,
-                                                  locals: ImmutableArray<LocalSymbol>.Empty,
-                                                  initializer: null,
-                                                  blockBody: new BoundBlock(recordStructDecl, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty).MakeCompilerGenerated(),
                                                   expressionBody: null);
         }
 

@@ -1687,7 +1687,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock body;
 
-            if (method is SourceMemberMethodSymbol sourceMethod)
+            if (method is SynthesizedRecordConstructor recordStructPrimaryCtor && method.ContainingType.IsRecordStruct)
+            {
+                body = BoundBlock.SynthesizedNoLocals(recordStructPrimaryCtor.GetSyntax());
+            }
+            else if (method is SourceMemberMethodSymbol sourceMethod)
             {
                 CSharpSyntaxNode syntaxNode = sourceMethod.SyntaxNode;
 

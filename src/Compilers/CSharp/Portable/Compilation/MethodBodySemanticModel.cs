@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RemoveAccessorDeclaration:
                 case SyntaxKind.CompilationUnit:
                 case SyntaxKind.RecordDeclaration:
-                case SyntaxKind.RecordStructDeclaration:
                     return binder.BindMethodBody(node, diagnostics);
             }
 

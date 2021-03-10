@@ -2053,6 +2053,24 @@ record struct R(int P1) : I
         }
 
         [Fact]
+        public void InterfaceImplementation_NotReadonly_InitOnlyInterface()
+        {
+            var source = @"
+interface I
+{
+    int P1 { get; init; }
+}
+record struct R(int P1) : I;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,27): error CS8854: 'R' does not implement interface member 'I.P1.init'. 'R.P1.set' cannot implement 'I.P1.init'.
+                // record struct R(int P1) : I;
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("R", "I.P1.init", "R.P1.set").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
         public void InterfaceImplementation_Readonly()
         {
             var source = @"
@@ -2072,6 +2090,24 @@ readonly record struct R(int P1) : I
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(42, 43)", verify: Verification.Skipped /* init-only */);
+        }
+
+        [Fact]
+        public void InterfaceImplementation_Readonly_SetInterface()
+        {
+            var source = @"
+interface I
+{
+    int P1 { get; set; }
+}
+readonly record struct R(int P1) : I;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,36): error CS8854: 'R' does not implement interface member 'I.P1.set'. 'R.P1.init' cannot implement 'I.P1.set'.
+                // readonly record struct R(int P1) : I;
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongInitOnly, "I").WithArguments("R", "I.P1.set", "R.P1.init").WithLocation(6, 36)
+                );
         }
 
         [Fact]

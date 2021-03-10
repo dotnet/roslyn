@@ -3435,8 +3435,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(TypeKind == TypeKind.Struct);
 
-            if (builder.RecordDeclarationWithParameters is RecordStructDeclarationSyntax)
+            if (builder.RecordDeclarationWithParameters is not null)
             {
+                Debug.Assert(builder.RecordDeclarationWithParameters is RecordStructDeclarationSyntax { ParameterList: not null });
                 return;
             }
 
