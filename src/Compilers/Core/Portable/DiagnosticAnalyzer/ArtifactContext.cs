@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// supported.  In general that will only be when a compiler is invoked with the <c>generatedartifactsout</c>
     /// argument.
     /// </summary>
-    public class ArtifactContext
+    public sealed class ArtifactContext
     {
         /// <summary>
         /// Callback the compiler can pass into us to actually generate artifacts.
