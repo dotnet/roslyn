@@ -405,11 +405,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override void VisitRecordStructDeclaration(RecordStructDeclarationSyntax node)
-        {
-            Debug.Assert(node.ParameterList is object);
-        }
-
         private void CollectVariablesFromDeconstruction(
             ExpressionSyntax possibleTupleDeclaration,
             AssignmentExpressionSyntax deconstruction)
