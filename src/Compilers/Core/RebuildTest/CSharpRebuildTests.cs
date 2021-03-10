@@ -20,12 +20,21 @@ namespace Rebuild.UnitTests
     //[CompilerTrait(CompilerFeature.)]
     public class CSharpRebuildTests : CSharpTestBase
     {
-        [Fact]
-        public void Platform_RoundTrip()
+        [Theory]
+        [InlineData(Platform.Arm64)]
+        [InlineData(Platform.Arm)]
+        [InlineData(Platform.X64)]
+        [InlineData(Platform.Itanium)]
+        [InlineData(Platform.X86)]
+        [InlineData(Platform.AnyCpu)]
+        [InlineData(Platform.AnyCpu32BitPreferred)]
+        public void Platform_RoundTrip(Platform platform)
         {
             var original = CreateCompilation(
-                "",
-                options: TestOptions.DebugDll.WithPlatform(Platform.Arm));
+                ";",
+                options: TestOptions.DebugExe.WithPlatform(platform));
+
+            original.VerifyDiagnostics();
 
             var image = original.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded));
             var peReader = new PEReader(image);
@@ -45,7 +54,7 @@ namespace Rebuild.UnitTests
             var (compilation, isError) = bc.CreateCompilation(optionsReader, "test", sources, references);
 
             Assert.False(isError);
-            Assert.Equal(Platform.Arm, compilation!.Options.Platform);
+            Assert.Equal(platform, compilation!.Options.Platform);
         }
     }
 }

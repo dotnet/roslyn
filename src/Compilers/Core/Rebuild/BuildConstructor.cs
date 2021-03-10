@@ -142,7 +142,7 @@ namespace BuildValidator
                 cryptoKeyFile: null,
                 cryptoPublicKey: optionsReader.GetPublicKey()?.ToImmutableArray() ?? default,
                 delaySign: null,
-                Platform.AnyCpu,
+                optionsReader.GetPlatform(),
 
                 // presence of diagnostics is expected to not affect emit.
                 ReportDiagnostic.Suppress,
