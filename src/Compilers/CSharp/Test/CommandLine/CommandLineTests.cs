@@ -13018,10 +13018,7 @@ key7 = value7");
         public void ArtifactProducer_WriteGeneratedSources()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource = "public class D { }";
@@ -13039,10 +13036,7 @@ class C
         public void ArtifactProducer_NonClosedStreams()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource = "public class D { }";
@@ -13060,10 +13054,7 @@ class C
         public void ArtifactProducer_OverwriteGeneratedSources()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource1 = "class D { } class E { }";
@@ -13093,10 +13084,7 @@ class C
         public void ArtifactProducer_WriteGeneratedSources_MultipleFiles(string source1, string source1Name, string source2, string source2Name)
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDir = dir.CreateDirectory("generated");
 
             var producer1 = new SingleFileArtifactProducer(source1, Path.Combine("gen1", source1Name));
@@ -13118,10 +13106,7 @@ class C
         public void ArtifactProducer_MultipleStreamsWithSamePath()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDir = dir.CreateDirectory("generated");
 
             var producer1 = new DoNotCloseStreamArtifactProducer(" ", "file.cs");
@@ -13138,10 +13123,7 @@ class C
         public void ArtifactProducer_WithoutAttribute()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDir = dir.CreateDirectory("generated");
 
             var producer1 = new DiagnosticAnalyzerWithoutArtifactProducerAttribute(" ", "file.cs");
@@ -13157,10 +13139,7 @@ class C
         public void ArtifactProducer_WithoutCommandLineArgGetsNoContext()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDir = dir.CreateDirectory("generated");
 
             var producer1 = new DiagnosticAnalyzerWithoutCommandLineArgGetsNoContext(" ", "file.cs");
@@ -13175,10 +13154,7 @@ class C
         public void ArtifactProducer_WithoutCommandLineArgThrowsWhenUsingContext()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var producer1 = new DiagnosticAnalyzerWithoutCommandLineArgThrowsWhenUsingContext(" ", "file.cs");
 
             var output = VerifyOutput(dir, src, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/out:embed.exe" }, analyzers: new[] { producer1 });
@@ -13192,10 +13168,7 @@ class C
         public void ArtifactProducer_DoNotWriteGeneratedSources_When_No_Directory_Supplied()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource = "public class D { }";
@@ -13212,11 +13185,7 @@ class C
         public void ArtifactProducer_NoError_When_GeneratedDir_NotExist()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
-
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDirPath = Path.Combine(dir.Path, "noexist");
             var generatedSource = "public class D { }";
             var producer = new SingleFileArtifactProducer(generatedSource, "generatedSource.cs");
@@ -13236,10 +13205,7 @@ class C
         public void ArtifactProducer_Error_When_NoDirectoryArgumentGiven()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var output = VerifyOutput(dir, src, expectedErrorCount: 2, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:", "/langversion:preview", "/out:embed.exe" });
             Assert.Contains("error CS2006: Command-line syntax error: Missing '<text>' for '/generatedartifactsout:' option", output);
 
@@ -13251,10 +13217,7 @@ class C
         public void ArtifactProducer_ReportedWrittenFiles_To_TouchedFilesLogger()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDir = dir.CreateDirectory("generated");
 
             var generatedSource = "public class D { }";
@@ -13279,10 +13242,7 @@ class C
         public void ArtifactProducersAndAnalyzerConfig()
         {
             var dir = Temp.CreateDirectory();
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"
-class C
-{
-}");
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
 [*.cs]
 key = value");
@@ -13297,8 +13257,8 @@ key = value");
         public void ArtifactProducersRunRegardlessOfLanguageVersion(LanguageVersion version)
         {
             var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText("");
             var generatedDir = dir.CreateDirectory("generated");
-            var src = dir.CreateFile("temp.cs").WriteAllText(@"class C {}");
             var producer = new CallbackArtifactProducer(i => { }, e => throw null);
 
             var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/generatedartifactsout:" + generatedDir.Path, "/langversion:" + version.ToDisplayString() }, analyzers: new[] { producer }, expectedWarningCount: 1, expectedErrorCount: 0, expectedExitCode: 0);
