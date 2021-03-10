@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis
                 Func<string, Stream>? createArtifactStreamArg = null;
                 if (!string.IsNullOrWhiteSpace(Arguments.GeneratedArtifactsOutputDirectory))
                 {
-                    createArtifactStreamArg = GetArtifactStream(
+                    createArtifactStreamArg = GetArtifactStreamFactory(
                         Arguments.GeneratedArtifactsOutputDirectory, diagnostics, touchedFilesLogger, artifactStreams);
                 }
 
@@ -1361,7 +1361,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private Func<string, Stream> GetArtifactStream(
+        private Func<string, Stream> GetArtifactStreamFactory(
             string directory,
             DiagnosticBag diagnostics,
             TouchedFileLogger? touchedFilesLogger,
