@@ -888,6 +888,9 @@ namespace Microsoft.Cci
                     WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
                 }
 
+                var platform = module.CommonCompilation.Options.Platform;
+                WriteValue(CompilationOptionNames.Platform, platform.ToPdbSerializedString());
+
                 var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
                 WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
 

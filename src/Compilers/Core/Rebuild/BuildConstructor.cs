@@ -104,6 +104,7 @@ namespace BuildValidator
 
             var langVersionString = pdbCompilationOptions.GetUniqueOption("language-version");
             pdbCompilationOptions.TryGetUniqueOption("optimization", out var optimization);
+            pdbCompilationOptions.TryGetUniqueOption("platform", out var platform);
 
             // TODO: Check portability policy if needed
             // pdbCompilationOptions.TryGetValue("portability-policy", out var portabilityPolicyString);
@@ -142,7 +143,7 @@ namespace BuildValidator
                 cryptoKeyFile: null,
                 cryptoPublicKey: optionsReader.GetPublicKey()?.ToImmutableArray() ?? default,
                 delaySign: null,
-                optionsReader.GetPlatform(),
+                GetPlatform(platform),
 
                 // presence of diagnostics is expected to not affect emit.
                 ReportDiagnostic.Suppress,
@@ -176,6 +177,19 @@ namespace BuildValidator
                 _ => throw new InvalidDataException($"Optimization \"{optimizationLevel}\" level not recognized")
             };
 
+        private static Platform GetPlatform(string? platform)
+            => platform switch
+            {
+                null or "any-cpu" => Platform.AnyCpu,
+                "any-cpu-32-bit-preferred" => Platform.AnyCpu32BitPreferred,
+                "arm" => Platform.Arm,
+                "arm64" => Platform.Arm64,
+                "itanium" => Platform.Itanium,
+                "x64" => Platform.X64,
+                "x86" => Platform.X86,
+                _ => throw new InvalidDataException($"Platform \"{platform}\" not recognized")
+            };
+
         private Compilation CreateVisualBasicCompilation(
             string fileName,
             CompilationOptionsReader optionsReader,
@@ -197,6 +211,7 @@ namespace BuildValidator
 
             var langVersionString = pdbCompilationOptions.GetUniqueOption(CompilationOptionNames.LanguageVersion);
             pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
+            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Platform, out var platform);
             pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.GlobalNamespaces, out var globalNamespacesString);
 
             IEnumerable<GlobalImport>? globalImports = null;
@@ -247,7 +262,7 @@ namespace BuildValidator
                 cryptoKeyFile: null,
                 cryptoPublicKey: optionsReader.GetPublicKey()?.ToImmutableArray() ?? default,
                 delaySign: null,
-                platform: Platform.AnyCpu,
+                platform: GetPlatform(platform),
                 generalDiagnosticOption: ReportDiagnostic.Default,
                 specificDiagnosticOptions: null,
                 concurrentBuild: true,

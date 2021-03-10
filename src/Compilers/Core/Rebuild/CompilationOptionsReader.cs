@@ -136,30 +136,6 @@ namespace BuildValidator
             ? OutputKind.ConsoleApplication
             : OutputKind.DynamicallyLinkedLibrary;
 
-        public Platform GetPlatform()
-        {
-            var headers = PeReader.PEHeaders;
-            var coffHeader = headers.CoffHeader;
-            var is64Bit = (coffHeader.Characteristics & Characteristics.LargeAddressAware) != 0;
-            var machine = coffHeader.Machine;
-            switch (machine)
-            {
-                case Machine.Arm64:
-                    return Platform.Arm64;
-                case Machine.ArmThumb2:
-                    return Platform.Arm;
-                case Machine.Amd64:
-                    return Platform.X64;
-                case Machine.IA64:
-                    return Platform.Itanium;
-                case Machine.I386:
-                    // todo: Platform.X86?
-                    return is64Bit ? Platform.AnyCpu : Platform.AnyCpu32BitPreferred;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(machine);
-            }
-        }
-
         public string? GetMainTypeName() => GetMainMethodInfo() is { } tuple
             ? tuple.MainTypeName
             : null;
