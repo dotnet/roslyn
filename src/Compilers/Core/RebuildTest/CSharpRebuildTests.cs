@@ -17,7 +17,6 @@ using Xunit;
 
 namespace Rebuild.UnitTests
 {
-    //[CompilerTrait(CompilerFeature.)]
     public class CSharpRebuildTests : CSharpTestBase
     {
         [Theory]

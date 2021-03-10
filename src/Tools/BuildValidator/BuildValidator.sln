@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildValidator", "BuildVali
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebuild", "..\..\Compilers\Core\Rebuild\Rebuild.csproj", "{04CCBB7F-B1E3-4E76-A4A7-C648EBE77CBB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebuild.UnitTests", "..\..\Compilers\Core\RebuildTest\Rebuild.UnitTests.csproj", "{48B87FA3-669F-48D2-A23A-50E43D875C61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild.UnitTests", "..\..\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj", "{48B87FA3-669F-48D2-A23A-50E43D875C61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
