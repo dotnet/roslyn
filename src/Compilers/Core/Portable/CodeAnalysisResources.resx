@@ -727,4 +727,7 @@
   <data name="Acquiring_the_ArtifactContext_is_not_allowed_without_specifying_the_ArtifactProducerAttribute" xml:space="preserve">
     <value>Acquiring the 'ArtifactContext' is not allowed without specifying the 'ArtifactProducerAttribute'.</value>
   </data>
+  <data name="Multiple_artifact_streams_opened_for_0" xml:space="preserve">
+    <value>Multiple artifact streams opened for: {0}</value>
+  </data>
 </root>

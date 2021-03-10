@@ -29,7 +29,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public override void Initialize(AnalysisContext context)
         {
             Assert.True(context.TryGetArtifactContext(out var artifactContext));
-            context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext));
+            context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext!));
         }
 
         private void AnalyzeCompilation(CompilationAnalysisContext context, ArtifactContext artifactContext)
@@ -56,7 +56,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public override void Initialize(AnalysisContext context)
         {
             Assert.True(context.TryGetArtifactContext(out var artifactContext));
-            context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext));
+            context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext!));
         }
 
         private void AnalyzeCompilation(CompilationAnalysisContext context, ArtifactContext artifactContext)
@@ -104,7 +104,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public override void Initialize(AnalysisContext context)
         {
             Assert.False(context.TryGetArtifactContext(out var artifactContext));
-            artifactContext.WriteArtifact(this._hintName, SourceText.From(_content, Encoding.UTF8));
+            artifactContext!.WriteArtifact(this._hintName, SourceText.From(_content, Encoding.UTF8));
         }
     }
 
@@ -136,7 +136,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
             _onInit(context);
 
             Assert.True(context.TryGetArtifactContext(out var artifactContext));
-            context.RegisterCompilationAction(c => Execute(c, artifactContext));
+            context.RegisterCompilationAction(c => Execute(c, artifactContext!));
         }
 
         private void Execute(CompilationAnalysisContext context, ArtifactContext artifactContext)
@@ -146,13 +146,6 @@ namespace Roslyn.Test.Utilities.TestGenerators
             {
                 artifactContext.WriteArtifact("source", SourceText.From(_source, Encoding.UTF8));
             }
-        }
-    }
-
-    internal class CallbackArtifactProducer2 : CallbackArtifactProducer
-    {
-        public CallbackArtifactProducer2(Action<AnalysisContext> onInit, Action<CompilationAnalysisContext> onExecute, string? source = "") : base(onInit, onExecute, source)
-        {
         }
     }
 
@@ -173,7 +166,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public override void Initialize(AnalysisContext context)
         {
             Assert.True(context.TryGetArtifactContext(out var artifactContext));
-            context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext));
+            context.RegisterCompilationAction(c => AnalyzeCompilation(c, artifactContext!));
         }
 
         private void AnalyzeCompilation(CompilationAnalysisContext context, ArtifactContext artifactContext)

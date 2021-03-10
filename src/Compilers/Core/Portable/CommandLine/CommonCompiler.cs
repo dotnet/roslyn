@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -922,7 +923,7 @@ namespace Microsoft.CodeAnalysis
             out bool reportAnalyzer,
             out AnalyzerDriver? analyzerDriver)
         {
-            var artifactStreams = new ConcurrentSet<(string filePath, Stream stream)>();
+            var artifactStreams = new ConcurrentDictionary<string, Stream>();
             try
             {
                 CompileAndEmit(
@@ -948,7 +949,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void FlushAndCloseArtifactStreams(DiagnosticBag diagnostics, ConcurrentSet<(string filePath, Stream stream)> artifactStreams)
+        private void FlushAndCloseArtifactStreams(DiagnosticBag diagnostics, ConcurrentDictionary<string, Stream> artifactStreams)
         {
             foreach (var (path, stream) in artifactStreams)
             {
@@ -968,7 +969,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions,
             ImmutableArray<EmbeddedText?> embeddedTexts,
             DiagnosticBag diagnostics,
-            ConcurrentSet<(string filePath, Stream stream)> artifactStreams,
+            ConcurrentDictionary<string, Stream> artifactStreams,
             CancellationToken cancellationToken,
             out CancellationTokenSource? analyzerCts,
             out bool reportAnalyzer,
@@ -1320,7 +1321,7 @@ namespace Microsoft.CodeAnalysis
             ref DiagnosticBag? analyzerExceptionDiagnostics,
             DiagnosticBag diagnostics,
             CompilerAnalyzerConfigOptionsProvider analyzerConfigProvider,
-            ConcurrentSet<(string path, Stream stream)> artifactStreams,
+            ConcurrentDictionary<string, Stream> artifactStreams,
             CancellationToken cancellationToken)
         {
             AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(additionalTextFiles, analyzerConfigProvider);
@@ -1339,12 +1340,9 @@ namespace Microsoft.CodeAnalysis
 
                 // Determine if we should support artifact generators or not.  If we have an specified output path, then
                 // we will run artifact generators.  Otherwise, we won't bother as we have no place to put their files.
-                Func<string, Stream>? createArtifactStreamArg = null;
-                if (!string.IsNullOrWhiteSpace(Arguments.GeneratedArtifactsOutputDirectory))
-                {
-                    createArtifactStreamArg = GetArtifactStreamFactory(
-                        Arguments.GeneratedArtifactsOutputDirectory, diagnostics, touchedFilesLogger, artifactStreams);
-                }
+                Func<string, Stream>? createArtifactStream = !string.IsNullOrWhiteSpace(Arguments.GeneratedArtifactsOutputDirectory)
+                    ? GetArtifactStreamFactory(Arguments.GeneratedArtifactsOutputDirectory, touchedFilesLogger, artifactStreams)
+                    : null;
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
                     compilation,
@@ -1352,7 +1350,7 @@ namespace Microsoft.CodeAnalysis
                     analyzerOptions,
                     new AnalyzerManager(analyzers),
                     analyzerExceptionDiagnostics.Add,
-                    createArtifactStreamArg,
+                    createArtifactStream,
                     Arguments.ReportAnalyzer,
                     severityFilter,
                     out compilation,
@@ -1363,35 +1361,23 @@ namespace Microsoft.CodeAnalysis
 
         private Func<string, Stream> GetArtifactStreamFactory(
             string directory,
-            DiagnosticBag diagnostics,
             TouchedFileLogger? touchedFilesLogger,
-            ConcurrentSet<(string path, Stream stream)> artifactStreams)
+            ConcurrentDictionary<string, Stream> artifactStreams)
         {
             return fileName =>
             {
                 // Get the final destination based on the command line option and file name provided.
                 var path = Path.Combine(directory, fileName);
-                try
-                {
-                    // Attempt to open a stream to that location.  If the file is already opened (for example, if
-                    // another artifact producer used the same name), we'll get an sharing violation exception that will
-                    // terminate that analyzer.
-                    if (Directory.Exists(directory))
-                        Directory.CreateDirectory(Path.GetDirectoryName(path));
+                touchedFilesLogger?.AddWritten(path);
 
-                    var fileStream = FileOpen(path, FileMode.Create, FileAccess.Write, FileShare.Delete);
+                if (Directory.Exists(directory))
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
 
-                    // Keep track of the stream.
-                    artifactStreams.Add((path, fileStream));
-                    touchedFilesLogger?.AddWritten(path);
-
-                    return fileStream;
-                }
-                catch (Exception e)
-                {
-                    MessageProvider.ReportStreamWriteException(e, path, diagnostics);
-                    throw;
-                }
+                return artifactStreams.AddOrUpdate(
+                    path,
+                    addValueFactory: path => FileOpen(path, FileMode.Create, FileAccess.Write, FileShare.Delete),
+                    // Multiple streams to the same path are not allowed
+                    updateValueFactory: (path, _) => throw new InvalidOperationException(string.Format(CodeAnalysisResources.Multiple_artifact_streams_opened_for_0, path)));
             };
         }
 

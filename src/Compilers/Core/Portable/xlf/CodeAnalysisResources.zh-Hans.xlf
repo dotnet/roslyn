@@ -84,6 +84,11 @@
         <target state="translated">模块具有无效属性。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_artifact_streams_opened_for_0">
+        <source>Multiple artifact streams opened for: {0}</source>
+        <target state="new">Multiple artifact streams opened for: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
         <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
         <target state="translated">不可禁止显示 ID 为“{0}”的未报告的诊断。</target>
