@@ -72,7 +72,7 @@ Imports System
 
 class CC
     sub Test(array as string())
-        {|[|result:For Each Rename:v In array|]
+        {|result:[|For Each Rename:v In array|]
             Console.WriteLine(v)
         next|}
     end sub

@@ -53,7 +53,8 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/51817")>
+        <Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestOrdering() As Task
             Dim code = "
 namespace System.Windows.Controls
