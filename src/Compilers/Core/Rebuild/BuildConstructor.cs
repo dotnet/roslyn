@@ -103,8 +103,8 @@ namespace BuildValidator
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
             var langVersionString = pdbCompilationOptions.GetUniqueOption("language-version");
-            pdbCompilationOptions.TryGetUniqueOption("optimization", out var optimization);
-            pdbCompilationOptions.TryGetUniqueOption("platform", out var platform);
+            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
+            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Platform, out var platform);
 
             // TODO: Check portability policy if needed
             // pdbCompilationOptions.TryGetValue("portability-policy", out var portabilityPolicyString);
