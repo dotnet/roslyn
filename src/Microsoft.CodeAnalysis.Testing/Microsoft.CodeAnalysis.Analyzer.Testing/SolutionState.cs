@@ -135,6 +135,11 @@ namespace Microsoft.CodeAnalysis.Testing
                     result.Sources.AddRange(baseState.Sources);
                 }
 
+                if (GeneratedSources.Count == 0)
+                {
+                    result.GeneratedSources.AddRange(baseState.GeneratedSources);
+                }
+
                 if (AdditionalFiles.Count == 0)
                 {
                     result.AdditionalFiles.AddRange(baseState.AdditionalFiles);
@@ -176,6 +181,7 @@ namespace Microsoft.CodeAnalysis.Testing
             result.MarkupHandling = markupHandling;
             result.InheritanceMode = StateInheritanceMode.Explicit;
             result.Sources.AddRange(Sources);
+            result.GeneratedSources.AddRange(GeneratedSources);
             result.AdditionalFiles.AddRange(AdditionalFiles);
             result.AnalyzerConfigFiles.AddRange(AnalyzerConfigFiles);
             result.AdditionalProjects.AddRange(AdditionalProjects);
@@ -199,6 +205,11 @@ namespace Microsoft.CodeAnalysis.Testing
             }
 
             if ((!willInherit || state.Sources.Any()) && !ContentEqual(state.Sources, baseState.Sources))
+            {
+                return true;
+            }
+
+            if ((!willInherit || state.GeneratedSources.Any()) && !ContentEqual(state.GeneratedSources, baseState.GeneratedSources))
             {
                 return true;
             }
@@ -252,8 +263,9 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <summary>
         /// Processes the markup syntax for this <see cref="SolutionState"/> according to the current
         /// <see cref="MarkupHandling"/>, and returns a new <see cref="SolutionState"/> with the
-        /// <see cref="ProjectState.Sources"/>, <see cref="ProjectState.AdditionalFiles"/>,
-        /// <see cref="ProjectState.AnalyzerConfigFiles"/>, and <see cref="ExpectedDiagnostics"/> updated accordingly.
+        /// <see cref="ProjectState.Sources"/>, <see cref="ProjectState.GeneratedSources"/>,
+        /// <see cref="ProjectState.AdditionalFiles"/>, <see cref="ProjectState.AnalyzerConfigFiles"/>, and
+        /// <see cref="ExpectedDiagnostics"/> updated accordingly.
         /// </summary>
         /// <param name="markupOptions">Additional options to apply during markup processing.</param>
         /// <param name="defaultDiagnostic">The diagnostic descriptor to use for markup spans without an explicit name,
@@ -276,7 +288,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var markupLocations = ImmutableDictionary<string, FileLinePositionSpan>.Empty;
             (var expected, var testSources) = ProcessMarkupSources(Sources, ExpectedDiagnostics, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
-            var (additionalExpected1, additionalFiles) = ProcessMarkupSources(AdditionalFiles.Concat(AdditionalFilesFactories.SelectMany(factory => factory())), expected, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            var (additionalExpected2, testGeneratedSources) = ProcessMarkupSources(GeneratedSources, expected, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+            var (additionalExpected1, additionalFiles) = ProcessMarkupSources(AdditionalFiles.Concat(AdditionalFilesFactories.SelectMany(factory => factory())), additionalExpected2, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
             var (additionalExpected, analyzerConfigFiles) = ProcessMarkupSources(AnalyzerConfigFiles, additionalExpected1, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
 
             var result = new SolutionState(Name, Language, DefaultPrefix, DefaultExtension);
@@ -286,18 +299,22 @@ namespace Microsoft.CodeAnalysis.Testing
             result.OutputKind = OutputKind;
             result.DocumentationMode = DocumentationMode;
             result.Sources.AddRange(testSources);
+            result.GeneratedSources.AddRange(testGeneratedSources);
             result.AdditionalFiles.AddRange(additionalFiles);
             result.AnalyzerConfigFiles.AddRange(analyzerConfigFiles);
 
             foreach (var (projectName, projectState) in AdditionalProjects)
             {
                 var (correctedIntermediateDiagnostics, additionalProjectSources) = ProcessMarkupSources(projectState.Sources, additionalExpected, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
-                var (correctedDiagnostics1, additionalProjectAdditionalFiles) = ProcessMarkupSources(projectState.AdditionalFiles.Concat(projectState.AdditionalFilesFactories.SelectMany(factory => factory())), correctedIntermediateDiagnostics, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+                var (correctedDiagnostics2, additionalProjectGeneratedSources) = ProcessMarkupSources(projectState.GeneratedSources, correctedIntermediateDiagnostics, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
+                var (correctedDiagnostics1, additionalProjectAdditionalFiles) = ProcessMarkupSources(projectState.AdditionalFiles.Concat(projectState.AdditionalFilesFactories.SelectMany(factory => factory())), correctedDiagnostics2, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
                 var (correctedDiagnostics, additionalProjectAnalyzerConfigFiles) = ProcessMarkupSources(projectState.AnalyzerConfigFiles, correctedDiagnostics1, ref markupLocations, markupOptions, defaultDiagnostic, supportedDiagnostics, fixableDiagnostics, defaultPath);
 
                 var processedProjectState = new ProjectState(projectState);
                 processedProjectState.Sources.Clear();
                 processedProjectState.Sources.AddRange(additionalProjectSources);
+                processedProjectState.GeneratedSources.Clear();
+                processedProjectState.GeneratedSources.AddRange(additionalProjectGeneratedSources);
                 processedProjectState.AdditionalFiles.Clear();
                 processedProjectState.AdditionalFilesFactories.Clear();
                 processedProjectState.AdditionalFiles.AddRange(additionalProjectAdditionalFiles);

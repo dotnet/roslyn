@@ -26,12 +26,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         @"// Comment",
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        @"// Comment",
                         ("Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFile\\EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
                     },
                 },
@@ -49,12 +45,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         @"// Comment",
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        @"// Comment",
                         (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", string.Empty),
                     },
                 },
@@ -72,12 +64,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         @"// Comment",
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        @"// Comment",
                         (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
                     },
                 },
@@ -94,10 +82,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources =
                     {
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
                         (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", string.Empty),
                     },
@@ -114,15 +99,32 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     Sources =
                     {
-                        @"// Comment",
+                        @"{|#0:|}// Comment",
+                    },
+                    GeneratedSources =
+                    {
+                        ("Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFileWithDiagnostic\\EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
+                    },
+                    ExpectedDiagnostics =
+                    {
+                        // /0/Test0.cs(1,1): warning SG0001: Message
+                        new DiagnosticResult(AddEmptyFileWithDiagnostic.Descriptor).WithLocation(0),
                     },
                 },
-                FixedState =
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task AddImplicitSimpleFileWithDiagnostic()
+        {
+            await new CSharpSourceGeneratorTest<AddEmptyFileWithDiagnostic>
+            {
+                TestBehaviors = TestBehaviors.SkipGeneratedSourcesCheck,
+                TestState =
                 {
                     Sources =
                     {
                         @"{|#0:|}// Comment",
-                        ("Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFileWithDiagnostic\\EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
                     },
                     ExpectedDiagnostics =
                     {

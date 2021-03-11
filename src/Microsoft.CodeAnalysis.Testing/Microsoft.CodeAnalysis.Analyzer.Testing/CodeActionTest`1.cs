@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Testing
             return state.InheritanceMode != null
                 || state.MarkupHandling != null
                 || state.Sources.Any()
+                || state.GeneratedSources.Any()
                 || state.AdditionalFiles.Any()
                 || state.AnalyzerConfigFiles.Any()
                 || state.AdditionalFilesFactories.Any();
@@ -72,6 +73,7 @@ namespace Microsoft.CodeAnalysis.Testing
         protected static bool HasAnyChange(SolutionState oldState, SolutionState newState)
         {
             return !oldState.Sources.SequenceEqual(newState.Sources, SourceFileEqualityComparer.Instance)
+                || !oldState.GeneratedSources.SequenceEqual(newState.GeneratedSources, SourceFileEqualityComparer.Instance)
                 || !oldState.AdditionalFiles.SequenceEqual(newState.AdditionalFiles, SourceFileEqualityComparer.Instance)
                 || !oldState.AnalyzerConfigFiles.SequenceEqual(newState.AnalyzerConfigFiles, SourceFileEqualityComparer.Instance);
         }

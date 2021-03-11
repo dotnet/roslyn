@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
                 state.OutputKind ?? OutputKind.DynamicallyLinkedLibrary,
                 state.DocumentationMode ?? DocumentationMode.Diagnose,
                 state.Sources.ToImmutableArray(),
+                state.GeneratedSources.ToImmutableArray(),
                 state.AdditionalFiles.ToImmutableArray(),
                 state.AnalyzerConfigFiles.ToImmutableArray(),
                 state.AdditionalProjectReferences.ToImmutableArray(),
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             OutputKind outputKind,
             DocumentationMode documentationMode,
             ImmutableArray<(string filename, SourceText content)> sources,
+            ImmutableArray<(string filename, SourceText content)> generatedSources,
             ImmutableArray<(string filename, SourceText content)> additionalFiles,
             ImmutableArray<(string filename, SourceText content)> analyzerConfigFiles,
             ImmutableArray<string> additionalProjectReferences,
@@ -50,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             OutputKind = outputKind;
             DocumentationMode = documentationMode;
             Sources = sources;
+            GeneratedSources = generatedSources;
             AdditionalFiles = additionalFiles;
             AnalyzerConfigFiles = analyzerConfigFiles;
             AdditionalProjectReferences = additionalProjectReferences;
@@ -70,6 +73,8 @@ namespace Microsoft.CodeAnalysis.Testing.Model
         public DocumentationMode DocumentationMode { get; }
 
         public ImmutableArray<(string filename, SourceText content)> Sources { get; }
+
+        public ImmutableArray<(string filename, SourceText content)> GeneratedSources { get; }
 
         public ImmutableArray<(string filename, SourceText content)> AdditionalFiles { get; }
 
@@ -109,6 +114,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
             Optional<OutputKind> outputKind = default,
             Optional<DocumentationMode> documentationMode = default,
             Optional<ImmutableArray<(string filename, SourceText content)>> sources = default,
+            Optional<ImmutableArray<(string filename, SourceText content)>> generatedSources = default,
             Optional<ImmutableArray<(string filename, SourceText content)>> additionalFiles = default,
             Optional<ImmutableArray<(string filename, SourceText content)>> analyzerConfigFiles = default,
             Optional<ImmutableArray<string>> additionalProjectReferences = default,
@@ -123,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Testing.Model
                 GetValueOrDefault(outputKind, OutputKind),
                 GetValueOrDefault(documentationMode, DocumentationMode),
                 GetValueOrDefault(sources, Sources),
+                GetValueOrDefault(generatedSources, GeneratedSources),
                 GetValueOrDefault(additionalFiles, AdditionalFiles),
                 GetValueOrDefault(analyzerConfigFiles, AnalyzerConfigFiles),
                 GetValueOrDefault(additionalProjectReferences, AdditionalProjectReferences),
