@@ -44,16 +44,20 @@ namespace Microsoft.CodeAnalysis.Recommendations
         // This code is to help give intellisense in the following case: 
         // query.Include(a => a.SomeProperty).ThenInclude(a => a.
         // where there are more than one overloads of ThenInclude accepting different types of parameters.
-        private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position)
+        private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position, bool useBaseReferenceAccessibility)
         {
-            var symbols = GetMemberSymbolsForParameterWorker(parameter, position);
+            var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position);
             return symbols.IsDefault
-                ? LookupSymbolsInContainer(parameter.Type, position, excludeInstance: false)
+                ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility)
                 : symbols;
         }
 
-        private ImmutableArray<ISymbol> GetMemberSymbolsForParameterWorker(IParameterSymbol parameter, int position)
+        private ImmutableArray<ISymbol> TryGetMemberSymbolsForLambdaParameter(IParameterSymbol parameter, int position)
         {
+            // Use normal lookup path for this/base parameters.
+            if (parameter.IsThis)
+                return default;
+
             // Starting from a. in the example, looking for a => a.
             if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } owningMethod)
                 return default;
@@ -299,8 +303,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
         {
             // For a normal parameter, we have a specialized codepath we use to ensure we properly get lambda parameter
             // information that the compiler may fail to give.
-            if (container is IParameterSymbol { IsThis: false } parameter)
-                return GetMemberSymbolsForParameter(parameter, position);
+            if (container is IParameterSymbol parameter)
+                return GetMemberSymbolsForParameter(parameter, position, useBaseReferenceAccessibility);
 
             if (container is not INamespaceOrTypeSymbol namespaceOrType)
                 return ImmutableArray<ISymbol>.Empty;

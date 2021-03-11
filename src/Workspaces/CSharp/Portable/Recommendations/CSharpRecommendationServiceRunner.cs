@@ -402,9 +402,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var excludeInstance = false;
             var excludeStatic = true;
 
-            var symbol = leftHandBinding.GetAnySymbol();
-
             ISymbol? containerSymbol = containerType;
+
+            var symbol = leftHandBinding.GetAnySymbol();
             if (symbol != null)
             {
                 // If the thing on the left is a lambda expression, we shouldn't show anything.
@@ -435,11 +435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     return ImmutableArray<ISymbol>.Empty;
                 }
 
-                // If the thing on the left is a this parameter (e.g. this or base) and we're in a static context,
-                // we shouldn't show anything
-                if (symbol.IsThisParameter() && expression.IsInStaticContext())
-                    return ImmutableArray<ISymbol>.Empty;
-
                 if (symbol is IAliasSymbol alias)
                     symbol = alias.Target;
 
@@ -454,8 +449,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 // Special case parameters. If we have a normal (non this/base) parameter, then that's what we want to
                 // lookup symbols off of as we have a lot of special logic for determining member symbols of lambda
                 // parameters.
-                if (symbol is IParameterSymbol { IsThis: false })
+                //
+                // If it is a this/base parameter and we're in a static context, we shouldn't show anything
+                if (symbol is IParameterSymbol parameter)
+                {
+                    if (parameter.IsThis && expression.IsInStaticContext())
+                        return ImmutableArray<ISymbol>.Empty;
+
                     containerSymbol = symbol;
+                }
             }
             else if (containerType != null)
             {
@@ -477,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 excludeStatic = false;
             }
 
-            var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } parameter && !parameter.Type.Equals(containerType);
+            var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } p && !p.Type.Equals(containerType);
             var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility);
 
             // If we're showing instance members, don't include nested types
