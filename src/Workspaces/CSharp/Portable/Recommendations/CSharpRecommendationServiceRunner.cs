@@ -515,19 +515,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             if (symbols.IsDefault)
-            {
-                symbols = GetSymbols(
-                    container,
-                    position: originalExpression.SpanStart,
-                    excludeInstance: excludeInstance,
-                    useBaseReferenceAccessibility: useBaseReferenceAccessibility);
-            }
+                symbols = GetSymbols(container, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility);
 
             // If we're showing instance members, don't include nested types
             if (excludeStatic)
                 symbols = symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol));
 
-            return new RecommendedSymbols(symbols, default, container, isInstance: excludeStatic);
+            var unnamedSymbols = excludeInstance
+                ? default
+                : GetUnnamedSymbols(container);
+
+            return new RecommendedSymbols(symbols, unnamedSymbols, container, isInstance: excludeStatic);
         }
     }
 }
