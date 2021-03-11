@@ -399,7 +399,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             SymbolInfo leftHandBinding,
             ITypeSymbol? containerType)
         {
-            var useBaseReferenceAccessibility = false;
             var excludeInstance = false;
             var excludeStatic = true;
 
@@ -452,13 +451,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     containerSymbol = (INamespaceOrTypeSymbol)symbol;
                 }
 
-                if (symbol is IParameterSymbol parameter)
-                {
-                    // case:
-                    //    base.|
-                    useBaseReferenceAccessibility = parameter.IsThis && !parameter.Type.Equals(containerType);
-                    containerSymbol = parameter;
-                }
+                // Special case parameters. If we have a normal (non this/base) parameter, then that's what we want to
+                // lookup symbols off of as we have a lot of special logic for determining member symbols of lambda
+                // parameters.
+                if (symbol is IParameterSymbol { IsThis: false })
+                    containerSymbol = symbol;
             }
             else if (containerType != null)
             {
@@ -471,7 +468,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 return ImmutableArray<ISymbol>.Empty;
 
             Debug.Assert(!excludeInstance || !excludeStatic);
-            Debug.Assert(!excludeInstance || !useBaseReferenceAccessibility);
 
             // nameof(X.|
             // Show static and instance members.
@@ -481,6 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 excludeStatic = false;
             }
 
+            var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } parameter && !parameter.Type.Equals(containerType);
             var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility);
 
             // If we're showing instance members, don't include nested types
