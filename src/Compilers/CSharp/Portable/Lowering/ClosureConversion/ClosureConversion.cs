@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
@@ -230,12 +230,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             HashSet<LocalSymbol> assignLocals)
         {
             Debug.Assert((object)thisType != null);
             Debug.Assert(((object)thisParameter == null) || (TypeSymbol.Equals(thisParameter.Type, thisType, TypeCompareKind.ConsiderEverything2)));
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
+            Debug.Assert(diagnostics.DiagnosticBag is object);
 
             var analysis = Analysis.Analyze(
                 loweredBody,
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 slotAllocatorOpt,
                 compilationState,
                 closureDebugInfoBuilder,
-                diagnostics);
+                diagnostics.DiagnosticBag);
 
             CheckLocalsDefined(loweredBody);
             var rewriter = new ClosureConversion(
@@ -492,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// unfortunately either containing method or containing class could be synthetic
         /// therefore could have no syntax.
         /// </param>
-        private SynthesizedClosureEnvironment GetStaticFrame(DiagnosticBag diagnostics, SyntaxNode syntax)
+        private SynthesizedClosureEnvironment GetStaticFrame(BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
             if ((object)_lazyStaticLambdaFrame == null)
             {

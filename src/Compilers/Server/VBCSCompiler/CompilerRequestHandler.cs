@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -66,9 +67,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Logger = logger;
         }
 
-        private bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)
+        private bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers, [NotNullWhen(false)] out List<string>? errorMessages)
         {
-            return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerAssemblyLoader, logger: Logger);
+            return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerAssemblyLoader, Logger, out errorMessages);
         }
 
         public bool TryCreateCompiler(RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
@@ -126,9 +127,9 @@ Run Compilation
             }
 
             bool utf8output = compiler.Arguments.Utf8Output;
-            if (!CheckAnalyzers(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences))
+            if (!CheckAnalyzers(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, out List<string>? errorMessages))
             {
-                return new AnalyzerInconsistencyBuildResponse();
+                return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
 
             Logger.Log($"Begin {request.Language} compiler run");

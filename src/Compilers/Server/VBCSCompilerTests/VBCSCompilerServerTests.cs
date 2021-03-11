@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.IO.Pipes;
@@ -390,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var compilerServerHost = new TestableCompilerServerHost(delegate
                 {
-                    return new AnalyzerInconsistencyBuildResponse();
+                    return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(Array.Empty<string>()));
                 });
 
                 using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost).ConfigureAwait(false);

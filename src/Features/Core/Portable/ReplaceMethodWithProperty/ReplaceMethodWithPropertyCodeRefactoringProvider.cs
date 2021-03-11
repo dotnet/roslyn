@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         private static bool HasPrefix(string text, string prefix)
             => text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) && text.Length > prefix.Length && !char.IsLower(text[prefix.Length]);
 
-        private static IMethodSymbol FindSetMethod(IMethodSymbol getMethod)
+        private static IMethodSymbol? FindSetMethod(IMethodSymbol getMethod)
         {
             var containingType = getMethod.ContainingType;
             var setMethodName = "Set" + getMethod.Name[GetPrefix.Length..];

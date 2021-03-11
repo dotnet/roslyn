@@ -62,12 +62,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             this.AssertIsForeground();
             const TaggerDelay Delay = TaggerDelay.Short;
 
-            // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing 
-            // and also the SemanticChange nodification. 
+            // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
+            // SemanticChange notification. 
             // 
-            // Note: when the user scrolls, we will try to reclassify as soon as possible.  That way
-            // we appear semantically unclassified for a very short amount of time.
-            return TaggerEventSources.Compose(
+            // Note: when the user scrolls, we will try to reclassify as soon as possible.  That way we appear
+            // semantically unclassified for a very short amount of time.
+            //
+            // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
+            // semantics (esp. during solution load).  Because of this, we also register to hear when the full
+            // compilation is available so that reclassify and bring ourselves up to date.
+            return new CompilationAvailableTaggerEventSource(
+                subjectBuffer, Delay,
+                ThreadingContext,
+                AsyncListener,
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, this.AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
@@ -102,6 +109,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // this service), then bail out immediately.
             var classificationService = document?.GetLanguageService<IClassificationService>();
             if (classificationService == null)
+            {
+                return Task.CompletedTask;
+            }
+
+            // The LSP client will handle producing tags when running under the LSP editor.
+            // Our tagger implementation should return nothing to prevent conflicts.
+            var workspaceContextService = document?.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceContextService>();
+            if (workspaceContextService?.IsInLspEditorContext() == true)
             {
                 return Task.CompletedTask;
             }

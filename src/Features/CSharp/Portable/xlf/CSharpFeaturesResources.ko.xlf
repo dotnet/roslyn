@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Add_await">
         <source>Add 'await'</source>
-        <target state="needs-review-translation">await 추가</target>
+        <target state="translated">'await' 추가</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_await_and_ConfigureAwaitFalse">
         <source>Add 'await' and 'ConfigureAwait(false)'</source>
-        <target state="new">Add 'await' and 'ConfigureAwait(false)'</target>
+        <target state="translated">'await' 및 'ConfigureAwait(false)' 추가</target>
         <note>{Locked="await"} "await" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_missing_usings">
@@ -226,6 +226,11 @@
         <source>asynchronous using declaration</source>
         <target state="translated">비동기 using 선언</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="extern_alias">
+        <source>extern alias</source>
+        <target state="new">extern alias</target>
+        <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
@@ -591,11 +596,6 @@
         <source>global statement</source>
         <target state="translated">global 문</target>
         <note>{Locked="global"} "global" is a C# keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="using_namespace">
-        <source>using namespace</source>
-        <target state="translated">using 네임스페이스</target>
-        <note />
       </trans-unit>
       <trans-unit id="using_directive">
         <source>using directive</source>

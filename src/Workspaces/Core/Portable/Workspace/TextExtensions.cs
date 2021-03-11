@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -91,6 +92,19 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Tries to get the document corresponding to the text from the current partial solution 
+        /// associated with the text's container. If the document does not contain the exact text a document 
+        /// from a new solution containing the specified text is constructed. If no document is associated
+        /// with the specified text's container, or the text's container isn't associated with a workspace,
+        /// then the method returns false.
+        /// </summary>
+        internal static Document? GetDocumentWithFrozenPartialSemantics(this SourceText text, CancellationToken cancellationToken)
+        {
+            var document = text.GetOpenDocumentInCurrentContextWithChanges();
+            return document?.WithFrozenPartialSemantics(cancellationToken);
         }
     }
 }

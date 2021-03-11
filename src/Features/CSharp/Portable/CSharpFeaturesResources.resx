@@ -401,8 +401,8 @@
     <value>global statement</value>
     <comment>{Locked="global"} "global" is a C# keyword and should not be localized.</comment>
   </data>
-  <data name="using_namespace" xml:space="preserve">
-    <value>using namespace</value>
+  <data name="extern_alias" xml:space="preserve">
+    <value>extern alias</value>
   </data>
   <data name="using_directive" xml:space="preserve">
     <value>using directive</value>

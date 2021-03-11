@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' on Me/MyBase/MyClass or is a target of a member initializer in an object member
         ''' initializer.
         ''' </summary>
-        Friend Function IsWritable(receiverOpt As BoundExpression, containingBinder As Binder, isKnownTargetOfObjectMemberInintializer As Boolean) As Boolean
+        Friend Function IsWritable(receiverOpt As BoundExpression, containingBinder As Binder, isKnownTargetOfObjectMemberInitializer As Boolean) As Boolean
             Debug.Assert(containingBinder IsNot Nothing)
 
             Dim mostDerivedSet As MethodSymbol = Me.GetMostDerivedSetMethod()
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ' ok: New C() With { .InitOnlyProperty = ... }
-                If isKnownTargetOfObjectMemberInintializer Then
+                If isKnownTargetOfObjectMemberInitializer Then
                     Debug.Assert(receiverOpt.Kind = BoundKind.WithLValueExpressionPlaceholder)
                     Return True
                 End If
@@ -175,28 +175,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return False
                 End If
 
-                Select Case receiverOpt.Kind
-                    Case BoundKind.WithLValueExpressionPlaceholder
-                        ' This can be a `Me` reference used as a target for a `With` statement
-                        Dim currentBinder As Binder = containingBinder
+                If receiverOpt.Kind = BoundKind.WithLValueExpressionPlaceholder OrElse receiverOpt.Kind = BoundKind.WithRValueExpressionPlaceholder Then
+                    ' This can be a reference used as a target for a `With` statement
+                    Dim currentBinder As Binder = containingBinder
 
-                        While currentBinder IsNot Nothing AndAlso currentBinder.ContainingMember Is containingMember
-                            Dim withBlockBinder = TryCast(currentBinder, WithBlockBinder)
-                            If withBlockBinder IsNot Nothing Then
-                                Return withBlockBinder.Info?.ExpressionPlaceholder Is receiverOpt AndAlso
-                                       withBlockBinder.Info.OriginalExpression.Kind = BoundKind.MeReference
+                    While currentBinder IsNot Nothing AndAlso currentBinder.ContainingMember Is containingMember
+                        Dim withBlockBinder = TryCast(currentBinder, WithBlockBinder)
+                        If withBlockBinder IsNot Nothing Then
+                            If withBlockBinder.Info?.ExpressionPlaceholder Is receiverOpt Then
+                                receiverOpt = withBlockBinder.Info.OriginalExpression
                             End If
 
-                            currentBinder = currentBinder.ContainingBinder
-                        End While
+                            Exit While
+                        End If
 
-                        Return False
+                        currentBinder = currentBinder.ContainingBinder
+                    End While
+                End If
 
-                    Case BoundKind.MeReference, BoundKind.MyBaseReference, BoundKind.MyClassReference
-                        Return True
-                    Case Else
-                        Return False
-                End Select
+                Do
+                    Select Case receiverOpt.Kind
+                        Case BoundKind.MeReference, BoundKind.MyBaseReference, BoundKind.MyClassReference
+                            Return True
+                        Case BoundKind.Parenthesized
+                            receiverOpt = DirectCast(receiverOpt, BoundParenthesized).Expression
+                        Case Else
+                            Return False
+                    End Select
+                Loop
             End If
 
             Dim sourceProperty As SourcePropertySymbol = TryCast(Me, SourcePropertySymbol)
@@ -385,54 +391,74 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
+        Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Me.IsDefinition Then
-                Return MyBase.GetUseSiteErrorInfo()
+                Return New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
             End If
 
-            Return Me.OriginalDefinition.GetUseSiteErrorInfo()
+            Return Me.OriginalDefinition.GetUseSiteInfo()
         End Function
 
-        Friend Function CalculateUseSiteErrorInfo() As DiagnosticInfo
+        Friend Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
 
             Debug.Assert(IsDefinition)
 
             ' Check return type.
-            Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency), DeriveUseSiteInfoFromType(Me.Type))
 
-            If errorInfo IsNot Nothing AndAlso errorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
-                Return errorInfo
+            If useSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return useSiteInfo
             End If
 
             ' Check return type custom modifiers.
-            Dim refModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.RefCustomModifiers)
+            Dim refModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.RefCustomModifiers)
 
-            If refModifiersErrorInfo IsNot Nothing AndAlso refModifiersErrorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
-                Return refModifiersErrorInfo
+            If refModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return refModifiersUseSiteInfo
             End If
 
-            Dim typeModifiersErrorInfo = DeriveUseSiteErrorInfoFromCustomModifiers(Me.TypeCustomModifiers)
+            Dim typeModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.TypeCustomModifiers)
 
-            If typeModifiersErrorInfo IsNot Nothing AndAlso typeModifiersErrorInfo.Code = ERRID.ERR_UnsupportedProperty1 Then
-                Return typeModifiersErrorInfo
+            If typeModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return typeModifiersUseSiteInfo
             End If
-
-            errorInfo = If(errorInfo, If(refModifiersErrorInfo, typeModifiersErrorInfo))
 
             ' Check parameters.
-            Dim result = MergeUseSiteErrorInfo(errorInfo, DeriveUseSiteErrorInfoFromParameters(Me.Parameters))
+            Dim parametersUseSiteInfo = DeriveUseSiteInfoFromParameters(Me.Parameters)
+
+            If parametersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+                Return parametersUseSiteInfo
+            End If
+
+            Dim errorInfo As DiagnosticInfo = If(useSiteInfo.DiagnosticInfo,
+                                              If(refModifiersUseSiteInfo.DiagnosticInfo,
+                                              If(typeModifiersUseSiteInfo.DiagnosticInfo,
+                                                 parametersUseSiteInfo.DiagnosticInfo)))
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
-            If result Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
+            If errorInfo Is Nothing AndAlso Me.ContainingModule.HasUnifiedReferences Then
                 Dim unificationCheckedTypes As HashSet(Of TypeSymbol) = Nothing
-                result = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
-                         If(GetUnificationUseSiteDiagnosticRecursive(Me.RefCustomModifiers, Me, unificationCheckedTypes),
-                         If(GetUnificationUseSiteDiagnosticRecursive(Me.TypeCustomModifiers, Me, unificationCheckedTypes),
-                            GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes))))
+                errorInfo = If(Me.Type.GetUnificationUseSiteDiagnosticRecursive(Me, unificationCheckedTypes),
+                            If(GetUnificationUseSiteDiagnosticRecursive(Me.RefCustomModifiers, Me, unificationCheckedTypes),
+                            If(GetUnificationUseSiteDiagnosticRecursive(Me.TypeCustomModifiers, Me, unificationCheckedTypes),
+                               GetUnificationUseSiteDiagnosticRecursive(Me.Parameters, Me, unificationCheckedTypes))))
+
+                Debug.Assert(errorInfo Is Nothing OrElse errorInfo.Severity = DiagnosticSeverity.Error)
             End If
 
-            Return result
+            If errorInfo IsNot Nothing Then
+                Return New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+            End If
+
+            Dim primaryDependency = useSiteInfo.PrimaryDependency
+            Dim secondaryDependency = useSiteInfo.SecondaryDependencies
+
+            refModifiersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+            typeModifiersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+            parametersUseSiteInfo.MergeDependencies(primaryDependency, secondaryDependency)
+
+            Return New UseSiteInfo(Of AssemblySymbol)(diagnosticInfo:=Nothing, primaryDependency, secondaryDependency)
         End Function
 
         ''' <summary>
@@ -446,7 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = GetUseSiteErrorInfo()
+                Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
                 Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedProperty1
             End Get
         End Property

@@ -30,11 +30,7 @@
 
                     <CheckBox x:Uid="Automatically_show_completion_list_in_argument_lists"
                                   x:Name="Automatically_show_completion_list_in_argument_lists"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Automatically_show_completion_list_in_argument_lists}" 
-                              Checked="Automatically_show_completion_list_in_argument_lists_CheckedChanged"       
-                              Unchecked="Automatically_show_completion_list_in_argument_lists_CheckedChanged"
-                              Indeterminate="Automatically_show_completion_list_in_argument_lists_CheckedChanged"
-                              IsThreeState="True"/>
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Automatically_show_completion_list_in_argument_lists}" />
 
                     <CheckBox x:Uid="Highlight_matching_portions_of_completion_list_items"
                                   x:Name="Highlight_matching_portions_of_completion_list_items"

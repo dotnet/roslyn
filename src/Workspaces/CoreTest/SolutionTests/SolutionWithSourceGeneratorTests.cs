@@ -158,6 +158,36 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task DocumentIdGuidInDifferentProjectsIsDifferent()
+        {
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
+
+            var solutionWithProjects = AddProjectWithReference(workspace.CurrentSolution, analyzerReference);
+            solutionWithProjects = AddProjectWithReference(solutionWithProjects, analyzerReference);
+
+            var projectIds = solutionWithProjects.ProjectIds.ToList();
+
+            var generatedDocumentsInFirstProject = await solutionWithProjects.GetRequiredProject(projectIds[0]).GetSourceGeneratedDocumentsAsync();
+            var generatedDocumentsInSecondProject = await solutionWithProjects.GetRequiredProject(projectIds[1]).GetSourceGeneratedDocumentsAsync();
+
+            // A DocumentId consists of a GUID and then the ProjectId it's within. Even if these two documents have the same GUID,
+            // they'll still be not equal because of the different ProjectIds. However, we'll also assert the GUIDs should be different as well,
+            // because otherwise things can get confusing. If nothing else, the DocumentId debugger display string shows only the GUID, so you could
+            // easily confuse them as being the same.
+            Assert.NotEqual(generatedDocumentsInFirstProject.Single().Id.Id, generatedDocumentsInSecondProject.Single().Id.Id);
+
+            static Solution AddProjectWithReference(Solution solution, TestGeneratorReference analyzerReference)
+            {
+                var project = AddEmptyProject(solution);
+                project = project.AddAnalyzerReference(analyzerReference);
+                project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+                return project.Solution;
+            }
+        }
+
+        [Fact]
         public async Task CompilationsInCompilationReferencesIncludeGeneratedSourceFiles()
         {
             using var workspace = CreateWorkspace();

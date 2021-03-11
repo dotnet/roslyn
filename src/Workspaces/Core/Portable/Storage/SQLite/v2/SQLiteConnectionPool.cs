@@ -36,15 +36,14 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         }
 
         internal void Initialize(
-            Solution? bulkLoadSnapshot,
-            Action<Solution?, SqlConnection, CancellationToken> initializer,
+            Action<SqlConnection, CancellationToken> initializer,
             CancellationToken cancellationToken)
         {
             // This is our startup path.  No other code can be running.  So it's safe for us to access a connection that
             // can talk to the db without having to be on the reader/writer scheduler queue.
             using var _ = GetPooledConnection(checkScheduler: false, out var connection);
 
-            initializer(bulkLoadSnapshot, connection, cancellationToken);
+            initializer(connection, cancellationToken);
         }
 
         public void Dispose()

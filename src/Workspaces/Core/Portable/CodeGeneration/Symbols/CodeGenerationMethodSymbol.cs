@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsReadOnly => Modifiers.IsReadOnly;
         public override bool IsInitOnly { get; }
 
+        public override System.Reflection.MethodImplAttributes MethodImplementationFlags => default;
+
         public override IMethodSymbol OverriddenMethod => null;
 
         public override IMethodSymbol ReducedFrom => null;
@@ -112,5 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override IMethodSymbol PartialImplementationPart => null;
 
         public override IMethodSymbol PartialDefinitionPart => null;
+
+        public override bool IsPartialDefinition => false;
     }
 }
