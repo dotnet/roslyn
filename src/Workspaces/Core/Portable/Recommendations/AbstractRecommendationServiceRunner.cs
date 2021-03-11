@@ -46,24 +46,32 @@ namespace Microsoft.CodeAnalysis.Recommendations
         // where there are more than one overloads of ThenInclude accepting different types of parameters.
         private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position)
         {
+            var symbols = GetMemberSymbolsForParameterWorker(parameter, position);
+            return symbols.IsDefault
+                ? LookupSymbolsInContainer(parameter.Type, position, excludeInstance: false)
+                : symbols;
+        }
+
+        private ImmutableArray<ISymbol> GetMemberSymbolsForParameterWorker(IParameterSymbol parameter, int position)
+        {
             // Starting from a. in the example, looking for a => a.
-            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } containingMethod)
+            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } owningMethod)
                 return default;
 
             // Cannot proceed without DeclaringSyntaxReferences.
             // We expect that there is a single DeclaringSyntaxReferences in the scenario.
             // If anything changes on the compiler side, the approach should be revised.
-            if (containingMethod.DeclaringSyntaxReferences.Length != 1)
+            if (owningMethod.DeclaringSyntaxReferences.Length != 1)
                 return default;
 
             var syntaxFactsService = _context.GetLanguageService<ISyntaxFactsService>();
 
             // Check that a => a. belongs to an invocation.
             // Find its' ordinal in the invocation, e.g. ThenInclude(a => a.Something, a=> a.
-            var lambdaSyntax = containingMethod.DeclaringSyntaxReferences.Single().GetSyntax(_cancellationToken);
+            var lambdaSyntax = owningMethod.DeclaringSyntaxReferences.Single().GetSyntax(_cancellationToken);
             if (!(syntaxFactsService.IsAnonymousFunction(lambdaSyntax) &&
-                syntaxFactsService.IsArgument(lambdaSyntax.Parent) &&
-                syntaxFactsService.IsInvocationExpression(lambdaSyntax.Parent.Parent.Parent)))
+                  syntaxFactsService.IsArgument(lambdaSyntax.Parent) &&
+                  syntaxFactsService.IsInvocationExpression(lambdaSyntax.Parent.Parent.Parent)))
             {
                 return default;
             }
@@ -291,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         {
             // For a normal parameter, we have a specialized codepath we use to ensure we properly get lambda parameter
             // information that the compiler may fail to give.
-            if (container is IParameterSymbol parameter && !parameter.IsThis)
+            if (container is IParameterSymbol { IsThis: false } parameter)
                 return GetMemberSymbolsForParameter(parameter, position);
 
             if (container is not INamespaceOrTypeSymbol namespaceOrType)
