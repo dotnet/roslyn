@@ -178,5 +178,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Command handler name for Edit and Continue file save handler.
         /// </summary>
         public const string EditAndContinueFileSave = "Edit and Continue Save File Handler";
+
+        /// <summary>
+        /// Command handler name for showing the Value Tracking tool window.
+        /// </summary>
+        public const string ShowValueTracking = "Show Value Tracking";
     }
 }
