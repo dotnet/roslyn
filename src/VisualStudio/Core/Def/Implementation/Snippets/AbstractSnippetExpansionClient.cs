@@ -726,7 +726,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            if (SymbolEqualityComparer.Default.Equals(_state._method, method))
+            if (SymbolEquivalenceComparer.Instance.Equals(_state._method, method))
             {
                 return;
             }
