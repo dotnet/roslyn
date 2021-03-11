@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -76,6 +77,7 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
+        [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Benchmarks are equivalent to test methods")]
         public async Task RunAnalyzer()
         {
             await _diagnosticAnalyzerRunner.RunAsync(CancellationToken.None).ConfigureAwait(false);
