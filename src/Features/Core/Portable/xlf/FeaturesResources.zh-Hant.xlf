@@ -90,6 +90,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">新增元組元素名稱 ‘{0}’</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
+        <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
+        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into an interface method will prevent the debug session from continuing.</source>
         <target state="translated">將 '{0}' 新增至介面方法，會造成偵錯工作階段無法繼續。</target>
@@ -124,6 +129,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Alternation conditions do not capture and cannot be named</source>
         <target state="translated">替代條件不會擷取，也無法命名</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
+      </trans-unit>
+      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
+        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
+        <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -203,6 +213,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Changing_0_to_1_will_prevent_the_debug_session_from_continuing_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' will prevent the debug session from continuing because it changes the shape of the state machine.</source>
         <target state="translated">將 '{0}' 變更為 '{1}' 會變更狀態機器的圖形，進而使偵錯工作階段無法繼續。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
+        <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
+        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -2336,6 +2351,11 @@ If the "H" format specifier is used without other custom format specifiers, it's
         <target state="translated">"HH" 自訂格式規範 (加上任意數目的其他 "H" 規範) 代表小時，以數字 00 到 23 表示; 換句話說，小時即為自午夜起所經過的時數，是以零開始的 24 小時制。單一數字的小時格式，開頭不會出現零。</target>
         <note />
       </trans-unit>
+      <trans-unit id="code">
+        <source>code</source>
+        <target state="new">code</target>
+        <note />
+      </trans-unit>
       <trans-unit id="date_separator">
         <source>date separator</source>
         <target state="translated">日期分隔符號</target>
@@ -2491,6 +2511,11 @@ The "f" standard format specifier represents a combination of the long date ("D"
         <source>The "T" standard format specifier represents a custom date and time format string that is defined by a specific culture's DateTimeFormatInfo.LongTimePattern property. For example, the custom format string for the invariant culture is "HH:mm:ss".</source>
         <target state="translated">"T" 標準格式規範代表由特定文化特性的 DateTimeFormatInfo.LongTimePattern 屬性所定義的自訂日期與時間格式字串。例如，不因文化特性而異的自訂格式字串為 "HH:mm:ss"。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="member_kind_and_name">
+        <source>{0} '{1}'</source>
+        <target state="new">{0} '{1}'</target>
+        <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
         <source>minute (1-2 digits)</source>
@@ -2944,11 +2969,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <target state="translated">更新包含 await 運算式的複雜陳述式會阻礙偵錯工作階段繼續進行。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_visibility_of_a_constructor_will_prevent_the_debug_session_from_continuing">
-        <source>Changing visibility of a constructor will prevent the debug session from continuing.</source>
-        <target state="translated">變更建構函式的可見度會阻礙偵錯工作階段繼續進行。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_will_prevent_the_debug_session_from_continuing">
         <source>Capturing variable '{0}' that hasn't been captured before will prevent the debug session from continuing.</source>
         <target state="translated">擷取先前從未擷取過的變數 '{0}'，會讓偵錯工作階段無法繼續。</target>
@@ -3155,8 +3175,8 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
-        <source>Deleting '{0}' will prevent the debug session from continuing.</source>
-        <target state="translated">刪除 '{0}' 會造成偵錯工作階段無法繼續。</target>
+        <source>Deleting {0} will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">刪除 '{0}' 會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3172,11 +3192,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Deleting_a_method_body_will_prevent_the_debug_session_from_continuing">
         <source>Deleting a method body will prevent the debug session from continuing.</source>
         <target state="translated">刪除方法主體，會造成偵錯工作階段無法繼續。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
-        <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="translated">現用陳述式已從其原始方法中移除。您必須還原您的變更才能繼續，或是重新啟動偵錯工作階段。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_async_or_iterator_modifier_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3207,11 +3222,6 @@ If the "g" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Modifying_the_initializer_of_0_in_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Modifying the initializer of '{0}' in a generic type will prevent the debug session from continuing.</source>
         <target state="translated">修改泛型類別中 '{0}' 的初始設定式，會造成偵錯工作階段無法繼續。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Modifying_the_initializer_of_0_in_a_partial_type_will_prevent_the_debug_session_from_continuing">
-        <source>Modifying the initializer of '{0}' in a partial type will prevent the debug session from continuing.</source>
-        <target state="translated">修改部分類型之 '{0}' 的初始設定式，會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_constructor_to_a_type_with_a_field_or_property_initializer_that_contains_an_anonymous_function_will_prevent_the_debug_session_from_continuing">
@@ -3265,8 +3275,8 @@ If the "g" format specifier is used without other custom format specifiers, it's
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
-        <source>Removing '{0}' that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="translated">移除包含現用陳述式的 '{0}'，會造成偵錯工作階段無法繼續。</target>
+        <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
+        <target state="needs-review-translation">移除包含現用陳述式的 '{0}'，會造成偵錯工作階段無法繼續。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -3658,6 +3668,11 @@ When this standard format specifier is used, the formatting or parsing operation
 "s" 格式規範的用途為產生依日期和時間值一致地遞增或遞減排序的結果字串。因此，儘管 "s" 標準格式規範以一致的格式表示日期和時間值，但格式化作業並不會修改要格式化的日期和時間物件值，以反映其 DateTime.Kind 屬性或其 DateTimeOffset.Offset 值。例如，將日期和時間值 2014-11-15T18:32:17+00:00 和 2014-11-15T18:32:17+08:00 格式化所產生的結果字串會完全相同。
 
 使用此標準格式規範時，格式化或剖析作業永遠不因文化特性而異。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="static_constructor">
+        <source>static constructor</source>
+        <target state="new">static constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

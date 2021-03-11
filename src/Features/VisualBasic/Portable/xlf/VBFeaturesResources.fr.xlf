@@ -102,6 +102,11 @@
         <target state="translated">Supprimer le mot clé 'Shared' du membre de module</target>
         <note>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Shared_constructor">
+        <source>Shared constructor</source>
+        <target state="new">Shared constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">Tapez un nom ici pour déclarer un nouveau champ.</target>

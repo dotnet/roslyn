@@ -10,7 +10,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             if (_loggingStream is object)
             {
-                var threadId = Thread.CurrentThread.ManagedThreadId;
+                var threadId = Environment.CurrentManagedThreadId;
                 var prefix = $"PID={_processId} TID={threadId} Ticks={Environment.TickCount} ";
                 string output = prefix + message + Environment.NewLine;
                 byte[] bytes = Encoding.UTF8.GetBytes(output);

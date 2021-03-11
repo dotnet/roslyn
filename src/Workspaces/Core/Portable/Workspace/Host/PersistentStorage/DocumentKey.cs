@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
@@ -20,10 +18,10 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         public readonly ProjectKey Project;
 
         public readonly DocumentId Id;
-        public readonly string FilePath;
+        public readonly string? FilePath;
         public readonly string Name;
 
-        public DocumentKey(ProjectKey project, DocumentId id, string filePath, string name)
+        public DocumentKey(ProjectKey project, DocumentId id, string? filePath, string name)
         {
             Project = project;
             Id = id;
@@ -32,7 +30,10 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         }
 
         public static DocumentKey ToDocumentKey(Document document)
-            => new(ProjectKey.ToProjectKey(document.Project), document.Id, document.FilePath, document.Name);
+            => ToDocumentKey(ProjectKey.ToProjectKey(document.Project), document.State);
+
+        public static DocumentKey ToDocumentKey(ProjectKey projectKey, TextDocumentState state)
+            => new(projectKey, state.Id, state.FilePath, state.Name);
 
         public SerializableDocumentKey Dehydrate()
             => new(Project.Dehydrate(), Id, FilePath, Name);
@@ -48,12 +49,12 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         public readonly DocumentId Id;
 
         [DataMember(Order = 2)]
-        public readonly string FilePath;
+        public readonly string? FilePath;
 
         [DataMember(Order = 3)]
         public readonly string Name;
 
-        public SerializableDocumentKey(SerializableProjectKey project, DocumentId id, string filePath, string name)
+        public SerializableDocumentKey(SerializableProjectKey project, DocumentId id, string? filePath, string name)
         {
             Project = project;
             Id = id;

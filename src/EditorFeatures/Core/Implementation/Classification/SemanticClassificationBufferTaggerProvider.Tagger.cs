@@ -46,7 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _subjectBuffer = subjectBuffer;
 
                 const TaggerDelay Delay = TaggerDelay.Short;
-                _eventSource = TaggerEventSources.Compose(
+
+                // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
+                // semantics (esp. during solution load).  Because of this, we also register to hear when the full
+                // compilation is available so that reclassify and bring ourselves up to date.
+                _eventSource = new CompilationAvailableTaggerEventSource(
+                    subjectBuffer, Delay,
+                    owner.ThreadingContext,
+                    asyncListener,
                     TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, asyncListener),
                     TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
 

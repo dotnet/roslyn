@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
                 public static readonly State Empty = new(
                     compilationWithoutGeneratedDocuments: null,
                     declarationOnlyCompilation: null,
-                    generatedDocuments: ImmutableArray<SourceGeneratedDocumentState>.Empty,
+                    generatedDocuments: TextDocumentStates<SourceGeneratedDocumentState>.Empty,
                     generatedDocumentsAreFinal: false);
 
                 /// <summary>
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
                 /// The best generated documents we have for the current state. <see cref="GeneratedDocumentsAreFinal"/> specifies whether the
                 /// documents are to be considered final and can be reused, or whether they're from a prior snapshot which needs to be recomputed.
                 /// </summary>
-                public ImmutableArray<SourceGeneratedDocumentState> GeneratedDocuments { get; }
+                public TextDocumentStates<SourceGeneratedDocumentState> GeneratedDocuments { get; }
 
                 /// <summary>
                 /// Whether the generated documents in <see cref="GeneratedDocuments"/> are final and should not be regenerated. It's important
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
                 protected State(
                     ValueSource<Optional<Compilation>>? compilationWithoutGeneratedDocuments,
                     Compilation? declarationOnlyCompilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     bool generatedDocumentsAreFinal)
                 {
                     // Declaration-only compilations should never have any references
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
 
                 public static State Create(
                     Compilation compilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     ImmutableArray<ValueTuple<ProjectState, CompilationAndGeneratorDriverTranslationAction>> intermediateProjects)
                 {
                     Contract.ThrowIfTrue(intermediateProjects.IsDefault);
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis
 
                 public InProgressState(
                     Compilation inProgressCompilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     ImmutableArray<(ProjectState state, CompilationAndGeneratorDriverTranslationAction action)> intermediateProjects)
                     : base(compilationWithoutGeneratedDocuments: new ConstantValueSource<Optional<Compilation>>(inProgressCompilation),
                            declarationOnlyCompilation: null,
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis
             private sealed class LightDeclarationState : State
             {
                 public LightDeclarationState(Compilation declarationOnlyCompilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     bool generatedDocumentsAreFinal)
                     : base(compilationWithoutGeneratedDocuments: null,
                            declarationOnlyCompilation,
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             private sealed class FullDeclarationState : State
             {
                 public FullDeclarationState(Compilation declarationCompilation,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     bool generatedDocumentsAreFinal)
                     : base(new WeakValueSource<Compilation>(declarationCompilation),
                            declarationCompilation.Clone().RemoveAllReferences(),
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     UnrootedSymbolSet unrootedSymbolSet)
                     : base(compilationWithoutGeneratedFilesSource,
                            compilationWithoutGeneratedFiles.Clone().RemoveAllReferences(),
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis
                     ValueSource<Optional<Compilation>> compilationWithoutGeneratedFilesSource,
                     Compilation compilationWithoutGeneratedFiles,
                     bool hasSuccessfullyLoaded,
-                    ImmutableArray<SourceGeneratedDocumentState> generatedDocuments,
+                    TextDocumentStates<SourceGeneratedDocumentState> generatedDocuments,
                     Compilation finalCompilation,
                     ProjectId projectId,
                     Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
