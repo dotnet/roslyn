@@ -689,12 +689,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // used on their own or in the context of methods.
 
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
-
-            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName)
-                && (symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: SignatureOnlyParameterSymbol } // SignatureOnlyParameterSymbol.ContainingSymbol throws NotSupportedException
-                || symbol.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.FunctionPointerSignature });
-
+            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
+                symbol.Name.Length != 0;
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
+            var includeOption = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
+                format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
+                symbol.HasExplicitDefaultValue &&
+                CanAddConstant(symbol.Type, symbol.ExplicitDefaultValue);
 
             if (includeBrackets && symbol.IsOptional)
             {
@@ -716,26 +717,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
             }
 
-            if (includeName && includeType)
-            {
-                AddSpace();
-            }
-
             if (includeName)
             {
-                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
-                builder.Add(CreatePart(kind, symbol, symbol.Name));
-
-                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
-                    symbol.HasExplicitDefaultValue &&
-                    CanAddConstant(symbol.Type, symbol.ExplicitDefaultValue))
+                if (includeType)
                 {
                     AddSpace();
-                    AddPunctuation(SyntaxKind.EqualsToken);
-                    AddSpace();
-
-                    AddConstantValue(symbol.Type, symbol.ExplicitDefaultValue);
                 }
+                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
+                builder.Add(CreatePart(kind, symbol, symbol.Name));
+            }
+
+            if (includeOption)
+            {
+                if (includeName || includeType)
+                {
+                    AddSpace();
+                }
+                AddPunctuation(SyntaxKind.EqualsToken);
+                AddSpace();
+
+                AddConstantValue(symbol.Type, symbol.ExplicitDefaultValue);
             }
 
             if (includeBrackets && symbol.IsOptional)
