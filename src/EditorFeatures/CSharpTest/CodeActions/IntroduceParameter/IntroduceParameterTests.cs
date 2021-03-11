@@ -93,7 +93,7 @@ class TestClass
 
     void M1(int x, int y, int z) 
     {
-        M(z, y, x, z * y* x);
+        M(z, y, x, z * y * x);
     }
 }";
 
@@ -189,8 +189,8 @@ class TestClass
 
     void M1(int x, int y, int z) 
     {
-        M(a + b, 5, x, (a + b)* 5* x);
-        M(z, y, x, z * y* x);
+        M(a + b, 5, x, (a + b) * 5 * x);
+        M(z, y, x, z * y * x);
     }
 }";
 
@@ -228,7 +228,7 @@ class TestClass
 
     void M1(int x, int y, int z) 
     {
-        M(a + b, 5, x, (a + b)* 5* x);
+        M(a + b, 5, x, (a + b) * 5 * x);
     }
 }";
 
@@ -418,7 +418,6 @@ class TestClass
         M(z, y, x);
     }
 }";
-
             await TestInRegularAndScriptAsync(code, expected, index: 4);
         }
 
@@ -443,10 +442,36 @@ class TestClass
     int M(int x, int y, int z, int v)
     {
         int m = {|Rename:v|};
-        return M(x, x, z, x * x* z);
+        return M(x, x, z, x * x * z);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithNestedRecursiveCall()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y, int z)
+    {
+        int m = [|x * y * z|];
+        return M(x, x, M(x, y, z));
     }
 }";
 
+            var expected =
+@"using System;
+class TestClass
+{
+    int M(int x, int y, int z, int v)
+    {
+        int m = {|Rename:v|};
+        return M(x, x, M(x, y, z, x * y * z), x * x * M(x, y, z, x * y * z));
+    }
+}";
             await TestInRegularAndScriptAsync(code, expected, index: 0);
         }
     }
