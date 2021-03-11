@@ -6,20 +6,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO.Pipes;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.IO;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
 using Xunit.Abstractions;
+using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -30,71 +26,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public CompilerServerApiTest(ITestOutputHelper testOutputHelper)
         {
             Logger = new XunitCompilerServerLogger(testOutputHelper);
-        }
-
-        private const string HelloWorldSourceText = @"
-using System;
-class Hello
-{
-    static void Main()
-    {
-        Console.WriteLine(""Hello, world.""); 
-    }
-}";
-
-        private static Task TaskFromException(Exception e)
-        {
-            return TaskFromException<bool>(e);
-        }
-
-        private static Task<T> TaskFromException<T>(Exception e)
-        {
-            var source = new TaskCompletionSource<T>();
-            source.SetException(e);
-            return source.Task;
-        }
-
-        private async Task<BuildRequest> CreateBuildRequest(string sourceText, TimeSpan? keepAlive = null)
-        {
-            var directory = Temp.CreateDirectory();
-            var file = directory.CreateFile("temp.cs");
-            await file.WriteAllTextAsync(sourceText).ConfigureAwait(false);
-
-            var builder = ImmutableArray.CreateBuilder<BuildRequest.Argument>();
-            if (keepAlive.HasValue)
-            {
-                builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.KeepAlive, argumentIndex: 0, value: keepAlive.Value.TotalSeconds.ToString()));
-            }
-
-            builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CurrentDirectory, argumentIndex: 0, value: directory.Path));
-            builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, argumentIndex: 0, value: file.Path));
-
-            return new BuildRequest(
-                BuildProtocolConstants.ProtocolVersion,
-                RequestLanguage.CSharpCompile,
-                BuildProtocolConstants.GetCommitHash(),
-                builder.ToImmutable());
-        }
-
-        /// <summary>
-        /// Run a C# compilation against the given source text using the provided named pipe name.
-        /// </summary>
-        private async Task<BuildResponse> RunCSharpCompile(string pipeName, string sourceText, TimeSpan? keepAlive = null)
-        {
-            using (var namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut))
-            {
-                var buildRequest = await CreateBuildRequest(sourceText, keepAlive).ConfigureAwait(false);
-                namedPipe.Connect(Timeout.Infinite);
-                await buildRequest.WriteAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
-                return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
-            }
-        }
-
-        private static Task<T> FromException<T>(Exception ex)
-        {
-            var source = new TaskCompletionSource<T>();
-            source.SetException(ex);
-            return source.Task;
         }
 
         [Fact]
