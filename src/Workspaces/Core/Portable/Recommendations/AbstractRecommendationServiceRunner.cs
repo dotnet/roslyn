@@ -44,22 +44,17 @@ namespace Microsoft.CodeAnalysis.Recommendations
         // This code is to help give intellisense in the following case: 
         // query.Include(a => a.SomeProperty).ThenInclude(a => a.
         // where there are more than one overloads of ThenInclude accepting different types of parameters.
-        protected ImmutableArray<ISymbol> GetSymbols(IParameterSymbol parameter, int position)
+        private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position)
         {
             // Starting from a. in the example, looking for a => a.
-            if (!(parameter.ContainingSymbol is IMethodSymbol containingMethod &&
-                containingMethod.MethodKind == MethodKind.AnonymousFunction))
-            {
+            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } containingMethod)
                 return default;
-            }
 
             // Cannot proceed without DeclaringSyntaxReferences.
             // We expect that there is a single DeclaringSyntaxReferences in the scenario.
             // If anything changes on the compiler side, the approach should be revised.
             if (containingMethod.DeclaringSyntaxReferences.Length != 1)
-            {
                 return default;
-            }
 
             var syntaxFactsService = _context.Workspace.Services.GetLanguageServices(_context.SemanticModel.Language).GetService<ISyntaxFactsService>();
 
@@ -103,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             // parameter the compiler inferred as it may have made a completely suitable inference for it.
             return parameterTypeSymbols
                 .Concat(parameter.Type)
-                .SelectMany(parameterTypeSymbol => GetSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false))
+                .SelectMany(parameterTypeSymbol => GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false))
                 .ToImmutableArray();
         }
 
@@ -288,15 +283,23 @@ namespace Microsoft.CodeAnalysis.Recommendations
                                               declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
         }
 
-        protected ImmutableArray<ISymbol> GetSymbols(
-            INamespaceOrTypeSymbol container,
+        protected ImmutableArray<ISymbol> GetMemberSymbols(
+            ISymbol container,
             int position,
             bool excludeInstance,
             bool useBaseReferenceAccessibility)
         {
+            // For a normal parameter, we have a specialized codepath we use to ensure we properly get lambda parameter
+            // information that the compiler may fail to give.
+            if (container is IParameterSymbol parameter && !parameter.IsThis)
+                return GetMemberSymbolsForParameter(parameter, position);
+
+            if (container is not INamespaceOrTypeSymbol namespaceOrType)
+                return ImmutableArray<ISymbol>.Empty;
+
             return useBaseReferenceAccessibility
                 ? _context.SemanticModel.LookupBaseMembers(position)
-                : LookupSymbolsInContainer(container, position, excludeInstance);
+                : LookupSymbolsInContainer(namespaceOrType, position, excludeInstance);
         }
 
         protected ImmutableArray<ISymbol> LookupSymbolsInContainer(
