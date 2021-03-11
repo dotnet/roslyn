@@ -21,12 +21,18 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
     internal readonly struct RecommendedSymbols
     {
-        private readonly ImmutableArray<ISymbol> _symbols;
+        private readonly ImmutableArray<ISymbol> _namedSymbols;
+        private readonly ImmutableArray<ISymbol> _unnamedSymbols;
 
         /// <summary>
-        /// The symbols to recommend.
+        /// The named symbols to recommend.
         /// </summary>
-        public ImmutableArray<ISymbol> Symbols => _symbols.NullToEmpty();
+        public ImmutableArray<ISymbol> NamedSymbols => _namedSymbols.NullToEmpty();
+
+        /// <summary>
+        /// The unnamed symbols to recommend.  For example, operators, conversions and indexers.
+        /// </summary>
+        public ImmutableArray<ISymbol> UnnamedSymbols => _unnamedSymbols.NullToEmpty();
 
         /// <summary>
         /// The container the recommended symbols were found within if this we are recommending items after dotting into
@@ -35,24 +41,31 @@ namespace Microsoft.CodeAnalysis.Recommendations
         public readonly INamespaceOrTypeSymbol? Container;
 
         /// <summary>
-        /// Whether the container represents an instace of a type or the type itself.  For example <c>Int32.TryParse</c>
-        /// vs <c>0.ToString()</c>.  In both cases the container will be <see cref="System.Int32"/>. In the former case
-        /// the container will not be an instance, but in the latter case it will be.
+        /// Whether the container represents an instance of a type or the type itself.  For example
+        /// <c>Int32.TryParse</c> vs <c>0.ToString()</c>.  In both cases the container will be <see
+        /// cref="System.Int32"/>. In the former case the container will not be an instance, but in the latter case it
+        /// will be.
         /// </summary>
         public readonly bool IsInstance;
 
-        public RecommendedSymbols(ImmutableArray<ISymbol> symbols) : this(symbols, null, false)
+        public RecommendedSymbols(ImmutableArray<ISymbol> namedSymbols)
+            : this(namedSymbols, default, null, false)
         {
         }
 
-        public RecommendedSymbols(ImmutableArray<ISymbol> symbols, INamespaceOrTypeSymbol? container, bool isInstance)
+        public RecommendedSymbols(
+            ImmutableArray<ISymbol> namedSymbols,
+            ImmutableArray<ISymbol> unnamedSymbols,
+            INamespaceOrTypeSymbol? container,
+            bool isInstance)
         {
-            _symbols = symbols;
+            _namedSymbols = namedSymbols;
+            _unnamedSymbols = unnamedSymbols;
             Container = container;
             IsInstance = isInstance;
         }
 
-        public RecommendedSymbols WithSymbols(ImmutableArray<ISymbol> symbols)
-            => new(symbols, Container, IsInstance);
+        public RecommendedSymbols WithNamedSymbols(ImmutableArray<ISymbol> namedSymbols)
+            => new(namedSymbols, UnnamedSymbols, Container, IsInstance);
     }
 }

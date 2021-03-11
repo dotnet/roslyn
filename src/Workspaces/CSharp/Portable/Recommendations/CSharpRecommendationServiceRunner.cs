@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
                 var typeMembers = GetSymbolsOffOfBoundExpression(originalExpression, expression, speculativeSymbolInfo, container);
 
-                result = result.WithSymbols(result.Symbols.Concat(typeMembers.Symbols));
+                result = result.WithNamedSymbols(result.NamedSymbols.Concat(typeMembers.NamedSymbols));
             }
 
             return result;
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (excludeStatic)
                 symbols = symbols.WhereAsArray(s => !s.IsStatic && !(s is ITypeSymbol));
 
-            return new RecommendedSymbols(symbols, container, isInstance: excludeStatic);
+            return new RecommendedSymbols(symbols, default, container, isInstance: excludeStatic);
         }
     }
 }

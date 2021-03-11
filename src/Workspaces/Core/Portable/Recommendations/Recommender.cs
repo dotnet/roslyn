@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             options ??= workspace.Options;
             var languageRecommender = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<IRecommendationService>();
 
-            return languageRecommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken).Symbols;
+            return languageRecommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken).NamedSymbols;
         }
 
         public static IEnumerable<ISymbol> GetRecommendedSymbolsAtPosition(

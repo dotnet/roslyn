@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language);
             var result = CreateRunner(context, filterOutOfScopeLocals, cancellationToken).GetRecommendedSymbols();
 
-            var symbols = result.Symbols;
+            var symbols = result.NamedSymbols;
             if (symbols.Length > 0)
             {
                 var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language);
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
                 var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(context, cancellationToken);
                 symbols = symbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
-                result = result.WithSymbols(symbols);
+                result = result.WithNamedSymbols(symbols);
             }
 
             return result;
