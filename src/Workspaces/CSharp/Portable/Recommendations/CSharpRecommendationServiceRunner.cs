@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             // If we're showing instance members, don't include nested types
             if (excludeStatic)
-                symbols = symbols.WhereAsArray(s => !s.IsStatic && !(s is ITypeSymbol));
+                symbols = symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol));
 
             return new RecommendedSymbols(symbols, default, container, isInstance: excludeStatic);
         }
