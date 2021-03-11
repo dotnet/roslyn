@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Sources = new SourceFileList(DefaultPrefix, DefaultExtension);
 
             Sources.AddRange(sourceState.Sources);
+            GeneratedSources.AddRange(sourceState.GeneratedSources);
             AdditionalFiles.AddRange(sourceState.AdditionalFiles);
             AnalyzerConfigFiles.AddRange(sourceState.AnalyzerConfigFiles);
             AdditionalFilesFactories.AddRange(sourceState.AdditionalFilesFactories);
@@ -63,6 +64,8 @@ namespace Microsoft.CodeAnalysis.Testing
         /// the <see cref="SourceFileList.Add(string)"/> methods.
         /// </summary>
         public SourceFileList Sources { get; }
+
+        public SourceFileCollection GeneratedSources { get; } = new SourceFileCollection();
 
         public SourceFileCollection AdditionalFiles { get; } = new SourceFileCollection();
 

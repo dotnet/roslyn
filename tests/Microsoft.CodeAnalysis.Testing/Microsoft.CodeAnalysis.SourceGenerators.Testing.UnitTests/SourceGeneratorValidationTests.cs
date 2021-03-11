@@ -26,12 +26,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         @"// Comment",
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        @"// Comment",
                         ("Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFile\\EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
                     },
                 },
@@ -49,12 +45,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         @"// Comment",
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        @"// Comment",
                         (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", string.Empty),
                     },
                 },
@@ -72,12 +64,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     {
                         @"// Comment",
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        @"// Comment",
                         (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
                     },
                 },
@@ -94,10 +82,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     Sources =
                     {
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
                         (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", string.Empty),
                     },
@@ -114,14 +99,10 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     Sources =
                     {
-                        @"// Comment",
-                    },
-                },
-                FixedState =
-                {
-                    Sources =
-                    {
                         @"{|#0:|}// Comment",
+                    },
+                    GeneratedSources =
+                    {
                         ("Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFileWithDiagnostic\\EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.UTF8)),
                     },
                     ExpectedDiagnostics =
