@@ -417,97 +417,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             ExpressionSyntax originalExpression,
             ExpressionSyntax expression,
             SymbolInfo leftHandBinding,
-            INamespaceOrTypeSymbol container)
+            ITypeSymbol containerType)
         {
             var useBaseReferenceAccessibility = false;
             var excludeInstance = false;
-            var excludeStatic = false;
-            var symbol = leftHandBinding.GetAnySymbol();
-            ImmutableArray<ISymbol> symbols = default;
+            var excludeStatic = true;
 
+            var symbol = leftHandBinding.GetAnySymbol();
+
+            INamespaceOrTypeSymbol containerNamespaceOrType = containerType;
             if (symbol != null)
             {
                 // If the thing on the left is a type, namespace or alias and the original
                 // expression was parenthesized, we shouldn't show anything in IntelliSense.
                 if (originalExpression.IsKind(SyntaxKind.ParenthesizedExpression) &&
-                    symbol.MatchesKind(SymbolKind.NamedType,
-                                       SymbolKind.Namespace,
-                                       SymbolKind.Alias))
+                    symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.Alias)
                 {
                     return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // If the thing on the left is a lambda expression, we shouldn't show anything.
-                if (symbol.Kind == SymbolKind.Method &&
-                    ((IMethodSymbol)symbol).MethodKind == MethodKind.AnonymousFunction)
-                {
+                if (symbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction })
                     return ImmutableArray<ISymbol>.Empty;
-                }
 
                 // If the thing on the left is a method name identifier, we shouldn't show anything.
                 var originalExpressionKind = originalExpression.Kind();
-                if (symbol.Kind == SymbolKind.Method &&
-                    (originalExpressionKind == SyntaxKind.IdentifierName || originalExpressionKind == SyntaxKind.GenericName))
+                if (symbol.Kind is SymbolKind.Method &&
+                    originalExpressionKind is SyntaxKind.IdentifierName or SyntaxKind.GenericName)
                 {
                     return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // If the thing on the left is an event that can't be used as a field, we shouldn't show anything
-                if (symbol.Kind == SymbolKind.Event &&
-                    !_context.SemanticModel.IsEventUsableAsField(originalExpression.SpanStart, (IEventSymbol)symbol))
+                if (symbol is IEventSymbol ev &&
+                    !_context.SemanticModel.IsEventUsableAsField(originalExpression.SpanStart, ev))
                 {
                     return ImmutableArray<ISymbol>.Empty;
                 }
 
                 // If the thing on the left is a this parameter (e.g. this or base) and we're in a static context,
                 // we shouldn't show anything
-                if (symbol.IsThisParameter() &&
-                    expression.IsInStaticContext())
-                {
+                if (symbol.IsThisParameter() && expression.IsInStaticContext())
                     return ImmutableArray<ISymbol>.Empty;
+
+                if (symbol is IAliasSymbol alias)
+                    symbol = alias.Target;
+
+                if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace)
+                {
+                    // For named typed and namespaces, we flip things around.  We only want statics and not instance members.
+                    excludeInstance = true;
+                    excludeStatic = false;
+                    containerNamespaceOrType = (INamespaceOrTypeSymbol)symbol;
                 }
 
-                // What is the thing on the left?
-                switch (symbol.Kind)
+                if (symbol is IParameterSymbol parameter)
                 {
-                    case SymbolKind.NamedType:
-                    case SymbolKind.Namespace:
-                        excludeInstance = true;
-                        container = (INamespaceOrTypeSymbol)symbol;
-                        break;
-
-                    case SymbolKind.Alias:
-                        excludeInstance = true;
-                        container = ((IAliasSymbol)symbol).Target;
-                        break;
-
-                    case SymbolKind.Parameter:
-                        var parameter = (IParameterSymbol)symbol;
-
-                        excludeStatic = true;
-
-                        symbols = GetSymbols(parameter, originalExpression.SpanStart);
-
-                        // case:
-                        //    base.|
-                        if (parameter.IsThis && !object.Equals(parameter.Type, container))
-                        {
-                            useBaseReferenceAccessibility = true;
-                        }
-
-                        break;
-
-                    default:
-                        excludeStatic = true;
-                        break;
+                    // case:
+                    //    base.|
+                    useBaseReferenceAccessibility = parameter.IsThis && !parameter.Type.Equals(containerType);
                 }
             }
-            else if (container != null)
+            else if (containerType != null)
             {
+                // Otherwise, if it wasn't a symbol on the left, but it was something that had a type,
+                // then include instance members for it.
                 excludeStatic = true;
             }
             else
             {
+                // Otherwise, we don't have a symbol, or a type.  So we have nothing to return.
                 return ImmutableArray<ISymbol>.Empty;
             }
 
@@ -522,18 +501,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 excludeStatic = false;
             }
 
-            if (symbols.IsDefault)
-            {
-                symbols = GetSymbols(
-                    container,
-                    position: originalExpression.SpanStart,
-                    excludeInstance: excludeInstance,
-                    useBaseReferenceAccessibility: useBaseReferenceAccessibility);
-            }
+            var symbols = GetSymbols(containerNamespaceOrType, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility);
 
             // If we're showing instance members, don't include nested types
             return excludeStatic
-                ? symbols.WhereAsArray(s => !s.IsStatic && !(s is ITypeSymbol))
+                ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
                 : symbols;
         }
     }
