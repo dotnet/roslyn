@@ -935,6 +935,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.IsKind(SyntaxKind.NamespaceBlock)
         End Function
 
+        Public Function GetNameOfNamespaceDeclaration(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetNameOfNamespaceDeclaration
+            If IsNamespaceDeclaration(node) Then
+                Return DirectCast(node, NamespaceBlockSyntax).NamespaceStatement.Name
+            End If
+
+            Return Nothing
+        End Function
+
         Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
             Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
         End Function

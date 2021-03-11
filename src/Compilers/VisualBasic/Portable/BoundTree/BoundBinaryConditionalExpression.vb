@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Else
                     If Not Type.IsSameTypeIgnoringAll(TestExpression.Type.GetNullableUnderlyingTypeOrSelf()) Then
-                        Dim conversion As ConversionKind = Conversions.ClassifyDirectCastConversion(TestExpression.Type, Type, Nothing)
+                        Dim conversion As ConversionKind = Conversions.ClassifyDirectCastConversion(TestExpression.Type, Type, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                         Debug.Assert(Conversions.IsWideningConversion(conversion) AndAlso Conversions.IsCLRPredefinedConversion(conversion))
                     End If
                 End If

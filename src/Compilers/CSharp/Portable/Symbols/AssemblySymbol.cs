@@ -86,6 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         AssemblyIdentity IAssemblySymbolInternal.Identity => Identity;
 
+        IAssemblySymbolInternal IAssemblySymbolInternal.CorLibrary => CorLibrary;
+
         /// <summary>
         /// Assembly version pattern with wildcards represented by <see cref="ushort.MaxValue"/>,
         /// or null if the version string specified in the <see cref="AssemblyVersionAttribute"/> doesn't contain a wildcard.
@@ -426,17 +428,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool RuntimeSupportsDefaultInterfaceImplementation
         {
-            get => GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces) is object;
+            get => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces);
         }
 
-        // https://github.com/dotnet/roslyn/issues/46676: Remove when we have a runtime that supports this to test with
-        private bool _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
-        internal void SetOverrideRuntimeSupportsUnmanagedSignatureCallingConvention()
-            => _overrideRuntimeSupportUnmanagedSignatureCallingConvention = true;
+        private bool RuntimeSupportsFeature(SpecialMember feature)
+        {
+            Debug.Assert((SpecialType)SpecialMembers.GetDescriptor(feature).DeclaringTypeId == SpecialType.System_Runtime_CompilerServices_RuntimeFeature);
+            return GetSpecialType(SpecialType.System_Runtime_CompilerServices_RuntimeFeature) is { TypeKind: TypeKind.Class, IsStatic: true } &&
+                   GetSpecialTypeMember(feature) is object;
+        }
 
         internal bool RuntimeSupportsUnmanagedSignatureCallingConvention
-            => GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention) is object
-               || _overrideRuntimeSupportUnmanagedSignatureCallingConvention;
+            => RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention);
 
         /// <summary>
         /// True if the target runtime support covariant returns of methods declared in classes.
@@ -447,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // check for the runtime feature indicator and the required attribute.
                 return
-                    GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) is { } &&
+                    RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses) &&
                     GetSpecialType(SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute) is { TypeKind: TypeKind.Class };
             }
         }

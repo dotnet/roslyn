@@ -8207,6 +8207,27 @@ public class C {
             await test.RunAsync();
         }
 
+        [WorkItem(51123, "https://github.com/dotnet/roslyn/issues/51123")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DoRemoveNativeIntCastsToInt()
+        {
+            var source =
+@"using System;
+
+public class C {
+    public int N(IntPtr x) => (int)(nint)x;
+}";
+
+            var test = new VerifyCS.Test()
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9
+            };
+
+            await test.RunAsync();
+        }
+
         [WorkItem(47800, "https://github.com/dotnet/roslyn/issues/47800")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoRemoveNativeUIntCasts()

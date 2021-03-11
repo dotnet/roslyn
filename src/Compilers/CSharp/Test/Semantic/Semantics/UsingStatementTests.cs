@@ -1804,6 +1804,34 @@ class C
                 );
         }
 
+        [Fact]
+        public void SemanticModel_02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.IDisposable i = null;
+
+        using (i)
+        {
+            int x;
+            x = 1;
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("run-nullable-analysis", "never"));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(node).Type.SpecialType);
+        }
 
         #region help method
 

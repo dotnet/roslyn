@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
     internal partial class InvocationExpressionSignatureHelpProviderBase
     {
-        private static IList<SignatureHelpItem> GetDelegateInvokeItems(
+        private static IList<SignatureHelpItem>? GetDelegateInvokeItems(
             InvocationExpressionSyntax invocationExpression, SemanticModel semanticModel, IAnonymousTypeDisplayService anonymousTypeDisplayService,
             IDocumentationCommentFormattingService documentationCommentFormattingService, ISymbol within, INamedTypeSymbol delegateType, out int? selectedItem, CancellationToken cancellationToken)
         {

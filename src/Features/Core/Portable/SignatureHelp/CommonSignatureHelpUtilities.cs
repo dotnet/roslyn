@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 return new SignatureHelpState(
                     argumentIndex,
                     argumentCount,
-                    argumentIndex < argumentNames.Count ? argumentNames[argumentIndex] : null,
+                    argumentIndex < argumentNames.Count ? argumentNames[argumentIndex] : string.Empty,
                     argumentNames.Where(s => s != null).ToList());
             }
 

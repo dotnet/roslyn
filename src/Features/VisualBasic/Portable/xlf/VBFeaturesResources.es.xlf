@@ -112,6 +112,11 @@
         <target state="translated">Nota: La inclusión de espacios está deshabilitada para evitar posibles interferencias. Para insertar un nombre de la lista, utilice el carácter de tabulación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="new_field">
         <source>&lt;new field&gt;</source>
         <target state="translated">&lt;nuevo campo&gt;</target>

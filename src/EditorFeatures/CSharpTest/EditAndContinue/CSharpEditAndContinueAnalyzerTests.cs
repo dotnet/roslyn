@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     
 }
 ";
-            TestSpans(source, kind => TopSyntaxComparer.HasLabel(kind));
+            TestSpans(source, kind => SyntaxComparer.TopLevel.HasLabel(kind));
         }
 
         [Fact]
@@ -231,7 +232,7 @@ class C
             // TODO: test
             // /*<span>*/F($$from a in b from c in d select a.x);/*</span>*/
             // /*<span>*/F(from a in b $$from c in d select a.x);/*</span>*/
-            TestSpans(source, StatementSyntaxComparer.IgnoreLabeledChild);
+            TestSpans(source, kind => SyntaxComparer.Statement.HasLabel(kind));
         }
 
         /// <summary>
@@ -240,8 +241,8 @@ class C
         [Fact]
         public void ErrorSpansAllKinds()
         {
-            TestErrorSpansAllKinds(StatementSyntaxComparer.IgnoreLabeledChild);
-            TestErrorSpansAllKinds(kind => TopSyntaxComparer.HasLabel(kind));
+            TestErrorSpansAllKinds(kind => SyntaxComparer.Statement.HasLabel(kind));
+            TestErrorSpansAllKinds(kind => SyntaxComparer.TopLevel.HasLabel(kind));
         }
 
         [Fact]

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
@@ -59,9 +60,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// or if the compilation has semantic errors.
         /// </summary>
         /// <remarks>
-        /// Sorted by <see cref="LineChange.OldLine"/>
+        /// Sorted by <see cref="SourceLineUpdate.OldLine"/>
         /// </remarks>
-        public ImmutableArray<LineChange> LineEdits { get; }
+        public ImmutableArray<SourceLineUpdate> LineEdits { get; }
 
         /// <summary>
         /// The compilation has compilation errors (syntactic or semantic), 
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             ImmutableArray<RudeEditDiagnostic> rudeEdits,
             ImmutableArray<SemanticEdit> semanticEditsOpt,
             ImmutableArray<ImmutableArray<LinePositionSpan>> exceptionRegionsOpt,
-            ImmutableArray<LineChange> lineEditsOpt,
+            ImmutableArray<SourceLineUpdate> lineEditsOpt,
             bool? hasSemanticErrors)
         {
             Debug.Assert(!rudeEdits.IsDefault);
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 ImmutableArray<RudeEditDiagnostic>.Empty,
                 ImmutableArray<SemanticEdit>.Empty,
                 exceptionRegionsOpt,
-                ImmutableArray<LineChange>.Empty,
+                ImmutableArray<SourceLineUpdate>.Empty,
                 hasSemanticErrors: null);
         }
 

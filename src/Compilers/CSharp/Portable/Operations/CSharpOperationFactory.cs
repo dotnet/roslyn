@@ -1624,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (enumeratorInfoOpt != null)
             {
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var compilation = (CSharpCompilation)_semanticModel.Compilation;
 
                 var iDisposable = enumeratorInfoOpt.IsAsync
@@ -1641,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                      compilation.Conversions.
                                                                                          ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType,
                                                                                                                             iDisposable,
-                                                                                                                            ref useSiteDiagnostics).IsImplicit :
+                                                                                                                            ref discardedUseSiteInfo).IsImplicit :
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     enumeratorInfoOpt.CurrentConversion,

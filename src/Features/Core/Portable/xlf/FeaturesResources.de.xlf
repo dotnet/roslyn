@@ -2070,6 +2070,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Umbruch</target>
         <note />
       </trans-unit>
+      <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
+        <source>You can use the navigation bar to switch contexts.</source>
+        <target state="new">You can use the navigation bar to switch contexts.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
         <target state="translated">"{0}" kann nicht NULL oder leer sein.</target>
@@ -3386,18 +3391,13 @@ Möchten Sie fortfahren?</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_Available">
-        <source>Not Available</source>
-        <target state="translated">Nicht verfügbar</target>
+        <source>Not Available ⚠</source>
+        <target state="needs-review-translation">Nicht verfügbar</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
         <source>    {0} - {1}</source>
         <target state="translated">    {0} - {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="You_can_use_the_navigation_bar_to_switch_context">
-        <source>You can use the navigation bar to switch context.</source>
-        <target state="translated">Sie können die Navigationsleiste verwenden, um den Kontext zu wechseln.</target>
         <note />
       </trans-unit>
       <trans-unit id="in_Source">

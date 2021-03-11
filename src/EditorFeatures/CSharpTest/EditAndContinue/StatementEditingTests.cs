@@ -1841,7 +1841,10 @@ foreach (var (a, b) in e1) { }
 
             edits.VerifyEdits(
                 "Update [a => a]@13 -> [(a) => a]@13",
-                "Update [b => b]@25 -> [b => b + 1]@27");
+                "Update [b => b]@25 -> [b => b + 1]@27",
+                "Insert [(a)]@13",
+                "Insert [a]@14",
+                "Delete [a]@13");
         }
 
         [Fact]
@@ -1894,7 +1897,9 @@ foreach (var (a, b) in e1) { }
 
             // changes were made to the outer lambda signature:
             edits.VerifyEdits(
-                "Update [() => { G(x => y); }]@4 -> [q => { G(() => y); }]@4");
+                "Update [() => { G(x => y); }]@4 -> [q => { G(() => y); }]@4",
+                "Insert [q]@4",
+                "Delete [()]@4");
         }
 
         [Fact]
@@ -1918,7 +1923,7 @@ foreach (var (a, b) in e1) { }
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [(ref int a) => a = 1]@4 -> [(out int a) => a = 1]@4");
+                "Update [ref int a]@5 -> [out int a]@5");
         }
 
         [Fact]
@@ -4745,7 +4750,10 @@ class Program
             edits.VerifyEdits(
                 "Update [a => a]@4 -> [int x(int a) => a + 1;]@2",
                 "Move [a => a]@4 -> @2",
-                "Update [F(a => a, b => b);]@2 -> [F(b => b, x);]@25");
+                "Update [F(a => a, b => b);]@2 -> [F(b => b, x);]@25",
+                "Insert [(int a)]@7",
+                "Insert [int a]@8",
+                "Delete [a]@4");
         }
 
         [Fact]
@@ -4774,7 +4782,10 @@ class Program
                 "Update [int x(int a) => a + 1;]@28 -> [a => a]@11",
                 "Move [int x(int a) => a + 1;]@28 -> @11",
                 "Move [{ /*1*/ }]@5 -> @20",
-                "Delete [do { /*1*/ } while (F(x));]@2");
+                "Insert [a]@11",
+                "Delete [do { /*1*/ } while (F(x));]@2",
+                "Delete [(int a)]@33",
+                "Delete [int a]@34");
         }
 
         [Fact]
@@ -4796,8 +4807,7 @@ class Program
 
             var edits = GetMethodEdits(src1, src2);
             // changes were made to the outer local function signature:
-            edits.VerifyEdits(
-                "Update [int x() { int y(int a) => a; return y(b); }]@2 -> [int x(int z) { int y() => c; return y(); }]@2");
+            edits.VerifyEdits("Insert [int z]@8");
         }
 
         [Fact]
@@ -4809,7 +4819,9 @@ class Program
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [() => { int y(int a) => a; G(y); }]@4 -> [q => { G(() => y); }]@4");
+                "Update [() => { int y(int a) => a; G(y); }]@4 -> [q => { G(() => y); }]@4",
+                "Insert [q]@4",
+                "Delete [()]@4");
         }
 
         [Fact]
@@ -4821,7 +4833,7 @@ class Program
             var edits = GetMethodEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [void f(ref int a) => a = 1;]@2 -> [void f(out int a) => a = 1;]@2");
+                "Update [ref int a]@9 -> [out int a]@9");
         }
 
         [Fact]
@@ -6933,6 +6945,400 @@ interface I
                 Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "local", FeaturesResources.local_function));
         }
 
+        [Fact]
+        public void LocalFunction_AddAttribute()
+        {
+            var src1 = "void L() { }";
+            var src2 = "[A]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [[A]]@2",
+                "Insert [A]@3");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_RemoveAttribute()
+        {
+            var src1 = "[A]void L() { }";
+            var src2 = "void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [[A]]@2",
+                "Delete [A]@3");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_ReorderAttribute()
+        {
+            var src1 = "[A, B]void L() { }";
+            var src2 = "[B, A]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Reorder [B]@6 -> @3");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_CombineAttributeLists()
+        {
+            var src1 = "[A][B]void L() { }";
+            var src2 = "[A, B]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[A]]@2 -> [[A, B]]@2",
+                "Insert [B]@6",
+                "Delete [[B]]@5",
+                "Delete [B]@6");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.attribute),
+                Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_SplitAttributeLists()
+        {
+            var src1 = "[A, B]void L() { }";
+            var src2 = "[A][B]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [[A, B]]@2 -> [[A]]@2",
+                "Insert [[B]]@5",
+                "Insert [B]@6",
+                "Delete [B]@6");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[B]", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_ChangeAttributeListTarget1()
+        {
+            var src1 = "[return: A]void L() { }";
+            var src2 = "[A]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [[return: A]]@2 -> [[A]]@2");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Update, "[A]", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_ChangeAttributeListTarget2()
+        {
+            var src1 = "[A]void L() { }";
+            var src2 = "[return: A]void L() { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Update [[A]]@2 -> [[return: A]]@2");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Update, "return:", CSharpFeaturesResources.attribute_target));
+        }
+
+        [Fact]
+        public void LocalFunction_ReturnType_AddAttribute()
+        {
+            var src1 = "int L() { return 1; }";
+            var src2 = "[return: A]int L() { return 1; }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [[return: A]]@2",
+                "Insert [A]@11");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[return: A]", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_ReturnType_RemoveAttribute()
+        {
+            var src1 = "[return: A]int L() { return 1; }";
+            var src2 = "int L() { return 1; }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [[return: A]]@2",
+                "Delete [A]@11");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_ReturnType_ReorderAttribute()
+        {
+            var src1 = "[return: A, B]int L() { return 1; }";
+            var src2 = "[return: B, A]int L() { return 1; }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Reorder [B]@14 -> @11");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_Parameter_AddAttribute()
+        {
+            var src1 = "void L(int i) { }";
+            var src2 = "void L([A]int i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [[A]]@9",
+                "Insert [A]@10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_Parameter_RemoveAttribute()
+        {
+            var src1 = "void L([A]int i) { }";
+            var src2 = "void L(int i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [[A]]@9",
+                "Delete [A]@10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "int i", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_Parameter_ReorderAttribute()
+        {
+            var src1 = "void L([A, B]int i) { }";
+            var src2 = "void L([B, A]int i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Reorder [B]@13 -> @10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_TypeParameter_AddAttribute()
+        {
+            var src1 = "void L<T>(T i) { }";
+            var src2 = "void L<[A] T>(T i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Insert [[A]]@9",
+                "Insert [A]@10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "[A]", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_TypeParameter_RemoveAttribute()
+        {
+            var src1 = "void L<[A] T>(T i) { }";
+            var src2 = "void L<T>(T i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Delete [[A]]@9",
+                "Delete [A]@10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "T", FeaturesResources.attribute));
+        }
+
+        [Fact]
+        public void LocalFunction_TypeParameter_ReorderAttribute()
+        {
+            var src1 = "void L<[A, B] T>(T i) { }";
+            var src2 = "void L<[B, A] T>(T i) { }";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits("Reorder [B]@13 -> @10");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Insert1()
+        {
+            var src1 = @"void L() {}";
+            var src2 = @"void L<A>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Insert [<A>]@8",
+                "Insert [A]@9");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "<A>", FeaturesResources.type_parameter));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Insert2()
+        {
+            var src1 = @"void L<A>() {}";
+            var src2 = @"void L<A,B>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [<A>]@8 -> [<A,B>]@8",
+                "Insert [B]@11");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.type_parameter));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Delete1()
+        {
+            var src1 = @"void L<A>() {}";
+            var src2 = @"void L() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Delete [<A>]@8",
+                "Delete [A]@9");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.type_parameter));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Delete2()
+        {
+            var src1 = @"void L<A,B>() {}";
+            var src2 = @"void L<B>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [<A,B>]@8 -> [<B>]@8",
+                "Delete [A]@9");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "L", FeaturesResources.type_parameter));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Update()
+        {
+            var src1 = @"void L<A>() {}";
+            var src2 = @"void L<B>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Update [A]@9 -> [B]@9");
+
+            // Get top edits so we can validate rude edits
+            edits = GetTopEdits(WrapMethodBodyWithClass(src1), WrapMethodBodyWithClass(src2));
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_Reorder()
+        {
+            var src1 = @"void L<A,B>() {}";
+            var src2 = @"void L<B,A>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Reorder [B]@11 -> @9");
+
+            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter));
+        }
+
+        [Fact]
+        public void LocalFunctions_TypeParameter_ReorderAndUpdate()
+        {
+            var src1 = @"void L<A,B>() {}";
+            var src2 = @"void L<B,C>() {} ";
+
+            var edits = GetMethodEdits(src1, src2);
+            edits.VerifyEdits(
+                "Reorder [B]@11 -> @9",
+                "Update [A]@9 -> [C]@11");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
+                Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.type_parameter));
+        }
         #endregion
 
         #region Queries
