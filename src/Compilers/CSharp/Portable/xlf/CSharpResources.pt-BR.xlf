@@ -977,6 +977,11 @@
         <target state="translated">O assembly carregado referencia o .NET Framework, mas não há suporte para isso.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AutoPropertyAllowNull">
+        <source>Auto-implemented property '{0}' should not allow null input because its output is non-null.</source>
+        <target state="new">Auto-implemented property '{0}' should not allow null input because its output is non-null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
         <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
         <target state="translated">A comparação de ponteiros de função pode gerar um resultado inesperado, pois os ponteiros para a mesma função podem ser diferentes.</target>

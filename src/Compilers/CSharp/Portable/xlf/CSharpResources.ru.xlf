@@ -977,6 +977,11 @@
         <target state="translated">Загруженная сборка ссылается на платформу .NET Framework, которая не поддерживается.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AutoPropertyAllowNull">
+        <source>Auto-implemented property '{0}' should not allow null input because its output is non-null.</source>
+        <target state="new">Auto-implemented property '{0}' should not allow null input because its output is non-null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
         <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
         <target state="translated">Сравнение указателей на функции может привести к непредвиденному результату, так как указатели на одну и ту же функцию могут быть разными.</target>

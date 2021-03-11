@@ -977,6 +977,11 @@
         <target state="translated">読み込まれたアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AutoPropertyAllowNull">
+        <source>Auto-implemented property '{0}' should not allow null input because its output is non-null.</source>
+        <target state="new">Auto-implemented property '{0}' should not allow null input because its output is non-null.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
         <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
         <target state="translated">同じ関数へのポインターがそれぞれ異なっている可能性があるため、関数ポインターの比較によって予期しない結果が生成されるおそれがあります。</target>

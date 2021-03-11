@@ -1362,6 +1362,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(_lazyCustomAttributesBag.IsDecodedWellKnownAttributeDataComputed);
             Debug.Assert(symbolPart == AttributeLocation.None);
 
+            if (IsAutoProperty && NullableWalker.IsPropertyOutputMoreStrictThanInput(this, isAnalyzingAttribute: false))
+            {
+                diagnostics.Add(ErrorCode.WRN_AutoPropertyAllowNull, Location, this);
+            }
+
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 

@@ -268,6 +268,7 @@
                 case ErrorCode.WRN_ReturnTypeIsStaticClass:
                 case ErrorCode.WRN_UnreadRecordParameter:
                 case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                case ErrorCode.WRN_AutoPropertyAllowNull:
                     return true;
                 default:
                     return false;
