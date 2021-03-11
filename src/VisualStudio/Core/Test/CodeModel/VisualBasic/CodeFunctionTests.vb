@@ -1337,7 +1337,7 @@ Class C
     End Sub
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1362,7 +1362,7 @@ Class C
     End Function
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1385,7 +1385,7 @@ MustInherit Class C
     MustOverride Sub M()
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1408,7 +1408,7 @@ MustInherit Class C
     MustOverride Function M() As integer
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1431,7 +1431,7 @@ Class C
     Declare Sub M() Lib "MyDll.dll"
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1454,7 +1454,7 @@ Class C
     Declare Function M() Lib "MyDll.dll" As Integer
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1479,7 +1479,7 @@ Class C
     End Sub
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1504,7 +1504,7 @@ Class C
     End Operator
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1529,7 +1529,7 @@ Class C
     End Operator
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1557,7 +1557,7 @@ Class C
     End Sub
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1585,7 +1585,7 @@ Class C
     End Function
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1611,7 +1611,7 @@ MustInherit Class C
     MustOverride Sub M()
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1637,7 +1637,7 @@ MustInherit Class C
     MustOverride Function M() As integer
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1663,7 +1663,7 @@ Class C
     Declare Sub M() Lib "MyDll.dll"
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1689,7 +1689,7 @@ Class C
     Declare Function M() Lib "MyDll.dll" As Integer
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1717,7 +1717,7 @@ Class C
     End Sub
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1745,7 +1745,7 @@ Class C
     End Operator
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1773,7 +1773,7 @@ Class C
     End Operator
 End Class
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
 #End Region
@@ -1798,7 +1798,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "a", .Type = "Integer"})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "a", .Type = "Integer"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1819,7 +1819,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String"})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "b", .Type = "String"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1840,7 +1840,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "c", .Type = "System.Boolean", .Position = 1})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "c", .Type = "System.Boolean", .Position = 1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1861,7 +1861,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
         End Function
 
         <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
@@ -1879,7 +1879,7 @@ Public Class C1
     Declare Function getUserName Lib "My1.dll" (a As Integer, b As String) As String
 End Class
 </Code>
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
         End Function
 
         <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
@@ -1897,7 +1897,7 @@ Public Class C1
     Declare Sub getUserName Lib "My1.dll" (a As Integer, b As String)
 End Class
 </Code>
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
         End Function
 
 #End Region
@@ -1922,7 +1922,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "a")
+            Await TestRemoveChildAsync(code, expected, "a")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1943,7 +1943,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "b")
+            Await TestRemoveChildAsync(code, expected, "b")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1964,7 +1964,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "a")
+            Await TestRemoveChildAsync(code, expected, "a")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1985,7 +1985,7 @@ Class C
 End Class
 </Code>
 
-            Await TestRemoveChild(code, expected, "b")
+            Await TestRemoveChildAsync(code, expected, "b")
         End Function
 
 #End Region
@@ -2012,7 +2012,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2035,7 +2035,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProject)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2058,7 +2058,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2081,7 +2081,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2104,7 +2104,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2123,7 +2123,7 @@ Interface C
 End Class
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2142,7 +2142,7 @@ Interface C
 End Class
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
 #End Region
@@ -2169,7 +2169,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetCanOverride(code, expected, True)
+            Await TestSetCanOverrideAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2192,7 +2192,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetCanOverride(code, expected, False)
+            Await TestSetCanOverrideAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2213,7 +2213,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetCanOverride(code, expected, True)
+            Await TestSetCanOverrideAsync(code, expected, True)
         End Function
 
 #End Region
@@ -2238,7 +2238,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetMustImplement(code, expected, True)
+            Await TestSetMustImplementAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2261,7 +2261,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetMustImplement(code, expected, False)
+            Await TestSetMustImplementAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2280,7 +2280,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetMustImplement(code, expected, True)
+            Await TestSetMustImplementAsync(code, expected, True)
         End Function
 
 #End Region
@@ -2307,7 +2307,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetIsShared(code, expected, True)
+            Await TestSetIsSharedAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2330,7 +2330,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetIsShared(code, expected, False)
+            Await TestSetIsSharedAsync(code, expected, False)
         End Function
 
 #End Region
@@ -2355,7 +2355,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 
 #End Region
@@ -2382,7 +2382,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2403,7 +2403,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2424,7 +2424,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNone)
         End Function
 
 #End Region
@@ -2451,7 +2451,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+            Await TestSetTypePropAsync(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2474,7 +2474,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Int32")
+            Await TestSetTypePropAsync(code, expected, "System.Int32")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2497,7 +2497,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.String")
+            Await TestSetTypePropAsync(code, expected, "System.String")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2520,7 +2520,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+            Await TestSetTypePropAsync(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2539,7 +2539,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+            Await TestSetTypePropAsync(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2558,7 +2558,7 @@ MustInherit Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Int32")
+            Await TestSetTypePropAsync(code, expected, "System.Int32")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2579,7 +2579,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Int32")
+            Await TestSetTypePropAsync(code, expected, "System.Int32")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2600,7 +2600,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Int32")
+            Await TestSetTypePropAsync(code, expected, "System.Int32")
         End Function
 
         <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
@@ -2618,7 +2618,7 @@ Public Class C1
     Declare Function getUserName Lib "My1.dll" (a As Integer) As Integer
 End Class
 </Code>
-            Await TestSetTypeProp(code, expected, "System.Int32")
+            Await TestSetTypePropAsync(code, expected, "System.Int32")
         End Function
 
         <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
@@ -2637,7 +2637,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+            Await TestSetTypePropAsync(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
         End Function
 
         <WorkItem(1873, "https://github.com/dotnet/roslyn/issues/1873")>
@@ -2656,7 +2656,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Int32")
+            Await TestSetTypePropAsync(code, expected, "System.Int32")
         End Function
 
 #End Region

@@ -826,7 +826,7 @@ expectedSuccess: false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Cancelled()
-            => TestCancelledOption(
+            => TestCancelledOptionAsync(
 @"namespace A
 {
     class MyClass
@@ -844,7 +844,7 @@ expectedSuccess: false);
 
         [Fact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_Cancelled()
-            => TestCancelledOption(
+            => TestCancelledOptionAsync(
 @"namespace A[||]
 {
     class MyClass

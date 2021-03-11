@@ -42,7 +42,7 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test, host)
+            Await TestStreamingFeatureAsync(test, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -77,7 +77,7 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test, host)
+            Await TestStreamingFeatureAsync(test, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -117,7 +117,7 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test, host)
+            Await TestStreamingFeatureAsync(test, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -157,7 +157,7 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test, host)
+            Await TestStreamingFeatureAsync(test, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -200,7 +200,7 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test, host)
+            Await TestStreamingFeatureAsync(test, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -233,7 +233,7 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test, host)
+            Await TestStreamingFeatureAsync(test, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -266,7 +266,7 @@ end class
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test, host)
+            Await TestStreamingFeatureAsync(test, host)
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -288,7 +288,7 @@ class C
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test, host)
+            Await TestStreamingFeatureAsync(test, host)
         End Function
 
         <WpfFact, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
@@ -319,7 +319,7 @@ class D
     </Project>
 </Workspace>
 
-            Await TestStreamingFeature(test, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
+            Await TestStreamingFeatureAsync(test, TestHost.InProcess) ' TODO: support out of proc in tests: https://github.com/dotnet/roslyn/issues/50494
         End Function
     End Class
 End Namespace

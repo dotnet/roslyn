@@ -235,7 +235,7 @@ Delegate Sub $$D()
 Delegate Function D() As Integer
 </Code>
 
-            Await TestSetTypeProp(code, expected, "Integer")
+            Await TestSetTypePropAsync(code, expected, "Integer")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -250,7 +250,7 @@ Delegate Function $$D() As Integer
 Delegate Function D() As Decimal
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Decimal")
+            Await TestSetTypePropAsync(code, expected, "System.Decimal")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -265,7 +265,7 @@ Delegate Function $$D() As Integer
 Delegate Sub D()
 </Code>
 
-            Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+            Await TestSetTypePropAsync(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -284,7 +284,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, "Integer")
+            Await TestSetTypePropAsync(code, expected, "Integer")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -303,7 +303,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+            Await TestSetTypePropAsync(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -322,7 +322,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+            Await TestSetTypePropAsync(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
         End Function
 
 #End Region
@@ -341,7 +341,7 @@ Delegate Sub $$M()
 Delegate Sub M(a As Integer)
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "a", .Type = "Integer"})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "a", .Type = "Integer"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -356,7 +356,7 @@ Delegate Sub $$M(a As Integer)
 Delegate Sub M(b As String, a As Integer)
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String"})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "b", .Type = "String"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -371,7 +371,7 @@ Delegate Sub $$M(b As String, a As Integer)
 Delegate Sub M(b As String, c As Boolean, a As Integer)
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "c", .Type = "System.Boolean", .Position = 1})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "c", .Type = "System.Boolean", .Position = 1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -386,7 +386,7 @@ Delegate Sub $$M(a As Integer)
 Delegate Sub M(a As Integer, b As String)
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "b", .Type = "String", .Position = -1})
         End Function
 
 #End Region
@@ -405,7 +405,7 @@ Delegate Sub $$M(a As Integer)
 Delegate Sub M()
 </Code>
 
-            Await TestRemoveChild(code, expected, "a")
+            Await TestRemoveChildAsync(code, expected, "a")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -420,7 +420,7 @@ Delegate Sub $$M(a As Integer, b As String)
 Delegate Sub M(a As Integer)
 </Code>
 
-            Await TestRemoveChild(code, expected, "b")
+            Await TestRemoveChildAsync(code, expected, "b")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -435,7 +435,7 @@ Delegate Sub $$M(a As Integer, b As String)
 Delegate Sub M(b As String)
 </Code>
 
-            Await TestRemoveChild(code, expected, "a")
+            Await TestRemoveChildAsync(code, expected, "a")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -450,7 +450,7 @@ Delegate Sub $$M(a As Integer, b As String, c As Integer)
 Delegate Sub M(a As Integer, c As Integer)
 </Code>
 
-            Await TestRemoveChild(code, expected, "b")
+            Await TestRemoveChildAsync(code, expected, "b")
         End Function
 
 #End Region
@@ -543,7 +543,7 @@ Imports System
 &lt;Serializable()&gt;
 Delegate Sub M()
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -564,7 +564,7 @@ Imports System
 &lt;CLSCompliant(true)&gt;
 Delegate Sub M()
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -586,7 +586,7 @@ Imports System
 &lt;CLSCompliant(true)&gt;
 Delegate Sub M()
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
 #End Region

@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             history.Redo(count);
         }
 
-        public async Task AssertNoTag()
+        public async Task AssertNoTagAsync()
         {
             await WaitForAsyncOperationsAsync();
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             return actions.SingleOrDefault();
         }
 
-        public async Task AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false)
+        public async Task AssertTagAsync(string expectedFromName, string expectedToName, bool invokeAction = false)
         {
             await WaitForAsyncOperationsAsync();
 

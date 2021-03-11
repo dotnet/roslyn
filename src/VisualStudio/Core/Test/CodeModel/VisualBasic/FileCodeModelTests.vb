@@ -378,7 +378,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "B"})
+            Await TestAddClassAsync(code, expected, New ClassData With {.Name = "B"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -396,7 +396,7 @@ End Class
 Class C : End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "B"})
+            Await TestAddClassAsync(code, expected, New ClassData With {.Name = "B"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -416,7 +416,7 @@ Public Class B
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C"})
+            Await TestAddClassAsync(code, expected, New ClassData With {.Name = "B", .Position = "C"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -434,7 +434,7 @@ Public Class B
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C"})
+            Await TestAddClassAsync(code, expected, New ClassData With {.Name = "B", .Position = "C"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -455,7 +455,7 @@ Public Class B
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C", .Bases = {"C"}})
+            Await TestAddClassAsync(code, expected, New ClassData With {.Name = "B", .Position = "C", .Bases = {"C"}})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -476,7 +476,7 @@ Public Class B
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C", .Bases = "C"})
+            Await TestAddClassAsync(code, expected, New ClassData With {.Name = "B", .Position = "C", .Bases = "C"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -497,7 +497,7 @@ Public Class C
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = {"I"}})
+            Await TestAddClassAsync(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = {"I"}})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -518,7 +518,7 @@ Public Class C
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = "I"})
+            Await TestAddClassAsync(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = "I"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -540,7 +540,7 @@ Public Class C
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = "B", .ImplementedInterfaces = "I"})
+            Await TestAddClassAsync(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = "B", .ImplementedInterfaces = "I"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -564,7 +564,7 @@ Public Class C
 End Class
 </Code>
 
-            Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IGoo", "IBar"}})
+            Await TestAddClassAsync(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IGoo", "IBar"}})
         End Function
 
 #End Region
@@ -586,7 +586,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddImport(code, expected, New ImportData With {.[Namespace] = "System"})
+            Await TestAddImportAsync(code, expected, New ImportData With {.[Namespace] = "System"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -604,7 +604,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddImport(code, expected, New ImportData With {.[Namespace] = "System", .Alias = "S"})
+            Await TestAddImportAsync(code, expected, New ImportData With {.[Namespace] = "System", .Alias = "S"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -626,7 +626,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddImport(code, expected, New ImportData With {.[Namespace] = "System"})
+            Await TestAddImportAsync(code, expected, New ImportData With {.[Namespace] = "System"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -648,7 +648,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddImport(code, expected, New ImportData With {.[Namespace] = "System", .Position = -1})
+            Await TestAddImportAsync(code, expected, New ImportData With {.[Namespace] = "System", .Position = -1})
         End Function
 
 #End Region
@@ -672,7 +672,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N"})
+            Await TestAddNamespaceAsync(code, expected, New NamespaceData With {.Name = "N"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -692,7 +692,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N", .Position = 0})
+            Await TestAddNamespaceAsync(code, expected, New NamespaceData With {.Name = "N", .Position = 0})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -712,7 +712,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N", .Position = "C"})
+            Await TestAddNamespaceAsync(code, expected, New NamespaceData With {.Name = "N", .Position = "C"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -726,7 +726,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N"})
+            Await TestAddNamespaceAsync(code, expected, New NamespaceData With {.Name = "N"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -744,7 +744,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N"})
+            Await TestAddNamespaceAsync(code, expected, New NamespaceData With {.Name = "N"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -762,7 +762,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N", .Position = 0})
+            Await TestAddNamespaceAsync(code, expected, New NamespaceData With {.Name = "N", .Position = 0})
         End Function
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddNamespace7() As Task
@@ -779,7 +779,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N", .Position = Type.Missing})
+            Await TestAddNamespaceAsync(code, expected, New NamespaceData With {.Name = "N", .Position = Type.Missing})
         End Function
 
 #End Region
@@ -909,7 +909,7 @@ End Class
 <Code>
 </Code>
 
-            Await TestRemoveChild(code, expected, "C")
+            Await TestRemoveChildAsync(code, expected, "C")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -927,7 +927,7 @@ End Class
 <Code>
 </Code>
 
-            Await TestRemoveChild(code, expected, "C")
+            Await TestRemoveChildAsync(code, expected, "C")
         End Function
 
 #End Region

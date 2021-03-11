@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => ((TestWorkspace)workspace).ExportProvider.GetExportedValue<CSharpInlineMethodRefactoringProvider>();
 
-        private async Task TestNoActionIsProvided(string initialMarkup)
+        private async Task TestNoActionIsProvidedAsync(string initialMarkup)
         {
             var workspace = CreateWorkspaceFromOptions(initialMarkup, default);
             var (actions, _) = await GetCodeActionsAsync(workspace, default).ConfigureAwait(false);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
     </Document>
     </Project>
 </Workspace>";
-            await TestNoActionIsProvided(input);
+            await TestNoActionIsProvidedAsync(input);
         }
     }
 }

@@ -31,19 +31,19 @@ End Class
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("C.M(third As Integer)")
+                Await state.AssertSignatureHelpSessionAsync()
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M(third As Integer)")
                 Assert.Equal(2, state.GetSignatureHelpItems().Count)
 
                 state.SendTypeChars(":=")
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
+                Await state.AssertSignatureHelpSessionAsync()
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M(first As Integer, second As Integer)")
                 Assert.Equal(1, state.GetSignatureHelpItems().Count)
 
                 ' Now both items are available again, we're sticking with last selection
                 state.SendBackspace()
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
+                Await state.AssertSignatureHelpSessionAsync()
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M(first As Integer, second As Integer)")
                 Assert.Equal(2, state.GetSignatureHelpItems().Count)
             End Using
         End Function
@@ -70,18 +70,18 @@ End Class
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("C.M(third As Integer)")
+                Await state.AssertSignatureHelpSessionAsync()
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M(third As Integer)")
                 Assert.Equal(2, state.GetSignatureHelpItems().Count)
 
                 state.SendTypeChars(":=")
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
+                Await state.AssertSignatureHelpSessionAsync()
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M(first As Integer, second As Integer)")
                 Assert.Equal(1, state.GetSignatureHelpItems().Count)
 
                 state.SendTypeChars("0,")
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("C.M(first As Integer, second As Integer)")
+                Await state.AssertSignatureHelpSessionAsync()
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M(first As Integer, second As Integer)")
                 Assert.Equal(1, state.GetSignatureHelpItems().Count)
             End Using
         End Function
@@ -100,10 +100,10 @@ End Module
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertNoSignatureHelpSession()
+                Await state.AssertNoSignatureHelpSessionAsync()
 
                 state.SendBackspace()
-                Await state.AssertNoSignatureHelpSession()
+                Await state.AssertNoSignatureHelpSessionAsync()
             End Using
         End Function
 
@@ -138,11 +138,11 @@ End Class
                 Dim linkDocument = documents.Single(Function(d) d.IsLinkFile)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem("C.M2(x As Integer)")
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M2(x As Integer)")
                 state.SendEscape()
                 state.Workspace.SetDocumentContext(linkDocument.Id)
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem("C.M2(x As String)")
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M2(x As String)")
             End Using
         End Function
 
@@ -162,10 +162,10 @@ End Class
 ]]></Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem("C.M()")
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M()")
                 state.SendTypeChars("""")
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem("C.M(s As String)")
+                Await state.AssertSignatureHelpSessionAsync()
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M(s As String)")
             End Using
         End Function
 
@@ -185,9 +185,9 @@ End Class
 ]]></Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem("C.M()")
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M()")
                 state.SendTypeChars("'")
-                Await state.AssertNoSignatureHelpSession()
+                Await state.AssertNoSignatureHelpSessionAsync()
             End Using
         End Function
 
@@ -205,7 +205,7 @@ End Class
 
                 state.SendInvokeSignatureHelp()
                 state.SendTypeChars(" ")
-                Await state.AssertSelectedSignatureHelpItem("C.M(a As String, b As String)")
+                Await state.AssertSelectedSignatureHelpItemAsync("C.M(a As String, b As String)")
             End Using
         End Function
 
@@ -225,7 +225,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+                Await state.AssertSelectedSignatureHelpItemAsync($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -245,7 +245,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+                Await state.AssertSelectedSignatureHelpItemAsync($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -265,7 +265,7 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
+                Await state.AssertSelectedSignatureHelpItemAsync($"<{VBFeaturesResources.Extension}> Enumerable.OfType(Of TResult)() As IEnumerable(Of TResult)")
             End Using
         End Function
 
@@ -286,11 +286,11 @@ End Class
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, LanguageNames.VisualBasic, False)))
                 state.SendTypeChars("(")
-                Await state.AssertNoSignatureHelpSession()
+                Await state.AssertNoSignatureHelpSessionAsync()
 
                 ' force-invoke -> session should be available
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSignatureHelpSession()
+                Await state.AssertSignatureHelpSessionAsync()
             End Using
         End Function
     End Class

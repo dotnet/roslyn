@@ -180,7 +180,7 @@ namespace T
         protected static async Task AssertContentIsAsync(TestWorkspace workspace, Document document, int position, string expectedDescription,
             ImmutableArray<TextSpan> relatedSpans)
         {
-            var info = await GetQuickinfo(workspace, document, position);
+            var info = await GetQuickinfoAsync(workspace, document, position);
             var description = info?.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
             Assert.NotNull(description);
             Assert.Equal(expectedDescription, description.Text);
@@ -188,7 +188,7 @@ namespace T
                 info.RelatedSpans.Select(actualSpan => new Action<TextSpan>(expectedSpan => Assert.Equal(expectedSpan, actualSpan))).ToArray());
         }
 
-        private static async Task<QuickInfoItem> GetQuickinfo(TestWorkspace workspace, Document document, int position)
+        private static async Task<QuickInfoItem> GetQuickinfoAsync(TestWorkspace workspace, Document document, int position)
         {
             var diagnosticAnalyzerService = workspace.ExportProvider.GetExportedValue<IDiagnosticAnalyzerService>();
             var provider = new CSharpDiagnosticAnalyzerQuickInfoProvider(diagnosticAnalyzerService);
@@ -198,7 +198,7 @@ namespace T
 
         protected static async Task AssertNoContentAsync(TestWorkspace workspace, Document document, int position)
         {
-            var info = await GetQuickinfo(workspace, document, position);
+            var info = await GetQuickinfoAsync(workspace, document, position);
             Assert.Null(info);
         }
 

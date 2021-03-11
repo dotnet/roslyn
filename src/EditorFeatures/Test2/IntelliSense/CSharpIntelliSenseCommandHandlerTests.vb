@@ -20,12 +20,12 @@ class C
                               </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("Go")
-                Await state.AssertCompletionSession()
-                Await state.AssertNoSignatureHelpSession()
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertNoSignatureHelpSessionAsync()
                 state.SendTypeChars("(")
                 ' Await state.AssertNoCompletionSession() TODO: Split into 2 tests
-                Await state.AssertSignatureHelpSession()
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo()")
+                Await state.AssertSignatureHelpSessionAsync()
+                Await state.AssertSelectedSignatureHelpItemAsync(displayText:="void C.Goo()")
                 Assert.Contains("Goo(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -45,14 +45,14 @@ class C
                               </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("Goo(a")
-                Await state.AssertCompletionSession()
-                Await state.AssertSignatureHelpSession()
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSignatureHelpSessionAsync()
                 state.SendEscape()
-                Await state.AssertNoCompletionSession()
-                Await state.AssertSignatureHelpSession()
+                Await state.AssertNoCompletionSessionAsync()
+                Await state.AssertSignatureHelpSessionAsync()
                 state.SendEscape()
-                Await state.AssertNoCompletionSession()
-                Await state.AssertNoSignatureHelpSession()
+                Await state.AssertNoCompletionSessionAsync()
+                Await state.AssertNoSignatureHelpSessionAsync()
             End Using
         End Function
 
@@ -70,11 +70,11 @@ class C
 }
                               </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.SendTypeChars("Goo(a")
-                Await state.AssertCompletionSession()
-                Await state.AssertSignatureHelpSession()
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSignatureHelpSessionAsync()
                 state.SendCut()
-                Await state.AssertNoCompletionSession()
-                Await state.AssertSignatureHelpSession()
+                Await state.AssertNoCompletionSessionAsync()
+                Await state.AssertSignatureHelpSessionAsync()
             End Using
         End Function
 
@@ -93,11 +93,11 @@ class C
                               </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("Goo(a")
-                Await state.AssertCompletionSession()
-                Await state.AssertSignatureHelpSession()
+                Await state.AssertCompletionSessionAsync()
+                Await state.AssertSignatureHelpSessionAsync()
                 state.SendPaste()
-                Await state.AssertNoCompletionSession()
-                Await state.AssertSignatureHelpSession()
+                Await state.AssertNoCompletionSessionAsync()
+                Await state.AssertSignatureHelpSessionAsync()
             End Using
         End Function
     End Class

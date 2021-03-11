@@ -185,7 +185,7 @@ Enum E
     Bar
 End Enum
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Flags"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Flags"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -212,7 +212,7 @@ Enum E
     Bar
 End Enum
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "True", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -240,7 +240,7 @@ Enum E
     Bar
 End Enum
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Flags"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Flags"})
         End Function
 
 #End Region
@@ -260,7 +260,7 @@ Enum Bar
 End Enum
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 #End Region
 

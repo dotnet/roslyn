@@ -51,7 +51,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Sub
 
-        Private Protected Overloads Async Function TestElementUpdate(
+        Private Protected Overloads Async Function TestElementUpdateAsync(
                 code As XElement, expectedCode As XElement, updater As Action(Of TCodeElement),
                 Optional options As IDictionary(Of OptionKey2, Object) = Nothing,
                 Optional editorConfig As String = "") As Task
@@ -74,7 +74,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Function
 
-        Friend Overloads Async Function TestElementUpdate(code As XElement, expectedCode As XElement, updater As Action(Of CodeModelTestState, TCodeElement)) As Task
+        Friend Overloads Async Function TestElementUpdateAsync(code As XElement, expectedCode As XElement, updater As Action(Of CodeModelTestState, TCodeElement)) As Task
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElement = GetCodeElement(state)
                 Assert.NotNull(codeElement)
@@ -720,8 +720,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Overrides Async Function TestAddAttribute(code As XElement, expectedCode As XElement, data As AttributeData) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Overrides Async Function TestAddAttributeAsync(code As XElement, expectedCode As XElement, data As AttributeData) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim attribute = AddAttribute(codeElement, data)
                     Assert.NotNull(attribute)
@@ -729,8 +729,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Overrides Async Function TestAddEnumMember(code As XElement, expectedCode As XElement, data As EnumMemberData) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Overrides Async Function TestAddEnumMemberAsync(code As XElement, expectedCode As XElement, data As EnumMemberData) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim enumMember = AddEnumMember(codeElement, data)
                     Assert.NotNull(enumMember)
@@ -738,8 +738,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Overrides Async Function TestAddEvent(code As XElement, expectedCode As XElement, data As EventData) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Overrides Async Function TestAddEventAsync(code As XElement, expectedCode As XElement, data As EventData) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim ev = AddEvent(codeElement, data)
                     Assert.NotNull(ev)
@@ -747,8 +747,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Overrides Async Function TestAddFunction(code As XElement, expectedCode As XElement, data As FunctionData) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Overrides Async Function TestAddFunctionAsync(code As XElement, expectedCode As XElement, data As FunctionData) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim func = AddFunction(codeElement, data)
                     Assert.NotNull(func)
@@ -759,8 +759,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Overrides Async Function TestAddParameter(code As XElement, expectedCode As XElement, data As ParameterData) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Overrides Async Function TestAddParameterAsync(code As XElement, expectedCode As XElement, data As ParameterData) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim name = GetName(codeElement)
 
@@ -774,11 +774,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Private Protected Overrides Async Function TestAddProperty(
+        Private Protected Overrides Async Function TestAddPropertyAsync(
                 code As XElement, expectedCode As XElement, data As PropertyData,
                 Optional options As IDictionary(Of OptionKey2, Object) = Nothing,
                 Optional editorConfig As String = "") As Task
-            Await TestElementUpdate(code, expectedCode,
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim prop = AddProperty(codeElement, data)
                     Assert.NotNull(prop)
@@ -788,8 +788,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 editorConfig)
         End Function
 
-        Protected Overrides Async Function TestAddVariable(code As XElement, expectedCode As XElement, data As VariableData) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Overrides Async Function TestAddVariableAsync(code As XElement, expectedCode As XElement, data As VariableData) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim variable = AddVariable(codeElement, data)
                     Assert.NotNull(variable)
@@ -797,8 +797,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Overrides Async Function TestRemoveChild(code As XElement, expectedCode As XElement, child As Object) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Overrides Async Function TestRemoveChildAsync(code As XElement, expectedCode As XElement, child As Object) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim name = GetName(codeElement)
 
@@ -810,152 +810,152 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Async Function TestSetAccess(code As XElement, expectedCode As XElement, access As EnvDTE.vsCMAccess) As Task
-            Await TestSetAccess(code, expectedCode, access, NoThrow(Of EnvDTE.vsCMAccess)())
+        Protected Async Function TestSetAccessAsync(code As XElement, expectedCode As XElement, access As EnvDTE.vsCMAccess) As Task
+            Await TestSetAccessAsync(code, expectedCode, access, NoThrow(Of EnvDTE.vsCMAccess)())
         End Function
 
-        Protected Async Function TestSetAccess(code As XElement, expectedCode As XElement, access As EnvDTE.vsCMAccess, action As SetterAction(Of EnvDTE.vsCMAccess)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetAccessAsync(code As XElement, expectedCode As XElement, access As EnvDTE.vsCMAccess, action As SetterAction(Of EnvDTE.vsCMAccess)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim accessSetter = GetAccessSetter(codeElement)
                     action(access, accessSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetClassKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMClassKind) As Task
-            Await TestSetClassKind(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMClassKind)())
+        Protected Async Function TestSetClassKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMClassKind) As Task
+            Await TestSetClassKindAsync(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMClassKind)())
         End Function
 
-        Protected Async Function TestSetClassKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMClassKind, action As SetterAction(Of EnvDTE80.vsCMClassKind)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetClassKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMClassKind, action As SetterAction(Of EnvDTE80.vsCMClassKind)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim classKindSetter = GetClassKindSetter(codeElement)
                     action(kind, classKindSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetComment(code As XElement, expectedCode As XElement, value As String) As Task
-            Await TestSetComment(code, expectedCode, value, NoThrow(Of String)())
+        Protected Async Function TestSetCommentAsync(code As XElement, expectedCode As XElement, value As String) As Task
+            Await TestSetCommentAsync(code, expectedCode, value, NoThrow(Of String)())
         End Function
 
-        Protected Async Function TestSetComment(code As XElement, expectedCode As XElement, value As String, action As SetterAction(Of String)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetCommentAsync(code As XElement, expectedCode As XElement, value As String, action As SetterAction(Of String)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim commentSetter = GetCommentSetter(codeElement)
                     action(value, commentSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetConstKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMConstKind) As Task
-            Await TestSetConstKind(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMConstKind)())
+        Protected Async Function TestSetConstKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMConstKind) As Task
+            Await TestSetConstKindAsync(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMConstKind)())
         End Function
 
-        Protected Async Function TestSetConstKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMConstKind, action As SetterAction(Of EnvDTE80.vsCMConstKind)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetConstKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMConstKind, action As SetterAction(Of EnvDTE80.vsCMConstKind)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim constKindSetter = GetConstKindSetter(codeElement)
                     action(kind, constKindSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetDataTypeKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMDataTypeKind) As Task
-            Await TestSetDataTypeKind(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMDataTypeKind)())
+        Protected Async Function TestSetDataTypeKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMDataTypeKind) As Task
+            Await TestSetDataTypeKindAsync(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMDataTypeKind)())
         End Function
 
-        Protected Async Function TestSetDataTypeKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMDataTypeKind, action As SetterAction(Of EnvDTE80.vsCMDataTypeKind)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetDataTypeKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMDataTypeKind, action As SetterAction(Of EnvDTE80.vsCMDataTypeKind)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim dataTypeKindSetter = GetDataTypeKindSetter(codeElement)
                     action(kind, dataTypeKindSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetDocComment(code As XElement, expectedCode As XElement, value As String) As Task
-            Await TestSetDocComment(code, expectedCode, value, NoThrow(Of String)())
+        Protected Async Function TestSetDocCommentAsync(code As XElement, expectedCode As XElement, value As String) As Task
+            Await TestSetDocCommentAsync(code, expectedCode, value, NoThrow(Of String)())
         End Function
 
-        Protected Async Function TestSetDocComment(code As XElement, expectedCode As XElement, value As String, action As SetterAction(Of String)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetDocCommentAsync(code As XElement, expectedCode As XElement, value As String, action As SetterAction(Of String)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim docCommentSetter = GetDocCommentSetter(codeElement)
                     action(value, docCommentSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetInheritanceKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMInheritanceKind) As Task
-            Await TestSetInheritanceKind(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMInheritanceKind)())
+        Protected Async Function TestSetInheritanceKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMInheritanceKind) As Task
+            Await TestSetInheritanceKindAsync(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMInheritanceKind)())
         End Function
 
-        Protected Async Function TestSetInheritanceKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMInheritanceKind, action As SetterAction(Of EnvDTE80.vsCMInheritanceKind)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetInheritanceKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMInheritanceKind, action As SetterAction(Of EnvDTE80.vsCMInheritanceKind)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim inheritanceKindSetter = GetInheritanceKindSetter(codeElement)
                     action(kind, inheritanceKindSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetIsAbstract(code As XElement, expectedCode As XElement, value As Boolean) As Task
-            Await TestSetIsAbstract(code, expectedCode, value, NoThrow(Of Boolean)())
+        Protected Async Function TestSetIsAbstractAsync(code As XElement, expectedCode As XElement, value As Boolean) As Task
+            Await TestSetIsAbstractAsync(code, expectedCode, value, NoThrow(Of Boolean)())
         End Function
 
-        Protected Async Function TestSetIsAbstract(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetIsAbstractAsync(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim isAbstractSetter = GetIsAbstractSetter(codeElement)
                     action(value, isAbstractSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetIsDefault(code As XElement, expectedCode As XElement, value As Boolean) As Task
-            Await TestSetIsDefault(code, expectedCode, value, NoThrow(Of Boolean)())
+        Protected Async Function TestSetIsDefaultAsync(code As XElement, expectedCode As XElement, value As Boolean) As Task
+            Await TestSetIsDefaultAsync(code, expectedCode, value, NoThrow(Of Boolean)())
         End Function
 
-        Protected Async Function TestSetIsDefault(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetIsDefaultAsync(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim isDefaultSetter = GetIsDefaultSetter(codeElement)
                     action(value, isDefaultSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetIsShared(code As XElement, expectedCode As XElement, value As Boolean) As Task
-            Await TestSetIsShared(code, expectedCode, value, NoThrow(Of Boolean)())
+        Protected Async Function TestSetIsSharedAsync(code As XElement, expectedCode As XElement, value As Boolean) As Task
+            Await TestSetIsSharedAsync(code, expectedCode, value, NoThrow(Of Boolean)())
         End Function
 
-        Protected Async Function TestSetIsShared(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetIsSharedAsync(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim isSharedSetter = GetIsSharedSetter(codeElement)
                     action(value, isSharedSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetMustImplement(code As XElement, expectedCode As XElement, value As Boolean) As Task
-            Await TestSetMustImplement(code, expectedCode, value, NoThrow(Of Boolean)())
+        Protected Async Function TestSetMustImplementAsync(code As XElement, expectedCode As XElement, value As Boolean) As Task
+            Await TestSetMustImplementAsync(code, expectedCode, value, NoThrow(Of Boolean)())
         End Function
 
-        Protected Async Function TestSetMustImplement(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetMustImplementAsync(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim mustImplementSetter = GetMustImplementSetter(codeElement)
                     action(value, mustImplementSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetOverrideKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMOverrideKind) As Task
-            Await TestSetOverrideKind(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMOverrideKind)())
+        Protected Async Function TestSetOverrideKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMOverrideKind) As Task
+            Await TestSetOverrideKindAsync(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMOverrideKind)())
         End Function
 
-        Protected Async Function TestSetOverrideKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMOverrideKind, action As SetterAction(Of EnvDTE80.vsCMOverrideKind)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetOverrideKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMOverrideKind, action As SetterAction(Of EnvDTE80.vsCMOverrideKind)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim overrideKindSetter = GetOverrideKindSetter(codeElement)
                     action(kind, overrideKindSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetName(code As XElement, expectedCode As XElement, name As String, action As SetterAction(Of String)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetNameAsync(code As XElement, expectedCode As XElement, name As String, action As SetterAction(Of String)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim nameSetter = GetNameSetter(codeElement)
                     action(name, nameSetter)
@@ -972,24 +972,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestSetTypeProp(code As XElement, expectedCode As XElement, codeTypeRef As EnvDTE.CodeTypeRef) As Task
-            Await TestSetTypeProp(code, expectedCode, codeTypeRef, NoThrow(Of EnvDTE.CodeTypeRef)())
+        Protected Async Function TestSetTypePropAsync(code As XElement, expectedCode As XElement, codeTypeRef As EnvDTE.CodeTypeRef) As Task
+            Await TestSetTypePropAsync(code, expectedCode, codeTypeRef, NoThrow(Of EnvDTE.CodeTypeRef)())
         End Function
 
-        Protected Async Function TestSetTypeProp(code As XElement, expectedCode As XElement, codeTypeRef As EnvDTE.CodeTypeRef, action As SetterAction(Of EnvDTE.CodeTypeRef)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetTypePropAsync(code As XElement, expectedCode As XElement, codeTypeRef As EnvDTE.CodeTypeRef, action As SetterAction(Of EnvDTE.CodeTypeRef)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim typePropSetter = GetTypePropSetter(codeElement)
                     action(codeTypeRef, typePropSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetTypeProp(code As XElement, expectedCode As XElement, typeName As String) As Task
-            Await TestSetTypeProp(code, expectedCode, typeName, NoThrow(Of EnvDTE.CodeTypeRef)())
+        Protected Async Function TestSetTypePropAsync(code As XElement, expectedCode As XElement, typeName As String) As Task
+            Await TestSetTypePropAsync(code, expectedCode, typeName, NoThrow(Of EnvDTE.CodeTypeRef)())
         End Function
 
-        Protected Async Function TestSetTypeProp(code As XElement, expectedCode As XElement, typeName As String, action As SetterAction(Of EnvDTE.CodeTypeRef)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetTypePropAsync(code As XElement, expectedCode As XElement, typeName As String, action As SetterAction(Of EnvDTE.CodeTypeRef)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(state, codeElement)
                     Dim codeTypeRef = state.RootCodeModel.CreateCodeTypeRef(typeName)
                     Dim typePropSetter = GetTypePropSetter(codeElement)
@@ -1039,8 +1039,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestAddBase(code As XElement, base As Object, position As Object, expectedCode As XElement) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestAddBaseAsync(code As XElement, base As Object, position As Object, expectedCode As XElement) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     AddBase(codeElement, base, position)
                 End Sub)
@@ -1053,8 +1053,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestRemoveBase(code As XElement, element As Object, expectedCode As XElement) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestRemoveBaseAsync(code As XElement, element As Object, expectedCode As XElement) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     RemoveBase(codeElement, element)
                 End Sub)
@@ -1067,8 +1067,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestAddImplementedInterface(code As XElement, base As Object, position As Object, expectedCode As XElement) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestAddImplementedInterfaceAsync(code As XElement, base As Object, position As Object, expectedCode As XElement) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     AddImplementedInterface(codeElement, base, position)
                 End Sub)
@@ -1081,8 +1081,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestRemoveImplementedInterface(code As XElement, element As Object, expectedCode As XElement) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestRemoveImplementedInterfaceAsync(code As XElement, element As Object, expectedCode As XElement) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     RemoveImplementedInterface(codeElement, element)
                 End Sub)

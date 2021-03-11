@@ -1312,7 +1312,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "a")
+            Await TestRemoveChildAsync(code, expected, "a")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1333,7 +1333,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "b")
+            Await TestRemoveChildAsync(code, expected, "b")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1354,7 +1354,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "a")
+            Await TestRemoveChildAsync(code, expected, "a")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1375,7 +1375,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "b")
+            Await TestRemoveChildAsync(code, expected, "b")
         End Function
 
 #End Region
@@ -1399,7 +1399,7 @@ class C
 }
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "a", .Type = "int"})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "a", .Type = "int"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1420,7 +1420,7 @@ class C
 }
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "string"})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "b", .Type = "string"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1441,7 +1441,7 @@ class C
 }
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "c", .Type = "System.Boolean", .Position = 1})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "c", .Type = "System.Boolean", .Position = 1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1462,7 +1462,7 @@ class C
 }
 </Code>
 
-            Await TestAddParameter(code, expected, New ParameterData With {.Name = "b", .Type = "string", .Position = -1})
+            Await TestAddParameterAsync(code, expected, New ParameterData With {.Name = "b", .Type = "string", .Position = -1})
         End Function
 #End Region
 
@@ -1492,7 +1492,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1519,7 +1519,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProject)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1546,7 +1546,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1573,7 +1573,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1600,7 +1600,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1621,7 +1621,7 @@ interface I
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProtected, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProtected, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1642,7 +1642,7 @@ interface I
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
 #End Region
@@ -1671,7 +1671,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, True)
+            Await TestSetIsSharedAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1696,7 +1696,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, False)
+            Await TestSetIsSharedAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1721,7 +1721,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, True)
+            Await TestSetIsSharedAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1746,7 +1746,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, False)
+            Await TestSetIsSharedAsync(code, expected, False)
         End Function
 
 #End Region
@@ -1775,7 +1775,7 @@ class C
 }
 </Code>
 
-            Await TestSetCanOverride(code, expected, True)
+            Await TestSetCanOverrideAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1800,7 +1800,7 @@ class C
 }
 </Code>
 
-            Await TestSetCanOverride(code, expected, True)
+            Await TestSetCanOverrideAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1825,7 +1825,7 @@ class C
 }
 </Code>
 
-            Await TestSetCanOverride(code, expected, False)
+            Await TestSetCanOverrideAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1850,7 +1850,7 @@ class C
 }
 </Code>
 
-            Await TestSetCanOverride(code, expected, False)
+            Await TestSetCanOverrideAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1871,7 +1871,7 @@ interface I
 }
 </Code>
 
-            Await TestSetCanOverride(code, expected, True)
+            Await TestSetCanOverrideAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1892,7 +1892,7 @@ interface I
 }
 </Code>
 
-            Await TestSetCanOverride(code, expected, False, ThrowsArgumentException(Of Boolean))
+            Await TestSetCanOverrideAsync(code, expected, False, ThrowsArgumentException(Of Boolean))
         End Function
 
 #End Region
@@ -1919,7 +1919,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetMustImplement(code, expected, True)
+            Await TestSetMustImplementAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1946,7 +1946,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetMustImplement(code, expected, True)
+            Await TestSetMustImplementAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1970,7 +1970,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetMustImplement(code, expected, False)
+            Await TestSetMustImplementAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1991,7 +1991,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetMustImplement(code, expected, True)
+            Await TestSetMustImplementAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2016,7 +2016,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetMustImplement(code, expected, False)
+            Await TestSetMustImplementAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2041,7 +2041,7 @@ class C
 }
 </Code>
 
-            Await TestSetMustImplement(code, expected, True, ThrowsArgumentException(Of Boolean))
+            Await TestSetMustImplementAsync(code, expected, True, ThrowsArgumentException(Of Boolean))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2066,7 +2066,7 @@ class C
 }
 </Code>
 
-            Await TestSetMustImplement(code, expected, False)
+            Await TestSetMustImplementAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2091,7 +2091,7 @@ interface I
 }
 </Code>
 
-            Await TestSetMustImplement(code, expected, False, ThrowsArgumentException(Of Boolean))
+            Await TestSetMustImplementAsync(code, expected, False, ThrowsArgumentException(Of Boolean))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2116,7 +2116,7 @@ interface I
 }
 </Code>
 
-            Await TestSetMustImplement(code, expected, True)
+            Await TestSetMustImplementAsync(code, expected, True)
         End Function
 
 #End Region
@@ -2145,7 +2145,7 @@ class C
 }
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindVirtual)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2170,7 +2170,7 @@ class C
 }
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2193,7 +2193,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetOverrideKind(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
+            Await TestSetOverrideKindAsync(code, expected, EnvDTE80.vsCMOverrideKind.vsCMOverrideKindAbstract)
         End Function
 
 #End Region
@@ -2222,7 +2222,7 @@ class C
 }
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 
 #End Region
@@ -2251,7 +2251,7 @@ class C
 }
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Int32")
+            Await TestSetTypePropAsync(code, expected, "System.Int32")
         End Function
 
 #End Region
@@ -2604,7 +2604,7 @@ class C
     void M() { }
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2631,7 +2631,7 @@ class C
     void M() { }
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -2659,7 +2659,7 @@ class C
     void M() { }
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
 #End Region

@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         {
             get
             {
-                return _workspaceAndCodeModel ??= CreateWorkspaceAndFileCodeModelAsync(_contents);
+                return _workspaceAndCodeModel ??= CreateWorkspaceAndFileCodeModel(_contents);
             }
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         protected Microsoft.CodeAnalysis.Document GetCurrentDocument()
             => GetCurrentProject().Documents.Single();
 
-        protected static (TestWorkspace workspace, VisualStudioWorkspace extraWorkspaceToDisposeButNotUse, FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModelAsync(string file)
+        protected static (TestWorkspace workspace, VisualStudioWorkspace extraWorkspaceToDisposeButNotUse, FileCodeModel fileCodeModel) CreateWorkspaceAndFileCodeModel(string file)
             => FileCodeModelTestHelpers.CreateWorkspaceAndFileCodeModel(file);
 
         protected CodeElement GetCodeElement(params object[] path)

@@ -9,7 +9,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleBlankLines
     Public Class MultipleBlankLinesTests
-        Private Shared Async Function TestWithOptionOn(testCode As String, fixedCode As String) As Task
+        Private Shared Async Function TestWithOptionOnAsync(testCode As String, fixedCode As String) As Task
             Dim test = New VerifyVB.Test() With
             {
                 .TestCode = testCode,
@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
 "
 ' comment"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
 "
 ' comment"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
 "
 ' comment"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
 "
 ' comment"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
 "
 "
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
 "
 "
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
 "
 "
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
 "
 "
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NewLines.MultipleB
 "Class C
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -152,7 +152,7 @@ End Class"
 End Class
 "
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -163,7 +163,7 @@ End Class
 
 "
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -180,7 +180,7 @@ End Class
 
 "
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -198,7 +198,7 @@ End Class
 
 "
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -217,7 +217,7 @@ End Class
 
 "
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -226,7 +226,7 @@ End Class
 "Class C
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -236,7 +236,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -251,7 +251,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -267,7 +267,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -284,7 +284,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -294,7 +294,7 @@ End Class"
     ' comment
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -305,7 +305,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -322,7 +322,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -340,7 +340,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -358,7 +358,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -368,7 +368,7 @@ End Class"
     #Const X = 0
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -379,7 +379,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -396,7 +396,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -414,7 +414,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -432,7 +432,7 @@ End Class"
 
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -443,7 +443,7 @@ End Class"
 Class C
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -455,7 +455,7 @@ End Class"
 Class C
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -474,7 +474,7 @@ End Class"
 Class C
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -494,7 +494,7 @@ End Class"
 Class C
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -515,7 +515,7 @@ End Class"
 Class C
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -527,7 +527,7 @@ End Class"
 Class C
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -543,7 +543,7 @@ End Class"
 Class C
 End Class"
 
-            Await TestWithOptionOn(code, code)
+            Await TestWithOptionOnAsync(code, code)
         End Function
 
         <Fact>
@@ -573,7 +573,7 @@ End Class"
 Class C
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -607,7 +607,7 @@ End Class"
 Class C
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
 
         <Fact>
@@ -645,7 +645,7 @@ End Class"
 Class C
 End Class"
 
-            Await TestWithOptionOn(code, fixedCode)
+            Await TestWithOptionOnAsync(code, fixedCode)
         End Function
     End Class
 End Namespace

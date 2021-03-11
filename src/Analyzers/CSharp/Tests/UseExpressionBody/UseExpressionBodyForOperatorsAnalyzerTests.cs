@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 
     public class UseExpressionBodyForOperatorsAnalyzerTests
     {
-        private static async Task TestWithUseExpressionBody(string code, string fixedCode)
+        private static async Task TestWithUseExpressionBodyAsync(string code, string fixedCode)
         {
             await new VerifyCS.Test
             {
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             }.RunAsync();
         }
 
-        private static async Task TestWithUseBlockBody(string code, string fixedCode)
+        private static async Task TestWithUseBlockBodyAsync(string code, string fixedCode)
         {
             await new VerifyCS.Test
             {
@@ -58,7 +58,7 @@ class C
 
     public static C operator +(C c1, C c2) => Bar();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -81,7 +81,7 @@ class C
 
     public static C operator +(C c1, C c2) => Bar();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -104,7 +104,7 @@ class C
 {
     public static C operator +(C c1, C c2) => throw new NotImplementedException();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -127,7 +127,7 @@ class C
 {
     public static C operator +(C c1, C c2) => throw new NotImplementedException(); // comment
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -150,7 +150,7 @@ class C
         return Bar();
     }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -173,7 +173,7 @@ class C
         throw new NotImplementedException();
     }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -196,7 +196,7 @@ class C
         throw new NotImplementedException(); // comment
     }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
     }
 }

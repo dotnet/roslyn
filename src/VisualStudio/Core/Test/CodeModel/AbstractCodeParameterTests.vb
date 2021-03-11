@@ -81,24 +81,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind) As Task
-            Await TestSetParameterKind(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMParameterKind)())
+        Protected Async Function TestSetParameterKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind) As Task
+            Await TestSetParameterKindAsync(code, expectedCode, kind, NoThrow(Of EnvDTE80.vsCMParameterKind)())
         End Function
 
-        Protected Async Function TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind, action As SetterAction(Of EnvDTE80.vsCMParameterKind)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetParameterKindAsync(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind, action As SetterAction(Of EnvDTE80.vsCMParameterKind)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim parameterKindSetter = GetParameterKindSetter(codeElement)
                     action(kind, parameterKindSetter)
                 End Sub)
         End Function
 
-        Protected Async Function TestSetDefaultValue(code As XElement, expected As XElement, defaultValue As String) As Task
-            Await TestSetDefaultValue(code, expected, defaultValue, NoThrow(Of String)())
+        Protected Async Function TestSetDefaultValueAsync(code As XElement, expected As XElement, defaultValue As String) As Task
+            Await TestSetDefaultValueAsync(code, expected, defaultValue, NoThrow(Of String)())
         End Function
 
-        Protected Async Function TestSetDefaultValue(code As XElement, expectedCode As XElement, defaultValue As String, action As SetterAction(Of String)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetDefaultValueAsync(code As XElement, expectedCode As XElement, defaultValue As String, action As SetterAction(Of String)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim defaultValueSetter = GetDefaultValueSetter(codeElement)
                     action(defaultValue, defaultValueSetter)
@@ -116,12 +116,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Friend Async Function TestSetParameterPassingMode(code As XElement, expectedCode As XElement, passingMode As PARAMETER_PASSING_MODE) As Task
-            Await TestSetParameterPassingMode(code, expectedCode, passingMode, NoThrow(Of PARAMETER_PASSING_MODE)())
+        Friend Async Function TestSetParameterPassingModeAsync(code As XElement, expectedCode As XElement, passingMode As PARAMETER_PASSING_MODE) As Task
+            Await TestSetParameterPassingModeAsync(code, expectedCode, passingMode, NoThrow(Of PARAMETER_PASSING_MODE)())
         End Function
 
-        Friend Async Function TestSetParameterPassingMode(code As XElement, expectedCode As XElement, passingMode As PARAMETER_PASSING_MODE, action As SetterAction(Of PARAMETER_PASSING_MODE)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Friend Async Function TestSetParameterPassingModeAsync(code As XElement, expectedCode As XElement, passingMode As PARAMETER_PASSING_MODE, action As SetterAction(Of PARAMETER_PASSING_MODE)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim setter = Sub(mode As PARAMETER_PASSING_MODE)
                                      Dim parameterKind = TryCast(codeElement, IParameterKind)
@@ -156,12 +156,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Friend Async Function TestSetParameterArrayDimensions(code As XElement, expectedCode As XElement, dimensions As Integer) As Task
-            Await TestSetParameterArrayDimensions(code, expectedCode, dimensions, NoThrow(Of Integer)())
+        Friend Async Function TestSetParameterArrayDimensionsAsync(code As XElement, expectedCode As XElement, dimensions As Integer) As Task
+            Await TestSetParameterArrayDimensionsAsync(code, expectedCode, dimensions, NoThrow(Of Integer)())
         End Function
 
-        Friend Async Function TestSetParameterArrayDimensions(code As XElement, expectedCode As XElement, dimensions As Integer, action As SetterAction(Of Integer)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Friend Async Function TestSetParameterArrayDimensionsAsync(code As XElement, expectedCode As XElement, dimensions As Integer, action As SetterAction(Of Integer)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     Dim setter = Sub(d As Integer)
                                      Dim parameterKind = TryCast(codeElement, IParameterKind)

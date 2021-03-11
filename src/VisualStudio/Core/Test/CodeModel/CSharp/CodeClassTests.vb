@@ -1590,7 +1590,7 @@ using System;
 [Serializable()]
 class C { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1611,7 +1611,7 @@ using System;
 [CLSCompliant(true)]
 class C { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1633,7 +1633,7 @@ using System;
 [CLSCompliant(true)]
 class C { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1657,7 +1657,7 @@ using System;
 [Serializable]
 class C { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -1681,7 +1681,7 @@ using System;
 [CLSCompliant(true)]
 class C { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
 #End Region
@@ -1699,7 +1699,7 @@ class $$C { }
 <Code>
 class C : B { }
 </Code>
-            Await TestAddBase(code, "B", Nothing, expected)
+            Await TestAddBaseAsync(code, "B", Nothing, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1713,7 +1713,7 @@ class $$C : B { }
 <Code>
 class C : A, B { }
 </Code>
-            Await TestAddBase(code, "A", Nothing, expected)
+            Await TestAddBaseAsync(code, "A", Nothing, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1731,7 +1731,7 @@ class C : B
 {
 }
 </Code>
-            Await TestAddBase(code, "B", Nothing, expected)
+            Await TestAddBaseAsync(code, "B", Nothing, expected)
         End Function
 
 #End Region
@@ -1755,7 +1755,7 @@ class C
 }
 </Code>
 
-            Await TestAddEvent(code, expected, New EventData With {.Name = "E", .FullDelegateName = "System.EventHandler"})
+            Await TestAddEventAsync(code, expected, New EventData With {.Name = "E", .FullDelegateName = "System.EventHandler"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1784,7 +1784,7 @@ class C
 }
 </Code>
 
-            Await TestAddEvent(code, expected, New EventData With {.Name = "E", .FullDelegateName = "System.EventHandler", .CreatePropertyStyleEvent = True})
+            Await TestAddEventAsync(code, expected, New EventData With {.Name = "E", .FullDelegateName = "System.EventHandler", .CreatePropertyStyleEvent = True})
         End Function
 
 #End Region
@@ -1809,7 +1809,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1832,7 +1832,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1855,7 +1855,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "System.Void"})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "Goo", .Type = "System.Void"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1881,7 +1881,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1907,7 +1907,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void", .Position = 1})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "Goo", .Type = "void", .Position = 1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1933,7 +1933,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void", .Position = "i"})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "Goo", .Type = "void", .Position = "i"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1955,7 +1955,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionConstructor})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionConstructor})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1977,7 +1977,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionConstructor, .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionConstructor, .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2000,7 +2000,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "@as", .Type = "void", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "@as", .Type = "void", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2022,7 +2022,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionDestructor, .Type = "void", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "C", .Kind = EnvDTE.vsCMFunction.vsCMFunctionDestructor, .Type = "void", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Function
 
         <WorkItem(1172038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1172038")>
@@ -2049,7 +2049,7 @@ class C
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "M2", .Type = "void", .Position = -1, .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "M2", .Type = "void", .Position = -1, .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
         End Function
 
 #End Region
@@ -2080,7 +2080,7 @@ class C : I { }
 interface I { }
 </Code>
 
-            Await TestAddImplementedInterface(code, "I", -1, expected)
+            Await TestAddImplementedInterfaceAsync(code, "I", -1, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2099,7 +2099,7 @@ interface I { }
 interface J { }
 </Code>
 
-            Await TestAddImplementedInterface(code, "J", -1, expected)
+            Await TestAddImplementedInterfaceAsync(code, "J", -1, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2118,7 +2118,7 @@ interface I { }
 interface J { }
 </Code>
 
-            Await TestAddImplementedInterface(code, "J", 0, expected)
+            Await TestAddImplementedInterfaceAsync(code, "J", 0, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2139,7 +2139,7 @@ interface J { }
 interface K { }
 </Code>
 
-            Await TestAddImplementedInterface(code, "J", 1, expected)
+            Await TestAddImplementedInterfaceAsync(code, "J", 1, expected)
         End Function
 
 #End Region
@@ -2169,7 +2169,7 @@ class C
 }
 </Code>
 
-            Await TestAddProperty(code, expected, New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString})
+            Await TestAddPropertyAsync(code, expected, New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2195,7 +2195,7 @@ class C
 }
 </Code>
 
-            Await TestAddProperty(
+            Await TestAddPropertyAsync(
                 code, expected,
                 New PropertyData With {.GetterName = "Name", .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
 editorConfig:="
@@ -2222,7 +2222,7 @@ class C
 }
 </Code>
 
-            Await TestAddProperty(code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString})
+            Await TestAddPropertyAsync(code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2242,7 +2242,7 @@ class C
 }
 </Code>
 
-            Await TestAddProperty(
+            Await TestAddPropertyAsync(
                 code, expected, New PropertyData With {.GetterName = "Name", .PutterName = Nothing, .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString},
 editorConfig:="
 [*]
@@ -2273,7 +2273,7 @@ class C
 }
 </Code>
 
-            Await TestAddProperty(code, expected, New PropertyData With {.GetterName = Nothing, .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString})
+            Await TestAddPropertyAsync(code, expected, New PropertyData With {.GetterName = Nothing, .PutterName = "Name", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefString})
         End Function
 
 #End Region
@@ -2295,7 +2295,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2315,7 +2315,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2338,7 +2338,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "Goo"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "Goo"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2363,7 +2363,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "x"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "x"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2389,7 +2389,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "x"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "x"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2415,7 +2415,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "x"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "x"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2441,7 +2441,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "y"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "y"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2464,7 +2464,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = 0})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = 0})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2487,7 +2487,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = -1})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = -1})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2511,7 +2511,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "x"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "x"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2535,7 +2535,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "x"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "x"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2559,7 +2559,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "y"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Position = "y"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2579,7 +2579,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPublic})
         End Function
 
         <WorkItem(545238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545238")>
@@ -2600,7 +2600,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessPrivate})
         End Function
 
         <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
@@ -2621,7 +2621,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProject})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProject})
         End Function
 
         <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
@@ -2642,7 +2642,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected})
         End Function
 
         <WorkItem(546556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546556")>
@@ -2663,7 +2663,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProtected})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "i", .Type = "System.Int32", .Access = EnvDTE.vsCMAccess.vsCMAccessProtected})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2690,7 +2690,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "j", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefInt, .Position = "i"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "j", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefInt, .Position = "i"})
         End Function
 
         <WorkItem(529865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529865")>
@@ -2713,7 +2713,7 @@ class C
 }
 </Code>
 
-            Await TestAddVariable(code, expected, New VariableData With {.Name = "j", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefInt, .Position = "i"})
+            Await TestAddVariableAsync(code, expected, New VariableData With {.Name = "j", .Type = EnvDTE.vsCMTypeRef.vsCMTypeRefInt, .Position = "i"})
         End Function
 
 #End Region
@@ -2731,7 +2731,7 @@ class $$C : B { }
 <Code>
 class C { }
 </Code>
-            Await TestRemoveBase(code, "B", expected)
+            Await TestRemoveBaseAsync(code, "B", expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2745,7 +2745,7 @@ class $$C : A, B { }
 <Code>
 class C : B { }
 </Code>
-            Await TestRemoveBase(code, "A", expected)
+            Await TestRemoveBaseAsync(code, "A", expected)
         End Function
 
 #End Region
@@ -2765,7 +2765,7 @@ interface I { }
 class C { }
 interface I { }
 </Code>
-            Await TestRemoveImplementedInterface(code, "I", expected)
+            Await TestRemoveImplementedInterfaceAsync(code, "I", expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2783,7 +2783,7 @@ class C : A { }
 class A { }
 interface I { }
 </Code>
-            Await TestRemoveImplementedInterface(code, "I", expected)
+            Await TestRemoveImplementedInterfaceAsync(code, "I", expected)
         End Function
 
 #End Region
@@ -2809,7 +2809,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Goo")
+            Await TestRemoveChildAsync(code, expected, "Goo")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2834,7 +2834,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Goo")
+            Await TestRemoveChildAsync(code, expected, "Goo")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2857,7 +2857,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Goo")
+            Await TestRemoveChildAsync(code, expected, "Goo")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2882,7 +2882,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Goo")
+            Await TestRemoveChildAsync(code, expected, "Goo")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2913,7 +2913,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Goo")
+            Await TestRemoveChildAsync(code, expected, "Goo")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2942,7 +2942,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Goo")
+            Await TestRemoveChildAsync(code, expected, "Goo")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2966,7 +2966,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "b")
+            Await TestRemoveChildAsync(code, expected, "b")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3003,7 +3003,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "Goo")
+            Await TestRemoveChildAsync(code, expected, "Goo")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3023,7 +3023,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "E")
+            Await TestRemoveChildAsync(code, expected, "E")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3044,7 +3044,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "E")
+            Await TestRemoveChildAsync(code, expected, "E")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3065,7 +3065,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "F")
+            Await TestRemoveChildAsync(code, expected, "F")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3086,7 +3086,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "G")
+            Await TestRemoveChildAsync(code, expected, "G")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3110,7 +3110,7 @@ class C
 }
 </Code>
 
-            Await TestRemoveChild(code, expected, "E")
+            Await TestRemoveChildAsync(code, expected, "E")
         End Function
 
 #End Region
@@ -3133,7 +3133,7 @@ public class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3152,7 +3152,7 @@ internal class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProject)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3171,7 +3171,7 @@ public class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3190,7 +3190,7 @@ public class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3209,7 +3209,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3228,7 +3228,7 @@ public class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPrivate, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPrivate, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3253,7 +3253,7 @@ class C
 }
 </Code>
 
-            Await TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+            Await TestSetAccessAsync(code, expected, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Function
 
 #End Region
@@ -3276,7 +3276,7 @@ class C
 }
 </Code>
 
-            Await TestSetClassKind(code, expected, EnvDTE80.vsCMClassKind.vsCMClassKindMainClass)
+            Await TestSetClassKindAsync(code, expected, EnvDTE80.vsCMClassKind.vsCMClassKindMainClass)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3295,7 +3295,7 @@ partial class C
 }
 </Code>
 
-            Await TestSetClassKind(code, expected, EnvDTE80.vsCMClassKind.vsCMClassKindPartialClass)
+            Await TestSetClassKindAsync(code, expected, EnvDTE80.vsCMClassKind.vsCMClassKindPartialClass)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3314,7 +3314,7 @@ class C
 }
 </Code>
 
-            Await TestSetClassKind(code, expected, EnvDTE80.vsCMClassKind.vsCMClassKindMainClass)
+            Await TestSetClassKindAsync(code, expected, EnvDTE80.vsCMClassKind.vsCMClassKindMainClass)
         End Function
 
 #End Region
@@ -3336,7 +3336,7 @@ class $$C { }
 class C { }
 </Code>
 
-            Await TestSetComment(code, expected, Nothing)
+            Await TestSetCommentAsync(code, expected, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3356,7 +3356,7 @@ class $$C { }
 class C { }
 </Code>
 
-            Await TestSetComment(code, expected, "Bar")
+            Await TestSetCommentAsync(code, expected, "Bar")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3375,7 +3375,7 @@ class $$C { }
 class C { }
 </Code>
 
-            Await TestSetComment(code, expected, "Blah")
+            Await TestSetCommentAsync(code, expected, "Blah")
         End Function
 
 #End Region
@@ -3394,7 +3394,7 @@ class $$C { }
 class C { }
 </Code>
 
-            Await TestSetDocComment(code, expected, Nothing, ThrowsArgumentException(Of String))
+            Await TestSetDocCommentAsync(code, expected, Nothing, ThrowsArgumentException(Of String))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3409,7 +3409,7 @@ class $$C { }
 class C { }
 </Code>
 
-            Await TestSetDocComment(code, expected, "<doc><summary>Blah</doc>", ThrowsArgumentException(Of String))
+            Await TestSetDocCommentAsync(code, expected, "<doc><summary>Blah</doc>", ThrowsArgumentException(Of String))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3424,7 +3424,7 @@ class $$C { }
 class C { }
 </Code>
 
-            Await TestSetDocComment(code, expected, "<doc___><summary>Blah</summary></doc___>", ThrowsArgumentException(Of String))
+            Await TestSetDocCommentAsync(code, expected, "<doc___><summary>Blah</summary></doc___>", ThrowsArgumentException(Of String))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3440,7 +3440,7 @@ class $$C { }
 class C { }
 </Code>
 
-            Await TestSetDocComment(code, expected, "<doc><summary>Hello World</summary></doc>")
+            Await TestSetDocCommentAsync(code, expected, "<doc><summary>Hello World</summary></doc>")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3457,7 +3457,7 @@ class $$C { }
 class C { }
 </Code>
 
-            Await TestSetDocComment(code, expected, "<doc><summary>Blah</summary></doc>")
+            Await TestSetDocCommentAsync(code, expected, "<doc><summary>Blah</summary></doc>")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3475,7 +3475,7 @@ class $$C { }
 class C { }
 </Code>
 
-            Await TestSetDocComment(code, expected, "<doc><summary>Blah</summary></doc>")
+            Await TestSetDocCommentAsync(code, expected, "<doc><summary>Blah</summary></doc>")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3494,7 +3494,7 @@ class $$C { }
 class C { }
 </Code>
 
-            Await TestSetDocComment(code, expected, "<doc><summary>Blah</summary></doc>")
+            Await TestSetDocCommentAsync(code, expected, "<doc><summary>Blah</summary></doc>")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3516,7 +3516,7 @@ namespace N
 }
 </Code>
 
-            Await TestSetDocComment(code, expected, "<doc><summary>Hello World</summary></doc>")
+            Await TestSetDocCommentAsync(code, expected, "<doc><summary>Hello World</summary></doc>")
         End Function
 
 #End Region
@@ -3539,7 +3539,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetInheritanceKind(code, expected, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindAbstract)
+            Await TestSetInheritanceKindAsync(code, expected, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindAbstract)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3558,7 +3558,7 @@ sealed class C
 }
 </Code>
 
-            Await TestSetInheritanceKind(code, expected, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindSealed)
+            Await TestSetInheritanceKindAsync(code, expected, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindSealed)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3583,7 +3583,7 @@ class C
 }
 </Code>
 
-            Await TestSetInheritanceKind(code, expected, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindAbstract)
+            Await TestSetInheritanceKindAsync(code, expected, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindAbstract)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3608,7 +3608,7 @@ class C
 }
 </Code>
 
-            Await TestSetInheritanceKind(code, expected, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindSealed Or EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindNew)
+            Await TestSetInheritanceKindAsync(code, expected, EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindSealed Or EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindNew)
         End Function
 
 #End Region
@@ -3631,7 +3631,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetIsAbstract(code, expected, True)
+            Await TestSetIsAbstractAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3650,7 +3650,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsAbstract(code, expected, False)
+            Await TestSetIsAbstractAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3675,7 +3675,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsAbstract(code, expected, True)
+            Await TestSetIsAbstractAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3700,7 +3700,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsAbstract(code, expected, False)
+            Await TestSetIsAbstractAsync(code, expected, False)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3724,7 +3724,7 @@ abstract class C
 }
 </Code>
 
-            Await TestSetIsAbstract(code, expected, True)
+            Await TestSetIsAbstractAsync(code, expected, True)
         End Function
 
 #End Region
@@ -3747,7 +3747,7 @@ static class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, True)
+            Await TestSetIsSharedAsync(code, expected, True)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3766,7 +3766,7 @@ class C
 }
 </Code>
 
-            Await TestSetIsShared(code, expected, False)
+            Await TestSetIsSharedAsync(code, expected, False)
         End Function
 
 #End Region
@@ -3788,7 +3788,7 @@ class Bar
 }
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3813,7 +3813,7 @@ class Bar
 }
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -3840,7 +3840,7 @@ partial class Goo
 }
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 
 #End Region

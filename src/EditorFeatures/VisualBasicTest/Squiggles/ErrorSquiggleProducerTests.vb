@@ -23,16 +23,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     <[UseExportProvider]>
     Public Class ErrorSquiggleProducerTests
 
-        Private Shared Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
+        Private Shared Async Function ProduceSquigglesAsync(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
-                Return (Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpans(workspace)).Item2
+                Return (Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpansAsync(workspace)).Item2
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Function ErrorTagGeneratedForSimpleError() As Task
             ' Make sure we have errors from the tree
-            Dim spans = Await ProduceSquiggles("^")
+            Dim spans = Await ProduceSquigglesAsync("^")
             Assert.Equal(1, spans.Count())
 
             Dim firstSpan = spans.First()
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Function ArgOutOfRangeExceptionBug_904382() As Task
-            Dim spans = Await ProduceSquiggles(
+            Dim spans = Await ProduceSquigglesAsync(
 "Class C1
 Sub Goo(
 End Class")
@@ -52,7 +52,7 @@ End Class")
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)>
         Public Async Function ErrorDoesNotCrashPastEOF() As Task
-            Dim spans = Await ProduceSquiggles(
+            Dim spans = Await ProduceSquigglesAsync(
 "Class C1
     Sub Goo()
         Dim x = <xml>
@@ -68,7 +68,7 @@ End Class")
     End Sub
 End Class")
 
-                Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpans(workspace)
+                Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpansAsync(workspace)
                 Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagostic, span) (diagostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(1, spans.Count())
@@ -122,7 +122,7 @@ End Class"
                 options.Add(preferIntrinsicPredefinedTypeOption, preferIntrinsicPredefinedTypeOptionValue)
                 workspace.ApplyOptions(options)
 
-                Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpans(workspace, analyzerMap)
+                Dim diagnosticsAndSpans = Await TestDiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider).GetDiagnosticsAndErrorSpansAsync(workspace, analyzerMap)
                 Dim spans = diagnosticsAndSpans.Item1.Zip(diagnosticsAndSpans.Item2, Function(diagostic, span) (diagostic, span)).OrderBy(Function(s) s.span.Span.Span.Start).ToImmutableArray()
 
                 Assert.Equal(2, spans.Length)

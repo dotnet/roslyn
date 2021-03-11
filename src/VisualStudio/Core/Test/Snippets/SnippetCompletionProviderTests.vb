@@ -23,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
                 Assert.Equal("a", testState.GetDocumentText())
 
-                Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
+                Await testState.AssertSelectedCompletionItemAsync(displayText:="Shortcut")
 
                 Dim document = testState.Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim selectedItem = testState.GetSelectedItem()
@@ -43,10 +43,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 testState.SendTabToCompletion()
-                Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
+                Await testState.AssertSelectedCompletionItemAsync(displayText:="Shortcut")
 
                 testState.SendBackspace()
-                Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
+                Await testState.AssertSelectedCompletionItemAsync(displayText:="Shortcut")
 
                 testState.SendTabToCompletion()
 
@@ -66,7 +66,7 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 testState.SendTabToCompletion()
-                Await testState.AssertNoCompletionSession()
+                Await testState.AssertNoCompletionSessionAsync()
             End Using
         End Function
 
@@ -84,7 +84,7 @@ End Class</File>.Value
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
                 testState.SendTypeChars("'T")
-                Await testState.AssertNoCompletionSession()
+                Await testState.AssertNoCompletionSessionAsync()
             End Using
         End Function
 
@@ -102,7 +102,7 @@ End Class</File>.Value
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
                 testState.SendTypeChars("'''T")
-                Await testState.AssertNoCompletionSession()
+                Await testState.AssertNoCompletionSessionAsync()
             End Using
         End Function
 
@@ -119,7 +119,7 @@ End Class</File>.Value
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
                     .WithChangedOption(New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
                 testState.SendTypeChars("Shortcut")
-                Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
+                Await testState.AssertSelectedCompletionItemAsync(displayText:="Shortcut")
             End Using
         End Function
     End Class

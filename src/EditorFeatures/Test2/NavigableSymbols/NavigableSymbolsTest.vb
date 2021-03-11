@@ -38,7 +38,7 @@ class {|target:C|}
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
-                Await TestNavigated(workspace, position.Value, spans)
+                Await TestNavigatedAsync(workspace, position.Value, spans)
             End Using
         End Function
 
@@ -52,7 +52,7 @@ class {|target:C|}
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
-                Await TestNotNavigated(workspace, position.Value)
+                Await TestNotNavigatedAsync(workspace, position.Value)
             End Using
         End Function
 
@@ -66,7 +66,7 @@ class {|target:C|}
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateCSharp(text, composition:=s_composition)
-                Await TestNotNavigated(workspace, position.Value)
+                Await TestNotNavigatedAsync(workspace, position.Value)
             End Using
         End Function
 
@@ -82,7 +82,7 @@ End Class"
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
-                Await TestNavigated(workspace, position.Value, spans)
+                Await TestNavigatedAsync(workspace, position.Value, spans)
             End Using
         End Function
 
@@ -96,7 +96,7 @@ End Class"
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
-                Await TestNotNavigated(workspace, position.Value)
+                Await TestNotNavigatedAsync(workspace, position.Value)
             End Using
         End Function
 
@@ -110,11 +110,11 @@ End Class"
             MarkupTestFile.GetPositionAndSpans(markup, text, position, spans)
 
             Using workspace = TestWorkspace.CreateVisualBasic(text, composition:=s_composition)
-                Await TestNotNavigated(workspace, position.Value)
+                Await TestNotNavigatedAsync(workspace, position.Value)
             End Using
         End Function
 
-        Private Shared Function ExtractSymbol(workspace As TestWorkspace, position As Integer) As Task(Of INavigableSymbol)
+        Private Shared Function ExtractSymbolAsync(workspace As TestWorkspace, position As Integer) As Task(Of INavigableSymbol)
             Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
             Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Return)
             Dim service = New NavigableSymbolService(TestWaitIndicator.Default, threadingContext, presenter)
@@ -125,8 +125,8 @@ End Class"
             Return source.GetNavigableSymbolAsync(triggerSpan, CancellationToken.None)
         End Function
 
-        Private Shared Async Function TestNavigated(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
-            Dim symbol = Await ExtractSymbol(workspace, position)
+        Private Shared Async Function TestNavigatedAsync(workspace As TestWorkspace, position As Integer, spans As IDictionary(Of String, ImmutableArray(Of TextSpan))) As Task
+            Dim symbol = Await ExtractSymbolAsync(workspace, position)
 
             Dim highlightedSpan = spans("highlighted").First()
             Dim navigationTarget = spans("target").First()
@@ -143,8 +143,8 @@ End Class"
             Assert.Equal(navigationTarget, navigationService.ProvidedTextSpan)
         End Function
 
-        Private Shared Async Function TestNotNavigated(workspace As TestWorkspace, position As Integer) As Task
-            Dim symbol = Await ExtractSymbol(workspace, position)
+        Private Shared Async Function TestNotNavigatedAsync(workspace As TestWorkspace, position As Integer) As Task
+            Dim symbol = Await ExtractSymbolAsync(workspace, position)
             Assert.Null(symbol)
         End Function
     End Class

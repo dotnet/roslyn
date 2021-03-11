@@ -43,19 +43,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             {
                 Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
 
-                await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
+                await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 
                 Assert.Single(testLspServer.GetQueueAccessor().GetTrackedTexts());
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().Single();
                 Assert.Equal(documentText, document.ToString());
 
-                await DidChange(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
+                await DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
 
                 document = testLspServer.GetQueueAccessor().GetTrackedTexts().Single();
                 Assert.Equal(expected, document.ToString());
 
-                await DidClose(testLspServer, CreateDidCloseTextDocumentParams(locationTyped));
+                await DidCloseAsync(testLspServer, CreateDidCloseTextDocumentParams(locationTyped));
 
                 Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
             }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
+                await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
+                await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 
-                await Assert.ThrowsAsync<InvalidOperationException>(() => DidOpen(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText)));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText)));
             }
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await Assert.ThrowsAsync<InvalidOperationException>(() => DidClose(testLspServer, CreateDidCloseTextDocumentParams(locationTyped)));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => DidCloseAsync(testLspServer, CreateDidCloseTextDocumentParams(locationTyped)));
             }
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await Assert.ThrowsAsync<InvalidOperationException>(() => DidChange(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (0, 0, "goo"))));
+                await Assert.ThrowsAsync<InvalidOperationException>(() => DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (0, 0, "goo"))));
             }
         }
 
@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
+                await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 
-                await DidClose(testLspServer, CreateDidCloseTextDocumentParams(locationTyped));
+                await DidCloseAsync(testLspServer, CreateDidCloseTextDocumentParams(locationTyped));
 
                 Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
             }
@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
+                await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 
-                await DidChange(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
+                await DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
@@ -227,9 +227,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
+                await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 
-                await DidChange(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
+                await DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
 
                 var documentTextFromWorkspace = (await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync()).ToString();
 
@@ -266,9 +266,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
+                await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 
-                await DidChange(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there"), (5, 0, "        // this builds on that\r\n")));
+                await DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there"), (5, 0, "        // this builds on that\r\n")));
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
@@ -302,11 +302,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             using (testLspServer)
             {
-                await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
+                await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(locationTyped, documentText));
 
-                await DidChange(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
+                await DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (4, 8, "// hi there")));
 
-                await DidChange(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (5, 0, "        // this builds on that\r\n")));
+                await DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(locationTyped.Uri, (5, 0, "        // this builds on that\r\n")));
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
@@ -324,19 +324,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             return (testLspServer, locationTyped, documentText.ToString());
         }
 
-        private static async Task DidOpen(TestLspServer testLspServer, LSP.DidOpenTextDocumentParams didOpenParams)
+        private static async Task DidOpenAsync(TestLspServer testLspServer, LSP.DidOpenTextDocumentParams didOpenParams)
         {
             await testLspServer.ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName,
                            didOpenParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 
-        private static async Task DidChange(TestLspServer testLspServer, LSP.DidChangeTextDocumentParams didChangeParams)
+        private static async Task DidChangeAsync(TestLspServer testLspServer, LSP.DidChangeTextDocumentParams didChangeParams)
         {
             await testLspServer.ExecuteRequestAsync<LSP.DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName,
                            didChangeParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 
-        private static async Task DidClose(TestLspServer testLspServer, LSP.DidCloseTextDocumentParams didCloseParams)
+        private static async Task DidCloseAsync(TestLspServer testLspServer, LSP.DidCloseTextDocumentParams didCloseParams)
         {
             await testLspServer.ExecuteRequestAsync<LSP.DidCloseTextDocumentParams, object>(Methods.TextDocumentDidCloseName,
                            didCloseParams, new LSP.ClientCapabilities(), null, CancellationToken.None);

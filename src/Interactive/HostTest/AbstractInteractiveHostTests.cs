@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName, CultureInfo.InvariantCulture, DefaultPlatform));
 
             // assert and remove logo:
-            var output = SplitLines(await ReadOutputToEnd());
-            var errorOutput = await ReadErrorOutputToEnd();
+            var output = SplitLines(await ReadOutputToEndAsync());
+            var errorOutput = await ReadErrorOutputToEndAsync();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", errorOutput);
 
@@ -129,20 +129,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             return ImmutableArray.Create(text.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
         }
 
-        public async Task<bool> LoadReference(string reference)
+        public async Task<bool> LoadReferenceAsync(string reference)
         {
-            return await Execute($"#r \"{reference}\"");
+            return await ExecuteAsync($"#r \"{reference}\"");
         }
 
-        public async Task<bool> Execute(string code)
+        public async Task<bool> ExecuteAsync(string code)
         {
             var task = await Host.ExecuteAsync(code);
             return task.Success;
         }
 
-        public Task<string> ReadErrorOutputToEnd()
+        public Task<string> ReadErrorOutputToEndAsync()
         {
-            return ReadOutputToEnd(isError: true);
+            return ReadOutputToEndAsync(isError: true);
         }
 
         public void ClearOutput()
@@ -152,14 +152,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _synchronizedErrorOutput.Clear();
         }
 
-        public async Task RestartHost()
+        public async Task RestartHostAsync()
         {
             ClearOutput();
 
             await Host.ResetAsync(InteractiveHostOptions.CreateFromDirectory(TestUtils.HostRootPath, initializationFileName: null, CultureInfo.InvariantCulture, InteractiveHostPlatform.Desktop64));
         }
 
-        public async Task<string> ReadOutputToEnd(bool isError = false)
+        public async Task<string> ReadOutputToEndAsync(bool isError = false)
         {
             // writes mark to the STDOUT/STDERR pipe in the remote process:
             var remoteService = await Host.TryGetServiceAsync().ConfigureAwait(false);

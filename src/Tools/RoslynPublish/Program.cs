@@ -22,7 +22,7 @@ namespace RoslynPublish
         {
             try
             {
-                return Go(args).GetAwaiter().GetResult();
+                return GoAsync(args).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
@@ -32,7 +32,7 @@ namespace RoslynPublish
             }
         }
 
-        private static async Task<int> Go(string[] args)
+        private static async Task<int> GoAsync(string[] args)
         {
             string gitHubUserName = null;
             string gitHubEmail = null;

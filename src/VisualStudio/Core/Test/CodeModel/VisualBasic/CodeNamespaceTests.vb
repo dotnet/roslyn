@@ -597,7 +597,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetComment(code, expected, Nothing)
+            Await TestSetCommentAsync(code, expected, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -619,7 +619,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetComment(code, expected, "Bar")
+            Await TestSetCommentAsync(code, expected, "Bar")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -642,7 +642,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetComment(code, expected, "Blah")
+            Await TestSetCommentAsync(code, expected, "Blah")
         End Function
 
 #End Region
@@ -663,7 +663,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetDocComment(code, expected, Nothing)
+            Await TestSetDocCommentAsync(code, expected, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -683,7 +683,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetDocComment(code, expected, Nothing)
+            Await TestSetDocCommentAsync(code, expected, Nothing)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -701,7 +701,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetDocComment(code, expected, "<doc><summary>Blah</doc>")
+            Await TestSetDocCommentAsync(code, expected, "<doc><summary>Blah</doc>")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -719,7 +719,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetDocComment(code, expected, "<doc___><summary>Blah</summary></doc___>")
+            Await TestSetDocCommentAsync(code, expected, "<doc___><summary>Blah</summary></doc___>")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -737,7 +737,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetDocComment(code, expected, "<summary>Hello World</summary>")
+            Await TestSetDocCommentAsync(code, expected, "<summary>Hello World</summary>")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -756,7 +756,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetDocComment(code, expected, "<summary>Blah</summary>")
+            Await TestSetDocCommentAsync(code, expected, "<summary>Blah</summary>")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -776,7 +776,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetDocComment(code, expected, "<summary>Blah</summary>")
+            Await TestSetDocCommentAsync(code, expected, "<summary>Blah</summary>")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -797,7 +797,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetDocComment(code, expected, "<summary>Blah</summary>")
+            Await TestSetDocCommentAsync(code, expected, "<summary>Blah</summary>")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -819,7 +819,7 @@ Namespace N1
 End Namespace
 </Code>
 
-            Await TestSetDocComment(code, expected, "<summary>Hello World</summary>")
+            Await TestSetDocCommentAsync(code, expected, "<summary>Hello World</summary>")
         End Function
 
 #End Region
@@ -844,7 +844,7 @@ Namespace N
 End Namespace
 </Code>
 
-            Await TestSetName(code, expected, "N", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "N", NoThrow(Of String)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -865,7 +865,7 @@ Namespace N2
 End Namespace
 </Code>
 
-            Await TestSetName(code, expected, "N2", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "N2", NoThrow(Of String)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -886,7 +886,7 @@ Namespace N2.N3
 End Namespace
 </Code>
 
-            Await TestSetName(code, expected, "N2.N3", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "N2.N3", NoThrow(Of String)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -907,7 +907,7 @@ Namespace N3.N4
 End Namespace
 </Code>
 
-            Await TestSetName(code, expected, "N3.N4", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "N3.N4", NoThrow(Of String)())
         End Function
 
 #End Region
@@ -930,7 +930,7 @@ Namespace Goo
 End Namespace
 </Code>
 
-            Await TestRemoveChild(code, expected, "C")
+            Await TestRemoveChildAsync(code, expected, "C")
         End Function
 
 #End Region

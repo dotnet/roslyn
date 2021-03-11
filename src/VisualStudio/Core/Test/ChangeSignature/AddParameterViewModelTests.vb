@@ -22,7 +22,7 @@ class MyClass
     public void M($$) { }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = GetViewModelTestState(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -53,7 +53,7 @@ class MyClass<T>
     public void M($$) { }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = GetViewModelTestState(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -151,7 +151,7 @@ class MyClass
     }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = GetViewModelTestState(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -184,7 +184,7 @@ class MyClass<T>
     public void M($$) { }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = GetViewModelTestState(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -228,7 +228,7 @@ class MyClass
     }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = GetViewModelTestState(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)
@@ -285,7 +285,7 @@ class MyClass
             Assert.Equal(ServicesVSResources.A_type_and_name_must_be_provided, message)
         End Sub
 
-        Private Function GetViewModelTestStateAsync(
+        Private Function GetViewModelTestState(
             markup As XElement,
             languageName As String) As AddParameterViewModelTestState
 
@@ -317,7 +317,7 @@ class MyClass
     public void M($$) { }
 }"]]></Text>
 
-            Dim viewModelTestState = GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModelTestState = GetViewModelTestState(markup, LanguageNames.CSharp)
             Dim viewModel = viewModelTestState.ViewModel
 
             VerifyOpeningState(viewModel)

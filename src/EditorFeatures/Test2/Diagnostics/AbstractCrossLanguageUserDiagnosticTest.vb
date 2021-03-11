@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
 
-        Protected Async Function TestMissing(definition As XElement) As Task
+        Protected Async Function TestMissingAsync(definition As XElement) As Task
             Using workspace = TestWorkspace.Create(definition, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace)
                 Assert.Null(diagnosticAndFix)

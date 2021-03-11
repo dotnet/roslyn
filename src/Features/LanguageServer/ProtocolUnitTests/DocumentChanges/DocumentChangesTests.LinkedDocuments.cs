@@ -39,19 +39,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             var documentText = "class C { }";
 
-            await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(caretLocation, documentText));
+            await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(caretLocation, documentText));
 
             var trackedDocuments = testLspServer.GetQueueAccessor().GetTrackedTexts();
             Assert.Equal(1, trackedDocuments.Count);
 
-            var solution = await GetLSPSolution(testLspServer, caretLocation.Uri);
+            var solution = await GetLSPSolutionAsync(testLspServer, caretLocation.Uri);
 
             foreach (var document in solution.Projects.First().Documents)
             {
                 Assert.Equal(documentText, document.GetTextSynchronously(CancellationToken.None).ToString());
             }
 
-            await DidClose(testLspServer, CreateDidCloseTextDocumentParams(caretLocation));
+            await DidCloseAsync(testLspServer, CreateDidCloseTextDocumentParams(caretLocation));
 
             Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
         }
@@ -89,25 +89,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     }
 }";
 
-            await DidOpen(testLspServer, CreateDidOpenTextDocumentParams(caretLocation, initialText));
+            await DidOpenAsync(testLspServer, CreateDidOpenTextDocumentParams(caretLocation, initialText));
 
             Assert.Equal(1, testLspServer.GetQueueAccessor().GetTrackedTexts().Count);
 
-            await DidChange(testLspServer, CreateDidChangeTextDocumentParams(caretLocation.Uri, (4, 8, "// hi there")));
+            await DidChangeAsync(testLspServer, CreateDidChangeTextDocumentParams(caretLocation.Uri, (4, 8, "// hi there")));
 
-            var solution = await GetLSPSolution(testLspServer, caretLocation.Uri);
+            var solution = await GetLSPSolutionAsync(testLspServer, caretLocation.Uri);
 
             foreach (var document in solution.Projects.First().Documents)
             {
                 Assert.Equal(updatedText, document.GetTextSynchronously(CancellationToken.None).ToString());
             }
 
-            await DidClose(testLspServer, CreateDidCloseTextDocumentParams(caretLocation));
+            await DidCloseAsync(testLspServer, CreateDidCloseTextDocumentParams(caretLocation));
 
             Assert.Empty(testLspServer.GetQueueAccessor().GetTrackedTexts());
         }
 
-        private static Task<Solution> GetLSPSolution(TestLspServer testLspServer, Uri uri)
+        private static Task<Solution> GetLSPSolutionAsync(TestLspServer testLspServer, Uri uri)
         {
             return testLspServer.ExecuteRequestAsync<Uri, Solution>(nameof(GetLSPSolutionHandler), uri, new ClientCapabilities(), null, CancellationToken.None);
         }

@@ -798,7 +798,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddAttributeArgument(code, expectedCode, New AttributeArgumentData With {.Value = "True"})
+            Await TestAddAttributeArgumentAsync(code, expectedCode, New AttributeArgumentData With {.Value = "True"})
 
         End Function
 
@@ -822,7 +822,7 @@ Class C
 End Class
 </Code>
 
-            Await TestAddAttributeArgument(code, expectedCode, New AttributeArgumentData With {.Value = "True"})
+            Await TestAddAttributeArgumentAsync(code, expectedCode, New AttributeArgumentData With {.Value = "True"})
 
         End Function
 
@@ -848,7 +848,7 @@ Class CAttribute
 End Class
 </Code>
 
-            Await TestAddAttributeArgument(code, expectedCode, New AttributeArgumentData With {.Name = "AllowMultiple", .Value = "False", .Position = 1})
+            Await TestAddAttributeArgumentAsync(code, expectedCode, New AttributeArgumentData With {.Name = "AllowMultiple", .Value = "False", .Position = 1})
 
         End Function
 #End Region
@@ -869,7 +869,7 @@ Class C
 End Class
 ]]></Code>
 
-            Await TestDelete(code, expected)
+            Await TestDeleteAsync(code, expected)
 
         End Function
 
@@ -889,7 +889,7 @@ Class C
 End Class
 ]]></Code>
 
-            Await TestDelete(code, expected)
+            Await TestDeleteAsync(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -909,7 +909,7 @@ Class C
 End Class
 ]]></Code>
 
-            Await TestDelete(code, expected)
+            Await TestDeleteAsync(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -923,7 +923,7 @@ End Class
 <Code><![CDATA[
 ]]></Code>
 
-            Await TestDelete(code, expected)
+            Await TestDeleteAsync(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -938,7 +938,7 @@ End Class
 <Assembly: Bar>
 ]]></Code>
 
-            Await TestDelete(code, expected)
+            Await TestDeleteAsync(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -954,7 +954,7 @@ End Class
 <Assembly: Goo>
 ]]></Code>
 
-            Await TestDelete(code, expected)
+            Await TestDeleteAsync(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -978,7 +978,7 @@ Class C
 End Class
 ]]></Code>
 
-            Await TestDelete(code, expected)
+            Await TestDeleteAsync(code, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -996,7 +996,7 @@ Class C
 End Class
 ]]></Code>
 
-            Await TestDelete(code, expected)
+            Await TestDeleteAsync(code, expected)
         End Function
 
 #End Region
@@ -1019,7 +1019,7 @@ Class C
 End Class
 ]]></Code>
 
-            Await TestDeleteAttributeArgument(code, expected, 1)
+            Await TestDeleteAttributeArgumentAsync(code, expected, 1)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1040,7 +1040,7 @@ Class CAttribute
 End Class
 ]]></Code>
 
-            Await TestDeleteAttributeArgument(code, expected, 1)
+            Await TestDeleteAttributeArgumentAsync(code, expected, 1)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1061,7 +1061,7 @@ Class CAttribute
 End Class
 ]]></Code>
 
-            Await TestDeleteAttributeArgument(code, expected, 2)
+            Await TestDeleteAttributeArgumentAsync(code, expected, 2)
         End Function
 
 #End Region
@@ -1083,7 +1083,7 @@ Class C
 End Class
 ]]></Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1102,7 +1102,7 @@ Class C
 End Class
 ]]></Code>
 
-            Await TestSetName(code, expected, "Bar.Baz", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar.Baz", NoThrow(Of String)())
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1121,7 +1121,7 @@ Class C
 End Class
 ]]></Code>
 
-            Await TestSetName(code, expected, "Bar.Baz", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar.Baz", NoThrow(Of String)())
         End Function
 #End Region
 
@@ -1142,7 +1142,7 @@ Imports System
 &lt;Module: CLSCompliant(False)&gt;
 </Code>
 
-            Await TestSetTarget(code, expected, "Module")
+            Await TestSetTargetAsync(code, expected, "Module")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1165,7 +1165,7 @@ Class C
 End Class
 </Code>
 
-            Await TestSetTarget(code, expected, "Assembly")
+            Await TestSetTargetAsync(code, expected, "Assembly")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1184,7 +1184,7 @@ Imports System
 &lt;CLSCompliant(False)&gt;
 </Code>
 
-            Await TestSetTarget(code, expected, "")
+            Await TestSetTargetAsync(code, expected, "")
         End Function
 #End Region
 
@@ -1205,7 +1205,7 @@ Imports System
 &lt;Assembly: CLSCompliant(True)&gt;
 </Code>
 
-            Await TestSetValue(code, expected, "True")
+            Await TestSetValueAsync(code, expected, "True")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1224,7 +1224,7 @@ Imports System
 &lt;Assembly: CLSCompliant(True)&gt;
 </Code>
 
-            Await TestSetValue(code, expected, "True")
+            Await TestSetValueAsync(code, expected, "True")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1243,7 +1243,7 @@ Imports System
 &lt;Assembly: CLSCompliant(True)&gt;
 </Code>
 
-            Await TestSetValue(code, expected, "True")
+            Await TestSetValueAsync(code, expected, "True")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -1262,7 +1262,7 @@ Imports System
 &lt;Assembly: CLSCompliant()&gt;
 </Code>
 
-            Await TestSetValue(code, expected, "")
+            Await TestSetValueAsync(code, expected, "")
         End Function
 #End Region
 

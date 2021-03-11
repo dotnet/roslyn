@@ -39,7 +39,7 @@ namespace [||]{declaredNamespace}
         </Document>
     </Project>
 </Workspace>";
-            await TestMoveFileToMatchNamespace(code, expectedFolders);
+            await TestMoveFileToMatchNamespaceAsync(code, expectedFolders);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -71,7 +71,7 @@ namespace [||]{declaredNamespace}
         </Document>
     </Project>
 </Workspace>";
-            await TestMoveFileToMatchNamespace(code, expectedFolders);
+            await TestMoveFileToMatchNamespaceAsync(code, expectedFolders);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -112,7 +112,7 @@ namespace Foo
         </Document>  
     </Project>
 </Workspace>";
-            await TestMoveFileToMatchNamespace(code, expectedFolders);
+            await TestMoveFileToMatchNamespaceAsync(code, expectedFolders);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -144,7 +144,7 @@ class Class2
         </Document>
     </Project>
 </Workspace>";
-            await TestMoveFileToMatchNamespace(code, expectedFolders);
+            await TestMoveFileToMatchNamespaceAsync(code, expectedFolders);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -186,7 +186,7 @@ namespace Foo
         </Document>  
     </Project>
 </Workspace>";
-            await TestMoveFileToMatchNamespace(code, expectedFolders);
+            await TestMoveFileToMatchNamespaceAsync(code, expectedFolders);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -239,7 +239,7 @@ namespace Foo
         </Document>  
     </Project>
 </Workspace>";
-            await TestMoveFileToMatchNamespace(code, expectedFolders);
+            await TestMoveFileToMatchNamespaceAsync(code, expectedFolders);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -277,7 +277,7 @@ namespace Foo
         </Document>  
     </Project>
 </Workspace>";
-            await TestMoveFileToMatchNamespace(code, expectedFolders);
+            await TestMoveFileToMatchNamespaceAsync(code, expectedFolders);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
@@ -314,7 +314,7 @@ namespace Foo
         </Document>  
     </Project>
 </Workspace>";
-            await TestMoveFileToMatchNamespace(code, expectedFolders);
+            await TestMoveFileToMatchNamespaceAsync(code, expectedFolders);
         }
     }
 }

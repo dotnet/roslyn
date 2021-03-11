@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     {
     }
 }";
-            await VerifyMarkupAndExpected("/", markup, expected);
+            await VerifyMarkupAndExpectedAsync("/", markup, expected);
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     {
     }
 }";
-            await VerifyMarkupAndExpected("/", markup, expected);
+            await VerifyMarkupAndExpectedAsync("/", markup, expected);
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         ///{|type:|}
     }
 }";
-            await VerifyNoResult("/", markup);
+            await VerifyNoResultAsync("/", markup);
         }
 
         [Fact]
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     {
     }
 }";
-            await VerifyNoResult("'", markup);
+            await VerifyNoResultAsync("'", markup);
         }
 
         [Fact]
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     {
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpectedAsync("\n", markup, expected);
         }
 
         [Fact]
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     {
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpectedAsync("\n", markup, expected);
         }
 
         [Fact]
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
     {
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpectedAsync("\n", markup, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         $0
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpectedAsync("\n", markup, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 		$0
 	}
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected, useTabs: true);
+            await VerifyMarkupAndExpectedAsync("\n", markup, expected, useTabs: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         }
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpectedAsync("\n", markup, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         var s = $""Hello {{|type:|}
         }
 }";
-            await VerifyNoResult("\n", markup);
+            await VerifyNoResultAsync("\n", markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
         {|type:|}
     }
 }";
-            await VerifyNoResult("\n", markup);
+            await VerifyNoResultAsync("\n", markup);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -304,10 +304,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
 
     }
 }";
-            await VerifyNoResult("\n", markup);
+            await VerifyNoResultAsync("\n", markup);
         }
 
-        private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected, bool useTabs = false)
+        private async Task VerifyMarkupAndExpectedAsync(string characterTyped, string markup, string expected, bool useTabs = false)
         {
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var locationTyped = locations["type"].Single();
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.OnAutoInsert
             Assert.Equal(expected, actualText);
         }
 
-        private async Task VerifyNoResult(string characterTyped, string markup)
+        private async Task VerifyNoResultAsync(string characterTyped, string markup)
         {
             using var testLspServer = CreateTestLspServer(markup, out var locations);
             var locationTyped = locations["type"].Single();

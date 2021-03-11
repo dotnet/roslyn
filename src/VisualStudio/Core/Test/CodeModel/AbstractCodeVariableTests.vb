@@ -104,12 +104,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean) As Task
-            Await TestSetIsConstant(code, expectedCode, value, NoThrow(Of Boolean)())
+        Protected Async Function TestSetIsConstantAsync(code As XElement, expectedCode As XElement, value As Boolean) As Task
+            Await TestSetIsConstantAsync(code, expectedCode, value, NoThrow(Of Boolean)())
         End Function
 
-        Protected Async Function TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetIsConstantAsync(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     action(value, Sub(v) codeElement.IsConstant = v)
                 End Sub)
@@ -122,12 +122,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Protected Async Function TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object) As Task
-            Await TestSetInitExpression(code, expectedCode, value, NoThrow(Of Object)())
+        Protected Async Function TestSetInitExpressionAsync(code As XElement, expectedCode As XElement, value As Object) As Task
+            Await TestSetInitExpressionAsync(code, expectedCode, value, NoThrow(Of Object)())
         End Function
 
-        Protected Async Function TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object, action As SetterAction(Of Object)) As Task
-            Await TestElementUpdate(code, expectedCode,
+        Protected Async Function TestSetInitExpressionAsync(code As XElement, expectedCode As XElement, value As Object, action As SetterAction(Of Object)) As Task
+            Await TestElementUpdateAsync(code, expectedCode,
                 Sub(codeElement)
                     action(value, Sub(v) codeElement.InitExpression = v)
                 End Sub)

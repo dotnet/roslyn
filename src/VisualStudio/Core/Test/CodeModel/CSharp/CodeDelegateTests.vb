@@ -260,7 +260,7 @@ public delegate int $$D();
 public delegate void D();
 </Code>
 
-            Await TestSetTypeProp(code, expected, "void")
+            Await TestSetTypePropAsync(code, expected, "void")
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -275,7 +275,7 @@ public delegate string $$D();
 public delegate int? D();
 </Code>
 
-            Await TestSetTypeProp(code, expected, "System.Nullable<System.Int32>")
+            Await TestSetTypePropAsync(code, expected, "System.Nullable<System.Int32>")
         End Function
 
 #End Region
@@ -323,7 +323,7 @@ using System;
 [Serializable()]
 delegate void D();
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -344,7 +344,7 @@ using System;
 [CLSCompliant(true)]
 delegate void D();
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -366,7 +366,7 @@ using System;
 [CLSCompliant(true)]
 delegate void D();
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
 #End Region

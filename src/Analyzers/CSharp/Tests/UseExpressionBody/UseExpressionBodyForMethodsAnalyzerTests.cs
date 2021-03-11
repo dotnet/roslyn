@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 
     public class UseExpressionBodyForMethodsAnalyzerTests
     {
-        private static async Task TestWithUseExpressionBody(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
+        private static async Task TestWithUseExpressionBodyAsync(string code, string fixedCode, LanguageVersion version = LanguageVersion.CSharp8)
         {
             await new VerifyCS.Test
             {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
             }.RunAsync();
         }
 
-        private static async Task TestWithUseBlockBody(string code, string fixedCode, ReferenceAssemblies? referenceAssemblies = null)
+        private static async Task TestWithUseBlockBodyAsync(string code, string fixedCode, ReferenceAssemblies? referenceAssemblies = null)
         {
             await new VerifyCS.Test
             {
@@ -141,7 +141,7 @@ class C
 
     void Goo() => Bar();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -164,7 +164,7 @@ class C
 
     int Goo() => Bar();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -187,7 +187,7 @@ class C
 {
     int Goo() => throw new NotImplementedException();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -210,7 +210,7 @@ class C
 {
     int Goo() => throw new NotImplementedException(); // comment
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -233,7 +233,7 @@ class C
         Bar();
     }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -256,7 +256,7 @@ class C
         return Bar();
     }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -279,7 +279,7 @@ class C
         throw new NotImplementedException();
     }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -302,7 +302,7 @@ class C
         throw new NotImplementedException(); // comment
     }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -328,7 +328,7 @@ class C
         // Comment
         Bar();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -354,7 +354,7 @@ class C
         // Comment
         Bar();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -384,7 +384,7 @@ class C
         // Comment
         throw Bar();
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -407,7 +407,7 @@ class C
 
     void Goo() => Bar(); // Comment
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -430,7 +430,7 @@ class C
 
     int Goo() => Bar(); // Comment
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
@@ -457,7 +457,7 @@ class C
 
     void Goo() => throw Bar(); // Comment
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
@@ -489,7 +489,7 @@ class Program
 #endif
 
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [WorkItem(17120, "https://github.com/dotnet/roslyn/issues/17120")]
@@ -525,7 +525,7 @@ class Program
 #endif
 
 }";
-            await TestWithUseExpressionBody(code, fixedCode);
+            await TestWithUseExpressionBodyAsync(code, fixedCode);
         }
 
         [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
@@ -547,7 +547,7 @@ class C
         throw new NotImplementedException();
     }
 }";
-            await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp5);
+            await TestWithUseExpressionBodyAsync(code, fixedCode, LanguageVersion.CSharp5);
         }
 
         [WorkItem(20352, "https://github.com/dotnet/roslyn/issues/20352")]
@@ -560,7 +560,7 @@ class C
 {
     int M() => 0;
 }";
-            await TestWithUseExpressionBody(code, code, LanguageVersion.CSharp6);
+            await TestWithUseExpressionBodyAsync(code, code, LanguageVersion.CSharp6);
         }
 
         [WorkItem(20352, "https://github.com/dotnet/roslyn/issues/20352")]
@@ -579,7 +579,7 @@ class C
 {
     int M() => 0;
 }";
-            await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
+            await TestWithUseExpressionBodyAsync(code, fixedCode, LanguageVersion.CSharp6);
         }
 
         [WorkItem(20352, "https://github.com/dotnet/roslyn/issues/20352")]
@@ -593,7 +593,7 @@ class C
     // throw expressions not supported in C# 6.
     void M() { throw new Exception(); }
 }";
-            await TestWithUseExpressionBody(code, code, LanguageVersion.CSharp6);
+            await TestWithUseExpressionBodyAsync(code, code, LanguageVersion.CSharp6);
         }
 
         [WorkItem(20362, "https://github.com/dotnet/roslyn/issues/20362")]
@@ -624,7 +624,7 @@ class C
 
     int M(bool b) => 0;
 }";
-            await TestWithUseExpressionBody(code, fixedCode, LanguageVersion.CSharp6);
+            await TestWithUseExpressionBodyAsync(code, fixedCode, LanguageVersion.CSharp6);
         }
 
         [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
@@ -652,7 +652,7 @@ class C
 
     Task Bar() { return Task.CompletedTask; }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
@@ -680,7 +680,7 @@ class C
 
     Task Bar() { return Task.CompletedTask; }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
@@ -708,7 +708,7 @@ class C
 
     Task Bar() { return Task.CompletedTask; }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
@@ -736,7 +736,7 @@ class C
 
     Task Bar() { return Task.CompletedTask; }
 }";
-            await TestWithUseBlockBody(code, fixedCode, ReferenceAssemblies.NetStandard.NetStandard21);
+            await TestWithUseBlockBodyAsync(code, fixedCode, ReferenceAssemblies.NetStandard.NetStandard21);
         }
 
         [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
@@ -764,7 +764,7 @@ class C
 
     Task<int> Bar() { return Task.FromResult(0); }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
 
         [WorkItem(25202, "https://github.com/dotnet/roslyn/issues/25202")]
@@ -792,7 +792,7 @@ class C
 
     Task Bar() { return Task.CompletedTask; }
 }";
-            await TestWithUseBlockBody(code, fixedCode);
+            await TestWithUseBlockBodyAsync(code, fixedCode);
         }
     }
 }

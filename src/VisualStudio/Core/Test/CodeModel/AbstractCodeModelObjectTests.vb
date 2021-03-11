@@ -23,66 +23,66 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                    </Workspace>
         End Function
 
-        Protected Overridable Function TestAddAttribute(code As XElement, expectedCode As XElement, data As AttributeData) As Task
+        Protected Overridable Function TestAddAttributeAsync(code As XElement, expectedCode As XElement, data As AttributeData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddClass(code As XElement, expectedCode As XElement, data As ClassData) As Task
+        Protected Overridable Function TestAddClassAsync(code As XElement, expectedCode As XElement, data As ClassData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddDelegate(code As XElement, expectedCode As XElement, data As DelegateData) As Task
+        Protected Overridable Function TestAddDelegateAsync(code As XElement, expectedCode As XElement, data As DelegateData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddEnum(code As XElement, expectedCode As XElement, data As EnumData) As Task
+        Protected Overridable Function TestAddEnumAsync(code As XElement, expectedCode As XElement, data As EnumData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddEnumMember(code As XElement, expectedCode As XElement, data As EnumMemberData) As Task
+        Protected Overridable Function TestAddEnumMemberAsync(code As XElement, expectedCode As XElement, data As EnumMemberData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddEvent(code As XElement, expectedCode As XElement, data As EventData) As Task
+        Protected Overridable Function TestAddEventAsync(code As XElement, expectedCode As XElement, data As EventData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddFunction(code As XElement, expectedCode As XElement, data As FunctionData) As Task
+        Protected Overridable Function TestAddFunctionAsync(code As XElement, expectedCode As XElement, data As FunctionData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddImport(code As XElement, expectedCode As XElement, data As ImportData) As Task
+        Protected Overridable Function TestAddImportAsync(code As XElement, expectedCode As XElement, data As ImportData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddInterface(code As XElement, expectedCode As XElement, data As InterfaceData) As Task
+        Protected Overridable Function TestAddInterfaceAsync(code As XElement, expectedCode As XElement, data As InterfaceData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddNamespace(code As XElement, expectedCode As XElement, data As NamespaceData) As Task
+        Protected Overridable Function TestAddNamespaceAsync(code As XElement, expectedCode As XElement, data As NamespaceData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddParameter(code As XElement, expectedCode As XElement, data As ParameterData) As Task
+        Protected Overridable Function TestAddParameterAsync(code As XElement, expectedCode As XElement, data As ParameterData) As Task
             Throw New NotImplementedException
         End Function
 
-        Private Protected Overridable Function TestAddProperty(
+        Private Protected Overridable Function TestAddPropertyAsync(
                 code As XElement, expectedCode As XElement, data As PropertyData,
                 Optional options As IDictionary(Of OptionKey2, Object) = Nothing,
                 Optional editorConfig As String = "") As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddStruct(code As XElement, expectedCode As XElement, data As StructData) As Task
+        Protected Overridable Function TestAddStructAsync(code As XElement, expectedCode As XElement, data As StructData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddVariable(code As XElement, expectedCode As XElement, data As VariableData) As Task
+        Protected Overridable Function TestAddVariableAsync(code As XElement, expectedCode As XElement, data As VariableData) As Task
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestRemoveChild(code As XElement, expectedCode As XElement, child As Object) As Task
+        Protected Overridable Function TestRemoveChildAsync(code As XElement, expectedCode As XElement, child As Object) As Task
             Throw New NotImplementedException
         End Function
 

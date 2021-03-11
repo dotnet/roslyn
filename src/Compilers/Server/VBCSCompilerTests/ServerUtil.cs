@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             return ((ShutdownBuildResponse)response).ServerProcessId;
         }
 
-        internal async Task<TestableDiagnosticListener> Complete()
+        internal async Task<TestableDiagnosticListener> CompleteAsync()
         {
             CancellationTokenSource.Cancel();
             return await ServerTask;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal static string GetPipeName() => Guid.NewGuid().ToString().Substring(0, 10);
 
-        internal static async Task<ServerData> CreateServer(
+        internal static async Task<ServerData> CreateServerAsync(
             ICompilerServerLogger logger,
             string pipeName = null,
             ICompilerServerHost compilerServerHost = null,

@@ -155,7 +155,7 @@ using System;
 [Serializable()]
 interface I { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "Serializable"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -176,7 +176,7 @@ using System;
 [CLSCompliant(true)]
 interface I { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true", .Position = 1})
         End Function
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
@@ -198,7 +198,7 @@ using System;
 [CLSCompliant(true)]
 interface I { }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
+            Await TestAddAttributeAsync(code, expected, New AttributeData With {.Name = "CLSCompliant", .Value = "true"})
         End Function
 
 #End Region
@@ -216,7 +216,7 @@ interface $$I { }
 <Code>
 interface I : B { }
 </Code>
-            Await TestAddBase(code, "B", Nothing, expected)
+            Await TestAddBaseAsync(code, "B", Nothing, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -230,7 +230,7 @@ interface $$I : B { }
 <Code>
 interface I : A, B { }
 </Code>
-            Await TestAddBase(code, "A", Nothing, expected)
+            Await TestAddBaseAsync(code, "A", Nothing, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -244,7 +244,7 @@ interface $$I : B { }
 <Code>
 interface I : B, A { }
 </Code>
-            Await TestAddBase(code, "A", Type.Missing, expected)
+            Await TestAddBaseAsync(code, "A", Type.Missing, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -258,7 +258,7 @@ interface $$I : B { }
 <Code>
 interface I : B, A { }
 </Code>
-            Await TestAddBase(code, "A", -1, expected)
+            Await TestAddBaseAsync(code, "A", -1, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -272,7 +272,7 @@ interface $$I : B { }
 <Code>
 interface I : A, B { }
 </Code>
-            Await TestAddBase(code, "A", 0, expected)
+            Await TestAddBaseAsync(code, "A", 0, expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -290,7 +290,7 @@ interface I : B
 {
 }
 </Code>
-            Await TestAddBase(code, "B", Nothing, expected)
+            Await TestAddBaseAsync(code, "B", Nothing, expected)
         End Function
 
 #End Region
@@ -314,7 +314,7 @@ interface I
 }
 </Code>
 
-            Await TestAddEvent(code, expected, New EventData With {.Name = "E", .FullDelegateName = "System.EventHandler"})
+            Await TestAddEventAsync(code, expected, New EventData With {.Name = "E", .FullDelegateName = "System.EventHandler"})
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -335,7 +335,7 @@ interface I
 </Code>
 
             ' Note: C# Code Model apparently ignore CreatePropertyStyleEvent for interfaces in Dev10.
-            Await TestAddEvent(code, expected, New EventData With {.Name = "E", .FullDelegateName = "System.EventHandler", .CreatePropertyStyleEvent = True})
+            Await TestAddEventAsync(code, expected, New EventData With {.Name = "E", .FullDelegateName = "System.EventHandler", .CreatePropertyStyleEvent = True})
         End Function
 
 #End Region
@@ -357,7 +357,7 @@ interface I
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
+            Await TestAddFunctionAsync(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
 #End Region
@@ -375,7 +375,7 @@ interface $$I : B { }
 <Code>
 interface I { }
 </Code>
-            Await TestRemoveBase(code, "B", expected)
+            Await TestRemoveBaseAsync(code, "B", expected)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -389,7 +389,7 @@ interface $$I : A, B { }
 <Code>
 interface I : B { }
 </Code>
-            Await TestRemoveBase(code, "A", expected)
+            Await TestRemoveBaseAsync(code, "A", expected)
         End Function
 
 #End Region
@@ -411,7 +411,7 @@ interface Bar
 }
 </Code>
 
-            Await TestSetName(code, expected, "Bar", NoThrow(Of String)())
+            Await TestSetNameAsync(code, expected, "Bar", NoThrow(Of String)())
         End Function
 #End Region
 

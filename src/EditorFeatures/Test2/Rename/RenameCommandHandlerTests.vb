@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 view.Selection.Select(selectedSpan, isReversed:=True)
 
                 CreateCommandHandler(workspace).ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Throw New Exception("The operation should have been handled."), Utilities.TestCommandExecutionContext.Create())
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
                 Assert.Equal(selectedSpan.Span, view.Selection.SelectedSpans.Single().Span)
             End Using
         End Function
@@ -235,7 +235,7 @@ End Class
                 Dim session = StartSession(workspace)
 
                 ' TODO: should we make tab wait instead?
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
                 ' Unfocus the dashboard
                 Dim dashboard = DirectCast(view.GetAdornmentLayer("RoslynRenameDashboard").Elements(0).Adornment, Dashboard)
@@ -277,7 +277,7 @@ Goo f;
 
                 Assert.True(view.Selection.IsEmpty())
                 Dim session = StartSession(workspace)
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
                 Assert.Equal(identifierSpan, view.Selection.SelectedSpans.Single().Span)
                 Assert.Equal(identifierSpan.End, view.Caret.Position.BufferPosition.Position)
@@ -318,7 +318,7 @@ class [|$$Goo|] // comment
                 Dim commandHandler = CreateCommandHandler(workspace)
 
                 Dim session = StartSession(workspace)
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
                 view.Selection.Clear()
                 view.Caret.MoveTo(New SnapshotPoint(view.TextSnapshot, startPosition))
 
@@ -326,10 +326,10 @@ class [|$$Goo|] // comment
                 commandHandler.ExecuteCommand(New WordDeleteToEndCommandArgs(view, view.TextBuffer),
                                               Sub() AssertEx.Fail("Command should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
-                Await VerifyTagsAreCorrect(workspace, "")
+                Await VerifyTagsAreCorrectAsync(workspace, "")
 
                 editorOperations.InsertText("this")
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
                 Assert.Equal("@this", view.TextSnapshot.GetText(startPosition, 5))
 
                 ' with a selection, we should delete the from the beginning of the rename span to the end of the selection
@@ -339,7 +339,7 @@ class [|$$Goo|] // comment
                 commandHandler.ExecuteCommand(New WordDeleteToStartCommandArgs(view, view.TextBuffer),
                                               Sub() AssertEx.Fail("Command should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
-                Await VerifyTagsAreCorrect(workspace, "s")
+                Await VerifyTagsAreCorrectAsync(workspace, "s")
             End Using
         End Function
 
@@ -372,7 +372,7 @@ Goo f;
                 Dim commandHandler = CreateCommandHandler(workspace)
 
                 Dim session = StartSession(workspace)
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
 
 #Region "LineStart"
                 ' we start with the identifier selected
@@ -469,7 +469,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("$"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Goo")
+                Await VerifyTagsAreCorrectAsync(workspace, "Goo")
 
                 session.Cancel()
             End Using
@@ -495,7 +495,7 @@ Goo f;
                 Dim commandHandler = CreateCommandHandler(workspace)
 
                 Dim session = StartSession(workspace)
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
 
                 ' Type first in the main identifier
@@ -515,7 +515,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -547,7 +547,7 @@ Goo f;
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
 
                 ' Delete the first identifier char
@@ -556,7 +556,7 @@ Goo f;
                                               Sub() editorOperations.Delete(),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "oo")
+                Await VerifyTagsAreCorrectAsync(workspace, "oo")
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 session.Cancel()
@@ -585,7 +585,7 @@ Goo f;
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
 
                 ' Delete the first identifier char
@@ -594,7 +594,7 @@ Goo f;
                                               Sub() editorOperations.Backspace(),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Go")
+                Await VerifyTagsAreCorrectAsync(workspace, "Go")
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
                 session.Cancel()
@@ -622,7 +622,7 @@ Goo f;
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
 
                 ' Type first in the main identifier
@@ -641,7 +641,7 @@ Goo f;
                                               Sub() editorOperations.Delete(),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -676,7 +676,7 @@ Goo f;
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
 
                 ' Type first in the main identifier
@@ -695,7 +695,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -741,7 +741,7 @@ Goo f;
 
                 Dim session = StartSession(workspace)
                 view.Selection.Clear()
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
 
                 ' Type first in the main identifier
@@ -760,7 +760,7 @@ Goo f;
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BB")
+                Await VerifyTagsAreCorrectAsync(workspace, "BB")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -801,7 +801,7 @@ class Program
                 commandHandler.ExecuteCommand(New TypeCharCommandArgs(view, view.TextBuffer, "Z"c), Sub() editorOperations.InsertText("Z"), Utilities.TestCommandExecutionContext.Create())
                 commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Z")
+                Await VerifyTagsAreCorrectAsync(workspace, "Z")
             End Using
         End Function
 
@@ -842,7 +842,7 @@ partial class [|Program|]
                                               Sub() editorOperations.InsertText("Z"),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "Z")
+                Await VerifyTagsAreCorrectAsync(workspace, "Z")
             End Using
         End Function
 
@@ -1049,7 +1049,7 @@ partial class [|Program|]
                 Dim commandHandler = CreateCommandHandler(workspace)
 
                 Dim session = StartSession(workspace)
-                Await WaitForRename(workspace)
+                Await WaitForRenameAsync(workspace)
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
 
                 ' Type first in the main identifier
@@ -1061,7 +1061,7 @@ partial class [|Program|]
                 ' Now save the document, which should commit Rename
                 commandHandler.ExecuteCommand(New SaveCommandArgs(view, view.TextBuffer), Sub() Exit Sub, Utilities.TestCommandExecutionContext.Create())
 
-                Await VerifyTagsAreCorrect(workspace, "BGoo")
+                Await VerifyTagsAreCorrectAsync(workspace, "BGoo")
 
                 ' Rename session was indeed committed and is no longer active
                 Assert.Null(workspace.GetService(Of IInlineRenameService).ActiveSession)
@@ -1137,7 +1137,7 @@ partial class [|Program|]
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function CutDuringRename_InsideIdentifier(host As RenameTestHost) As Task
-            Await VerifySessionActiveAfterCutPasteInsideIdentifier(
+            Await VerifySessionActiveAfterCutPasteInsideIdentifierAsync(
                 host,
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
                     commandHandler.ExecuteCommand(New CutCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
@@ -1147,7 +1147,7 @@ partial class [|Program|]
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function PasteDuringRename_InsideIdentifier(host As RenameTestHost) As Task
-            Await VerifySessionActiveAfterCutPasteInsideIdentifier(
+            Await VerifySessionActiveAfterCutPasteInsideIdentifierAsync(
                 host,
                 Sub(commandHandler As RenameCommandHandler, view As IWpfTextView, nextHandler As Action)
                     commandHandler.ExecuteCommand(New PasteCommandArgs(view, view.TextBuffer), nextHandler, Utilities.TestCommandExecutionContext.Create())
@@ -1216,7 +1216,7 @@ class [|C$$|]
             End Using
         End Sub
 
-        Private Shared Async Function VerifySessionActiveAfterCutPasteInsideIdentifier(host As RenameTestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action)) As Task
+        Private Shared Async Function VerifySessionActiveAfterCutPasteInsideIdentifierAsync(host As RenameTestHost, executeCommand As Action(Of RenameCommandHandler, IWpfTextView, Action)) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -1244,7 +1244,7 @@ class [|C$$|]
 
                 ' Verify rename session is still active
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
-                Await VerifyTagsAreCorrect(workspace, commandInvokedString)
+                Await VerifyTagsAreCorrectAsync(workspace, commandInvokedString)
             End Using
         End Function
 

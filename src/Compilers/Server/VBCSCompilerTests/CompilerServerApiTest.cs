@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public async Task RejectEmptyTempPath()
         {
             using var temp = new TempRoot();
-            using var serverData = await ServerUtil.CreateServer(Logger).ConfigureAwait(false);
+            using var serverData = await ServerUtil.CreateServerAsync(Logger).ConfigureAwait(false);
             var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, tempDirectory: null, compilerHash: BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
             var response = await serverData.SendAsync(request).ConfigureAwait(false);
             Assert.Equal(ResponseType.Rejected, response.Type);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
         {
-            using var serverData = await ServerUtil.CreateServer(Logger).ConfigureAwait(false);
+            using var serverData = await ServerUtil.CreateServerAsync(Logger).ConfigureAwait(false);
             var buildResponse = await serverData.SendAsync(new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { })).ConfigureAwait(false);
             Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public async Task IncorrectServerHashReturnsIncorrectHashResponse()
         {
-            using var serverData = await ServerUtil.CreateServer(Logger).ConfigureAwait(false);
+            using var serverData = await ServerUtil.CreateServerAsync(Logger).ConfigureAwait(false);
             var buildResponse = await serverData.SendAsync(new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { })).ConfigureAwait(false);
             Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
         }

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
                 _done = true;
             }, asyncToken, CancellationToken.None);
 
-            await PumpWait();
+            await PumpWaitAsync();
 
             Assert.True(_done);
             Assert.True(ran);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             Service.RegisterNotification(() => { _done = true; }, asyncToken, CancellationToken.None);
 
             waitEvent.Set();
-            await PumpWait();
+            await PumpWaitAsync();
 
             Assert.False(ran);
             Assert.True(Service.IsEmpty_TestOnly);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
                 _done = true;
             }, 50, asyncToken, CancellationToken.None);
 
-            await PumpWait();
+            await PumpWaitAsync();
 
             Assert.True(elapsedMilliseconds >= 50, $"Notification fired after {elapsedMilliseconds}, instead of 50.");
             Assert.True(Service.IsEmpty_TestOnly);
@@ -150,13 +150,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
                 }, asyncToken, CancellationToken.None);
             }
 
-            await PumpWait().ConfigureAwait(false);
+            await PumpWaitAsync().ConfigureAwait(false);
             Assert.True(_done);
             Assert.Equal(9000000, count);
             Assert.True(Service.IsEmpty_TestOnly);
         }
 
-        private async Task PumpWait()
+        private async Task PumpWaitAsync()
         {
             while (!_done)
             {
