@@ -7715,5 +7715,47 @@ class A {
                 format,
                 "delegate*<(Int32 i, String s), (Int32 i, String s)>");
         }
+
+        [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
+        public void TestFunctionPointerWithRefParametersAndIncludeParameterRefOut()
+        {
+            var text = @"
+class A {
+    delegate*<in int, ref readonly string> f;
+}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                ((FieldSymbol)global.GetTypeMembers("A", 0).Single()
+                .GetMembers("f").Single()).Type;
+
+            var format = new SymbolDisplayFormat(parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "delegate*<Int32, String>");
+        }
+
+        [Fact, WorkItem(51222, "https://github.com/dotnet/roslyn/issues/51222")]
+        public void TestFunctionPointerWithRefParametersAndIncludeRef()
+        {
+            var text = @"
+class A {
+    delegate*<in int, ref readonly string> f;
+}";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                ((FieldSymbol)global.GetTypeMembers("A", 0).Single()
+                .GetMembers("f").Single()).Type;
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeRef);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "delegate*<in Int32, ref readonly String>");
+        }
     }
 }

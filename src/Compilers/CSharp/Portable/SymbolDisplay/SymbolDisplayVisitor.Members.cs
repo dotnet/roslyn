@@ -609,7 +609,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
-                    AddParameterRefKindIfRequired(param.RefKind);
+                    if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
+                    {
+                        AddParameterRefKind(param.RefKind);
+                    }
 
                     AddCustomModifiersIfRequired(param.RefCustomModifiers);
 
@@ -685,10 +688,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (e.g. field types, param types, etc), which just want the name whereas parameters are
             // used on their own or in the context of methods.
 
-
             var includeType = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeType);
 
-            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName);
+            var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName)
+                && (symbol is Symbols.PublicModel.Symbol { UnderlyingSymbol: SignatureOnlyParameterSymbol } // SignatureOnlyParameterSymbol.ContainingSymbol throws NotSupportedException
+                || symbol.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.FunctionPointerSignature });
 
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
 
@@ -976,21 +980,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
             {
-                switch (refKind)
-                {
-                    case RefKind.Out:
-                        AddKeyword(SyntaxKind.OutKeyword);
-                        AddSpace();
-                        break;
-                    case RefKind.Ref:
-                        AddKeyword(SyntaxKind.RefKeyword);
-                        AddSpace();
-                        break;
-                    case RefKind.In:
-                        AddKeyword(SyntaxKind.InKeyword);
-                        AddSpace();
-                        break;
-                }
+                AddParameterRefKind(refKind);
+            }
+        }
+
+        private void AddParameterRefKind(RefKind refKind)
+        {
+            switch (refKind)
+            {
+                case RefKind.Out:
+                    AddKeyword(SyntaxKind.OutKeyword);
+                    AddSpace();
+                    break;
+                case RefKind.Ref:
+                    AddKeyword(SyntaxKind.RefKeyword);
+                    AddSpace();
+                    break;
+                case RefKind.In:
+                    AddKeyword(SyntaxKind.InKeyword);
+                    AddSpace();
+                    break;
             }
         }
     }
