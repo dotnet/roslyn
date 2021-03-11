@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ' "Func(Of" tends to get in the way of typing "Function". Exclude System.Func from expression
             ' contexts, except within GetType
             If Not _context.TargetToken.IsKind(SyntaxKind.OpenParenToken) OrElse
-                    Not _context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
+               Not _context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
                 symbols = symbols.WhereAsArray(Function(s) Not IsInEligibleDelegate(s))
             End If
 

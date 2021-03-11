@@ -210,10 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         private ImmutableArray<ISymbol> GetSymbolsForExpressionOrStatementContext()
         {
-            var contextEnclosingNamedType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
-            if (contextEnclosingNamedType == null)
-                return ImmutableArray<ISymbol>.Empty;
-
             // Check if we're in an interesting situation like this:
             //
             //     i          // <-- here
@@ -233,9 +229,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // Filter out any extension methods that might be imported by a using static directive.
             // But include extension methods declared in the context's type or it's parents
             var contextOuterTypes = _context.GetOuterTypes(_cancellationToken);
+            var contextEnclosingNamedType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
+
             symbols = symbols.WhereAsArray(symbol =>
                 !symbol.IsExtensionMethod() ||
-                contextEnclosingNamedType.Equals(symbol.ContainingType) ||
+                Equals(contextEnclosingNamedType, symbol.ContainingType) ||
                 contextOuterTypes.Any(outerType => outerType.Equals(symbol.ContainingType)));
 
             // The symbols may include local variables that are declared later in the method and
