@@ -1913,7 +1913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor, BindingDiagnosticBag diagnostics, CSharpCompilation compilation)
         {
             // Note that the base type can be null if we're compiling System.Object in source.
-            NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
             Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax or RecordStructDeclarationSyntax
@@ -1939,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (constructor is SynthesizedRecordConstructor && constructor.ContainingType.IsStructType())
+            if (containingType.IsStructType() || containingType.IsEnumType())
             {
                 return null;
             }
