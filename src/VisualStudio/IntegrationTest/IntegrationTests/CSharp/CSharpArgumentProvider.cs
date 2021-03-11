@@ -173,5 +173,48 @@ $$
 }
 ", assertCaretPosition: true);
         }
+
+        [WpfTheory]
+        [InlineData("\"<\"", Skip = "https://github.com/dotnet/roslyn/issues/29669")]
+        [InlineData("\">\"")] // testing things that might break XML
+        [InlineData("\"&\"")]
+        [InlineData("\"  \"")]
+        [InlineData("\"$placeholder$\"")] // ensuring our snippets aren't substituted in ways we don't expect
+        [InlineData("\"$end$\"")]
+        public void EnsureParameterContentPreserved(string parameterText)
+        {
+            SetUpEditor(@"
+public class Test
+{
+    public void Method()
+    {$$
+    }
+
+    public void M(string s, int i)
+    {
+    }
+
+    public void M(string s, int i, int i2)
+    {
+    }
+}
+");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("M");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("M$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("M(null, 0)");
+
+            VisualStudio.Editor.SendKeys(parameterText);
+            VisualStudio.Editor.Verify.CurrentLineText("M(" + parameterText + ", 0)");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Down);
+            VisualStudio.Editor.Verify.CurrentLineText("M(" + parameterText + ", 0, 0)");
+        }
     }
 }
