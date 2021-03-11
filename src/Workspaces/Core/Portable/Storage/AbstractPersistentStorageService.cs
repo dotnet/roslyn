@@ -39,21 +39,21 @@ namespace Microsoft.CodeAnalysis.Storage
         /// to delete the database and retry opening one more time.  If that fails again, the <see
         /// cref="NoOpPersistentStorage"/> instance will be used.
         /// </summary>
-        protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath, string databaseFilePath);
+        protected abstract ValueTask<IChecksummedPersistentStorage?> TryOpenDatabaseAsync(SolutionKey solutionKey, string workingFolderPath, string databaseFilePath);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         [Obsolete("Use GetStorageAsync instead")]
         IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
-            => GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, CancellationToken.None).AsTask().GetAwaiter().GetResult();
+            => GetStorageAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution), solution, checkBranchId: true, CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
         async ValueTask<IPersistentStorage> IPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => await GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, cancellationToken).ConfigureAwait(false);
+            => await GetStorageAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution), solution, checkBranchId: true, cancellationToken).ConfigureAwait(false);
 
         public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, CancellationToken cancellationToken)
-            => GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId: true, cancellationToken);
+            => GetStorageAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution), solution, checkBranchId: true, cancellationToken);
 
         public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Solution solution, bool checkBranchId, CancellationToken cancellationToken)
-            => GetStorageAsync(solution.Workspace, (SolutionKey)solution, solution, checkBranchId, cancellationToken);
+            => GetStorageAsync(solution.Workspace, SolutionKey.ToSolutionKey(solution), solution, checkBranchId, cancellationToken);
 
         public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(Workspace workspace, SolutionKey solutionKey, bool checkBranchId, CancellationToken cancellationToken)
             => GetStorageAsync(workspace, solutionKey, bulkLoadSnapshot: null, checkBranchId, cancellationToken);
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     _currentPersistentStorageSolutionId = null;
                 }
 
-                var storage = await CreatePersistentStorageAsync(solutionKey, bulkLoadSnapshot, workingFolder).ConfigureAwait(false);
+                var storage = await CreatePersistentStorageAsync(solutionKey, workingFolder).ConfigureAwait(false);
                 Contract.ThrowIfNull(storage);
 
                 // Create and cache a new storage instance associated with this particular solution.
@@ -145,26 +145,23 @@ namespace Microsoft.CodeAnalysis.Storage
             return true;
         }
 
-        private async ValueTask<IChecksummedPersistentStorage> CreatePersistentStorageAsync(SolutionKey solutionKey, Solution? bulkLoadSnapshot, string workingFolderPath)
+        private async ValueTask<IChecksummedPersistentStorage> CreatePersistentStorageAsync(SolutionKey solutionKey, string workingFolderPath)
         {
             // Attempt to create the database up to two times.  The first time we may encounter
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
             // try to create it again.  If we can't create it the second time, then there's nothing
             // we can do and we have to store things in memory.
-            return await TryCreatePersistentStorageAsync(solutionKey, bulkLoadSnapshot, workingFolderPath).ConfigureAwait(false) ??
-                   await TryCreatePersistentStorageAsync(solutionKey, bulkLoadSnapshot, workingFolderPath).ConfigureAwait(false) ??
+            return await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath).ConfigureAwait(false) ??
+                   await TryCreatePersistentStorageAsync(solutionKey, workingFolderPath).ConfigureAwait(false) ??
                    NoOpPersistentStorage.Instance;
         }
 
-        private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(
-            SolutionKey solutionKey,
-            Solution? bulkLoadSnapshot,
-            string workingFolderPath)
+        private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(SolutionKey solutionKey, string workingFolderPath)
         {
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                return await TryOpenDatabaseAsync(solutionKey, bulkLoadSnapshot, workingFolderPath, databaseFilePath).ConfigureAwait(false);
+                return await TryOpenDatabaseAsync(solutionKey, workingFolderPath, databaseFilePath).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -175,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     // this was not a normal exception that we expected during DB open.
                     // Report this so we can try to address whatever is causing this.
                     FatalError.ReportAndCatch(ex);
-                    IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath), recursive: true));
+                    IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath)!, recursive: true));
                 }
 
                 return null;
@@ -237,6 +234,9 @@ namespace Microsoft.CodeAnalysis.Storage
             public void Dispose()
                 => _storage.Dispose();
 
+            public ValueTask DisposeAsync()
+                => _storage.DisposeAsync();
+
             public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.ChecksumMatchesAsync(name, checksum, cancellationToken);
 
@@ -252,13 +252,13 @@ namespace Microsoft.CodeAnalysis.Storage
             public Task<bool> ChecksumMatchesAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.ChecksumMatchesAsync(document, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, cancellationToken);
 
             public Task<Stream> ReadStreamAsync(string name, Checksum checksum, CancellationToken cancellationToken)
@@ -293,6 +293,12 @@ namespace Microsoft.CodeAnalysis.Storage
 
             public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.WriteStreamAsync(document, name, stream, checksum, cancellationToken);
+
+            public Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.WriteStreamAsync(projectKey, name, stream, checksum, cancellationToken);
+
+            public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+                => _storage.Target.WriteStreamAsync(documentKey, name, stream, checksum, cancellationToken);
         }
     }
 }

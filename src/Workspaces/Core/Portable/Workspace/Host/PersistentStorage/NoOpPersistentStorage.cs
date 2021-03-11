@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +22,11 @@ namespace Microsoft.CodeAnalysis.Host
         {
         }
 
+        public ValueTask DisposeAsync()
+        {
+            return ValueTaskFactory.CompletedTask;
+        }
+
         public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 
@@ -39,28 +42,28 @@ namespace Microsoft.CodeAnalysis.Host
         public Task<bool> ChecksumMatchesAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.False;
 
-        public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
+        public Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
             => SpecializedTasks.Null<Stream>();
 
-        public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
+        public Task<Stream?> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
             => SpecializedTasks.Null<Stream>();
 
-        public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
+        public Task<Stream?> ReadStreamAsync(string name, CancellationToken cancellationToken)
             => SpecializedTasks.Null<Stream>();
 
-        public Task<Stream> ReadStreamAsync(string name, Checksum checksum, CancellationToken cancellationToken)
+        public Task<Stream?> ReadStreamAsync(string name, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.Null<Stream>();
 
-        public Task<Stream> ReadStreamAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
+        public Task<Stream?> ReadStreamAsync(Project project, string name, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.Null<Stream>();
 
-        public Task<Stream> ReadStreamAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
+        public Task<Stream?> ReadStreamAsync(Document document, string name, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.Null<Stream>();
 
-        public Task<Stream> ReadStreamAsync(ProjectKey project, string name, Checksum checksum, CancellationToken cancellationToken)
+        public Task<Stream?> ReadStreamAsync(ProjectKey project, string name, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.Null<Stream>();
 
-        public Task<Stream> ReadStreamAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
+        public Task<Stream?> ReadStreamAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.Null<Stream>();
 
         public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken)
@@ -79,6 +82,12 @@ namespace Microsoft.CodeAnalysis.Host
             => SpecializedTasks.False;
 
         public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
+
+        public Task<bool> WriteStreamAsync(ProjectKey projectKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
+            => SpecializedTasks.False;
+
+        public Task<bool> WriteStreamAsync(DocumentKey documentKey, string name, Stream stream, Checksum checksum, CancellationToken cancellationToken)
             => SpecializedTasks.False;
     }
 }

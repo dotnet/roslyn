@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +11,17 @@ namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal interface IFindUsagesContext
     {
+        /// <summary>
+        /// <see cref="IFindUsagesContext"/> acts as a <see cref="CancellationTokenSource"/>, enabling it to determine
+        /// when a particular find operation should be cancelled.  Once a client creates a <see cref="IFindUsagesContext"/>
+        /// it should be considered the source of truth for cancellation.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="IFindUsagesContext"/> will generally wrap and represent the host UI component responsible for
+        /// displaying results to a user. As such, it may expose its own mechanism for cancellation a search (for
+        /// example, if the user closes the window, or starts another search within it).  This property allows clients
+        /// to observe when that happens so they can cancel their own work.
+        /// </remarks>
         CancellationToken CancellationToken { get; }
 
         /// <summary>

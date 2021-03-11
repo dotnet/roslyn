@@ -105,17 +105,15 @@ namespace Microsoft.CodeAnalysis.Serialization
             return service.ReadCompilationOptionsFrom(reader, cancellationToken);
         }
 
-        public void SerializeParseOptions(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken)
+        public void SerializeParseOptions(ParseOptions options, ObjectWriter writer)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var language = options.Language;
 
             // TODO: once compiler team adds ability to serialize parse options to ObjectWriter directly, we won't need this.
             writer.WriteString(language);
 
             var service = GetOptionsSerializationService(language);
-            service.WriteTo(options, writer, cancellationToken);
+            service.WriteTo(options, writer);
         }
 
         private ParseOptions DeserializeParseOptions(ObjectReader reader, CancellationToken cancellationToken)

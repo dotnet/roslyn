@@ -279,13 +279,5 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"CircularCSharpProject1.csproj", Resources.ProjectFiles.CSharp.CircularProjectReferences_CircularCSharpProject1),
                 (@"CircularCSharpProject2.csproj", Resources.ProjectFiles.CSharp.CircularProjectReferences_CircularCSharpProject2));
         }
-
-        protected static string GetParentDirOfParentDirOfContainingDir(string fileName)
-        {
-            var containingDir = Directory.GetParent(fileName).FullName;
-            var parentOfContainingDir = Directory.GetParent(containingDir).FullName;
-
-            return Directory.GetParent(parentOfContainingDir).FullName;
-        }
     }
 }

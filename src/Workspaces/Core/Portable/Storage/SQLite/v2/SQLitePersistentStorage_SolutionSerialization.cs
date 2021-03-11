@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2
 {
+    using static SQLitePersistentStorageConstants;
+
     internal partial class SQLitePersistentStorage
     {
         public override Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             {
             }
 
-            protected override string DataTableName => SolutionDataTableName;
+            protected override Table Table => Table.Solution;
 
             protected override string GetWriteQueueKey(string key)
                 => key;

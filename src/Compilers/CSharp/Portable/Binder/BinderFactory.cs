@@ -124,6 +124,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
+#if DEBUG
+            if (memberOpt is { ContainingSymbol: SourceMemberContainerTypeSymbol container })
+            {
+                container.AssertMemberExposure(memberOpt);
+            }
+#endif
             BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Initialize(position, memberDeclarationOpt, memberOpt);
             Binder result = visitor.Visit(node);

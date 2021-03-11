@@ -238,6 +238,7 @@ function BuildSolution {
   local bl=""
   if [[ "$binary_log" = true ]]; then
     bl="/bl:\"$log_dir/Build.binlog\""
+    export RoslynCommandLineLogFile="$log_dir/vbcscompiler.log"
   fi
 
   local projects="$repo_root/$solution"
@@ -246,7 +247,7 @@ function BuildSolution {
   # NuGet often exceeds the limit of open files on Mac and Linux
   # https://github.com/NuGet/Home/issues/2163
   if [[ "$UNAME" == "Darwin" || "$UNAME" == "Linux" ]]; then
-    ulimit -n 6500
+    ulimit -n 6500 || echo "Cannot change ulimit"
   fi
 
   if [[ "$test_ioperation" == true ]]; then

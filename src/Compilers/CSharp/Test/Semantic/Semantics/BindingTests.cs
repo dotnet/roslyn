@@ -907,7 +907,7 @@ namespace test
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario01()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario01()
         {
             // Two interfaces, neither implemented with alias - should have 2 errors each squiggling a different interface type.            
             string scenarioCode = @"
@@ -941,7 +941,7 @@ namespace test
         }
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario02()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario02()
         {
             // Two interfaces, only the  second is implemented 
             string scenarioCode = @"
@@ -971,7 +971,7 @@ public interface IInterfaceBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario03()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario03()
         {
             // Two interfaces, only the first is implemented
             string scenarioCode = @"
@@ -1001,7 +1001,7 @@ public interface IInterfaceBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario04()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario04()
         {
             // Two interfaces, neither implemented but formatting of interfaces are on different lines
             string scenarioCode = @"
@@ -1032,7 +1032,7 @@ public interface IInterfaceBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario05()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario05()
         {
             // Inherited Interface scenario 
             // With methods not implemented in both base and derived.
@@ -1063,7 +1063,7 @@ interface IDerived : IInterfaceBase
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario06()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario06()
         {
             // Inherited Interface scenario 
             string scenarioCode = @"
@@ -1091,7 +1091,7 @@ interface IDerived : IInterfaceBase
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario07()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario07()
         {
             // Inherited Interface scenario - different order. 
             string scenarioCode = @"
@@ -1119,7 +1119,7 @@ interface IInterfaceBase
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario08()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario08()
         {
             // Inherited Interface scenario
             string scenarioCode = @"
@@ -1148,7 +1148,7 @@ interface IDerived2: IBase, IBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation13UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario09()
+        public void UnimplementedInterfaceSquiggleLocation13UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario09()
         {
             // Inherited Interface scenario.           
             string scenarioCode = @"
@@ -1183,7 +1183,7 @@ public interface IDerived : IBase, IBase2
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario10()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario10()
         {
             // Inherited Interface scenario.
             string scenarioCode = @"
@@ -1224,7 +1224,7 @@ public interface IDerived : IBase2, IBase3
 
         [WorkItem(911913, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/911913")]
         [Fact]
-        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritenceScenario11()
+        public void UnimplementedInterfaceSquiggleLocation_InterfaceInheritanceScenario11()
         {
             // Inherited Interface scenario 
             string scenarioCode = @"

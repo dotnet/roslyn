@@ -5626,4 +5626,7 @@
   <data name="ERR_PropertyDoesntImplementInitOnly" xml:space="preserve">
     <value>Init-only '{0}' cannot be implemented.</value>
   </data>
+  <data name="ERR_UnmanagedCallersOnlyNotSupported" xml:space="preserve">
+    <value>'UnmanagedCallersOnly' attribute is not supported.</value>
+  </data>
 </root>

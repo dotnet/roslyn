@@ -350,5 +350,36 @@ public class B
 </Workspace>";
             await RunReferenceTest(input);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeLens)]
+        [WorkItem(51633, "https://github.com/dotnet/roslyn/issues/51633")]
+        public async Task TestMethodRefSourceGeneratedDocument()
+        {
+            const string input = @"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""Program.cs""><![CDATA[
+namespace ConsoleSample
+{
+    class Program
+    {
+        {|1:public Program()
+        {
+        }|}
+    }
+}]]>
+        </Document>
+        <DocumentFromSourceGenerator><![CDATA[
+namespace ConsoleSample
+{
+    internal partial class Program
+    {
+        public static CreateProgram() => new Program();
+    }
+}]]>
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>";
+            await RunMethodReferenceTest(input);
+        }
     }
 }

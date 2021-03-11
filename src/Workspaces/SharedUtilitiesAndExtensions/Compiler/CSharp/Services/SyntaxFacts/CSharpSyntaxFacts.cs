@@ -940,6 +940,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsNamespaceDeclaration([NotNullWhen(true)] SyntaxNode? node)
             => node?.Kind() == SyntaxKind.NamespaceDeclaration;
 
+        public SyntaxNode? GetNameOfNamespaceDeclaration(SyntaxNode? node)
+            => node is NamespaceDeclarationSyntax namespaceDeclaration
+            ? namespaceDeclaration.Name
+            : null;
+
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
@@ -1086,6 +1091,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 }
 
                 node = parent;
+            }
+
+            if (node is VarPatternSyntax)
+            {
+                return node;
             }
 
             // Patterns are never bindable (though their constituent types/exprs may be).
@@ -1721,6 +1731,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 return ImmutableArray<SyntaxNode>.Empty;
         }
 
+        public bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is CastExpressionSyntax;
+
         public bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is CastExpressionSyntax;
 
@@ -1898,7 +1911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.ClassDeclaration:
                     return DeclarationKind.Class;
                 case SyntaxKind.RecordDeclaration:
-                    return DeclarationKind.Record;
+                    return DeclarationKind.RecordClass;
                 case SyntaxKind.StructDeclaration:
                     return DeclarationKind.Struct;
                 case SyntaxKind.InterfaceDeclaration:

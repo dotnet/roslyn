@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             var streamingPresenter = base.GetStreamingPresenter();
             if (streamingPresenter != null)
             {
-                _ = FindDerivedSymbolsAsync(document, caretPosition, streamingPresenter);
+                // Fire and forget.  So no need for cancellation.
+                _ = FindDerivedSymbolsAsync(document, caretPosition, streamingPresenter, CancellationToken.None);
                 return true;
             }
 
@@ -84,47 +85,43 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         }
 
         private async Task FindDerivedSymbolsAsync(
-                  Document document, int caretPosition,
-                  IStreamingFindUsagesPresenter presenter)
+            Document document, int caretPosition, IStreamingFindUsagesPresenter presenter, CancellationToken cancellationToken)
         {
             try
             {
-                using (var token = _asyncListener.BeginAsyncOperation(nameof(FindDerivedSymbolsAsync)))
+                using var token = _asyncListener.BeginAsyncOperation(nameof(FindDerivedSymbolsAsync));
+
+                var context = presenter.StartSearch(EditorFeaturesResources.Navigating, supportsReferences: true, cancellationToken);
+                try
                 {
-                    // Let the presented know we're starting a search.
-                    var context = presenter.StartSearch(
-                        EditorFeaturesResources.Navigating, supportsReferences: true);
-                    try
+                    using (Logger.LogBlock(
+                        FunctionId.CommandHandler_FindAllReference,
+                        KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
+                        context.CancellationToken))
                     {
-                        using (Logger.LogBlock(
-                            FunctionId.CommandHandler_FindAllReference,
-                            KeyValueLogMessage.Create(LogType.UserAction, m => m["type"] = "streaming"),
-                            context.CancellationToken))
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
+                        var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+                        if (candidateSymbolProjectPair?.symbol == null)
+                            return;
+
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
+                        var candidates = await GatherSymbolsAsync(candidateSymbolProjectPair.Value.symbol,
+                            document.Project.Solution, context.CancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
+
+                        foreach (var candidate in candidates)
                         {
+                            var definitionItem = candidate.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            var candidateSymbolProjectPair = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(document, caretPosition, context.CancellationToken);
+                            await context.OnDefinitionFoundAsync(definitionItem);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-                            if (candidateSymbolProjectPair?.symbol == null)
-                                return;
-
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                            var candidates = await GatherSymbolsAsync(candidateSymbolProjectPair.Value.symbol,
-                                document.Project.Solution, context.CancellationToken);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-
-                            foreach (var candidate in candidates)
-                            {
-                                var definitionItem = candidate.ToNonClassifiedDefinitionItem(document.Project.Solution, true);
-#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                                await context.OnDefinitionFoundAsync(definitionItem);
-#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
-                            }
                         }
                     }
-                    finally
-                    {
-                        await context.OnCompletedAsync().ConfigureAwait(false);
-                    }
+                }
+                finally
+                {
+                    await context.OnCompletedAsync().ConfigureAwait(false);
                 }
             }
             catch (OperationCanceledException)

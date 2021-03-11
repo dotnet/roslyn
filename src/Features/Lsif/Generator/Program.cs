@@ -24,18 +24,19 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var generateCommand = new RootCommand("generates an LSIF file")
             {
                 new Option("--solution", "input solution file") { Argument = new Argument<FileInfo>().ExistingOnly() },
+                new Option("--project", "input project file") { Argument = new Argument<FileInfo>().ExistingOnly() },
                 new Option("--compiler-invocation", "path to a .json file that contains the information for a csc/vbc invocation") { Argument = new Argument<FileInfo>().ExistingOnly() },
                 new Option("--output", "file to write the LSIF output to, instead of the console") { Argument = new Argument<string?>(defaultValue: () => null).LegalFilePathsOnly() },
                 new Option("--output-format", "format of LSIF output") { Argument = new Argument<LsifFormat>(defaultValue: () => LsifFormat.Line) },
                 new Option("--log", "file to write a log to") { Argument = new Argument<string?>(defaultValue: () => null).LegalFilePathsOnly() }
             };
 
-            generateCommand.Handler = CommandHandler.Create((Func<FileInfo?, FileInfo?, string?, LsifFormat, string?, Task>)GenerateAsync);
+            generateCommand.Handler = CommandHandler.Create((Func<FileInfo?, FileInfo?, FileInfo?, string?, LsifFormat, string?, Task>)GenerateAsync);
 
             return generateCommand.InvokeAsync(args);
         }
 
-        private static async Task GenerateAsync(FileInfo? solution, FileInfo? compilerInvocation, string? output, LsifFormat outputFormat, string? log)
+        private static async Task GenerateAsync(FileInfo? solution, FileInfo? project, FileInfo? compilerInvocation, string? output, LsifFormat outputFormat, string? log)
         {
             // If we have an output file, we'll write to that, else we'll use Console.Out
             using var outputFile = output != null ? new StreamWriter(output) : null;
@@ -51,18 +52,22 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             try
             {
-                // Exactly one of "solution" or "compilerInvocation" should be specified
-                if (solution != null && compilerInvocation == null)
+                // Exactly one of "solution", or "project" or "compilerInvocation" should be specified
+                if (solution != null && project == null && compilerInvocation == null)
                 {
                     await GenerateFromSolutionAsync(solution, lsifWriter, logFile);
                 }
-                else if (compilerInvocation != null && solution == null)
+                else if (solution == null && project != null && compilerInvocation == null)
+                {
+                    await GenerateFromProjectAsync(project, lsifWriter, logFile);
+                }
+                else if (solution == null && project == null && compilerInvocation != null)
                 {
                     await GenerateFromCompilerInvocationAsync(compilerInvocation, lsifWriter, logFile);
                 }
                 else
                 {
-                    throw new Exception("Exactly one of either a solution path or a compiler invocation path should be supplied.");
+                    throw new Exception("Exactly one of either a solution path, project path or a compiler invocation path should be supplied.");
                 }
             }
             catch (Exception e)
@@ -78,7 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             await logFile.WriteLineAsync("Generation complete.");
         }
 
-        private static async Task GenerateFromSolutionAsync(FileInfo solutionFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
+        private static async Task LocateAndRegisterMSBuild(TextWriter logFile)
         {
             // Make sure we pick the highest version
             var msbuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(i => i.Version).FirstOrDefault();
@@ -92,25 +97,45 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             }
 
             MSBuildLocator.RegisterInstance(msbuildInstance);
+        }
 
-            await GenerateFromSolutionWithMSBuildLocatedAsync(solutionFile, lsifWriter, logFile);
+        private static async Task GenerateFromProjectAsync(FileInfo projectFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
+        {
+            await LocateAndRegisterMSBuild(logFile);
+            await GenerateWithMSBuildLocatedAsync(
+                projectFile, lsifWriter, logFile,
+                async w =>
+                {
+                    var project = await w.OpenProjectAsync(projectFile.FullName);
+                    return project.Solution;
+                });
+        }
+
+        private static async Task GenerateFromSolutionAsync(FileInfo solutionFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
+        {
+            await LocateAndRegisterMSBuild(logFile);
+            await GenerateWithMSBuildLocatedAsync(
+                solutionFile, lsifWriter, logFile,
+                w => w.OpenSolutionAsync(solutionFile.FullName));
         }
 
         // This method can't be loaded until we've registered MSBuild with MSBuildLocator, as otherwise
         // we load ILogger prematurely which breaks MSBuildLocator.
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static async Task GenerateFromSolutionWithMSBuildLocatedAsync(FileInfo solutionFile, ILsifJsonWriter lsifWriter, TextWriter logFile)
+        private static async Task GenerateWithMSBuildLocatedAsync(
+            FileInfo solutionOrProjectFile, ILsifJsonWriter lsifWriter, TextWriter logFile,
+            Func<MSBuildWorkspace, Task<Solution>> openAsync)
         {
-            await logFile.WriteLineAsync($"Loading {solutionFile.FullName}...");
+            await logFile.WriteLineAsync($"Loading {solutionOrProjectFile.FullName}...");
 
             var solutionLoadStopwatch = Stopwatch.StartNew();
 
             var msbuildWorkspace = MSBuildWorkspace.Create();
-            msbuildWorkspace.WorkspaceFailed += (s, e) => logFile.WriteLine("Error while loading the solution: " + e.Diagnostic.Message);
+            msbuildWorkspace.WorkspaceFailed += (s, e) => logFile.WriteLine("Error while loading: " + e.Diagnostic.Message);
 
-            var solution = await msbuildWorkspace.OpenSolutionAsync(solutionFile.FullName);
+            var solution = await openAsync(msbuildWorkspace);
 
-            await logFile.WriteLineAsync($"Load of the solution completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
+            await logFile.WriteLineAsync($"Load completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
             var lsifGenerator = new Generator(lsifWriter);
 
             var totalTimeInGenerationAndCompilationFetchStopwatch = Stopwatch.StartNew();

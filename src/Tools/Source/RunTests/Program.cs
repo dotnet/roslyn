@@ -35,7 +35,6 @@ namespace RunTests
         {
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
-
             var options = Options.Parse(args);
             if (options == null)
             {
@@ -372,8 +371,7 @@ namespace RunTests
                 dotnetFilePath: options.DotnetFilePath,
                 procDumpInfo: options.CollectDumps ? GetProcDumpInfo(options) : null,
                 testResultsDirectory: options.TestResultsDirectory,
-                trait: options.Trait,
-                noTrait: options.NoTrait,
+                testFilter: options.TestFilter,
                 includeHtml: options.IncludeHtml,
                 retry: options.Retry);
             return new ProcessTestExecutor(testExecutionOptions);

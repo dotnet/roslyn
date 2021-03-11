@@ -144,7 +144,7 @@ End Module
         End Sub
 
         <WorkItem(5487, "https://github.com/dotnet/roslyn/issues/5487")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/48870"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitCharTypedAtTheBeginingOfTheFilterSpan() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                   <Document><![CDATA[
@@ -410,7 +410,7 @@ End Class
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".M")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -448,7 +448,7 @@ End Class
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -482,7 +482,7 @@ End Class
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -499,8 +499,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/48870")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigateOutOfItemChangeSpan() As Task
             ' Code must be left-aligned because of https://github.com/dotnet/roslyn/issues/27988
             Using state = TestStateFactory.CreateVisualBasicTestState(
@@ -1309,8 +1308,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/48870")>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CompletionUpAfterBackSpacetoWord() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <Document>
