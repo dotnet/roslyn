@@ -65,6 +65,7 @@ end class"
             Await TestAsync(Of ForBlockSyntax)(testText)
         End Function
 
+        <Fact>
         Public Async Function TestForeachBlockByHeaderExtraction() As Task
             Dim testText = "
 Imports System

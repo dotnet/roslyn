@@ -3184,6 +3184,7 @@ Imports Bar=Quux"
                 Number("1"))
         End Function
 
+        <Theory, CombinatorialData>
         Public Async Function TestPreprocessorConst2(testHost As TestHost) As Task
             Await TestInNamespaceAsync("#Const DebugCode = True",
                 testHost,
