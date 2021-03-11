@@ -125,6 +125,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         public static readonly Guid RoslynCommandSetId = new(RoslynCommandSetIdString);
         public static readonly Guid RoslynGroupId = new(RoslynGroupIdString);
 
+        public const string ValueTrackingToolWindowIdString = "60a19d42-2dd7-43f3-be90-c7a9cb7d28f4";
+        public static readonly Guid ValueTrackingToolWindowId = new(ValueTrackingToolWindowIdString);
+
         // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
         // Interactive guids
         public const string InteractiveCommandSetIdString = "00B8868B-F9F5-4970-A048-410B05508506";
