@@ -741,6 +741,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
+            // If the first method overload chosen is a zero-parameter method, the snippet we'll create is the same snippet
+            // as the one did initially. The editor appears to have a bug where inserting a zero-width snippet (when we update the parameters)
+            // causes the inserted session to immediately dismiss; this works around that issue.
+            if (_state._method is null && method.Parameters.Length == 0)
+            {
+                _state._method = method;
+                return;
+            }
+
             var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document is null)
             {
