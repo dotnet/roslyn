@@ -9,14 +9,13 @@ using System.Reflection.PortableExecutable;
 
 namespace BuildValidator
 {
-    internal sealed record PortableExecutableInfo(string FilePath, Guid Mvid, bool IsReadyToRun);
     internal static class Util
     {
         internal static PortableExecutableInfo? GetPortableExecutableInfo(string filePath)
         {
             using var stream = File.OpenRead(filePath);
             var peReader = new PEReader(stream);
-            if (GetMvidForFile(peReader) is { } mvid)
+            if (GetMvid(peReader) is { } mvid)
             {
                 var isReadyToRun = IsReadyToRunImage(peReader);
                 return new PortableExecutableInfo(filePath, mvid, isReadyToRun);
@@ -25,7 +24,7 @@ namespace BuildValidator
             return null;
         }
 
-        internal static Guid? GetMvidForFile(PEReader peReader)
+        internal static Guid? GetMvid(PEReader peReader)
         {
             if (peReader.HasMetadata)
             {

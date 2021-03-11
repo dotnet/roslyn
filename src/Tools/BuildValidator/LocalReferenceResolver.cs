@@ -121,7 +121,7 @@ namespace BuildValidator
 
                         if (peInfo.IsReadyToRun)
                         {
-                            _logger.LogWarning($@"Skipping ReadyToRun image ""{file.FullName}""");
+                            _logger.LogInformation($@"Skipping ReadyToRun image ""{file.FullName}""");
                             continue;
                         }
 

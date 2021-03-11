@@ -30,11 +30,6 @@ namespace BuildValidator
     /// </summary>
     internal class Program
     {
-        internal record AssemblyInfo(string FilePath, Guid Mvid)
-        {
-            internal string FileName => Path.GetFileName(FilePath);
-        }
-
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
