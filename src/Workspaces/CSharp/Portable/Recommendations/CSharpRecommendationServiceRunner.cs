@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 : GetSymbolsForCurrentContext();
         }
 
-        public override bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(true)] out ITypeSymbol explicitLambdaParameterType)
+        public override bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(true)] out ITypeSymbol? explicitLambdaParameterType)
         {
             if (lambdaSyntax.IsKind<ParenthesizedLambdaExpressionSyntax>(SyntaxKind.ParenthesizedLambdaExpression, out var parenthesizedLambdaSyntax))
             {
@@ -92,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (_context.IsDestructorTypeContext)
             {
-                return ImmutableArray.Create<ISymbol>(
-                    _context.SemanticModel.GetDeclaredSymbol(_context.ContainingTypeOrEnumDeclaration, _cancellationToken));
+                var symbol = _context.SemanticModel.GetDeclaredSymbol(_context.ContainingTypeOrEnumDeclaration, _cancellationToken);
+                return symbol == null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create<ISymbol>(symbol);
             }
             else if (_context.IsNamespaceDeclarationNameContext)
             {
@@ -106,38 +104,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         private ImmutableArray<ISymbol> GetSymbolsOffOfContainer()
         {
             // Ensure that we have the correct token in A.B| case
-            var node = _context.TargetToken.Parent;
+            var node = _context.TargetToken.GetRequiredParent();
+            return node switch
+            {
+                MemberAccessExpressionSyntax { RawKind: (int)SyntaxKind.SimpleMemberAccessExpression } memberAccess
+                    => GetSymbolsOffOfExpression(memberAccess.Expression),
+                MemberAccessExpressionSyntax { RawKind: (int)SyntaxKind.PointerMemberAccessExpression } memberAccess
+                    => GetSymbolsOffOfDereferencedExpression(memberAccess.Expression),
 
-            if (node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-            {
-                return GetSymbolsOffOfExpression(((MemberAccessExpressionSyntax)node).Expression);
-            }
-            else if (node.Kind() == SyntaxKind.RangeExpression)
-            {
                 // This code should be executing only if the cursor is between two dots in a dotdot token.
-                return GetSymbolsOffOfExpression(((RangeExpressionSyntax)node).LeftOperand);
-            }
-            else if (node.Kind() == SyntaxKind.PointerMemberAccessExpression)
-            {
-                return GetSymbolsOffOfDereferencedExpression(((MemberAccessExpressionSyntax)node).Expression);
-            }
-            else if (node.Kind() == SyntaxKind.QualifiedName)
-            {
-                return GetSymbolsOffOfName(((QualifiedNameSyntax)node).Left);
-            }
-            else if (node.Kind() == SyntaxKind.AliasQualifiedName)
-            {
-                return GetSymbolsOffOffAlias(((AliasQualifiedNameSyntax)node).Alias);
-            }
-            else if (node.Kind() == SyntaxKind.MemberBindingExpression)
-            {
-                var parentConditionalAccess = node.GetParentConditionalAccessExpression();
-                return GetSymbolsOffOfConditionalReceiver(parentConditionalAccess.Expression);
-            }
-            else
-            {
-                return ImmutableArray<ISymbol>.Empty;
-            }
+                RangeExpressionSyntax rangeExpression => GetSymbolsOffOfExpression(rangeExpression.LeftOperand),
+                QualifiedNameSyntax qualifiedName => GetSymbolsOffOfName(qualifiedName.Left),
+                AliasQualifiedNameSyntax aliasName => GetSymbolsOffOffAlias(aliasName.Alias),
+                MemberBindingExpressionSyntax memberBinding => GetSymbolsOffOfConditionalReceiver(node.GetParentConditionalAccessExpression().Expression),
+                _ => ImmutableArray<ISymbol>.Empty,
+            };
         }
 
         private ImmutableArray<ISymbol> GetSymbolsForGlobalStatementContext()
