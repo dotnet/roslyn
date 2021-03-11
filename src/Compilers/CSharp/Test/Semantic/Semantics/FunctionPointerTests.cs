@@ -1666,6 +1666,181 @@ IInvocationOperation ( void C.M1<T>(delegate*<T, T> param)) (OperationKind.Invoc
 ");
         }
 
+        [Fact, WorkItem(51037, "https://github.com/dotnet/roslyn/issues/51037")]
+        public void FunctionPointerGenericSubstitutionCustomModifiersTypesDefinedOnClass()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit A`1<T>
+    extends [mscorlib]System.Object
+{
+}
+.class public auto ansi beforefieldinit C`6<T1, T2, T3, T4, T5, T6>
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void M1 (
+            method class A`1<!T1> modopt(class A`1<!T2>) & modopt(class A`1<!T3>) *(class A`1<!T4> modopt(class A`1<!T5>) & modopt(class A`1<!T6>)) param
+        ) cil managed 
+    {
+        ret
+    }
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        nop
+        ret
+    }
+}
+";
+
+            var source = @"
+class Derived : C<D1, D2, D3, D4, D5, D6> {}
+
+class D1 {}
+class D2 {}
+class D3 {}
+class D4 {}
+class D5 {}
+class D6 {}
+";
+
+            var comp = CreateCompilationWithIL(source, il, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var derived = comp.GetTypeByMetadataName("Derived");
+            var m1 = derived!.BaseTypeNoUseSiteDiagnostics.GetMethod("M1");
+
+            AssertEx.Equal("void C<D1, D2, D3, D4, D5, D6>.M1(delegate*<ref modopt(A<D6>) A<D4> modopt(A<D5>), ref modopt(A<T3>) A<D1> modopt(A<D2>)> param)",
+                           m1.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(51037, "https://github.com/dotnet/roslyn/issues/51037")]
+        public void FunctionPointerGenericSubstitutionCustomModifiersTypesDefinedOnMethod()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit A`1<T>
+    extends [mscorlib]System.Object
+{
+}
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig static 
+        void M1<T1, T2, T3, T4, T5, T6> (
+            method class A`1<!!T1> modopt(class A`1<!!T2>) & modopt(class A`1<!!T3>) *(class A`1<!!T4> modopt(class A`1<!!T5>) & modopt(class A`1<!!T6>)) param
+        ) cil managed 
+    {
+        ret
+    }
+}
+";
+
+            var source = @"
+unsafe
+{
+    C.M1<D1, D2, D3, D4, D5, D6>(null);
+}
+
+class D1 {}
+class D2 {}
+class D3 {}
+class D4 {}
+class D5 {}
+class D6 {}
+";
+
+            var comp = CreateCompilationWithIL(source, il, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var symbol = model.GetSymbolInfo(invocation);
+
+            AssertEx.Equal("void C.M1<D1, D2, D3, D4, D5, D6>(delegate*<ref modopt(A<D6>) A<D4> modopt(A<D5>), ref modopt(A<T3>) A<D1> modopt(A<D2>)> param)",
+                           symbol.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitution_SubstitutionAddsCallConvModopts()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .field public static int32 modopt([mscorlib]System.Runtime.CompilerServices.CallConvCdecl) modopt([mscorlib]System.Runtime.CompilerServices.CallConvStdcall) Field
+}
+";
+
+            var code = @"
+unsafe
+{
+    delegate* unmanaged<int> ptr = M(C.Field);
+
+    delegate* unmanaged<T> M<T>(T arg) => null;
+}
+";
+
+            var comp = CreateCompilationWithIL(code, il, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var localSyntax = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
+            AssertEx.Equal("ptr = M(C.Field)", localSyntax.ToString());
+            var local = (ILocalSymbol)model.GetDeclaredSymbol(localSyntax)!;
+
+            AssertEx.Equal("delegate* unmanaged<System.Int32>", local.Type.ToTestDisplayString());
+
+            var typeInfo = model.GetTypeInfo(localSyntax.Initializer!.Value);
+            AssertEx.Equal("delegate* unmanaged<System.Int32>", typeInfo.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void FunctionPointerGenericSubstitution_SubstitutionAddsCallConvModopts_InIL()
+        {
+            var cDefinition = @"
+public class C<T>
+{
+    public unsafe delegate* unmanaged<T> M() => null;
+}
+";
+            var cComp = CreateCompilation(cDefinition, assemblyName: "cLib");
+
+            var il = @"
+.assembly extern cLib
+{
+  .ver 0:0:0:0
+}
+.class public auto ansi beforefieldinit D
+    extends class [cLib]C`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.CallConvCdecl) modopt([mscorlib]System.Runtime.CompilerServices.CallConvStdcall)>
+{
+}
+";
+
+            var comp = CreateCompilationWithIL("", il, references: new[] { cComp.ToMetadataReference() }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var d = comp.GetTypeByMetadataName("D");
+            var m = d!.BaseTypeNoUseSiteDiagnostics.GetMethod("M");
+
+            var funcPtrType = (FunctionPointerTypeSymbol)m.ReturnType;
+            AssertEx.Equal("delegate* unmanaged[Stdcall, Cdecl]<System.Int32 modopt(System.Runtime.CompilerServices.CallConvStdcall) modopt(System.Runtime.CompilerServices.CallConvCdecl)>", funcPtrType.ToTestDisplayString());
+            AssertEx.SetEqual(new[]
+                {
+                    "System.Runtime.CompilerServices.CallConvCdecl",
+                    "System.Runtime.CompilerServices.CallConvStdcall"
+                },
+                funcPtrType.Signature.GetCallingConventionModifiers().Select(c => ((CSharpCustomModifier)c).ModifierSymbol.ToTestDisplayString()));
+        }
+
         [Fact]
         public void FunctionPointerAsConstraint()
         {

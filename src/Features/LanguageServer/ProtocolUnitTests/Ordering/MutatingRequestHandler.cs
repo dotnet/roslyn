@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         public string Method => MethodName;
 
         public bool MutatesSolutionState => true;
+        public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
 

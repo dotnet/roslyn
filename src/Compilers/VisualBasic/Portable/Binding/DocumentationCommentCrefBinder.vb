@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Overrides Function BindInsideCrefAttributeValue(reference As CrefReferenceSyntax, preserveAliases As Boolean, diagnosticBag As DiagnosticBag, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Friend Overrides Function BindInsideCrefAttributeValue(reference As CrefReferenceSyntax, preserveAliases As Boolean, diagnosticBag As BindingDiagnosticBag, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
             ' If the node has trailing syntax nodes, it should report error, unless the name 
             ' is a VB intrinsic type (which ensures compatibility with Dev11)
             If HasTrailingSkippedTokensAndShouldReportError(reference) Then
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If reference.Signature Is Nothing Then
-                Return BindNameInsideCrefReferenceInLegacyMode(reference.Name, preserveAliases, useSiteDiagnostics)
+                Return BindNameInsideCrefReferenceInLegacyMode(reference.Name, preserveAliases, useSiteInfo)
             End If
 
             ' Extended 'cref' attribute syntax should not contain complex generic arguments 
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Bind the name part and collect type parameters
             Dim typeParameters As New Dictionary(Of String, CrefTypeParameterSymbol)(CaseInsensitiveComparison.Comparer)
-            CollectCrefNameSymbolsStrict(reference.Name, reference.Signature.ArgumentTypes.Count, typeParameters, symbols, preserveAliases, useSiteDiagnostics)
+            CollectCrefNameSymbolsStrict(reference.Name, reference.Signature.ArgumentTypes.Count, typeParameters, symbols, preserveAliases, useSiteInfo)
             If symbols.Count = 0 Then
                 symbols.Free()
                 Return ImmutableArray(Of Symbol).Empty
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return symbols.ToImmutableAndFree()
         End Function
 
-        Friend Overrides Function BindInsideCrefAttributeValue(name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As DiagnosticBag, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Friend Overrides Function BindInsideCrefAttributeValue(name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As BindingDiagnosticBag, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
             Dim isPartOfSignatureOrReturnType As Boolean = False
             Dim crefReference As CrefReferenceSyntax = GetEnclosingCrefReference(name, isPartOfSignatureOrReturnType)
 
@@ -206,27 +206,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If crefReference.Signature Is Nothing Then
                 Debug.Assert(Not isPartOfSignatureOrReturnType)
-                Return BindNameInsideCrefReferenceInLegacyMode(name, preserveAliases, useSiteDiagnostics)
+                Return BindNameInsideCrefReferenceInLegacyMode(name, preserveAliases, useSiteInfo)
             End If
 
             If isPartOfSignatureOrReturnType Then
                 Return BindInsideCrefSignatureOrReturnType(crefReference, name, preserveAliases, diagnosticBag)
             Else
-                Return BindInsideCrefReferenceName(name, crefReference.Signature.ArgumentTypes.Count, preserveAliases, useSiteDiagnostics)
+                Return BindInsideCrefReferenceName(name, crefReference.Signature.ArgumentTypes.Count, preserveAliases, useSiteInfo)
             End If
         End Function
 
-        Private Function BindInsideCrefSignatureOrReturnType(crefReference As CrefReferenceSyntax, name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As DiagnosticBag) As ImmutableArray(Of Symbol)
+        Private Function BindInsideCrefSignatureOrReturnType(crefReference As CrefReferenceSyntax, name As TypeSyntax, preserveAliases As Boolean, diagnosticBag As BindingDiagnosticBag) As ImmutableArray(Of Symbol)
             Dim typeParameterAwareBinder As Binder = Me.GetOrCreateTypeParametersAwareBinder(crefReference)
 
-            Dim result As Symbol
-            If (diagnosticBag Is Nothing) Then
-                Dim diagnostics = DiagnosticBag.GetInstance
-                result = typeParameterAwareBinder.BindNamespaceOrTypeOrAliasSyntax(name, diagnostics)
-                diagnostics.Free()
-            Else
-                result = typeParameterAwareBinder.BindNamespaceOrTypeOrAliasSyntax(name, diagnosticBag)
-            End If
+            Dim result As Symbol = typeParameterAwareBinder.BindNamespaceOrTypeOrAliasSyntax(name, If(diagnosticBag, BindingDiagnosticBag.Discarded))
+            result = typeParameterAwareBinder.BindNamespaceOrTypeOrAliasSyntax(name, If(diagnosticBag, BindingDiagnosticBag.Discarded))
 
             If result IsNot Nothing AndAlso result.Kind = SymbolKind.Alias AndAlso Not preserveAliases Then
                 result = DirectCast(result, AliasSymbol).Target
@@ -306,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return GetOrCreateTypeParametersAwareBinder(typeParameters)
         End Function
 
-        Private Function BindInsideCrefReferenceName(name As TypeSyntax, argCount As Integer, preserveAliases As Boolean, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of Symbol)
+        Private Function BindInsideCrefReferenceName(name As TypeSyntax, argCount As Integer, preserveAliases As Boolean, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of Symbol)
             ' NOTE: in code here and below 'parent' may be Nothing in 
             '       case of speculative binding (which is NYI)
             Dim parent As VisualBasicSyntaxNode = name.Parent
@@ -378,7 +372,7 @@ lAgain:
             End Select
 
             Dim symbols = ArrayBuilder(Of Symbol).GetInstance
-            CollectCrefNameSymbolsStrict(name, argCount, New Dictionary(Of String, CrefTypeParameterSymbol)(IdentifierComparison.Comparer), symbols, preserveAliases, useSiteDiagnostics)
+            CollectCrefNameSymbolsStrict(name, argCount, New Dictionary(Of String, CrefTypeParameterSymbol)(IdentifierComparison.Comparer), symbols, preserveAliases, useSiteInfo)
 
             RemoveOverriddenMethodsAndProperties(symbols)
 
@@ -455,13 +449,13 @@ lAgain:
                                                 typeParameters As Dictionary(Of String, CrefTypeParameterSymbol),
                                                 <Out> ByRef signatureTypes As ArrayBuilder(Of SignatureElement),
                                                 <Out> ByRef returnType As TypeSymbol,
-                                                diagnosticBag As DiagnosticBag)
+                                                diagnosticBag As BindingDiagnosticBag)
 
             signatureTypes = Nothing
             returnType = Nothing
 
             Dim typeParameterAwareBinder As Binder = Me.GetOrCreateTypeParametersAwareBinder(typeParameters)
-            Dim diagnostic = If(diagnosticBag, DiagnosticBag.GetInstance())
+            Dim diagnostic = If(diagnosticBag, BindingDiagnosticBag.Discarded)
 
             Dim signature As CrefSignatureSyntax = reference.Signature
             Debug.Assert(signature IsNot Nothing)
@@ -480,8 +474,6 @@ lAgain:
             If reference.AsClause IsNot Nothing Then
                 returnType = typeParameterAwareBinder.BindTypeSyntax(reference.AsClause.Type, diagnostic)
             End If
-
-            If diagnosticBag Is Nothing Then diagnostic.Free()
         End Sub
 
         Private Sub CollectCrefNameSymbolsStrict(nameFromCref As TypeSyntax,
@@ -489,7 +481,7 @@ lAgain:
                                                  typeParameters As Dictionary(Of String, CrefTypeParameterSymbol),
                                                  symbols As ArrayBuilder(Of Symbol),
                                                  preserveAlias As Boolean,
-                                                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                 <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
 
             ' This binding mode is used for extended cref-reference syntax with mandatory
             ' signature specified, we enforce more strict rules in this case
@@ -498,38 +490,38 @@ lAgain:
                 Case SyntaxKind.QualifiedCrefOperatorReference
                     ' 'A.B.Operator+' or 'C(Of T).Operator CType'
                     CollectQualifiedOperatorReferenceSymbolsStrict(
-                        DirectCast(nameFromCref, QualifiedCrefOperatorReferenceSyntax), argsCount, typeParameters, symbols, useSiteDiagnostics)
+                        DirectCast(nameFromCref, QualifiedCrefOperatorReferenceSyntax), argsCount, typeParameters, symbols, useSiteInfo)
 
                 Case SyntaxKind.CrefOperatorReference
                     ' 'Operator+' or 'Operator CType'
                     CollectTopLevelOperatorReferenceStrict(
-                        DirectCast(nameFromCref, CrefOperatorReferenceSyntax), argsCount, symbols, useSiteDiagnostics)
+                        DirectCast(nameFromCref, CrefOperatorReferenceSyntax), argsCount, symbols, useSiteInfo)
 
                 Case SyntaxKind.IdentifierName,
                      SyntaxKind.GenericName
                     ' 'New', 'A', or 'B(Of T)'
                     CollectSimpleNameSymbolsStrict(
-                        DirectCast(nameFromCref, SimpleNameSyntax), typeParameters, symbols, preserveAlias, useSiteDiagnostics, False)
+                        DirectCast(nameFromCref, SimpleNameSyntax), typeParameters, symbols, preserveAlias, useSiteInfo, False)
 
                 Case SyntaxKind.QualifiedName
                     ' 'A(Of T).B.M(Of E)'
                     CollectQualifiedNameSymbolsStrict(
-                        DirectCast(nameFromCref, QualifiedNameSyntax), typeParameters, symbols, preserveAlias, useSiteDiagnostics)
+                        DirectCast(nameFromCref, QualifiedNameSyntax), typeParameters, symbols, preserveAlias, useSiteInfo)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(nameFromCref.Kind)
             End Select
         End Sub
 
-        Private Sub CollectTopLevelOperatorReferenceStrict(reference As CrefOperatorReferenceSyntax, argCount As Integer, symbols As ArrayBuilder(Of Symbol), <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
-            CollectOperatorsAndConversionsInType(reference, argCount, Me.ContainingType, symbols, useSiteDiagnostics)
+        Private Sub CollectTopLevelOperatorReferenceStrict(reference As CrefOperatorReferenceSyntax, argCount As Integer, symbols As ArrayBuilder(Of Symbol), <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
+            CollectOperatorsAndConversionsInType(reference, argCount, Me.ContainingType, symbols, useSiteInfo)
         End Sub
 
         Private Sub CollectSimpleNameSymbolsStrict(node As SimpleNameSyntax,
                                                    typeParameters As Dictionary(Of String, CrefTypeParameterSymbol),
                                                    symbols As ArrayBuilder(Of Symbol),
                                                    preserveAlias As Boolean,
-                                                   <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                   <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                    typeOrNamespaceOnly As Boolean)
 
             ' Name syntax of Cref should not have diagnostics
@@ -546,7 +538,7 @@ lAgain:
                                                genericName.TypeArgumentList.Arguments.Count,
                                                symbols,
                                                preserveAlias,
-                                               useSiteDiagnostics,
+                                               useSiteInfo,
                                                typeOrNamespaceOnly)
 
                 CreateTypeParameterSymbolsAndConstructSymbols(genericName, symbols, typeParameters)
@@ -563,7 +555,7 @@ lAgain:
 
                 Else
                     ' Search 0-arity only
-                    CollectSimpleNameSymbolsStrict(identifier.Identifier.ValueText, 0, symbols, preserveAlias, useSiteDiagnostics, typeOrNamespaceOnly)
+                    CollectSimpleNameSymbolsStrict(identifier.Identifier.ValueText, 0, symbols, preserveAlias, useSiteInfo, typeOrNamespaceOnly)
                 End If
             End If
         End Sub
@@ -572,7 +564,7 @@ lAgain:
                                                       typeParameters As Dictionary(Of String, CrefTypeParameterSymbol),
                                                       symbols As ArrayBuilder(Of Symbol),
                                                       preserveAlias As Boolean,
-                                                      <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                      <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
 
             ' Name syntax of Cref should not have diagnostics
             If node.ContainsDiagnostics Then
@@ -584,13 +576,13 @@ lAgain:
             Dim left As NameSyntax = node.Left
             Select Case left.Kind
                 Case SyntaxKind.IdentifierName
-                    CollectSimpleNameSymbolsStrict(DirectCast(left, SimpleNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteDiagnostics:=useSiteDiagnostics, typeOrNamespaceOnly:=True)
+                    CollectSimpleNameSymbolsStrict(DirectCast(left, SimpleNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteInfo:=useSiteInfo, typeOrNamespaceOnly:=True)
 
                 Case SyntaxKind.GenericName
-                    CollectSimpleNameSymbolsStrict(DirectCast(left, SimpleNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteDiagnostics:=useSiteDiagnostics, typeOrNamespaceOnly:=True)
+                    CollectSimpleNameSymbolsStrict(DirectCast(left, SimpleNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteInfo:=useSiteInfo, typeOrNamespaceOnly:=True)
 
                 Case SyntaxKind.QualifiedName
-                    CollectQualifiedNameSymbolsStrict(DirectCast(left, QualifiedNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteDiagnostics:=useSiteDiagnostics)
+                    CollectQualifiedNameSymbolsStrict(DirectCast(left, QualifiedNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteInfo:=useSiteInfo)
                     allowColorColor = False
 
                 Case SyntaxKind.GlobalName
@@ -625,7 +617,7 @@ lAgain:
                                                genericName.TypeArgumentList.Arguments.Count,
                                                symbols,
                                                preserveAlias,
-                                               useSiteDiagnostics)
+                                               useSiteInfo)
 
                 CreateTypeParameterSymbolsAndConstructSymbols(genericName, symbols, typeParameters)
 
@@ -641,7 +633,7 @@ lAgain:
 
                 Else
                     ' Search 0-arity only
-                    CollectSimpleNameSymbolsStrict(singleSymbol, allowColorColor, identifier.Identifier.ValueText, 0, symbols, preserveAlias, useSiteDiagnostics)
+                    CollectSimpleNameSymbolsStrict(singleSymbol, allowColorColor, identifier.Identifier.ValueText, 0, symbols, preserveAlias, useSiteInfo)
                 End If
             End If
         End Sub
@@ -650,7 +642,7 @@ lAgain:
                                                                    argCount As Integer,
                                                                    typeParameters As Dictionary(Of String, CrefTypeParameterSymbol),
                                                                    symbols As ArrayBuilder(Of Symbol),
-                                                                   <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                                   <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
 
             ' Name syntax of Cref should not have diagnostics
             If node.ContainsDiagnostics Then
@@ -662,13 +654,13 @@ lAgain:
             Dim left As NameSyntax = node.Left
             Select Case left.Kind
                 Case SyntaxKind.IdentifierName
-                    CollectSimpleNameSymbolsStrict(DirectCast(left, SimpleNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteDiagnostics:=useSiteDiagnostics, typeOrNamespaceOnly:=True)
+                    CollectSimpleNameSymbolsStrict(DirectCast(left, SimpleNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteInfo:=useSiteInfo, typeOrNamespaceOnly:=True)
 
                 Case SyntaxKind.GenericName
-                    CollectSimpleNameSymbolsStrict(DirectCast(left, SimpleNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteDiagnostics:=useSiteDiagnostics, typeOrNamespaceOnly:=True)
+                    CollectSimpleNameSymbolsStrict(DirectCast(left, SimpleNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteInfo:=useSiteInfo, typeOrNamespaceOnly:=True)
 
                 Case SyntaxKind.QualifiedName
-                    CollectQualifiedNameSymbolsStrict(DirectCast(left, QualifiedNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteDiagnostics:=useSiteDiagnostics)
+                    CollectQualifiedNameSymbolsStrict(DirectCast(left, QualifiedNameSyntax), typeParameters, symbols, preserveAlias:=False, useSiteInfo:=useSiteInfo)
                     allowColorColor = False
 
                 Case Else
@@ -689,7 +681,7 @@ lAgain:
                 singleSymbol = DirectCast(singleSymbol, AliasSymbol).Target
             End If
 
-            CollectOperatorsAndConversionsInType(node.Right, argCount, TryCast(singleSymbol, TypeSymbol), symbols, useSiteDiagnostics)
+            CollectOperatorsAndConversionsInType(node.Right, argCount, TryCast(singleSymbol, TypeSymbol), symbols, useSiteInfo)
         End Sub
 
         Private Sub CollectConstructorsSymbolsStrict(symbols As ArrayBuilder(Of Symbol))
@@ -720,7 +712,7 @@ lAgain:
                                                    arity As Integer,
                                                    symbols As ArrayBuilder(Of Symbol),
                                                    preserveAlias As Boolean,
-                                                   <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                   <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                    typeOrNamespaceOnly As Boolean)
 
             Debug.Assert(Not String.IsNullOrEmpty(name))
@@ -735,7 +727,7 @@ lAgain:
 
             Dim result As LookupResult = LookupResult.GetInstance()
 
-            Me.Lookup(result, name, arity, If(typeOrNamespaceOnly, options Or LookupOptions.NamespacesOrTypesOnly, options), useSiteDiagnostics)
+            Me.Lookup(result, name, arity, If(typeOrNamespaceOnly, options Or LookupOptions.NamespacesOrTypesOnly, options), useSiteInfo)
 
             If Not result.IsGoodOrAmbiguous OrElse Not result.HasSymbol Then
                 result.Free()
@@ -752,7 +744,7 @@ lAgain:
                                                    arity As Integer,
                                                    symbols As ArrayBuilder(Of Symbol),
                                                    preserveAlias As Boolean,
-                                                   <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                   <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
 
             Debug.Assert(Not String.IsNullOrEmpty(name))
             Debug.Assert(arity >= 0)
@@ -767,14 +759,14 @@ lAgain:
 lAgain:
             Select Case containingSymbol.Kind
                 Case SymbolKind.Namespace
-                    LookupMember(lookupResult, DirectCast(containingSymbol, NamespaceSymbol), name, arity, options, useSiteDiagnostics)
+                    LookupMember(lookupResult, DirectCast(containingSymbol, NamespaceSymbol), name, arity, options, useSiteInfo)
 
                 Case SymbolKind.Alias
                     containingSymbol = DirectCast(containingSymbol, AliasSymbol).Target
                     GoTo lAgain
 
                 Case SymbolKind.NamedType, SymbolKind.ArrayType
-                    LookupMember(lookupResult, DirectCast(containingSymbol, TypeSymbol), name, arity, options, useSiteDiagnostics)
+                    LookupMember(lookupResult, DirectCast(containingSymbol, TypeSymbol), name, arity, options, useSiteInfo)
 
                 Case SymbolKind.Property
                     If allowColorColor Then
@@ -896,7 +888,7 @@ lAgain:
         End Sub
 
         Private Shared Sub CollectOperatorsAndConversionsInType(crefOperator As CrefOperatorReferenceSyntax, argCount As Integer, type As TypeSymbol, symbols As ArrayBuilder(Of Symbol),
-                                                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                                         <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             If type Is Nothing Then
                 Return
             End If
@@ -909,13 +901,13 @@ lAgain:
                 Case SyntaxKind.IsTrueKeyword
                     If argCount = 1 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(UnaryOperatorKind.IsTrue)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.TrueOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.TrueOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.IsFalseKeyword
                     If argCount = 1 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(UnaryOperatorKind.IsFalse)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.FalseOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.FalseOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.NotKeyword
@@ -923,104 +915,104 @@ lAgain:
                         Dim opInfo As New OverloadResolution.OperatorInfo(UnaryOperatorKind.Not)
                         CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator,
                                                              WellKnownMemberNames.OnesComplementOperatorName, opInfo,
-                                                             useSiteDiagnostics,
+                                                             useSiteInfo,
                                                              WellKnownMemberNames.LogicalNotOperatorName, opInfo)
                     End If
 
                 Case SyntaxKind.PlusToken
                     If argCount = 1 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(UnaryOperatorKind.Plus)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.UnaryPlusOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.UnaryPlusOperatorName, opInfo, useSiteInfo)
                     Else
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Add)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.AdditionOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.AdditionOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.MinusToken
                     If argCount = 1 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(UnaryOperatorKind.Minus)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.UnaryNegationOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.UnaryNegationOperatorName, opInfo, useSiteInfo)
                     Else
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Subtract)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.SubtractionOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.SubtractionOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.AsteriskToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Multiply)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.MultiplyOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.MultiplyOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.SlashToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Divide)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.DivisionOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.DivisionOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.BackslashToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.IntegerDivide)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.IntegerDivisionOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.IntegerDivisionOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.ModKeyword
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Modulo)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.ModulusOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.ModulusOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.CaretToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Power)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.ExponentOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.ExponentOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.EqualsToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Equals)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.EqualityOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.EqualityOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.LessThanGreaterThanToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.NotEquals)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.InequalityOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.InequalityOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.LessThanToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.LessThan)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.LessThanOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.LessThanOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.GreaterThanToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.GreaterThan)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.GreaterThanOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.GreaterThanOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.LessThanEqualsToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.LessThanOrEqual)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.LessThanOrEqualOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.LessThanOrEqualOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.GreaterThanEqualsToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.GreaterThanOrEqual)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.GreaterThanOrEqualOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.GreaterThanOrEqualOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.LikeKeyword
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Like)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.LikeOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.LikeOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.AmpersandToken
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Concatenate)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.ConcatenateOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.ConcatenateOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.AndKeyword
@@ -1028,7 +1020,7 @@ lAgain:
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.And)
                         CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator,
                                                              WellKnownMemberNames.BitwiseAndOperatorName, opInfo,
-                                                             useSiteDiagnostics,
+                                                             useSiteInfo,
                                                              WellKnownMemberNames.LogicalAndOperatorName, opInfo)
                     End If
 
@@ -1037,14 +1029,14 @@ lAgain:
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Or)
                         CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator,
                                                              WellKnownMemberNames.BitwiseOrOperatorName, opInfo,
-                                                             useSiteDiagnostics,
+                                                             useSiteInfo,
                                                              WellKnownMemberNames.LogicalOrOperatorName, opInfo)
                     End If
 
                 Case SyntaxKind.XorKeyword
                     If argCount = 2 Then
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.Xor)
-                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.ExclusiveOrOperatorName, opInfo, useSiteDiagnostics)
+                        CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator, WellKnownMemberNames.ExclusiveOrOperatorName, opInfo, useSiteInfo)
                     End If
 
                 Case SyntaxKind.LessThanLessThanToken
@@ -1052,7 +1044,7 @@ lAgain:
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.LeftShift)
                         CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator,
                                                              WellKnownMemberNames.LeftShiftOperatorName, opInfo,
-                                                             useSiteDiagnostics,
+                                                             useSiteInfo,
                                                              WellKnownMemberNames.UnsignedLeftShiftOperatorName, opInfo)
                     End If
 
@@ -1061,7 +1053,7 @@ lAgain:
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.RightShift)
                         CollectOperatorsAndConversionsInType(type, symbols, MethodKind.UserDefinedOperator,
                                                              WellKnownMemberNames.RightShiftOperatorName, opInfo,
-                                                             useSiteDiagnostics,
+                                                             useSiteInfo,
                                                              WellKnownMemberNames.UnsignedRightShiftOperatorName, opInfo)
                     End If
 
@@ -1070,7 +1062,7 @@ lAgain:
                         Dim opInfo As New OverloadResolution.OperatorInfo(BinaryOperatorKind.RightShift)
                         CollectOperatorsAndConversionsInType(type, symbols, MethodKind.Conversion,
                                                              WellKnownMemberNames.ImplicitConversionName, New OverloadResolution.OperatorInfo(UnaryOperatorKind.Implicit),
-                                                             useSiteDiagnostics,
+                                                             useSiteInfo,
                                                              WellKnownMemberNames.ExplicitConversionName, New OverloadResolution.OperatorInfo(UnaryOperatorKind.Explicit))
                     End If
 
@@ -1084,12 +1076,12 @@ lAgain:
                                                          kind As MethodKind,
                                                          name1 As String,
                                                          info1 As OverloadResolution.OperatorInfo,
-                                                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                         <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                          Optional name2 As String = Nothing,
                                                          Optional info2 As OverloadResolution.OperatorInfo = Nothing)
 
             Dim methods = ArrayBuilder(Of MethodSymbol).GetInstance()
-            OverloadResolution.CollectUserDefinedOperators(type, Nothing, kind, name1, info1, name2, info2, methods, useSiteDiagnostics)
+            OverloadResolution.CollectUserDefinedOperators(type, Nothing, kind, name1, info1, name2, info2, methods, useSiteInfo)
             symbols.AddRange(methods)
             methods.Free()
         End Sub

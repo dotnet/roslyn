@@ -111,18 +111,26 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 
                 // Attach (creating if necessary) a singleton in-memory write cache to this connection.
                 //
-                // From: https://www.sqlite.org/sharedcache.html Enabling shared-cache for an in-memory
-                // database allows two or more database connections in the same process to have access
-                // to the same in-memory database. An in-memory database in shared cache is
-                // automatically deleted and memory is reclaimed when the last connection to that
-                // database closes.
-                //
-                // Using `cache=shared as writecache` at the end ensures all connections see the same db
-                // and the same data when reading and writing.  i.e. if one connection writes data to
-                // this, another connection will see that data when reading.  Without this, each
-                // connection would get their own private memory db independent of all other
+                // From: https://www.sqlite.org/sharedcache.html Enabling shared-cache for an in-memory database allows
+                // two or more database connections in the same process to have access to the same in-memory database.
+                // An in-memory database in shared cache is automatically deleted and memory is reclaimed when the last
+                // connection to that database closes.
+
+                // Using `?mode=memory&cache=shared as writecache` at the end ensures all connections (to the on-disk
+                // db) see the same db (https://sqlite.org/inmemorydb.html) and the same data when reading and writing.
+                // i.e. if one connection writes data to this, another connection will see that data when reading.
+                // Without this, each connection would get their own private memory db independent of all other
                 // connections.
-                connection.ExecuteCommand($"attach database 'file::memory:?cache=shared' as {Database.WriteCache.GetName()};");
+
+                // Workaround https://github.com/ericsink/SQLitePCL.raw/issues/407.  On non-windows do not pass in the
+                // uri of the DB on disk we're associating this in-memory cache with.  This throws on at least OSX for
+                // reasons that aren't fully understood yet.  If more details/fixes emerge in that linked issue, we can
+                // ideally remove this and perform the attachment uniformly on all platforms.
+                var attachString = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? $"attach database '{new Uri(databasePath).AbsoluteUri}?mode=memory&cache=shared' as {Database.WriteCache.GetName()};"
+                    : $"attach database 'file::memory:?cache=shared' as {Database.WriteCache.GetName()};";
+
+                connection.ExecuteCommand(attachString);
 
                 return connection;
             }

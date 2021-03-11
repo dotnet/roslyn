@@ -132,12 +132,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             public string Method => MethodName;
 
             public bool MutatesSolutionState => false;
+            public bool RequiresLSPSolution => true;
 
             public TextDocumentIdentifier? GetTextDocumentIdentifier(Uri request)
                 => new TextDocumentIdentifier { Uri = request };
 
             public Task<Solution> HandleRequestAsync(Uri request, RequestContext context, CancellationToken cancellationToken)
-                => Task.FromResult(context.Solution);
+                => Task.FromResult(context.Solution!);
         }
     }
 }

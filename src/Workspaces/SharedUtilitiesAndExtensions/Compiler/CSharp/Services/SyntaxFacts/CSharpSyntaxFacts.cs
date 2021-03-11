@@ -1093,6 +1093,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 node = parent;
             }
 
+            if (node is VarPatternSyntax)
+            {
+                return node;
+            }
+
             // Patterns are never bindable (though their constituent types/exprs may be).
             return node is PatternSyntax ? null : node;
         }
@@ -1725,6 +1730,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             else
                 return ImmutableArray<SyntaxNode>.Empty;
         }
+
+        public bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is CastExpressionSyntax;
 
         public bool IsCastExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is CastExpressionSyntax;

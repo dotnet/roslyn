@@ -25,11 +25,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         public override string Method => LSP.Methods.TextDocumentDidCloseName;
 
         public override bool MutatesSolutionState => true;
+        public override bool RequiresLSPSolution => false;
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => null;
+        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DidCloseTextDocumentParams request) => request.TextDocument;
 
         public override Task<object?> HandleRequestAsync(LSP.DidCloseTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            // GetTextDocumentIdentifier returns null to avoid creating the solution, so the queue is not able to log the uri.
+            context.TraceInformation($"didClose for {request.TextDocument.Uri}");
+
             context.StopTracking(request.TextDocument.Uri);
 
             return SpecializedTasks.Default<object>();

@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     // this was not a normal exception that we expected during DB open.
                     // Report this so we can try to address whatever is causing this.
                     FatalError.ReportAndCatch(ex);
-                    IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath), recursive: true));
+                    IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath)!, recursive: true));
                 }
 
                 return null;
@@ -234,6 +234,9 @@ namespace Microsoft.CodeAnalysis.Storage
             public void Dispose()
                 => _storage.Dispose();
 
+            public ValueTask DisposeAsync()
+                => _storage.DisposeAsync();
+
             public Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.ChecksumMatchesAsync(name, checksum, cancellationToken);
 
@@ -249,13 +252,13 @@ namespace Microsoft.CodeAnalysis.Storage
             public Task<bool> ChecksumMatchesAsync(DocumentKey document, string name, Checksum checksum, CancellationToken cancellationToken)
                 => _storage.Target.ChecksumMatchesAsync(document, name, checksum, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(project, name, cancellationToken);
 
-            public Task<Stream> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
+            public Task<Stream?> ReadStreamAsync(Document document, string name, CancellationToken cancellationToken)
                 => _storage.Target.ReadStreamAsync(document, name, cancellationToken);
 
             public Task<Stream> ReadStreamAsync(string name, Checksum checksum, CancellationToken cancellationToken)

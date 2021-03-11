@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -10,18 +11,16 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
-using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Utilities;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -33,24 +32,25 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    [ExportWorkspaceService(typeof(ISymbolNavigationService), ServiceLayer.Host), Shared]
     internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAffinitizedObject, ISymbolNavigationService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-        private readonly SourceGeneratedFileManager _sourceGeneratedFileManager;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioSymbolNavigationService(
             SVsServiceProvider serviceProvider,
-            VisualStudio14StructureTaggerProvider outliningTaggerProvider)
-            : base(outliningTaggerProvider.ThreadingContext)
+            IThreadingContext threadingContext,
+            IVsEditorAdaptersFactoryService editorAdaptersFactory,
+            IMetadataAsSourceFileService metadataAsSourceFileService)
+            : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
-
-            var componentModel = IServiceProviderExtensions.GetService<SComponentModel, IComponentModel>(_serviceProvider);
-            _editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-            _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
-            _sourceGeneratedFileManager = componentModel.GetService<SourceGeneratedFileManager>();
+            _editorAdaptersFactory = editorAdaptersFactory;
+            _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
         public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options, CancellationToken cancellationToken)
@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             windowFrame.Show();
 
-            var openedDocument = textBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+            var openedDocument = textBuffer?.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             if (openedDocument != null)
             {
                 var editorWorkspace = openedDocument.Project.Solution.Workspace;

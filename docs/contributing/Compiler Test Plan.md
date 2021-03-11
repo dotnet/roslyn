@@ -117,7 +117,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - "go to", Find All References, and renaming
     - cref comments
     - UpgradeProject code fixer
-    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
+    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/main/docs/contributing/IDE%20Test%20Plan.md)
 
 - Debugger / EE
     - Stepping, setting breakpoints

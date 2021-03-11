@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public string Method => LSP.Methods.TextDocumentCodeActionName;
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public CodeActionsHandler(
             CodeActionsCache codeActionsCache,

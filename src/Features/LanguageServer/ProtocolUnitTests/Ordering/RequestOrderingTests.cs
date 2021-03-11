@@ -21,7 +21,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             .AddParts(typeof(MutatingRequestHandlerProvider))
             .AddParts(typeof(NonMutatingRequestHandlerProvider))
             .AddParts(typeof(FailingRequestHandlerProvider))
-            .AddParts(typeof(FailingMutatingRequestHandlerProvider));
+            .AddParts(typeof(FailingMutatingRequestHandlerProvider))
+            .AddParts(typeof(NonLSPSolutionRequestHandlerProvider));
 
         [Fact]
         public async Task MutatingRequestsDontOverlap()
@@ -153,20 +154,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             var expectedSolution = testLspServer.GetCurrentSolution();
 
             // solution should be the same because no mutations have happened
-            var solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
+            var solution = await GetLSPSolution(testLspServer, NonMutatingRequestHandler.MethodName);
             Assert.Equal(expectedSolution, solution);
 
             // Open a document, to get a forked solution
-            await ExecuteDidOpen();
+            await ExecuteDidOpen(testLspServer, locations["caret"].First().Uri);
 
             // solution should be different because there has been a mutation
-            solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
+            solution = await GetLSPSolution(testLspServer, NonMutatingRequestHandler.MethodName);
             Assert.NotEqual(expectedSolution, solution);
 
             expectedSolution = solution;
 
             // solution should be the same because no mutations have happened
-            solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
+            solution = await GetLSPSolution(testLspServer, NonMutatingRequestHandler.MethodName);
             Assert.Equal(expectedSolution, solution);
 
             // Apply some random change to the workspace that the LSP server doesn't "see"
@@ -175,36 +176,50 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
             expectedSolution = testLspServer.GetCurrentSolution();
 
             // solution should be different because there has been a workspace change
-            solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
+            solution = await GetLSPSolution(testLspServer, NonMutatingRequestHandler.MethodName);
             Assert.NotEqual(expectedSolution, solution);
 
             expectedSolution = solution;
 
             // solution should be the same because no mutations have happened
-            solution = await GetLSPSolution(NonMutatingRequestHandler.MethodName);
+            solution = await GetLSPSolution(testLspServer, NonMutatingRequestHandler.MethodName);
             Assert.Equal(expectedSolution, solution);
+        }
 
-            return;
+        [Fact]
+        public async Task HandlerThatSkipsBuildingLSPSolutionGetsWorkspaceSolution()
+        {
+            using var testLspServer = CreateTestLspServer("class C { {|caret:|} }", out var locations);
 
-            async Task<Solution> GetLSPSolution(string methodName)
+            var solution = await GetLSPSolution(testLspServer, NonLSPSolutionRequestHandler.MethodName);
+            Assert.Null(solution);
+
+            // Open a document, to create a change that LSP handlers wouldn normally see
+            await ExecuteDidOpen(testLspServer, locations["caret"].First().Uri);
+
+            // solution shouldn't have changed
+            solution = await GetLSPSolution(testLspServer, NonLSPSolutionRequestHandler.MethodName);
+            Assert.Null(solution);
+        }
+
+        private static async Task ExecuteDidOpen(TestLspServer testLspServer, Uri documentUri)
+        {
+            var didOpenParams = new LSP.DidOpenTextDocumentParams
             {
-                var request = new TestRequest(methodName);
-                var response = await testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, new LSP.ClientCapabilities(), null, CancellationToken.None);
-                return response.Solution;
-            }
-
-            async Task ExecuteDidOpen()
-            {
-                var didOpenParams = new LSP.DidOpenTextDocumentParams
+                TextDocument = new LSP.TextDocumentItem
                 {
-                    TextDocument = new LSP.TextDocumentItem
-                    {
-                        Uri = locations["caret"].First().Uri,
-                        Text = "// hi there"
-                    }
-                };
-                await testLspServer.ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
-            }
+                    Uri = documentUri,
+                    Text = "// hi there"
+                }
+            };
+            await testLspServer.ExecuteRequestAsync<LSP.DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
+
+        private static async Task<Solution> GetLSPSolution(TestLspServer testLspServer, string methodName)
+        {
+            var request = new TestRequest(methodName);
+            var response = await testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(request.MethodName, request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+            return response.Solution;
         }
 
         private static async Task<TestResponse[]> TestAsync(TestLspServer testLspServer, TestRequest[] requests)

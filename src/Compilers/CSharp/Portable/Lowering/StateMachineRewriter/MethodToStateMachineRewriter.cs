@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool useFinalizerBookkeeping)
             : base(slotAllocatorOpt, F.CompilationState, diagnostics)
         {
@@ -622,10 +622,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (slotAllocatorOpt == null ||
                             !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
                                 awaitSyntaxOpt,
-                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics),
+                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics.DiagnosticBag),
                                 kind,
                                 id,
-                                Diagnostics,
+                                Diagnostics.DiagnosticBag,
                                 out slotIndex))
                         {
                             slotIndex = _nextFreeHoistedLocalSlot++;

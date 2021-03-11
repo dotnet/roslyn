@@ -54,11 +54,9 @@
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveHost" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.Wpf" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/5661" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.TestUtilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />

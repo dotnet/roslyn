@@ -9232,11 +9232,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="translated">Le type interop qui correspond au type interop incorporé '{0}' est introuvable. Vous manque-t-il une référence d'assembly ?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">Le type de retour par référence 'ref {0}' n'est pas pris en charge.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">Le nom de module '{0}' stocké dans '{1}' doit correspondre à son nom de fichier.</target>
