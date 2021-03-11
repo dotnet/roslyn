@@ -988,6 +988,11 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <see cref="Diagnostic.Location"/>.</returns>
         protected async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<Diagnostic> additionalDiagnostics, CompilerDiagnostics compilerDiagnostics, CancellationToken cancellationToken)
         {
+            if (analyzers.IsEmpty)
+            {
+                analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new EmptyDiagnosticAnalyzer());
+            }
+
             var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
             foreach (var project in solution.Projects)
             {
