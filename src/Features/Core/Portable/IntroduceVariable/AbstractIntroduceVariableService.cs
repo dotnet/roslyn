@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TQueryExpressionSyntax : TExpressionSyntax
         where TNameSyntax : TTypeSyntax
     {
-        protected abstract bool IsConstantInitializerValue(TExpressionSyntax expressionSyntax);
         protected abstract bool IsInNonFirstQueryClause(TExpressionSyntax expression);
         protected abstract bool IsInFieldInitializer(TExpressionSyntax expression);
         protected abstract bool IsInParameterInitializer(TExpressionSyntax expression);
