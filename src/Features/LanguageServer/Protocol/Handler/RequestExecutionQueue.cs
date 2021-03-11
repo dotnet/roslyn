@@ -228,10 +228,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                 }
             }
-            catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
+            catch (OperationCanceledException)
             {
-                // If the queue is asked to shut down between the start of the while loop, and the Dequeue call
-                // we could end up here, but we don't want to report an error. The Shutdown call will take care of things.
+                // If we're being cancelled then we shut down but logging it as an exception is misleading in the logs
+                // If we have shut ourselves down then calling Shutdown() here is redundant, but there is no issue calling
+                // it multiple times so better safe than sorry.
+                Shutdown();
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
