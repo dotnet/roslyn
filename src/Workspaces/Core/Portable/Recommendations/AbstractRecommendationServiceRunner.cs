@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             if (containingMethod.DeclaringSyntaxReferences.Length != 1)
                 return default;
 
-            var syntaxFactsService = _context.Workspace.Services.GetLanguageServices(_context.SemanticModel.Language).GetService<ISyntaxFactsService>();
+            var syntaxFactsService = _context.GetLanguageService<ISyntaxFactsService>();
 
             // Check that a => a. belongs to an invocation.
             // Find its' ordinal in the invocation, e.g. ThenInclude(a => a.Something, a=> a.
