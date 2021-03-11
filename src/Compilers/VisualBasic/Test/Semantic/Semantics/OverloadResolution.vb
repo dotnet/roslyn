@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                 Return OverloadResolution.MethodInvocationOverloadResolution(
                         methodGroup, arguments, argumentNames, binder, includeEliminatedCandidates:=includeEliminatedCandidates, lateBindingIsAllowed:=lateBindingIsAllowed, callerInfoOpt:=Nothing,
-                        useSiteDiagnostics:=Nothing)
+                        useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             End Function
         End Module
     End Namespace

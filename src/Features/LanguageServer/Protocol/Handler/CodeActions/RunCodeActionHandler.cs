@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override string Command => CodeActionsHandler.RunCodeActionCommandName;
 
         public override bool MutatesSolutionState => true;
+        public override bool RequiresLSPSolution => true;
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.ExecuteCommandParams request)
         {

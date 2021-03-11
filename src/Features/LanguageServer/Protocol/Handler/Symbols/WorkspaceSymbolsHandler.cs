@@ -48,11 +48,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override string Method => Methods.WorkspaceSymbolName;
 
         public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceSymbolParams request) => null;
 
         public override async Task<SymbolInformation[]?> HandleRequestAsync(WorkspaceSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             var solution = context.Solution;
 
             using var progress = BufferedProgress.Create(request.PartialResultToken);

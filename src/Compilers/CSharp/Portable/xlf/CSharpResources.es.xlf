@@ -9232,11 +9232,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="translated">No se encuentra el tipo de interoperabilidad que coincide con el tipo de interoperabilidad incrustado '{0}'. ¿Falta alguna referencia de ensamblado?</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ByRefReturnUnsupported">
-        <source>By-reference return type 'ref {0}' is not supported.</source>
-        <target state="translated">El tipo de valor devuelto por referencia 'ref {0}' no es compatible.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
         <target state="translated">El nombre de archivo '{0}' almacenado en '{1}' debe coincidir con su nombre de archivo.</target>

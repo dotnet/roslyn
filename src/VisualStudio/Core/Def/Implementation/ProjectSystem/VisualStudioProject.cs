@@ -234,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // We log the number of syntax trees that have been parsed even if there was no compilation created yet
             var projectState = solutionState.GetRequiredProjectState(projectId);
             var parsedTrees = 0;
-            foreach (var documentState in projectState.DocumentStates.Values)
+            foreach (var documentState in projectState.DocumentStates.States)
             {
                 if (documentState.TryGetSyntaxTree(out _))
                 {
@@ -401,6 +401,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal string? MaxLangVersion
         {
             set => _workspace.SetMaxLanguageVersion(Id, value);
+        }
+
+        internal string DependencyNodeTargetIdentifier
+        {
+            set => _workspace.SetDependencyNodeTargetIdentifier(Id, value);
         }
 
         #region Batching

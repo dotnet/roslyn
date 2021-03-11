@@ -102,6 +102,11 @@
         <target state="translated">Удалить ключевое слово "Shared" из элемента модуля</target>
         <note>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Shared_constructor">
+        <source>Shared constructor</source>
+        <target state="new">Shared constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">Введите здесь имя для объявления нового поля.</target>

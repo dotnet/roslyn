@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
@@ -59,6 +60,49 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SemanticTokens
         {
             var docId = ((TestWorkspace)workspace).Documents.First().Id;
             ((TestWorkspace)workspace).ChangeDocument(docId, SourceText.From(updatedText));
+        }
+
+        // VS doesn't currently support multi-line tokens, so we want to verify that we aren't
+        // returning any in the tokens array.
+        protected static async Task VerifyNoMultiLineTokens(TestLspServer testLspServer, int[] tokens)
+        {
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+            var text = await document.GetTextAsync().ConfigureAwait(false);
+
+            var currentLine = 0;
+            var currentChar = 0;
+
+            Assert.True(tokens.Length % 5 == 0);
+
+            for (var i = 0; i < tokens.Length; i += 5)
+            {
+                // i: line # (relative to previous line)
+                // i + 1: character # (relative to start of previous token in the line or 0)
+                // i + 2: token length
+
+                // Gets the current absolute line index
+                currentLine += tokens[i];
+
+                // Gets the character # relative to the start of the line
+                if (tokens[i] != 0)
+                {
+                    currentChar = tokens[i + 1];
+                }
+                else
+                {
+                    currentChar += tokens[i + 1];
+                }
+
+                // Gets the length of the token
+                var tokenLength = tokens[i + 2];
+
+                var lineLength = text.Lines[currentLine].Span.Length;
+
+                // If this assertion fails, we didn't break up a multi-line token properly.
+                Assert.True(currentChar + tokenLength <= lineLength,
+                    $"Multi-line token found on line {currentLine} at character index {currentChar}. " +
+                    $"The token ends at index {currentChar + tokenLength}, which exceeds the line length of {lineLength}.");
+            }
         }
     }
 }

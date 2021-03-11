@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public string Method => MSLSPMethods.TextDocumentCodeActionResolveName;
 
         public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         public TextDocumentIdentifier? GetTextDocumentIdentifier(VSCodeAction request)
             => ((JToken)request.Data!).ToObject<CodeActionResolveData>().TextDocument;

@@ -255,6 +255,21 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestCompilationOutputInfo()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles());
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var sol = await workspace.OpenSolutionAsync(solutionFilePath);
+            var p1 = sol.Projects.First(p => p.Language == LanguageNames.CSharp);
+            var p2 = sol.Projects.First(p => p.Language == LanguageNames.VisualBasic);
+
+            Assert.Equal("CSharpProject.dll", Path.GetFileName(p1.CompilationOutputInfo.AssemblyPath));
+            Assert.Equal("VisualBasicProject.dll", Path.GetFileName(p2.CompilationOutputInfo.AssemblyPath));
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCrossLanguageReferencesUsesInMemoryGeneratedMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
