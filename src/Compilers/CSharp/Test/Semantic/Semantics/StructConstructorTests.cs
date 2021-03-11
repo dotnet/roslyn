@@ -928,5 +928,55 @@ unsafe struct S5
                 //     int X;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("S5.X").WithLocation(29, 9));
         }
+
+        [Fact]
+        public void ParameterDefaultValues()
+        {
+            var sourceA =
+@"struct S0 { }
+struct S1 { object F1 = 1; }
+struct S2 { public S2() { } }
+struct S3 { internal S3() { } }
+struct S4 { private S4() { } }
+";
+            var sourceB1 =
+@"class Program
+{
+    static void F0(S0 s = default) { }
+    static void F1(S1 s = default) { }
+    static void F2(S2 s = default) { }
+    static void F3(S3 s = default) { }
+    static void F4(S4 s = default) { }
+}";
+            var comp = CreateCompilation(new[] { sourceA, sourceB1 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+
+            var sourceB2 =
+@"class Program
+{
+    static void F0(S0 s = new()) { }
+    static void F1(S1 s = new()) { }
+    static void F2(S2 s = new()) { }
+    static void F3(S3 s = new()) { }
+    static void F4(S4 s = new()) { }
+}";
+            comp = CreateCompilation(new[] { sourceA, sourceB2 }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void F1(S1 s = new()) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(4, 27),
+                // (5,27): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void F2(S2 s = new()) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(5, 27),
+                // (6,27): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void F3(S3 s = new()) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(6, 27),
+                // (7,27): error CS0122: 'S4.S4()' is inaccessible due to its protection level
+                //     static void F4(S4 s = new()) { }
+                Diagnostic(ErrorCode.ERR_BadAccess, "new()").WithArguments("S4.S4()").WithLocation(7, 27),
+                // (7,27): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void F4(S4 s = new()) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(7, 27));
+        }
     }
 }

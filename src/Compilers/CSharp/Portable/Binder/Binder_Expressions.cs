@@ -5262,7 +5262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
                 // NOTE: Use-site diagnostics were reported during overload resolution.
 
-                ConstantValue constantValueOpt = (initializerSyntaxOpt == null && method.IsDefaultValueTypeConstructor()) ?
+                ConstantValue constantValueOpt = (initializerSyntaxOpt == null && method.IsDefaultValueTypeConstructor(requireNoInitializers: true)) ?
                     FoldParameterlessValueTypeConstructor(type) :
                     null;
 
