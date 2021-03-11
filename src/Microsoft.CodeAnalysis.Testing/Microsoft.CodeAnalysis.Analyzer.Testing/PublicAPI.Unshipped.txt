@@ -127,6 +127,7 @@ Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.AnalyzerConfigFiles.g
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.AssemblyName.get -> string
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.DocumentationMode.get -> Microsoft.CodeAnalysis.DocumentationMode
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.EvaluatedProjectState(Microsoft.CodeAnalysis.Testing.ProjectState state, Microsoft.CodeAnalysis.Testing.ReferenceAssemblies defaultReferenceAssemblies) -> void
+Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.GeneratedSources.get -> System.Collections.Immutable.ImmutableArray<(string filename, Microsoft.CodeAnalysis.Text.SourceText content)>
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.Language.get -> string
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.Name.get -> string
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.OutputKind.get -> Microsoft.CodeAnalysis.OutputKind
@@ -151,6 +152,7 @@ Microsoft.CodeAnalysis.Testing.ProjectState.AnalyzerConfigFiles.get -> Microsoft
 Microsoft.CodeAnalysis.Testing.ProjectState.AssemblyName.get -> string
 Microsoft.CodeAnalysis.Testing.ProjectState.DocumentationMode.get -> Microsoft.CodeAnalysis.DocumentationMode?
 Microsoft.CodeAnalysis.Testing.ProjectState.DocumentationMode.set -> void
+Microsoft.CodeAnalysis.Testing.ProjectState.GeneratedSources.get -> Microsoft.CodeAnalysis.Testing.SourceFileCollection
 Microsoft.CodeAnalysis.Testing.ProjectState.Language.get -> string
 Microsoft.CodeAnalysis.Testing.ProjectState.Name.get -> string
 Microsoft.CodeAnalysis.Testing.ProjectState.OutputKind.get -> Microsoft.CodeAnalysis.OutputKind?
