@@ -225,6 +225,7 @@ Microsoft.CodeAnalysis.Testing.StateInheritanceMode.Explicit = 1 -> Microsoft.Co
 Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.TestBehaviors.None = 0 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipGeneratedCodeCheck = 1 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
+Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipGeneratedSourcesCheck = 4 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.TestBehaviors.SkipSuppressionCheck = 2 -> Microsoft.CodeAnalysis.Testing.TestBehaviors
 Microsoft.CodeAnalysis.Testing.TestFileMarkupParser
 abstract Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateCompilationOptions() -> Microsoft.CodeAnalysis.CompilationOptions

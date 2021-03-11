@@ -72,18 +72,21 @@ namespace Microsoft.CodeAnalysis.Testing
             (project, diagnostics) = await getFixedProject(sourceGenerators, project, verifier, cancellationToken).ConfigureAwait(false);
 
             // After applying the source generator, compare the resulting string to the inputted one
-            var updatedDocuments = project.Documents.ToArray();
-            var expectedSources = testState.Sources.Concat(testState.GeneratedSources).ToArray();
-
-            verifier.Equal(expectedSources.Length, updatedDocuments.Length, $"expected '{nameof(testState)}.{nameof(SolutionState.Sources)}' with '{nameof(testState)}.{nameof(SolutionState.GeneratedSources)}' to match '{nameof(updatedDocuments)}', but '{nameof(testState)}.{nameof(SolutionState.Sources)}' with '{nameof(testState)}.{nameof(SolutionState.GeneratedSources)}' contains '{expectedSources.Length}' documents and '{nameof(updatedDocuments)}' contains '{updatedDocuments.Length}' documents");
-
-            for (var i = 0; i < updatedDocuments.Length; i++)
+            if (!TestBehaviors.HasFlag(TestBehaviors.SkipGeneratedSourcesCheck))
             {
-                var actual = await GetSourceTextFromDocumentAsync(updatedDocuments[i], cancellationToken).ConfigureAwait(false);
-                verifier.EqualOrDiff(expectedSources[i].content.ToString(), actual.ToString(), $"content of '{expectedSources[i].filename}' did not match. Diff shown with expected as baseline:");
-                verifier.Equal(expectedSources[i].content.Encoding, actual.Encoding, $"encoding of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.Encoding}' but was '{actual.Encoding}'");
-                verifier.Equal(expectedSources[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
-                verifier.Equal(expectedSources[i].filename, updatedDocuments[i].Name, $"file name was expected to be '{expectedSources[i].filename}' but was '{updatedDocuments[i].Name}'");
+                var updatedDocuments = project.Documents.ToArray();
+                var expectedSources = testState.Sources.Concat(testState.GeneratedSources).ToArray();
+
+                verifier.Equal(expectedSources.Length, updatedDocuments.Length, $"expected '{nameof(testState)}.{nameof(SolutionState.Sources)}' with '{nameof(testState)}.{nameof(SolutionState.GeneratedSources)}' to match '{nameof(updatedDocuments)}', but '{nameof(testState)}.{nameof(SolutionState.Sources)}' with '{nameof(testState)}.{nameof(SolutionState.GeneratedSources)}' contains '{expectedSources.Length}' documents and '{nameof(updatedDocuments)}' contains '{updatedDocuments.Length}' documents");
+
+                for (var i = 0; i < updatedDocuments.Length; i++)
+                {
+                    var actual = await GetSourceTextFromDocumentAsync(updatedDocuments[i], cancellationToken).ConfigureAwait(false);
+                    verifier.EqualOrDiff(expectedSources[i].content.ToString(), actual.ToString(), $"content of '{expectedSources[i].filename}' did not match. Diff shown with expected as baseline:");
+                    verifier.Equal(expectedSources[i].content.Encoding, actual.Encoding, $"encoding of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.Encoding}' but was '{actual.Encoding}'");
+                    verifier.Equal(expectedSources[i].content.ChecksumAlgorithm, actual.ChecksumAlgorithm, $"checksum algorithm of '{expectedSources[i].filename}' was expected to be '{expectedSources[i].content.ChecksumAlgorithm}' but was '{actual.ChecksumAlgorithm}'");
+                    verifier.Equal(expectedSources[i].filename, updatedDocuments[i].Name, $"file name was expected to be '{expectedSources[i].filename}' but was '{updatedDocuments[i].Name}'");
+                }
             }
 
             return diagnostics;
