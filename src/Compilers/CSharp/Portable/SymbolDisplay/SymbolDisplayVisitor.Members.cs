@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var includeName = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
                 symbol.Name.Length != 0;
             var includeBrackets = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeOptionalBrackets);
-            var includeOption = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
+            var includeDefaultValue = format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
                 format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeName) &&
                 symbol.HasExplicitDefaultValue &&
                 CanAddConstant(symbol.Type, symbol.ExplicitDefaultValue);
@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(CreatePart(kind, symbol, symbol.Name));
             }
 
-            if (includeOption)
+            if (includeDefaultValue)
             {
                 if (includeName || includeType)
                 {
