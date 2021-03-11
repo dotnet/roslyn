@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()
-            => new DiagnosticAnalyzer[] { new EmptyDiagnosticAnalyzer() };
+            => Enumerable.Empty<DiagnosticAnalyzer>();
 
         /// <summary>
         /// Returns the source generators being tested - to be implemented in non-abstract class.
