@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindReferences;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -48,14 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             public MockStreamingFindUsagesPresenter(FindUsagesContext context)
                 => _context = context;
 
-            public FindUsagesContext StartSearch(string title, bool supportsReferences)
+            public FindUsagesContext StartSearch(string title, bool supportsReferences, CancellationToken cancellationToken)
                 => _context;
 
             public void ClearAll()
             {
             }
 
-            public FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+            public FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn, CancellationToken cancellationToken)
                 => _context;
         }
 

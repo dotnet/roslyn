@@ -112,6 +112,11 @@
         <target state="translated">注意: 空格完成的功能已停用，以免造成可能的干擾。若要插入清單中的名稱，請使用 Tab 鍵。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="new_field">
         <source>&lt;new field&gt;</source>
         <target state="translated">&lt;新欄位&gt;</target>

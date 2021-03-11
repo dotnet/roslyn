@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
     internal static class ICocoaDifferenceViewerExtensions
     {

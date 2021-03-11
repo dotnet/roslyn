@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -34,21 +33,21 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public abstract bool IsTriggerCharacter(char ch);
         public abstract bool IsRetriggerCharacter(char ch);
-        public abstract SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken);
+        public abstract SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken);
 
-        protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
+        protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
         /// <remarks>
         /// This overload is required for compatibility with existing extensions.
         /// </remarks>
-        protected static SignatureHelpItems CreateSignatureHelpItems(
+        protected static SignatureHelpItems? CreateSignatureHelpItems(
             IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
         {
             return CreateSignatureHelpItems(items, applicableSpan, state, selectedItem: null);
         }
 
-        protected static SignatureHelpItems CreateSignatureHelpItems(
-            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state, int? selectedItem)
+        protected static SignatureHelpItems? CreateSignatureHelpItems(
+            IList<SignatureHelpItem>? items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItem)
         {
             if (items == null || !items.Any() || state == null)
             {
@@ -61,11 +60,11 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             (items, selectedItem) = Filter(items, state.ArgumentNames, selectedItem);
-            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName, selectedItem);
+            return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName!, selectedItem);
         }
 
-        protected static SignatureHelpItems CreateCollectionInitializerSignatureHelpItems(
-            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
+        protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(
+            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state)
         {
             // We will have added all the accessible '.Add' methods that take at least one
             // arguments. However, in general the one-arg Add method is the least likely for the
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 items, applicableSpan, state, items.IndexOf(i => i.Parameters.Length >= 2));
         }
 
-        private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string> parameterNames, int? selectedItem)
+        private static (IList<SignatureHelpItem> items, int? selectedItem) Filter(IList<SignatureHelpItem> items, IEnumerable<string>? parameterNames, int? selectedItem)
         {
             if (parameterNames == null)
             {
@@ -115,10 +114,10 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return parameterNames.All(itemParameterNames.Contains);
         }
 
-        public async Task<SignatureHelpState> GetCurrentArgumentStateAsync(Document document, int position, TextSpan currentSpan, CancellationToken cancellationToken)
+        public async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(Document document, int position, TextSpan currentSpan, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return GetCurrentArgumentState(root, position, document.GetLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return GetCurrentArgumentState(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
         }
 
         // TODO: remove once Pythia moves to ExternalAccess APIs
@@ -137,7 +136,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             IList<SymbolDisplayPart> separatorParts,
             IList<SymbolDisplayPart> suffixParts,
             IList<SignatureHelpSymbolParameter> parameters,
-            IList<SymbolDisplayPart> descriptionParts = null)
+            IList<SymbolDisplayPart>? descriptionParts = null)
         {
             return CreateItem(orderSymbol, semanticModel, position, anonymousTypeDisplayService,
                 isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
@@ -149,12 +148,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             int position,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
             IList<SymbolDisplayPart> separatorParts,
             IList<SymbolDisplayPart> suffixParts,
             IList<SignatureHelpSymbolParameter> parameters,
-            IList<SymbolDisplayPart> descriptionParts = null)
+            IList<SymbolDisplayPart>? descriptionParts = null)
         {
             return CreateItemImpl(orderSymbol, semanticModel, position, anonymousTypeDisplayService,
                 isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts);
@@ -166,12 +165,12 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             int position,
             IAnonymousTypeDisplayService anonymousTypeDisplayService,
             bool isVariadic,
-            Func<CancellationToken, IEnumerable<TaggedText>> documentationFactory,
+            Func<CancellationToken, IEnumerable<TaggedText>>? documentationFactory,
             IList<SymbolDisplayPart> prefixParts,
             IList<SymbolDisplayPart> separatorParts,
             IList<SymbolDisplayPart> suffixParts,
             IList<SignatureHelpSymbolParameter> parameters,
-            IList<SymbolDisplayPart> descriptionParts)
+            IList<SymbolDisplayPart>? descriptionParts)
         {
             prefixParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(prefixParts, semanticModel, position);
             separatorParts = anonymousTypeDisplayService.InlineDelegateAnonymousTypes(separatorParts, semanticModel, position);
@@ -189,7 +188,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             var directAnonymousTypeReferences =
                 from part in allParts
                 where part.Symbol.IsNormalAnonymousType()
-                select (INamedTypeSymbol)part.Symbol;
+                select (INamedTypeSymbol)part.Symbol!;
 
             var info = anonymousTypeDisplayService.GetNormalAnonymousTypeDisplayInfo(
                 orderSymbol, directAnonymousTypeReferences, semanticModel, position);
@@ -253,7 +252,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 anonymousTypeDisplayService.InlineDelegateAnonymousTypes(parameter.SelectedDisplayParts, semanticModel, position));
         }
 
-        public async Task<SignatureHelpItems> GetItemsAsync(
+        public async Task<SignatureHelpItems?> GetItemsAsync(
             Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             var itemsForCurrentDocument = await GetItemsWorkerAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
@@ -262,39 +261,46 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 return itemsForCurrentDocument;
             }
 
-            var relatedDocuments = document.GetLinkedDocumentIds();
-            if (!relatedDocuments.Any())
+            var relatedDocuments = await FindActiveRelatedDocumentsAsync(position, document, cancellationToken).ConfigureAwait(false);
+            if (relatedDocuments.IsEmpty)
             {
                 return itemsForCurrentDocument;
             }
 
-            var relatedDocumentsAndItems = await GetItemsForRelatedDocumentsAsync(document, relatedDocuments, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-            var candidateLinkedProjectsAndSymbolSets = await ExtractSymbolsFromRelatedItemsAsync(position, relatedDocumentsAndItems, cancellationToken).ConfigureAwait(false);
-
-            var totalProjects = candidateLinkedProjectsAndSymbolSets.Select(c => c.Item1).Concat(document.Project.Id);
+            var totalProjects = relatedDocuments.Select(d => d.Project.Id).Concat(document.Project.Id);
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
+
             var finalItems = new List<SignatureHelpItem>();
             foreach (var item in itemsForCurrentDocument.Items)
             {
-                var symbolKey = (item as SymbolKeySignatureHelpItem)?.SymbolKey;
-                if (symbolKey == null)
+                if (item is not SymbolKeySignatureHelpItem symbolKeyItem ||
+                    symbolKeyItem.SymbolKey is not SymbolKey symbolKey ||
+                    symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken).Symbol is not ISymbol symbol)
                 {
                     finalItems.Add(item);
                     continue;
                 }
 
-                var expectedSymbol = symbolKey.Value.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken).Symbol;
-                if (expectedSymbol == null)
+                // If the symbol is an instantiated generic method, ensure we use its original
+                // definition for symbol key resolution in related compilations.
+                if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsGenericMethod && methodSymbol != methodSymbol.OriginalDefinition)
                 {
-                    finalItems.Add(item);
-                    continue;
+                    symbolKey = SymbolKey.Create(methodSymbol.OriginalDefinition, cancellationToken);
                 }
 
-                var invalidProjectsForCurrentSymbol = candidateLinkedProjectsAndSymbolSets.Where(c => !c.Item2.Contains(expectedSymbol, LinkedFilesSymbolEquivalenceComparer.Instance))
-                                                                        .Select(c => c.Item1)
-                                                                        .ToList();
+                var invalidProjectsForCurrentSymbol = new List<ProjectId>();
+                foreach (var relatedDocument in relatedDocuments)
+                {
+                    // Try to resolve symbolKey in each related compilation,
+                    // unresolvable key means the symbol is unavailable in the corresponding project.
+                    var relatedSemanticModel = await relatedDocument.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+                    if (symbolKey.Resolve(relatedSemanticModel.Compilation, ignoreAssemblyKey: true, cancellationToken).Symbol == null)
+                    {
+                        invalidProjectsForCurrentSymbol.Add(relatedDocument.Project.Id);
+                    }
+                }
 
                 var platformData = new SupportedPlatformData(invalidProjectsForCurrentSymbol, totalProjects, document.Project.Solution.Workspace);
                 finalItems.Add(UpdateItem(item, platformData));
@@ -308,29 +314,19 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 itemsForCurrentDocument.SelectedItemIndex);
         }
 
-        private static async Task<List<Tuple<ProjectId, ISet<ISymbol>>>> ExtractSymbolsFromRelatedItemsAsync(int position, List<Tuple<Document, IEnumerable<SignatureHelpItem>>> relatedDocuments, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<Document>> FindActiveRelatedDocumentsAsync(int position, Document document, CancellationToken cancellationToken)
         {
-            var resultSets = new List<Tuple<ProjectId, ISet<ISymbol>>>();
-            foreach (var related in relatedDocuments)
+            using var _ = ArrayBuilder<Document>.GetInstance(out var builder);
+            foreach (var relatedDocument in document.GetLinkedDocuments())
             {
-                // If we don't have symbol keys, give up.
-                if (related.Item2.Any(s => (s as SymbolKeySignatureHelpItem)?.SymbolKey == null))
+                var syntaxTree = await relatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                if (!relatedDocument.GetRequiredLanguageService<ISyntaxFactsService>().IsInInactiveRegion(syntaxTree, position, cancellationToken))
                 {
-                    continue;
-                }
-
-                var syntaxTree = await related.Item1.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                if (!related.Item1.GetLanguageService<ISyntaxFactsService>().IsInInactiveRegion(syntaxTree, position, cancellationToken))
-                {
-                    var relatedSemanticModel = await related.Item1.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-                    var symbolSet = related.Item2.Select(s => ((SymbolKeySignatureHelpItem)s).SymbolKey?.Resolve(relatedSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol)
-                                                 .WhereNotNull()
-                                                 .ToSet(SymbolEquivalenceComparer.IgnoreAssembliesInstance);
-                    resultSets.Add(Tuple.Create(related.Item1.Project.Id, symbolSet));
+                    builder.Add(relatedDocument);
                 }
             }
 
-            return resultSets;
+            return builder.ToImmutable();
         }
 
         private static SignatureHelpItem UpdateItem(SignatureHelpItem item, SupportedPlatformData platformData)
@@ -353,21 +349,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return item;
         }
 
-        protected async Task<List<Tuple<Document, IEnumerable<SignatureHelpItem>>>> GetItemsForRelatedDocumentsAsync(Document document, IEnumerable<DocumentId> relatedDocuments, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
-        {
-            var supportedPlatforms = new List<Tuple<Document, IEnumerable<SignatureHelpItem>>>();
-            foreach (var relatedDocumentId in relatedDocuments)
-            {
-                var relatedDocument = document.Project.Solution.GetDocument(relatedDocumentId);
-                var result = await GetItemsWorkerAsync(relatedDocument, position, triggerInfo, cancellationToken).ConfigureAwait(false);
-
-                supportedPlatforms.Add(Tuple.Create(relatedDocument, result != null ? result.Items : SpecializedCollections.EmptyEnumerable<SignatureHelpItem>()));
-            }
-
-            return supportedPlatforms;
-        }
-
-        protected static int? TryGetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, ISymbol currentSymbol) where TSymbol : class, ISymbol
+        protected static int? TryGetSelectedIndex<TSymbol>(ImmutableArray<TSymbol> candidates, ISymbol? currentSymbol) where TSymbol : class, ISymbol
         {
             if (currentSymbol is TSymbol matched)
             {

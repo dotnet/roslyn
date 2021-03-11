@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         internal abstract ISyntaxFacts SyntaxFacts { get; }
 
+        internal abstract SyntaxTrivia EndOfLine(string text);
+
         /// <summary>
         /// Creates a statement that declares a single local variable with an optional initializer.
         /// </summary>

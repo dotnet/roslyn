@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Xunit;
 using static Microsoft.CodeAnalysis.EditAndContinue.AbstractEditAndContinueAnalyzer;
 
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         internal void VerifyLineEdits(
             EditScript<SyntaxNode> editScript,
-            IEnumerable<LineChange> expectedLineEdits,
+            IEnumerable<SourceLineUpdate> expectedLineEdits,
             IEnumerable<string> expectedNodeUpdates,
             RudeEditDiagnosticDescription[] expectedDiagnostics)
         {
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var editMap = BuildEditMap(editScript);
 
             var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-            var actualLineEdits = new List<LineChange>();
+            var actualLineEdits = new List<SourceLineUpdate>();
 
             Analyzer.GetTestAccessor().AnalyzeTrivia(
                 oldText,
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var oldActiveStatements = activeStatements.OldStatements.AsImmutable();
             var updatedActiveMethodMatches = new List<UpdatedMemberInfo>();
             var triviaEdits = new List<(SyntaxNode OldNode, SyntaxNode NewNode)>();
-            var actualLineEdits = new List<LineChange>();
+            var actualLineEdits = new List<SourceLineUpdate>();
             var actualSemanticEdits = new List<SemanticEdit>();
             var diagnostics = new List<RudeEditDiagnostic>();
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId());

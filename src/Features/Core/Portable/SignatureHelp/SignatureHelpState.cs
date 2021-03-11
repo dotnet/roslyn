@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
@@ -13,9 +11,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public int ArgumentIndex;
         public int ArgumentCount;
         public string ArgumentName;
-        public IList<string> ArgumentNames;
+        public IList<string>? ArgumentNames;
 
-        public SignatureHelpState(int argumentIndex, int argumentCount, string argumentName, IList<string> argumentNames)
+        public SignatureHelpState(int argumentIndex, int argumentCount, string argumentName, IList<string>? argumentNames)
         {
             ArgumentIndex = argumentIndex;
             ArgumentCount = argumentCount;

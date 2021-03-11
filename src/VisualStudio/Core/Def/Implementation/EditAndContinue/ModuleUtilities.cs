@@ -5,53 +5,20 @@
 using System;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.DiaSymReader;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Symbols;
 using Microsoft.VisualStudio.Debugger.UI.Interfaces;
 using Roslyn.Utilities;
 
-using EnC = Microsoft.CodeAnalysis.EditAndContinue;
+using EnC = Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 {
     internal static class ModuleUtilities
     {
-        internal static bool TryGetModuleInfo(this DkmClrModuleInstance module, [NotNullWhen(true)] out EnC.DebuggeeModuleInfo? info)
-        {
-            Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA, "SymReader requires MTA");
-
-            IntPtr metadataPtr;
-            uint metadataSize;
-            try
-            {
-                metadataPtr = module.GetBaselineMetaDataBytesPtr(out metadataSize);
-            }
-            catch (Exception e) when (DkmExceptionUtilities.IsBadOrMissingMetadataException(e))
-            {
-                info = null;
-                return false;
-            }
-
-            var symReader = module.GetSymUnmanagedReader() as ISymUnmanagedReader5;
-            if (symReader == null)
-            {
-                info = null;
-                return false;
-            }
-
-            var metadata = ModuleMetadata.CreateFromMetadata(metadataPtr, (int)metadataSize);
-            info = new EnC.DebuggeeModuleInfo(metadata, symReader);
-            return true;
-        }
-
-        internal static LinePositionSpan ToLinePositionSpan(this DkmTextSpan span)
+        internal static EnC.SourceSpan ToSourceSpan(this DkmTextSpan span)
         {
             // ignore invalid/unsupported spans - they might come from stack frames of non-managed languages
             if (span.StartLine <= 0 || span.EndLine <= 0)
@@ -62,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             // C++ produces spans without columns
             if (span.StartColumn == 0 && span.EndColumn == 0)
             {
-                return new LinePositionSpan(new LinePosition(span.StartLine - 1, 0), new LinePosition(span.EndLine - 1, 0));
+                return new(span.StartLine - 1, 0, span.EndLine - 1, 0);
             }
 
             // ignore invalid/unsupported spans - they might come from stack frames of non-managed languages
@@ -71,53 +38,50 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 return default;
             }
 
-            return new LinePositionSpan(new LinePosition(span.StartLine - 1, span.StartColumn - 1), new LinePosition(span.EndLine - 1, span.EndColumn - 1));
+            return new(span.StartLine - 1, span.StartColumn - 1, span.EndLine - 1, span.EndColumn - 1);
         }
 
-        internal static DkmTextSpan ToDebuggerSpan(this LinePositionSpan span, int lineDelta = 0)
+        internal static DkmTextSpan ToDebuggerSpan(this EnC.SourceSpan span, int lineDelta = 0)
             => new(
-                StartLine: span.Start.Line + lineDelta + 1,
-                EndLine: span.End.Line + lineDelta + 1,
-                StartColumn: span.Start.Character + 1,
-                EndColumn: span.End.Character + 1);
+                StartLine: span.StartLine + lineDelta + 1,
+                EndLine: span.EndLine + lineDelta + 1,
+                StartColumn: span.StartColumn + 1,
+                EndColumn: span.EndColumn + 1);
 
-        internal static EnC.ActiveStatementDebugInfo ToActiveStatementDebugInfo(this ActiveStatementDebugInfo info)
-            => new(
-                new EnC.ActiveInstructionId(info.InstructionId.MethodId.ModuleId, info.InstructionId.MethodId.Token, info.InstructionId.MethodId.Version, info.InstructionId.ILOffset),
+        internal static EnC.ManagedActiveStatementDebugInfo ToActiveStatementDebugInfo(this ActiveStatementDebugInfo info)
+            => new EnC.ManagedActiveStatementDebugInfo(
+                new EnC.ManagedInstructionId(new EnC.ManagedMethodId(info.InstructionId.MethodId.ModuleId, info.InstructionId.MethodId.Token, info.InstructionId.MethodId.Version), info.InstructionId.ILOffset),
                 info.DocumentNameOpt,
-                info.TextSpan.ToLinePositionSpan(),
-                info.ThreadIds,
+                info.TextSpan.ToSourceSpan(),
                 (EnC.ActiveStatementFlags)info.Flags);
 
-        internal static DkmManagedModuleUpdate ToModuleUpdate(this EnC.Deltas delta)
+        internal static DkmManagedModuleUpdate ToModuleUpdate(this EnC.ManagedModuleUpdate delta)
         {
-            var sequencePointUpdates = delta.LineEdits.SelectAsArray(documentChanges => DkmSequencePointsUpdate.Create(
-                FileName: documentChanges.SourceFilePath,
-                LineUpdates: documentChanges.Deltas.SelectAsArray(lineChange => DkmSourceLineUpdate.Create(lineChange.OldLine, lineChange.NewLine)).ToReadOnlyCollection()));
+            var sequencePointUpdates = delta.SequencePoints.SelectAsArray(documentChanges => DkmSequencePointsUpdate.Create(
+                FileName: documentChanges.FileName,
+                LineUpdates: documentChanges.LineUpdates.SelectAsArray(lineChange => DkmSourceLineUpdate.Create(lineChange.OldLine, lineChange.NewLine)).ToReadOnlyCollection()));
 
-            var activeStatementUpdates = delta.ActiveStatementsInUpdatedMethods.SelectAsArray(activeStatement => DkmActiveStatementUpdate.Create(
-                ThreadId: activeStatement.ThreadId,
-                MethodId: new DkmClrMethodId(Token: activeStatement.OldInstructionId.MethodId.Token, Version: (uint)activeStatement.OldInstructionId.MethodId.Version),
-                ILOffset: activeStatement.OldInstructionId.ILOffset,
+            var activeStatementUpdates = delta.ActiveStatements.SelectAsArray(activeStatement => DkmActiveStatementUpdate.Create(
+                ThreadId: Guid.Empty, // no longer needed
+                MethodId: new DkmClrMethodId(Token: activeStatement.Method.Token, Version: (uint)activeStatement.Method.Version),
+                ILOffset: activeStatement.ILOffset,
                 NewSpan: activeStatement.NewSpan.ToDebuggerSpan()));
 
-            var exceptionRegions = delta.NonRemappableRegions.SelectAsArray(
-                predicate: regionInfo => regionInfo.Region.IsExceptionRegion,
-                selector: regionInfo => DkmExceptionRegionUpdate.Create(
+            var exceptionRegions = delta.ExceptionRegions.SelectAsArray(regionInfo => DkmExceptionRegionUpdate.Create(
                    new DkmClrMethodId(Token: regionInfo.Method.Token, Version: (uint)regionInfo.Method.Version),
-                   NewSpan: regionInfo.Region.Span.ToDebuggerSpan(regionInfo.Region.LineDelta),
+                   NewSpan: regionInfo.NewSpan.ToDebuggerSpan(regionInfo.Delta),
                    // The range span is the new span. Deltas are inverse.
                    //   old = new + delta
                    //   new = old – delta
-                   Delta: -regionInfo.Region.LineDelta));
+                   Delta: -regionInfo.Delta));
 
             return DkmManagedModuleUpdate.Create(
-                delta.Mvid,
-                delta.IL.Value.ToReadOnlyCollection(),
-                delta.Metadata.Bytes.ToReadOnlyCollection(),
-                delta.Pdb.Stream.ToReadOnlyCollection(),
+                delta.Module,
+                delta.ILDelta.ToReadOnlyCollection(),
+                delta.MetadataDelta.ToReadOnlyCollection(),
+                delta.PdbDelta.ToReadOnlyCollection(),
                 sequencePointUpdates.ToReadOnlyCollection(),
-                delta.Pdb.UpdatedMethods.ToReadOnlyCollection(),
+                delta.UpdatedMethods.ToReadOnlyCollection(),
                 activeStatementUpdates.ToReadOnlyCollection(),
                 exceptionRegions.ToReadOnlyCollection());
         }
@@ -125,12 +89,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         internal static ReadOnlyCollection<T> ToReadOnlyCollection<T>(this ImmutableArray<T> array)
             => new(array.DangerousGetUnderlyingArray());
 
-        internal static ManagedModuleUpdateStatus ToModuleUpdateStatus(this EnC.SolutionUpdateStatus status)
+        internal static ManagedModuleUpdateStatus ToModuleUpdateStatus(this EnC.ManagedModuleUpdateStatus status)
             => status switch
             {
-                EnC.SolutionUpdateStatus.None => ManagedModuleUpdateStatus.None,
-                EnC.SolutionUpdateStatus.Ready => ManagedModuleUpdateStatus.Ready,
-                EnC.SolutionUpdateStatus.Blocked => ManagedModuleUpdateStatus.Blocked,
+                EnC.ManagedModuleUpdateStatus.None => ManagedModuleUpdateStatus.None,
+                EnC.ManagedModuleUpdateStatus.Ready => ManagedModuleUpdateStatus.Ready,
+                EnC.ManagedModuleUpdateStatus.Blocked => ManagedModuleUpdateStatus.Blocked,
                 _ => throw ExceptionUtilities.UnexpectedValue(status),
             };
     }

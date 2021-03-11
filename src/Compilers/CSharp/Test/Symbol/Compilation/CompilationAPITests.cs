@@ -2192,7 +2192,7 @@ class C { }", options: TestOptions.Script);
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         public void MetadataConsistencyWhileEvolvingCompilation()
         {
             var md1 = AssemblyMetadata.CreateFromImage(CreateCompilation("public class C { }").EmitToArray());

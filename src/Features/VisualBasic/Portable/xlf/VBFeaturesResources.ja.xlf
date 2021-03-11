@@ -112,6 +112,11 @@
         <target state="translated">注: 潜在的な干渉を避けるため、スペースの補完は無効になっています。リストから名前を挿入するには、タブを使用します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="new_field">
         <source>&lt;new field&gt;</source>
         <target state="translated">&lt;新しいフィールド&gt;</target>

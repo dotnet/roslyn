@@ -36,20 +36,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            var services = document.Project.Solution.Workspace.Services;
-            var encService = services.GetService<IEditAndContinueWorkspaceService>();
-            if (encService is null)
-            {
-                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-            }
+            var workspace = document.Project.Solution.Workspace;
+
+            var proxy = new RemoteEditAndContinueServiceProxy(workspace);
 
             var activeStatementSpanProvider = new DocumentActiveStatementSpanProvider(async cancellationToken =>
             {
-                var trackingService = services.GetRequiredService<IActiveStatementTrackingService>();
+                var trackingService = workspace.Services.GetRequiredService<IActiveStatementTrackingService>();
                 return await trackingService.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
             });
 
-            return encService.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken);
+            return proxy.GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).AsTask();
         }
     }
 }

@@ -112,6 +112,11 @@
         <target state="translated">Observação: o preenchimento de espaço está desabilitado para evitar interferências em potencial. Para inserir um nome da lista, use tab.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="new_field">
         <source>&lt;new field&gt;</source>
         <target state="translated">&lt;novo campo&gt;</target>

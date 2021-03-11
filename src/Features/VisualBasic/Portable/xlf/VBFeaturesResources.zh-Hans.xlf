@@ -112,6 +112,11 @@
         <target state="translated">注意: 禁用空格结束字符以避免潜在干扰。若要从列表中插入名称，请使用制表符。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="new_field">
         <source>&lt;new field&gt;</source>
         <target state="translated">&lt;新字段&gt;</target>

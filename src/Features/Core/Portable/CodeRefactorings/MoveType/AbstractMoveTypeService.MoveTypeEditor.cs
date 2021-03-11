@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     if (endOfFileToken.LeadingTrivia.IsEmpty() &&
                         !previousToken.TrailingTrivia.Any(syntaxFacts.IsEndOfLineTrivia))
                     {
-                        var generator = SyntaxGenerator.GetGenerator(document);
+                        var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
                         var endOfLine = generator.EndOfLine(options.GetOption(FormattingOptions.NewLine));
                         return modifiedRoot.ReplaceToken(
                             previousToken, previousToken.WithAppendedTrailingTrivia(endOfLine));

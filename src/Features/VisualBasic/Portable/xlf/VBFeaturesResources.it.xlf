@@ -112,6 +112,11 @@
         <target state="translated">Nota: il completamento tramite la barra spaziatrice è disabilitato per evitare possibili interferenze. Per inserire un nome dall'elenco, usare TAB.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="new_field">
         <source>&lt;new field&gt;</source>
         <target state="translated">&lt;nuovo campo&gt;</target>

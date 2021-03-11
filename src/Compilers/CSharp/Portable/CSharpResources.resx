@@ -4299,9 +4299,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NoCanonicalView" xml:space="preserve">
     <value>Cannot find the interop type that matches the embedded interop type '{0}'. Are you missing an assembly reference?</value>
   </data>
-  <data name="ERR_ByRefReturnUnsupported" xml:space="preserve">
-    <value>By-reference return type 'ref {0}' is not supported.</value>
-  </data>
   <data name="ERR_NetModuleNameMismatch" xml:space="preserve">
     <value>Module name '{0}' stored in '{1}' must match its filename.</value>
   </data>
@@ -5292,9 +5289,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ThrowMisplaced" xml:space="preserve">
     <value>A throw expression is not allowed in this context.</value>
-  </data>
-  <data name="ERR_MixedDeconstructionUnsupported" xml:space="preserve">
-    <value>A deconstruction cannot mix declarations and expressions on the left-hand-side.</value>
   </data>
   <data name="ERR_DeclarationExpressionNotPermitted" xml:space="preserve">
     <value>A declaration is not allowed in this context.</value>
@@ -6566,6 +6560,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureDiscards" xml:space="preserve">
     <value>discards</value>
   </data>
+  <data name="IDS_FeatureMixedDeclarationsAndExpressionsInDeconstruction" xml:space="preserve">
+    <value>Mixed declarations and expressions in deconstruction</value>
+  </data>
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
@@ -6599,5 +6596,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_DoNotCompareFunctionPointers_Title" xml:space="preserve">
     <value>Do not compare function pointer values</value>
+  </data>
+  <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
+    <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
   </data>
 </root>

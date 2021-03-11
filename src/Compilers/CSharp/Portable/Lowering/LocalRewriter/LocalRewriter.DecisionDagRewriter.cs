@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If we have already generated the helper, possibly for another switch
                 // or on another thread, we don't need to regenerate it.
-                var privateImplClass = module.GetPrivateImplClass(syntaxNode, _localRewriter._diagnostics);
+                var privateImplClass = module.GetPrivateImplClass(syntaxNode, _localRewriter._diagnostics.DiagnosticBag);
                 if (privateImplClass.GetMethod(CodeAnalysis.CodeGen.PrivateImplementationDetails.SynthesizedStringHashFunctionName) != null)
                 {
                     return;
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // cannot emit hash method if have no access to Chars.
                 var charsMember = _localRewriter._compilation.GetSpecialTypeMember(SpecialMember.System_String__Chars);
-                if ((object)charsMember == null || charsMember.GetUseSiteDiagnostic() != null)
+                if ((object)charsMember == null || charsMember.HasUseSiteError)
                 {
                     return;
                 }

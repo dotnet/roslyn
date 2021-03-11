@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         public static bool CanDelegateTo<TExpressionSyntax>(
             SemanticDocument document,
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<TExpressionSyntax> expressions,
+            ImmutableArray<TExpressionSyntax?> expressions,
             IMethodSymbol constructor)
             where TExpressionSyntax : SyntaxNode
         {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             ISemanticFactsService semanticFacts,
             SemanticModel semanticModel,
             IMethodSymbol constructor,
-            ImmutableArray<TExpressionSyntax> expressions)
+            ImmutableArray<TExpressionSyntax?> expressions)
             where TExpressionSyntax : SyntaxNode
         {
             Debug.Assert(constructor.Parameters.Length == expressions.Length);
@@ -106,6 +106,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 var constructorParameter = constructorInCompilation.Parameters[i];
                 if (constructorParameter == null)
                     return false;
+
+                // In VB the argument may not have been specified at all if the parameter is optional
+                if (expressions[i] is null && constructorParameter.IsOptional)
+                    continue;
 
                 var conversion = semanticFacts.ClassifyConversion(semanticModel, expressions[i], constructorParameter.Type);
                 if (!conversion.IsIdentity && !conversion.IsImplicit)

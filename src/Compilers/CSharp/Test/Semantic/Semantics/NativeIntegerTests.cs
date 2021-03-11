@@ -1094,7 +1094,7 @@ public class B : A<nint>
                 comp.GetMember<MethodSymbol>("B.F").TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/49845
         public void Retargeting_06()
         {
             var source1 =
