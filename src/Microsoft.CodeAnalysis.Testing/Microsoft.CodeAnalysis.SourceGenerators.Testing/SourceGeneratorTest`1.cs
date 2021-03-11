@@ -42,9 +42,6 @@ namespace Microsoft.CodeAnalysis.Testing
         protected SourceGeneratorTest()
         {
             FixedState = new SolutionState(DefaultTestProjectName, Language, DefaultFilePathPrefix, DefaultFileExt);
-
-            // Disable test behaviors that don't make sense for source generator scenarios
-            TestBehaviors |= TestBehaviors.SkipSuppressionCheck | TestBehaviors.SkipGeneratedCodeCheck;
         }
 
         protected override IEnumerable<DiagnosticAnalyzer> GetDiagnosticAnalyzers()

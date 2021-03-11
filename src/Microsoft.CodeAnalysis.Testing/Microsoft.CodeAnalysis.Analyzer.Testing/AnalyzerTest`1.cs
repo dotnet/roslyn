@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return;
             }
 
-            if (!expected.Any(x => IsSubjectToExclusion(x, sources)))
+            if (!expected.Any(x => IsSubjectToExclusion(x, analyzers, sources)))
             {
                 return;
             }
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Testing
             // still be reported. We also insert a new line at the beginning so we have to move all diagnostic
             // locations which have a specific position down by one line.
             var expectedResults = expected
-                .Where(x => !IsSubjectToExclusion(x, sources))
+                .Where(x => !IsSubjectToExclusion(x, analyzers, sources))
                 .Select(x => IsInSourceFile(x, sources) ? x.WithLineOffset(1) : x)
                 .ToArray();
 
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 return;
             }
 
-            if (!expected.Any(x => IsSubjectToExclusion(x, sources)))
+            if (!expected.Any(x => IsSubjectToExclusion(x, analyzers, sources)))
             {
                 return;
             }
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var prefix = Language == LanguageNames.CSharp ? "#pragma warning disable" : "#Disable Warning";
             var suppressionVerifier = verifier.PushContext($"Verifying exclusions in '{prefix}' code");
-            var suppressedDiagnostics = expected.Where(x => IsSubjectToExclusion(x, sources)).Select(x => x.Id).Distinct();
+            var suppressedDiagnostics = expected.Where(x => IsSubjectToExclusion(x, analyzers, sources)).Select(x => x.Id).Distinct();
             var suppression = prefix + " " + string.Join(", ", suppressedDiagnostics);
             var transformedProject = primaryProject.WithSources(primaryProject.Sources.Select(x => (x.filename, x.content.Replace(new TextSpan(0, 0), $"{suppression}\r\n"))).ToImmutableArray());
             VerifyDiagnosticResults(await GetSortedDiagnosticsAsync(transformedProject, additionalProjects, analyzers, suppressionVerifier, cancellationToken).ConfigureAwait(false), analyzers, expectedResults, suppressionVerifier);
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        private static bool IsSubjectToExclusion(DiagnosticResult result, (string filename, SourceText content)[] sources)
+        private static bool IsSubjectToExclusion(DiagnosticResult result, ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources)
         {
             if (result.Id.StartsWith("CS", StringComparison.Ordinal)
                 || result.Id.StartsWith("BC", StringComparison.Ordinal))
@@ -912,12 +912,18 @@ namespace Microsoft.CodeAnalysis.Testing
                 return false;
             }
 
+            if (!analyzers.Any(analyzer => analyzer.SupportedDiagnostics.Any(supported => supported.Id == result.Id)))
+            {
+                // This diagnostic is not reported by an active analyzer
+                return false;
+            }
+
             return true;
         }
 
         private static bool IsSuppressible(ImmutableArray<DiagnosticAnalyzer> analyzers, DiagnosticResult result, (string filename, SourceText content)[] sources)
         {
-            if (!IsSubjectToExclusion(result, sources))
+            if (!IsSubjectToExclusion(result, analyzers, sources))
             {
                 return false;
             }
