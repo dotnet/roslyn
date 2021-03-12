@@ -59,8 +59,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly Dictionary<string, OpenSourceGeneratedFile> _openFiles = new();
         private readonly VisualStudioWorkspace _visualStudioWorkspace;
 
-        private readonly Dictionary<Guid, GeneratedFileDirectoryInfo> _directoryInfoOnDiskByContainingDirectoryId = new();
-
         /// <summary>
         /// When we have to put a placeholder file on disk, we put it in a directory named by the GUID portion of the DocumentId.
         /// We store the actual DocumentId (which includes the ProjectId) and some other textual information in
@@ -68,17 +66,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// If we put the GUIDs and string names directly as components of the path, we quickly run into MAX_PATH. If we had a way to do virtual
         /// monikers that don't run into MAX_PATH issues then we absolutely would want to get rid of this.
         /// </summary>
-        private class GeneratedFileDirectoryInfo
-        {
-            public GeneratedFileDirectoryInfo(DocumentId documentId, Type generatorType)
-            {
-                DocumentId = documentId;
-                GeneratorType = generatorType;
-            }
-
-            public DocumentId DocumentId { get; }
-            public Type GeneratorType { get; }
-        }
+        /// <remarks>All accesses should be on the UI thread.</remarks>
+        private readonly Dictionary<Guid, SourceGeneratedDocumentIdentity> _directoryInfoOnDiskByContainingDirectoryId = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -124,8 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             if (!_directoryInfoOnDiskByContainingDirectoryId.ContainsKey(document.Id.Id))
             {
-                _directoryInfoOnDiskByContainingDirectoryId.Add(document.Id.Id,
-                    new GeneratedFileDirectoryInfo(document.Id, document.SourceGenerator.GetType()));
+                _directoryInfoOnDiskByContainingDirectoryId.Add(document.Id.Id, document.Identity);
             }
 
             // We must always ensure the file name portion of the path is just the hint name, which matches the compiler's choice so
@@ -166,15 +154,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool TryGetGeneratedFileInformation(
             string filePath,
-            [NotNullWhen(true)] out DocumentId? documentId,
-            [NotNullWhen(true)] out Type? generatorType,
-            [NotNullWhen(true)] out string? generatedSourceHintName)
+            out SourceGeneratedDocumentIdentity identity)
         {
             _foregroundThreadAffintizedObject.AssertIsForeground();
 
-            documentId = null;
-            generatorType = null;
-            generatedSourceHintName = null;
+            identity = default;
 
             if (!filePath.StartsWith(_temporaryDirectory))
             {
@@ -182,28 +166,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var fileInfo = new FileInfo(filePath);
-            if (!Guid.TryParse(fileInfo.Directory.Name, out var guid) ||
-                !_directoryInfoOnDiskByContainingDirectoryId.TryGetValue(guid, out var directoryInfo))
-            {
-                return false;
-            }
-
-            documentId = directoryInfo.DocumentId;
-            generatorType = directoryInfo.GeneratorType;
-            generatedSourceHintName = fileInfo.Name;
-
-            return true;
+            return Guid.TryParse(fileInfo.Directory.Name, out var guid) &&
+                _directoryInfoOnDiskByContainingDirectoryId.TryGetValue(guid, out identity);
         }
 
         void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame)
         {
-            if (TryGetGeneratedFileInformation(moniker, out var documentId, out var generatorType, out var generatedSourceHintName))
+            _foregroundThreadAffintizedObject.AssertIsForeground();
+
+            if (TryGetGeneratedFileInformation(moniker, out var documentIdentity))
             {
                 // Attach to the text buffer if we haven't already
                 if (!_openFiles.TryGetValue(moniker, out var openFile))
                 {
-                    openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentId, generatorType, _threadingContext);
+                    openFile = new OpenSourceGeneratedFile(this, textBuffer, _visualStudioWorkspace, documentIdentity, _threadingContext);
                     _openFiles.Add(moniker, openFile);
+
                     _threadingContext.JoinableTaskFactory.Run(() => openFile.UpdateBufferContentsAsync(CancellationToken.None));
 
                     // Update the RDT flags to ensure the file can't be saved or appears in any MRUs as it's a temporary generated file name.
@@ -213,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (windowFrame != null)
                 {
-                    openFile.SetWindowFrame(windowFrame, generatedSourceHintName);
+                    openFile.SetWindowFrame(windowFrame, documentIdentity.HintName);
                 }
             }
         }
@@ -240,8 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private readonly SourceGeneratedFileManager _fileManager;
             private readonly ITextBuffer _textBuffer;
             private readonly Workspace _workspace;
-            private readonly DocumentId _documentId;
-            private readonly Type _generatorType;
+            private readonly SourceGeneratedDocumentIdentity _documentIdentity;
 
             /// <summary>
             /// A read-only region that we create across the entire file to prevent edits unless we are the one making them.
@@ -273,14 +250,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private ImageMoniker _currentWindowFrameImageMoniker = default;
             private IVsInfoBarUIElement? _currentWindowFrameInfoBarElement = null;
 
-            public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, DocumentId documentId, Type generatorType, IThreadingContext threadingContext)
+            public OpenSourceGeneratedFile(SourceGeneratedFileManager fileManager, ITextBuffer textBuffer, Workspace workspace, SourceGeneratedDocumentIdentity documentIdentity, IThreadingContext threadingContext)
                 : base(threadingContext, assertIsForeground: true)
             {
                 _fileManager = fileManager;
                 _textBuffer = textBuffer;
                 _workspace = workspace;
-                _documentId = documentId;
-                _generatorType = generatorType;
+                _documentIdentity = documentIdentity;
 
                 // We'll create a read-only region for the file, but it'll be a dynamic region we can temporarily suspend
                 // while we're doing edits.
@@ -302,6 +278,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     UpdateBufferContentsAsync,
                     asyncListener: _fileManager._listener,
                     _cancellationTokenSource.Token);
+
+                _workspace.OnSourceGeneratedDocumentOpened(documentIdentity, textBuffer.AsTextContainer());
             }
 
             public void Dispose()
@@ -314,16 +292,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
+                _workspace.OnSourceGeneratedDocumentClosed(_documentIdentity.DocumentId);
+
                 // Cancel any remaining asynchronous work we may have had to update this file
                 _cancellationTokenSource.Cancel();
             }
 
-            private string GeneratorDisplayName => _generatorType.FullName;
+            private string GeneratorDisplayName => _documentIdentity.Generator.GetType().FullName;
 
             public async Task UpdateBufferContentsAsync(CancellationToken cancellationToken)
             {
                 SourceText? generatedSource = null;
-                var project = _workspace.CurrentSolution.GetProject(_documentId.ProjectId);
+                var project = _workspace.CurrentSolution.GetProject(_documentIdentity.DocumentId.ProjectId);
 
                 // Locals correspond to the equivalently-named fields; we'll assign these and then assign to the fields while on the
                 // UI thread to avoid any potential race where we update the InfoBar while this is running.
@@ -337,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
                 else
                 {
-                    var generatedDocument = await project.GetSourceGeneratedDocumentAsync(_documentId, cancellationToken).ConfigureAwait(false);
+                    var generatedDocument = await project.GetSourceGeneratedDocumentAsync(_documentIdentity.DocumentId, cancellationToken).ConfigureAwait(false);
 
                     if (generatedDocument != null)
                     {
@@ -348,7 +328,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     else
                     {
                         // The file isn't there anymore; do we still have the generator at all?
-                        if (project.AnalyzerReferences.Any(a => a.GetGenerators(project.Language).Any(g => g.GetType().Assembly.Equals(_generatorType.Assembly))))
+                        if (project.AnalyzerReferences.Any(a => a.GetGenerators(project.Language).Any(g => g.GetType().Assembly.Equals(_documentIdentity.Generator.GetType().Assembly))))
                         {
                             windowFrameMessageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_stopped_generating_this_file, GeneratorDisplayName);
                             windowFrameImageMonikerToShow = KnownMonikers.StatusError;
@@ -405,8 +385,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
             {
-                var oldProject = e.OldSolution.GetProject(_documentId.ProjectId);
-                var newProject = e.NewSolution.GetProject(_documentId.ProjectId);
+                var oldProject = e.OldSolution.GetProject(_documentIdentity.DocumentId.ProjectId);
+                var newProject = e.NewSolution.GetProject(_documentIdentity.DocumentId.ProjectId);
 
                 if (oldProject != null && newProject != null)
                 {

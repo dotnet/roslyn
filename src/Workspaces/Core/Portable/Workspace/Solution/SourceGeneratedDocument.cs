@@ -19,5 +19,6 @@ namespace Microsoft.CodeAnalysis
         // TODO: make this public. Tracked by https://github.com/dotnet/roslyn/issues/50546
         internal ISourceGenerator SourceGenerator => State.SourceGenerator;
         public string HintName => State.HintName;
+        internal SourceGeneratedDocumentIdentity Identity => State.Identity;
     }
 }

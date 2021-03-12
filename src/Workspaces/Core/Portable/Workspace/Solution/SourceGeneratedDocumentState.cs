@@ -11,10 +11,9 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class SourceGeneratedDocumentState : DocumentState
     {
-        private readonly SourceGeneratedDocumentIdentity _identity;
-
-        public string HintName => _identity.HintName;
-        public ISourceGenerator SourceGenerator => _identity.Generator;
+        public SourceGeneratedDocumentIdentity Identity { get; }
+        public string HintName => Identity.HintName;
+        public ISourceGenerator SourceGenerator => Identity.Generator;
 
         public static SourceGeneratedDocumentState Create(
             SourceGeneratedDocumentIdentity documentIdentity,
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis
             ValueSource<TreeAndVersion> treeSource)
             : base(languageServices, solutionServices, documentServiceProvider, attributes, options, sourceText: null, textSource, treeSource)
         {
-            _identity = documentIdentity;
+            Identity = documentIdentity;
         }
 
         // The base allows for parse options to be null for non-C#/VB languages, but we'll always have parse options
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Create(
-                _identity,
+                Identity,
                 sourceText,
                 ParseOptions,
                 this.LanguageServices,
