@@ -84,6 +84,7 @@ try {
   " --exclude net472\Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.dll" +
   " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" +
+  " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll" +
   " --exclude net472\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.UnitTests.dll" +
   " --exclude net472\Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Features.dll" +
