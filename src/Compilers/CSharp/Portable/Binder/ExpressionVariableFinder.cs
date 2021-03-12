@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(node.Parent is ConstructorInitializerSyntax || node.Parent is PrimaryConstructorBaseTypeSyntax);
                     break;
                 case SyntaxKind.RecordDeclaration:
-                    // PROTOTYPE(record-structs): update for record structs
                     Debug.Assert(((RecordDeclarationSyntax)node).ParameterList is object);
                     break;
                 default:
@@ -396,7 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE(record-structs): update for record structs
         public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
         {
             Debug.Assert(node.ParameterList is object);

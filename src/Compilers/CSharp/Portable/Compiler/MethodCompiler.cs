@@ -1687,7 +1687,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock body;
 
-            if (method is SourceMemberMethodSymbol sourceMethod)
+            if (method is SynthesizedRecordConstructor recordStructPrimaryCtor && method.ContainingType.IsRecordStruct)
+            {
+                body = BoundBlock.SynthesizedNoLocals(recordStructPrimaryCtor.GetSyntax());
+            }
+            else if (method is SourceMemberMethodSymbol sourceMethod)
             {
                 CSharpSyntaxNode syntaxNode = sourceMethod.SyntaxNode;
 
@@ -1909,11 +1913,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor, BindingDiagnosticBag diagnostics, CSharpCompilation compilation)
         {
             // Note that the base type can be null if we're compiling System.Object in source.
-            NamedTypeSymbol baseType = constructor.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol containingType = constructor.ContainingType;
+            NamedTypeSymbol baseType = containingType.BaseTypeNoUseSiteDiagnostics;
 
             SourceMemberMethodSymbol sourceConstructor = constructor as SourceMemberMethodSymbol;
-            // PROTOTYPE(record-structs): update for record structs
-            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax || ((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
+            Debug.Assert(sourceConstructor?.SyntaxNode is RecordDeclarationSyntax or RecordStructDeclarationSyntax
+                || ((ConstructorDeclarationSyntax)sourceConstructor?.SyntaxNode)?.Initializer == null);
 
             // The common case is that the type inherits directly from object.
             // Also, we might be trying to generate a constructor for an entirely compiler-generated class such
@@ -1935,7 +1940,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (constructor is SynthesizedRecordCopyCtor copyCtor)
+            if (containingType.IsStructType() || containingType.IsEnumType())
+            {
+                return null;
+            }
+            else if (constructor is SynthesizedRecordCopyCtor copyCtor)
             {
                 return GenerateBaseCopyConstructorInitializer(copyCtor, diagnostics);
             }
@@ -1963,9 +1972,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
                 BinderFactory binderFactory = compilation.GetBinderFactory(containerNode.SyntaxTree);
 
-                if (containerNode is RecordDeclarationSyntax recordDecl)
+                if (containerNode is RecordDeclarationSyntax)
                 {
-                    outerBinder = binderFactory.GetInRecordBodyBinder(recordDecl);
+                    outerBinder = binderFactory.GetInRecordBodyBinder((TypeDeclarationSyntax)containerNode);
                 }
                 else
                 {

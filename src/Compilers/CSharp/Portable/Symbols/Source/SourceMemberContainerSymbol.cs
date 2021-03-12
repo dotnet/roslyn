@@ -1162,8 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE(record-structs): update for record structs
-                return (IsTupleType || IsRecord) ? GetMembers().Select(m => m.Name) : this.declaration.MemberNames;
+                return (IsTupleType || IsRecord || IsRecordStruct) ? GetMembers().Select(m => m.Name) : this.declaration.MemberNames;
             }
         }
 
@@ -1477,7 +1476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The purpose of this function is to assert that the <paramref name="member"/> symbol
         /// is actually among the symbols cached by this type symbol in a way that ensures
         /// that any consumer of standard APIs to get to type's members is going to get the same 
-        /// symbol (same instance) for the member rather than an equvalent, but different instance.
+        /// symbol (same instance) for the member rather than an equivalent, but different instance.
         /// </summary>
         [Conditional("DEBUG")]
         internal void AssertMemberExposure(Symbol member, bool forDiagnostics = false)
@@ -2492,7 +2491,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer>> StaticInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer>>.GetInstance();
             public readonly ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer>> InstanceInitializers = ArrayBuilder<ArrayBuilder<FieldOrPropertyInitializer>>.GetInstance();
             public bool HaveIndexers;
-            public RecordDeclarationSyntax? RecordDeclarationWithParameters;
+
+            private TypeDeclarationSyntax? _recordDeclarationWithParameters;
+            public TypeDeclarationSyntax? RecordDeclarationWithParameters
+            {
+                get { return _recordDeclarationWithParameters; }
+                set
+                {
+                    Debug.Assert(value is RecordDeclarationSyntax or RecordStructDeclarationSyntax);
+                    _recordDeclarationWithParameters = value;
+                }
+            }
+
             public SynthesizedRecordConstructor? RecordPrimaryConstructor;
             public bool IsNullableEnabledForInstanceConstructorsAndFields;
             public bool IsNullableEnabledForStaticConstructorsAndFields;
@@ -2557,8 +2567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers;
             public readonly ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers;
             public readonly bool HaveIndexers;
-            // PROTOTYPE(record-structs): update for record structs
-            public readonly RecordDeclarationSyntax? RecordDeclarationWithParameters;
+            public readonly TypeDeclarationSyntax? RecordDeclarationWithParameters;
             public readonly SynthesizedRecordConstructor? RecordPrimaryConstructor;
             public readonly bool IsNullableEnabledForInstanceConstructorsAndFields;
             public readonly bool IsNullableEnabledForStaticConstructorsAndFields;
@@ -2574,7 +2583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> staticInitializers,
                 ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> instanceInitializers,
                 bool haveIndexers,
-                RecordDeclarationSyntax? recordDeclarationWithParameters,
+                TypeDeclarationSyntax? recordDeclarationWithParameters,
                 SynthesizedRecordConstructor? recordPrimaryConstructor,
                 bool isNullableEnabledForInstanceConstructorsAndFields,
                 bool isNullableEnabledForStaticConstructorsAndFields,
@@ -2586,6 +2595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(!nonTypeMembers.Any(s => s is TypeSymbol));
                 Debug.Assert(recordDeclarationWithParameters is object == recordPrimaryConstructor is object);
+                Debug.Assert(recordDeclarationWithParameters is null or RecordDeclarationSyntax or RecordStructDeclarationSyntax);
 
                 this.NonTypeMembers = nonTypeMembers;
                 this.StaticInitializers = staticInitializers;
@@ -2948,16 +2958,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
                     case SyntaxKind.StructDeclaration:
-                    case SyntaxKind.RecordStructDeclaration:
-                        // PROTOTYPE(record-structs): update for record structs
                         var typeDecl = (TypeDeclarationSyntax)syntax;
                         AddNonTypeMembers(builder, typeDecl.Members, diagnostics);
                         break;
 
                     case SyntaxKind.RecordDeclaration:
                         var recordDecl = (RecordDeclarationSyntax)syntax;
-                        noteRecordParameters(recordDecl, builder, diagnostics);
+                        noteRecordParameters(recordDecl, recordDecl.ParameterList, builder, diagnostics);
                         AddNonTypeMembers(builder, recordDecl.Members, diagnostics);
+                        break;
+
+                    case SyntaxKind.RecordStructDeclaration:
+                        var recordStructDecl = (RecordStructDeclarationSyntax)syntax;
+                        var parameterList = recordStructDecl.ParameterList;
+                        noteRecordParameters(recordStructDecl, parameterList, builder, diagnostics);
+                        AddNonTypeMembers(builder, recordStructDecl.Members, diagnostics);
+
+                        // PROTOTYPE(record-structs): we will allow declaring parameterless constructors
+                        if (parameterList?.ParameterCount == 0)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, parameterList.Location);
+                        }
+
                         break;
 
                     default:
@@ -2965,9 +2987,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void noteRecordParameters(RecordDeclarationSyntax syntax, DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
+            void noteRecordParameters(TypeDeclarationSyntax syntax, ParameterListSyntax? parameterList, DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
             {
-                var parameterList = syntax.ParameterList;
                 if (parameterList is null)
                 {
                     return;
@@ -2980,8 +3001,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.RecordPrimaryConstructor = ctor;
 
                     var compilation = DeclaringCompilation;
-                    builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, syntax.ParameterList);
-                    if (syntax.PrimaryConstructorBaseType?.ArgumentList is { } baseParamList)
+                    builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, parameterList);
+                    if (syntax is RecordDeclarationSyntax { PrimaryConstructorBaseType: { ArgumentList: { } baseParamList } })
                     {
                         builder.UpdateIsNullableEnabledForConstructorsAndFields(ctor.IsStatic, compilation, baseParamList);
                     }
@@ -3414,6 +3435,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(TypeKind == TypeKind.Struct);
 
+            if (builder.RecordDeclarationWithParameters is not null)
+            {
+                Debug.Assert(builder.RecordDeclarationWithParameters is RecordStructDeclarationSyntax { ParameterList: not null });
+                return;
+            }
+
             foreach (var initializers in builder.InstanceInitializers)
             {
                 foreach (FieldOrPropertyInitializer initializer in initializers)
@@ -3426,12 +3453,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddSynthesizedRecordMembersIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers, BindingDiagnosticBag diagnostics)
         {
-            if (declaration.Kind != DeclarationKind.Record)
+            if (declaration.Kind is not (DeclarationKind.Record or DeclarationKind.RecordStruct))
             {
                 return;
             }
 
-            ParameterListSyntax? paramList = declaredMembersAndInitializers.RecordDeclarationWithParameters?.ParameterList;
+            ParameterListSyntax? paramList = declaredMembersAndInitializers.RecordDeclarationWithParameters switch
+            {
+                RecordDeclarationSyntax recordDecl => recordDecl.ParameterList,
+                RecordStructDeclarationSyntax recordStructDecl => recordStructDecl.ParameterList,
+                _ => null
+            };
 
             var memberSignatures = s_duplicateRecordMemberSignatureDictionary.Allocate();
             var membersSoFar = builder.GetNonTypeMembers(declaredMembersAndInitializers);
@@ -3460,37 +3492,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(declaredMembersAndInitializers.RecordDeclarationWithParameters is object);
 
+                // primary ctor
                 var ctor = declaredMembersAndInitializers.RecordPrimaryConstructor;
                 Debug.Assert(ctor is object);
                 members.Add(ctor);
 
                 if (ctor.ParameterCount != 0)
                 {
+                    // properties and Deconstruct
                     var existingOrAddedMembers = addProperties(ctor.Parameters);
                     addDeconstruct(ctor, existingOrAddedMembers);
                 }
 
-                primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
+                if (declaration.Kind == DeclarationKind.Record)
+                {
+                    primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
+                }
             }
 
-            addCopyCtor(primaryAndCopyCtorAmbiguity);
-            addCloneMethod();
-
-            PropertySymbol equalityContract = addEqualityContract();
-
-            var thisEquals = addThisEquals(equalityContract);
-            addOtherEquals();
-            addObjectEquals(thisEquals);
-            var getHashCode = addGetHashCode(equalityContract);
-            addEqualityOperators();
-
-            if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
+            // PROTOTYPE(record-structs): update for record structs
+            if (declaration.Kind == DeclarationKind.Record)
             {
-                diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
-            }
+                addCopyCtor(primaryAndCopyCtorAmbiguity);
+                addCloneMethod();
 
-            var printMembers = addPrintMembersMethod();
-            addToStringMethod(printMembers);
+                PropertySymbol equalityContract = addEqualityContract();
+
+                var thisEquals = addThisEquals(equalityContract);
+                addOtherEquals();
+                addObjectEquals(thisEquals);
+                var getHashCode = addGetHashCode(equalityContract);
+                addEqualityOperators();
+
+                if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
+                {
+                    diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
+                }
+
+                var printMembers = addPrintMembersMethod();
+                addToStringMethod(printMembers);
+            }
 
             memberSignatures.Free();
 
@@ -3938,7 +3979,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (method.MethodKind)
                     {
                         case MethodKind.Constructor:
-                            // PROTOTYPE(record-structs): update for record structs
                             // Ignore the record copy constructor
                             if (!IsRecord ||
                                 !(SynthesizedRecordCopyCtor.HasCopyConstructorSignature(method) && method is not SynthesizedRecordConstructor))

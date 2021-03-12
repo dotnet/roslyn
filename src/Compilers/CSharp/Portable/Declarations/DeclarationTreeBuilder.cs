@@ -405,10 +405,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
                                                     ref declFlags);
 
-            // PROTOTYPE(record-structs): update for record structs
             // A record with parameters at least has a primary constructor
             if (((declFlags & SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers) == 0) &&
-                node is RecordDeclarationSyntax { ParameterList: { } })
+                node is RecordDeclarationSyntax { ParameterList: { } } or RecordStructDeclarationSyntax { ParameterList: { } })
             {
                 declFlags |= SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers;
             }
@@ -631,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
                 case SyntaxKind.RecordDeclaration:
-                    // PROTOTYPE(record-structs): update for record structs
+                case SyntaxKind.RecordStructDeclaration:
                     return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
 
                 case SyntaxKind.DelegateDeclaration:
