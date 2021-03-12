@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             _underlyingSource.Changed -= OnEventSourceChanged;
             _underlyingSource.Disconnect();
+            _workQueue.CancelCurrentWork();
         }
 
         public event EventHandler UIUpdatesPaused

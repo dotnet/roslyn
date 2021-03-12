@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -343,7 +344,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisualBasic.VisualBasicParseOptions parseOptions = null,
             VisualBasic.VisualBasicCompilationOptions compilationOptions = null,
             IEnumerable<MetadataReference> referencedAssemblies = null,
-            IEnumerable<Compilation> referencedCompilations = null)
+            IEnumerable<Compilation> referencedCompilations = null,
+            Encoding encoding = null)
         {
             if (assemblyName == null)
             {
@@ -377,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             AddReferencedCompilations(referencedCompilations, references);
 
-            var tree = VisualBasic.VisualBasicSyntaxTree.ParseText(code, options: parseOptions);
+            var tree = VisualBasic.VisualBasicSyntaxTree.ParseText(code, options: parseOptions, encoding: encoding);
 
             return VisualBasic.VisualBasicCompilation.Create(assemblyName, new[] { tree }, references, compilationOptions);
         }
