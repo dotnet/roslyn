@@ -6,33 +6,21 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Differencing;
-using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
-    internal abstract class AbstractSyntaxComparer : TreeComparer<SyntaxNode>
+    internal abstract class AbstractSyntaxComparer : Microsoft.CodeAnalysis.Differencing.AbstractSyntaxComparer
     {
-        internal const int IgnoredNode = -1;
-
-        protected const double ExactMatchDist = 0.0;
-        protected const double EpsilonDist = 0.00001;
-
-        protected AbstractSyntaxComparer()
+        protected AbstractSyntaxComparer(
+            SyntaxNode? oldRoot,
+            SyntaxNode? newRoot,
+            IEnumerable<SyntaxNode>? oldRootChildren,
+            IEnumerable<SyntaxNode>? newRootChildren,
+            bool compareStatementSyntax = false)
+            : base(oldRoot, newRoot, oldRootChildren, newRootChildren, compareStatementSyntax)
         {
         }
 
-        protected internal sealed override bool TreesEqual(SyntaxNode oldNode, SyntaxNode newNode)
-            => oldNode.SyntaxTree == newNode.SyntaxTree;
-
-        protected internal sealed override TextSpan GetSpan(SyntaxNode node)
-            => node.Span;
-
         #region Comparison
-
-        /// <summary>
-        /// Calculates distance of two nodes based on their significant parts.
-        /// Returns false if the nodes don't have any significant parts and should be compared as a whole.
-        /// </summary>
-        protected abstract bool TryComputeWeightedDistance(SyntaxNode oldNode, SyntaxNode newNode, out double distance);
 
         public sealed override double GetDistance(SyntaxNode oldNode, SyntaxNode newNode)
         {

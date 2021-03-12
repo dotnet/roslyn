@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -15,28 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
     internal sealed class SyntaxComparer : AbstractSyntaxComparer
     {
-        internal static readonly SyntaxComparer TopLevel = new();
-        internal static readonly SyntaxComparer Statement = new(compareStatementSyntax: true);
-
-        private readonly SyntaxNode? _oldRoot;
-        private readonly SyntaxNode? _newRoot;
-        private readonly IEnumerable<SyntaxNode>? _oldRootChildren;
-        private readonly IEnumerable<SyntaxNode>? _newRootChildren;
-
-        // This comparer can operate in two modes: 
-        // * Top level syntax, which looks at member declarations, but doesn't look inside method bodies etc.
-        // * Statement syntax, which looks into member bodies and descends through all statements and expressions
-        // This flag is used where there needs to be a disctinction made between how these are treated
-        private readonly bool _compareStatementSyntax;
-
-        private SyntaxComparer()
-        {
-        }
-
-        public SyntaxComparer(bool compareStatementSyntax)
-        {
-            _compareStatementSyntax = compareStatementSyntax;
-        }
+        internal static readonly SyntaxComparer TopLevel = new(null, null, null, null, compareStatementSyntax: false);
+        internal static readonly SyntaxComparer Statement = new(null, null, null, null, compareStatementSyntax: true);
 
         /// <summary>
         /// Creates a syntax comparer
@@ -47,178 +25,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         /// <param name="newRootChildren">New child nodes to compare against</param>
         /// <param name="compareStatementSyntax">Whether this comparer is in "statement mode"</param>
         public SyntaxComparer(
-            SyntaxNode oldRoot,
-            SyntaxNode newRoot,
-            IEnumerable<SyntaxNode> oldRootChildren,
-            IEnumerable<SyntaxNode> newRootChildren,
+            SyntaxNode? oldRoot,
+            SyntaxNode? newRoot,
+            IEnumerable<SyntaxNode>? oldRootChildren,
+            IEnumerable<SyntaxNode>? newRootChildren,
             bool compareStatementSyntax = false)
+            : base(oldRoot, newRoot, oldRootChildren, newRootChildren, compareStatementSyntax)
         {
-            // Set this first in case there are asserts, so they evaluate the right thing
-            _compareStatementSyntax = compareStatementSyntax;
-
-            if (!_compareStatementSyntax)
-            {
-                // for top syntax, explicitly listed roots and all their children must be labeled:
-                Debug.Assert(HasLabel(oldRoot));
-                Debug.Assert(HasLabel(newRoot));
-                Debug.Assert(oldRootChildren.All(HasLabel));
-                Debug.Assert(newRootChildren.All(HasLabel));
-            }
-
-            _oldRoot = oldRoot;
-            _newRoot = newRoot;
-            _oldRootChildren = oldRootChildren;
-            _newRootChildren = newRootChildren;
-
-            if (!_compareStatementSyntax)
-            {
-                // For top syntax the virtual parent of root children must be the respective root:
-                Debug.Assert(!TryGetParent(oldRoot, out var _));
-                Debug.Assert(!TryGetParent(newRoot, out var _));
-                Debug.Assert(oldRootChildren.All(node => TryGetParent(node, out var parent) && parent == oldRoot));
-                Debug.Assert(newRootChildren.All(node => TryGetParent(node, out var parent) && parent == newRoot));
-            }
         }
 
-        #region Tree Traversal
-
-        protected internal override bool TryGetParent(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? parent)
-        {
-            if (node == _oldRoot || node == _newRoot)
-            {
-                parent = null;
-                return false;
-            }
-
-            parent = node.Parent;
-            while (parent != null && !HasLabel(parent))
-            {
-                parent = parent.Parent;
-            }
-
-            return parent != null;
-        }
-
-        protected internal override IEnumerable<SyntaxNode>? GetChildren(SyntaxNode node)
-        {
-            if (node == _oldRoot)
-            {
-                return _oldRootChildren;
-            }
-
-            if (node == _newRoot)
-            {
-                return _newRootChildren;
-            }
-
-            return HasChildren(node) ? EnumerateChildren(node) : null;
-        }
-
-        private IEnumerable<SyntaxNode> EnumerateChildren(SyntaxNode node)
-        {
-            foreach (var child in node.ChildNodes())
-            {
-                if (LambdaUtilities.IsLambdaBodyStatementOrExpression(child))
-                {
-                    continue;
-                }
-
-                if (HasLabel(child))
-                {
-                    yield return child;
-                }
-                else if (_compareStatementSyntax)
-                {
-                    foreach (var descendant in child.DescendantNodes(DescendIntoChildren))
-                    {
-                        if (HasLabel(descendant))
-                        {
-                            yield return descendant;
-                        }
-                    }
-                }
-            }
-        }
-        private bool DescendIntoChildren(SyntaxNode node)
-            => !LambdaUtilities.IsLambdaBodyStatementOrExpression(node) && !HasLabel(node);
-
-        protected internal sealed override IEnumerable<SyntaxNode> GetDescendants(SyntaxNode node)
-        {
-            var rootChildren = (node == _oldRoot) ? _oldRootChildren : (node == _newRoot) ? _newRootChildren : null;
-            return (rootChildren != null) ? EnumerateDescendants(rootChildren) : EnumerateDescendants(node);
-        }
-
-        private IEnumerable<SyntaxNode> EnumerateDescendants(IEnumerable<SyntaxNode> nodes)
-        {
-            foreach (var node in nodes)
-            {
-                if (HasLabel(node))
-                {
-                    yield return node;
-                }
-
-                foreach (var descendant in EnumerateDescendants(node))
-                {
-                    if (HasLabel(descendant))
-                    {
-                        yield return descendant;
-                    }
-                }
-            }
-        }
-
-        private IEnumerable<SyntaxNode> EnumerateDescendants(SyntaxNode node)
-        {
-            foreach (var descendant in node.DescendantNodesAndTokens(
-                descendIntoChildren: child => ShouldEnumerateChildren(child),
-                descendIntoTrivia: false))
-            {
-                var descendantNode = descendant.AsNode();
-                if (descendantNode != null && HasLabel(descendantNode))
-                {
-                    if (!LambdaUtilities.IsLambdaBodyStatementOrExpression(descendantNode))
-                    {
-                        yield return descendantNode;
-                    }
-                }
-            }
-
-            bool ShouldEnumerateChildren(SyntaxNode child)
-            {
-                // if we don't want to consider this nodes children, then don't
-                if (!HasChildren(child))
-                {
-                    return false;
-                }
-
-                // Always descend into the children of the node we were asked about
-                if (child == node)
-                {
-                    return true;
-                }
-
-                // otherwise, as long as we don't descend into lambdas
-                return !LambdaUtilities.IsLambdaBodyStatementOrExpression(child);
-            }
-        }
-
-        private bool HasChildren(SyntaxNode node)
-        {
-            // Leaves are labeled statements that don't have a labeled child.
-            // We also return true for non-labeled statements.
-            var label = Classify(node.Kind(), node, out var isLeaf);
-
-            // ignored should always be reported as leaves for top syntax, but for statements
-            // we want to look at all child nodes, because almost anything could have a lambda
-            if (!_compareStatementSyntax)
-            {
-                Debug.Assert(label != Label.Ignored || isLeaf);
-            }
-
-            return !isLeaf;
-        }
-
-        #endregion
+        protected override bool IsLambdaBodyStatementOrExpression(SyntaxNode node)
+            => LambdaUtilities.IsLambdaBodyStatementOrExpression(node);
 
         #region Labels
 
@@ -402,6 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return 0;
             }
         }
+
+        internal override int Classify(int kind, SyntaxNode? node, out bool isLeaf)
+            => (int)Classify((SyntaxKind)kind, node, out isLeaf);
 
         internal Label Classify(SyntaxKind kind, SyntaxNode? node, out bool isLeaf)
         {
@@ -810,15 +630,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return Label.Ignored;
         }
 
-        protected internal override int GetLabel(SyntaxNode node)
-            => (int)Classify(node.Kind(), node, out _);
-
         // internal for testing
         internal bool HasLabel(SyntaxKind kind)
             => Classify(kind, node: null, out _) != Label.Ignored;
-
-        internal bool HasLabel(SyntaxNode node)
-            => Classify(node.Kind(), node, out _) != Label.Ignored;
 
         protected internal override int LabelCount
             => (int)Label.Count;
