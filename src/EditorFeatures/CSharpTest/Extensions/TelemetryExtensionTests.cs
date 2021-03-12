@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Extensions
         [Fact]
         public void TestConstantTelemetryId()
         {
-            var expected = Guid.Parse("c4c59141-0000-0000-0000-000000000000");
+            var expected = Guid.Parse("00000000-0000-0000-c4c5-914100000000");
             var actual = typeof(TelemetryExtensionTests).GetTelemetryId();
             var actualBytes = actual.ToByteArray();
 

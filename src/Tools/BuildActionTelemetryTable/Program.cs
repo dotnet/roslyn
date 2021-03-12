@@ -90,7 +90,7 @@ namespace BuildActionTelemetryTable
 
                 // Generate dev17 telemetry hash
                 var telemetryId = type.GetTelemetryId().ToString();
-                var fnvHash = telemetryId.Substring(0, 8);
+                var fnvHash = telemetryId.Substring(19);
 
                 return Tuple.Create(type.FullName, stringHash, fnvHash);
             }

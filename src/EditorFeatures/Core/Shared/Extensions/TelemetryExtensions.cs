@@ -21,9 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             // Use a stable hashing algorithm (FNV) that doesn't depend on platform
             // or .NET implementation.
-            var prefix = Roslyn.Utilities.Hash.GetFNVHashCode(type.FullName);
+            var suffix = Roslyn.Utilities.Hash.GetFNVHashCode(type.FullName);
 
-            return new Guid(prefix, scope, 0, new byte[8]);
+            // Suffix is the remaining 8 bytes, and the hash code only makes up 4. Pad
+            // the remainder with an empty byte array
+            var suffixBytes = BitConverter.GetBytes(suffix).Concat(new byte[4]).ToArray();
+
+            return new Guid(0, scope, 0, suffixBytes);
         }
 
         public static Type GetTypeForTelemetry(this Type type)
