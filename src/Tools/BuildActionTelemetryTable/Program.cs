@@ -95,7 +95,7 @@ namespace BuildActionTelemetryTable
                 return Tuple.Create(type.FullName, stringHash, fnvHash);
             }
 
-            static Type GetTypeForTelemetry(this Type type)
+            static Type GetTypeForTelemetry(Type type)
             {
                 return type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
             }
