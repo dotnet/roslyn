@@ -2639,7 +2639,7 @@ class D { }
             {
                 var tempTree = SyntaxFactory.ParseSyntaxTree(text);
                 var tempRoot = tempTree.GetRoot();
-                var tempToken = tempRoot.DescendantTokens().First(t => t.Kind() == SyntaxKind.IdentifierToken);
+                var tempToken = tempRoot.DescendantTokens().First(t => t.IsKind(SyntaxKind.IdentifierToken));
                 var oldRoot = tempRoot.ReplaceToken(tempToken, tempToken.WithAdditionalAnnotations(new SyntaxAnnotation()));
                 Assert.True(oldRoot.ContainsAnnotations, "Should contain annotations.");
                 Assert.Equal(text, oldRoot.ToFullString());

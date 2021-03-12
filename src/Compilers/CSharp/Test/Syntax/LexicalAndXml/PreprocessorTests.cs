@@ -270,11 +270,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             }
 
                             Assert.Equal(exp.Text, actualText);
-                            Assert.True(target.Kind() == SyntaxKind.WarningsKeyword || target.Kind() == SyntaxKind.AnnotationsKeyword ||
-                                        target.Kind() == SyntaxKind.None);
+                            Assert.True(target.IsKind(SyntaxKind.WarningsKeyword) || target.IsKind(SyntaxKind.AnnotationsKeyword) ||
+                                        target.IsKind(SyntaxKind.None));
 
-                            Assert.True(setting.Kind() == SyntaxKind.EnableKeyword || setting.Kind() == SyntaxKind.DisableKeyword ||
-                                        setting.Kind() == SyntaxKind.RestoreKeyword);
+                            Assert.True(setting.IsKind(SyntaxKind.EnableKeyword) || setting.IsKind(SyntaxKind.DisableKeyword) ||
+                                        setting.IsKind(SyntaxKind.RestoreKeyword));
                         }
                         Assert.Equal(SyntaxKind.NullableKeyword, nn.DirectiveNameToken.Kind());
                         Assert.True(SyntaxFacts.IsPreprocessorDirective(SyntaxKind.NullableDirectiveTrivia));

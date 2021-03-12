@@ -1125,7 +1125,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(11, 13));
 
             var m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
-                .Where(n => n.Kind() == SyntaxKind.MethodDeclaration)
+                .Where(n => n.IsKind(SyntaxKind.MethodDeclaration))
                 .Single());
             Assert.All(m.Body.Statements,
                 s => Assert.Equal(SyntaxKind.LocalFunctionStatement, s.Kind()));
@@ -1185,7 +1185,7 @@ class c
     }
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             Assert.NotNull(file);
-            Assert.False(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
+            Assert.False(file.DescendantNodes().Any(n => n.IsKind(SyntaxKind.LocalFunctionStatement) && !n.ContainsDiagnostics));
             Assert.True(file.HasErrors);
             file.SyntaxTree.GetDiagnostics().Verify(
                 // (6,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
