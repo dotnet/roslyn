@@ -3359,7 +3359,7 @@ internal ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#=
             var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ForEachStatement).OfType<ForEachStatementSyntax>().Single();
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.ForEachStatement)).OfType<ForEachStatementSyntax>().Single();
             var model = compilation.GetSemanticModel(tree);
 
             Assert.Null(model.GetDeclaredSymbol(node));

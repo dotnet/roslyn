@@ -9649,7 +9649,7 @@ class Program
                 var kind = (op == "++") ?
                     isPrefix ? SyntaxKind.PreIncrementExpression : SyntaxKind.PostIncrementExpression :
                     isPrefix ? SyntaxKind.PreDecrementExpression : SyntaxKind.PostDecrementExpression;
-                var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == kind);
+                var expr = tree.GetRoot().DescendantNodes().Single(n => n.IsKind(kind));
                 var symbolInfo = model.GetSymbolInfo(expr);
                 Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
@@ -9874,7 +9874,7 @@ class Program
                 var tree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(tree);
                 var kind = (op == "++") ? SyntaxKind.PreIncrementExpression : SyntaxKind.PreDecrementExpression;
-                var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == kind);
+                var expr = tree.GetRoot().DescendantNodes().Single(n => n.IsKind(kind));
                 var symbolInfo = model.GetSymbolInfo(expr);
                 Assert.Equal(expectedSymbol, symbolInfo.Symbol?.ToDisplayString(SymbolDisplayFormat.TestFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)));
 
