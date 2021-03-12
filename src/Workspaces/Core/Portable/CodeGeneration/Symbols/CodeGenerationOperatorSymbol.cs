@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             CodeGenerationOperatorKind operatorKind,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<AttributeData> returnTypeAttributes,
-            string documentationCommentId)
+            string documentationCommentXml)
             : base(containingType,
                  attributes,
                  accessibility,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                  typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
                  parameters,
                  returnTypeAttributes,
-                 documentationCommentId)
+                 documentationCommentXml)
         {
         }
 

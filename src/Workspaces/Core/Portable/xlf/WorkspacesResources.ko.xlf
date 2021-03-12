@@ -67,6 +67,11 @@
         <target state="translated">소스 파일 '{0}'의 콘텐츠를 읽는 동안 오류가 발생했습니다. -- '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Explicit_conversion_of_0_to_1">
+        <source>Explicit conversion of {0} to {1}.</source>
+        <target state="new">Explicit conversion of {0} to {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indentation_and_spacing">
         <source>Indentation and spacing</source>
         <target state="translated">들여쓰기 및 간격</target>

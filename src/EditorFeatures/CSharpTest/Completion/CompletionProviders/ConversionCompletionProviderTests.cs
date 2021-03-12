@@ -24,11 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
         private static string FormatExplicitConversionDescription(string fromType, string toType)
         {
-            var template = CSharpFeaturesResources.@Explicit_conversion_of_0_to_1;
-            template = template
-                .Replace(@"<see cref=""T:{0}""/>", fromType)
-                .Replace(@"<see cref=""T:{1}""/>", toType);
-            return template;
+            return string.Format(
+                WorkspacesResources.@Explicit_conversion_of_0_to_1,
+                SeeTag(fromType),
+                SeeTag(toType));
+
+            static string SeeTag(string id)
+            {
+                return $@"<see cref=""T:{id}""/>";
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1269,7 +1273,7 @@ public class Program
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
 $@"E.explicit operator int(E value)
-{FormatExplicitConversionDescription("E", "int")}");
+{FormatExplicitConversionDescription("E", "System.Int32")}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1292,7 +1296,7 @@ public class Program
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
 $@"E.explicit operator int(E value)
-{(FormatExplicitConversionDescription(fromType: "E", toType: "int"))}");
+{FormatExplicitConversionDescription(fromType: "E", toType: "System.Int32")}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1321,7 +1325,7 @@ namespace A.C
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
 @$"B.E.explicit operator int(B.E value)
-{FormatExplicitConversionDescription("B.E", "int")}");
+{FormatExplicitConversionDescription("B.E", "System.Int32")}");
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]

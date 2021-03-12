@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             return false;
         }
 
-        private static IMethodSymbol LiftOperator(Compilation compilation, IMethodSymbol symbol)
+        private IMethodSymbol LiftOperator(Compilation compilation, IMethodSymbol symbol)
         {
             var nullableType = compilation.GetSpecialType(SpecialType.System_Nullable_T);
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 symbol.Parameters.SelectAsArray(
                     p => CodeGenerationSymbolFactory.CreateParameterSymbol(p, type: nullableType.Construct(p.Type))),
                 returnTypeAttributes: symbol.GetReturnTypeAttributes(),
-                documentationCommentId: symbol.GetDocumentationCommentId());
+                documentationCommentXml: symbol.GetDocumentationCommentXml(cancellationToken: _cancellationToken));
         }
 
         private static CodeGenerationOperatorKind GetOperatorKind(string name)

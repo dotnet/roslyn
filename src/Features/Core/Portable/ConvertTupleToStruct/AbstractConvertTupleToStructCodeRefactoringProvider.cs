@@ -831,7 +831,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 tupleType,
                 CodeGenerationSymbolFactory.CreateParameterSymbol(structType, ValueName),
                 isImplicit: true,
-                ImmutableArray.Create(convertToTupleStatement)));
+                statements: ImmutableArray.Create(convertToTupleStatement)));
             members.Add(CodeGenerationSymbolFactory.CreateConversionSymbol(
                 attributes: default,
                 Accessibility.Public,
@@ -839,7 +839,7 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 structType,
                 CodeGenerationSymbolFactory.CreateParameterSymbol(tupleType, ValueName),
                 isImplicit: true,
-                ImmutableArray.Create(convertToStructStatement)));
+                statements: ImmutableArray.Create(convertToStructStatement)));
         }
 
         private static INamedTypeSymbol CreateNamedType(

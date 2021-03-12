@@ -132,11 +132,6 @@
         <target state="translated">Nullable로 선언</target>
         <note />
       </trans-unit>
-      <trans-unit id="Explicit_conversion_of_0_to_1">
-        <source>Explicit conversion of {0} to {1}.</source>
-        <target state="new">Explicit conversion of {0} to {1}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
         <target state="translated">반환 형식 수정</target>

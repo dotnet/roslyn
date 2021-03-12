@@ -9,9 +9,11 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -27,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private void AddConversion(CompletionContext context, SemanticModel semanticModel, int position, IMethodSymbol conversion)
         {
+            var symbols = GetConversionSymbols(conversion);
+
             var targetTypeName = conversion.ReturnType.ToMinimalDisplayString(semanticModel, position);
             var targetTypeIsNullable = false;
             var optionalNullableQuestionmark = targetTypeIsNullable ? "?" : "";
@@ -37,12 +41,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 filterText: targetTypeName,
                 sortText: SortText(ConversionSortingGroupIndex, targetTypeName),
                 glyph: Glyph.Operator,
-                symbols: ImmutableArray.Create(conversion),
+                symbols: symbols,
                 rules: CompletionItemRules.Default,
                 contextPosition: position,
-                properties: ConversionProperties.Add(MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}"));
+                properties: ConversionProperties
+                    .Add(MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")
+                    .Add(DocumentationCommentXmlName, conversion.GetDocumentationCommentXml(cancellationToken: context.CancellationToken) ?? ""));
 
             context.AddItem(item);
+        }
+
+        private static ImmutableArray<ISymbol> GetConversionSymbols(IMethodSymbol conversion)
+        {
+            // If it's a non-synthesized method, then we can just encode it as is.
+            if (conversion is not CodeGenerationSymbol)
+                return ImmutableArray.Create<ISymbol>(conversion);
+
+            // Otherwise, keep track of the to/from types and we'll rehydrate this when needed.
+            return ImmutableArray.Create<ISymbol>(conversion.ContainingType, conversion.Parameters.First().Type, conversion.ReturnType);
         }
 
         private async Task<CompletionChange> GetConversionChangeAsync(
@@ -97,9 +113,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             //return CompletionChange.Create(new TextChange(spanToReplace, conversion), newPosition);
         }
 
-        private Task<CompletionDescription> GetConversionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        private async Task<CompletionDescription?> GetConversionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+            var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+
+            ISymbol symbol;
+            if (symbols.Length == 1)
+            {
+                // We successfully found the original conversion method.
+                symbol = symbols[1];
+            }
+            else if (symbols.Length == 3 &&
+                symbols[0] is INamedTypeSymbol containingType &&
+                symbols[1] is ITypeSymbol fromType &&
+                symbols[2] is ITypeSymbol toType)
+            {
+                // Otherwise, this was synthesized.  So rehydrate the synthesized symbol.
+                symbol = CodeGenerationSymbolFactory.CreateConversionSymbol(
+                    attributes: default,
+                    accessibility: Accessibility.Public,
+                    modifiers: DeclarationModifiers.Static,
+                    toType: toType,
+                    fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
+                    containingType: containingType,
+                    documentationCommentXml: item.Properties[DocumentationCommentXmlName]);
+            }
+            else
+            {
+                return null;
+            }
+
+            return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(
+                item, document, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
         }
         //    var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
         //    return symbols.Length == 2 && symbols[0] is INamedTypeSymbol from && symbols[1] is INamedTypeSymbol to

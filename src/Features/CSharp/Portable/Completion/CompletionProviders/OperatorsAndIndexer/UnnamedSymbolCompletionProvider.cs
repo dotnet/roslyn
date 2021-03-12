@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal const string ConversionKindName = "Conversion";
 
         private const string MinimalTypeNamePropertyName = "MinimalTypeName";
+        private const string DocumentationCommentXmlName = "DocumentationCommentXml";
 
         [ImportingConstructor]
         [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

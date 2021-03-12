@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers modifiers,
             string name,
             ImmutableArray<AttributeData> returnTypeAttributes,
-            string documentationCommentId = null)
-            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentId)
+            string documentationCommentXml = null)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml)
         {
             _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
         }

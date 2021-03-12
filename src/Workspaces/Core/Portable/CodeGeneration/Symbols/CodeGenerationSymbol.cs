@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected static ConditionalWeakTable<CodeGenerationSymbol, SyntaxAnnotation[]> annotationsTable = new();
 
         private ImmutableArray<AttributeData> _attributes;
-        private readonly string _documentationCommentId;
+        protected readonly string _documentationCommentXml;
 
         public Accessibility DeclaredAccessibility { get; }
         protected internal DeclarationModifiers Modifiers { get; }
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
-            string documentationCommentId = null)
+            string documentationCommentXml = null)
         {
             this.ContainingAssembly = containingAssembly;
             this.ContainingType = containingType;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.DeclaredAccessibility = declaredAccessibility;
             this.Modifiers = modifiers;
             this.Name = name;
-            _documentationCommentId = documentationCommentId;
+            _documentationCommentXml = documentationCommentXml;
         }
 
         protected abstract CodeGenerationSymbol Clone();
@@ -178,14 +178,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract TResult Accept<TResult>(SymbolVisitor<TResult> visitor);
 
         public string GetDocumentationCommentId()
-            => _documentationCommentId;
+            => null;
 
         public string GetDocumentationCommentXml(
             CultureInfo preferredCulture,
             bool expandIncludes,
             CancellationToken cancellationToken)
         {
-            return "";
+            return _documentationCommentXml ?? "";
         }
 
         public string ToDisplayString(SymbolDisplayFormat format = null)

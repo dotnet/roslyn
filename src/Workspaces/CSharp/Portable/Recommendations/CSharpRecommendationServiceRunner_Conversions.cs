@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             return method.ReturnType.IsNullable() && method.Parameters.Length == 1 && method.Parameters[0].Type.IsNullable();
         }
 
-        private static IMethodSymbol LiftConversion(Compilation compilation, IMethodSymbol method)
+        private IMethodSymbol LiftConversion(Compilation compilation, IMethodSymbol method)
         {
             var nullableType = compilation.GetSpecialType(SpecialType.System_Nullable_T);
 
@@ -206,12 +206,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 DeclarationModifiers.From(method),
                 nullableType.Construct(method.ReturnType),
                 CodeGenerationSymbolFactory.CreateParameterSymbol(parameter, type: nullableType.Construct(parameter.Type)),
+                containingType: method.ContainingType,
                 isImplicit: method.Name == WellKnownMemberNames.ImplicitConversionName,
-                documentationCommentId: method.GetDocumentationCommentId());
+                documentationCommentXml: method.GetDocumentationCommentXml(cancellationToken: _cancellationToken));
         }
 
         private void AddBuiltInNumericConversions(
-            ITypeSymbol container, ITypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
+            ITypeSymbol container, INamedTypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
         {
             if (containerWithoutNullable.SpecialType == SpecialType.System_Decimal)
             {
@@ -247,14 +248,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             };
 
         private void AddCompletionItemsForSpecialTypes(
-            ITypeSymbol container, ITypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols, ImmutableArray<SpecialType> specialTypes)
+            ITypeSymbol container, INamedTypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols, ImmutableArray<SpecialType> specialTypes)
         {
             var compilation = _context.SemanticModel.Compilation;
 
             foreach (var specialType in specialTypes)
             {
                 var targetTypeSymbol = _context.SemanticModel.Compilation.GetSpecialType(specialType);
-                var conversion = CreateConversion(fromType: containerWithoutNullable, toType: targetTypeSymbol);
+                var conversion = CreateConversion(containerWithoutNullable, fromType: containerWithoutNullable, toType: targetTypeSymbol);
                 symbols.Add(conversion);
 
                 var containerIsNullable = container.IsNullable();
@@ -267,18 +268,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
         }
 
-        private static IMethodSymbol CreateConversion(ITypeSymbol fromType, ITypeSymbol toType)
+        private static IMethodSymbol CreateConversion(
+            INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType)
         {
+            var docCommentXml = string.Format(WorkspacesResources.Explicit_conversion_of_0_to_1,
+                SeeTag(fromType.GetDocumentationCommentId()),
+                SeeTag(toType.GetDocumentationCommentId()));
+
             return CodeGenerationSymbolFactory.CreateConversionSymbol(
                 attributes: default,
                 accessibility: Accessibility.Public,
                 modifiers: DeclarationModifiers.Static,
                 toType: toType,
-                fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"));
+                fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
+                containingType: containingType,
+                documentationCommentXml:
+                $"<summary>{docCommentXml}</summary>");
+
+            static string SeeTag(string? id)
+            {
+                return $@"<see cref=""T:{id}""/>";
+            }
         }
 
         private void AddBuiltInEnumConversions(
-            ITypeSymbol container, ITypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
+            ITypeSymbol container, INamedTypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
         {
             // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
             // Three kinds of conversions are defined in the spec.
