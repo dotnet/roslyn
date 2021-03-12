@@ -70,36 +70,6 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
-    internal class AdditionalFileAddedGenerator : ISourceGenerator
-    {
-        public bool CanApplyChanges { get; set; } = true;
-
-        public void Execute(GeneratorExecutionContext context)
-        {
-            foreach (var file in context.AdditionalFiles)
-            {
-                context.AddSource(GetGeneratedFileName(file.Path), SourceText.From("", Encoding.UTF8));
-            }
-        }
-
-        public void Initialize(GeneratorInitializationContext context)
-        {
-            context.RegisterForAdditionalFileChanges(UpdateContext);
-        }
-
-        bool UpdateContext(GeneratorEditContext context, AdditionalFileEdit edit)
-        {
-            if (edit is AdditionalFileAddedEdit add && CanApplyChanges)
-            {
-                context.AdditionalSources.Add(GetGeneratedFileName(add.AddedText.Path), SourceText.From("", Encoding.UTF8));
-                return true;
-            }
-            return false;
-        }
-
-        private string GetGeneratedFileName(string path) => $"{Path.GetFileNameWithoutExtension(path.Replace('\\', Path.DirectorySeparatorChar))}.generated";
-    }
-
     internal class InMemoryAdditionalText : AdditionalText
     {
         private readonly SourceText _content;

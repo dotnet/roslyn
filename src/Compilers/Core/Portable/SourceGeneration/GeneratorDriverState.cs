@@ -16,17 +16,13 @@ namespace Microsoft.CodeAnalysis
                                       AnalyzerConfigOptionsProvider optionsProvider,
                                       ImmutableArray<ISourceGenerator> generators,
                                       ImmutableArray<AdditionalText> additionalTexts,
-                                      ImmutableArray<GeneratorState> generatorStates,
-                                      ImmutableArray<PendingEdit> edits,
-                                      bool editsFailed)
+                                      ImmutableArray<GeneratorState> generatorStates)
         {
             Generators = generators;
             GeneratorStates = generatorStates;
             AdditionalTexts = additionalTexts;
-            Edits = edits;
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
-            EditsFailed = editsFailed;
 
             Debug.Assert(Generators.Length == GeneratorStates.Length);
         }
@@ -60,16 +56,6 @@ namespace Microsoft.CodeAnalysis
         internal readonly AnalyzerConfigOptionsProvider OptionsProvider;
 
         /// <summary>
-        /// An ordered list of <see cref="PendingEdit"/>s that are waiting to be applied to the compilation.
-        /// </summary>
-        internal readonly ImmutableArray<PendingEdit> Edits;
-
-        /// <summary>
-        /// Tracks if previous edits have failed to apply. A generator driver will not try and apply any edits when this flag is set.
-        /// </summary>
-        internal readonly bool EditsFailed;
-
-        /// <summary>
         /// ParseOptions to use when parsing generator provided source.
         /// </summary>
         internal readonly ParseOptions ParseOptions;
@@ -78,7 +64,6 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator>? generators = null,
             ImmutableArray<GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
-            ImmutableArray<PendingEdit>? edits = null,
             bool? editsFailed = null)
         {
             return new GeneratorDriverState(
@@ -86,9 +71,7 @@ namespace Microsoft.CodeAnalysis
                 this.OptionsProvider,
                 generators ?? this.Generators,
                 additionalTexts ?? this.AdditionalTexts,
-                generatorStates ?? this.GeneratorStates,
-                edits ?? this.Edits,
-                editsFailed ?? this.EditsFailed
+                generatorStates ?? this.GeneratorStates
                 );
         }
     }

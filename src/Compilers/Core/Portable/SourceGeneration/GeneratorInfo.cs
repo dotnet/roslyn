@@ -8,17 +8,14 @@ namespace Microsoft.CodeAnalysis
 {
     internal readonly struct GeneratorInfo
     {
-        internal EditCallback<AdditionalFileEdit>? EditCallback { get; }
-
         internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; }
 
         internal Action<GeneratorPostInitializationContext>? PostInitCallback { get; }
 
         internal bool Initialized { get; }
 
-        internal GeneratorInfo(EditCallback<AdditionalFileEdit>? editCallback, SyntaxContextReceiverCreator? receiverCreator, Action<GeneratorPostInitializationContext>? postInitCallback)
+        internal GeneratorInfo(SyntaxContextReceiverCreator? receiverCreator, Action<GeneratorPostInitializationContext>? postInitCallback)
         {
-            EditCallback = editCallback;
             SyntaxContextReceiverCreator = receiverCreator;
             PostInitCallback = postInitCallback;
             Initialized = true;
@@ -26,13 +23,11 @@ namespace Microsoft.CodeAnalysis
 
         internal class Builder
         {
-            internal EditCallback<AdditionalFileEdit>? EditCallback { get; set; }
-
             internal SyntaxContextReceiverCreator? SyntaxContextReceiverCreator { get; set; }
 
             internal Action<GeneratorPostInitializationContext>? PostInitCallback { get; set; }
 
-            public GeneratorInfo ToImmutable() => new GeneratorInfo(EditCallback, SyntaxContextReceiverCreator, PostInitCallback);
+            public GeneratorInfo ToImmutable() => new GeneratorInfo(SyntaxContextReceiverCreator, PostInitCallback);
         }
     }
 }
