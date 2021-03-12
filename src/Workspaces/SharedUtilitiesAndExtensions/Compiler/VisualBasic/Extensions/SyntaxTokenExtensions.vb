@@ -16,8 +16,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsKind(token As SyntaxToken, ParamArray kinds As SyntaxKind()) As Boolean
+        Public Function IsKind(token As SyntaxToken, kinds As SyntaxKind()) As Boolean
             Return kinds.Contains(token.Kind)
+        End Function
+
+        <Extension()>
+        Public Function IsKind(token As SyntaxToken, kind1 As SyntaxKind, kind2 As SyntaxKind, ParamArray kinds As SyntaxKind()) As Boolean
+            Return token.IsKind(kind1, kind2) OrElse token.IsKind(kinds)
         End Function
 
         <Extension()>
