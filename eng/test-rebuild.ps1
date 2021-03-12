@@ -116,7 +116,6 @@ try {
   " --exclude netcoreapp3.1\VBSyntaxGenerator.dll" +
 
   # Compilation Errors
-  " --exclude net5.0\IOperationGenerator.dll" +
   " --exclude net472\Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.Scripting.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.CSharp.Scripting.dll" +

@@ -136,12 +136,11 @@ namespace BuildValidator
             ? OutputKind.ConsoleApplication
             : OutputKind.DynamicallyLinkedLibrary;
 
-        public string? GetMainTypeName() => GetMainMethodInfo() is { } tuple
-            ? tuple.MainTypeName
-            : null;
-
-        public string? GetMainMethodName() => GetMainMethodInfo() is { } tuple
-            ? tuple.MainMethodName
+        // Here we only want to give the caller the main type name if the main method is named "Main" per convention.
+        // If the main method has another name, we have to assume that specifying a main type name won't work.
+        // For example, if the compilation uses top-level statements.
+        public string? GetMainTypeName() => GetMainMethodInfo() is (string typeName, WellKnownMemberNames.EntryPointMethodName)
+            ? typeName
             : null;
 
         private (string MainTypeName, string MainMethodName)? GetMainMethodInfo()

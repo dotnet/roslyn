@@ -298,8 +298,6 @@ namespace BuildValidator
                     .Select(pair => EmbeddedText.FromSource(pair.path, pair.text))
                     .ToImmutableArray();
 
-            var debugEntryPoint = getDebugEntryPoint();
-
             var emitResult = producedCompilation.Emit(
                 peStream: rebuildPeStream,
                 pdbStream: null,
@@ -311,7 +309,7 @@ namespace BuildValidator
                     debugInformationFormat: DebugInformationFormat.Embedded,
                     highEntropyVirtualAddressSpace: (peHeader.DllCharacteristics & DllCharacteristics.HighEntropyVirtualAddressSpace) != 0,
                     subsystemVersion: SubsystemVersion.Create(peHeader.MajorSubsystemVersion, peHeader.MinorSubsystemVersion)),
-                debugEntryPoint: debugEntryPoint,
+                debugEntryPoint: producedCompilation.GetEntryPoint(cancellationToken),
                 metadataPEStream: null,
                 pdbOptionsBlobReader: optionsReader.GetMetadataCompilationOptionsBlobReader(),
                 sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null,
@@ -319,24 +317,6 @@ namespace BuildValidator
                 cancellationToken: cancellationToken);
 
             return emitResult;
-
-            IMethodSymbol? getDebugEntryPoint()
-            {
-                if (optionsReader.GetMainTypeName() is { } mainTypeName &&
-                    optionsReader.GetMainMethodName() is { } mainMethodName)
-                {
-                    var typeSymbol = producedCompilation.GetTypeByMetadataName(mainTypeName);
-                    if (typeSymbol is object)
-                    {
-                        var methodSymbols = typeSymbol
-                            .GetMembers(mainMethodName)
-                            .OfType<IMethodSymbol>();
-                        return methodSymbols.FirstOrDefault();
-                    }
-                }
-
-                return null;
-            }
         }
     }
 }
