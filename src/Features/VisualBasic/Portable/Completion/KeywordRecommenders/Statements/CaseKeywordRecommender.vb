@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             Dim targetToken = context.TargetToken
 
             ' Are we after "Select" for "Select Case"?
-            If targetToken.Kind = SyntaxKind.SelectKeyword AndAlso
+            If targetToken.IsKind(SyntaxKind.SelectKeyword) AndAlso
                Not targetToken.Parent.IsKind(SyntaxKind.SelectClause) AndAlso
                Not context.FollowsEndOfStatement Then
 

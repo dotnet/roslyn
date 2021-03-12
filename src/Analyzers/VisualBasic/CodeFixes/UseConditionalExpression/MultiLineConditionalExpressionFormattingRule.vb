@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         End Sub
 
         Private Shared Function IsCommaOfNewConditional(token As SyntaxToken) As Boolean
-            If token.Kind() = SyntaxKind.CommaToken Then
+            If token.IsKind(SyntaxKind.CommaToken) Then
                 Return token.Parent.HasAnnotation(
                         UseConditionalExpressionCodeFixHelpers.SpecializedFormattingAnnotation)
             End If

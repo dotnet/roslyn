@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
         End Function
 
         Private Shared Function TokenHasTrailingLineContinuationChar(token As SyntaxToken) As Boolean
-            Return token.TrailingTrivia.Any(Function(t) t.Kind = SyntaxKind.LineContinuationTrivia)
+            Return token.TrailingTrivia.Any(Function(t) t.IsKind(SyntaxKind.LineContinuationTrivia))
         End Function
 
         Protected Overrides ReadOnly Property DefaultFileExtension() As String
@@ -120,15 +120,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
         Protected Overrides Function IsAttributeListWithAssemblyAttributes(node As SyntaxNode) As Boolean
             Dim attributesStatement = TryCast(node, AttributesStatementSyntax)
             Return attributesStatement IsNot Nothing AndAlso
-                attributesStatement.AttributeLists.All(Function(attributeList) attributeList.Attributes.All(Function(a) a.Target.AttributeModifier.Kind() = SyntaxKind.AssemblyKeyword))
+                attributesStatement.AttributeLists.All(Function(attributeList) attributeList.Attributes.All(Function(a) a.Target.AttributeModifier.IsKind(SyntaxKind.AssemblyKeyword)))
         End Function
 
         Protected Overrides Function IsEndOfLine(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.EndOfLineTrivia
+            Return trivia.IsKind(SyntaxKind.EndOfLineTrivia)
         End Function
 
         Protected Overrides Function IsEndOfFileToken(token As SyntaxToken) As Boolean
-            Return token.Kind = SyntaxKind.EndOfFileToken
+            Return token.IsKind(SyntaxKind.EndOfFileToken)
         End Function
 
         Protected Overrides Function AddGlobalSuppressMessageAttribute(

@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Private Overloads Function GetSymbolsAsync(
                 context As VisualBasicSyntaxContext, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of ISymbol))
-            If context.TargetToken.Kind = SyntaxKind.None Then
+            If context.TargetToken.IsKind(SyntaxKind.None) Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
@@ -82,11 +82,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim result = ImmutableArray(Of ISymbol).Empty
 
             ' Valid positions: Immediately after 'Implements, after  ., or after a ,
-            If context.TargetToken.Kind = SyntaxKind.ImplementsKeyword AndAlso context.TargetToken.Parent.IsKind(SyntaxKind.ImplementsClause) Then
+            If context.TargetToken.IsKind(SyntaxKind.ImplementsKeyword) AndAlso context.TargetToken.Parent.IsKind(SyntaxKind.ImplementsClause) Then
                 result = GetInterfacesAndContainers(position, context.TargetToken.Parent, context.SemanticModel, memberKindKeyword, cancellationToken)
             End If
 
-            If context.TargetToken.Kind = SyntaxKind.CommaToken AndAlso context.TargetToken.Parent.IsKind(SyntaxKind.ImplementsClause) Then
+            If context.TargetToken.IsKind(SyntaxKind.CommaToken) AndAlso context.TargetToken.Parent.IsKind(SyntaxKind.ImplementsClause) Then
                 result = GetInterfacesAndContainers(position, context.TargetToken.Parent, context.SemanticModel, memberKindKeyword, cancellationToken)
             End If
 

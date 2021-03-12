@@ -112,11 +112,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
         Protected Overrides Function GetPrecedingDocumentationCommentCount(member As DeclarationStatementSyntax) As Integer
             Dim firstToken = member.GetFirstToken()
 
-            Dim count = firstToken.LeadingTrivia.Sum(Function(t) If(t.Kind = SyntaxKind.DocumentationCommentTrivia, 1, 0))
+            Dim count = firstToken.LeadingTrivia.Sum(Function(t) If(t.IsKind(SyntaxKind.DocumentationCommentTrivia), 1, 0))
 
             Dim previousToken = firstToken.GetPreviousToken()
-            If previousToken.Kind <> SyntaxKind.None Then
-                count += previousToken.TrailingTrivia.Sum(Function(t) If(t.Kind = SyntaxKind.DocumentationCommentTrivia, 1, 0))
+            If Not previousToken.IsKind(SyntaxKind.None) Then
+                count += previousToken.TrailingTrivia.Sum(Function(t) If(t.IsKind(SyntaxKind.DocumentationCommentTrivia), 1, 0))
             End If
 
             Return count
@@ -185,9 +185,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Dim lastTextToken = textTokens.Last()
             Dim firstTextToken = textTokens.First()
 
-            Return lastTextToken.Kind = SyntaxKind.DocumentationCommentLineBreakToken AndAlso
+            Return lastTextToken.IsKind(SyntaxKind.DocumentationCommentLineBreakToken) AndAlso
                    firstTextToken.LeadingTrivia.Count = 1 AndAlso
-                   firstTextToken.LeadingTrivia.ElementAt(0).Kind = SyntaxKind.DocumentationCommentExteriorTrivia AndAlso
+                   firstTextToken.LeadingTrivia.ElementAt(0).IsKind(SyntaxKind.DocumentationCommentExteriorTrivia) AndAlso
                    firstTextToken.LeadingTrivia.ElementAt(0).ToString() = "'''" AndAlso
                    lastTextToken.TrailingTrivia.Count = 0
         End Function
@@ -228,9 +228,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Dim lastTextToken = textTokens.LastOrDefault()
             Dim firstTextToken = textTokens.FirstOrDefault()
 
-            Return lastTextToken.Kind = SyntaxKind.DocumentationCommentLineBreakToken AndAlso
+            Return lastTextToken.IsKind(SyntaxKind.DocumentationCommentLineBreakToken) AndAlso
                    firstTextToken.LeadingTrivia.Count = 1 AndAlso
-                   firstTextToken.LeadingTrivia.ElementAt(0).Kind = SyntaxKind.DocumentationCommentExteriorTrivia AndAlso
+                   firstTextToken.LeadingTrivia.ElementAt(0).IsKind(SyntaxKind.DocumentationCommentExteriorTrivia) AndAlso
                    firstTextToken.LeadingTrivia.ElementAt(0).ToString() = "'''" AndAlso
                    lastTextToken.TrailingTrivia.Count = 0
         End Function
@@ -258,14 +258,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
         End Function
 
         Protected Overrides Function IsDocCommentNewLine(token As SyntaxToken) As Boolean
-            Return token.Kind = SyntaxKind.DocumentationCommentLineBreakToken
+            Return token.IsKind(SyntaxKind.DocumentationCommentLineBreakToken)
         End Function
 
         Protected Overrides Function IsEndOfLineTrivia(trivia As SyntaxTrivia) As Boolean
             Return trivia.RawKind = SyntaxKind.EndOfLineTrivia
         End Function
         Protected Overrides Function HasSkippedTrailingTrivia(token As SyntaxToken) As Boolean
-            Return token.TrailingTrivia.Any(Function(t) t.Kind() = SyntaxKind.SkippedTokensTrivia)
+            Return token.TrailingTrivia.Any(Function(t) t.IsKind(SyntaxKind.SkippedTokensTrivia))
         End Function
     End Class
 End Namespace

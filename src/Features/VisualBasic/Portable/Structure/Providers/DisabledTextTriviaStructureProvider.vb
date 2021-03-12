@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                                                ByRef spans As TemporaryArray(Of BlockSpan),
                                                optionProvider As BlockStructureOptionProvider,
                                                cancellationToken As CancellationToken)
-            If trivia.Kind = SyntaxKind.DisabledTextTrivia Then
+            If trivia.IsKind(SyntaxKind.DisabledTextTrivia) Then
                 ' Don't include trailing line breaks in spanToCollapse
                 Dim nodeSpan = trivia.Span
                 Dim startPos = nodeSpan.Start

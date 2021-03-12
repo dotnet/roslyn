@@ -70,9 +70,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                     End If
 
                 Case SyntaxKind.IfKeyword
-                    If parent.Kind = SyntaxKind.BinaryConditionalExpression Then
+                    If parent.IsKind(SyntaxKind.BinaryConditionalExpression) Then
                         Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New BinaryConditionalExpressionDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
-                    ElseIf parent.Kind = SyntaxKind.TernaryConditionalExpression Then
+                    ElseIf parent.IsKind(SyntaxKind.TernaryConditionalExpression) Then
                         Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New TernaryConditionalExpressionDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
                     End If
 
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
 
                 Case SyntaxKind.IdentifierToken
                     If SyntaxFacts.GetContextualKeywordKind(token.ToString()) = SyntaxKind.MidKeyword Then
-                        If parent.Kind = SyntaxKind.MidExpression Then
+                        If parent.IsKind(SyntaxKind.MidExpression) Then
                             Return Await BuildContentForIntrinsicOperatorAsync(document, token, parent, New MidAssignmentDocumentation(), Glyph.MethodPublic, cancellationToken).ConfigureAwait(False)
                         End If
                     End If

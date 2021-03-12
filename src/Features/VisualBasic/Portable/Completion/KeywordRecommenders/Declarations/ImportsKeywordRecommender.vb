@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             End If
 
             ' If we have no left token, then we're at the start of the file
-            If targetToken.Kind = SyntaxKind.None Then
+            If targetToken.IsKind(SyntaxKind.None) Then
                 Return s_keywords
             End If
 

@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
 
         Protected Overrides Function GetLocation(operation As IOperation) As Location
             Dim unaryExpressionSyntax As UnaryExpressionSyntax = TryCast(operation.Syntax, UnaryExpressionSyntax)
-            If unaryExpressionSyntax IsNot Nothing AndAlso unaryExpressionSyntax.OperatorToken.Kind() = SyntaxKind.AddressOfKeyword Then
+            If unaryExpressionSyntax IsNot Nothing AndAlso unaryExpressionSyntax.OperatorToken.IsKind(SyntaxKind.AddressOfKeyword) Then
                 Return unaryExpressionSyntax.Operand.GetLocation()
             End If
 

@@ -196,11 +196,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                 Return False
             End If
 
-            If node.Kind() = SyntaxKind.ConstructorBlock Then
+            If node.IsKind(SyntaxKind.ConstructorBlock) Then
                 Return False
             End If
 
-            If node.Kind() = SyntaxKind.IdentifierName Then
+            If node.IsKind(SyntaxKind.IdentifierName) Then
                 Dim symbolInfo = semanticModel.GetSymbolInfo(node)
                 If field.Equals(symbolInfo.Symbol) Then
                     If DirectCast(node, ExpressionSyntax).IsWrittenTo(semanticModel, cancellationToken) Then

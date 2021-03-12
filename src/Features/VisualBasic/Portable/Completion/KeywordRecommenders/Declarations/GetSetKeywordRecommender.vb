@@ -43,11 +43,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             Dim setAllowed = False
 
             If propertyDeclaration IsNot Nothing Then
-                If Not propertyDeclaration.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.ReadOnlyKeyword) Then
+                If Not propertyDeclaration.Modifiers.Any(Function(modifier) modifier.IsKind(SyntaxKind.ReadOnlyKeyword)) Then
                     setAllowed = True
                 End If
 
-                If Not propertyDeclaration.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.WriteOnlyKeyword) Then
+                If Not propertyDeclaration.Modifiers.Any(Function(modifier) modifier.IsKind(SyntaxKind.WriteOnlyKeyword)) Then
                     getAllowed = True
                 End If
             End If

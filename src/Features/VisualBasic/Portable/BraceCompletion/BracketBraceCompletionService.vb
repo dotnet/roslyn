@@ -39,7 +39,7 @@ Friend Class BracketBraceCompletionService
 
     Protected Overrides Function IsValidOpenBraceTokenAtPositionAsync(token As SyntaxToken, position As Integer, document As Document, cancellationToken As CancellationToken) As Task(Of Boolean)
         If position = token.SpanStart AndAlso
-               token.Kind = SyntaxKind.BadToken AndAlso
+               token.IsKind(SyntaxKind.BadToken) AndAlso
                token.ToString() = Bracket.OpenCharacter Then
             Return Task.FromResult(Not IsBracketInCData(token))
         End If
@@ -72,6 +72,6 @@ Friend Class BracketBraceCompletionService
             Return False
         End If
 
-        Return skippedToken.ParentTrivia.Token.Kind = SyntaxKind.GreaterThanToken
+        Return skippedToken.ParentTrivia.Token.IsKind(SyntaxKind.GreaterThanToken)
     End Function
 End Class

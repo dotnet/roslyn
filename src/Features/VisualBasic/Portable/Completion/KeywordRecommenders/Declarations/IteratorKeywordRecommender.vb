@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             If context.IsTypeMemberDeclarationKeywordContext Then
                 Dim modifiers = context.ModifierCollectionFacts
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.IteratorFunction Or PossibleDeclarationTypes.IteratorProperty) AndAlso
-                   modifiers.IteratorKeyword.Kind = SyntaxKind.None Then
+                   modifiers.IteratorKeyword.IsKind(SyntaxKind.None) Then
 
                     Return s_keywords
                 End If

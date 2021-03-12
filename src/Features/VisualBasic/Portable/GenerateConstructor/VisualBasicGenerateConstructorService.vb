@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         Protected Overrides Function IsConstructorInitializerGeneration(document As SemanticDocument, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
             Return TypeOf node Is SimpleNameSyntax AndAlso
                 TryCast(node.Parent, MemberAccessExpressionSyntax).IsConstructorInitializer() AndAlso
-                node.Parent.Parent.Kind = SyntaxKind.InvocationExpression
+                node.Parent.Parent.IsKind(SyntaxKind.InvocationExpression)
         End Function
 
         Protected Overrides Function TryInitializeConstructorInitializerGeneration(

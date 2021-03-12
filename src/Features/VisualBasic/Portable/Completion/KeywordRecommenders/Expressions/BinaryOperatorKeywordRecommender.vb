@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             ' it's legal to write a binary operator, but in all probability the user wants to write
             ' To. Note that if they are writing To then it must be a literal zero, so we'll restrict
             ' to that case
-            If token.Kind = SyntaxKind.IntegerLiteralToken AndAlso CInt(token.Value) = 0 Then
+            If token.IsKind(SyntaxKind.IntegerLiteralToken) AndAlso CInt(token.Value) = 0 Then
                 If token.Parent.IsParentKind(SyntaxKind.SimpleArgument) Then
                     Dim argumentList = token.GetAncestor(Of ArgumentListSyntax)()
                     If argumentList.Parent IsNot Nothing AndAlso (TypeOf argumentList.Parent.Parent Is ReDimStatementSyntax OrElse

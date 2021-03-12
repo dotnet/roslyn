@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders
 
             Dim objectCreation = token.GetAncestors(Of ObjectCreationExpressionSyntax)() _
                                     .Where(Function(oc) oc.Parent IsNot Nothing AndAlso
-                                                        oc.Parent.Kind <> SyntaxKind.AsNewClause AndAlso
+                                                        Not oc.Parent.IsKind(SyntaxKind.AsNewClause) AndAlso
                                                         variableDeclarator.Initializer IsNot Nothing AndAlso
                                                         variableDeclarator.Initializer.Value Is oc) _
                                     .FirstOrDefault()

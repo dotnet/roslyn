@@ -34,8 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
         End Sub
 
         Protected Overrides Function IsXmlTextToken(token As SyntaxToken) As Boolean
-            Return token.Kind() = SyntaxKind.XmlTextLiteralToken OrElse
-                   token.Kind() = SyntaxKind.DocumentationCommentLineBreakToken
+            Return token.IsKind(SyntaxKind.XmlTextLiteralToken) OrElse
+                   token.IsKind(SyntaxKind.DocumentationCommentLineBreakToken)
         End Function
 
         Protected Overrides Function IsInXMLAttribute(token As SyntaxToken) As Boolean

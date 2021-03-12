@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Arra
             End If
 
             Dim targetToken = context.TargetToken
-            If targetToken.Kind = SyntaxKind.ReDimKeyword AndAlso targetToken.IsChildToken(Of ReDimStatementSyntax)(Function(statement) statement.ReDimKeyword) Then
+            If targetToken.IsKind(SyntaxKind.ReDimKeyword) AndAlso targetToken.IsChildToken(Of ReDimStatementSyntax)(Function(statement) statement.ReDimKeyword) Then
                 Return s_keywords
             End If
 

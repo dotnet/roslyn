@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 Return False
             End If
 
-            If expression.DepthFirstTraversal.Any(Function(n) n.Kind() = SyntaxKind.ArrayCreationExpression) OrElse
-               expression.DepthFirstTraversal.Any(Function(n) n.Kind() = SyntaxKind.GetTypeExpression) Then
+            If expression.DepthFirstTraversal.Any(Function(n) n.IsKind(SyntaxKind.ArrayCreationExpression)) OrElse
+               expression.DepthFirstTraversal.Any(Function(n) n.IsKind(SyntaxKind.GetTypeExpression)) Then
                 Return False
             End If
 

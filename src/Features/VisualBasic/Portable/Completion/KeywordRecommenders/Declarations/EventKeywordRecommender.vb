@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             End If
 
             Dim targetToken = context.TargetToken
-            If targetToken.Kind = SyntaxKind.IdentifierToken AndAlso SyntaxFacts.GetContextualKeywordKind(targetToken.GetIdentifierText()) = SyntaxKind.CustomKeyword Then
+            If targetToken.IsKind(SyntaxKind.IdentifierToken) AndAlso SyntaxFacts.GetContextualKeywordKind(targetToken.GetIdentifierText()) = SyntaxKind.CustomKeyword Then
                 If targetToken.GetAncestor(Of MethodBlockBaseSyntax)() Is Nothing AndAlso
                     targetToken.GetInnermostDeclarationContext().IsKind(SyntaxKind.StructureBlock, SyntaxKind.ClassBlock) Then
 

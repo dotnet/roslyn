@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
 
             ' Have to have a name to report the issue on.
             Dim name = member.GetNameToken()
-            If name.Kind() = SyntaxKind.None Then
+            If name.IsKind(SyntaxKind.None) Then
                 Return
             End If
 

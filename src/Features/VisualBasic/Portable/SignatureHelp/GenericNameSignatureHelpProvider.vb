@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
         End Function
 
         Private Shared Function IsTriggerToken(token As SyntaxToken) As Boolean
-            Return (token.Kind = SyntaxKind.OfKeyword OrElse token.Kind = SyntaxKind.CommaToken) AndAlso
+            Return (token.IsKind(SyntaxKind.OfKeyword) OrElse token.IsKind(SyntaxKind.CommaToken)) AndAlso
                     TypeOf token.Parent Is TypeArgumentListSyntax AndAlso
                     TypeOf token.Parent.Parent Is GenericNameSyntax
         End Function

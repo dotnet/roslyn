@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
             End If
 
             ' Check that parent is invocation expression syntax
-            If identifier.Parent.Kind <> SyntaxKind.InvocationExpression Then
+            If Not identifier.Parent.IsKind(SyntaxKind.InvocationExpression) Then
                 Return Nothing
             End If
 

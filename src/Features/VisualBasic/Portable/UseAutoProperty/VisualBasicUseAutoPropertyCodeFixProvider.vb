@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             If initializer.equalsValue IsNot Nothing Then
                 statement = statement.WithTrailingTrivia(SyntaxFactory.Space) _
                     .WithInitializer(initializer.equalsValue) _
-                    .WithTrailingTrivia(statement.GetTrailingTrivia.Where(Function(x) x.Kind <> SyntaxKind.EndOfLineTrivia)) _
+                    .WithTrailingTrivia(statement.GetTrailingTrivia.Where(Function(x) Not x.IsKind(SyntaxKind.EndOfLineTrivia))) _
                     .WithAppendedTrailingTrivia(initializer.equalsValue.GetTrailingTrivia())
             End If
 

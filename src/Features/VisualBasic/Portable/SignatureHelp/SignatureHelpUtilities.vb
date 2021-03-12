@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 If list.CloseParenToken.IsMissing Then
                     Dim nextToken = list.GetLastToken().GetNextToken()
                     Dim nextNextToken = nextToken.GetNextToken()
-                    If nextToken.Kind = SyntaxKind.ColonToken AndAlso nextNextToken.Kind <> SyntaxKind.None Then
+                    If nextToken.IsKind(SyntaxKind.ColonToken) AndAlso Not nextNextToken.IsKind(SyntaxKind.None) Then
                         Return nextNextToken
                     End If
                 End If

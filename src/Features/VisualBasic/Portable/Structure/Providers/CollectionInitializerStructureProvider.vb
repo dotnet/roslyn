@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 '  In this case, we want to collapse the "{ ... }," (including the comma).
 
                 Dim nextToken = node.CloseBraceToken.GetNextToken()
-                Dim endPos = If(nextToken.Kind() = SyntaxKind.CommaToken,
+                Dim endPos = If(nextToken.IsKind(SyntaxKind.CommaToken),
                                 nextToken.Span.End,
                                 node.Span.End)
 

@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 method As MethodBlockBaseSyntax) As SyntaxToken
 
                 Dim token = node.GetAnnotatedNodesAndTokens(annotation).FirstOrDefault().AsToken()
-                If token.Kind <> 0 Then
+                If Not token.IsKind(0) Then
                     Return token
                 End If
 
@@ -149,9 +149,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
 
                 For Each trivia In list.Skip(1)
-                    If trivia.Kind = SyntaxKind.EndOfLineTrivia OrElse trivia.IsElastic() Then
+                    If trivia.IsKind(SyntaxKind.EndOfLineTrivia) OrElse trivia.IsElastic() Then
                         Return list
-                    ElseIf trivia.Kind <> SyntaxKind.EndOfLineTrivia And trivia.Kind <> SyntaxKind.WhitespaceTrivia Then
+                    ElseIf Not trivia.IsKind(SyntaxKind.EndOfLineTrivia) And Not trivia.IsKind(SyntaxKind.WhitespaceTrivia) Then
                         Return list.Skip(1)
                     End If
                 Next

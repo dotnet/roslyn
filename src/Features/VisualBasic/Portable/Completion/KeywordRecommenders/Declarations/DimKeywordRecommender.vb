@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
                 ' In Dev10, we don't show it after Const (but will after ReadOnly, even though the formatter removes it)
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Field) AndAlso
-                   modifiers.MutabilityOrWithEventsKeyword.Kind <> SyntaxKind.ConstKeyword AndAlso
-                   modifiers.DimKeyword.Kind = SyntaxKind.None Then
+                   Not modifiers.MutabilityOrWithEventsKeyword.IsKind(SyntaxKind.ConstKeyword) AndAlso
+                   modifiers.DimKeyword.IsKind(SyntaxKind.None) Then
                     Return s_keywords
                 End If
             End If

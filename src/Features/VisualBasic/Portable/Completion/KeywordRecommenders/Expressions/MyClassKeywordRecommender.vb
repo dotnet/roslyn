@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
                 ' This isn't valid in shared methods
                 Dim methodBlock = targetToken.GetAncestor(Of MethodBlockBaseSyntax)()
 
-                If methodBlock IsNot Nothing AndAlso methodBlock.BlockStatement.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.SharedKeyword) Then
+                If methodBlock IsNot Nothing AndAlso methodBlock.BlockStatement.Modifiers.Any(Function(modifier) modifier.IsKind(SyntaxKind.SharedKeyword)) Then
                     Return ImmutableArray(Of RecommendedKeyword).Empty
                 End If
 

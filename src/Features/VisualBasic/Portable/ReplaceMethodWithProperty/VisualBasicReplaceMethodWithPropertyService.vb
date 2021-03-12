@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Function
 
         Public Sub ReplaceGetReference(editor As SyntaxEditor, nameToken As SyntaxToken, propertyName As String, nameChanged As Boolean) Implements IReplaceMethodWithPropertyService.ReplaceGetReference
-            If nameToken.Kind() <> SyntaxKind.IdentifierToken Then
+            If Not nameToken.IsKind(SyntaxKind.IdentifierToken) Then
                 Return
             End If
 
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Sub
 
         Public Sub ReplaceSetReference(editor As SyntaxEditor, nameToken As SyntaxToken, propertyName As String, nameChanged As Boolean) Implements IReplaceMethodWithPropertyService.ReplaceSetReference
-            If nameToken.Kind() <> SyntaxKind.IdentifierToken Then
+            If Not nameToken.IsKind(SyntaxKind.IdentifierToken) Then
                 Return
             End If
 

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             ' field/property initializer
             If TypeOf syntax Is ExpressionSyntax Then
-                If syntax.Parent.Kind = SyntaxKind.EqualsValue Then
+                If syntax.Parent.IsKind(SyntaxKind.EqualsValue) Then
                     If syntax.Parent.Parent.IsKind(SyntaxKind.PropertyStatement) Then
                         Return
                     End If
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Debug.Assert(syntax.Parent.Parent.IsKind(SyntaxKind.VariableDeclarator))
                     Debug.Assert(syntax.Parent.Parent.Parent.IsKind(SyntaxKind.FieldDeclaration))
                     Return
-                ElseIf syntax.Parent.Kind = SyntaxKind.AsNewClause Then
+                ElseIf syntax.Parent.IsKind(SyntaxKind.AsNewClause) Then
                     If syntax.Parent.Parent.IsKind(SyntaxKind.PropertyStatement) Then
                         Return
                     End If

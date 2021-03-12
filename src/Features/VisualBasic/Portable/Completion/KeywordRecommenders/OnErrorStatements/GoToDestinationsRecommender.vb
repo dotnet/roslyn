@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
 
             Dim targetToken = context.TargetToken
 
-            Return If(targetToken.Kind = SyntaxKind.GoToKeyword AndAlso TypeOf targetToken.Parent Is OnErrorGoToStatementSyntax,
+            Return If(targetToken.IsKind(SyntaxKind.GoToKeyword) AndAlso TypeOf targetToken.Parent Is OnErrorGoToStatementSyntax,
                 s_keywords,
                 ImmutableArray(Of RecommendedKeyword).Empty)
         End Function

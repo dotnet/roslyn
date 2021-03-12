@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             If context.IsTypeMemberDeclarationKeywordContext Then
                 Dim modifiers = context.ModifierCollectionFacts
                 If modifiers.CouldApplyToOneOf(PossibleDeclarationTypes.Event) AndAlso
-                   modifiers.CustomKeyword.Kind = SyntaxKind.None Then
+                   modifiers.CustomKeyword.IsKind(SyntaxKind.None) Then
                     Return s_keywords
                 End If
             End If

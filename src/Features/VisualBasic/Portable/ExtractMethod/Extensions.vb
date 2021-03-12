@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End If
 
-            If Not modifiersGetter(decl).Any(Function(m) m.Kind = SyntaxKind.ConstKeyword) Then
+            If Not modifiersGetter(decl).Any(Function(m) m.IsKind(SyntaxKind.ConstKeyword)) Then
                 Return False
             End If
 
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         <Extension()>
         Public Function ContainArgumentlessThrowWithoutEnclosingCatch(ByVal tokens As IEnumerable(Of SyntaxToken), ByVal textSpan As TextSpan) As Boolean
             For Each token In tokens
-                If token.Kind <> SyntaxKind.ThrowKeyword Then
+                If Not token.IsKind(SyntaxKind.ThrowKeyword) Then
                     Continue For
                 End If
 
@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                     Return False
                                 End If
 
-                                Return member.Expression Is Nothing AndAlso member.OperatorToken.Kind = SyntaxKind.DotToken
+                                Return member.Expression Is Nothing AndAlso member.OperatorToken.IsKind(SyntaxKind.DotToken)
                             End Function
 
             Return node.DescendantNodesAndSelf().Any(predicate)
@@ -357,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Contract.ThrowIfNull(tuple.Item1)
                 list.Add(tuple.Item1)
 
-                If tuple.Item2.Kind = SyntaxKind.None Then
+                If tuple.Item2.IsKind(SyntaxKind.None) Then
                     Exit For
                 End If
                 list.Add(tuple.Item2)

@@ -134,12 +134,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
 
             Private Function InSharedContext() As Boolean
                 Dim methodBlock = Me._parentStatement.GetAncestorOrThis(Of MethodBlockBaseSyntax)()
-                If methodBlock IsNot Nothing AndAlso methodBlock.BlockStatement.Modifiers.Any(Function(t) t.Kind = SyntaxKind.SharedKeyword) Then
+                If methodBlock IsNot Nothing AndAlso methodBlock.BlockStatement.Modifiers.Any(Function(t) t.IsKind(SyntaxKind.SharedKeyword)) Then
                     Return True ' // TODO: need to hit this with unit-tests
                 End If
 
                 Dim propertyBlock = Me._parentStatement.GetAncestorOrThis(Of PropertyBlockSyntax)()
-                If propertyBlock IsNot Nothing AndAlso propertyBlock.PropertyStatement.Modifiers.Any(Function(t) t.Kind = SyntaxKind.SharedKeyword) Then
+                If propertyBlock IsNot Nothing AndAlso propertyBlock.PropertyStatement.Modifiers.Any(Function(t) t.IsKind(SyntaxKind.SharedKeyword)) Then
                     Return True ' // // TODO: need to hit this with unit-tests
                 End If
 

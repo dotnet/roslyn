@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 items.Add(signatureHelpItem)
             Next
 
-            Dim textSpan = CommonSignatureHelpUtilities.GetSignatureHelpSpan(node, node.SpanStart, Function(n) n.ChildTokens.FirstOrDefault(Function(c) c.Kind = SyntaxKind.CloseParenToken))
+            Dim textSpan = CommonSignatureHelpUtilities.GetSignatureHelpSpan(node, node.SpanStart, Function(n) n.ChildTokens.FirstOrDefault(Function(c) c.IsKind(SyntaxKind.CloseParenToken)))
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
             Return CreateSignatureHelpItems(
@@ -82,14 +82,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Protected Overridable Function GetCurrentArgumentStateWorker(node As SyntaxNode, position As Integer) As SignatureHelpState
             Dim commaTokens As New List(Of SyntaxToken)
-            commaTokens.AddRange(node.ChildTokens().Where(Function(token) token.Kind = SyntaxKind.CommaToken))
+            commaTokens.AddRange(node.ChildTokens().Where(Function(token) token.IsKind(SyntaxKind.CommaToken)))
 
             ' Also get any leading skipped tokens on the next token after this node
             Dim nextToken = node.GetLastToken().GetNextToken()
 
             For Each leadingTrivia In nextToken.LeadingTrivia
-                If leadingTrivia.Kind = SyntaxKind.SkippedTokensTrivia Then
-                    commaTokens.AddRange(leadingTrivia.GetStructure().ChildTokens().Where(Function(token) token.Kind = SyntaxKind.CommaToken))
+                If leadingTrivia.IsKind(SyntaxKind.SkippedTokensTrivia) Then
+                    commaTokens.AddRange(leadingTrivia.GetStructure().ChildTokens().Where(Function(token) token.IsKind(SyntaxKind.CommaToken)))
                 End If
             Next
 

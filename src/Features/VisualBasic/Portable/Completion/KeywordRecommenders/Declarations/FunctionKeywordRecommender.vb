@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, CancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.IsTypeMemberDeclarationKeywordContext OrElse context.IsInterfaceMemberDeclarationKeywordContext Then
                 Dim modifiers = context.ModifierCollectionFacts
-                If modifiers.OverridableSharedOrPartialKeyword.Kind = SyntaxKind.PartialKeyword Then
+                If modifiers.OverridableSharedOrPartialKeyword.IsKind(SyntaxKind.PartialKeyword) Then
                     Return ImmutableArray(Of RecommendedKeyword).Empty
                 End If
 

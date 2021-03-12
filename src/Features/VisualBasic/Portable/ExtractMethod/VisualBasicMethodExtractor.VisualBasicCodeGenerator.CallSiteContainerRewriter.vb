@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Contract.ThrowIfFalse(expressionStatements.Count = 0)
 
                     If variableDeclarators.Count = 0 AndAlso
-                       triviaList.Any(Function(t) t.Kind <> SyntaxKind.WhitespaceTrivia AndAlso t.Kind <> SyntaxKind.EndOfLineTrivia) Then
+                       triviaList.Any(Function(t) Not t.IsKind(SyntaxKind.WhitespaceTrivia) AndAlso Not t.IsKind(SyntaxKind.EndOfLineTrivia)) Then
                         ' well, there are trivia associated with the node.
                         ' we can't just delete the node since then, we will lose
                         ' the trivia. unfortunately, it is not easy to attach the trivia
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                         Return statements
                     End If
 
-                    Dim removeEndOfLine = Function(t As SyntaxTrivia) Not t.IsElastic() AndAlso t.Kind <> SyntaxKind.EndOfLineTrivia
+                    Dim removeEndOfLine = Function(t As SyntaxTrivia) Not t.IsElastic() AndAlso Not t.IsKind(SyntaxKind.EndOfLineTrivia)
 
                     Dim i = 0
                     Dim count = statements.Count()

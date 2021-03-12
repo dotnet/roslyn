@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
             End If
 
             ' Determine whether we can offer "Else" after "Case" in a Select block.
-            If targetToken.Kind = SyntaxKind.CaseKeyword AndAlso targetToken.Parent.IsKind(SyntaxKind.CaseStatement) Then
+            If targetToken.IsKind(SyntaxKind.CaseKeyword) AndAlso targetToken.Parent.IsKind(SyntaxKind.CaseStatement) Then
                 ' Next, grab the parenting "Select" block and ensure that it doesn't have any Case Else statements
                 Dim selectBlock = targetToken.GetAncestor(Of SelectBlockSyntax)()
                 If selectBlock IsNot Nothing AndAlso
