@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 foreach (var member in type.GetMembers())
                 {
                     if (member is not IMethodSymbol method)
-                        return;
+                        continue;
 
                     if (!method.IsUserDefinedOperator())
                         continue;
