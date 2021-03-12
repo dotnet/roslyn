@@ -34,17 +34,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 
                 Dim node = nodes.Pop()
 
-                If node.Kind = SyntaxKind.ClassBlock OrElse
-                    node.Kind = SyntaxKind.DelegateFunctionStatement OrElse
-                    node.Kind = SyntaxKind.DelegateSubStatement OrElse
-                    node.Kind = SyntaxKind.EnumBlock OrElse
-                    node.Kind = SyntaxKind.ModuleBlock OrElse
-                    node.Kind = SyntaxKind.InterfaceBlock OrElse
-                    node.Kind = SyntaxKind.StructureBlock OrElse
-                    node.Kind = SyntaxKind.FieldDeclaration OrElse
-                    node.Kind = SyntaxKind.SubBlock OrElse
-                    node.Kind = SyntaxKind.FunctionBlock OrElse
-                    node.Kind = SyntaxKind.PropertyBlock Then
+                If node.IsKind(SyntaxKind.ClassBlock) OrElse
+                    node.IsKind(SyntaxKind.DelegateFunctionStatement) OrElse
+                    node.IsKind(SyntaxKind.DelegateSubStatement) OrElse
+                    node.IsKind(SyntaxKind.EnumBlock) OrElse
+                    node.IsKind(SyntaxKind.ModuleBlock) OrElse
+                    node.IsKind(SyntaxKind.InterfaceBlock) OrElse
+                    node.IsKind(SyntaxKind.StructureBlock) OrElse
+                    node.IsKind(SyntaxKind.FieldDeclaration) OrElse
+                    node.IsKind(SyntaxKind.SubBlock) OrElse
+                    node.IsKind(SyntaxKind.FunctionBlock) OrElse
+                    node.IsKind(SyntaxKind.PropertyBlock) Then
                     result.Add(node)
                 Else
                     For Each child In node.ChildNodes()

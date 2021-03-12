@@ -166,8 +166,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End Function
 
             Private Function CompareOptions(oldOption As OptionStatementSyntax, newOption As OptionStatementSyntax, newNodeParent As SyntaxNode, eventQueue As CodeModelEventQueue) As Boolean
-                If oldOption.NameKeyword.Kind <> newOption.NameKeyword.Kind OrElse
-                   oldOption.ValueKeyword.Kind <> newOption.ValueKeyword.Kind Then
+                If Not oldOption.NameKeyword.IsKind(newOption.NameKeyword.Kind) OrElse
+                   Not oldOption.ValueKeyword.IsKind(newOption.ValueKeyword.Kind) Then
 
                     EnqueueChangeEvent(newOption, newNodeParent, CodeModelEventType.Rename, eventQueue)
                     Return False
@@ -220,7 +220,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     Return oldAttributeTarget Is newAttributeTarget
                 End If
 
-                Return oldAttributeTarget.AttributeModifier.Kind = newAttributeTarget.AttributeModifier.Kind
+                Return oldAttributeTarget.AttributeModifier.IsKind(newAttributeTarget.AttributeModifier.Kind)
             End Function
 
             Private Function CompareArgumentLists(oldArgumentList As ArgumentListSyntax, newArgumentList As ArgumentListSyntax, newNodeParent As SyntaxNode, eventQueue As CodeModelEventQueue) As Boolean
@@ -1024,7 +1024,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         Dim oldPredefinedType = DirectCast(oldType, PredefinedTypeSyntax)
                         Dim newPredefinedType = DirectCast(newType, PredefinedTypeSyntax)
 
-                        Return oldPredefinedType.Keyword.Kind = newPredefinedType.Keyword.Kind
+                        Return oldPredefinedType.Keyword.IsKind(newPredefinedType.Keyword.Kind)
 
                     Case SyntaxKind.ArrayType
                         Dim oldArrayType = DirectCast(oldType, ArrayTypeSyntax)

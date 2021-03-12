@@ -269,7 +269,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
                 Case SyntaxKind.ModifiedIdentifier,
                      SyntaxKind.VariableDeclarator
-                    If node.Parent.Kind <> SyntaxKind.Parameter Then
+                    If Not node.Parent.IsKind(SyntaxKind.Parameter) Then
                         ' The parent of an identifier/variable declarator may be a
                         ' field. If the parent matches the desired scope, then this
                         ' node matches as well.
@@ -439,7 +439,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Private Shared Function IsNamespaceOrTypeDeclaration(node As SyntaxNode) As Boolean
-            Return node.Kind() = SyntaxKind.NamespaceBlock OrElse
+            Return node.IsKind(SyntaxKind.NamespaceBlock) OrElse
                    TypeOf node Is TypeBlockSyntax OrElse
                    TypeOf node Is EnumBlockSyntax OrElse
                    TypeOf node Is DelegateStatementSyntax
@@ -854,8 +854,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     Exit While
                 End If
 
-                If (token.IsKeyword() OrElse token.Kind = SyntaxKind.IdentifierToken) AndAlso
-                   (nextToken.IsKeyword() OrElse nextToken.Kind = SyntaxKind.IdentifierToken) Then
+                If (token.IsKeyword() OrElse token.IsKind(SyntaxKind.IdentifierToken)) AndAlso
+                   (nextToken.IsKeyword() OrElse nextToken.IsKind(SyntaxKind.IdentifierToken)) Then
 
                     nameBuilder.Append(" "c)
                 End If
@@ -1002,7 +1002,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw New ArgumentNullException(NameOf(node))
             End If
 
-            If node.Kind = SyntaxKind.OperatorBlock Then
+            If node.IsKind(SyntaxKind.OperatorBlock) Then
                 Throw Exceptions.ThrowEFail
             End If
 
@@ -1051,7 +1051,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Public Overrides Function GetFullName(node As SyntaxNode, semanticModel As SemanticModel) As String
-            If node.Kind = SyntaxKind.SimpleImportsClause Then
+            If node.IsKind(SyntaxKind.SimpleImportsClause) Then
                 Throw Exceptions.ThrowENotImpl()
             End If
 
@@ -1276,13 +1276,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     Exit For
                 End If
 
-                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+                If trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
                     If contiguousEndOfLines > 0 Then
                         Exit For
                     Else
                         contiguousEndOfLines += 1
                     End If
-                ElseIf trivia.Kind <> SyntaxKind.WhitespaceTrivia Then
+                ElseIf Not trivia.IsKind(SyntaxKind.WhitespaceTrivia) Then
                     contiguousEndOfLines = 0
                 End If
 
@@ -1507,8 +1507,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEFail()
             End If
 
-            If member.Parent.Kind = SyntaxKind.InterfaceBlock OrElse
-                member.Parent.Kind = SyntaxKind.EnumBlock Then
+            If member.Parent.IsKind(SyntaxKind.InterfaceBlock) OrElse
+                member.Parent.IsKind(SyntaxKind.EnumBlock) Then
                 If newAccess = EnvDTE.vsCMAccess.vsCMAccessDefault OrElse
                     newAccess = EnvDTE.vsCMAccess.vsCMAccessPublic Then
                     Return node
@@ -1665,7 +1665,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     ' Special case: if a modified identifier was specified, make sure we return the index
                     ' of the last modified identifier of the last variable declarator in the parenting field
                     ' declaration.
-                    If member.Kind = SyntaxKind.ModifiedIdentifier Then
+                    If member.IsKind(SyntaxKind.ModifiedIdentifier) Then
                         Dim modifiedIdentifier = DirectCast(member, ModifiedIdentifierSyntax)
                         Dim variableDeclarator = DirectCast(member.Parent, VariableDeclaratorSyntax)
                         Dim fieldDeclaration = DirectCast(variableDeclarator.Parent, FieldDeclarationSyntax)
@@ -1853,7 +1853,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Debug.Assert(TypeOf attributeArgumentNode Is ArgumentSyntax)
 
             Dim argument = DirectCast(attributeArgumentNode, ArgumentSyntax)
-            Dim attribute = DirectCast(argument.Ancestors.FirstOrDefault(Function(n) n.Kind = SyntaxKind.Attribute), AttributeSyntax)
+            Dim attribute = DirectCast(argument.Ancestors.FirstOrDefault(Function(n) n.IsKind(SyntaxKind.Attribute)), AttributeSyntax)
 
             attributeNode = attribute
             index = attribute.ArgumentList.Arguments.IndexOf(DirectCast(attributeArgumentNode, ArgumentSyntax))
@@ -2101,7 +2101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEFail()
             End If
 
-            If member.Parent.Kind = SyntaxKind.InterfaceBlock Then
+            If member.Parent.IsKind(SyntaxKind.InterfaceBlock) Then
                 Return True
             End If
 
@@ -2194,12 +2194,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim trivia = triviaList(i)
                 Dim nextTrivia = If(i > 0, triviaList(i - 1), Nothing)
 
-                If trivia.Kind = SyntaxKind.CommentTrivia Then
+                If trivia.IsKind(SyntaxKind.CommentTrivia) Then
                     firstCommentFound = True
                     commentList.Add(trivia)
                 ElseIf Not firstCommentFound AndAlso trivia.IsWhitespaceOrEndOfLine() Then
                     Continue For
-                ElseIf firstCommentFound AndAlso trivia.Kind = SyntaxKind.EndOfLineTrivia AndAlso nextTrivia.Kind = SyntaxKind.CommentTrivia Then
+                ElseIf firstCommentFound AndAlso trivia.IsKind(SyntaxKind.EndOfLineTrivia) AndAlso nextTrivia.IsKind(SyntaxKind.CommentTrivia) Then
                     Continue For
                 Else
                     Exit For
@@ -2271,7 +2271,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 ' Note: single line comments have a trailing new-line but that won't be
                 ' returned by CollectComments. So, we may need to remove an additional new line below.
                 If firstIndex < leadingTriviaList.Count AndAlso
-                   leadingTriviaList(firstIndex).Kind = SyntaxKind.EndOfLineTrivia Then
+                   leadingTriviaList(firstIndex).IsKind(SyntaxKind.EndOfLineTrivia) Then
 
                     leadingTriviaList.RemoveAt(firstIndex)
                 End If
@@ -2450,9 +2450,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Dim docCommentTrivia = memberDeclaration _
                 .GetLeadingTrivia() _
                 .Reverse() _
-                .FirstOrDefault(Function(t) t.Kind = SyntaxKind.DocumentationCommentTrivia)
+                .FirstOrDefault(Function(t) t.IsKind(SyntaxKind.DocumentationCommentTrivia))
 
-            If docCommentTrivia.Kind <> SyntaxKind.DocumentationCommentTrivia Then
+            If Not docCommentTrivia.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
                 Return Nothing
             End If
 
@@ -2641,7 +2641,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEFail()
             End If
 
-            If member.Parent.Kind = SyntaxKind.InterfaceBlock Then
+            If member.Parent.IsKind(SyntaxKind.InterfaceBlock) Then
                 Return True
             End If
 
@@ -3701,7 +3701,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Protected Overrides Function GetFieldFromVariableNode(variableNode As SyntaxNode) As SyntaxNode
-            Return If(variableNode.Kind = SyntaxKind.ModifiedIdentifier,
+            Return If(variableNode.IsKind(SyntaxKind.ModifiedIdentifier),
                       variableNode.FirstAncestorOrSelf(Of FieldDeclarationSyntax)(),
                       variableNode)
         End Function
@@ -3791,7 +3791,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim previousAttribute = attributes(index - 1)
-            If previousAttribute.GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia) Then
+            If previousAttribute.GetTrailingTrivia().Any(Function(t) t.IsKind(SyntaxKind.EndOfLineTrivia)) Then
                 Return attributes.Insert(index, attribute)
             End If
 
@@ -3916,7 +3916,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Dim importsStatement = DirectCast(importNode, ImportsStatementSyntax)
 
             Dim lastToken = importsStatement.GetLastToken()
-            If lastToken.Kind <> SyntaxKind.EndOfLineTrivia Then
+            If Not lastToken.IsKind(SyntaxKind.EndOfLineTrivia) Then
                 importsStatement = importsStatement.ReplaceToken(lastToken, lastToken.WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed))
             End If
 

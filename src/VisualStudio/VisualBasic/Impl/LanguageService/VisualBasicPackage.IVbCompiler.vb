@@ -33,7 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Function IsValidIdentifier(wszIdentifier As String) As Boolean Implements IVbCompiler.IsValidIdentifier
             ' This curious function requires us to return whether the given identifier is in fact a valid identifier.
             Dim token = SyntaxFactory.ParseToken(wszIdentifier)
-            Return token.Kind = SyntaxKind.IdentifierToken
+            Return token.IsKind(SyntaxKind.IdentifierToken)
         End Function
 
         Public Sub RegisterVbCompilerHost(pVbCompilerHost As IVbCompilerHost) Implements IVbCompiler.RegisterVbCompilerHost

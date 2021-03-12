@@ -180,18 +180,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
                 Dim statementWithEndHelper = method.Statements(0)
                 Dim endToken = statementWithEndHelper.GetFirstToken()
-                If endToken.Kind <> SyntaxKind.EndKeyword Then
+                If Not endToken.IsKind(SyntaxKind.EndKeyword) Then
                     Return False
                 End If
 
                 Dim helperToken = endToken.GetNextToken(includeSkipped:=True)
-                If helperToken.Kind <> SyntaxKind.IdentifierToken OrElse
+                If Not helperToken.IsKind(SyntaxKind.IdentifierToken) OrElse
                    Not String.Equals(helperToken.Text, "Helper", StringComparison.OrdinalIgnoreCase) Then
                     Return False
                 End If
 
                 Dim asToken = helperToken.GetNextToken(includeSkipped:=True)
-                If asToken.Kind <> SyntaxKind.AsKeyword Then
+                If Not asToken.IsKind(SyntaxKind.AsKeyword) Then
                     Return False
                 End If
 
