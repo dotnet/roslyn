@@ -385,7 +385,7 @@ Public Module VerificationHelpers
     <Extension()>
     Public Function VerifyNoZeroWidthNodes(tree As SyntaxTree) As SyntaxTree
         Dim node = tree.GetRoot()
-        Assert.True(0 <> node.Span.Length OrElse node.Kind = SyntaxKind.CompilationUnit, "Unexpected 0 width node: " & node.Kind.ToString & node.Span.ToString)
+        Assert.True(0 <> node.Span.Length OrElse node.IsKind(SyntaxKind.CompilationUnit), "Unexpected 0 width node: " & node.Kind.ToString & node.Span.ToString)
         For Each child In node.ChildNodesAndTokens()
             InternalVerifyNoZeroWidthNodes(child)
         Next
@@ -677,7 +677,7 @@ Public Module VerificationHelpers
         If node.IsToken Then
             Dim tk = node
             For Each leadingTrivia In tk.GetLeadingTrivia()
-                If leadingTrivia.Kind = kind Then
+                If leadingTrivia.IsKind(kind) Then
                     actualCount += 1
                 End If
                 If leadingTrivia.HasStructure Then
@@ -686,7 +686,7 @@ Public Module VerificationHelpers
                 End If
             Next
             For Each trailingTrivia In tk.GetTrailingTrivia()
-                If trailingTrivia.Kind = kind Then
+                If trailingTrivia.IsKind(kind) Then
                     actualCount += 1
                 End If
                 If trailingTrivia.HasStructure Then
@@ -838,8 +838,8 @@ Public Module VerificationHelpers
 
             ' Based on http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=527553
             ' it is Ok to have adjacent SkippedTokensTrivias
-            If tr.Kind <> SyntaxKind.SkippedTokensTrivia AndAlso prev IsNot Nothing Then
-                Assert.True(prev.Value.Kind <> tr.Kind,
+            If Not tr.IsKind(SyntaxKind.SkippedTokensTrivia) AndAlso prev IsNot Nothing Then
+                Assert.True(Not prev.Value.IsKind(tr.Kind),
                             "Both current and previous trivia have Kind=" & tr.Kind.ToString &
                             " [See under TokenKind=" & node.Kind().ToString & ", NonTerminalKind=" & node.Parent.Kind.ToString & "]")
             End If
