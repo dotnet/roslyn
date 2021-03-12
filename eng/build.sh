@@ -30,7 +30,6 @@ usage()
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
-  echo "  --docker                   Run in a docker container if applicable"
   echo "  --bootstrap                Build using a bootstrap compilers"
   echo "  --runAnalyzers             Run analyzers during build operations"
   echo "  --skipDocumentation        Skip generation of XML documentation files"
@@ -76,7 +75,6 @@ warn_as_error=false
 properties=""
 source_build=false
 
-docker=false
 args=""
 
 if [[ $# = 0 ]]
@@ -157,11 +155,6 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --docker)
-      docker=true
-      shift
-      continue
-      ;;
     --sourcebuild)
       source_build=true
       ;;
@@ -177,27 +170,6 @@ while [[ $# > 0 ]]; do
   args="$args $1"
   shift
 done
-
-if [[ "$docker" == true ]]
-then
-  echo "Docker exec: $args"
-
-  # Run this script with the same arguments (except for --docker) in a container that has Mono installed.
-  BUILD_COMMAND=/opt/code/eng/build.sh "$scriptroot"/docker/mono.sh $args
-  lastexitcode=$?
-  if [[ $lastexitcode != 0 ]]; then
-    echo "Docker build failed (exit code '$lastexitcode')." >&2
-    exit $lastexitcode
-  fi
-
-  # Ensure that all docker containers are stopped.
-  # Hence exit with true even if "kill" failed as it will fail if they stopped gracefully
-  if [[ "$prepare_machine" == true ]]; then
-    docker kill $(docker ps -q) || true
-  fi
-
-  exit
-fi
 
 # Import Arcade functions
 . "$scriptroot/common/tools.sh"
