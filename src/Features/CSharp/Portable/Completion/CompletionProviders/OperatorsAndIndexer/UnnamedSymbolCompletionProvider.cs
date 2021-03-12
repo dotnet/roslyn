@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // have specialized logic for what they need to do.
         private const string SortingPrefix = "\uFFFD";
 
-        private const string KindName = "Kind";
-        private const string IndexerKindName = "Indexer";
-        private const string OperatorKindName = "Operator";
-        private const string ConversionKindName = "Conversion";
+        internal const string KindName = "Kind";
+        internal const string IndexerKindName = "Indexer";
+        internal const string OperatorKindName = "Operator";
+        internal const string ConversionKindName = "Conversion";
 
         private const string MinimalTypeNamePropertyName = "MinimalTypeName";
 

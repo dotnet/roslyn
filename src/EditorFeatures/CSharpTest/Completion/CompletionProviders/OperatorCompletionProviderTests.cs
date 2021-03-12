@@ -303,7 +303,9 @@ public class Program
     }}
 }}
 ", SourceCodeKind.Regular);
-            Assert.Equal(numberOfSuggestions, completionItems.Length);
+            Assert.Equal(
+                numberOfSuggestions,
+                completionItems.Count(c => c.Properties[UnnamedSymbolCompletionProvider.KindName] == UnnamedSymbolCompletionProvider.OperatorKindName));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
