@@ -15,20 +15,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Extensions
         [Fact]
         public void TestConstantTelemetryId()
         {
-            var expected = Guid.Parse("00000000-0000-0000-c4c5-914100000000");
+            var expected = Guid.Parse("c4c59141-0000-0000-0000-000000000000");
             var actual = typeof(TelemetryExtensionTests).GetTelemetryId();
             var actualBytes = actual.ToByteArray();
 
-            // The first 4 bytes are using platform dependent hashcode and 
-            // are not deterministic. This is a known limitation and corrected 
-            // with the last 8 bytes of the GUID
-            for (var i = 0; i < 4; i++)
-            {
-                actualBytes[i] = 0;
-            }
-
             // If the assertion fails then telemetry ids could be changing
-            // making them hard to track. It's important to not regress 
+            // making them hard to track. It's important to not regress
             // the ability to track telemetry across versions of Roslyn.
             Assert.Equal(new Guid(actualBytes), expected);
         }
