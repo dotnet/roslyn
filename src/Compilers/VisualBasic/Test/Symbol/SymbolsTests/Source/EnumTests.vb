@@ -1448,7 +1448,7 @@ BC30652: Reference required to assembly 'UseSiteError_sourceA, Version=0.0.0.0, 
 
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
-            Dim expr = tree.GetRoot().DescendantNodes().Single(Function(n) n.Kind() = SyntaxKind.NotExpression)
+            Dim expr = tree.GetRoot().DescendantNodes().Single(Function(n) n.IsKind(SyntaxKind.NotExpression))
             Dim value = model.GetConstantValue(expr)
             Assert.True(value.HasValue)
             Assert.Equal(-1, value.Value)
