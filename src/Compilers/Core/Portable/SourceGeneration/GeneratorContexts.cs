@@ -117,12 +117,6 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorInfo.Builder InfoBuilder { get; }
 
-        internal void RegisterForAdditionalFileChanges(EditCallback<AdditionalFileEdit> callback)
-        {
-            CheckIsEmpty(InfoBuilder.EditCallback);
-            InfoBuilder.EditCallback = callback;
-        }
-
         /// <summary>
         /// Register a <see cref="SyntaxReceiverCreator"/> for this generator, which can be used to create an instance of an <see cref="ISyntaxReceiver"/>.
         /// </summary>
@@ -249,18 +243,5 @@ namespace Microsoft.CodeAnalysis
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
         public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
-    }
-
-    internal readonly struct GeneratorEditContext
-    {
-        internal GeneratorEditContext(AdditionalSourcesCollection sources, CancellationToken cancellationToken = default)
-        {
-            AdditionalSources = sources;
-            CancellationToken = cancellationToken;
-        }
-
-        public CancellationToken CancellationToken { get; }
-
-        public AdditionalSourcesCollection AdditionalSources { get; }
     }
 }

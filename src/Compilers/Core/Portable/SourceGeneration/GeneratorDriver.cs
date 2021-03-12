@@ -20,15 +20,6 @@ namespace Microsoft.CodeAnalysis
     /// GeneratorDriver is an immutable class that can be manipulated by returning a mutated copy of itself.
     /// In the compiler we only ever create a single instance and ignore the mutated copy. The IDE may perform 
     /// multiple edits, or generation passes of the same driver, re-using the state as needed.
-    /// 
-    /// A generator driver works like a small state machine:
-    ///   - It starts off with no generated sources
-    ///   - A full generation pass will run every generator and produce all possible generated source
-    ///   - At any time an 'edit' maybe supplied, which represents potential future work
-    ///   - TryApplyChanges can be called, which will iterate through the pending edits and try and attempt to 
-    ///     bring the state back to what it would be if a full generation occurred by running partial generation
-    ///     on generators that support it
-    ///   - At any time a full generation pass can be re-run, resetting the pending edits
     /// </remarks>
     public abstract class GeneratorDriver
     {
@@ -42,7 +33,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), ImmutableArray<PendingEdit>.Empty, editsFailed: true);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]));
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -56,44 +47,22 @@ namespace Microsoft.CodeAnalysis
             var diagnosticsBag = DiagnosticBag.GetInstance();
             var state = RunGeneratorsCore(compilation, diagnosticsBag, cancellationToken);
 
-            // build the final state, and return 
+            // build the output compilation
             diagnostics = diagnosticsBag.ToReadOnlyAndFree();
-            return BuildFinalCompilation(compilation, out outputCompilation, state, cancellationToken);
-        }
-
-        internal GeneratorDriver TryApplyEdits(Compilation compilation, out Compilation outputCompilation, out bool success, CancellationToken cancellationToken = default)
-        {
-            // if we can't apply any partial edits, just instantly return
-            if (_state.EditsFailed || _state.Edits.Length == 0)
+            ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
+            foreach (var generatorState in state.GeneratorStates)
             {
-                outputCompilation = compilation;
-                success = !_state.EditsFailed;
-                return this;
+                trees.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
+                trees.AddRange(generatorState.GeneratedTrees.Select(t => t.Tree));
             }
+            outputCompilation = compilation.AddSyntaxTrees(trees);
+            trees.Free();
 
-            // Apply any pending edits
-            var state = _state;
-            foreach (var edit in _state.Edits)
-            {
-                state = ApplyPartialEdit(state, edit, cancellationToken);
-                if (state.EditsFailed)
-                {
-                    outputCompilation = compilation;
-                    success = false;
-                    return this;
-                }
-            }
-
-            // remove the previously generated syntax trees
-            compilation = RemoveGeneratedSyntaxTrees(_state, compilation);
-
-            success = true;
-            return BuildFinalCompilation(compilation, out outputCompilation, state, cancellationToken);
+            return FromState(state);
         }
 
         public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            // set editsFailed true, as we won't be able to apply edits with a new generator
             var newState = _state.With(generators: _state.Generators.AddRange(generators), generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[generators.Length]), editsFailed: true);
             return FromState(newState);
         }
@@ -162,7 +131,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // run the actual generation
-            var state = StateWithPendingEditsApplied(_state);
+            var state = _state;
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, fillWithValue: null); // we know there is at max 1 per generator
@@ -309,79 +278,6 @@ namespace Microsoft.CodeAnalysis
             return state;
         }
 
-        // When we expose this publicly, remove arbitrary edit adding and replace with dedicated edit types
-        internal GeneratorDriver WithPendingEdits(ImmutableArray<PendingEdit> edits)
-        {
-            var newState = _state.With(edits: _state.Edits.AddRange(edits));
-            return FromState(newState);
-        }
-
-        private GeneratorDriverState ApplyPartialEdit(GeneratorDriverState state, PendingEdit edit, CancellationToken cancellationToken = default)
-        {
-            var initialState = state;
-
-            // see if any generators accept this particular edit
-            var stateBuilder = PooledDictionary<ISourceGenerator, GeneratorState>.GetInstance();
-            for (int i = 0; i < initialState.Generators.Length; i++)
-            {
-                var generator = initialState.Generators[i];
-                var generatorState = initialState.GeneratorStates[i];
-                if (edit.AcceptedBy(generatorState.Info))
-                {
-                    // attempt to apply the edit
-                    var previousSources = CreateSourcesCollection();
-                    previousSources.AddRange(generatorState.GeneratedTrees);
-                    var context = new GeneratorEditContext(previousSources, cancellationToken);
-                    var succeeded = edit.TryApply(generatorState.Info, context);
-                    if (!succeeded)
-                    {
-                        // we couldn't successfully apply this edit
-                        // return the original state noting we failed
-                        return initialState.With(editsFailed: true);
-                    }
-
-                    // update the state with the new edits
-                    var additionalSources = previousSources.ToImmutableAndFree();
-                    state = state.With(generatorStates: state.GeneratorStates.SetItem(i, new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatedTrees: ParseAdditionalSources(generator, additionalSources, cancellationToken), diagnostics: ImmutableArray<Diagnostic>.Empty)));
-                }
-            }
-            state = edit.Commit(state);
-            return state;
-        }
-
-        private static GeneratorDriverState StateWithPendingEditsApplied(GeneratorDriverState state)
-        {
-            if (state.Edits.Length == 0)
-            {
-                return state;
-            }
-
-            foreach (var edit in state.Edits)
-            {
-                state = edit.Commit(state);
-            }
-            return state.With(edits: ImmutableArray<PendingEdit>.Empty, editsFailed: false);
-        }
-
-        private static Compilation RemoveGeneratedSyntaxTrees(GeneratorDriverState state, Compilation compilation)
-        {
-            ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
-            foreach (var generatorState in state.GeneratorStates)
-            {
-                foreach (var generatedTree in generatorState.GeneratedTrees)
-                {
-                    if (generatedTree.Tree is object && compilation.ContainsSyntaxTree(generatedTree.Tree))
-                    {
-                        trees.Add(generatedTree.Tree);
-                    }
-                }
-            }
-
-            var comp = compilation.RemoveSyntaxTrees(trees);
-            trees.Free();
-            return comp;
-        }
-
         private ImmutableArray<GeneratedSyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = ArrayBuilder<GeneratedSyntaxTree>.GetInstance(generatedSources.Length);
@@ -393,22 +289,6 @@ namespace Microsoft.CodeAnalysis
                 trees.Add(new GeneratedSyntaxTree(source.HintName, source.Text, tree));
             }
             return trees.ToImmutableAndFree();
-        }
-
-        private GeneratorDriver BuildFinalCompilation(Compilation compilation, out Compilation outputCompilation, GeneratorDriverState state, CancellationToken cancellationToken)
-        {
-            ArrayBuilder<SyntaxTree> trees = ArrayBuilder<SyntaxTree>.GetInstance();
-            foreach (var generatorState in state.GeneratorStates)
-            {
-                trees.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
-                trees.AddRange(generatorState.GeneratedTrees.Select(t => t.Tree));
-            }
-            outputCompilation = compilation.AddSyntaxTrees(trees);
-            trees.Free();
-
-            state = state.With(edits: ImmutableArray<PendingEdit>.Empty,
-                               editsFailed: false);
-            return FromState(state);
         }
 
         private static GeneratorState SetGeneratorException(CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, bool isInit = false)
