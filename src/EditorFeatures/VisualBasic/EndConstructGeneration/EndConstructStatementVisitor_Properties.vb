@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Dim valueSuffix = ""
             If propertyDeclaration.AsClause IsNot Nothing Then
                 valueSuffix = " " & propertyDeclaration.AsClause.ToString
-            ElseIf propertyDeclaration.Identifier.Kind = SyntaxKind.IdentifierToken Then
+            ElseIf propertyDeclaration.Identifier.IsKind(SyntaxKind.IdentifierToken) Then
                 Dim identifier = propertyDeclaration.Identifier
                 If identifier.GetTypeCharacter() <> TypeCharacter.None Then
                     valueSuffix = identifier.GetTypeCharacter().GetTypeCharacterString()

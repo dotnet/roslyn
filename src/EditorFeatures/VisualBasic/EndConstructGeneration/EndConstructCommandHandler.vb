@@ -152,8 +152,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Dim previousToken = firstToken.GetPreviousToken()
             Dim nextToken = lastToken.GetNextToken()
 
-            Return TextSpan.FromBounds(If(previousToken.Kind <> SyntaxKind.None, previousToken, firstToken).SpanStart,
-                                       If(nextToken.Kind <> SyntaxKind.None, nextToken, lastToken).Span.End)
+            Return TextSpan.FromBounds(If(Not previousToken.IsKind(SyntaxKind.None), previousToken, firstToken).SpanStart,
+                                       If(Not nextToken.IsKind(SyntaxKind.None), nextToken, lastToken).Span.End)
         End Function
     End Class
 End Namespace

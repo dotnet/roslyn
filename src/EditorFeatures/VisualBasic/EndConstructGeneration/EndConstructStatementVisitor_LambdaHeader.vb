@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Dim containingMethodBlock = node.GetAncestor(Of MethodBlockBaseSyntax)()
             If containingMethodBlock IsNot Nothing AndAlso containingMethodBlock.EndBlockStatement.IsMissing Then
                 ' Is this containing method the same type (Sub/Function) as the lambda?
-                If containingMethodBlock.BlockStatement.DeclarationKeyword.Kind = node.DeclarationKeyword.Kind Then
+                If containingMethodBlock.BlockStatement.DeclarationKeyword.IsKind(node.DeclarationKeyword.Kind) Then
                     needsEnd = True
                 End If
             End If

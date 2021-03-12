@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         End Sub
 
         Protected Overloads Overrides Sub AddHighlights(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
-            If TypeOf node Is ExitStatementSyntax AndAlso node.Kind <> SyntaxKind.ExitTryStatement Then
+            If TypeOf node Is ExitStatementSyntax AndAlso Not node.IsKind(SyntaxKind.ExitTryStatement) Then
                 Return
             End If
 
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         End Sub
 
         Private Sub HighlightRelatedStatements(node As SyntaxNode, highlights As List(Of TextSpan))
-            If node.Kind = SyntaxKind.ExitTryStatement Then
+            If node.IsKind(SyntaxKind.ExitTryStatement) Then
                 highlights.Add(node.Span)
             Else
                 For Each childNodeOrToken In node.ChildNodesAndTokens()

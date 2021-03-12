@@ -24,12 +24,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
             Dim current = CType(currentToken, SyntaxToken)
 
             ' case: insert blank line in empty method body.
-            If current.Kind = SyntaxKind.EndKeyword Then
+            If current.IsKind(SyntaxKind.EndKeyword) Then
 
-                If (current.Parent.Kind = SyntaxKind.EndSubStatement AndAlso
+                If (current.Parent.IsKind(SyntaxKind.EndSubStatement) AndAlso
                     current.Parent.Parent.IsKind(SyntaxKind.ConstructorBlock, SyntaxKind.SubBlock)) OrElse
-                   (current.Parent.Kind = SyntaxKind.EndFunctionStatement AndAlso
-                    current.Parent.Parent.Kind = SyntaxKind.FunctionBlock) AndAlso
+                   (current.Parent.IsKind(SyntaxKind.EndFunctionStatement) AndAlso
+                    current.Parent.Parent.IsKind(SyntaxKind.FunctionBlock)) AndAlso
                    Not DirectCast(current.Parent.Parent, MethodBlockSyntax).Statements.Any() Then
 
                     Return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines)
@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
             End If
 
             ' Introduce Line operation between 2 AttributeList
-            If currentToken.Kind = SyntaxKind.LessThanToken AndAlso currentToken.Parent IsNot Nothing AndAlso TypeOf currentToken.Parent Is AttributeListSyntax AndAlso
-               previousToken.Kind = SyntaxKind.GreaterThanToken AndAlso previousToken.Parent IsNot Nothing AndAlso TypeOf previousToken.Parent Is AttributeListSyntax Then
+            If currentToken.IsKind(SyntaxKind.LessThanToken) AndAlso currentToken.Parent IsNot Nothing AndAlso TypeOf currentToken.Parent Is AttributeListSyntax AndAlso
+               previousToken.IsKind(SyntaxKind.GreaterThanToken) AndAlso previousToken.Parent IsNot Nothing AndAlso TypeOf previousToken.Parent Is AttributeListSyntax Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
             End If
 

@@ -18,13 +18,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
             If blockKind <> SyntaxKind.None AndAlso TypeOf node Is ExitStatementSyntax Then
                 With DirectCast(node, ExitStatementSyntax)
-                    If .BlockKeyword.Kind = blockKind Then
+                    If .BlockKeyword.IsKind(blockKind) Then
                         highlights.Add(.Span)
                     End If
                 End With
             ElseIf blockKind <> SyntaxKind.None AndAlso TypeOf node Is ContinueStatementSyntax Then
                 With DirectCast(node, ContinueStatementSyntax)
-                    If .BlockKeyword.Kind = blockKind Then
+                    If .BlockKeyword.IsKind(blockKind) Then
                         highlights.Add(.Span)
                     End If
                 End With

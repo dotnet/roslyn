@@ -65,10 +65,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 
             ' find line break token if there is one
             Dim lastToken = CType(root.FindTokenOnLeftOfPosition(line.End, includeSkipped:=False), SyntaxToken)
-            lastToken = If(lastToken.Kind = SyntaxKind.EndOfFileToken, lastToken.GetPreviousToken(includeZeroWidth:=True), lastToken)
+            lastToken = If(lastToken.IsKind(SyntaxKind.EndOfFileToken), lastToken.GetPreviousToken(includeZeroWidth:=True), lastToken)
 
             ' find last token of the line
-            If lastToken.Kind = SyntaxKind.None OrElse line.End < lastToken.Span.End Then
+            If lastToken.IsKind(SyntaxKind.None) OrElse line.End < lastToken.Span.End Then
                 Return Nothing
             End If
 
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             End If
 
             Dim nextNonMissingToken = nextToken.GetNextNonZeroWidthTokenOrEndOfFile()
-            If nextNonMissingToken.Kind = SyntaxKind.EndOfFileToken Then
+            If nextNonMissingToken.IsKind(SyntaxKind.EndOfFileToken) Then
                 Return Nothing
             End If
 
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
         End Function
 
         Private Shared Function HasSkippedText(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.SkippedTokensTrivia
+            Return trivia.IsKind(SyntaxKind.SkippedTokensTrivia)
         End Function
     End Class
 End Namespace
