@@ -4966,7 +4966,7 @@ class C
                 );
 
             var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
-            Assert.False(nodes.Any(n => n.Kind() == SyntaxKind.SimpleAssignmentExpression));
+            Assert.False(nodes.Any(n => n.IsKind(SyntaxKind.SimpleAssignmentExpression)));
         }
 
         [Fact]
@@ -5089,7 +5089,7 @@ System.Console.Write(y);
             comp.VerifyDiagnostics();
 
             var nodes = comp.SyntaxTrees[0].GetCompilationUnitRoot().DescendantNodesAndSelf();
-            Assert.True(nodes.Any(n => n.Kind() == SyntaxKind.SimpleAssignmentExpression));
+            Assert.True(nodes.Any(n => n.IsKind(SyntaxKind.SimpleAssignmentExpression)));
 
             CompileAndVerify(comp, expectedOutput: "hello42");
         }
