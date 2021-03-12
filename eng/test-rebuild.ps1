@@ -89,6 +89,8 @@ try {
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Features.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Features.dll" +
   " --exclude net472\Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests.dll" +
+  " --exclude net5.0\Microsoft.CodeAnalysis.Rebuild.UnitTests.dll" +
+  " --exclude net472\Microsoft.CodeAnalysis.Rebuild.UnitTests.dll" +
   " --exclude net472\Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests.dll" +
   " --exclude net472\Microsoft.CodeAnalysis.UnitTests.dll" +
   " --exclude net5.0\Microsoft.CodeAnalysis.UnitTests.dll" +
