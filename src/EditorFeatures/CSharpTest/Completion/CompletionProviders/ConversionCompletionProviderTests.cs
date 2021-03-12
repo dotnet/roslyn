@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     public class ConversionCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
-            => typeof(ConversionCompletionProvider);
+            => typeof(UnnamedSymbolCompletionProvider);
 
         private static string FormatExplicitConversionDescription(string fromType, string toType)
         {
