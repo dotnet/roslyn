@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
                 : symbols;
 
-            var unnamedSymbols = containerType == null || _context.IsNameOfContext
+            var unnamedSymbols = containerType == null || _context.IsNameOfContext || excludeInstance
                 ? default
                 : GetUnnamedSymbols(containerType);
             return new RecommendedSymbols(namedSymbols, unnamedSymbols);
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         private void AddIndexers(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
         {
-            var containingType =_context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
+            var containingType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
             if (containingType == null)
                 return;
 
