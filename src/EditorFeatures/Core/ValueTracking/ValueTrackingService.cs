@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -35,19 +36,14 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             ISymbol symbol,
             CancellationToken cancellationToken)
         {
-            switch (symbol)
+            var referneceFinder = GetReferenceFinder(symbol);
+            if (referneceFinder is null)
             {
-                case IPropertySymbol:
-                case ILocalSymbol:
-                case IFieldSymbol:
-                    {
-                        var assignments = await TrackAssignmentsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-                        return assignments.Select(a => new ValueTrackedItem(a.Location.Location, symbol)).ToImmutableArray();
-                    }
-
-                default:
-                    return ImmutableArray<ValueTrackedItem>.Empty;
+                return ImmutableArray<ValueTrackedItem>.Empty;
             }
+
+            var assignments = await TrackAssignmentsAsync(solution, symbol, referneceFinder, cancellationToken).ConfigureAwait(false);
+            return assignments.Select(a => new ValueTrackedItem(a.Location.Location, symbol)).ToImmutableArray();
         }
 
         public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
@@ -60,7 +56,13 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             if (previousTrackedItem.PreviousTrackedItem is null)
             {
                 var symbol = previousTrackedItem.Symbol;
-                var assignments = await TrackAssignmentsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
+                var referenceFinder = GetReferenceFinder(symbol);
+                if (referenceFinder is null)
+                {
+                    return ImmutableArray<ValueTrackedItem>.Empty;
+                }
+
+                var assignments = await TrackAssignmentsAsync(solution, symbol, referenceFinder, cancellationToken).ConfigureAwait(false);
                 return assignments.Select(a => new ValueTrackedItem(a.Location.Location, symbol, previousTrackedItem: previousTrackedItem)).ToImmutableArray();
             }
 
@@ -82,13 +84,14 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         private static async Task<ImmutableArray<FinderLocation>> TrackAssignmentsAsync(
             Solution solution,
             ISymbol symbol,
+            IReferenceFinder referenceFinder,
             CancellationToken cancellationToken)
         {
             using var _ = PooledObjects.ArrayBuilder<FinderLocation>.GetInstance(out var builder);
-            var projectsToSearch = await ReferenceFinders.Property.DetermineProjectsToSearchAsync(symbol, solution, solution.Projects.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
+            var projectsToSearch = await referenceFinder.DetermineProjectsToSearchAsync(symbol, solution, solution.Projects.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
             foreach (var project in projectsToSearch)
             {
-                var documentsToSearch = await ReferenceFinders.Property.DetermineDocumentsToSearchAsync(
+                var documentsToSearch = await referenceFinder.DetermineDocumentsToSearchAsync(
                     symbol,
                     project,
                     project.Documents.ToImmutableHashSet(),
@@ -99,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 {
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                     var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var referencesInDocument = await ReferenceFinders.Property.FindReferencesInDocumentAsync(
+                    var referencesInDocument = await referenceFinder.FindReferencesInDocumentAsync(
                         symbol,
                         document,
                         semanticModel,
@@ -121,9 +124,13 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbolInfo = semanticModel.GetSymbolInfo(valueTrackedItem.ExpressionNode);
 
-            if (symbolInfo.Symbol is not null)
+            var referenceFinder = GetReferenceFinder(symbolInfo.Symbol);
+
+            if (referenceFinder is not null)
             {
-                var assignments = await TrackAssignmentsAsync(solution, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false);
+                RoslynDebug.AssertNotNull(symbolInfo.Symbol);
+
+                var assignments = await TrackAssignmentsAsync(solution, symbolInfo.Symbol, referenceFinder, cancellationToken).ConfigureAwait(false);
                 return assignments
                     .Select(a => new ValueTrackedItem(a.Location.Location, symbolInfo.Symbol, previousTrackedItem: valueTrackedItem))
                     .ToImmutableArray();
@@ -131,5 +138,14 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             return ImmutableArray<ValueTrackedItem>.Empty;
         }
+
+        private static IReferenceFinder? GetReferenceFinder(ISymbol? symbol)
+            => symbol switch
+            {
+                IPropertySymbol => ReferenceFinders.Property,
+                IFieldSymbol => ReferenceFinders.Field,
+                ILocalSymbol => ReferenceFinders.Local,
+                _ => null
+            };
     }
 }
