@@ -24,9 +24,3 @@
 "Value"=dword:00000000
 "Title"="Enable experimental C#/VB LSP completion experience"
 "PreviewPaneChannels"="IntPreview,int.main"
-
-// The option page configuration is duplicated in RoslynPackage
-// [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
-[$RootKey$\ToolWindows\{60a19d42-2dd7-43f3-be90-c7a9cb7d28f4}]
-"Name"="Microsoft.VisualStudio.LanguageServices.ValueTracking.ValueTrackingToolWindow"
-@="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
