@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ParenthesizedLambdaExpression:
                         {
                             var lambdaSyntax = (ParenthesizedLambdaExpressionSyntax)node.Syntax;
-                            if (lambdaSyntax.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
+                            if (lambdaSyntax.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
                             {
                                 Error(ErrorCode.ERR_BadAsyncExpressionTree, node);
                             }
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.SimpleLambdaExpression:
                         {
                             var lambdaSyntax = (SimpleLambdaExpressionSyntax)node.Syntax;
-                            if (lambdaSyntax.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
+                            if (lambdaSyntax.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
                             {
                                 Error(ErrorCode.ERR_BadAsyncExpressionTree, node);
                             }

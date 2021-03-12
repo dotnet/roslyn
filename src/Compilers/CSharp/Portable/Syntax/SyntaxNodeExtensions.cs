@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntax.Kind() == SyntaxKind.RefType)
             {
                 var refType = (RefTypeSyntax)syntax;
-                refKind = refType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword ?
+                refKind = refType.ReadOnlyKeyword.IsKind(SyntaxKind.ReadOnlyKeyword) ?
                     RefKind.RefReadOnly :
                     RefKind.Ref;
 

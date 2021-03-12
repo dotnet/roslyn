@@ -1380,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LambdaConversionResult.ExpressionTreeMustHaveDelegateTypeArgument;
             }
 
-            if (anonymousFunction.Syntax.Kind() == SyntaxKind.AnonymousMethodExpression)
+            if (anonymousFunction.Syntax.IsKind(SyntaxKind.AnonymousMethodExpression))
             {
                 return LambdaConversionResult.ExpressionTreeFromAnonymousMethod;
             }

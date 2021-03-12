@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             /// </summary>
             private static bool IsEndOfLine(SyntaxTrivia trivia)
             {
-                return trivia.Kind() == SyntaxKind.EndOfLineTrivia
-                    || trivia.Kind() == SyntaxKind.SingleLineCommentTrivia
+                return trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                    || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
                     || trivia.IsDirective;
             }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 foreach (var trivia in list)
                 {
-                    if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+                    if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                     {
                         return trivia;
                     }
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 // the next token gets the accrued trivia.
-                if (result.Kind() != SyntaxKind.None && _residualTrivia != null && _residualTrivia.Count > 0)
+                if (!result.IsKind(SyntaxKind.None) && _residualTrivia != null && _residualTrivia.Count > 0)
                 {
                     _residualTrivia.Add(result.LeadingTrivia);
                     result = result.WithLeadingTrivia(_residualTrivia.ToList());
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         alternate.Add(withSeps, 0, i);
                     }
 
-                    if (alternate != null && visited.Kind() != SyntaxKind.None)
+                    if (alternate != null && !visited.IsKind(SyntaxKind.None))
                     {
                         alternate.Add(visited);
                     }

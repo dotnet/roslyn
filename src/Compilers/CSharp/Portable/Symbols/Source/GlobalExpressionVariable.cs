@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 FieldSymbol containingFieldOpt,
                 SyntaxNode nodeToBind)
         {
-            Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
+            Debug.Assert(nodeToBind.IsKind(SyntaxKind.VariableDeclarator) || nodeToBind is ExpressionSyntax);
 
             var syntaxReference = syntax.GetReference();
             return (typeSyntax == null || typeSyntax.IsVar)
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxNode nodeToBind)
                 : base(containingType, modifiers, typeSyntax, name, syntax, location)
             {
-                Debug.Assert(nodeToBind.Kind() == SyntaxKind.VariableDeclarator || nodeToBind is ExpressionSyntax);
+                Debug.Assert(nodeToBind.IsKind(SyntaxKind.VariableDeclarator) || nodeToBind is ExpressionSyntax);
 
                 _containingFieldOpt = containingFieldOpt;
                 _nodeToBind = nodeToBind.GetReference();
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var nodeToBind = _nodeToBind.GetSyntax();
 
-                if ((object)_containingFieldOpt != null && nodeToBind.Kind() != SyntaxKind.VariableDeclarator)
+                if ((object)_containingFieldOpt != null && !nodeToBind.IsKind(SyntaxKind.VariableDeclarator))
                 {
                     binder = binder.WithContainingMemberOrLambda(_containingFieldOpt).WithAdditionalFlags(BinderFlags.FieldInitializer);
                 }

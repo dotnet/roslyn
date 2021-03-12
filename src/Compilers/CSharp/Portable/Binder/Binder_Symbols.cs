@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Symbol BindNamespaceAliasSymbol(IdentifierNameSyntax node, BindingDiagnosticBag diagnostics)
         {
-            if (node.Identifier.Kind() == SyntaxKind.GlobalKeyword)
+            if (node.Identifier.IsKind(SyntaxKind.GlobalKeyword))
             {
                 return this.Compilation.GlobalNamespaceAlias;
             }
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string name = null;
                 SyntaxToken nameToken = argumentSyntax.Identifier;
 
-                if (nameToken.Kind() == SyntaxKind.IdentifierToken)
+                if (nameToken.IsKind(SyntaxKind.IdentifierToken))
                 {
                     name = nameToken.ValueText;
 
@@ -2080,7 +2080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SyntaxNode node = where;
                     while (node is ExpressionSyntax)
                     {
-                        if (node.Kind() == SyntaxKind.AliasQualifiedName)
+                        if (node.IsKind(SyntaxKind.AliasQualifiedName))
                         {
                             aliasOpt = ((AliasQualifiedNameSyntax)node).Alias.Identifier.ValueText;
                             break;

@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.FinallyClause:
                         // Skip past the enclosing try to avoid a false positive.
                         node = node.Parent;
-                        Debug.Assert(node is { } && node.Kind() == SyntaxKind.TryStatement);
+                        Debug.Assert(node is { } && node.IsKind(SyntaxKind.TryStatement));
                         node = node.Parent;
                         break;
                     default:

@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // For loop constructs, only warn if we see a block following the statement.
                                 // That indicates code like:  "while (x) ; { }"
                                 // which is most likely a bug.
-                                if (emptyStatement.SemicolonToken.GetNextToken().Kind() != SyntaxKind.OpenBraceToken)
+                                if (!emptyStatement.SemicolonToken.GetNextToken().IsKind(SyntaxKind.OpenBraceToken))
                                 {
                                     break;
                                 }
@@ -2028,7 +2028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (conversion.IsExplicit)
                 {
-                    if (sourceType.SpecialType == SpecialType.System_Double && syntax.Kind() == SyntaxKind.NumericLiteralExpression &&
+                    if (sourceType.SpecialType == SpecialType.System_Double && syntax.IsKind(SyntaxKind.NumericLiteralExpression) &&
                         (targetType.SpecialType == SpecialType.System_Single || targetType.SpecialType == SpecialType.System_Decimal))
                     {
                         Error(diagnostics, ErrorCode.ERR_LiteralDoubleCast, syntax, (targetType.SpecialType == SpecialType.System_Single) ? "F" : "M", targetType);
@@ -2227,12 +2227,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
                 {
                     var nodeForError = syntax;
-                    while (nodeForError.Kind() == SyntaxKind.ParenthesizedExpression)
+                    while (nodeForError.IsKind(SyntaxKind.ParenthesizedExpression))
                     {
                         nodeForError = ((ParenthesizedExpressionSyntax)nodeForError).Expression;
                     }
 
-                    if (nodeForError.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForError.Kind() == SyntaxKind.PointerMemberAccessExpression)
+                    if (nodeForError.IsKind(SyntaxKind.SimpleMemberAccessExpression) || nodeForError.IsKind(SyntaxKind.PointerMemberAccessExpression))
                     {
                         nodeForError = ((MemberAccessExpressionSyntax)nodeForError).Name;
                     }
@@ -3215,7 +3215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsValidExpressionBody(SyntaxNode expressionSyntax, BoundExpression expression)
         {
-            return IsValidStatementExpression(expressionSyntax, expression) || expressionSyntax.Kind() == SyntaxKind.ThrowExpression;
+            return IsValidStatementExpression(expressionSyntax, expression) || expressionSyntax.IsKind(SyntaxKind.ThrowExpression);
         }
 
         /// <summary>

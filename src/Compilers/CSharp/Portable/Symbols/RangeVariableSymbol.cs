@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 SyntaxToken token = (SyntaxToken)_locations[0].SourceTree.GetRoot().FindToken(_locations[0].SourceSpan.Start);
-                Debug.Assert(token.Kind() == SyntaxKind.IdentifierToken);
+                Debug.Assert(token.IsKind(SyntaxKind.IdentifierToken));
                 CSharpSyntaxNode node = (CSharpSyntaxNode)token.Parent;
                 Debug.Assert(node is QueryClauseSyntax || node is QueryContinuationSyntax || node is JoinIntoClauseSyntax);
                 return ImmutableArray.Create<SyntaxReference>(node.GetReference());

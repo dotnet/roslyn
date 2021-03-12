@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             const int arity = 0;
 
-            string memberName = syntax.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
+            string memberName = syntax.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ImplicitKeyword)
                 ? WellKnownMemberNames.ImplicitConversionName
                 : WellKnownMemberNames.ExplicitConversionName;
 

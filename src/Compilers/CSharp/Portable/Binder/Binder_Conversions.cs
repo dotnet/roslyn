@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.ERR_InitializerAddHasWrongSignature, node.Location, memberSymbol);
                     }
-                    else if (node.Kind() == SyntaxKind.AwaitExpression && memberSymbol.Name == WellKnownMemberNames.GetAwaiter)
+                    else if (node.IsKind(SyntaxKind.AwaitExpression) && memberSymbol.Name == WellKnownMemberNames.GetAwaiter)
                     {
                         RoslynDebug.Assert(receiverOpt.Type is object);
                         diagnostics.Add(ErrorCode.ERR_BadAwaitArg, node.Location, receiverOpt.Type);
@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (InFieldInitializer && !ContainingType!.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                 {
                     SyntaxNode errorNode = node;
-                    if (node.Parent != null && node.Parent.Kind() == SyntaxKind.InvocationExpression)
+                    if (node.Parent != null && node.Parent.IsKind(SyntaxKind.InvocationExpression))
                     {
                         errorNode = node.Parent;
                     }

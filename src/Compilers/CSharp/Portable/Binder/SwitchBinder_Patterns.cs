@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var label in oldSection.SwitchLabels)
                 {
                     var newLabel = label;
-                    if (!label.HasErrors && isSubsumed(label) && label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                    if (!label.HasErrors && isSubsumed(label) && !label.Syntax.IsKind(SyntaxKind.DefaultSwitchLabel))
                     {
                         var syntax = label.Syntax;
                         switch (syntax)

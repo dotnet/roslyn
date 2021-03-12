@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.AddToMap(syntax, enclosing);
                 builder.Visit(expressionSyntax, enclosing);
             }
-            else if (syntax.Kind() != SyntaxKind.Block && (statement = syntax as StatementSyntax) != null)
+            else if (!syntax.IsKind(SyntaxKind.Block) && (statement = syntax as StatementSyntax) != null)
             {
                 CSharpSyntaxNode embeddedScopeDesignator;
                 enclosing = builder.GetBinderForPossibleEmbeddedStatement(statement, enclosing, out embeddedScopeDesignator);

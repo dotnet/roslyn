@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBinaryOperatorError(ExpressionSyntax node, BindingDiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
-            bool isEquality = operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken;
+            bool isEquality = operatorToken.IsKind(SyntaxKind.EqualsEqualsToken) || operatorToken.IsKind(SyntaxKind.ExclamationEqualsToken);
             switch (left.Kind, right.Kind)
             {
                 case (BoundKind.DefaultLiteral, _) when !isEquality:
@@ -2187,7 +2187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     if (expr.IsSuppressed)
                     {
-                        Debug.Assert(node.Operand.SkipParens().GetLastToken().Kind() == SyntaxKind.ExclamationToken);
+                        Debug.Assert(node.Operand.SkipParens().GetLastToken().IsKind(SyntaxKind.ExclamationToken));
                         Error(diagnostics, ErrorCode.ERR_DuplicateNullSuppression, expr.Syntax);
                     }
                     break;
@@ -2796,7 +2796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (node.Operand != operand.Syntax || operand.Syntax.Kind() != SyntaxKind.NumericLiteralExpression)
+            if (node.Operand != operand.Syntax || !operand.Syntax.IsKind(SyntaxKind.NumericLiteralExpression))
             {
                 return null;
             }

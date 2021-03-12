@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var attributeConstructor = boundAttribute.Constructor;
 
             RoslynDebug.Assert((object)attributeType != null);
-            Debug.Assert(boundAttribute.Syntax.Kind() == SyntaxKind.Attribute);
+            Debug.Assert(boundAttribute.Syntax.IsKind(SyntaxKind.Attribute));
 
             if (diagnostics.DiagnosticBag is object)
             {

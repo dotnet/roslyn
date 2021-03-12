@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!original.WasCompilerGenerated)
             {
                 // Do not instrument implicit constructor initializers
-                if (!original.IsConstructorInitializer() || original.Syntax.Kind() != SyntaxKind.ConstructorDeclaration)
+                if (!original.IsConstructorInitializer() || !original.Syntax.IsKind(SyntaxKind.ConstructorDeclaration))
                 {
                     return CollectDynamicAnalysis(original, rewritten);
                 }

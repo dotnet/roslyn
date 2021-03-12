@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (location.SourceSpan.Length != 0)
                 {
                     SyntaxToken token = location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
-                    if (token.Kind() != SyntaxKind.None)
+                    if (!token.IsKind(SyntaxKind.None))
                     {
                         CSharpSyntaxNode node = token.Parent.FirstAncestorOrSelf<TNode>();
                         if (node != null)

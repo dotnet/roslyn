@@ -2394,7 +2394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var trivia in triviaList)
             {
-                if (trivia.ContainsDiagnostics && trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                if (trivia.ContainsDiagnostics && trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
                 {
                     return true;
                 }

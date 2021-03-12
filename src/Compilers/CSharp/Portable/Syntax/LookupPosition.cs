@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool IsBeforeToken(int position, SyntaxToken firstExcluded)
         {
-            return firstExcluded.Kind() == SyntaxKind.None || position < firstExcluded.SpanStart;
+            return firstExcluded.IsKind(SyntaxKind.None) || position < firstExcluded.SpanStart;
         }
 
         internal static bool IsInAttributeSpecification(int position, SyntaxList<AttributeListSyntax> attributesSyntaxList)
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return initializerOpt == null ?
                 IsInBody(position, constructorDecl) :
                 IsBetweenTokens(position, initializerOpt.ColonToken,
-                                constructorDecl.SemicolonToken.Kind() == SyntaxKind.None ? constructorDecl.Body!.CloseBraceToken : constructorDecl.SemicolonToken);
+                                constructorDecl.SemicolonToken.IsKind(SyntaxKind.None) ? constructorDecl.Body!.CloseBraceToken : constructorDecl.SemicolonToken);
         }
 
         internal static bool IsInMethodTypeParameterScope(int position, MethodDeclarationSyntax methodDecl)

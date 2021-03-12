@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLambda : IBoundLambdaOrFunction
     {
-        public MessageID MessageID { get { return Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
+        public MessageID MessageID { get { return Syntax.IsKind(SyntaxKind.AnonymousMethodExpression) ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
         internal InferredLambdaReturnType InferredReturnType { get; private set; }
 
@@ -1197,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool IsStatic => _isStatic;
 
-        public override MessageID MessageID { get { return this.UnboundLambda.Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
+        public override MessageID MessageID { get { return this.UnboundLambda.Syntax.IsKind(SyntaxKind.AnonymousMethodExpression) ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
         private CSharpSyntaxNode Body
         {

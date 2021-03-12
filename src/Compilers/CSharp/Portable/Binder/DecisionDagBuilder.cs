@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (BoundSwitchLabel label in section.SwitchLabels)
                 {
-                    if (label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                    if (!label.Syntax.IsKind(SyntaxKind.DefaultSwitchLabel))
                     {
                         builder.Add(MakeTestsForPattern(++i, label.Syntax, rootIdentifier, label.Pattern, label.WhenClause, label.Label));
                     }

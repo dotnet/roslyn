@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.Local:
-                    Debug.Assert(expr.Syntax.Kind() != SyntaxKind.Argument || valueKind == BindValueKind.RefOrOut);
+                    Debug.Assert(!expr.Syntax.IsKind(SyntaxKind.Argument) || valueKind == BindValueKind.RefOrOut);
                     break;
 
                 case BoundKind.OutVariablePendingInference:

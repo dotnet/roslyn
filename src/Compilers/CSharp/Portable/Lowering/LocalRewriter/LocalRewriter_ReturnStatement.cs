@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (!node.WasCompilerGenerated ||
                  (node.ExpressionOpt != null ?
                         IsLambdaOrExpressionBodiedMember :
-                        (node.Syntax.Kind() == SyntaxKind.Block && _factory.CurrentFunction?.IsAsync == false))))
+                        (node.Syntax.IsKind(SyntaxKind.Block) && _factory.CurrentFunction?.IsAsync == false))))
             {
                 rewritten = _instrumenter.InstrumentReturnStatement(node, rewritten);
             }

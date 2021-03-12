@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: addRefReadOnlyModifier,
                 diagnostics: diagnostics);
 
-            if (arglistToken.Kind() != SyntaxKind.None)
+            if (!arglistToken.IsKind(SyntaxKind.None))
             {
                 diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
             }

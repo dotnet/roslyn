@@ -3337,7 +3337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Consider recording in the BoundArrayCreation
             // whether the array was implicitly typed, rather than relying on syntax.
-            bool isInferred = node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression;
+            bool isInferred = node.Syntax.IsKind(SyntaxKind.ImplicitArrayCreationExpression);
             var arrayType = (ArrayTypeSymbol)node.Type;
             var elementType = arrayType.ElementTypeWithAnnotations;
             if (!isInferred)
@@ -4898,7 +4898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = node.Syntax;
-            if (syntax.Kind() != SyntaxKind.InvocationExpression)
+            if (!syntax.IsKind(SyntaxKind.InvocationExpression))
             {
                 // Unexpected syntax kind.
                 return false;

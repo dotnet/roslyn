@@ -2182,7 +2182,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundSwitchLabel.WasCompilerGenerated;
             LabelSymbol label = boundSwitchLabel.Label;
 
-            if (boundSwitchLabel.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
+            if (boundSwitchLabel.Syntax.IsKind(SyntaxKind.DefaultSwitchLabel))
             {
                 Debug.Assert(boundSwitchLabel.Pattern.Kind == BoundKind.DiscardPattern);
                 return new DefaultCaseClauseOperation(label.GetPublicSymbol(), _semanticModel, syntax, isImplicit);
@@ -2214,7 +2214,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundQueryClauseOperation(BoundQueryClause boundQueryClause)
         {
-            if (boundQueryClause.Syntax.Kind() != SyntaxKind.QueryExpression)
+            if (!boundQueryClause.Syntax.IsKind(SyntaxKind.QueryExpression))
             {
                 // Currently we have no IOperation APIs for different query clauses or continuation.
                 return Create(boundQueryClause.Value);

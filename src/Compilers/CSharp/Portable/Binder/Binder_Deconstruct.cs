@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Conversion nestedConversion;
                 if (variable.NestedVariables is object)
                 {
-                    var elementSyntax = syntax.Kind() == SyntaxKind.TupleExpression ? ((TupleExpressionSyntax)syntax).Arguments[i] : syntax;
+                    var elementSyntax = syntax.IsKind(SyntaxKind.TupleExpression) ? ((TupleExpressionSyntax)syntax).Arguments[i] : syntax;
 
                     hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], elementSyntax, rightSyntax, diagnostics,
                         variable.NestedVariables, out nestedConversion);

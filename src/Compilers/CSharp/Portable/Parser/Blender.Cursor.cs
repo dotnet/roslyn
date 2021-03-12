@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 get
                 {
                     return
-                        this.CurrentNodeOrToken.Kind() == SyntaxKind.None ||
-                        this.CurrentNodeOrToken.Kind() == SyntaxKind.EndOfFileToken;
+                        this.CurrentNodeOrToken.IsKind(SyntaxKind.None) ||
+                        this.CurrentNodeOrToken.IsKind(SyntaxKind.EndOfFileToken);
                 }
             }
 
             private static bool IsNonZeroWidthOrIsEndOfFile(SyntaxNodeOrToken token)
             {
-                return token.Kind() == SyntaxKind.EndOfFileToken || token.FullWidth != 0;
+                return token.IsKind(SyntaxKind.EndOfFileToken) || token.FullWidth != 0;
             }
 
             public Cursor MoveToNextSibling()
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // do not break interpolated string nodes down into their constituent tokens, but
                 // instead replace the whole parsed interpolated string expression with its pre-parsed
                 // interpolated string token.
-                if (node.Kind() == SyntaxKind.InterpolatedStringExpression)
+                if (node.IsKind(SyntaxKind.InterpolatedStringExpression))
                 {
                     var greenToken = Lexer.RescanInterpolatedString((InterpolatedStringExpressionSyntax)node.Green);
                     var redToken = new CodeAnalysis.SyntaxToken(node.Parent, greenToken, node.Position, _indexInParent);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var cursor = this;
                 if (!cursor.IsFinished)
                 {
-                    for (var node = cursor.CurrentNodeOrToken; node.Kind() != SyntaxKind.None && !SyntaxFacts.IsAnyToken(node.Kind()); node = cursor.CurrentNodeOrToken)
+                    for (var node = cursor.CurrentNodeOrToken; !node.IsKind(SyntaxKind.None) && !SyntaxFacts.IsAnyToken(node.Kind()); node = cursor.CurrentNodeOrToken)
                     {
                         cursor = cursor.MoveToFirstChild();
                     }

@@ -1612,7 +1612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // but we want to bind them anyway for error tolerance reasons.
                     var container = GetDeclaredTypeMemberContainer(propertyOrEventDecl);
                     Debug.Assert((object)container != null);
-                    Debug.Assert(declarationSyntax.Keyword.Kind() != SyntaxKind.IdentifierToken);
+                    Debug.Assert(!declarationSyntax.Keyword.IsKind(SyntaxKind.IdentifierToken));
                     return (this.GetDeclaredMember(container, declarationSyntax.Span) as MethodSymbol).GetPublicSymbol();
 
                 default:
@@ -1708,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return OperatorFacts.OperatorNameFromDeclaration(operatorDecl);
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    if (((ConversionOperatorDeclarationSyntax)declaration).ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ExplicitKeyword)
+                    if (((ConversionOperatorDeclarationSyntax)declaration).ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ExplicitKeyword))
                     {
                         return WellKnownMemberNames.ExplicitConversionName;
                     }
@@ -2377,12 +2377,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SymbolKind.Namespace:
                             Debug.Assert(((INamespaceSymbol)declaredSymbol).IsGlobalNamespace);
                             // Do not include top level global statements into a global namespace
-                            return (node) => node.Kind() != SyntaxKind.GlobalStatement || node.Parent != unit;
+                            return (node) => !node.IsKind(SyntaxKind.GlobalStatement) || node.Parent != unit;
 
                         case SymbolKind.Method:
                             Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint);
                             // Include only global statements at the top level
-                            return (node) => node.Parent != unit || node.Kind() == SyntaxKind.GlobalStatement;
+                            return (node) => node.Parent != unit || node.IsKind(SyntaxKind.GlobalStatement);
 
                         case SymbolKind.NamedType:
                             Debug.Assert((object)declaredSymbol.GetSymbol() == (object)entryPoint.ContainingSymbol);
@@ -2422,7 +2422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
                             // Accept nodes that do not match a 'parameter list'/'base arguments list'.
                             return (node) => node != recordDeclaration.ParameterList &&
-                                             !(node.Kind() == SyntaxKind.ArgumentList && node == recordDeclaration.PrimaryConstructorBaseType?.ArgumentList);
+                                             !(node.IsKind(SyntaxKind.ArgumentList) && node == recordDeclaration.PrimaryConstructorBaseType?.ArgumentList);
 
                         default:
                             ExceptionUtilities.UnexpectedValue(declaredSymbol.Kind);
