@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (InFieldInitializer && !ContainingType!.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                 {
                     SyntaxNode errorNode = node;
-                    if (node.Parent != null && node.Parent.IsKind(SyntaxKind.InvocationExpression))
+                    if (node.Parent.IsKind(SyntaxKind.InvocationExpression))
                     {
                         errorNode = node.Parent;
                     }

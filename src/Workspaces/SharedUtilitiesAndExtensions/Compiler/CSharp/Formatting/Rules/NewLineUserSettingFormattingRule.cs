@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the anonymous Method context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression))
             {
                 if (_options.NewLinesForBracesInAnonymousMethods)
                 {
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the local function context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement))
             {
                 if (_options.NewLinesForBracesInMethods)
                 {
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the simple Lambda context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null &&
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
                (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression) || currentTokenParentParent.IsKind(SyntaxKind.ParenthesizedLambdaExpression)))
             {
                 if (_options.NewLinesForBracesInLambdaExpressionBody)

@@ -146,17 +146,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Walk up a single level to allow for typing the beginning of a lambda:
             // new AssemblyLoadEventHandler(($$
             if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.GetRequiredParent().IsKind(SyntaxKind.ParenthesizedExpression))
+                token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
             {
-                position = token.GetRequiredParent().SpanStart;
+                position = token.Parent.SpanStart;
             }
 
             // WorkItem 834609: Automatic brace completion inserts the closing paren, making it
             // like a cast.
             if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.GetRequiredParent().IsKind(SyntaxKind.CastExpression))
+                token.Parent.IsKind(SyntaxKind.CastExpression))
             {
-                position = token.GetRequiredParent().SpanStart;
+                position = token.Parent.SpanStart;
             }
 
             // In the following situation, the type inferrer will infer Task to support target type preselection

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
                 }
 
-                if (token.IsKind(SyntaxKind.StringLiteralToken) && token.Parent!.IsKind(directiveKind))
+                if (token.IsKind(SyntaxKind.StringLiteralToken) && token.Parent.IsKind(directiveKind))
                 {
                     stringLiteral = token;
                     return true;
