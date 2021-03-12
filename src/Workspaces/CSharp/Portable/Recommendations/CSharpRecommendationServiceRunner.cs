@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             AddIndexers(container, symbols);
             AddOperators(originalExpression, container, symbols);
-            AddConversions(container, symbols);
+            AddConversions(originalExpression, container, symbols);
 
             return symbols.ToImmutable();
         }

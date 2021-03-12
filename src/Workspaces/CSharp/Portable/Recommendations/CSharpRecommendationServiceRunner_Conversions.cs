@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -135,26 +137,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             SpecialType.System_SByte,
             SpecialType.System_Int16);
 
-        private void AddConversions(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
+        private void AddConversions(ExpressionSyntax originalExpression, ITypeSymbol _, ArrayBuilder<ISymbol> symbols)
         {
-            AddUserDefinedConversionsOfType(container, symbols);
-            if (container is INamedTypeSymbol namedType)
+            var semanticModel = _context.SemanticModel;
+            var container = semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
+            if (container == null)
+                return;
+
+            var containerWithoutNullable = container.RemoveNullableIfPresent();
+
+            AddUserDefinedConversionsOfType(container, containerWithoutNullable, symbols);
+            if (containerWithoutNullable is INamedTypeSymbol namedType)
             {
-                AddBuiltInNumericConversions(namedType, symbols);
-                AddBuiltInEnumConversions(namedType, symbols);
+                AddBuiltInNumericConversions(container, namedType, symbols);
+                AddBuiltInEnumConversions(container, namedType, symbols);
             }
         }
 
-        private void AddUserDefinedConversionsOfType(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
+        private void AddUserDefinedConversionsOfType(
+            ITypeSymbol container, ITypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
         {
-// https://github.com/dotnet/csharplang/blob/main/spec/expressions.md#lifted-operators
+            var compilation = _context.SemanticModel.Compilation;
+            var containerIsNullable = container.IsNullable();
 
-// Base types are valid sources for user-defined conversions.
-// Note: We only look in the source (aka container), because target could be any type (in scope) of the compilation.
-// No need to check for accessibility as operators must always be public.
-// The target type is lifted, if containerIsNullable and the target of the conversion is a struct
-
-            foreach (var type in container.GetBaseTypesAndThis())
+            foreach (var type in containerWithoutNullable.GetBaseTypesAndThis())
             {
                 foreach (var member in type.GetMembers(WellKnownMemberNames.ExplicitConversionName))
                 {
@@ -170,36 +176,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     if (!type.Equals(method.Parameters[0].Type))
                         continue;
 
-                    symbols.Add(LiftIfNecessary(method));
-                    //builder.Add(CreateSymbolCompletionItem(
-                    //    targetTypeName: method.ReturnType.ToMinimalDisplayString(semanticModel, position),
-                    //    targetTypeIsNullable: containerIsNullable && method.ReturnType.IsStructType(),
-                    //    position,
-                    //    method));
+                    // Always add the direct conversion.  It is always viable regardless if the type is nullable or not.
+                    // Optionally add the lifted conversion as well if it is viable.  In other words, if you have a
+                    // `long?` then both `(int)` and `(int?)` are supported conversions that one could use.
+                    symbols.Add(method);
+                    if (containerIsNullable && IsLiftableConversion(method))
+                        symbols.Add(LiftConversion(compilation, method));
                 }
             }
         }
 
-        private IMethodSymbol LiftIfNecessary(IMethodSymbol method)
+        private static bool IsLiftableConversion(IMethodSymbol method)
         {
-            throw new NotImplementedException();
+            // https://github.com/dotnet/csharplang/blob/main/spec/conversions.md#lifted-conversion-operators      
+            //
+            // Given a user-defined conversion operator that converts from a non-nullable value type S to a non-nullable
+            // value type T, a lifted conversion operator exists that converts from S? to T?
+            return method.ReturnType.IsNullable() && method.Parameters.Length == 1 && method.Parameters[0].Type.IsNullable();
         }
 
-        private void AddBuiltInNumericConversions(INamedTypeSymbol container, ArrayBuilder<ISymbol> symbols)
+        private static IMethodSymbol LiftConversion(Compilation compilation, IMethodSymbol method)
         {
-            if (container.SpecialType == SpecialType.System_Decimal)
+            var nullableType = compilation.GetSpecialType(SpecialType.System_Nullable_T);
+
+            var parameter = method.Parameters.Single();
+            return CodeGenerationSymbolFactory.CreateConversionSymbol(
+                method.GetAttributes(),
+                method.DeclaredAccessibility,
+                DeclarationModifiers.From(method),
+                nullableType.Construct(method.ReturnType),
+                CodeGenerationSymbolFactory.CreateParameterSymbol(parameter, type: nullableType.Construct(parameter.Type)),
+                isImplicit: method.Name == WellKnownMemberNames.ImplicitConversionName,
+                documentationCommentId: method.GetDocumentationCommentId());
+        }
+
+        private void AddBuiltInNumericConversions(
+            ITypeSymbol container, ITypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
+        {
+            if (containerWithoutNullable.SpecialType == SpecialType.System_Decimal)
             {
                 // Decimal is defined in the spec with integrated conversions, but is the only type that reports it's
                 // conversions as normal method symbols
                 return;
             }
 
-            var numericConversions = GetBuiltInNumericConversions(container);
+            var numericConversions = GetBuiltInNumericConversions(containerWithoutNullable);
             if (!numericConversions.HasValue)
                 return;
 
-            AddCompletionItemsForSpecialTypes(container, symbols, numericConversions.Value);
-
+            AddCompletionItemsForSpecialTypes(container, containerWithoutNullable, symbols, numericConversions.Value);
         }
 
         // Sorted alphabetical
@@ -222,19 +247,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             };
 
         private void AddCompletionItemsForSpecialTypes(
-            INamedTypeSymbol container, ArrayBuilder<ISymbol> symbols, ImmutableArray<SpecialType> specialTypes)
+            ITypeSymbol container, ITypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols, ImmutableArray<SpecialType> specialTypes)
         {
+            var compilation = _context.SemanticModel.Compilation;
+
             foreach (var specialType in specialTypes)
             {
                 var targetTypeSymbol = _context.SemanticModel.Compilation.GetSpecialType(specialType);
-                symbols.Add(CreateConversion(fromType: container, toType: targetTypeSymbol));
+                var conversion = CreateConversion(fromType: containerWithoutNullable, toType: targetTypeSymbol);
+                symbols.Add(conversion);
+
+                var containerIsNullable = container.IsNullable();
+                if (containerIsNullable)
+                    symbols.Add(LiftConversion(compilation, conversion));
+
                 //var targetTypeName = targetTypeSymbol.ToMinimalDisplayString(semanticModel, position);
                 //builder.Add(CreateSymbolCompletionItem(
                 //    targetTypeName, targetTypeIsNullable: containerIsNullable, position, fromType, targetTypeSymbol));
             }
         }
 
-        private static ISymbol CreateConversion(INamedTypeSymbol fromType, INamedTypeSymbol toType)
+        private static IMethodSymbol CreateConversion(ITypeSymbol fromType, ITypeSymbol toType)
         {
             return CodeGenerationSymbolFactory.CreateConversionSymbol(
                 attributes: default,
@@ -244,7 +277,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"));
         }
 
-        private void AddBuiltInEnumConversions(INamedTypeSymbol container, ArrayBuilder<ISymbol> symbols)
+        private void AddBuiltInEnumConversions(
+            ITypeSymbol container, ITypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
         {
             // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions#explicit-enumeration-conversions
             // Three kinds of conversions are defined in the spec.
@@ -254,10 +288,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // * From sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, or decimal to any enum_type.
             // * From any enum_type to any other enum_type.
 
-            // Suggest after enum members: SomeEnum.EnumMember.$$ 
-            // or on enum values: someEnumVariable.$$
-            if (container.IsEnumMember() || container.IsEnumType())
-                AddCompletionItemsForSpecialTypes(container, symbols, s_builtInEnumConversionTargets);
+            if (containerWithoutNullable.IsEnumType())
+                AddCompletionItemsForSpecialTypes(container, containerWithoutNullable, symbols, s_builtInEnumConversionTargets);
         }
     }
 }

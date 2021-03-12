@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             var containerWithoutNullable = container.RemoveNullableIfPresent();
 
-            if (IsExcludedSymbol(container))
+            if (IsExcludedOperator(container))
                 return;
 
             var containerIsNullable = container.IsNullable();
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     if (method.Name is WellKnownMemberNames.TrueOperatorName or WellKnownMemberNames.FalseOperatorName)
                         continue;
 
-                    if (containerIsNullable && !IsLiftable(method))
+                    if (containerIsNullable && !IsLiftableOperator(method))
                         continue;
 
                     symbols.Add(containerIsNullable ? LiftOperator(compilation, method) : method);
@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
         }
 
-        private static bool IsExcludedSymbol(ITypeSymbol container)
+        private static bool IsExcludedOperator(ITypeSymbol container)
         {
             return container.IsSpecialType() ||
                 container.SpecialType == SpecialType.System_IntPtr ||
                 container.SpecialType == SpecialType.System_UIntPtr;
         }
 
-        private static bool IsLiftable(IMethodSymbol symbol)
+        private static bool IsLiftableOperator(IMethodSymbol symbol)
         {
             // https://github.com/dotnet/csharplang/blob/main/spec/expressions.md#lifted-operators
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 nullableType.Construct(symbol.ReturnType),
                 GetOperatorKind(symbol.Name),
                 symbol.Parameters.SelectAsArray(
-                    p => CodeGenerationSymbolFactory.CreateParameterSymbol(nullableType.Construct(p.Type), p.Name)),
+                    p => CodeGenerationSymbolFactory.CreateParameterSymbol(p, type: nullableType.Construct(p.Type))),
                 returnTypeAttributes: symbol.GetReturnTypeAttributes(),
                 documentationCommentId: symbol.GetDocumentationCommentId());
         }
