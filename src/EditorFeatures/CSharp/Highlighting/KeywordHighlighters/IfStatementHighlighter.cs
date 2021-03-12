@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting
         protected override void AddHighlights(
             IfStatementSyntax ifStatement, List<TextSpan> highlights, CancellationToken cancellationToken)
         {
-            if (ifStatement.Parent.Kind() != SyntaxKind.ElseClause)
+            if (!ifStatement.Parent.IsKind(SyntaxKind.ElseClause))
             {
                 ComputeSpans(ifStatement, highlights);
             }

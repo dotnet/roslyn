@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 if (currentToken.Parent != null)
                 {
                     var currentTokenParentParent = currentToken.Parent.Parent;
-                    if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null &&
-                        (currentTokenParentParent.Kind() == SyntaxKind.SimpleLambdaExpression ||
-                         currentTokenParentParent.Kind() == SyntaxKind.ParenthesizedLambdaExpression ||
-                         currentTokenParentParent.Kind() == SyntaxKind.AnonymousMethodExpression))
+                    if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null &&
+                        (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression) ||
+                         currentTokenParentParent.IsKind(SyntaxKind.ParenthesizedLambdaExpression) ||
+                         currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression)))
                     {
                         return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
                     }

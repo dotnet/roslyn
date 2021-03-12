@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             //                                  |
             //                               }
             //      To support this, we treat `shift + enter` like `enter` here.
-            var afterOpenBrace = startToken.Kind() == SyntaxKind.OpenBraceToken
-                  && endToken.Kind() == SyntaxKind.CloseBraceToken
+            var afterOpenBrace = startToken.IsKind(SyntaxKind.OpenBraceToken)
+                  && endToken.IsKind(SyntaxKind.CloseBraceToken)
                   && tokenToLeft == startToken
                   && endToken.Parent.IsKind(SyntaxKind.Block)
                   && FormattingRangeHelper.AreTwoTokensOnSameLine(startToken, endToken);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             var startToken = ranges.Value.Item1;
-            if (startToken.IsMissing || startToken.Kind() == SyntaxKind.None)
+            if (startToken.IsMissing || startToken.IsKind(SyntaxKind.None))
             {
                 return null;
             }
@@ -234,12 +234,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
             // make sure there is no open string literals
             var previousToken = lastToken.GetPreviousToken();
-            if (previousToken.Kind() == SyntaxKind.StringLiteralToken && previousToken.ToString().Last() != '"')
+            if (previousToken.IsKind(SyntaxKind.StringLiteralToken) && previousToken.ToString().Last() != '"')
             {
                 return false;
             }
 
-            if (previousToken.Kind() == SyntaxKind.CharacterLiteralToken && previousToken.ToString().Last() != '\'')
+            if (previousToken.IsKind(SyntaxKind.CharacterLiteralToken) && previousToken.ToString().Last() != '\'')
             {
                 return false;
             }
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             }
 
             // if we already have last semicolon, we don't need to do anything
-            if (!lastToken.IsMissing && lastToken.Kind() == SyntaxKind.SemicolonToken)
+            if (!lastToken.IsMissing && lastToken.IsKind(SyntaxKind.SemicolonToken))
             {
                 return false;
             }
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         {
             // make sure caret position is somewhere we can find a token
             var token = root.FindTokenFromEnd(position);
-            if (token.Kind() == SyntaxKind.None)
+            if (token.IsKind(SyntaxKind.None))
             {
                 return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
             }
