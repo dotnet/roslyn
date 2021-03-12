@@ -57,13 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // The latter two are the hard cases we don't actually have an 
             // DisabledTextTrivia yet. 
             var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
-            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
+            if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
             {
                 return true;
             }
 
             var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
-            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            if (token.IsKind(SyntaxKind.EndOfFileToken))
             {
                 var triviaList = token.LeadingTrivia;
                 foreach (var triviaTok in triviaList.Reverse())
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var index = 0;
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            if (token.Kind() == SyntaxKind.None)
+            if (token.IsKind(SyntaxKind.None))
             {
                 return false;
             }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             // name before that and we're done!
                             lessThanToken = token;
                             token = token.GetPreviousToken(includeSkipped: true);
-                            if (token.Kind() == SyntaxKind.None)
+                            if (token.IsKind(SyntaxKind.None))
                             {
                                 return false;
                             }
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             // but we need to know the simple name that precedes the <
                             // it could be
                             // ~~~~~~goo<a,b,...
-                            if (token.Kind() == SyntaxKind.IdentifierToken)
+                            if (token.IsKind(SyntaxKind.IdentifierToken))
                             {
                                 // okay now check whether it is actually partially written
                                 if (IsFullyWrittenGeneric(token, lessThanToken))
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // statement "Func<A" with missing semicolon, expression statement "B" with missing
                 // semicolon, and the "," is skipped.
                 token = token.GetPreviousToken(includeSkipped: true);
-                if (token.Kind() == SyntaxKind.None)
+                if (token.IsKind(SyntaxKind.None))
                 {
                     return false;
                 }

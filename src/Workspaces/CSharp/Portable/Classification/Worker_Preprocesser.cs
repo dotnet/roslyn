@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             foreach (var trivia in lastToken.TrailingTrivia)
             {
                 // skip initial whitespace
-                if (trivia.Kind() == SyntaxKind.WhitespaceTrivia)
+                if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                 {
                     continue;
                 }
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyPreprocessorTrivia(SyntaxTrivia trivia, bool allowComments)
         {
-            if (allowComments && trivia.Kind() == SyntaxKind.SingleLineCommentTrivia)
+            if (allowComments && trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
             {
                 AddClassification(trivia, ClassificationTypeNames.Comment);
             }
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     break;
             }
 
-            if (node.File.Kind() != SyntaxKind.None)
+            if (!node.File.IsKind(SyntaxKind.None))
             {
                 AddClassification(node.File, ClassificationTypeNames.StringLiteral);
             }

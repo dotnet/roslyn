@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     while (current.FullSpan.Contains(spanStart))
                     {
-                        if (current.Kind() == _kind && current.Span == Span)
+                        if (current.IsKind(_kind) && current.Span == Span)
                         {
                             return current;
                         }

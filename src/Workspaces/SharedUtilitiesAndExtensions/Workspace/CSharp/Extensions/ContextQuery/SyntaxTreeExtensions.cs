@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 var usingDirective = token.GetAncestor<UsingDirectiveSyntax>();
                 if (usingDirective != null)
                 {
-                    if (token.GetNextToken(includeSkipped: true).Kind() != SyntaxKind.EqualsToken &&
+                    if (!token.GetNextToken(includeSkipped: true).IsKind(SyntaxKind.EqualsToken) &&
                         usingDirective.Alias == null)
                     {
                         return true;
@@ -1001,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Kind() != SyntaxKind.LessThanToken && token.Kind() != SyntaxKind.CommaToken)
+            if (!token.IsKind(SyntaxKind.LessThanToken) && !token.IsKind(SyntaxKind.CommaToken))
             {
                 return false;
             }
@@ -2569,7 +2569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // but not: [return |
             if (token.IsKind(SyntaxKind.ReturnKeyword))
             {
-                if (token.GetPreviousToken(includeSkipped: true).Kind() != SyntaxKind.OpenBracketToken)
+                if (!token.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.OpenBracketToken))
                 {
                     return true;
                 }

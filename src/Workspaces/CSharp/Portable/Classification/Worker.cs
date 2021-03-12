@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     AddClassification(span, type);
 
                     // Additionally classify static symbols
-                    if (token.Kind() == SyntaxKind.IdentifierToken
+                    if (token.IsKind(SyntaxKind.IdentifierToken)
                         && ClassificationHelpers.IsStaticallyDeclared(token))
                     {
                         AddClassification(span, ClassificationTypeNames.StaticSymbol);
@@ -234,8 +234,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         {
             var index = triviaList.IndexOf(trivia);
             if (index >= 2 &&
-                triviaList[index - 1].Kind() == SyntaxKind.EndOfLineTrivia &&
-                triviaList[index - 2].Kind() == SyntaxKind.ConflictMarkerTrivia)
+                triviaList[index - 1].IsKind(SyntaxKind.EndOfLineTrivia) &&
+                triviaList[index - 2].IsKind(SyntaxKind.ConflictMarkerTrivia))
             {
                 // for the ======== add a comment for the first line, and then lex all
                 // subsequent lines up until the end of the conflict marker.

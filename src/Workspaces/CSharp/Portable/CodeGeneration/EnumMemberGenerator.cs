@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 members.Add(member);
             }
-            else if (members.LastOrDefault().Kind() == SyntaxKind.CommaToken)
+            else if (members.LastOrDefault().IsKind(SyntaxKind.CommaToken))
             {
                 members.Add(member);
                 members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));

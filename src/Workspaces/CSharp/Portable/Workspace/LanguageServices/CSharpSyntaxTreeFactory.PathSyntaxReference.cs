@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    System.Diagnostics.Debug.Assert(node.Kind() == _kind);
+                    System.Diagnostics.Debug.Assert(node.IsKind(_kind));
                     System.Diagnostics.Debug.Assert(node.Span == _textSpan);
 
                     return node;

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var baseListTypes = SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
 
-            var isPartialType = typeNode.Modifiers.Any(m => m.Kind() == SyntaxKind.PartialKeyword);
+            var isPartialType = typeNode.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));
             if (isPartialType)
             {
                 var typeSymbol = model.GetDeclaredSymbol(typeNode, cancellationToken);

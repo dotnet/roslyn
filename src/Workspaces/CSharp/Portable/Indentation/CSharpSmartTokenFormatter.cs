@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         public IList<TextChange> FormatRange(
             Workspace workspace, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(startToken.Kind() == SyntaxKind.None || startToken.Kind() == SyntaxKind.EndOfFileToken);
-            Contract.ThrowIfTrue(endToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.EndOfFileToken);
+            Contract.ThrowIfTrue(startToken.IsKind(SyntaxKind.None) || startToken.IsKind(SyntaxKind.EndOfFileToken));
+            Contract.ThrowIfTrue(endToken.IsKind(SyntaxKind.None) || endToken.IsKind(SyntaxKind.EndOfFileToken));
 
             var smartTokenformattingRules = _formattingRules;
             var common = startToken.GetCommonRoot(endToken);
@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         public async Task<IList<TextChange>> FormatTokenAsync(
             Workspace workspace, SyntaxToken token, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None || token.Kind() == SyntaxKind.EndOfFileToken);
+            Contract.ThrowIfTrue(token.IsKind(SyntaxKind.None) || token.IsKind(SyntaxKind.EndOfFileToken));
 
             // get previous token
             var previousToken = token.GetPreviousToken(includeZeroWidth: true);
-            if (previousToken.Kind() == SyntaxKind.None)
+            if (previousToken.IsKind(SyntaxKind.None))
             {
                 // no previous token. nothing to format
                 return SpecializedCollections.EmptyList<TextChange>();

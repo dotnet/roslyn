@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // then still ask to format its close curly to make sure all the 
                     // curlies up the stack are properly formatted.
                     var braces = rewritten.GetBraces();
-                    if (braces.openBrace.Kind() == SyntaxKind.None &&
-                        braces.closeBrace.Kind() == SyntaxKind.None)
+                    if (braces.openBrace.IsKind(SyntaxKind.None) &&
+                        braces.closeBrace.IsKind(SyntaxKind.None))
                     {
                         // Not an item with braces.  Just pass it up.
                         return rewritten;

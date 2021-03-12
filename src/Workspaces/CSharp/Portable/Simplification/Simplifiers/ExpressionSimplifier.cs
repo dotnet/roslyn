@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             var constructor = memberAccess.Ancestors().OfType<ConstructorDeclarationSyntax>().SingleOrDefault();
 
-            if (constructor == null || constructor.Parent.Kind() != SyntaxKind.StructDeclaration)
+            if (constructor == null || !constructor.Parent.IsKind(SyntaxKind.StructDeclaration))
             {
                 return false;
             }
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                 var symbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
 
-                if (previousToken.Kind() == SyntaxKind.OpenParenToken &&
+                if (previousToken.IsKind(SyntaxKind.OpenParenToken) &&
                     previousToken.Parent.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax parenExpr) &&
                     !parenExpr.IsParentKind(SyntaxKind.ParenthesizedExpression) &&
                     parenExpr.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression &&
@@ -542,10 +542,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             {
                 var nextToken = parent.Parent.GetLastToken().GetNextToken();
 
-                return nextToken.Kind() == SyntaxKind.OpenParenToken ||
-                    nextToken.Kind() == SyntaxKind.TildeToken ||
-                    nextToken.Kind() == SyntaxKind.ExclamationToken ||
-                    (SyntaxFacts.IsKeywordKind(nextToken.Kind()) && !(nextToken.Kind() == SyntaxKind.AsKeyword || nextToken.Kind() == SyntaxKind.IsKeyword));
+                return nextToken.IsKind(SyntaxKind.OpenParenToken) ||
+                    nextToken.IsKind(SyntaxKind.TildeToken) ||
+                    nextToken.IsKind(SyntaxKind.ExclamationToken) ||
+                    (SyntaxFacts.IsKeywordKind(nextToken.Kind()) && !(nextToken.IsKind(SyntaxKind.AsKeyword) || nextToken.IsKind(SyntaxKind.IsKeyword)));
             }
 
             return false;

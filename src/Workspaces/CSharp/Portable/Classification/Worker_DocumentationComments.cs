@@ -152,11 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyXmlTextToken(SyntaxToken token)
         {
-            if (token.Kind() == SyntaxKind.XmlEntityLiteralToken)
+            if (token.IsKind(SyntaxKind.XmlEntityLiteralToken))
             {
                 AddClassification(token, ClassificationTypeNames.XmlDocCommentEntityReference);
             }
-            else if (token.Kind() != SyntaxKind.XmlTextLiteralNewLineToken)
+            else if (!token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
             {
                 RoslynDebug.Assert(token.Parent is object);
                 switch (token.Parent.Kind())
