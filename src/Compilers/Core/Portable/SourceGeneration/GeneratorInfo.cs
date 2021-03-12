@@ -12,12 +12,15 @@ namespace Microsoft.CodeAnalysis
 
         internal Action<GeneratorPostInitializationContext>? PostInitCallback { get; }
 
+        internal Action<GeneratorPipelineRegistrationContext>? PipelineCallback { get; }
+
         internal bool Initialized { get; }
 
-        internal GeneratorInfo(SyntaxContextReceiverCreator? receiverCreator, Action<GeneratorPostInitializationContext>? postInitCallback)
+        internal GeneratorInfo(SyntaxContextReceiverCreator? receiverCreator, Action<GeneratorPostInitializationContext>? postInitCallback, Action<GeneratorPipelineRegistrationContext>? pipelineCallback)
         {
             SyntaxContextReceiverCreator = receiverCreator;
             PostInitCallback = postInitCallback;
+            PipelineCallback = pipelineCallback;
             Initialized = true;
         }
 
@@ -27,7 +30,9 @@ namespace Microsoft.CodeAnalysis
 
             internal Action<GeneratorPostInitializationContext>? PostInitCallback { get; set; }
 
-            public GeneratorInfo ToImmutable() => new GeneratorInfo(SyntaxContextReceiverCreator, PostInitCallback);
+            internal Action<GeneratorPipelineRegistrationContext>? PipelineCallback { get; set; }
+
+            public GeneratorInfo ToImmutable() => new GeneratorInfo(SyntaxContextReceiverCreator, PostInitCallback, PipelineCallback);
         }
     }
 }

@@ -39,6 +39,25 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
+    internal class PipelineGenerator : ISourceGenerator
+    {
+        private readonly Action<GeneratorPipelineRegistrationContext> _callback;
+
+        public PipelineGenerator(Action<GeneratorPipelineRegistrationContext> callback)
+        {
+            _callback = callback;
+        }
+
+        public void Execute(GeneratorExecutionContext context)
+        {
+        }
+
+        public void Initialize(GeneratorInitializationContext context)
+        {
+            context.RegisterForPipelineExecution(_callback);
+        }
+    }
+
     internal class CallbackGenerator : ISourceGenerator
     {
         private readonly Action<GeneratorInitializationContext> _onInit;

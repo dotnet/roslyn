@@ -177,6 +177,24 @@ namespace Microsoft.CodeAnalysis
                                          ? new GeneratorState(generatorState.Info, ParseAdditionalSources(generator, sourcesCollection.ToImmutableAndFree(), cancellationToken))
                                          : SetGeneratorException(MessageProvider, generatorState, generator, ex, diagnosticsBag, isInit: true);
                     }
+
+                    // create the pipeline if requested
+                    if (generatorState.Info.PipelineCallback is object)
+                    {
+                        var pipelineContext = new GeneratorPipelineRegistrationContext(cancellationToken);
+                        try
+                        {
+                            generatorState.Info.PipelineCallback(pipelineContext);
+                        }
+                        catch (Exception e)
+                        {
+                            ex = e;
+                        }
+
+                        generatorState = ex is null
+                                         ? generatorState //TODO: update the state with the pipeline
+                                         : SetGeneratorException(MessageProvider, generatorState, generator, ex, diagnosticsBag, isInit: true);
+                    }
                 }
 
                 // create the syntax receiver if requested

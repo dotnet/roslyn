@@ -1,7 +1,11 @@
 Microsoft.CodeAnalysis.GeneratorAttribute.GeneratorAttribute(string! firstLanguage, params string![]! additionalLanguages) -> void
 Microsoft.CodeAnalysis.GeneratorAttribute.Languages.get -> string![]!
 Microsoft.CodeAnalysis.GeneratorExecutionContext.SyntaxContextReceiver.get -> Microsoft.CodeAnalysis.ISyntaxContextReceiver?
+Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPipelineExecution(System.Action<Microsoft.CodeAnalysis.GeneratorPipelineRegistrationContext>! callback) -> void
 Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForSyntaxNotifications(Microsoft.CodeAnalysis.SyntaxContextReceiverCreator! receiverCreator) -> void
+Microsoft.CodeAnalysis.GeneratorPipelineRegistrationContext
+Microsoft.CodeAnalysis.GeneratorPipelineRegistrationContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.GeneratorPipelineRegistrationContext.GeneratorPipelineRegistrationContext() -> void
 Microsoft.CodeAnalysis.GeneratorSyntaxContext
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.GeneratorSyntaxContext() -> void
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.Node.get -> Microsoft.CodeAnalysis.SyntaxNode!

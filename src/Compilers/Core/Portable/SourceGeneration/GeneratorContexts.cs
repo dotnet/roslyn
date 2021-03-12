@@ -181,6 +181,16 @@ namespace Microsoft.CodeAnalysis
             InfoBuilder.PostInitCallback = callback;
         }
 
+        /// <summary>
+        /// Register this generator for pipeline based execution
+        /// </summary>
+        /// <param name="callback">A callback that is invoked to register the pipeline</param>
+        public void RegisterForPipelineExecution(Action<GeneratorPipelineRegistrationContext> callback)
+        {
+            CheckIsEmpty(InfoBuilder.PipelineCallback);
+            InfoBuilder.PipelineCallback = callback;
+        }
+
         private static void CheckIsEmpty<T>(T x, string? typeName = null) where T : class?
         {
             if (x is object)
@@ -243,5 +253,21 @@ namespace Microsoft.CodeAnalysis
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
         public void AddSource(string hintName, SourceText sourceText) => _additionalSources.Add(hintName, sourceText);
+    }
+
+    /// <summary>
+    /// Context passed to the generator when registering for pipeline based execution
+    /// </summary>
+    public readonly struct GeneratorPipelineRegistrationContext
+    {
+        internal GeneratorPipelineRegistrationContext(CancellationToken cancellationToken)
+        {
+            CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the PostInitialization should be cancelled.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
     }
 }
