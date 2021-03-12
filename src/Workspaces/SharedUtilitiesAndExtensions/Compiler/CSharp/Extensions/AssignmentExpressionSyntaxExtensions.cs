@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var left = assignment.Left;
             return assignment.Kind() == SyntaxKind.SimpleAssignmentExpression &&
-                   assignment.OperatorToken.Kind() == SyntaxKind.EqualsToken &&
+                   assignment.OperatorToken.IsKind(SyntaxKind.EqualsToken) &&
                    (left.Kind() == SyntaxKind.TupleExpression || left.Kind() == SyntaxKind.DeclarationExpression);
         }
     }

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static SyntaxTrivia? GetFirstNewLine(this SyntaxTriviaList triviaList)
         {
             return triviaList
-                .Where(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
+                .Where(t => t.IsKind(SyntaxKind.EndOfLineTrivia))
                 .FirstOrNull();
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)
-            => triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
+            => triviaList.SkipWhile(t => t.IsKind(SyntaxKind.WhitespaceTrivia));
 
         private static ImmutableArray<ImmutableArray<SyntaxTrivia>> GetLeadingBlankLines(SyntaxTriviaList triviaList)
         {
@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             foreach (var trivia in triviaList)
             {
                 currentLine.Add(trivia);
-                if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                 {
                     var currentLineIsBlank = currentLine.All(static t =>
-                        t.Kind() == SyntaxKind.EndOfLineTrivia ||
-                        t.Kind() == SyntaxKind.WhitespaceTrivia);
+                        t.IsKind(SyntaxKind.EndOfLineTrivia) ||
+                        t.IsKind(SyntaxKind.WhitespaceTrivia));
                     if (!currentLineIsBlank)
                     {
                         break;

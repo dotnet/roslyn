@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 foreach (var trivia in list)
                 {
-                    Contract.ThrowIfTrue(trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-                    Contract.ThrowIfTrue(trivia.Kind() == SyntaxKind.SkippedTokensTrivia);
-                    Contract.ThrowIfTrue(trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia);
+                    Contract.ThrowIfTrue(trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+                    Contract.ThrowIfTrue(trivia.IsKind(SyntaxKind.SkippedTokensTrivia));
+                    Contract.ThrowIfTrue(trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia));
 
                     // if it contains elastic trivia, always format
                     if (trivia.IsElastic())
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         return true;
                     }
 
-                    if (trivia.Kind() == SyntaxKind.WhitespaceTrivia)
+                    if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                     {
                         Debug.Assert(trivia.ToString() == trivia.ToFullString());
                         var text = trivia.ToString();
@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         return false;
                     }
 
-                    if (trivia.Kind() == SyntaxKind.RegionDirectiveTrivia ||
-                        trivia.Kind() == SyntaxKind.EndRegionDirectiveTrivia ||
+                    if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) ||
+                        trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) ||
                         SyntaxFacts.IsPreprocessorDirective(trivia.Kind()))
                     {
                         return false;
@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 foreach (var trivia in list)
                 {
-                    if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia ||
-                        trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia)
+                    if (trivia.IsKind(SyntaxKind.SkippedTokensTrivia) ||
+                        trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia))
                     {
                         return true;
                     }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private bool OnWhitespace(SyntaxTrivia trivia)
             {
-                if (trivia.Kind() != SyntaxKind.WhitespaceTrivia)
+                if (!trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                 {
                     return false;
                 }
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private bool OnEndOfLine(SyntaxTrivia trivia, int currentIndex)
             {
-                if (trivia.Kind() != SyntaxKind.EndOfLineTrivia)
+                if (!trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                 {
                     return false;
                 }
@@ -200,8 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private static bool OnSkippedTokensOrText(SyntaxTrivia trivia)
             {
-                if (trivia.Kind() != SyntaxKind.SkippedTokensTrivia &&
-                    trivia.Kind() != SyntaxKind.PreprocessingMessageTrivia)
+                if (!trivia.IsKind(SyntaxKind.SkippedTokensTrivia) &&
+                    !trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia))
                 {
                     return false;
                 }
@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private bool OnRegion(SyntaxTrivia trivia, int currentIndex)
             {
-                if (trivia.Kind() != SyntaxKind.RegionDirectiveTrivia &&
-                    trivia.Kind() != SyntaxKind.EndRegionDirectiveTrivia)
+                if (!trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) &&
+                    !trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
                 {
                     return false;
                 }
@@ -256,8 +256,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private bool OnTouchedNoisyCharacter(SyntaxTrivia trivia)
             {
                 if (trivia.IsElastic() ||
-                    trivia.Kind() == SyntaxKind.WhitespaceTrivia ||
-                    trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+                    trivia.IsKind(SyntaxKind.WhitespaceTrivia) ||
+                    trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                 {
                     return false;
                 }
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 {
                     foreach (var xmlTrivia in token.LeadingTrivia)
                     {
-                        if (xmlTrivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia)
+                        if (xmlTrivia.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia))
                         {
                             // skip first one since its leading whitespace will belong to syntax tree's syntax token
                             // not xml doc comment's token

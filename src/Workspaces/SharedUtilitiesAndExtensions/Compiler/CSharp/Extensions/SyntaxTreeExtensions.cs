@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Kind() == SyntaxKind.None)
+            if (token.IsKind(SyntaxKind.None))
             {
                 return false;
             }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsRightOfNumericLiteral(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            return token.Kind() == SyntaxKind.NumericLiteralToken;
+            return token.IsKind(SyntaxKind.NumericLiteralToken);
         }
 
         public static bool IsAfterKeyword(this SyntaxTree syntaxTree, int position, SyntaxKind kind, CancellationToken cancellationToken)
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            return token.Kind() == kind;
+            return token.IsKind(kind);
         }
 
         public static bool IsEntirelyWithinNonUserCodeComment(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 RoslynDebug.Assert(trivia.HasStructure);
 
                 var fullSpan = trivia.FullSpan;
-                var endsWithNewLine = trivia.GetStructure()!.GetLastToken(includeSkipped: true).Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
+                var endsWithNewLine = trivia.GetStructure()!.GetLastToken(includeSkipped: true).IsKind(SyntaxKind.XmlTextLiteralNewLineToken);
 
                 if (endsWithNewLine)
                 {
@@ -301,13 +301,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken);
 
-            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
             {
                 // Check if we're on the newline right at the end of a comment
                 trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken);
             }
 
-            return trivia.Kind() == SyntaxKind.ConflictMarkerTrivia;
+            return trivia.IsKind(SyntaxKind.ConflictMarkerTrivia);
         }
 
         public static bool IsEntirelyWithinTopLevelSingleLineComment(
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken);
 
-            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
             {
                 // Check if we're on the newline right at the end of a comment
                 trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken);
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // single-line comments at the end of preprocessor directives.
             var trivia = syntaxTree.FindTriviaAndAdjustForEndOfFile(position, cancellationToken, findInsideTrivia: true);
 
-            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
             {
                 // Check if we're on the newline right at the end of a comment
                 trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken, findInsideTrivia: true);
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 token = root.EndOfFileToken.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.Kind() == SyntaxKind.CharacterLiteralToken)
+            if (token.IsKind(SyntaxKind.CharacterLiteralToken))
             {
                 var span = token.Span;
 

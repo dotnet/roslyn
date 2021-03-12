@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             private void Add(SyntaxToken syntaxToken)
             {
-                if (syntaxToken.Kind() == SyntaxKind.IdentifierToken)
+                if (syntaxToken.IsKind(SyntaxKind.IdentifierToken))
                 {
                     var identifier = syntaxToken.ValueText;
                     if (!_map.TryGetValue(identifier, out var list))

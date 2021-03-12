@@ -26,17 +26,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
             {
                 // this doesn't take care of all cases where tokens belong to structured trivia. this is only for cases we care
-                if (previousToken.Kind() == SyntaxKind.HashToken && SyntaxFacts.IsPreprocessorKeyword(currentToken.Kind()))
+                if (previousToken.IsKind(SyntaxKind.HashToken) && SyntaxFacts.IsPreprocessorKeyword(currentToken.Kind()))
                 {
                     return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
 
-                if (previousToken.Kind() == SyntaxKind.RegionKeyword && currentToken.Kind() == SyntaxKind.EndOfDirectiveToken)
+                if (previousToken.IsKind(SyntaxKind.RegionKeyword) && currentToken.IsKind(SyntaxKind.EndOfDirectiveToken))
                 {
                     return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.PreserveSpaces);
                 }
 
-                if (currentToken.Kind() == SyntaxKind.EndOfDirectiveToken)
+                if (currentToken.IsKind(SyntaxKind.EndOfDirectiveToken))
                 {
                     return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }

@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsRightOfCloseParen(this ExpressionSyntax expression)
         {
             var firstToken = expression.GetFirstToken();
-            return firstToken.Kind() != SyntaxKind.None
-                && firstToken.GetPreviousToken().Kind() == SyntaxKind.CloseParenToken;
+            return !firstToken.IsKind(SyntaxKind.None)
+                && firstToken.GetPreviousToken().IsKind(SyntaxKind.CloseParenToken);
         }
 
         public static bool IsLeftSideOfDot(this ExpressionSyntax expression)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return
                 expression?.Parent is ArgumentSyntax argument &&
                 argument.Expression == expression &&
-                argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
+                argument.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword);
         }
 
         public static bool IsInRefContext(this ExpressionSyntax expression)
@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // is some form of member binding expression and they cannot be replaced with an LValue.
             if (expression.IsKind(SyntaxKind.ConditionalAccessExpression))
             {
-                return expression.Parent.Kind() != SyntaxKind.ConditionalAccessExpression;
+                return !expression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression);
             }
 
             switch (expression.Parent.Kind())

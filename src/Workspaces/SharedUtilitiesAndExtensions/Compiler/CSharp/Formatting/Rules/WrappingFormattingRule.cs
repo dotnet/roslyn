@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken startToken,
             SyntaxToken endToken)
         {
-            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
+            if (startToken.IsKind(SyntaxKind.None) || endToken.IsKind(SyntaxKind.None))
             {
                 return;
             }

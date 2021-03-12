@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public static bool CanSpeculateOnNode(SyntaxNode node)
         {
-            return (node is StatementSyntax && node.Kind() != SyntaxKind.Block) ||
+            return (node is StatementSyntax && !node.IsKind(SyntaxKind.Block)) ||
                 node is TypeSyntax ||
                 node is CrefSyntax ||
-                node.Kind() == SyntaxKind.Attribute ||
-                node.Kind() == SyntaxKind.ThisConstructorInitializer ||
-                node.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                node.Kind() == SyntaxKind.EqualsValueClause ||
-                node.Kind() == SyntaxKind.ArrowExpressionClause;
+                node.IsKind(SyntaxKind.Attribute) ||
+                node.IsKind(SyntaxKind.ThisConstructorInitializer) ||
+                node.IsKind(SyntaxKind.BaseConstructorInitializer) ||
+                node.IsKind(SyntaxKind.EqualsValueClause) ||
+                node.IsKind(SyntaxKind.ArrowExpressionClause);
         }
 
         protected override void ValidateSpeculativeSemanticModel(SemanticModel speculativeSemanticModel, SyntaxNode nodeToSpeculate)
@@ -291,11 +291,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // If replacing the node will result in a broken binary expression, we won't remove it.
                 return ReplacementBreaksBinaryExpression(binaryExpression, (BinaryExpressionSyntax)currentReplacedNode);
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.LogicalNotExpression)
+            else if (currentOriginalNode.IsKind(SyntaxKind.LogicalNotExpression))
             {
                 return !TypesAreCompatible(((PrefixUnaryExpressionSyntax)currentOriginalNode).Operand, ((PrefixUnaryExpressionSyntax)currentReplacedNode).Operand);
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.ConditionalAccessExpression)
+            else if (currentOriginalNode.IsKind(SyntaxKind.ConditionalAccessExpression))
             {
                 return ReplacementBreaksConditionalAccessExpression((ConditionalAccessExpressionSyntax)currentOriginalNode, (ConditionalAccessExpressionSyntax)currentReplacedNode);
             }
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return ReplacementBreaksQueryClause(queryClause, (QueryClauseSyntax)currentReplacedNode);
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.VariableDeclarator)
+            else if (currentOriginalNode.IsKind(SyntaxKind.VariableDeclarator))
             {
                 // Heuristic: If replacing the node will result in changing the type of a local variable
                 // that is type-inferred, we won't remove it. It's possible to do this analysis, but it's
@@ -491,12 +491,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var newCtorInitializer = (ConstructorInitializerSyntax)currentReplacedNode;
                 return ReplacementBreaksConstructorInitializer(originalCtorInitializer, newCtorInitializer);
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.CollectionInitializerExpression)
+            else if (currentOriginalNode.IsKind(SyntaxKind.CollectionInitializerExpression))
             {
                 return previousOriginalNode != null &&
                     ReplacementBreaksCollectionInitializerAddMethod((ExpressionSyntax)previousOriginalNode, (ExpressionSyntax)previousReplacedNode);
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
+            else if (currentOriginalNode.IsKind(SyntaxKind.ImplicitArrayCreationExpression))
             {
                 return !TypesAreCompatible((ImplicitArrayCreationExpressionSyntax)currentOriginalNode, (ImplicitArrayCreationExpressionSyntax)currentReplacedNode);
             }
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var replacedAnonymousObjectMemberDeclarator = (AnonymousObjectMemberDeclaratorSyntax)currentReplacedNode;
                 return ReplacementBreaksAnonymousObjectMemberDeclarator(originalAnonymousObjectMemberDeclarator, replacedAnonymousObjectMemberDeclarator);
             }
-            else if (currentOriginalNode.Kind() == SyntaxKind.DefaultExpression)
+            else if (currentOriginalNode.IsKind(SyntaxKind.DefaultExpression))
             {
                 return !TypesAreCompatible((ExpressionSyntax)currentOriginalNode, (ExpressionSyntax)currentReplacedNode);
             }

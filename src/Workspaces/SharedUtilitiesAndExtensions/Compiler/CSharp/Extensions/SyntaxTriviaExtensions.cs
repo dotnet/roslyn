@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static class SyntaxTriviaExtensions
     {
         public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind)
-            => trivia.Kind() == kind;
+            => trivia.IsKind(kind);
 
         public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind1, SyntaxKind kind2)
         {
@@ -43,17 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => trivia.IsRegularComment() || trivia.IsDocComment();
 
         public static bool IsSingleLineComment(this SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia;
+            => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
 
         public static bool IsMultiLineComment(this SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
+            => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
 
         public static bool IsShebangDirective(this SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.ShebangDirectiveTrivia;
+            => trivia.IsKind(SyntaxKind.ShebangDirectiveTrivia);
 
         public static bool IsCompleteMultiLineComment(this SyntaxTrivia trivia)
         {
-            if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
+            if (!trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
             {
                 return false;
             }
@@ -68,15 +68,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => trivia.IsSingleLineDocComment() || trivia.IsMultiLineDocComment();
 
         public static bool IsSingleLineDocComment(this SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia;
+            => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
 
         public static bool IsMultiLineDocComment(this SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia;
+            => trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
 
         public static string GetCommentText(this SyntaxTrivia trivia)
         {
             var commentText = trivia.ToString();
-            if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia)
+            if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
             {
                 if (commentText.StartsWith("//", StringComparison.Ordinal))
                 {
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return commentText.TrimStart(null);
             }
-            else if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+            else if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
             {
                 var textBuilder = new StringBuilder();
 
@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => IsWhitespace(trivia) || IsEndOfLine(trivia);
 
         public static bool IsEndOfLine(this SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.EndOfLineTrivia;
+            => trivia.IsKind(SyntaxKind.EndOfLineTrivia);
 
         public static bool IsWhitespace(this SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.WhitespaceTrivia;
+            => trivia.IsKind(SyntaxKind.WhitespaceTrivia);
 
         public static SyntaxTrivia GetPreviousTrivia(
             this SyntaxTrivia trivia, SyntaxTree syntaxTree, CancellationToken cancellationToken, bool findInsideTrivia = false)
