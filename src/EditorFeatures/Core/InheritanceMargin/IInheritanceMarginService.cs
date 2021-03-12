@@ -7,11 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.InheritanceChainMargin
+namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
-    internal interface IInheritanceChainService : ILanguageService
+    internal interface IInheritanceMarginService : ILanguageService
     {
-        Task<ImmutableDictionary<int, ImmutableArray<InheritanceMemberItem>>> GetInheritanceInfoForLineAsync(
+        Task<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoForLineAsync(
             Document document,
             CancellationToken cancellationToken);
     }

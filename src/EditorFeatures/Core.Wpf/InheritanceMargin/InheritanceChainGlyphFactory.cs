@@ -5,13 +5,14 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
+namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 {
     [Export(typeof(IGlyphFactory))]
     [TagType(typeof(InheritanceMarginTag))]
@@ -28,10 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
 
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
         {
-            if (tag is InheritanceMarginTag inheritanceMarginTag)
+            if (tag is InheritanceMarginTag)
             {
                 // Let's create UI next
-                return new InheritanceMargin();
+                return new Image();
             }
 
             return null;

@@ -101,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsGenerateVariable = "CodeActions.GenerateVariable";
             public const string CodeActionsImplementAbstractClass = "CodeActions.ImplementAbstractClass";
             public const string CodeActionsImplementInterface = "CodeActions.ImplementInterface";
-            public const string CodeActionsInheritanceChainMargin = "CodeActions.InheritanceChainMargin";
             public const string CodeActionsInitializeParameter = "CodeActions.InitializeParameter";
             public const string CodeActionsInlineMethod = "CodeActions.InlineMethod";
             public const string CodeActionsInlineDeclaration = "CodeActions.InlineDeclaration";
@@ -244,6 +243,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string GoToBase = nameof(GoToBase);
             public const string GoToDefinition = nameof(GoToDefinition);
             public const string GoToImplementation = nameof(GoToImplementation);
+            public const string InheritanceChainMargin = nameof(InheritanceChainMargin);
             public const string InlineHints = nameof(InlineHints);
             public const string Interactive = nameof(Interactive);
             public const string InteractiveHost = nameof(InteractiveHost);

@@ -3,14 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.InheritanceChainMargin;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -19,19 +21,19 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
+namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 {
     [Export(typeof(IViewTaggerProvider))]
-    [Name(nameof(InheritanceMarginTaggerProvider))]
+    [Name(nameof(InheritanceChainMarginTaggerProvider))]
     [TagType(typeof(InheritanceMarginTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class InheritanceMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
+    internal class InheritanceChainMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
     {
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InheritanceMarginTaggerProvider(
+        public InheritanceChainMarginTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
             IForegroundNotificationService notificationService,
@@ -62,41 +64,44 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceChainMargin
             }
 
             var cancellationToken = context.CancellationToken;
-            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceChainService>();
+            var inheritanceMarginInfoService = document.GetLanguageService<IInheritanceMarginService>();
             if (inheritanceMarginInfoService == null)
             {
                 return;
             }
 
-            var lineInheritanceInfo = await inheritanceMarginInfoService
+            var inheritanceMemberItems = await inheritanceMarginInfoService
                 .GetInheritanceInfoForLineAsync(
                     document,
                     cancellationToken).ConfigureAwait(false);
 
-            if (lineInheritanceInfo.IsEmpty)
+            if (inheritanceMemberItems.IsEmpty)
             {
                 return;
             }
 
-            var snapshot = spanToTag.SnapshotSpan.Snapshot;
+            // One line might have multiple members to show, so group them.
+            // For example:
+            // interface IBar { void Foo1(); void Foo2() }
+            // class Bar : IBar { void Foo1() { } void Foo2() { } }
+            var lineToMembers = inheritanceMemberItems
+                .GroupBy(item => item.LineNumber)
+                .ToImmutableDictionary(
+                    keySelector: grouping => grouping.Key,
+                    elementSelector: grouping => grouping.SelectAsArray(g => g));
 
-            foreach (var (lineNumber, membersOnTheLine) in lineInheritanceInfo)
+            var snapshot = spanToTag.SnapshotSpan.Snapshot;
+            foreach (var (lineNumber, membersOnTheLine) in lineToMembers)
             {
                 if (membersOnTheLine.Length > 0)
                 {
                     var line = snapshot.GetLineFromLineNumber(lineNumber);
-                    var taggedSpan = new SnapshotSpan(snapshot, line.Start, length: line.End - line.Start);
+                    var taggedSpan = new SnapshotSpan(snapshot, line.Start, length: line.Length);
                     context.AddTag(new TagSpan<InheritanceMarginTag>(
                         taggedSpan,
-                        InheritanceMarginTag.FromInheritanceInfo(
-                            ThreadingContext,
-                            _streamingFindUsagesPresenter,
-                            document,
-                            membersOnTheLine,
-                            cancellationToken)));
+                        InheritanceMarginTag.FromInheritanceInfo(membersOnTheLine)));
                 }
             }
-
         }
     }
 }

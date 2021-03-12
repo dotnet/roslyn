@@ -3,16 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.InheritanceChainMargin
+namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     [Flags]
-    internal enum Relationship
+    internal enum InheritanceRelationship
     {
         Implementing = 0x1,
         Implemented = 0x2,
@@ -22,12 +19,18 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
 
     internal class InheritanceMemberItem
     {
+        public readonly int LineNumber;
         public readonly TaggedText MemberDescription;
         public readonly Glyph Glyph;
         public readonly ImmutableArray<InheritanceTargetItem> TargetItems;
 
-        public InheritanceMemberItem(TaggedText memberDescription, Glyph glyph, ImmutableArray<InheritanceTargetItem> targetItems)
+        public InheritanceMemberItem(
+            int lineNumber,
+            TaggedText memberDescription,
+            Glyph glyph,
+            ImmutableArray<InheritanceTargetItem> targetItems)
         {
+            LineNumber = lineNumber;
             MemberDescription = memberDescription;
             Glyph = glyph;
             TargetItems = targetItems;
@@ -37,17 +40,14 @@ namespace Microsoft.CodeAnalysis.InheritanceChainMargin
     internal class InheritanceTargetItem
     {
         public readonly TaggedText TargetDescription;
-
         public readonly Glyph Glyph;
-
-        public readonly Relationship RelationToMember;
-
+        public readonly InheritanceRelationship RelationToMember;
         public readonly ImmutableArray<DefinitionItem> TargetDefinitionItems;
 
         public InheritanceTargetItem(
             TaggedText targetDescription,
             Glyph glyph,
-            Relationship relationToMember,
+            InheritanceRelationship relationToMember,
             ImmutableArray<DefinitionItem> targetDefinitionItems)
         {
             TargetDescription = targetDescription;
