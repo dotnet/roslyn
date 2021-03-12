@@ -169,8 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // (EndOfFileToken) - This is the synthetic end of file token. Should be treated as the end of the file.
             // (None) - It is the end of the file. This means there are no more tokens.
 
-            var isStartOrEndOfFile = (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.IsKind(0) || trivia2.IsKind(0));
-            var isAtEndOfFileToken = (Token2.IsKind(SyntaxKind.EndOfFileToken) && trivia2.IsKind(0));
+            var isStartOrEndOfFile = (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.IsKind(SyntaxKind.None) || trivia2.IsKind(SyntaxKind.None));
+            var isAtEndOfFileToken = (Token2.IsKind(SyntaxKind.EndOfFileToken) && trivia2.IsKind(SyntaxKind.None));
 
             return isStartOrEndOfFile || isAtEndOfFileToken;
         }
