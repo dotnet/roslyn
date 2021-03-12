@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return
                // # pragma warning |
                // # pragma warning r|
-               (previousToken1.Kind() == SyntaxKind.WarningKeyword &&
-               previousToken2.Kind() == SyntaxKind.PragmaKeyword &&
-               previousToken3.Kind() == SyntaxKind.HashToken) ||
+               (previousToken1.IsKind(SyntaxKind.WarningKeyword) &&
+               previousToken2.IsKind(SyntaxKind.PragmaKeyword) &&
+               previousToken3.IsKind(SyntaxKind.HashToken)) ||
                // # nullable |
                // # nullable r|
-               (previousToken1.Kind() == SyntaxKind.NullableKeyword &&
-               previousToken2.Kind() == SyntaxKind.HashToken);
+               (previousToken1.IsKind(SyntaxKind.NullableKeyword) &&
+               previousToken2.IsKind(SyntaxKind.HashToken));
         }
     }
 }

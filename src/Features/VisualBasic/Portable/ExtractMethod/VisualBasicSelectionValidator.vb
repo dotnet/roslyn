@@ -454,7 +454,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             Dim firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped:=False)
             Dim lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped:=False)
 
-            If firstTokenInSelection.Kind = SyntaxKind.None OrElse lastTokenInSelection.Kind = SyntaxKind.None Then
+            If firstTokenInSelection.IsKind(SyntaxKind.None) OrElse lastTokenInSelection.IsKind(SyntaxKind.None) Then
                 Return New SelectionInfo With {.Status = New OperationStatus(OperationStatusFlag.None, VBFeaturesResources.Invalid_selection), .OriginalSpan = adjustedSpan}
             End If
 
@@ -575,7 +575,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
             ' do quick check to make sure we are under sub (no return value) container. otherwise, there is no point to anymore checks.
             If returnStatements.Any(Function(s)
                                         Return s.TypeSwitch(
-                                            Function(e As ExitStatementSyntax) e.BlockKeyword.Kind <> SyntaxKind.SubKeyword,
+                                            Function(e As ExitStatementSyntax) Not e.BlockKeyword.IsKind(SyntaxKind.SubKeyword),
                                             Function(r As ReturnStatementSyntax) r.Expression IsNot Nothing,
                                             Function(n As SyntaxNode) True)
                                     End Function) Then
@@ -584,7 +584,7 @@ result.ReadOutside().Any(Function(s) Equals(s, local)) Then
 
             ' check whether selection reaches the end of the container
             Dim lastToken = root.FindToken(textSpan.End)
-            If lastToken.Kind = SyntaxKind.None Then
+            If lastToken.IsKind(SyntaxKind.None) Then
                 Return False
             End If
 

@@ -118,19 +118,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool IsPreviousTokenValid(SyntaxToken tokenBeforeType)
         {
-            if (tokenBeforeType.Kind() == SyntaxKind.AsyncKeyword)
+            if (tokenBeforeType.IsKind(SyntaxKind.AsyncKeyword))
             {
                 tokenBeforeType = tokenBeforeType.GetPreviousToken();
             }
 
-            if (tokenBeforeType.Kind() == SyntaxKind.OpenBraceToken)
+            if (tokenBeforeType.IsKind(SyntaxKind.OpenBraceToken))
             {
                 // Show us after the open brace for a class/struct/interface
                 return IsClassOrStructOrInterfaceOrRecord(tokenBeforeType.GetRequiredParent());
             }
 
-            if (tokenBeforeType.Kind() == SyntaxKind.CloseBraceToken ||
-                tokenBeforeType.Kind() == SyntaxKind.SemicolonToken)
+            if (tokenBeforeType.IsKind(SyntaxKind.CloseBraceToken) ||
+                tokenBeforeType.IsKind(SyntaxKind.SemicolonToken))
             {
                 // Check that we're after a class/struct/interface member.
                 var memberDeclaration = tokenBeforeType.GetAncestor<MemberDeclarationSyntax>();
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private static bool IsClassOrStructOrInterfaceOrRecord(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ClassDeclaration || node.Kind() == SyntaxKind.StructDeclaration ||
-            node.Kind() == SyntaxKind.InterfaceDeclaration || node.Kind() == SyntaxKind.RecordDeclaration;
+            => node.IsKind(SyntaxKind.ClassDeclaration) || node.IsKind(SyntaxKind.StructDeclaration) ||
+            node.IsKind(SyntaxKind.InterfaceDeclaration) || node.IsKind(SyntaxKind.RecordDeclaration);
     }
 }

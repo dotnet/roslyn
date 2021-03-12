@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //      o = s
                 // The new is part of the assignment to o but the user is really trying to 
                 // add a parameter to the method call.
-                if (previousToken.Kind() == SyntaxKind.NewKeyword &&
+                if (previousToken.IsKind(SyntaxKind.NewKeyword) &&
                     previousToken.GetPreviousToken().IsKind(SyntaxKind.EqualsToken, SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
                 {
                     return InferTypes(previousToken.SpanStart);
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInArgumentList(ArgumentListSyntax argumentList, SyntaxToken previousToken)
             {
                 // Has to follow the ( or a ,
-                if (previousToken != argumentList.OpenParenToken && previousToken.Kind() != SyntaxKind.CommaToken)
+                if (previousToken != argumentList.OpenParenToken && !previousToken.IsKind(SyntaxKind.CommaToken))
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgumentList(AttributeArgumentListSyntax attributeArgumentList, SyntaxToken previousToken)
             {
                 // Has to follow the ( or a ,
-                if (previousToken != attributeArgumentList.OpenParenToken && previousToken.Kind() != SyntaxKind.CommaToken)
+                if (previousToken != attributeArgumentList.OpenParenToken && !previousToken.IsKind(SyntaxKind.CommaToken))
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
 
-                if (previousToken.HasValue && previousToken.Value.GetPreviousToken().Kind() == SyntaxKind.EqualsToken)
+                if (previousToken.HasValue && previousToken.Value.GetPreviousToken().IsKind(SyntaxKind.EqualsToken))
                 {
                     // We parsed an array creation but the token before `new` is `=`.
                     // This could be a case like:
@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInBracketedArgumentList(BracketedArgumentListSyntax bracketedArgumentList, SyntaxToken previousToken)
             {
                 // Has to follow the [ or a ,
-                if (previousToken != bracketedArgumentList.OpenBracketToken && previousToken.Kind() != SyntaxKind.CommaToken)
+                if (previousToken != bracketedArgumentList.OpenBracketToken && !previousToken.IsKind(SyntaxKind.CommaToken))
                 {
                     return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
@@ -943,8 +943,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Infer operands of && and || as bool regardless of the other operand.
-                if (operatorToken.Kind() == SyntaxKind.AmpersandAmpersandToken ||
-                    operatorToken.Kind() == SyntaxKind.BarBarToken)
+                if (operatorToken.IsKind(SyntaxKind.AmpersandAmpersandToken) ||
+                    operatorToken.IsKind(SyntaxKind.BarBarToken))
                 {
                     return CreateResult(SpecialType.System_Boolean);
                 }
@@ -979,12 +979,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // For &, &=, |, |=, ^, and ^=, since we couldn't infer the type of either side, 
                 // try to infer the type of the entire binary expression.
-                if (operatorToken.Kind() == SyntaxKind.AmpersandToken ||
-                    operatorToken.Kind() == SyntaxKind.AmpersandEqualsToken ||
-                    operatorToken.Kind() == SyntaxKind.BarToken ||
-                    operatorToken.Kind() == SyntaxKind.BarEqualsToken ||
-                    operatorToken.Kind() == SyntaxKind.CaretToken ||
-                    operatorToken.Kind() == SyntaxKind.CaretEqualsToken)
+                if (operatorToken.IsKind(SyntaxKind.AmpersandToken) ||
+                    operatorToken.IsKind(SyntaxKind.AmpersandEqualsToken) ||
+                    operatorToken.IsKind(SyntaxKind.BarToken) ||
+                    operatorToken.IsKind(SyntaxKind.BarEqualsToken) ||
+                    operatorToken.IsKind(SyntaxKind.CaretToken) ||
+                    operatorToken.IsKind(SyntaxKind.CaretEqualsToken))
                 {
                     var parentTypes = InferTypes(binop);
                     if (parentTypes.Any())
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If it's a plus operator, then do some smarts in case it might be a string or
                 // delegate.
-                if (operatorToken.Kind() == SyntaxKind.PlusToken)
+                if (operatorToken.IsKind(SyntaxKind.PlusToken))
                 {
                     // See Bug 6045.  Note: we've already checked the other side of the operator.  So this
                     // is the case where the other side was also unknown.  So we walk one higher and if
@@ -1617,7 +1617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var invoke = type.DelegateInvokeMethod;
                     if (invoke != null)
                     {
-                        var isAsync = anonymousFunction.AsyncKeyword.Kind() != SyntaxKind.None;
+                        var isAsync = !anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.None);
                         return SpecializedCollections.SingletonEnumerable(
                             new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType, isAsync)));
                     }

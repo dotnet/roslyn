@@ -68,8 +68,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
                     End If
                 End If
 
-                Dim xIsShared = x.GetModifiers().Any(Function(t) t.Kind = SyntaxKind.SharedKeyword)
-                Dim yIsShared = y.GetModifiers().Any(Function(t) t.Kind = SyntaxKind.SharedKeyword)
+                Dim xIsShared = x.GetModifiers().Any(Function(t) t.IsKind(SyntaxKind.SharedKeyword))
+                Dim yIsShared = y.GetModifiers().Any(Function(t) t.IsKind(SyntaxKind.SharedKeyword))
 
                 value = Comparer(Of Boolean).Default.Inverse().Compare(xIsShared, yIsShared)
                 If value <> 0 Then
@@ -98,11 +98,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
             Private Shared Function GetAccessibility(x As StatementSyntax) As Accessibility
                 Dim xModifiers = x.GetModifiers()
 
-                If xModifiers.Any(Function(t) t.Kind = SyntaxKind.PublicKeyword) Then
+                If xModifiers.Any(Function(t) t.IsKind(SyntaxKind.PublicKeyword)) Then
                     Return Accessibility.Public
-                ElseIf xModifiers.Any(Function(t) t.Kind = SyntaxKind.FriendKeyword) Then
+                ElseIf xModifiers.Any(Function(t) t.IsKind(SyntaxKind.FriendKeyword)) Then
                     Return Accessibility.Friend
-                ElseIf xModifiers.Any(Function(t) t.Kind = SyntaxKind.ProtectedKeyword) Then
+                ElseIf xModifiers.Any(Function(t) t.IsKind(SyntaxKind.ProtectedKeyword)) Then
                     Return Accessibility.Protected
                 Else
                     ' Only fields are private in VB. All other members are public

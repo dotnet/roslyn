@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Protected Overrides Function GetLastTokenDelegateForContiguousSpans() As Func(Of SyntaxNode, SyntaxToken)
             Return Function(n)
                        Dim lastToken = n.GetLastToken()
-                       Return If(lastToken.GetNextToken().Kind = SyntaxKind.CommaToken,
+                       Return If(lastToken.GetNextToken().IsKind(SyntaxKind.CommaToken),
                               lastToken.GetNextToken(),
                               lastToken)
                    End Function

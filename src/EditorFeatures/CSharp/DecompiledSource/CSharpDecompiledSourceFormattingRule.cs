@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
         {
             // To help code not look too tightly packed, we place a blank line after every statement that ends with a
             // `}` (unless it's also followed by another `}`).
-            if (previousToken.Kind() != SyntaxKind.CloseBraceToken)
+            if (!previousToken.IsKind(SyntaxKind.CloseBraceToken))
                 return null;
 
-            if (currentToken.Kind() == SyntaxKind.CloseBraceToken)
+            if (currentToken.IsKind(SyntaxKind.CloseBraceToken))
                 return null;
 
             if (previousToken.Parent == null || currentToken.Parent == null)

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return CreateSuggestionModeItem(VBFeaturesResources.new_field, description)
             End If
 
-            If targetToken.Kind = SyntaxKind.None OrElse targetToken.FollowsEndOfStatement(position) Then
+            If targetToken.IsKind(SyntaxKind.None) OrElse targetToken.FollowsEndOfStatement(position) Then
                 Return Nothing
             End If
 
@@ -56,10 +56,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 ' it's mandatory in that case!
                 Dim methodDeclaration = targetToken.GetAncestor(Of MethodBaseSyntax)()
                 If methodDeclaration IsNot Nothing Then
-                    If targetToken.Kind = SyntaxKind.CommaToken AndAlso targetToken.Parent.Kind = SyntaxKind.ParameterList Then
+                    If targetToken.IsKind(SyntaxKind.CommaToken) AndAlso targetToken.Parent.IsKind(SyntaxKind.ParameterList) Then
                         For Each parameter In methodDeclaration.ParameterList.Parameters.Where(Function(p) p.FullSpan.End < position)
                             ' A previous parameter was Optional, so the suggested Optional is an offer they can't refuse. No builder.
-                            If parameter.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.OptionalKeyword) Then
+                            If parameter.Modifiers.Any(Function(modifier) modifier.IsKind(SyntaxKind.OptionalKeyword)) Then
                                 Return Nothing
                             End If
                         Next
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             ' Builder in select clause: after Select, after comma
-            If targetToken.Parent.Kind = SyntaxKind.SelectClause Then
+            If targetToken.Parent.IsKind(SyntaxKind.SelectClause) Then
                 If targetToken.IsKind(SyntaxKind.SelectKeyword, SyntaxKind.CommaToken) Then
                     description = VBFeaturesResources.Type_a_new_name_for_the_column_followed_by_Otherwise_the_original_column_name_with_be_used & vbCrLf &
                                   VBFeaturesResources.Note_colon_Use_tab_for_automatic_completion_space_completion_is_disabled_to_avoid_interfering_with_a_new_name

@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
                 Return recommendations.ToImmutableArray()
             ElseIf TypeOf targetToken.Parent Is TypeParameterMultipleConstraintClauseSyntax Then
                 Dim multipleConstraint = DirectCast(targetToken.Parent, TypeParameterMultipleConstraintClauseSyntax)
-                If targetToken = multipleConstraint.OpenBraceToken OrElse targetToken.Kind = SyntaxKind.CommaToken Then
+                If targetToken = multipleConstraint.OpenBraceToken OrElse targetToken.IsKind(SyntaxKind.CommaToken) Then
 
                     Dim previousConstraints = multipleConstraint.Constraints.Where(Function(c) c.Span.End < context.Position).ToList()
 

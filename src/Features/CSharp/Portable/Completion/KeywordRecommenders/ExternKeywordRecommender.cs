@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var token = context.TargetToken;
 
             // root: |
-            if (token.Kind() == SyntaxKind.None)
+            if (token.IsKind(SyntaxKind.None))
             {
                 // root namespace
                 return true;
             }
 
-            if (token.Kind() == SyntaxKind.OpenBraceToken &&
+            if (token.IsKind(SyntaxKind.OpenBraceToken) &&
                 token.Parent.IsKind(SyntaxKind.NamespaceDeclaration))
             {
                 return true;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // extern alias a;
             // |
-            if (token.Kind() == SyntaxKind.SemicolonToken &&
+            if (token.IsKind(SyntaxKind.SemicolonToken) &&
                 token.Parent.IsKind(SyntaxKind.ExternAliasDirective))
             {
                 return true;

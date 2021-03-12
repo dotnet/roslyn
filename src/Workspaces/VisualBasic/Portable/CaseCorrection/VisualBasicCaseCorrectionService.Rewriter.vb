@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
                 trivia = MyBase.VisitTrivia(trivia)
 
-                If trivia.Kind = SyntaxKind.CommentTrivia AndAlso trivia.Width >= 3 Then
+                If trivia.IsKind(SyntaxKind.CommentTrivia) AndAlso trivia.Width >= 3 Then
                     Dim remText = trivia.ToString().Substring(0, 3)
                     Dim remKeywordText As String = _syntaxFactsService.GetText(SyntaxKind.REMKeyword)
                     If remText <> remKeywordText AndAlso SyntaxFacts.GetKeywordKind(remText) = SyntaxKind.REMKeyword Then

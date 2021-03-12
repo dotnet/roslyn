@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
                     {
                         // An argument will disqualify a field if that field is used in a ref/out position.  
                         // We can't change such field references to be property references in C#.
-                        if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
+                        if (!argument.RefKindKeyword.IsKind(SyntaxKind.None))
                         {
                             AddIneligibleFields(semanticModel, argument.Expression, ineligibleFields, cancellationToken);
                         }

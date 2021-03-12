@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             var token = context.TargetToken;
 
-            if (token.Kind() == SyntaxKind.CloseBraceToken &&
+            if (token.IsKind(SyntaxKind.CloseBraceToken) &&
                 token.Parent.IsKind(SyntaxKind.Block) &&
                 token.Parent.IsParentKind(SyntaxKind.DoStatement))
             {

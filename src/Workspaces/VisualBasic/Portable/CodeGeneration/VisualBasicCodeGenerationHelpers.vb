@@ -98,11 +98,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Function LastField(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
-            Return members.LastOrDefault(Function(m) m.Kind = SyntaxKind.FieldDeclaration)
+            Return members.LastOrDefault(Function(m) m.IsKind(SyntaxKind.FieldDeclaration))
         End Function
 
         Public Function LastConstructor(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
-            Return members.LastOrDefault(Function(m) m.Kind = SyntaxKind.ConstructorBlock OrElse m.Kind = SyntaxKind.SubNewStatement)
+            Return members.LastOrDefault(Function(m) m.IsKind(SyntaxKind.ConstructorBlock) OrElse m.IsKind(SyntaxKind.SubNewStatement))
         End Function
 
         Public Function LastMethod(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Function LastOperator(Of TDeclaration As SyntaxNode)(members As SyntaxList(Of TDeclaration)) As TDeclaration
-            Return members.LastOrDefault(Function(m) m.Kind = SyntaxKind.OperatorBlock OrElse m.Kind = SyntaxKind.OperatorStatement)
+            Return members.LastOrDefault(Function(m) m.IsKind(SyntaxKind.OperatorBlock) OrElse m.IsKind(SyntaxKind.OperatorStatement))
         End Function
 
         Private Function AfterDeclaration(Of TDeclaration As SyntaxNode)(

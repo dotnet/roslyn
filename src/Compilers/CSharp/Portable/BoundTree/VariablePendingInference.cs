@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder? binderOpt, BindingDiagnosticBag? diagnosticsOpt)
         {
             Debug.Assert(binderOpt != null || type.HasType);
-            Debug.Assert(this.Syntax.Kind() == SyntaxKind.SingleVariableDesignation ||
-                (this.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
+            Debug.Assert(this.Syntax.IsKind(SyntaxKind.SingleVariableDesignation) ||
+                (this.Syntax.IsKind(SyntaxKind.DeclarationExpression) &&
                     ((DeclarationExpressionSyntax)this.Syntax).Designation.Kind() == SyntaxKind.SingleVariableDesignation));
 
             bool inferenceFailed = !type.HasType;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            SyntaxNode typeOrDesignationSyntax = this.Syntax.Kind() == SyntaxKind.DeclarationExpression ?
+                            SyntaxNode typeOrDesignationSyntax = this.Syntax.IsKind(SyntaxKind.DeclarationExpression) ?
                                 ((DeclarationExpressionSyntax)this.Syntax).Type :
                                 this.Syntax;
 

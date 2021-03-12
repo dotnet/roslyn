@@ -108,28 +108,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // Ensure that we have the correct token in A.B| case
             var node = _context.TargetToken.Parent;
 
-            if (node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
                 return GetSymbolsOffOfExpression(((MemberAccessExpressionSyntax)node).Expression);
             }
-            else if (node.Kind() == SyntaxKind.RangeExpression)
+            else if (node.IsKind(SyntaxKind.RangeExpression))
             {
                 // This code should be executing only if the cursor is between two dots in a dotdot token.
                 return GetSymbolsOffOfExpression(((RangeExpressionSyntax)node).LeftOperand);
             }
-            else if (node.Kind() == SyntaxKind.PointerMemberAccessExpression)
+            else if (node.IsKind(SyntaxKind.PointerMemberAccessExpression))
             {
                 return GetSymbolsOffOfDereferencedExpression(((MemberAccessExpressionSyntax)node).Expression);
             }
-            else if (node.Kind() == SyntaxKind.QualifiedName)
+            else if (node.IsKind(SyntaxKind.QualifiedName))
             {
                 return GetSymbolsOffOfName(((QualifiedNameSyntax)node).Left);
             }
-            else if (node.Kind() == SyntaxKind.AliasQualifiedName)
+            else if (node.IsKind(SyntaxKind.AliasQualifiedName))
             {
                 return GetSymbolsOffOffAlias(((AliasQualifiedNameSyntax)node).Alias);
             }
-            else if (node.Kind() == SyntaxKind.MemberBindingExpression)
+            else if (node.IsKind(SyntaxKind.MemberBindingExpression))
             {
                 var parentConditionalAccess = node.GetParentConditionalAccessExpression();
                 return GetSymbolsOffOfConditionalReceiver(parentConditionalAccess.Expression);
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // using System;
             // |
 
-            if (token.Kind() == SyntaxKind.SemicolonToken &&
+            if (token.IsKind(SyntaxKind.SemicolonToken) &&
                 token.Parent.IsKind(SyntaxKind.UsingDirective) &&
                 position >= token.Span.End)
             {

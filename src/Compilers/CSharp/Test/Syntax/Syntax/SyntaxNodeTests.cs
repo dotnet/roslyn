@@ -776,7 +776,7 @@ a + b";
 
             var list = new List<SyntaxToken>();
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeSkipped: true);
-            while (token.Kind() != SyntaxKind.None)
+            while (!token.IsKind(SyntaxKind.None))
             {
                 list.Add(token);
                 token = token.GetNextToken(includeSkipped: true);
@@ -806,7 +806,7 @@ using goo.bar;
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeSkipped: true);
-            while (token.Kind() != SyntaxKind.None)
+            while (!token.IsKind(SyntaxKind.None))
             {
                 list.Add(token);
                 token = token.GetNextToken(includeSkipped: true);
@@ -831,7 +831,7 @@ using goo.bar;
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeSkipped: false);
-            while (token.Kind() != SyntaxKind.None)
+            while (!token.IsKind(SyntaxKind.None))
             {
                 list.Add(token);
                 token = token.GetNextToken(includeSkipped: false);
@@ -875,7 +875,7 @@ using goo.bar;
 
             var list = new List<SyntaxToken>();
             var token = tree.GetCompilationUnitRoot().GetLastToken(); // skip EOF
-            while (token.Kind() != SyntaxKind.None)
+            while (!token.IsKind(SyntaxKind.None))
             {
                 list.Add(token);
                 token = token.GetPreviousToken();
@@ -906,7 +906,7 @@ using goo.bar;
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetLastToken(includeSkipped: true);
-            while (token.Kind() != SyntaxKind.None)
+            while (!token.IsKind(SyntaxKind.None))
             {
                 list.Add(token);
                 token = token.GetPreviousToken(includeSkipped: true);
@@ -935,7 +935,7 @@ using goo.bar;
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetLastToken(includeSkipped: false);
-            while (token.Kind() != SyntaxKind.None)
+            while (!token.IsKind(SyntaxKind.None))
             {
                 list.Add(token);
                 token = token.GetPreviousToken(includeSkipped: false);
@@ -982,7 +982,7 @@ using goo.bar;
 
             var list = new List<SyntaxToken>();
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeZeroWidth: true);
-            while (token.Kind() != SyntaxKind.None)
+            while (!token.IsKind(SyntaxKind.None))
             {
                 list.Add(token);
                 token = token.GetNextToken(includeZeroWidth: true);
@@ -1024,7 +1024,7 @@ using goo.bar;
 
             var list = new List<SyntaxToken>();
             var token = tree.GetCompilationUnitRoot().EndOfFileToken.GetPreviousToken(includeZeroWidth: true);
-            while (token.Kind() != SyntaxKind.None)
+            while (!token.IsKind(SyntaxKind.None))
             {
                 list.Add(token);
                 token = token.GetPreviousToken(includeZeroWidth: true);
@@ -1069,7 +1069,7 @@ using goo.bar;
             var tree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             var children = tree.GetCompilationUnitRoot().Members[0].ChildNodesAndTokens().ToList();
             var list = new List<SyntaxNodeOrToken>();
-            for (var child = children[0]; child.Kind() != SyntaxKind.None; child = child.GetNextSibling())
+            for (var child = children[0]; !child.IsKind(SyntaxKind.None); child = child.GetNextSibling())
             {
                 list.Add(child);
             }
@@ -1088,7 +1088,7 @@ using goo.bar;
             var children = tree.GetCompilationUnitRoot().Members[0].ChildNodesAndTokens().ToList();
             var reversed = children.AsEnumerable().Reverse().ToList();
             var list = new List<SyntaxNodeOrToken>();
-            for (var child = children[children.Count - 1]; child.Kind() != SyntaxKind.None; child = child.GetPreviousSibling())
+            for (var child = children[children.Count - 1]; !child.IsKind(SyntaxKind.None); child = child.GetPreviousSibling())
             {
                 list.Add(child);
             }
@@ -2085,7 +2085,7 @@ class Test
             var expr = SyntaxFactory.ParseStatement(text);
 
             var tokens = expr.DescendantTokens(descendIntoTrivia: true).ToList();
-            var token = tokens.First(t => t.Kind() == SyntaxKind.EndOfDocumentationCommentToken);
+            var token = tokens.First(t => t.IsKind(SyntaxKind.EndOfDocumentationCommentToken));
 
             var expr2 = expr.ReplaceToken(token, SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.Whitespace("garbage")), token.Kind(), default(SyntaxTriviaList)));
             var text2 = expr2.ToFullString();
@@ -2098,7 +2098,7 @@ class Test
         {
             var text = "";
             var cu = SyntaxFactory.ParseCompilationUnit(text);
-            var token = cu.DescendantTokens().Single(t => t.Kind() == SyntaxKind.EndOfFileToken);
+            var token = cu.DescendantTokens().Single(t => t.IsKind(SyntaxKind.EndOfFileToken));
 
             var cu2 = cu.ReplaceToken(token, SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.Whitespace("  ")), token.Kind(), default(SyntaxTriviaList)));
             var text2 = cu2.ToFullString();
@@ -2112,7 +2112,7 @@ class Test
             var expr = SyntaxFactory.ParseExpression("#if true\r\na + \r\n#endif\r\n + b");
 
             // get whitespace trivia inside structured directive trivia
-            var deepTrivia = expr.GetDirectives().SelectMany(d => d.DescendantTrivia().Where(tr => tr.Kind() == SyntaxKind.WhitespaceTrivia)).ToList();
+            var deepTrivia = expr.GetDirectives().SelectMany(d => d.DescendantTrivia().Where(tr => tr.IsKind(SyntaxKind.WhitespaceTrivia))).ToList();
 
             // replace deep trivia with double-whitespace trivia
             var twoSpace = SyntaxFactory.Whitespace("  ");
@@ -3174,7 +3174,7 @@ public class Test1
 
             // For (non-EOF) tokens, IsMissing is true if and only if Width is 0.
             Assert.True(compilationUnit.DescendantTokens(node => true).
-                Where(token => token.Kind() != SyntaxKind.EndOfFileToken).
+                Where(token => !token.IsKind(SyntaxKind.EndOfFileToken)).
                 All(token => token.IsMissing == (token.Width == 0)));
 
             // For non-terminals, Is true if Width is 0, but the converse may not hold.

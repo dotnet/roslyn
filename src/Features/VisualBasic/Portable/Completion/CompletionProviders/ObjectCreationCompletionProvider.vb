@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 newToken = newToken.GetPreviousTokenIfTouchingWord(position)
 
                 ' Only after 'new'.
-                If newToken.Kind = SyntaxKind.NewKeyword Then
+                If newToken.IsKind(SyntaxKind.NewKeyword) Then
                     ' Only if the 'new' belongs to an object creation expression.
                     If tree.IsObjectCreationTypeContext(position, cancellationToken) Then
                         newExpression = TryCast(newToken.Parent, ExpressionSyntax)

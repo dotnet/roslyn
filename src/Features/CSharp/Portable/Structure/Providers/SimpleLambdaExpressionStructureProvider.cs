@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
 
             var lastToken = CSharpStructureHelpers.GetLastInlineMethodBlockToken(lambdaExpression);
-            if (lastToken.Kind() == SyntaxKind.None)
+            if (lastToken.IsKind(SyntaxKind.None))
             {
                 return;
             }

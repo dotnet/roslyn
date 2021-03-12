@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public int Compare(SyntaxNode x, SyntaxNode y)
         {
-            if (x.Kind() != y.Kind())
+            if (!x.IsKind(y.Kind()))
             {
                 if (!s_kindPrecedenceMap.TryGetValue(x.Kind(), out var xPrecedence) ||
                     !s_kindPrecedenceMap.TryGetValue(y.Kind(), out var yPrecedence))
@@ -194,9 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static int Compare(ConversionOperatorDeclarationSyntax x, ConversionOperatorDeclarationSyntax y)
         {
-            if (x.ImplicitOrExplicitKeyword.Kind() != y.ImplicitOrExplicitKeyword.Kind())
+            if (!x.ImplicitOrExplicitKeyword.IsKind(y.ImplicitOrExplicitKeyword.Kind()))
             {
-                return x.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword ? -1 : 1;
+                return x.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ImplicitKeyword) ? -1 : 1;
             }
 
             EqualParameterCount(x.ParameterList, y.ParameterList, out var result);
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool ContainsToken(SyntaxTokenList list, SyntaxKind kind)
-            => list.Contains(token => token.Kind() == kind);
+            => list.Contains(token => token.IsKind(kind));
 
         private enum Accessibility
         {
@@ -353,12 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // the syntax tree and don't find a containing named type.
             for (var node = parent; node != null; node = node.Parent)
             {
-                if (node.Kind() == SyntaxKind.InterfaceDeclaration)
+                if (node.IsKind(SyntaxKind.InterfaceDeclaration))
                 {
                     // All interface members are public
                     return (int)Accessibility.Public;
                 }
-                else if (node.Kind() == SyntaxKind.StructDeclaration || node.Kind() == SyntaxKind.ClassDeclaration)
+                else if (node.IsKind(SyntaxKind.StructDeclaration) || node.IsKind(SyntaxKind.ClassDeclaration))
                 {
                     // Members and nested types default to private
                     return (int)Accessibility.Private;

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (syntax.ReturnType.Kind() == SyntaxKind.RefType)
             {
                 var returnType = (RefTypeSyntax)syntax.ReturnType;
-                if (returnType.ReadOnlyKeyword.Kind() == SyntaxKind.ReadOnlyKeyword)
+                if (returnType.ReadOnlyKeyword.IsKind(SyntaxKind.ReadOnlyKeyword))
                 {
                     _refKind = RefKind.RefReadOnly;
                 }
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, parameters, diagnostics, modifyCompilation: false);
             // Note: we don't need to warn on annotations used in #nullable disable context for local functions, as this is handled in binding already
 
-            var isVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
+            var isVararg = arglistToken.IsKind(SyntaxKind.ArgListKeyword);
             if (isVararg)
             {
                 diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int ordinal = 0; ordinal < typeParameters.Count; ordinal++)
             {
                 var parameter = typeParameters[ordinal];
-                if (parameter.VarianceKeyword.Kind() != SyntaxKind.None)
+                if (!parameter.VarianceKeyword.IsKind(SyntaxKind.None))
                 {
                     diagnostics.Add(ErrorCode.ERR_IllegalVarianceSyntax, parameter.VarianceKeyword.GetLocation());
                 }

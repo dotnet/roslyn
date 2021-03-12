@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     AddClassification(token.Span, type)
 
                     ' Additionally classify static symbols
-                    If token.Kind() = SyntaxKind.IdentifierToken AndAlso
+                    If token.IsKind(SyntaxKind.IdentifierToken) AndAlso
                         ClassificationHelpers.IsStaticallyDeclared(token) Then
 
                         AddClassification(span, ClassificationTypeNames.StaticSymbol)
@@ -136,15 +136,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     Case SyntaxKind.SkippedTokensTrivia
                         ClassifySkippedTokens(DirectCast(trivia.GetStructure(), SkippedTokensTriviaSyntax))
                 End Select
-            ElseIf trivia.Kind = SyntaxKind.CommentTrivia Then
+            ElseIf trivia.IsKind(SyntaxKind.CommentTrivia) Then
                 AddClassification(trivia, ClassificationTypeNames.Comment)
-            ElseIf trivia.Kind = SyntaxKind.DisabledTextTrivia Then
+            ElseIf trivia.IsKind(SyntaxKind.DisabledTextTrivia) Then
                 ClassifyDisabledText(trivia, triviaList)
-            ElseIf trivia.Kind = SyntaxKind.ColonTrivia Then
+            ElseIf trivia.IsKind(SyntaxKind.ColonTrivia) Then
                 AddClassification(trivia, ClassificationTypeNames.Punctuation)
-            ElseIf trivia.Kind = SyntaxKind.LineContinuationTrivia Then
+            ElseIf trivia.IsKind(SyntaxKind.LineContinuationTrivia) Then
                 AddClassification(New TextSpan(trivia.SpanStart, 1), ClassificationTypeNames.Punctuation)
-            ElseIf trivia.Kind = SyntaxKind.ConflictMarkerTrivia Then
+            ElseIf trivia.IsKind(SyntaxKind.ConflictMarkerTrivia) Then
                 ClassifyConflictMarker(trivia)
             End If
         End Sub
@@ -156,8 +156,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Private Sub ClassifyDisabledText(trivia As SyntaxTrivia, triviaList As SyntaxTriviaList)
             Dim index = triviaList.IndexOf(trivia)
             If index >= 2 AndAlso
-               triviaList(index - 1).Kind() = SyntaxKind.EndOfLineTrivia AndAlso
-               triviaList(index - 2).Kind() = SyntaxKind.ConflictMarkerTrivia Then
+               triviaList(index - 1).IsKind(SyntaxKind.EndOfLineTrivia) AndAlso
+               triviaList(index - 2).IsKind(SyntaxKind.ConflictMarkerTrivia) Then
 
                 For Each token In SyntaxFactory.ParseTokens(trivia.ToFullString(), initialTokenPosition:=trivia.SpanStart)
                     ClassifyToken(token)

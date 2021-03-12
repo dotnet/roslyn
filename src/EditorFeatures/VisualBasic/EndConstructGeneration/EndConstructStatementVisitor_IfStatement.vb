@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 
                 Dim lastToken = statement.GetLastToken(includeZeroWidth:=True)
                 For Each trivia In lastToken.TrailingTrivia
-                    If trivia.Kind = SyntaxKind.ColonTrivia Then
+                    If trivia.IsKind(SyntaxKind.ColonTrivia) Then
                         separator = trivia
                         Exit For
                     End If
@@ -97,18 +97,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                     trailingTrivia.Add(trivia)
                 Next
 
-                Do While trailingTrivia.Count > 0 AndAlso trailingTrivia.Last().Kind = SyntaxKind.WhitespaceTrivia
+                Do While trailingTrivia.Count > 0 AndAlso trailingTrivia.Last().IsKind(SyntaxKind.WhitespaceTrivia)
                     trailingTrivia.RemoveAt(trailingTrivia.Count - 1)
                 Loop
 
-                If separator.Kind <> SyntaxKind.None OrElse Not trailingTrivia.Any Then
+                If Not separator.IsKind(SyntaxKind.None) OrElse Not trailingTrivia.Any Then
                     trailingTrivia.Add(SyntaxFactory.EndOfLineTrivia(_state.NewLineCharacter))
                 End If
 
                 statement = statement.WithTrailingTrivia(trailingTrivia)
                 newList.Add(statement)
 
-                triviaLeftForNextStatement = lastToken.TrailingTrivia.SkipWhile(Function(t) t <> separator).Where(Function(t) t.Kind <> SyntaxKind.ColonTrivia)
+                triviaLeftForNextStatement = lastToken.TrailingTrivia.SkipWhile(Function(t) t <> separator).Where(Function(t) Not t.IsKind(SyntaxKind.ColonTrivia))
             Next
 
             Return SyntaxFactory.List(newList)

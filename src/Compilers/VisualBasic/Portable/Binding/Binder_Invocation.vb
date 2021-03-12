@@ -1486,9 +1486,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case OverloadResolution.CandidateAnalysisResultState.ArgumentCountMismatch
 
-                    If node.Kind = SyntaxKind.IdentifierName AndAlso
+                    If node.IsKind(SyntaxKind.IdentifierName) AndAlso
                         node.Parent IsNot Nothing AndAlso
-                        node.Parent.Kind = SyntaxKind.NamedFieldInitializer AndAlso
+                        node.Parent.IsKind(SyntaxKind.NamedFieldInitializer) AndAlso
                         groupOpt IsNot Nothing AndAlso
                         groupOpt.Kind = BoundKind.PropertyGroup Then
 

@@ -136,9 +136,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
         Private Function GetMethodStatement(member As ISymbol) As MethodStatementSyntax
             Dim node = GetMemberBlockOrBegin(member)
-            If node.Kind = SyntaxKind.SubBlock OrElse node.Kind = SyntaxKind.FunctionBlock Then
+            If node.IsKind(SyntaxKind.SubBlock) OrElse node.IsKind(SyntaxKind.FunctionBlock) Then
                 Return DirectCast(DirectCast(node, MethodBlockSyntax).BlockStatement, MethodStatementSyntax)
-            ElseIf node.Kind = SyntaxKind.SubStatement OrElse node.Kind = SyntaxKind.FunctionStatement Then
+            ElseIf node.IsKind(SyntaxKind.SubStatement) OrElse node.IsKind(SyntaxKind.FunctionStatement) Then
                 Return DirectCast(node, MethodStatementSyntax)
             Else
                 Throw New InvalidOperationException()

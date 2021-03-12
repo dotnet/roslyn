@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(node.DeclarationsOpt is { });
-                SyntaxToken awaitKeyword = node.Syntax.Kind() == SyntaxKind.UsingStatement ? ((UsingStatementSyntax)node.Syntax).AwaitKeyword : default;
+                SyntaxToken awaitKeyword = node.Syntax.IsKind(SyntaxKind.UsingStatement) ? ((UsingStatementSyntax)node.Syntax).AwaitKeyword : default;
                 return MakeDeclarationUsingStatement(node.Syntax,
                                                      tryBlock,
                                                      node.Locals,

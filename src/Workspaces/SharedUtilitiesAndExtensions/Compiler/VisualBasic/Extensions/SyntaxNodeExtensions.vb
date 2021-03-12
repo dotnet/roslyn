@@ -37,8 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Return node.Kind = kind1 OrElse
-                   node.Kind = kind2
+            Return node.IsKind(kind1) OrElse
+                   node.IsKind(kind2)
         End Function
 
         <Extension()>
@@ -47,9 +47,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Return node.Kind = kind1 OrElse
-                   node.Kind = kind2 OrElse
-                   node.Kind = kind3
+            Return node.IsKind(kind1) OrElse
+                   node.IsKind(kind2) OrElse
+                   node.IsKind(kind3)
         End Function
 
         <Extension()>
@@ -58,19 +58,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Return node.Kind = kind1 OrElse
-                   node.Kind = kind2 OrElse
-                   node.Kind = kind3 OrElse
-                   node.Kind = kind4
+            Return node.IsKind(kind1) OrElse
+                   node.IsKind(kind2) OrElse
+                   node.IsKind(kind3) OrElse
+                   node.IsKind(kind4)
         End Function
 
         <Extension()>
-        Public Function IsKind(node As SyntaxNode, ParamArray kinds As SyntaxKind()) As Boolean
+        Public Function IsKind(node As SyntaxNode, kinds As SyntaxKind()) As Boolean
             If node Is Nothing Then
                 Return False
             End If
 
             Return kinds.Contains(node.Kind())
+        End Function
+
+        <Extension()>
+        Public Function IsKind(node As SyntaxNode, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind, kind4 As SyntaxKind, ParamArray kinds As SyntaxKind()) As Boolean
+            Return node.IsKind(kind1, kind2, kind3, kind4) OrElse node.IsKind(kinds)
         End Function
 
         <Extension()>
@@ -92,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Return node.GetAncestorsOrThis(Of StatementSyntax)().
                         SelectMany(Function(s) s.GetModifiers()).
-                        Any(Function(t) t.Kind = SyntaxKind.SharedKeyword)
+                        Any(Function(t) t.IsKind(SyntaxKind.SharedKeyword))
         End Function
 
         <Extension()>
@@ -748,7 +753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim current = block
             While current.IsSingleLineExecutableBlock()
-                If current.Kind = SyntaxKind.SingleLineIfStatement OrElse current.Kind = SyntaxKind.SingleLineElseClause Then
+                If current.IsKind(SyntaxKind.SingleLineIfStatement) OrElse current.IsKind(SyntaxKind.SingleLineElseClause) Then
                     Dim singleLineIf As SingleLineIfStatementSyntax = Nothing
                     Dim multiLineIf As MultiLineIfBlockSyntax = Nothing
                     UpdateStatements(current, statements, annotations, singleLineIf, multiLineIf)
@@ -759,7 +764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                     oldBlock = singleLineIf
                     newBlock = multiLineIf
-                ElseIf current.Kind = SyntaxKind.SingleLineSubLambdaExpression Then
+                ElseIf current.IsKind(SyntaxKind.SingleLineSubLambdaExpression) Then
                     Dim singleLineLambda = DirectCast(current, SingleLineLambdaExpressionSyntax)
                     Dim multiLineLambda = SyntaxFactory.MultiLineSubLambdaExpression(
                         singleLineLambda.SubOrFunctionHeader,

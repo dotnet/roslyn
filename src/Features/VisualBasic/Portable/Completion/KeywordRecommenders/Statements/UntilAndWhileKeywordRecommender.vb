@@ -22,15 +22,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Stat
 
             Dim targetToken = context.TargetToken
 
-            If (targetToken.Kind = SyntaxKind.DoKeyword AndAlso TypeOf targetToken.Parent Is DoStatementSyntax) OrElse
-             (targetToken.Kind = SyntaxKind.LoopKeyword AndAlso
+            If (targetToken.IsKind(SyntaxKind.DoKeyword) AndAlso TypeOf targetToken.Parent Is DoStatementSyntax) OrElse
+             (targetToken.IsKind(SyntaxKind.LoopKeyword) AndAlso
              TypeOf targetToken.Parent Is LoopStatementSyntax AndAlso
              targetToken.Parent.Parent.IsKind(SyntaxKind.SimpleDoLoopBlock, SyntaxKind.DoLoopWhileBlock, SyntaxKind.DoLoopUntilBlock)) Then
                 Return ImmutableArray.Create(
-                    New RecommendedKeyword("Until", If(targetToken.Kind = SyntaxKind.LoopKeyword,
+                    New RecommendedKeyword("Until", If(targetToken.IsKind(SyntaxKind.LoopKeyword),
                                                        VBFeaturesResources.Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Loop_Until_condition,
                                                        VBFeaturesResources.Repeats_a_block_of_statements_until_a_Boolean_condition_becomes_true_Do_Until_condition_Loop)),
-                    New RecommendedKeyword("While", If(targetToken.Kind = SyntaxKind.LoopKeyword,
+                    New RecommendedKeyword("While", If(targetToken.IsKind(SyntaxKind.LoopKeyword),
                                                        VBFeaturesResources.Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_Loop_While_condition,
                                                        VBFeaturesResources.Repeats_a_block_of_statements_while_a_Boolean_condition_is_true_Do_While_condition_Loop)))
             Else

@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                 If TypeOf conditional Is IfDirectiveTriviaSyntax Then
                     With DirectCast(conditional, IfDirectiveTriviaSyntax)
                         highlights.Add(TextSpan.FromBounds(.HashToken.SpanStart, .IfOrElseIfKeyword.Span.End))
-                        If .ThenKeyword.Kind <> SyntaxKind.None Then
+                        If Not .ThenKeyword.IsKind(SyntaxKind.None) Then
                             highlights.Add(.ThenKeyword.Span)
                         End If
                     End With

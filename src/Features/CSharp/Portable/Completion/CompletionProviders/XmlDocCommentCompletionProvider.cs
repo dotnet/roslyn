@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 var attachedToken = parentTrivia.ParentTrivia.Token;
-                if (attachedToken.Kind() == SyntaxKind.None)
+                if (attachedToken.IsKind(SyntaxKind.None))
                 {
                     return null;
                 }
@@ -110,12 +110,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var items = new List<CompletionItem>();
 
-                if (token.Parent.Kind() == SyntaxKind.XmlEmptyElement || token.Parent.Kind() == SyntaxKind.XmlText ||
+                if (token.Parent.IsKind(SyntaxKind.XmlEmptyElement) || token.Parent.IsKind(SyntaxKind.XmlText) ||
                     (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) && token.IsKind(SyntaxKind.GreaterThanToken)) ||
                     (token.Parent.IsKind(SyntaxKind.XmlName) && token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement)))
                 {
                     // The user is typing inside an XmlElement
-                    if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement ||
+                    if (token.Parent.Parent.IsKind(SyntaxKind.XmlElement) ||
                         token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
                     {
                         // Avoid including language keywords when following < or <text, since these cases should only be

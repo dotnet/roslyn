@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             // It might be reasonable to return an empty Name and a LineOffset from the beginning of the
             // file for GlobalStatements.  However, the only known caller (Breakpoints Window) doesn't
             // appear to consume this information, so we'll just return the simplest thing (no location).
-            if ((memberDeclaration == null) || (memberDeclaration.Kind() == SyntaxKind.GlobalStatement))
+            if ((memberDeclaration == null) || (memberDeclaration.IsKind(SyntaxKind.GlobalStatement)))
             {
                 return default;
             }
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             // field or event field declarations may contain multiple variable declarators. Try finding the correct one.
             // If the position does not point to one, try using the first one.
             VariableDeclaratorSyntax fieldDeclarator = null;
-            if (memberDeclaration.Kind() == SyntaxKind.FieldDeclaration || memberDeclaration.Kind() == SyntaxKind.EventFieldDeclaration)
+            if (memberDeclaration.IsKind(SyntaxKind.FieldDeclaration) || memberDeclaration.IsKind(SyntaxKind.EventFieldDeclaration))
             {
                 var variableDeclarators = ((BaseFieldDeclarationSyntax)memberDeclaration).Declaration.Variables;
 

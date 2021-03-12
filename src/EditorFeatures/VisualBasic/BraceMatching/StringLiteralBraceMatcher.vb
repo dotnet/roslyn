@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
             Dim token = root.FindToken(position)
 
             If position = token.SpanStart OrElse position = token.Span.End - 1 Then
-                If token.Kind = SyntaxKind.StringLiteralToken AndAlso Not token.ContainsDiagnostics Then
+                If token.IsKind(SyntaxKind.StringLiteralToken) AndAlso Not token.ContainsDiagnostics Then
                     Return New BraceMatchingResult(
                         New TextSpan(token.SpanStart, 1),
                         New TextSpan(token.Span.End - 1, 1))

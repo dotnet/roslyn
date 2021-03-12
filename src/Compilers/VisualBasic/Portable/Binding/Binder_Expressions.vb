@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function InferTupleElementName(element As ExpressionSyntax) As String
             Dim ignore As XmlNameSyntax = Nothing
             Dim nameToken As SyntaxToken = element.ExtractAnonymousTypeMemberName(ignore)
-            If nameToken.Kind() = SyntaxKind.IdentifierToken Then
+            If nameToken.IsKind(SyntaxKind.IdentifierToken) Then
                 Dim name As String = nameToken.ValueText
                 ' Reserved names are never candidates to be inferred names, at any position
                 If TupleTypeSymbol.IsElementNameReserved(name) = -1 Then
@@ -3640,7 +3640,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' "BC30991: Member '{0}' cannot be initialized in an object initializer expression because it is shared." 
                     ' instead.
                     If node.Parent Is Nothing OrElse
-                        node.Parent.Kind <> SyntaxKind.NamedFieldInitializer Then
+                        Not node.Parent.IsKind(SyntaxKind.NamedFieldInitializer) Then
                         ReportDiagnostic(diagnostics, node, ERRID.WRN_SharedMemberThroughInstance)
                     End If
                 End If
@@ -3685,14 +3685,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parent = syntax.Parent
 
             Return parent IsNot Nothing AndAlso
-                   parent.Kind = SyntaxKind.SimpleMemberAccessExpression AndAlso
+                   parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
                    DirectCast(parent, MemberAccessExpressionSyntax).Expression Is syntax AndAlso
                    IsNameOfArgument(parent)
         End Function
 
         Private Shared Function IsNameOfArgument(syntax As SyntaxNode) As Boolean
             Return syntax.Parent IsNot Nothing AndAlso
-                   syntax.Parent.Kind = SyntaxKind.NameOfExpression AndAlso
+                   syntax.Parent.IsKind(SyntaxKind.NameOfExpression) AndAlso
                    DirectCast(syntax.Parent, NameOfExpressionSyntax).Argument Is syntax
         End Function
 

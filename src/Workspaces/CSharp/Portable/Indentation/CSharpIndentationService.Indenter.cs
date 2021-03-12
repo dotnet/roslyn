@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         private static IndentationResult GetIndentationBasedOnToken(Indenter indenter, SyntaxToken token)
         {
             Contract.ThrowIfNull(indenter.Tree);
-            Contract.ThrowIfTrue(token.Kind() == SyntaxKind.None);
+            Contract.ThrowIfTrue(token.IsKind(SyntaxKind.None));
 
             // special cases
             // case 1: token belongs to verbatim token literal

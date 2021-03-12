@@ -20,10 +20,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         private bool IsAfterEndRegionBeforeMethodDeclaration(SyntaxToken previousToken)
         {
-            if (previousToken.Kind() == SyntaxKind.EndOfDirectiveToken)
+            if (previousToken.IsKind(SyntaxKind.EndOfDirectiveToken))
             {
                 var previousPreviousToken = previousToken.GetPreviousToken();
-                return previousPreviousToken.Kind() == SyntaxKind.EndRegionKeyword;
+                return previousPreviousToken.IsKind(SyntaxKind.EndRegionKeyword);
             }
 
             return false;

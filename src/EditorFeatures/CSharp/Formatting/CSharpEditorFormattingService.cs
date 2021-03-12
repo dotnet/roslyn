@@ -394,8 +394,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // ```
             // 
             // This will have the desired effect of keeping these tokens on the same line, but only during typing scenarios.  
-            if (tokenBeforeCaret.Kind() == SyntaxKind.CloseBraceToken ||
-                tokenBeforeCaret.Kind() == SyntaxKind.EndOfFileToken)
+            if (tokenBeforeCaret.IsKind(SyntaxKind.CloseBraceToken) ||
+                tokenBeforeCaret.IsKind(SyntaxKind.EndOfFileToken))
             {
                 return SpecializedCollections.EmptyEnumerable<AbstractFormattingRule>();
             }

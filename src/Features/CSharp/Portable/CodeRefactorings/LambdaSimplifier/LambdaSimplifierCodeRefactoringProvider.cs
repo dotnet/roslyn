@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.LambdaSimplifier
             {
                 var argument = invocation.ArgumentList.Arguments[i];
                 if (argument.NameColon != null ||
-                    argument.RefOrOutKeyword.Kind() != SyntaxKind.None ||
+                    !argument.RefOrOutKeyword.IsKind(SyntaxKind.None) ||
                     !argument.Expression.IsKind(SyntaxKind.IdentifierName, out IdentifierNameSyntax identifierName))
                 {
                     return false;

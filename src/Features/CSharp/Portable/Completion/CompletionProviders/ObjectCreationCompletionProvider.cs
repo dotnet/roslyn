@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     var newToken = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
                     // Only after 'new'.
-                    if (newToken.Kind() == SyntaxKind.NewKeyword)
+                    if (newToken.IsKind(SyntaxKind.NewKeyword))
                     {
                         // Only if the 'new' belongs to an object creation expression (and isn't a 'new'
                         // modifier on a member).

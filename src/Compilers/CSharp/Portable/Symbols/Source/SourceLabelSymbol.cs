@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var node = _identifierNodeOrToken.AsNode();
             if (node != null)
             {
-                if (node.Kind() == SyntaxKind.DefaultSwitchLabel)
+                if (node.IsKind(SyntaxKind.DefaultSwitchLabel))
                 {
                     return ((DefaultSwitchLabelSyntax)node).Keyword.ToString();
                 }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var tk = _identifierNodeOrToken.AsToken();
-            if (tk.Kind() != SyntaxKind.None)
+            if (!tk.IsKind(SyntaxKind.None))
             {
                 return tk.ValueText;
             }
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var symbol = obj as SourceLabelSymbol;
             return (object?)symbol != null
-                && symbol._identifierNodeOrToken.Kind() != SyntaxKind.None
+                && !symbol._identifierNodeOrToken.IsKind(SyntaxKind.None)
                 && symbol._identifierNodeOrToken.Equals(_identifierNodeOrToken)
                 && symbol._containingMethod.Equals(_containingMethod, compareKind);
         }

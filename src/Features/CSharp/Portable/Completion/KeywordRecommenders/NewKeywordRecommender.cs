@@ -101,12 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             var token = context.TargetToken;
 
-            if (token.Kind() == SyntaxKind.CommaToken &&
+            if (token.IsKind(SyntaxKind.CommaToken) &&
                 token.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
             {
                 if (!constraintClause.Constraints
                         .OfType<ClassOrStructConstraintSyntax>()
-                        .Any(c => c.ClassOrStructKeyword.Kind() == SyntaxKind.StructKeyword))
+                        .Any(c => c.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword)))
                 {
                     return true;
                 }

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var updatedToken = lastToken.ReplaceTrivia(lastToken.TrailingTrivia,
                 (t1, t2) =>
                 {
-                    if (t1.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                    if (t1.IsKind(SyntaxKind.MultiLineCommentTrivia))
                     {
                         var text = t1.ToString();
                         if (!text.EndsWith(MultiLineCommentTerminator, StringComparison.Ordinal))
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             return SyntaxFactory.SyntaxTrivia(SyntaxKind.MultiLineCommentTrivia, text + MultiLineCommentTerminator);
                         }
                     }
-                    else if (t1.Kind() == SyntaxKind.SkippedTokensTrivia)
+                    else if (t1.IsKind(SyntaxKind.SkippedTokensTrivia))
                     {
                         return ReplaceUnterminatedConstructs(t1);
                     }

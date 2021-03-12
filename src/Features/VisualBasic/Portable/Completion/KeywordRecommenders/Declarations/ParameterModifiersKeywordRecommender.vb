@@ -58,27 +58,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
 
             If methodDeclaration.ParameterList.OpenParenToken = targetToken Then
                 Return defaultRecommendations.ToImmutableArray()
-            ElseIf targetToken.Kind = SyntaxKind.CommaToken AndAlso targetToken.Parent.Kind = SyntaxKind.ParameterList Then
+            ElseIf targetToken.IsKind(SyntaxKind.CommaToken) AndAlso targetToken.Parent.IsKind(SyntaxKind.ParameterList) Then
                 ' Now we get to look at previous declarations and see what might still be valid
                 For Each parameter In methodDeclaration.ParameterList.Parameters.Where(Function(p) p.FullSpan.End < context.Position)
                     ' If a previous one had a ParamArray, then nothing is valid anymore, since the ParamArray must
                     ' always be the last parameter
-                    If parameter.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.ParamArrayKeyword) Then
+                    If parameter.Modifiers.Any(Function(modifier) modifier.IsKind(SyntaxKind.ParamArrayKeyword)) Then
                         Return ImmutableArray(Of RecommendedKeyword).Empty
                     End If
 
                     ' If a previous one had an Optional, then all following must be optional. Following Dev10 behavior,
                     ' we recommend just Optional as a first recommendation
-                    If parameter.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.OptionalKeyword) AndAlso optionalAndParamArrayAllowed Then
+                    If parameter.Modifiers.Any(Function(modifier) modifier.IsKind(SyntaxKind.OptionalKeyword)) AndAlso optionalAndParamArrayAllowed Then
                         Return defaultRecommendations.Where(Function(k) k.Keyword = "Optional").ToImmutableArray()
                     End If
                 Next
 
                 ' We had no special requirements, so return the default set
                 Return defaultRecommendations.ToImmutableArray()
-            ElseIf targetToken.Kind = SyntaxKind.OptionalKeyword AndAlso Not parameterAlreadyHasByValOrByRef Then
+            ElseIf targetToken.IsKind(SyntaxKind.OptionalKeyword) AndAlso Not parameterAlreadyHasByValOrByRef Then
                 Return defaultRecommendations.Where(Function(k) k.Keyword.StartsWith("By", StringComparison.Ordinal)).ToImmutableArray()
-            ElseIf targetToken.Kind = SyntaxKind.ParamArrayKeyword AndAlso Not parameterAlreadyHasByValOrByRef Then
+            ElseIf targetToken.IsKind(SyntaxKind.ParamArrayKeyword) AndAlso Not parameterAlreadyHasByValOrByRef Then
                 Return defaultRecommendations.Where(Function(k) k.Keyword = "ByVal").ToImmutableArray()
             End If
 

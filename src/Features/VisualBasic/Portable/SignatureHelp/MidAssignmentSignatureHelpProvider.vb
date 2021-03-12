@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Protected Overrides Function IsTriggerToken(token As SyntaxToken) As Boolean
             Return token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken) AndAlso
-               token.Parent.Kind = SyntaxKind.ArgumentList AndAlso
+               token.Parent.IsKind(SyntaxKind.ArgumentList) AndAlso
                token.Parent.IsParentKind(SyntaxKind.MidExpression) AndAlso
                token.Parent.Parent.IsParentKind(SyntaxKind.MidAssignmentStatement)
         End Function

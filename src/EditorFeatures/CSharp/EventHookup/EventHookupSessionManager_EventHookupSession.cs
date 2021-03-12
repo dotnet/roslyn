@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
 
-                if (token.Kind() != SyntaxKind.PlusEqualsToken)
+                if (!token.IsKind(SyntaxKind.PlusEqualsToken))
                 {
                     return null;
                 }

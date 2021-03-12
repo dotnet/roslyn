@@ -91,13 +91,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // u|
 
             // root: |
-            if (token.Kind() == SyntaxKind.None)
+            if (token.IsKind(SyntaxKind.None))
             {
                 // root namespace
 
                 // a using can't come before externs
                 var nextToken = originalToken.GetNextToken(includeSkipped: true);
-                if (nextToken.Kind() == SyntaxKind.ExternKeyword ||
+                if (nextToken.IsKind(SyntaxKind.ExternKeyword) ||
                     ((CompilationUnitSyntax)context.SyntaxTree.GetRoot(cancellationToken)).Externs.Count > 0)
                 {
                     return false;
@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return true;
             }
 
-            if (token.Kind() == SyntaxKind.OpenBraceToken &&
+            if (token.IsKind(SyntaxKind.OpenBraceToken) &&
                 token.Parent.IsKind(SyntaxKind.NamespaceDeclaration, out NamespaceDeclarationSyntax _))
             {
                 // a child using can't come before externs
                 var nextToken = originalToken.GetNextToken(includeSkipped: true);
-                if (nextToken.Kind() == SyntaxKind.ExternKeyword)
+                if (nextToken.IsKind(SyntaxKind.ExternKeyword))
                 {
                     return false;
                 }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // using Goo;
             // |
-            if (token.Kind() == SyntaxKind.SemicolonToken)
+            if (token.IsKind(SyntaxKind.SemicolonToken))
             {
                 if (token.Parent.IsKind(SyntaxKind.ExternAliasDirective) ||
                     token.Parent.IsKind(SyntaxKind.UsingDirective))

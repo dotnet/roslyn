@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // group e b|
             if (token.IntersectsWith(position) &&
-                token.Kind() == SyntaxKind.IdentifierToken &&
+                token.IsKind(SyntaxKind.IdentifierToken) &&
                 token.GetPreviousToken(includeSkipped: true) == lastToken)
             {
                 return true;

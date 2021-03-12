@@ -169,8 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // (EndOfFileToken) - This is the synthetic end of file token. Should be treated as the end of the file.
             // (None) - It is the end of the file. This means there are no more tokens.
 
-            var isStartOrEndOfFile = (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.Kind() == 0 || trivia2.Kind() == 0);
-            var isAtEndOfFileToken = (Token2.IsKind(SyntaxKind.EndOfFileToken) && trivia2.Kind() == 0);
+            var isStartOrEndOfFile = (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.IsKind(SyntaxKind.None) || trivia2.IsKind(SyntaxKind.None));
+            var isAtEndOfFileToken = (Token2.IsKind(SyntaxKind.EndOfFileToken) && trivia2.IsKind(SyntaxKind.None));
 
             return isStartOrEndOfFile || isAtEndOfFileToken;
         }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool TryFormatMultiLineCommentTrivia(LineColumn lineColumn, SyntaxTrivia trivia, out SyntaxTrivia result)
         {
-            if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+            if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
             {
                 var indentation = lineColumn.Column;
                 var indentationDelta = indentation - GetExistingIndentation(trivia);
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private LineColumnDelta FormatStructuredTrivia(
             LineColumn lineColumn, SyntaxTrivia trivia, ArrayBuilder<SyntaxTrivia> changes, CancellationToken cancellationToken)
         {
-            if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
+            if (trivia.IsKind(SyntaxKind.SkippedTokensTrivia))
             {
                 // don't touch anything if it contains skipped tokens
                 _succeeded = false;
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private LineColumnDelta FormatStructuredTrivia(
             LineColumn lineColumn, SyntaxTrivia trivia, ArrayBuilder<TextChange> changes, CancellationToken cancellationToken)
         {
-            if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
+            if (trivia.IsKind(SyntaxKind.SkippedTokensTrivia))
             {
                 // don't touch anything if it contains skipped tokens
                 _succeeded = false;

@@ -53,8 +53,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Private Function CompareXmlNames(xmlName1 As XmlNameSyntax, xmlName2 As XmlNameSyntax) As Integer
-            Dim tokens1 = xmlName1.DescendantTokens().Where(Function(t) t.Kind = SyntaxKind.IdentifierToken).ToList()
-            Dim tokens2 = xmlName2.DescendantTokens().Where(Function(t) t.Kind = SyntaxKind.IdentifierToken).ToList()
+            Dim tokens1 = xmlName1.DescendantTokens().Where(Function(t) t.IsKind(SyntaxKind.IdentifierToken)).ToList()
+            Dim tokens2 = xmlName2.DescendantTokens().Where(Function(t) t.IsKind(SyntaxKind.IdentifierToken)).ToList()
 
             For i = 0 To Math.Min(tokens1.Count - 1, tokens2.Count - 1)
                 Dim compare = _tokenComparer.Compare(tokens1(i), tokens2(i))

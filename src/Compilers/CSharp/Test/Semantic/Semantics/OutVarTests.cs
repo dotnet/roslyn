@@ -1180,7 +1180,7 @@ public class Cls
 
                 Assert.Empty(parent.Ancestors().OfType<DeclarationExpressionSyntax>().Where(e => e.IsOutVarDeclaration()));
 
-                if (parent.Kind() == SyntaxKind.VariableDeclarator)
+                if (parent.IsKind(SyntaxKind.VariableDeclarator))
                 {
                     var parent1 = ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)parent).Parent).Parent;
                     switch (parent1.Kind())
@@ -1226,7 +1226,7 @@ public class Cls
             switch (reference.Parent.Kind())
             {
                 case SyntaxKind.Argument:
-                    if (((ArgumentSyntax)reference.Parent).RefOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
+                    if (!((ArgumentSyntax)reference.Parent).RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
                     {
                         return true;
                     }
@@ -1335,7 +1335,7 @@ public class Cls
             switch (reference.Parent.Kind())
             {
                 case SyntaxKind.Argument:
-                    if (((ArgumentSyntax)reference.Parent).RefOrOutKeyword.Kind() != SyntaxKind.None)
+                    if (!((ArgumentSyntax)reference.Parent).RefOrOutKeyword.IsKind(SyntaxKind.None))
                     {
                         return true;
                     }

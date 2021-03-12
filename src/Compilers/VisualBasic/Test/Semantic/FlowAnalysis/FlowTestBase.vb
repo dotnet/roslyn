@@ -159,7 +159,7 @@ tryAgain:
 
                 Case SyntaxKind.ColonToken
                     Dim parent = token.Parent
-                    If TypeOf parent Is StatementSyntax AndAlso parent.Kind <> SyntaxKind.LabelStatement Then
+                    If TypeOf parent Is StatementSyntax AndAlso Not parent.IsKind(SyntaxKind.LabelStatement) Then
                         ' let's assume this is a statement block, what else can it be?
                         token = token.GetNextToken()
                         GoTo tryAgain

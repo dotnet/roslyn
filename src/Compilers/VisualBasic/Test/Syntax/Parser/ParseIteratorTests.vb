@@ -75,7 +75,7 @@ Class IteratorAttribute
     End Sub
 End Class]]>)
 
-        Assert.Equal(6, Aggregate t In tree.GetRoot().DescendantTokens Where t.Kind = SyntaxKind.IteratorKeyword Into Count())
+        Assert.Equal(6, Aggregate t In tree.GetRoot().DescendantTokens Where t.IsKind(SyntaxKind.IteratorKeyword) Into Count())
 
     End Sub
 
@@ -360,8 +360,8 @@ End Class]]>.Value)
                         SyntaxKind.IdentifierName}
 
         Dim actual = From expression In tree.GetRoot().DescendantNodes()
-                     Where expression.Kind = SyntaxKind.YieldStatement OrElse
-                            (expression.Kind = SyntaxKind.IdentifierName AndAlso DirectCast(expression, IdentifierNameSyntax).Identifier.ValueText.Equals("Yield"))
+                     Where expression.IsKind(SyntaxKind.YieldStatement) OrElse
+                            (expression.IsKind(SyntaxKind.IdentifierName) AndAlso DirectCast(expression, IdentifierNameSyntax).Identifier.ValueText.Equals("Yield"))
                      Order By expression.FullSpan.Start
                      Select expression.Kind()
 
@@ -416,7 +416,7 @@ End Function"
     End Sub
 
     Private Shared Function IsIteratorMethod(methodSyntax As MethodBlockBaseSyntax) As Boolean
-        Return methodSyntax.BlockStatement.Modifiers.Contains(Function(t As SyntaxToken) t.Kind = SyntaxKind.IteratorKeyword)
+        Return methodSyntax.BlockStatement.Modifiers.Contains(Function(t As SyntaxToken) t.IsKind(SyntaxKind.IteratorKeyword))
     End Function
 
     Private Shared Function IsInIteratorMethod(yieldStatement As YieldStatementSyntax) As Boolean

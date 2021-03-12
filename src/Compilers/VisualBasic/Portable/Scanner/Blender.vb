@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return New TextSpan(position, 0)
             End If
 
-            If node.Kind = SyntaxKind.CompilationUnit OrElse IsStatementLike(node) Then
+            If node.IsKind(SyntaxKind.CompilationUnit) OrElse IsStatementLike(node) Then
                 Do
                     Dim child = node.ChildThatContainsPosition(position).AsNode()
                     If child Is Nothing OrElse Not IsStatementLike(child) Then
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' Move to the left by the look ahead required by the Scanner.
                 For i As Integer = 0 To Scanner.MaxTokensLookAheadBeyondEOL
                     Dim node = root.FindTokenInternal(start)
-                    If node.Kind = SyntaxKind.None Then
+                    If node.IsKind(SyntaxKind.None) Then
                         Exit For
                     Else
                         start = node.Position

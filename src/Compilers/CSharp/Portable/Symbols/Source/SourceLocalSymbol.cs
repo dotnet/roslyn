@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind)
         {
-            Debug.Assert(identifierToken.Kind() != SyntaxKind.None);
+            Debug.Assert(!identifierToken.IsKind(SyntaxKind.None));
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
             Debug.Assert(scopeBinder != null);
 
@@ -168,18 +168,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxNode forbiddenZone)
         {
             Debug.Assert(
-                nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
-                nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
-                nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                nodeToBind.Kind() == SyntaxKind.PrimaryConstructorBaseType || // initializer for a record constructor
-                nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
-                nodeToBind.Kind() == SyntaxKind.ArgumentList && (nodeToBind.Parent is ConstructorInitializerSyntax || nodeToBind.Parent is PrimaryConstructorBaseTypeSyntax) ||
-                nodeToBind.Kind() == SyntaxKind.GotoCaseStatement || // for error recovery
-                nodeToBind.Kind() == SyntaxKind.VariableDeclarator &&
+                nodeToBind.IsKind(SyntaxKind.CasePatternSwitchLabel) ||
+                nodeToBind.IsKind(SyntaxKind.ThisConstructorInitializer) ||
+                nodeToBind.IsKind(SyntaxKind.BaseConstructorInitializer) ||
+                nodeToBind.IsKind(SyntaxKind.PrimaryConstructorBaseType) || // initializer for a record constructor
+                nodeToBind.IsKind(SyntaxKind.SwitchExpressionArm) ||
+                nodeToBind.IsKind(SyntaxKind.ArgumentList) && (nodeToBind.Parent is ConstructorInitializerSyntax || nodeToBind.Parent is PrimaryConstructorBaseTypeSyntax) ||
+                nodeToBind.IsKind(SyntaxKind.GotoCaseStatement) || // for error recovery
+                nodeToBind.IsKind(SyntaxKind.VariableDeclarator) &&
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
                 nodeToBind is ExpressionSyntax);
-            Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
+            Debug.Assert(!(nodeToBind.IsKind(SyntaxKind.SwitchExpressionArm)) || nodeBinder is SwitchExpressionArmBinder);
             return typeSyntax?.IsVar != false && kind != LocalDeclarationKind.DeclarationExpressionVariable
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, kind);
@@ -737,16 +737,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : base(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, declarationKind)
             {
                 Debug.Assert(
-                    nodeToBind.Kind() == SyntaxKind.CasePatternSwitchLabel ||
-                    nodeToBind.Kind() == SyntaxKind.ThisConstructorInitializer ||
-                    nodeToBind.Kind() == SyntaxKind.BaseConstructorInitializer ||
-                    nodeToBind.Kind() == SyntaxKind.PrimaryConstructorBaseType || // initializer for a record constructor
-                    nodeToBind.Kind() == SyntaxKind.ArgumentList && (nodeToBind.Parent is ConstructorInitializerSyntax || nodeToBind.Parent is PrimaryConstructorBaseTypeSyntax) ||
-                    nodeToBind.Kind() == SyntaxKind.VariableDeclarator ||
-                    nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm ||
-                    nodeToBind.Kind() == SyntaxKind.GotoCaseStatement ||
+                    nodeToBind.IsKind(SyntaxKind.CasePatternSwitchLabel) ||
+                    nodeToBind.IsKind(SyntaxKind.ThisConstructorInitializer) ||
+                    nodeToBind.IsKind(SyntaxKind.BaseConstructorInitializer) ||
+                    nodeToBind.IsKind(SyntaxKind.PrimaryConstructorBaseType) || // initializer for a record constructor
+                    nodeToBind.IsKind(SyntaxKind.ArgumentList) && (nodeToBind.Parent is ConstructorInitializerSyntax || nodeToBind.Parent is PrimaryConstructorBaseTypeSyntax) ||
+                    nodeToBind.IsKind(SyntaxKind.VariableDeclarator) ||
+                    nodeToBind.IsKind(SyntaxKind.SwitchExpressionArm) ||
+                    nodeToBind.IsKind(SyntaxKind.GotoCaseStatement) ||
                     nodeToBind is ExpressionSyntax);
-                Debug.Assert(!(nodeToBind.Kind() == SyntaxKind.SwitchExpressionArm) || nodeBinder is SwitchExpressionArmBinder);
+                Debug.Assert(!(nodeToBind.IsKind(SyntaxKind.SwitchExpressionArm)) || nodeBinder is SwitchExpressionArmBinder);
                 this._nodeBinder = nodeBinder;
                 this._nodeToBind = nodeToBind;
                 this._forbiddenZone = forbiddenZone;

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -33,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Function IsValidIdentifier(wszIdentifier As String) As Boolean Implements IVbCompiler.IsValidIdentifier
             ' This curious function requires us to return whether the given identifier is in fact a valid identifier.
             Dim token = SyntaxFactory.ParseToken(wszIdentifier)
-            Return token.Kind = SyntaxKind.IdentifierToken
+            Return token.IsKind(SyntaxKind.IdentifierToken)
         End Function
 
         Public Sub RegisterVbCompilerHost(pVbCompilerHost As IVbCompilerHost) Implements IVbCompiler.RegisterVbCompilerHost

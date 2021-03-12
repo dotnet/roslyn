@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TodoComments
 
         protected override bool PreprocessorHasComment(SyntaxTrivia trivia)
         {
-            return trivia.Kind() != SyntaxKind.RegionDirectiveTrivia &&
+            return !trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) &&
                    SyntaxFacts.IsPreprocessorDirective(trivia.Kind()) && trivia.ToString().IndexOf(SingleLineCommentPrefix, StringComparison.Ordinal) > 0;
         }
 

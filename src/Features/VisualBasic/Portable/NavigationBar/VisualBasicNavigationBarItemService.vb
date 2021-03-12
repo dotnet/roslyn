@@ -451,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.NavigationBar
                 Return False
             End If
 
-            Return method.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax()).OfType(Of MethodStatementSyntax)().Any(Function(m) m.Modifiers.Any(Function(t) t.Kind = SyntaxKind.PartialKeyword))
+            Return method.DeclaringSyntaxReferences.Select(Function(r) r.GetSyntax()).OfType(Of MethodStatementSyntax)().Any(Function(m) m.Modifiers.Any(Function(t) t.IsKind(SyntaxKind.PartialKeyword)))
         End Function
     End Class
 End Namespace

@@ -72,11 +72,11 @@ Namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
         End Function
 
         Protected Overrides Function IsXmlWhitespaceToken(token As SyntaxToken) As Boolean
-            Return token.Kind() = SyntaxKind.XmlTextLiteralToken AndAlso IsWhitespace(token.Text)
+            Return token.IsKind(SyntaxKind.XmlTextLiteralToken) AndAlso IsWhitespace(token.Text)
         End Function
 
         Protected Overrides Function IsXmlNewLineToken(token As SyntaxToken) As Boolean
-            Return token.Kind() = SyntaxKind.DocumentationCommentLineBreakToken
+            Return token.IsKind(SyntaxKind.DocumentationCommentLineBreakToken)
         End Function
 
         Private Shared Function IsWhitespace(text As String) As Boolean

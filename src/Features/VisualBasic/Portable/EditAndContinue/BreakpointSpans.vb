@@ -374,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Private Function TryCreateSpanForCollectionRangeVariable(collectionRangeVariable As CollectionRangeVariableSyntax) As TextSpan?
-            If collectionRangeVariable.Parent.Kind = SyntaxKind.FromClause Then
+            If collectionRangeVariable.Parent.IsKind(SyntaxKind.FromClause) Then
                 Dim fromClause = DirectCast(collectionRangeVariable.Parent, FromClauseSyntax)
                 Dim query = DirectCast(fromClause.Parent, QueryExpressionSyntax)
 

@@ -42,15 +42,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function ReplaceTrailingColonToEndOfLineTrivia(Of TNode As SyntaxNode)(node As TNode) As TNode
-            Return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(Function(t) If(t.Kind = SyntaxKind.ColonTrivia, SyntaxFactory.ElasticCarriageReturnLineFeed, t)))
+            Return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(Function(t) If(t.IsKind(SyntaxKind.ColonTrivia), SyntaxFactory.ElasticCarriageReturnLineFeed, t)))
         End Function
 
         Private Function EnsureProperList(Of TSyntax As SyntaxNode)(list As SyntaxList(Of TSyntax)) As SyntaxList(Of TSyntax)
             Dim allElements = list
-            If Not allElements.Last().GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia OrElse t.Kind = SyntaxKind.ColonTrivia) Then
+            If Not allElements.Last().GetTrailingTrivia().Any(Function(t) t.IsKind(SyntaxKind.EndOfLineTrivia) OrElse t.IsKind(SyntaxKind.ColonTrivia)) Then
                 Return SyntaxFactory.SingletonList(Of TSyntax)(
                     allElements.Last().WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
-            ElseIf allElements.Last().GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.ColonTrivia) Then
+            ElseIf allElements.Last().GetTrailingTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia)) Then
                 Return SyntaxFactory.List(Of TSyntax)(
                     allElements.Take(allElements.Count - 1).Concat(ReplaceTrailingColonToEndOfLineTrivia(allElements.Last())))
             End If
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private Function EnsureProperBegin(destinationType As TypeBlockSyntax) As TypeStatementSyntax
             If destinationType.Inherits.Count = 0 AndAlso
                destinationType.Implements.Count = 0 AndAlso
-               destinationType.BlockStatement.GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.ColonTrivia) Then
+               destinationType.BlockStatement.GetTrailingTrivia().Any(Function(t) t.IsKind(SyntaxKind.ColonTrivia)) Then
                 Return ReplaceTrailingColonToEndOfLineTrivia(destinationType.BlockStatement)
             End If
 

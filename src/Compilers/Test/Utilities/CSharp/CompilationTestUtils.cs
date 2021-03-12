@@ -489,7 +489,7 @@ getOperation:
                 {
                     foreach (var trivia in token.TrailingTrivia)
                     {
-                        if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                        if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
                         {
                             var text = trivia.ToFullString();
                             const string typePrefix = "/*T:";

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 // if we're the start of a "catch(Goo e)" clause, then add "e".
                 if (block != null && block.IsParentKind(SyntaxKind.CatchClause, out CatchClauseSyntax catchClause) &&
-                    catchClause.Declaration != null && catchClause.Declaration.Identifier.Kind() != SyntaxKind.None)
+                    catchClause.Declaration != null && !catchClause.Declaration.Identifier.IsKind(SyntaxKind.None))
                 {
                     _expressions.Add(catchClause.Declaration.Identifier.ValueText);
                 }

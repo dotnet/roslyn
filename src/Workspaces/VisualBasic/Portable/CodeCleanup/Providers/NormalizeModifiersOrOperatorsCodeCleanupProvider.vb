@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 Dim [operator] = NormalizeOperator(
                                     newNode.OperatorToken,
-                                    Function(t) t.Kind = SyntaxKind.GreaterThanToken,
+                                    Function(t) t.IsKind(SyntaxKind.GreaterThanToken),
                                     Function(t) t.TrailingTrivia,
                                     Function(t) New List(Of SyntaxKind) From {SyntaxKind.LessThanToken},
                                     Function(t, i)
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                 t.TrailingTrivia.Skip(i + 1).ToSyntaxTriviaList()))
                                     End Function)
 
-                If [operator].Kind = SyntaxKind.None Then
+                If [operator].IsKind(SyntaxKind.None) Then
                     Return newNode
                 End If
 
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                 t.LeadingTrivia.Skip(i + 1).Concat(t.TrailingTrivia).ToSyntaxTriviaList()))
                                     End Function)
 
-                If [operator].Kind = SyntaxKind.None Then
+                If [operator].IsKind(SyntaxKind.None) Then
                     Return binaryOperator
                 End If
 
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 ' check whether operator has missing stuff in skipped token list
                 Dim skippedTokens = node.OperatorToken.TrailingTrivia _
-                                                 .Where(Function(t) t.Kind = SyntaxKind.SkippedTokensTrivia) _
+                                                 .Where(Function(t) t.IsKind(SyntaxKind.SkippedTokensTrivia)) _
                                                  .Select(Function(t) DirectCast(t.GetStructure(), SkippedTokensTriviaSyntax)) _
                                                  .SelectMany(Function(t) t.Tokens)
 
@@ -334,8 +334,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 ' now, it should have skipped token trivia in trivia list
-                Dim skippedTokenTrivia = triviaListGetter([operator]).FirstOrDefault(Function(t) t.Kind = SyntaxKind.SkippedTokensTrivia)
-                If skippedTokenTrivia.Kind = SyntaxKind.None Then
+                Dim skippedTokenTrivia = triviaListGetter([operator]).FirstOrDefault(Function(t) t.IsKind(SyntaxKind.SkippedTokensTrivia))
+                If skippedTokenTrivia.IsKind(SyntaxKind.None) Then
                     Return Nothing
                 End If
 
@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim i = -1
                 For Each token In actual
                     i = i + 1
-                    If token.Kind <> expected(i) Then
+                    If Not token.IsKind(expected(i)) Then
                         Return Nothing
                     End If
                 Next
@@ -398,10 +398,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         Exit For
                     End If
 
-                    Dim tokenInRightOrder = modifierList.FirstOrDefault(Function(m) m.Kind = k)
+                    Dim tokenInRightOrder = modifierList.FirstOrDefault(Function(m) m.IsKind(k))
 
                     ' if we didn't find, move on to next one
-                    If tokenInRightOrder.Kind = SyntaxKind.None Then
+                    If tokenInRightOrder.IsKind(SyntaxKind.None) Then
                         Continue For
                     End If
 
@@ -480,8 +480,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim modifiers = modifiersGetter(node)
 
                 ' "Dim" doesn't exist
-                Dim modifier = modifiers.FirstOrDefault(Function(m) m.Kind = modifierKind)
-                If modifier.Kind = SyntaxKind.None Then
+                Dim modifier = modifiers.FirstOrDefault(Function(m) m.IsKind(modifierKind))
+                If modifier.IsKind(SyntaxKind.None) Then
                     Return node
                 End If
 

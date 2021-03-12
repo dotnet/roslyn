@@ -168,7 +168,7 @@ lReportErrorOnSingleToken:
                     Case SyntaxKind.ProtectedKeyword
 
                         ' Check for 'Protected Friend'
-                        If index >= modifierList.Count - 1 OrElse modifierList(index + 1).Kind <> SyntaxKind.FriendKeyword Then
+                        If index >= modifierList.Count - 1 OrElse Not modifierList(index + 1).IsKind(SyntaxKind.FriendKeyword) Then
                             GoTo lReportErrorOnSingleToken
                         End If
 
@@ -189,7 +189,7 @@ lReportErrorOnTwoTokens:
                     Case SyntaxKind.FriendKeyword
 
                         ' Check for 'Friend Protected'
-                        If index >= modifierList.Count - 1 OrElse modifierList(index + 1).Kind <> SyntaxKind.ProtectedKeyword Then
+                        If index >= modifierList.Count - 1 OrElse Not modifierList(index + 1).IsKind(SyntaxKind.ProtectedKeyword) Then
                             GoTo lReportErrorOnSingleToken
                         End If
 
@@ -206,7 +206,7 @@ lReportErrorOnTwoTokens:
 
             If reportPartialMethodsMustBePrivate Then
                 ' Report [Partial methods must be declared 'Private']
-                Debug.Assert(partialToken.Kind = SyntaxKind.PartialKeyword)
+                Debug.Assert(partialToken.IsKind(SyntaxKind.PartialKeyword))
                 binder.ReportDiagnostic(diagBag, partialToken, ERRID.ERR_PartialMethodsMustBePrivate)
             End If
         End Sub
@@ -229,15 +229,15 @@ lReportErrorOnTwoTokens:
             ' modifiers: Protected and Overloads in Modules and Structures:
             If container.TypeKind = TYPEKIND.Module Then
                 If (methodModifiers.FoundFlags And SourceMemberFlags.Overloads) <> 0 Then
-                    Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.OverloadsKeyword)
+                    Dim keyword = syntax.Modifiers.First(Function(m) m.IsKind(SyntaxKind.OverloadsKeyword))
                     diagBag.Add(ERRID.ERR_OverloadsModifierInModule, keyword.GetLocation(), keyword.ValueText)
                 ElseIf (methodModifiers.FoundFlags And SourceMemberFlags.Protected) <> 0 Then
-                    Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.ProtectedKeyword)
+                    Dim keyword = syntax.Modifiers.First(Function(m) m.IsKind(SyntaxKind.ProtectedKeyword))
                     diagBag.Add(ERRID.ERR_ModuleCantUseDLLDeclareSpecifier1, keyword.GetLocation(), keyword.ValueText)
                 End If
             ElseIf container.TypeKind = TYPEKIND.Structure Then
                 If (methodModifiers.FoundFlags And SourceMemberFlags.Protected) <> 0 Then
-                    Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.ProtectedKeyword)
+                    Dim keyword = syntax.Modifiers.First(Function(m) m.IsKind(SyntaxKind.ProtectedKeyword))
                     diagBag.Add(ERRID.ERR_StructCantUseDLLDeclareSpecifier1, keyword.GetLocation(), keyword.ValueText)
                 End If
             End If
@@ -368,7 +368,7 @@ lReportErrorOnTwoTokens:
 
             ' ERRID.ERR_OperatorDeclaredInModule is reported by the parser.
 
-            flags = flags Or If(syntax.OperatorToken.Kind = SyntaxKind.CTypeKeyword, SourceMemberFlags.MethodKindConversion, SourceMemberFlags.MethodKindOperator)
+            flags = flags Or If(syntax.OperatorToken.IsKind(SyntaxKind.CTypeKeyword), SourceMemberFlags.MethodKindConversion, SourceMemberFlags.MethodKindOperator)
 
             Return New SourceMemberMethodSymbol(
                 container, name, flags, binder, syntax, arity:=0)
@@ -473,7 +473,7 @@ lReportErrorOnTwoTokens:
             End If
 
 
-            If syntax.OperatorToken.Kind = SyntaxKind.CTypeKeyword Then
+            If syntax.OperatorToken.IsKind(SyntaxKind.CTypeKeyword) Then
                 If (foundFlags And (SourceMemberFlags.Narrowing Or SourceMemberFlags.Widening)) = 0 Then
                     binder.ReportDiagnostic(diagBag, syntax.OperatorToken, ERRID.ERR_ConvMustBeWideningOrNarrowing)
                     computedFlags = computedFlags Or SourceMemberFlags.Narrowing
@@ -899,7 +899,7 @@ lReportErrorOnTwoTokens:
             binder = BinderBuilder.CreateBinderForGenericMethodDeclaration(Me, binder)
 
             ' Handle type parameter variance.
-            If syntax.VarianceKeyword.Kind <> SyntaxKind.None Then
+            If Not syntax.VarianceKeyword.IsKind(SyntaxKind.None) Then
                 binder.ReportDiagnostic(diagnostics, syntax.VarianceKeyword, ERRID.ERR_VarianceDisallowedHere)
             End If
 
@@ -1026,7 +1026,7 @@ lReportErrorOnTwoTokens:
                     ' to duplicate some of the logic just to determine if it is shared.
                     Dim isShared As Boolean = False
                     For Each tok In node.Modifiers
-                        If tok.Kind = SyntaxKind.SharedKeyword Then
+                        If tok.IsKind(SyntaxKind.SharedKeyword) Then
                             isShared = True
                         End If
                     Next

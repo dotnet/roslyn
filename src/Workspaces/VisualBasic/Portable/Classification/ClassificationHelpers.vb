@@ -26,13 +26,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Return ClassificationTypeNames.StringLiteral
             ElseIf SyntaxFacts.IsPunctuation(token.Kind) Then
                 Return ClassifyPunctuation(token)
-            ElseIf token.Kind = SyntaxKind.IdentifierToken Then
+            ElseIf token.IsKind(SyntaxKind.IdentifierToken) Then
                 Return ClassifyIdentifierSyntax(token)
             ElseIf token.IsNumericLiteral() Then
                 Return ClassificationTypeNames.NumericLiteral
-            ElseIf token.Kind = SyntaxKind.XmlNameToken Then
+            ElseIf token.IsKind(SyntaxKind.XmlNameToken) Then
                 Return ClassificationTypeNames.XmlLiteralName
-            ElseIf token.Kind = SyntaxKind.XmlTextLiteralToken Then
+            ElseIf token.IsKind(SyntaxKind.XmlTextLiteralToken) Then
                 Select Case token.Parent.Kind
                     Case SyntaxKind.XmlString
                         Return ClassificationTypeNames.XmlLiteralAttributeValue
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     Case Else
                         Return ClassificationTypeNames.XmlLiteralText
                 End Select
-            ElseIf token.Kind = SyntaxKind.XmlEntityLiteralToken Then
+            ElseIf token.IsKind(SyntaxKind.XmlEntityLiteralToken) Then
                 Return ClassificationTypeNames.XmlLiteralEntityReference
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf TypeOf parent Is EnumStatementSyntax AndAlso DirectCast(parent, EnumStatementSyntax).Identifier = identifier Then
                 Return ClassificationTypeNames.EnumName
             ElseIf TypeOf parent Is DelegateStatementSyntax AndAlso DirectCast(parent, DelegateStatementSyntax).Identifier = identifier AndAlso
-                  (parent.Kind = SyntaxKind.DelegateSubStatement OrElse parent.Kind = SyntaxKind.DelegateFunctionStatement) Then
+                  (parent.IsKind(SyntaxKind.DelegateSubStatement) OrElse parent.IsKind(SyntaxKind.DelegateFunctionStatement)) Then
 
                 Return ClassificationTypeNames.DelegateName
             ElseIf TypeOf parent Is TypeParameterSyntax AndAlso DirectCast(parent, TypeParameterSyntax).Identifier = identifier Then

@@ -54,12 +54,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
                 ' Iterate through trivia and collect groups of contiguous single-line comments that are only separated by whitespace
                 For Each trivia In triviaList
-                    If trivia.Kind = SyntaxKind.CommentTrivia Then
+                    If trivia.IsKind(SyntaxKind.CommentTrivia) Then
                         startComment = If(startComment, trivia)
                         endComment = trivia
-                    ElseIf trivia.Kind <> SyntaxKind.WhitespaceTrivia AndAlso
-                        trivia.Kind <> SyntaxKind.EndOfLineTrivia AndAlso
-                        trivia.Kind <> SyntaxKind.EndOfFileToken Then
+                    ElseIf Not trivia.IsKind(SyntaxKind.WhitespaceTrivia) AndAlso
+                        Not trivia.IsKind(SyntaxKind.EndOfLineTrivia) AndAlso
+                        Not trivia.IsKind(SyntaxKind.EndOfFileToken) Then
 
                         If startComment IsNot Nothing Then
                             spans.AddIfNotNull(CreateCommentsRegion(startComment.Value, endComment.Value))
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 Return False
             End If
 
-            Dim firstComment = startToken.LeadingTrivia.FirstOrNull(Function(t) t.Kind = SyntaxKind.CommentTrivia)
+            Dim firstComment = startToken.LeadingTrivia.FirstOrNull(Function(t) t.IsKind(SyntaxKind.CommentTrivia))
 
             Dim startPosition = If(firstComment.HasValue,
                                    firstComment.Value.SpanStart,
@@ -213,12 +213,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             ' Don't include attributes in the hint-span for a block.  We don't want
             ' the attributes to show up when users hover over indent guide lines.
             Dim firstToken = blockNode.GetFirstToken()
-            If firstToken.Kind() = SyntaxKind.LessThanToken AndAlso
+            If firstToken.IsKind(SyntaxKind.LessThanToken) AndAlso
                firstToken.Parent.IsKind(SyntaxKind.AttributeList) Then
 
                 Dim attributeOwner = firstToken.Parent.Parent
                 For Each child In attributeOwner.ChildNodesAndTokens
-                    If child.Kind() <> SyntaxKind.AttributeList Then
+                    If Not child.IsKind(SyntaxKind.AttributeList) Then
                         Return TextSpan.FromBounds(child.SpanStart, blockNode.Span.End)
                     End If
                 Next

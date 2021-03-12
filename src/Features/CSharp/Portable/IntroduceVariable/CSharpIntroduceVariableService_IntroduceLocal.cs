@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             // Grab all the trivia before the line the next statement is on and move it to the new node.
 
             var nextStatementLeading = nextStatement.GetLeadingTrivia();
-            var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
+            var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.IsKind(SyntaxKind.EndOfLineTrivia));
             if (precedingEndOfLine == default)
             {
                 return oldStatements.ReplaceRange(

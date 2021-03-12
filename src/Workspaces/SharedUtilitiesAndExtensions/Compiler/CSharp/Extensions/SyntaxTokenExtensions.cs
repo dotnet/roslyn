@@ -32,43 +32,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsKindOrHasMatchingText(this SyntaxToken token, SyntaxKind kind)
-            => token.Kind() == kind || token.HasMatchingText(kind);
+            => token.IsKind(kind) || token.HasMatchingText(kind);
 
         public static bool HasMatchingText(this SyntaxToken token, SyntaxKind kind)
             => token.ToString() == SyntaxFacts.GetText(kind);
 
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2)
         {
-            return token.Kind() == kind1
-                || token.Kind() == kind2;
+            return token.IsKind(kind1)
+                || token.IsKind(kind2);
         }
 
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
         {
-            return token.Kind() == kind1
-                || token.Kind() == kind2
-                || token.Kind() == kind3;
+            return token.IsKind(kind1)
+                || token.IsKind(kind2)
+                || token.IsKind(kind3);
         }
 
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4)
         {
-            return token.Kind() == kind1
-                || token.Kind() == kind2
-                || token.Kind() == kind3
-                || token.Kind() == kind4;
+            return token.IsKind(kind1)
+                || token.IsKind(kind2)
+                || token.IsKind(kind3)
+                || token.IsKind(kind4);
         }
 
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5)
         {
-            return token.Kind() == kind1
-                || token.Kind() == kind2
-                || token.Kind() == kind3
-                || token.Kind() == kind4
-                || token.Kind() == kind5;
+            return token.IsKind(kind1)
+                || token.IsKind(kind2)
+                || token.IsKind(kind3)
+                || token.IsKind(kind4)
+                || token.IsKind(kind5);
         }
 
-        public static bool IsKind(this SyntaxToken token, params SyntaxKind[] kinds)
+        public static bool IsKind(this SyntaxToken token, SyntaxKind[] kinds)
             => kinds.Contains(token.Kind());
+
+        public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5, params SyntaxKind[] kinds)
+            => token.IsKind(kind1, kind2, kind3, kind4, kind5) || token.IsKind(kinds);
 
         public static bool IsOpenBraceOrCommaOfObjectInitializer(this SyntaxToken token)
         {
@@ -92,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            if (token.Kind() == SyntaxKind.IdentifierToken)
+            if (token.IsKind(SyntaxKind.IdentifierToken))
             {
                 var simpleNameText = token.ValueText;
                 return simpleNameText == "var" ||
@@ -141,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsFirstTokenOnLine(this SyntaxToken token, SourceText text)
         {
             var previousToken = token.GetPreviousToken(includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
-            if (previousToken.Kind() == SyntaxKind.None)
+            if (previousToken.IsKind(SyntaxKind.None))
             {
                 return true;
             }
@@ -174,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static bool IsRegularStringLiteral(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.StringLiteralToken && !token.IsVerbatimStringLiteral();
+            => token.IsKind(SyntaxKind.StringLiteralToken) && !token.IsVerbatimStringLiteral();
 
         public static bool IsValidAttributeTarget(this SyntaxToken token)
         {

@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var commonToken1 = this.Token1;
                 var commonToken2 = this.Token2;
 
-                var formatSpanEnd = commonToken2.Kind() == SyntaxKind.None ? commonToken1.Span.End : commonToken2.Span.Start;
+                var formatSpanEnd = commonToken2.IsKind(SyntaxKind.None) ? commonToken1.Span.End : commonToken2.Span.Start;
                 var span = TextSpan.FromBounds(commonToken1.Span.End, formatSpanEnd);
                 if (context.IsSpacingSuppressed(span, TreatAsElastic))
                 {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                var firstTriviaInTree = this.Token1.Kind() == SyntaxKind.None;
+                var firstTriviaInTree = this.Token1.IsKind(SyntaxKind.None);
 
                 return CodeShapeAnalyzer.ShouldFormatMultiLine(context, firstTriviaInTree, triviaList);
             }

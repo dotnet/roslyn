@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 Return False
             End If
 
-            If token.Kind = SyntaxKind.None OrElse token.SpanStart <> firstNonWhitespacePosition Then
+            If token.IsKind(SyntaxKind.None) OrElse token.SpanStart <> firstNonWhitespacePosition Then
                 Return False
             End If
 
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Dim previousToken = token.GetPreviousToken(includeZeroWidth:=True)
 
             ' only use smart token formatter when we have at least two visible tokens.
-            If previousToken.Kind = SyntaxKind.None Then
+            If previousToken.IsKind(SyntaxKind.None) Then
                 Return False
             End If
 
@@ -125,8 +125,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
         Private Shared Function IsInvalidToken(token As SyntaxToken) As Boolean
             ' invalid token to be formatted
-            Return token.Kind = SyntaxKind.None OrElse
-                   token.Kind = SyntaxKind.EndOfFileToken
+            Return token.IsKind(SyntaxKind.None) OrElse
+                   token.IsKind(SyntaxKind.EndOfFileToken)
         End Function
     End Class
 End Namespace

@@ -15411,7 +15411,7 @@ class K
             var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
-            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.ThisExpression);
+            var syntax = tree.GetCompilationUnitRoot().DescendantNodes().Single(n => n.IsKind(SyntaxKind.ThisExpression));
             var info = model.GetSemanticInfoSummary(syntax);
             Assert.Equal("C", info.Type.Name);
         }

@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (method.RequiresInstanceReceiver)
                 {
-                    WarnOnAccessOfOffDefault(node.Kind() == SyntaxKind.InvocationExpression ?
+                    WarnOnAccessOfOffDefault(node.IsKind(SyntaxKind.InvocationExpression) ?
                                                 ((InvocationExpressionSyntax)node).Expression :
                                                 node,
                                              receiver,

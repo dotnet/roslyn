@@ -2035,7 +2035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (boundExpr != null &&
                 !(boundNodeForSyntacticParent != null &&
-                  boundNodeForSyntacticParent.Syntax.Kind() == SyntaxKind.ObjectCreationExpression &&
+                  boundNodeForSyntacticParent.Syntax.IsKind(SyntaxKind.ObjectCreationExpression) &&
                   ((ObjectCreationExpressionSyntax)boundNodeForSyntacticParent.Syntax).Type == boundExpr.Syntax)) // Do not return any type information for a ObjectCreationExpressionSyntax.Type node.
             {
                 // TODO: Should parenthesized expression really not have symbols? At least for C#, I'm not sure that 
@@ -3295,7 +3295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Watch out for not creatable types within object creation syntax
                         if (boundNodeForSyntacticParent != null &&
-                           boundNodeForSyntacticParent.Syntax.Kind() == SyntaxKind.ObjectCreationExpression &&
+                           boundNodeForSyntacticParent.Syntax.IsKind(SyntaxKind.ObjectCreationExpression) &&
                            ((ObjectCreationExpressionSyntax)boundNodeForSyntacticParent.Syntax).Type == boundType.Syntax &&
                            boundNodeForSyntacticParent.Kind == BoundKind.BadExpression &&
                            ((BoundBadExpression)boundNodeForSyntacticParent).ResultKind == LookupResultKind.NotCreatable)
@@ -3882,7 +3882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode parentSyntax = boundNodeForSyntacticParent.Syntax;
             if (parentSyntax != null &&
                 parentSyntax == boundNode.Syntax.Parent &&
-                parentSyntax.Kind() == SyntaxKind.Attribute && ((AttributeSyntax)parentSyntax).Name == boundNode.Syntax)
+                parentSyntax.IsKind(SyntaxKind.Attribute) && ((AttributeSyntax)parentSyntax).Name == boundNode.Syntax)
             {
                 var unwrappedSymbols = UnwrapAliases(symbols);
 

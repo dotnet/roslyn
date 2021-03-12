@@ -17,10 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
         Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             ' Function/Sub declaration
             If context.IsTypeMemberDeclarationKeywordContext OrElse context.IsInterfaceMemberDeclarationKeywordContext Then
-                If context.ModifierCollectionFacts.AsyncKeyword.Kind = SyntaxKind.None AndAlso
-                   context.ModifierCollectionFacts.IteratorKeyword.Kind = SyntaxKind.None AndAlso
-                   context.ModifierCollectionFacts.OverridableSharedOrPartialKeyword.Kind <> SyntaxKind.PartialKeyword AndAlso
-                   context.ModifierCollectionFacts.MutabilityOrWithEventsKeyword.Kind = SyntaxKind.None Then
+                If context.ModifierCollectionFacts.AsyncKeyword.IsKind(SyntaxKind.None) AndAlso
+                   context.ModifierCollectionFacts.IteratorKeyword.IsKind(SyntaxKind.None) AndAlso
+                   Not context.ModifierCollectionFacts.OverridableSharedOrPartialKeyword.IsKind(SyntaxKind.PartialKeyword) AndAlso
+                   context.ModifierCollectionFacts.MutabilityOrWithEventsKeyword.IsKind(SyntaxKind.None) Then
 
                     Return s_keywords
                 End If

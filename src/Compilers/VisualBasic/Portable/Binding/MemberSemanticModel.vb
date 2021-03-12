@@ -1281,10 +1281,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Do
                 Dim body As SyntaxList(Of StatementSyntax) = Nothing
 
-                If current.Kind = SyntaxKind.DocumentationCommentTrivia Then
+                If current.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
                     Dim trivia As SyntaxTrivia = DirectCast(current, DocumentationCommentTriviaSyntax).ParentTrivia
-                    Debug.Assert(trivia.Kind <> SyntaxKind.None)
-                    Debug.Assert(trivia.Token.Kind <> SyntaxKind.None)
+                    Debug.Assert(Not trivia.IsKind(SyntaxKind.None))
+                    Debug.Assert(Not trivia.Token.IsKind(SyntaxKind.None))
                     Return GetEnclosingBinderInternal(memberBinder, binderRoot, DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode), position)
 
                 ElseIf SyntaxFacts.InBlockInterior(current, position, body) Then
@@ -1302,7 +1302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If lambdaBinder IsNot Nothing Then
                             Debug.Assert(lambdaBinder.Root Is current)
 
-                            If current.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse current.Kind = SyntaxKind.MultiLineSubLambdaExpression Then
+                            If current.IsKind(SyntaxKind.MultiLineFunctionLambdaExpression) OrElse current.IsKind(SyntaxKind.MultiLineSubLambdaExpression) Then
                                 Dim multiLineLambda = DirectCast(current, MultiLineLambdaExpressionSyntax)
 
                                 If multiLineLambda.SubOrFunctionHeader.FullSpan.Contains(position) Then
@@ -1317,13 +1317,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
                         End If
 
-                    ElseIf current.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse current.Kind = SyntaxKind.MultiLineSubLambdaExpression Then
+                    ElseIf current.IsKind(SyntaxKind.MultiLineFunctionLambdaExpression) OrElse current.IsKind(SyntaxKind.MultiLineSubLambdaExpression) Then
                         ' We reached the lambda node, get binder for the whole body.
                         binder = memberBinder.GetBinder(DirectCast(current, MultiLineLambdaExpressionSyntax).Statements)
                         If binder IsNot Nothing Then
                             Return binder
                         End If
-                    ElseIf current.Kind = SyntaxKind.SingleLineSubLambdaExpression Then
+                    ElseIf current.IsKind(SyntaxKind.SingleLineSubLambdaExpression) Then
                         ' Even though single line sub lambdas only have a single statement.  Get a binder for
                         ' a statement list so that locals can be bound. Note, while locals are not allowed at the top
                         ' level it is useful in the semantic model to bind them.
@@ -1346,8 +1346,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf InWithStatementExpressionInterior(current) Then
                     ' Expression from With statement is supposed to be bound using 
                     ' the binder for the syntax node enclosing With statement 
-                    Debug.Assert(current.Parent.Kind = SyntaxKind.WithStatement)
-                    Debug.Assert(current.Parent.Parent.Kind = SyntaxKind.WithBlock)
+                    Debug.Assert(current.Parent.IsKind(SyntaxKind.WithStatement))
+                    Debug.Assert(current.Parent.Parent.IsKind(SyntaxKind.WithBlock))
 
                     current = current.Parent.Parent
 
@@ -1719,9 +1719,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As Boolean
             binder = Nothing
 
-            If (node.Kind = SyntaxKind.InferredFieldInitializer OrElse node.Kind = SyntaxKind.NamedFieldInitializer) AndAlso
-               node.Parent IsNot Nothing AndAlso node.Parent.Kind = SyntaxKind.ObjectMemberInitializer AndAlso
-               node.Parent.Parent IsNot Nothing AndAlso node.Parent.Parent.Kind = SyntaxKind.AnonymousObjectCreationExpression Then
+            If (node.IsKind(SyntaxKind.InferredFieldInitializer) OrElse node.IsKind(SyntaxKind.NamedFieldInitializer)) AndAlso
+               node.Parent IsNot Nothing AndAlso node.Parent.IsKind(SyntaxKind.ObjectMemberInitializer) AndAlso
+               node.Parent.Parent IsNot Nothing AndAlso node.Parent.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression) Then
 
                 Dim initialization = DirectCast(node, FieldInitializerSyntax)
 
@@ -1926,12 +1926,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' an expression from the VB language point of view; otherwise <c>False</c>.</returns>
         Private Shared Function IsNonExpressionCollectionInitializer(syntax As SyntaxNode) As Boolean
             Dim parent As SyntaxNode = syntax.Parent
-            If syntax.Kind = SyntaxKind.CollectionInitializer AndAlso parent IsNot Nothing Then
-                If parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+            If syntax.IsKind(SyntaxKind.CollectionInitializer) AndAlso parent IsNot Nothing Then
+                If parent.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
                     Return True
-                ElseIf parent.Kind = SyntaxKind.CollectionInitializer Then
+                ElseIf parent.IsKind(SyntaxKind.CollectionInitializer) Then
                     parent = parent.Parent
-                    Return parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.ObjectCollectionInitializer
+                    Return parent IsNot Nothing AndAlso parent.IsKind(SyntaxKind.ObjectCollectionInitializer)
                 End If
             End If
 
@@ -1967,10 +1967,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' but it will not happen in some scenarios such as for field or property 
                 ' initializers, let's add it to prevent re-binding 
 
-                Debug.Assert(bindingRoot.Kind = SyntaxKind.FieldDeclaration OrElse
-                             bindingRoot.Kind = SyntaxKind.PropertyStatement OrElse
-                             bindingRoot.Kind = SyntaxKind.Parameter OrElse
-                             bindingRoot.Kind = SyntaxKind.EnumMemberDeclaration OrElse
+                Debug.Assert(bindingRoot.IsKind(SyntaxKind.FieldDeclaration) OrElse
+                             bindingRoot.IsKind(SyntaxKind.PropertyStatement) OrElse
+                             bindingRoot.IsKind(SyntaxKind.Parameter) OrElse
+                             bindingRoot.IsKind(SyntaxKind.EnumMemberDeclaration) OrElse
                              bindingRoot Is Me.Root AndAlso Me.IsSpeculativeSemanticModel)
 
                 _guardedBoundNodeMap.Add(bindingRoot, ImmutableArray.Create(Of BoundNode)(boundRoot))
@@ -1996,10 +1996,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                If node.Kind = SyntaxKind.DocumentationCommentTrivia Then
+                If node.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
                     Dim trivia As SyntaxTrivia = DirectCast(node, DocumentationCommentTriviaSyntax).ParentTrivia
-                    Debug.Assert(trivia.Kind <> SyntaxKind.None)
-                    Debug.Assert(trivia.Token.Kind <> SyntaxKind.None)
+                    Debug.Assert(Not trivia.IsKind(SyntaxKind.None))
+                    Debug.Assert(Not trivia.Token.IsKind(SyntaxKind.None))
                     node = DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode)
                     Continue While
 

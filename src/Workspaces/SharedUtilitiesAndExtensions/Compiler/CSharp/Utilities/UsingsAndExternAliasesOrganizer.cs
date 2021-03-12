@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var node = list[i];
                 var trailingTrivia = node.GetTrailingTrivia();
 
-                if (!trailingTrivia.Any() || trailingTrivia.Last().Kind() != SyntaxKind.EndOfLineTrivia)
+                if (!trailingTrivia.Any() || !trailingTrivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
                 {
                     list[i] = node.WithTrailingTrivia(trailingTrivia.Concat(s_newLine));
                 }
@@ -171,6 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         private static SyntaxNode TrimLeadingNewLines(SyntaxNode node)
-            => node.WithLeadingTrivia(node.GetLeadingTrivia().SkipWhile(t => t.Kind() == SyntaxKind.EndOfLineTrivia));
+            => node.WithLeadingTrivia(node.GetLeadingTrivia().SkipWhile(t => t.IsKind(SyntaxKind.EndOfLineTrivia)));
     }
 }

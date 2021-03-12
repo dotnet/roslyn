@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return GetClassificationForPunctuation(token);
             }
-            else if (token.Kind() == SyntaxKind.IdentifierToken)
+            else if (token.IsKind(SyntaxKind.IdentifierToken))
             {
                 return GetClassificationForIdentifier(token);
             }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     ? ClassificationTypeNames.VerbatimStringLiteral
                     : ClassificationTypeNames.StringLiteral;
             }
-            else if (token.Kind() == SyntaxKind.NumericLiteralToken)
+            else if (token.IsKind(SyntaxKind.NumericLiteralToken))
             {
                 return ClassificationTypeNames.NumericLiteral;
             }
@@ -370,9 +370,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         // list should be classified as punctuation; otherwise, they're operators.
                         if (token.Parent != null)
                         {
-                            if (token.Parent.Kind() == SyntaxKind.TypeParameterList ||
-                                token.Parent.Kind() == SyntaxKind.TypeArgumentList ||
-                                token.Parent.Kind() == SyntaxKind.FunctionPointerParameterList)
+                            if (token.Parent.IsKind(SyntaxKind.TypeParameterList) ||
+                                token.Parent.IsKind(SyntaxKind.TypeArgumentList) ||
+                                token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
                             {
                                 return ClassificationTypeNames.Punctuation;
                             }
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         // punctuation; otherwise, it's from a conditional operator.
                         if (token.Parent != null)
                         {
-                            if (token.Parent.Kind() != SyntaxKind.ConditionalExpression)
+                            if (!token.Parent.IsKind(SyntaxKind.ConditionalExpression))
                             {
                                 return ClassificationTypeNames.Punctuation;
                             }
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         || (wasKeyword && SyntaxFacts.GetContextualKeywordKind(text) != SyntaxKind.None)
                         || (wasKeyword && (tokenString == VarKeyword || tokenString == DynamicKeyword || tokenString == UnmanagedKeyword || tokenString == NotNullKeyword));
 
-                    var isIdentifier = token.Kind() == SyntaxKind.IdentifierToken;
+                    var isIdentifier = token.IsKind(SyntaxKind.IdentifierToken);
 
                     // We only do this for identifiers/keywords.
                     if (isKeyword || isIdentifier)

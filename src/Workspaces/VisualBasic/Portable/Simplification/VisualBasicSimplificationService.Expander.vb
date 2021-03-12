@@ -613,9 +613,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 ' do not complexify further for location where only simple names are allowed
                 If (TypeOf (parent) Is FieldInitializerSyntax) OrElse
                     ((TypeOf (parent) Is DeclarationStatementSyntax) AndAlso Not TypeOf (parent) Is InheritsOrImplementsStatementSyntax) OrElse
-                    (TypeOf (parent) Is MemberAccessExpressionSyntax AndAlso parent.Kind <> SyntaxKind.SimpleMemberAccessExpression) OrElse
-                    (parent.Kind = SyntaxKind.SimpleMemberAccessExpression AndAlso originalSimpleName.IsRightSideOfDot()) OrElse
-                    (parent.Kind = SyntaxKind.QualifiedName AndAlso originalSimpleName.IsRightSideOfQualifiedName()) Then
+                    (TypeOf (parent) Is MemberAccessExpressionSyntax AndAlso Not parent.IsKind(SyntaxKind.SimpleMemberAccessExpression)) OrElse
+                    (parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso originalSimpleName.IsRightSideOfDot()) OrElse
+                    (parent.IsKind(SyntaxKind.QualifiedName) AndAlso originalSimpleName.IsRightSideOfQualifiedName()) Then
 
                     Return TryAddTypeArgumentToIdentifierName(newNode, symbol)
                 End If
@@ -625,7 +625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 '
 
                 ' we need to treat the constructor as type name, so just get the containing type.
-                If symbol.IsConstructor() AndAlso parent.Kind = SyntaxKind.ObjectCreationExpression Then
+                If symbol.IsConstructor() AndAlso parent.IsKind(SyntaxKind.ObjectCreationExpression) Then
                     symbol = symbol.ContainingType
                 End If
 

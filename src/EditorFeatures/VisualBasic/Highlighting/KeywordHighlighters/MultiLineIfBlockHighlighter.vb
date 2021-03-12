@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                 ' ElseIf case
                 highlights.Add(.IfKeyword.Span)
 
-                If .ThenKeyword.Kind <> SyntaxKind.None Then
+                If Not .ThenKeyword.IsKind(SyntaxKind.None) Then
                     highlights.Add(.ThenKeyword.Span)
                 End If
             End With
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                                               ' ElseIf case
                                               highlights.Add(.ElseIfKeyword.Span)
 
-                                              If .ThenKeyword.Kind <> SyntaxKind.None Then
+                                              If Not .ThenKeyword.IsKind(SyntaxKind.None) Then
                                                   highlights.Add(.ThenKeyword.Span)
                                               End If
                                           End With

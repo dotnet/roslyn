@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function ContainsToken(list As IEnumerable(Of SyntaxToken), kind As SyntaxKind) As Boolean
             Return list.Contains(Function(token As SyntaxToken)
-                                     Return token.Kind = kind
+                                     Return token.IsKind(kind)
                                  End Function)
         End Function
 
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.ModuleBlock,
                          SyntaxKind.ClassBlock
                         ' Standard module and class members default to Public unless they are variable declarations
-                        Return If(declaration.Kind = SyntaxKind.FieldDeclaration, Accessibility.Private, Accessibility.Public)
+                        Return If(declaration.IsKind(SyntaxKind.FieldDeclaration), Accessibility.Private, Accessibility.Public)
 
                     Case SyntaxKind.StructureBlock
                         ' Structure member declarations always default to Public

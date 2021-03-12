@@ -525,7 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim boundLocal = New BoundLocal(endSyntax, localForFunctionValue, isLValue:=False, type:=localForFunctionValue.Type).MakeCompilerGenerated()
                     Dim returnStmt = New BoundReturnStatement(endSyntax, boundLocal, Nothing, Nothing)
 
-                    If lambdaSyntax.Kind = SyntaxKind.SingleLineFunctionLambdaExpression OrElse endSyntax Is lambdaSyntax Then
+                    If lambdaSyntax.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) OrElse endSyntax Is lambdaSyntax Then
                         returnLabel.SetWasCompilerGenerated()
                         returnStmt.SetWasCompilerGenerated()
                     End If
@@ -539,7 +539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim returnLabel = New BoundLabelStatement(endSyntax, bodyBinder.GetReturnLabel())
                     Dim returnStmt = New BoundReturnStatement(endSyntax, Nothing, Nothing, Nothing)
 
-                    If lambdaSyntax.Kind = SyntaxKind.SingleLineSubLambdaExpression OrElse endSyntax Is lambdaSyntax Then
+                    If lambdaSyntax.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse endSyntax Is lambdaSyntax Then
                         returnLabel.SetWasCompilerGenerated()
                         returnStmt.SetWasCompilerGenerated()
                     End If

@@ -350,7 +350,7 @@ public class C
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var expr = tree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.BitwiseNotExpression);
+            var expr = tree.GetRoot().DescendantNodes().Single(n => n.IsKind(SyntaxKind.BitwiseNotExpression));
             var value = model.GetConstantValue(expr);
             Assert.False(value.HasValue);
         }

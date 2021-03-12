@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var token = context.TargetToken;
 
-            if (token.Kind() == SyntaxKind.GotoKeyword &&
+            if (token.IsKind(SyntaxKind.GotoKeyword) &&
                 token.GetAncestor<SwitchStatementSyntax>() != null)
             {
                 // todo: what if we're in a lambda... or a try/finally or 

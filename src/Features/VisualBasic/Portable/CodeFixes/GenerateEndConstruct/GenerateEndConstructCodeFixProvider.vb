@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
                 Return
             End If
 
-            If endStatement.Parent.Kind = SyntaxKind.PropertyBlock Then
+            If endStatement.Parent.IsKind(SyntaxKind.PropertyBlock) Then
                 context.RegisterCodeFix(
                     New MyCodeAction(
                         VBFeaturesResources.Insert_the_missing_End_Property_statement,
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
                 Return
             End If
 
-            If endStatement.Kind = SyntaxKind.EndGetStatement OrElse endStatement.Kind = SyntaxKind.EndSetStatement Then
+            If endStatement.IsKind(SyntaxKind.EndGetStatement) OrElse endStatement.IsKind(SyntaxKind.EndSetStatement) Then
                 If endStatement?.Parent?.Parent.Kind = SyntaxKind.PropertyBlock Then
                     context.RegisterCodeFix(
                         New MyCodeAction(
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
         End Function
 
         Private Shared Async Function GenerateEndConstructAsync(document As Document, endStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
-            If endStatement.Kind = SyntaxKind.EndEnumStatement Then
+            If endStatement.IsKind(SyntaxKind.EndEnumStatement) Then
                 ' InvInsideEndsEnum
                 Dim nextNode = endStatement.Parent.GetLastToken().GetNextToken().Parent
 

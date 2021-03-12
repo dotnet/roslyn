@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     End If
 
                     If variableDeclarators.Count = 0 AndAlso
-                       triviaList.Any(Function(t) t.Kind <> SyntaxKind.WhitespaceTrivia AndAlso t.Kind <> SyntaxKind.EndOfLineTrivia) Then
+                       triviaList.Any(Function(t) Not t.IsKind(SyntaxKind.WhitespaceTrivia) AndAlso Not t.IsKind(SyntaxKind.EndOfLineTrivia)) Then
                         ' well, there are trivia associated with the node.
                         ' we can't just delete the node since then, we will lose
                         ' the trivia. unfortunately, it is not easy to attach the trivia

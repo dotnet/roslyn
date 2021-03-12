@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
 
             Dim targetToken = context.TargetToken
 
-            If targetToken.Kind = SyntaxKind.ErrorKeyword AndAlso IsOnErrorStatement(targetToken.Parent) Then
+            If targetToken.IsKind(SyntaxKind.ErrorKeyword) AndAlso IsOnErrorStatement(targetToken.Parent) Then
                 Return ImmutableArray.Create(
                     New RecommendedKeyword("Resume Next", VBFeaturesResources.When_a_run_time_error_occurs_execution_transfers_to_the_statement_following_the_statement_or_procedure_call_that_resulted_in_the_error))
             End If

@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Private Shared Function ContainsOnlyWhitespaceTrivia(token As SyntaxToken) As Boolean
                 For Each trivia In token.LeadingTrivia.Concat(token.TrailingTrivia)
-                    If trivia.Kind <> SyntaxKind.WhitespaceTrivia AndAlso trivia.Kind <> SyntaxKind.EndOfLineTrivia Then
+                    If Not trivia.IsKind(SyntaxKind.WhitespaceTrivia) AndAlso Not trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
                         Return False
                     End If
                 Next trivia
@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
 
                 If ContainsAnyInitialization(declaration) OrElse
-                   declaration.Modifiers.Any(Function(m) m.Kind <> SyntaxKind.DimKeyword) OrElse
+                   declaration.Modifiers.Any(Function(m) Not m.IsKind(SyntaxKind.DimKeyword)) OrElse
                    declaration.Declarators.Count <> 1 OrElse
                    declaration.Declarators(0).Names.Count <> 1 OrElse
                    assignment.Left Is Nothing OrElse

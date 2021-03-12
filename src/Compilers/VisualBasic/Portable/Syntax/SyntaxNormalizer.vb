@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
 
             ' ignore tokens with no content
-            If token.Kind = SyntaxKind.None Then
+            If token.IsKind(SyntaxKind.None) Then
                 Return token
             End If
 
@@ -160,10 +160,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                                 lineBreaksAfter:=numLineBreaksAfter,
                                 lineBreaksBefore:=0))
 
-                If newToken.Kind = SyntaxKind.DocumentationCommentLineBreakToken Then
+                If newToken.IsKind(SyntaxKind.DocumentationCommentLineBreakToken) Then
                     _afterLineBreak = True
 
-                ElseIf newToken.Kind = SyntaxKind.XmlTextLiteralToken Then
+                ElseIf newToken.IsKind(SyntaxKind.XmlTextLiteralToken) Then
                     If newToken.TrailingTrivia.Count = 0 AndAlso IsNewLineChar(newToken.ValueText.Last) Then
                         _afterLineBreak = True
                     End If
@@ -198,9 +198,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 For Each trivia In triviaList
 
                     ' just keep non whitespace trivia
-                    If trivia.Kind = SyntaxKind.WhitespaceTrivia OrElse
-                        trivia.Kind = SyntaxKind.EndOfLineTrivia OrElse
-                        trivia.Kind = SyntaxKind.LineContinuationTrivia OrElse
+                    If trivia.IsKind(SyntaxKind.WhitespaceTrivia) OrElse
+                        trivia.IsKind(SyntaxKind.EndOfLineTrivia) OrElse
+                        trivia.IsKind(SyntaxKind.LineContinuationTrivia) OrElse
                         trivia.FullWidth = 0 Then
 
                         Continue For
@@ -209,8 +209,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     ' check if there's a separator or a line break needed between the trivia itself
                     Dim tokenParent = trivia.Token.Parent
                     Dim needsSeparator As Boolean =
-                        Not (trivia.Kind = SyntaxKind.ColonTrivia AndAlso tokenParent IsNot Nothing AndAlso tokenParent.Kind = SyntaxKind.LabelStatement) AndAlso
-                        Not (tokenParent IsNot Nothing AndAlso tokenParent.Parent IsNot Nothing AndAlso tokenParent.Parent.Kind = SyntaxKind.CrefReference) AndAlso
+                        Not (trivia.IsKind(SyntaxKind.ColonTrivia) AndAlso tokenParent IsNot Nothing AndAlso tokenParent.IsKind(SyntaxKind.LabelStatement)) AndAlso
+                        Not (tokenParent IsNot Nothing AndAlso tokenParent.Parent IsNot Nothing AndAlso tokenParent.Parent.IsKind(SyntaxKind.CrefReference)) AndAlso
                         (
                             (currentTriviaList.Count > 0 AndAlso NeedsSeparatorBetween(currentTriviaList.Last()) AndAlso Not EndsInLineBreak(currentTriviaList.Last())) OrElse
                             (currentTriviaList.Count = 0 AndAlso isTrailing)
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                         currentTriviaList.Add(structuredTrivia)
                     Else
                         ' in structured trivia, the xml doc ''' token contains leading whitespace as text
-                        If trivia.Kind = SyntaxKind.DocumentationCommentExteriorTrivia Then
+                        If trivia.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia) Then
                             trivia = SyntaxFactory.DocumentationCommentExteriorTrivia(SyntaxFacts.GetText(SyntaxKind.DocumentationCommentExteriorTrivia))
                         End If
 
@@ -300,13 +300,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Function IsLastTokenOnLine(token As SyntaxToken) As Boolean
-            Return (token.HasTrailingTrivia AndAlso token.TrailingTrivia.Last.Kind = SyntaxKind.ColonTrivia) OrElse
+            Return (token.HasTrailingTrivia AndAlso token.TrailingTrivia.Last.IsKind(SyntaxKind.ColonTrivia)) OrElse
                 (token.Parent IsNot Nothing AndAlso token.Parent.GetLastToken() = token)
         End Function
 
         Private Function LineBreaksBetween(currentToken As SyntaxToken, nextToken As SyntaxToken) As Integer
             ' First and last token may be of kind none
-            If currentToken.Kind = SyntaxKind.None OrElse nextToken.Kind = SyntaxKind.None Then
+            If currentToken.IsKind(SyntaxKind.None) OrElse nextToken.IsKind(SyntaxKind.None) Then
                 Return 0
             End If
 
@@ -386,7 +386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Function NeedsLineBreakAfter(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.CommentTrivia
+            Return trivia.IsKind(SyntaxKind.CommentTrivia)
         End Function
 
         Private Function NeedsLineBreakBefore(trivia As SyntaxTrivia) As Boolean
@@ -412,27 +412,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Function NeedsSeparator(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
-            If token.Kind = SyntaxKind.EndOfFileToken Then
+            If token.IsKind(SyntaxKind.EndOfFileToken) Then
                 Return False
             End If
 
-            If token.Parent Is Nothing OrElse nextToken.Kind = SyntaxKind.None Then
+            If token.Parent Is Nothing OrElse nextToken.IsKind(SyntaxKind.None) Then
                 Return False
             End If
 
-            If nextToken.Parent.Kind = SyntaxKind.SingleLineFunctionLambdaExpression Then
+            If nextToken.Parent.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
                 Return True
             End If
 
-            If nextToken.Kind = SyntaxKind.EndOfFileToken Then
+            If nextToken.IsKind(SyntaxKind.EndOfFileToken) Then
                 Return False
             End If
 
             ' +1 instead of + 1
             ' but not a instead of nota ...
             If TypeOf (token.Parent) Is UnaryExpressionSyntax AndAlso
-                token.Kind <> SyntaxKind.NotKeyword AndAlso
-                token.Kind <> SyntaxKind.AddressOfKeyword Then
+                Not token.IsKind(SyntaxKind.NotKeyword) AndAlso
+                Not token.IsKind(SyntaxKind.AddressOfKeyword) Then
                 Return False
             End If
 
@@ -443,40 +443,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End If
 
             ' (a instead of ( a
-            If token.Kind = SyntaxKind.OpenParenToken Then
+            If token.IsKind(SyntaxKind.OpenParenToken) Then
                 Return False
             End If
 
             ' a) instead of a )
-            If nextToken.Kind = SyntaxKind.CloseParenToken Then
+            If nextToken.IsKind(SyntaxKind.CloseParenToken) Then
                 Return False
             End If
 
             ' m( instead of m (
-            If token.Kind <> SyntaxKind.CommaToken AndAlso nextToken.Kind = SyntaxKind.OpenParenToken Then
+            If Not token.IsKind(SyntaxKind.CommaToken) AndAlso nextToken.IsKind(SyntaxKind.OpenParenToken) Then
                 Return False
             End If
 
             ' (,,,) instead of ( , , ,) or (a As Char, b as Char) instead of (a As Char , b as Char)
             ' $"{e,1:C}" instead of $"{e,1:C}"
-            If (token.Kind = SyntaxKind.CommaToken AndAlso (nextToken.Kind = SyntaxKind.EmptyToken OrElse token.Parent.Kind = SyntaxKind.InterpolationAlignmentClause)) OrElse
-               nextToken.Kind = SyntaxKind.CommaToken Then
+            If (token.IsKind(SyntaxKind.CommaToken) AndAlso (nextToken.IsKind(SyntaxKind.EmptyToken) OrElse token.Parent.IsKind(SyntaxKind.InterpolationAlignmentClause))) OrElse
+               nextToken.IsKind(SyntaxKind.CommaToken) Then
                 Return False
             End If
 
             ' a.b and .b instead of a . b, but keep with {key .field}
-            If token.Kind = SyntaxKind.DotToken Then
+            If token.IsKind(SyntaxKind.DotToken) Then
                 Return False
-            ElseIf nextToken.Kind = SyntaxKind.DotToken AndAlso nextToken.Parent.Kind <> SyntaxKind.NamedFieldInitializer Then
+            ElseIf nextToken.IsKind(SyntaxKind.DotToken) AndAlso Not nextToken.Parent.IsKind(SyntaxKind.NamedFieldInitializer) Then
                 Return False
             End If
 
-            If nextToken.Kind = SyntaxKind.ColonToken Then
-                If token.Parent.Kind = SyntaxKind.LabelStatement Then
+            If nextToken.IsKind(SyntaxKind.ColonToken) Then
+                If token.Parent.IsKind(SyntaxKind.LabelStatement) Then
                     ' label: instead of label :
                     Return False
 
-                ElseIf nextToken.Parent.Kind = SyntaxKind.InterpolationFormatClause Then
+                ElseIf nextToken.Parent.IsKind(SyntaxKind.InterpolationFormatClause) Then
                     ' $"{e,1:C}" instead of $"{e,1 :C}"
                     Return False
 
@@ -484,12 +484,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End If
 
             ' {1 instead of { 1 and 1} instead of 1 }
-            If token.Kind = SyntaxKind.OpenBraceToken OrElse nextToken.Kind = SyntaxKind.CloseBraceToken Then
+            If token.IsKind(SyntaxKind.OpenBraceToken) OrElse nextToken.IsKind(SyntaxKind.CloseBraceToken) Then
                 Return False
             End If
 
             ' s1(p1:=23, p2:=12) instead of s1(p1 := 23, p2 := 12)
-            If token.Kind = SyntaxKind.ColonEqualsToken OrElse nextToken.Kind = SyntaxKind.ColonEqualsToken Then
+            If token.IsKind(SyntaxKind.ColonEqualsToken) OrElse nextToken.IsKind(SyntaxKind.ColonEqualsToken) Then
                 Return False
             End If
 
@@ -502,113 +502,113 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             ' handle closing attribute before XML tokens
             ' sub goo(<obsolete()> ByRef i as Integer) instead of sub goo(<obsolete()>ByRef i as Integer)
-            If (token.Kind = SyntaxKind.GreaterThanToken AndAlso
-                token.Parent.Kind = SyntaxKind.AttributeList) Then
+            If (token.IsKind(SyntaxKind.GreaterThanToken) AndAlso
+                token.Parent.IsKind(SyntaxKind.AttributeList)) Then
                 Return True
             End If
 
             ' needs to be checked after binary operators
             ' Imports <goo instead of Imports < goo
-            If (token.Kind = SyntaxKind.LessThanToken OrElse
-                nextToken.Kind = SyntaxKind.GreaterThanToken OrElse
-                token.Kind = SyntaxKind.LessThanSlashToken OrElse
-                token.Kind = SyntaxKind.GreaterThanToken OrElse
-                nextToken.Kind = SyntaxKind.LessThanSlashToken) Then
+            If (token.IsKind(SyntaxKind.LessThanToken) OrElse
+                nextToken.IsKind(SyntaxKind.GreaterThanToken) OrElse
+                token.IsKind(SyntaxKind.LessThanSlashToken) OrElse
+                token.IsKind(SyntaxKind.GreaterThanToken) OrElse
+                nextToken.IsKind(SyntaxKind.LessThanSlashToken)) Then
                 Return False
             End If
 
             ' <xmlns:goo instead of <xmlns : goo
-            If token.Kind = SyntaxKind.ColonToken AndAlso token.Parent.Kind = SyntaxKind.XmlPrefix OrElse
-                nextToken.Kind = SyntaxKind.ColonToken AndAlso nextToken.Parent.Kind = SyntaxKind.XmlPrefix Then
+            If token.IsKind(SyntaxKind.ColonToken) AndAlso token.Parent.IsKind(SyntaxKind.XmlPrefix) OrElse
+                nextToken.IsKind(SyntaxKind.ColonToken) AndAlso nextToken.Parent.IsKind(SyntaxKind.XmlPrefix) Then
                 Return False
             End If
 
             ' <e/> instead of <e />
-            If nextToken.Kind = SyntaxKind.SlashGreaterThanToken Then
+            If nextToken.IsKind(SyntaxKind.SlashGreaterThanToken) Then
                 Return False
             End If
 
             ' <!--a--> instead of <!-- a -->
-            If token.Kind = SyntaxKind.LessThanExclamationMinusMinusToken OrElse
-                nextToken.Kind = SyntaxKind.MinusMinusGreaterThanToken Then
+            If token.IsKind(SyntaxKind.LessThanExclamationMinusMinusToken) OrElse
+                nextToken.IsKind(SyntaxKind.MinusMinusGreaterThanToken) Then
                 Return False
             End If
 
             ' <?xml ?> instead of <? xml ?>
-            If token.Kind = SyntaxKind.LessThanQuestionToken Then
+            If token.IsKind(SyntaxKind.LessThanQuestionToken) Then
                 Return False
             End If
 
             ' <![CDATA[goo]]> instead of <![CDATA[ goo ]]>
-            If token.Kind = SyntaxKind.BeginCDataToken OrElse
-                nextToken.Kind = SyntaxKind.EndCDataToken Then
+            If token.IsKind(SyntaxKind.BeginCDataToken) OrElse
+                nextToken.IsKind(SyntaxKind.EndCDataToken) Then
                 Return False
             End If
 
             ' <Assembly:System.Copyright("(C) 2009")> instead of <Assembly : System.Copyright("(C) 2009")>
-            If token.Kind = SyntaxKind.ColonToken AndAlso token.Parent.Kind = SyntaxKind.AttributeTarget OrElse
-                nextToken.Kind = SyntaxKind.ColonToken AndAlso nextToken.Parent.Kind = SyntaxKind.AttributeTarget Then
+            If token.IsKind(SyntaxKind.ColonToken) AndAlso token.Parent.IsKind(SyntaxKind.AttributeTarget) OrElse
+                nextToken.IsKind(SyntaxKind.ColonToken) AndAlso nextToken.Parent.IsKind(SyntaxKind.AttributeTarget) Then
                 Return False
             End If
 
             ' <goo="bar" instead of <goo = "bar"
-            If (token.Kind = SyntaxKind.EqualsToken AndAlso
-                (token.Parent.Kind = SyntaxKind.XmlAttribute OrElse
-                    token.Parent.Kind = SyntaxKind.XmlCrefAttribute OrElse
-                    token.Parent.Kind = SyntaxKind.XmlNameAttribute OrElse
-                    token.Parent.Kind = SyntaxKind.XmlDeclaration)) OrElse
-                (nextToken.Kind = SyntaxKind.EqualsToken AndAlso
-                (nextToken.Parent.Kind = SyntaxKind.XmlAttribute OrElse
-                    nextToken.Parent.Kind = SyntaxKind.XmlCrefAttribute OrElse
-                    nextToken.Parent.Kind = SyntaxKind.XmlNameAttribute OrElse
-                    nextToken.Parent.Kind = SyntaxKind.XmlDeclaration)) Then
+            If (token.IsKind(SyntaxKind.EqualsToken) AndAlso
+                (token.Parent.IsKind(SyntaxKind.XmlAttribute) OrElse
+                    token.Parent.IsKind(SyntaxKind.XmlCrefAttribute) OrElse
+                    token.Parent.IsKind(SyntaxKind.XmlNameAttribute) OrElse
+                    token.Parent.IsKind(SyntaxKind.XmlDeclaration))) OrElse
+                (nextToken.IsKind(SyntaxKind.EqualsToken) AndAlso
+                (nextToken.Parent.IsKind(SyntaxKind.XmlAttribute) OrElse
+                    nextToken.Parent.IsKind(SyntaxKind.XmlCrefAttribute) OrElse
+                    nextToken.Parent.IsKind(SyntaxKind.XmlNameAttribute) OrElse
+                    nextToken.Parent.IsKind(SyntaxKind.XmlDeclaration))) Then
                 Return False
             End If
 
             ' needs to be below binary expression checks
             ' <attrib="goo" instead of <attrib=" goo "
-            If token.Kind = SyntaxKind.DoubleQuoteToken OrElse
-                nextToken.Kind = SyntaxKind.DoubleQuoteToken Then
+            If token.IsKind(SyntaxKind.DoubleQuoteToken) OrElse
+                nextToken.IsKind(SyntaxKind.DoubleQuoteToken) Then
                 Return False
             End If
 
             ' <x/>@a instead of <x/>@ a
-            If token.Kind = SyntaxKind.AtToken AndAlso token.Parent.Kind = SyntaxKind.XmlAttributeAccessExpression Then
+            If token.IsKind(SyntaxKind.AtToken) AndAlso token.Parent.IsKind(SyntaxKind.XmlAttributeAccessExpression) Then
                 Return False
             End If
 
             ' 'e' instead of ' e '
-            If token.Kind = SyntaxKind.SingleQuoteToken OrElse
-                nextToken.Kind = SyntaxKind.SingleQuoteToken Then
+            If token.IsKind(SyntaxKind.SingleQuoteToken) OrElse
+                nextToken.IsKind(SyntaxKind.SingleQuoteToken) Then
                 Return False
             End If
 
             ' Integer? instead of Integer ?
-            If nextToken.Kind = SyntaxKind.QuestionToken Then
+            If nextToken.IsKind(SyntaxKind.QuestionToken) Then
                 Return False
             End If
 
             ' #if instead of # if
-            If token.Kind = SyntaxKind.HashToken AndAlso TypeOf token.Parent Is DirectiveTriviaSyntax Then
+            If token.IsKind(SyntaxKind.HashToken) AndAlso TypeOf token.Parent Is DirectiveTriviaSyntax Then
                 Return False
             End If
 
             ' "#region" instead of "#region "
-            If token.Parent.Kind = SyntaxKind.RegionDirectiveTrivia AndAlso
-                nextToken.Kind = SyntaxKind.StringLiteralToken AndAlso
+            If token.Parent.IsKind(SyntaxKind.RegionDirectiveTrivia) AndAlso
+                nextToken.IsKind(SyntaxKind.StringLiteralToken) AndAlso
                 String.IsNullOrEmpty(nextToken.ValueText) Then
                 Return False
             End If
 
-            If token.Kind = SyntaxKind.XmlTextLiteralToken OrElse token.Kind = SyntaxKind.DocumentationCommentLineBreakToken Then
+            If token.IsKind(SyntaxKind.XmlTextLiteralToken) OrElse token.IsKind(SyntaxKind.DocumentationCommentLineBreakToken) Then
                 Return False
             End If
 
-            If token.Kind = SyntaxKind.DollarSignDoubleQuoteToken Then
+            If token.IsKind(SyntaxKind.DollarSignDoubleQuoteToken) Then
                 Return False
             End If
 
-            If token.Kind = SyntaxKind.InterpolatedStringTextToken OrElse nextToken.Kind = SyntaxKind.InterpolatedStringTextToken Then
+            If token.IsKind(SyntaxKind.InterpolatedStringTextToken) OrElse nextToken.IsKind(SyntaxKind.InterpolatedStringTextToken) Then
                 Return False
             End If
 
@@ -616,18 +616,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Function
 
         Private Function EndsInLineBreak(trivia As SyntaxTrivia) As Boolean
-            If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+            If trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
                 Return True
             End If
 
-            If trivia.Kind = SyntaxKind.DisabledTextTrivia Then
+            If trivia.IsKind(SyntaxKind.DisabledTextTrivia) Then
                 Dim text As String = trivia.ToFullString()
                 Return text.Length > 0 AndAlso IsNewLineChar(text.Last())
             End If
 
             If trivia.HasStructure Then
                 If trivia.GetStructure.GetLastToken.HasTrailingTrivia AndAlso
-                    trivia.GetStructure.GetLastToken.TrailingTrivia.Last.Kind = SyntaxKind.EndOfLineTrivia Then
+                    trivia.GetStructure.GetLastToken.TrailingTrivia.Last.IsKind(SyntaxKind.EndOfLineTrivia) Then
 
                     Return True
                 End If
@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Private Function GetNextRelevantToken(token As SyntaxToken) As SyntaxToken
             Dim nextToken = token.GetNextToken(Function(t As SyntaxToken)
-                                                   Return t.Kind <> SyntaxKind.None
+                                                   Return Not t.IsKind(SyntaxKind.None)
                                                End Function, Function(t As SyntaxTrivia) False)
 
             If _consideredSpan.Contains(nextToken.FullSpan) Then
@@ -687,7 +687,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Dim lastElementIndex = list.Count - 1
             For elementIndex = 0 To lastElementIndex
                 Dim listElement = list(elementIndex)
-                If listElement.Kind = SyntaxKind.LabelStatement Then
+                If listElement.IsKind(SyntaxKind.LabelStatement) Then
                     ' always add linebreaks after label
                     _lineBreaksAfterToken(listElement.GetLastToken()) = 1
                 Else
@@ -706,7 +706,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Private Function EndsWithColonSeparator(node As SyntaxToken) As Boolean
             Return node.HasTrailingTrivia AndAlso
-                    node.TrailingTrivia.Last.Kind = SyntaxKind.ColonTrivia
+                    node.TrailingTrivia.Last.IsKind(SyntaxKind.ColonTrivia)
         End Function
 
         Private Sub MarkLastStatementIfNeeded(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode))

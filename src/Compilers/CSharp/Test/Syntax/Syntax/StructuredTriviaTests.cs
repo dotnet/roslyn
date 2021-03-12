@@ -164,7 +164,7 @@ class Program
 }
 ");
 
-            var trivia = tree.GetCompilationUnitRoot().DescendantTrivia().Single(t => t.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia);
+            var trivia = tree.GetCompilationUnitRoot().DescendantTrivia().Single(t => t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
             Assert.Equal(SyntaxKind.StaticKeyword, trivia.Token.Kind());
         }
 
@@ -180,7 +180,7 @@ class Program
 }
 ");
 
-            var trivia = tree.GetCompilationUnitRoot().DescendantTrivia().Single(t => t.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia);
+            var trivia = tree.GetCompilationUnitRoot().DescendantTrivia().Single(t => t.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
             Assert.Equal(SyntaxKind.StaticKeyword, trivia.Token.Kind());
         }
 

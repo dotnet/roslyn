@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim spanStart As Integer = Me._span.Start
 
                     While current.FullSpan.Contains(spanStart)
-                        If current.Kind = Me._kind AndAlso current.Span = Me._span Then
+                        If current.IsKind(Me._kind) AndAlso current.Span = Me._span Then
                             Return current
                         End If
 
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Provide more efficient implementation if that is not true
                     Return parent.DescendantNodes(Me._span, descendIntoTrivia:=True).
                         First(Function(node)
-                                  Return node.Kind = Me._kind AndAlso node.Span = Me._span
+                                  Return node.IsKind(Me._kind) AndAlso node.Span = Me._span
                               End Function)
                 End Function
             End Class

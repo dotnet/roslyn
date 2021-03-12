@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
             cancellationToken As CancellationToken
         ) As Document
 
-            If typeSyntax.Parent.Kind <> SyntaxKind.ImplementsStatement Then
+            If Not typeSyntax.Parent.IsKind(SyntaxKind.ImplementsStatement) Then
                 Return Nothing
             End If
 

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             // Don't offer on $@"" strings.  They support newlines directly in their content.
             protected override bool CheckToken()
-                => _interpolatedStringExpression.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
+                => !_interpolatedStringExpression.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
 
             protected override BinaryExpressionSyntax CreateSplitString()
             {

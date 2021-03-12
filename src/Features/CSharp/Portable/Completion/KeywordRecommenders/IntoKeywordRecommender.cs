@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             //   select x.|
             //   select x.i|
             var lastCompleteToken = token.GetPreviousTokenIfTouchingWord(context.Position);
-            if (lastCompleteToken.Kind() == SyntaxKind.DotToken)
+            if (lastCompleteToken.IsKind(SyntaxKind.DotToken))
             {
                 return false;
             }

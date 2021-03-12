@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Position is in the trailing trivia of node. Check for newline or :.
                 Dim trailingTrivia As SyntaxTriviaList = node.GetTrailingTrivia()
                 For Each trivia In trailingTrivia
-                    If trivia.Kind = SyntaxKind.EndOfLineTrivia OrElse trivia.Kind = SyntaxKind.ColonTrivia Then
+                    If trivia.IsKind(SyntaxKind.EndOfLineTrivia) OrElse trivia.IsKind(SyntaxKind.ColonTrivia) Then
                         Exit For
                     End If
                     If trivia.FullSpan.Contains(position) Then
@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim afterBegin As Boolean = True
                 Dim beforeEnd As Boolean = True
 
-                If beginTerminator.Kind <> SyntaxKind.None AndAlso beginTerminator.Width > 0 Then
+                If Not beginTerminator.IsKind(SyntaxKind.None) AndAlso beginTerminator.Width > 0 Then
                     afterBegin = position >= beginTerminator.SpanStart
                 Else
                     afterBegin = Not InOrBeforeSpanOrEffectiveTrailingOfNode(beginStatement, position)
@@ -665,7 +665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' but not an attribute.
         ''' </summary>        
         Public Shared Function IsNamedArgumentName(node As SyntaxNode) As Boolean
-            If node.Kind <> SyntaxKind.IdentifierName Then
+            If Not node.IsKind(SyntaxKind.IdentifierName) Then
                 Return False
             End If
 
@@ -866,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return False
                     ElseIf parentKind = SyntaxKind.SimpleMemberAccessExpression Then
                         Return CType(token.Parent, MemberAccessExpressionSyntax).Expression IsNot Nothing OrElse
-                               token.Parent.Parent.Kind = SyntaxKind.NamedFieldInitializer
+                               token.Parent.Parent.IsKind(SyntaxKind.NamedFieldInitializer)
 
                         ' After an XML axis property qualifier (. or .@ or ...). 
                         ' However, you must include a line-continuation character (_) when you specify a member qualifier when you are using the With keyword.
@@ -887,7 +887,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Note, this restriction may not be necessary. See comment in ParseQualifiedExpr line 830. 
 
                         If CType(token.Parent, XmlMemberAccessExpressionSyntax).Base IsNot Nothing Then
-                            Return token.GetNextToken.Kind <> SyntaxKind.DotToken
+                            Return Not token.GetNextToken.IsKind(SyntaxKind.DotToken)
                         Else
                             Return False
                         End If

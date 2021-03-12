@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool TryParseGenericName(this SyntaxToken genericIdentifier, CancellationToken cancellationToken, [NotNullWhen(true)] out GenericNameSyntax? genericName)
         {
-            if (genericIdentifier.GetNextToken(includeSkipped: true).Kind() == SyntaxKind.LessThanToken)
+            if (genericIdentifier.GetNextToken(includeSkipped: true).IsKind(SyntaxKind.LessThanToken))
             {
                 var lastToken = genericIdentifier.FindLastTokenOfPartialGenericName();
 
@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <remarks>This is related to the code in <see cref="SyntaxTreeExtensions.IsInPartiallyWrittenGeneric(SyntaxTree, int, CancellationToken)"/></remarks>
         public static SyntaxToken FindLastTokenOfPartialGenericName(this SyntaxToken genericIdentifier)
         {
-            Contract.ThrowIfFalse(genericIdentifier.Kind() == SyntaxKind.IdentifierToken);
+            Contract.ThrowIfFalse(genericIdentifier.IsKind(SyntaxKind.IdentifierToken));
 
             // advance to the "<" token
             var token = genericIdentifier.GetNextToken(includeSkipped: true);
-            Contract.ThrowIfFalse(token.Kind() == SyntaxKind.LessThanToken);
+            Contract.ThrowIfFalse(token.IsKind(SyntaxKind.LessThanToken));
 
             var stack = 0;
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // look forward one token
                 {
                     var next = token.GetNextToken(includeSkipped: true);
-                    if (next.Kind() == SyntaxKind.None)
+                    if (next.IsKind(SyntaxKind.None))
                     {
                         return token;
                     }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     token = next;
                 }
 
-                if (token.Kind() == SyntaxKind.GreaterThanToken)
+                if (token.IsKind(SyntaxKind.GreaterThanToken))
                 {
                     if (stack == 0)
                     {

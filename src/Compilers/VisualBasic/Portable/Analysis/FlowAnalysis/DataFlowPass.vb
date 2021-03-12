@@ -2023,7 +2023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If boundInitializerBase IsNot Nothing AndAlso boundInitializerBase.Kind = BoundKind.ObjectInitializerExpression Then
                     Dim objectInitializer = DirectCast(boundInitializerBase, BoundObjectInitializerExpression)
 
-                    If syntax IsNot Nothing AndAlso syntax.Kind = SyntaxKind.VariableDeclarator Then
+                    If syntax IsNot Nothing AndAlso syntax.IsKind(SyntaxKind.VariableDeclarator) Then
                         Dim declarator = DirectCast(syntax, VariableDeclaratorSyntax)
 
                         If declarator.AsClause IsNot Nothing AndAlso declarator.AsClause.Kind = SyntaxKind.AsNewClause Then

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                         // Finally hit the first previous token with non-zero full width.
                         if (previousToken.TrailingTrivia.Count > 0 &&
-                            previousToken.TrailingTrivia.Last().Kind() == SyntaxKind.EndOfLineTrivia)
+                            previousToken.TrailingTrivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
                         {
                             result.LineBreaks = 1;
                         }
@@ -101,11 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 foreach (var trivia in list)
                 {
-                    if (trivia.Kind() == SyntaxKind.WhitespaceTrivia)
+                    if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                     {
                         AnalyzeWhitespacesInTrivia(trivia, ref result);
                     }
-                    else if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+                    else if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                     {
                         AnalyzeLineBreak(trivia, ref result);
                     }
@@ -113,16 +113,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     {
                         result.HasComments = true;
                     }
-                    else if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
+                    else if (trivia.IsKind(SyntaxKind.SkippedTokensTrivia))
                     {
                         result.HasSkippedTokens = true;
                     }
-                    else if (trivia.Kind() == SyntaxKind.DisabledTextTrivia ||
-                             trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia)
+                    else if (trivia.IsKind(SyntaxKind.DisabledTextTrivia) ||
+                             trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia))
                     {
                         result.HasSkippedOrDisabledText = true;
                     }
-                    else if (trivia.Kind() == SyntaxKind.ConflictMarkerTrivia)
+                    else if (trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
                     {
                         result.HasConflictMarker = true;
                     }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private static void AnalyzeWhitespacesInTrivia(SyntaxTrivia trivia, ref AnalysisResult result)
             {
                 // trivia already has text. getting text should be noop
-                Debug.Assert(trivia.Kind() == SyntaxKind.WhitespaceTrivia);
+                Debug.Assert(trivia.IsKind(SyntaxKind.WhitespaceTrivia));
                 Debug.Assert(trivia.Width() == trivia.FullWidth());
 
                 var space = 0;

@@ -42,7 +42,7 @@ Friend Class ParenthesisBraceCompletionService
         If skippedTriviaNode IsNot Nothing Then
             Dim skippedToken = skippedTriviaNode.ParentTrivia.Token
             ' These checks don't make any sense.  Leaving them in place to avoid breaking something as part of this move.
-            If skippedToken.Kind <> SyntaxKind.CloseParenToken OrElse Not TypeOf skippedToken.Parent Is BinaryConditionalExpressionSyntax Then
+            If Not skippedToken.IsKind(SyntaxKind.CloseParenToken) OrElse Not TypeOf skippedToken.Parent Is BinaryConditionalExpressionSyntax Then
                 Return SpecializedTasks.False
             End If
         End If

@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return (symbol, selectedIndex)
             End If
 
-            If matchingNode.Kind() = SyntaxKind.ObjectCreationExpression Then
+            If matchingNode.IsKind(SyntaxKind.ObjectCreationExpression) Then
                 Dim objectCreation = DirectCast(matchingNode, ObjectCreationExpressionSyntax)
                 If token.Parent.AncestorsAndSelf().Any(Function(a) a Is objectCreation.Type) Then
                     Dim typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol

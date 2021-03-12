@@ -50,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         refKind,
                         syntax.Identifier,
                         ordinal,
-                        isParams: paramsKeyword.Kind() != SyntaxKind.None,
-                        isExtensionMethodThis: ordinal == 0 && thisKeyword.Kind() != SyntaxKind.None,
+                        isParams: !paramsKeyword.IsKind(SyntaxKind.None),
+                        isExtensionMethodThis: ordinal == 0 && !thisKeyword.IsKind(SyntaxKind.None),
                         addRefReadOnlyModifier,
                         declarationDiagnostics);
                 }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckParameterModifiers(parameterSyntax, diagnostics, parsingFunctionPointer);
 
                 var refKind = GetModifiers(parameterSyntax.Modifiers, out SyntaxToken refnessKeyword, out SyntaxToken paramsKeyword, out SyntaxToken thisKeyword);
-                if (thisKeyword.Kind() != SyntaxKind.None && !allowThis)
+                if (!thisKeyword.IsKind(SyntaxKind.None) && !allowThis)
                 {
                     diagnostics.Add(ErrorCode.ERR_ThisInBadContext, thisKeyword.GetLocation());
                 }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (mustBeLastParameter == null &&
                         (concreteParam.Modifiers.Any(SyntaxKind.ParamsKeyword) ||
-                         concreteParam.Identifier.Kind() == SyntaxKind.ArgListKeyword))
+                         concreteParam.Identifier.IsKind(SyntaxKind.ArgListKeyword)))
                     {
                         mustBeLastParameter = concreteParam;
                     }
@@ -158,9 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         arglistToken = concreteParam.Identifier;
                         // The native compiler produces "Expected type" here, in the parser. Roslyn produces
                         // the somewhat more informative "arglist not valid" error.
-                        if (paramsKeyword.Kind() != SyntaxKind.None
-                            || refnessKeyword.Kind() != SyntaxKind.None
-                            || thisKeyword.Kind() != SyntaxKind.None)
+                        if (!paramsKeyword.IsKind(SyntaxKind.None)
+                            || !refnessKeyword.IsKind(SyntaxKind.None)
+                            || !thisKeyword.IsKind(SyntaxKind.None))
                         {
                             // CS1669: __arglist is not valid in this context
                             diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!allowRefOrOut && (refKind == RefKind.Ref || refKind == RefKind.Out))
                 {
-                    Debug.Assert(refnessKeyword.Kind() != SyntaxKind.None);
+                    Debug.Assert(!refnessKeyword.IsKind(SyntaxKind.None));
 
                     // error CS0631: ref and out are not valid in this context
                     diagnostics.Add(ErrorCode.ERR_IllegalRefParam, refnessKeyword.GetLocation());
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (mustBeLastParameter != null && mustBeLastParameter != parametersList[lastIndex])
             {
                 diagnostics.Add(
-                    mustBeLastParameter.Identifier.Kind() == SyntaxKind.ArgListKeyword
+                    mustBeLastParameter.Identifier.IsKind(SyntaxKind.ArgListKeyword)
                         ? ErrorCode.ERR_VarargsLast
                         : ErrorCode.ERR_ParamsLast,
                     mustBeLastParameter.GetLocation());
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int parameterIndex = parameter.Ordinal;
             bool isDefault = parameterSyntax is ParameterSyntax { Default: { } };
 
-            if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0)
+            if (thisKeyword.IsKind(SyntaxKind.ThisKeyword) && parameterIndex != 0)
             {
                 // Report CS1100 on "this". Note that is a change from Dev10
                 // which reports the error on the type following "this".
@@ -521,13 +521,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_RefOutDefaultValue, refnessKeyword.GetLocation());
                 hasErrors = true;
             }
-            else if (paramsKeyword.Kind() == SyntaxKind.ParamsKeyword)
+            else if (paramsKeyword.IsKind(SyntaxKind.ParamsKeyword))
             {
                 // error CS1751: Cannot specify a default value for a parameter array
                 diagnostics.Add(ErrorCode.ERR_DefaultValueForParamsParameter, paramsKeyword.GetLocation());
                 hasErrors = true;
             }
-            else if (thisKeyword.Kind() == SyntaxKind.ThisKeyword)
+            else if (thisKeyword.IsKind(SyntaxKind.ThisKeyword))
             {
                 // Only need to report CS1743 for the first parameter. The caller will
                 // have reported CS1100 if 'this' appeared on another parameter.

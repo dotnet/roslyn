@@ -2853,7 +2853,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim failedToInferFromXmlName As XmlNameSyntax = Nothing
                     Dim nameToken As SyntaxToken = item.Expression.ExtractAnonymousTypeMemberName(failedToInferFromXmlName)
 
-                    If nameToken.Kind <> SyntaxKind.None Then
+                    If Not nameToken.IsKind(SyntaxKind.None) Then
                         rangeVarNameSyntax = nameToken
                         rangeVarName = rangeVarNameSyntax.ValueText
                     ElseIf requireRangeVariable Then

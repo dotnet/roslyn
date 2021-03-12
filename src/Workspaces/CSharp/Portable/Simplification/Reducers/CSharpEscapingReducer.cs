@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     if (enclosingLambdaExpression is SimpleLambdaExpressionSyntax simpleLambda)
                     {
-                        if (simpleLambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
+                        if (simpleLambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
                         {
                             return token;
                         }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     if (enclosingLambdaExpression is ParenthesizedLambdaExpressionSyntax parenLamdba)
                     {
-                        if (parenLamdba.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword)
+                        if (parenLamdba.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
                         {
                             return token;
                         }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var enclosingMethodBlock = parent.GetAncestorsOrThis(n => n is MethodDeclarationSyntax).FirstOrDefault();
 
-                if (enclosingMethodBlock != null && ((MethodDeclarationSyntax)enclosingMethodBlock).Modifiers.Any(n => n.Kind() == SyntaxKind.AsyncKeyword))
+                if (enclosingMethodBlock != null && ((MethodDeclarationSyntax)enclosingMethodBlock).Modifiers.Any(n => n.IsKind(SyntaxKind.AsyncKeyword)))
                 {
                     return token;
                 }
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
             }
 
-            var result = token.Kind() == SyntaxKind.IdentifierToken ? CreateNewIdentifierTokenFromToken(token, escape: false) : token;
+            var result = token.IsKind(SyntaxKind.IdentifierToken) ? CreateNewIdentifierTokenFromToken(token, escape: false) : token;
 
             // we can't remove the escaping if this would change the semantic. This can happen in cases
             // where there are two attribute declarations: one with and one without the attribute

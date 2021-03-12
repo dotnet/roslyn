@@ -126,12 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
             if (node is LineDirectiveTriviaSyntax lineDirective)
             {
-                if (lineDirective.Line.Kind() == SyntaxKind.DefaultKeyword)
+                if (lineDirective.Line.IsKind(SyntaxKind.DefaultKeyword))
                 {
                     info = new ExternalSourceInfo(null, ends: true);
                     return true;
                 }
-                else if (lineDirective.Line.Kind() == SyntaxKind.NumericLiteralToken &&
+                else if (lineDirective.Line.IsKind(SyntaxKind.NumericLiteralToken) &&
                     lineDirective.Line.Value is int)
                 {
                     info = new ExternalSourceInfo((int)lineDirective.Line.Value, false);
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsThrowExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ThrowExpression;
+            => node.IsKind(SyntaxKind.ThrowExpression);
 
         public bool IsPredefinedType(SyntaxToken token)
             => TryGetPredefinedType(token, out _);
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             }
 
             // In the order by clause a comma might be bound to ThenBy or ThenByDescending
-            if (token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKind.OrderByClause))
+            if (token.IsKind(SyntaxKind.CommaToken) && token.Parent.IsKind(SyntaxKind.OrderByClause))
             {
                 return true;
             }
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool LooksGeneric(SyntaxNode simpleName)
             => simpleName.IsKind(SyntaxKind.GenericName) ||
-               simpleName.GetLastToken().GetNextToken().Kind() == SyntaxKind.LessThanToken;
+               simpleName.GetLastToken().GetNextToken().IsKind(SyntaxKind.LessThanToken);
 
         public SyntaxNode? GetTargetOfMemberBinding(SyntaxNode? node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsSimpleArgument([NotNullWhen(true)] SyntaxNode? node)
         {
             return node is ArgumentSyntax argument &&
-                   argument.RefOrOutKeyword.Kind() == SyntaxKind.None &&
+                   argument.RefOrOutKeyword.IsKind(SyntaxKind.None) &&
                    argument.NameColon == null;
         }
 
@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                node.Parent.IsParentKind(SyntaxKind.Subpattern);
 
         public bool IsPropertyPatternClause(SyntaxNode node)
-            => node.Kind() == SyntaxKind.PropertyPatternClause;
+            => node.IsKind(SyntaxKind.PropertyPatternClause);
 
         public bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node)
             => IsMemberInitializerNamedAssignmentIdentifier(node, out _);
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsElementAccessExpression(SyntaxNode node)
-            => node.Kind() == SyntaxKind.ElementAccessExpression;
+            => node.IsKind(SyntaxKind.ElementAccessExpression);
 
         [return: NotNullIfNotNull("node")]
         public SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false)
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsIndexerMemberCRef(SyntaxNode node)
-            => node.Kind() == SyntaxKind.IndexerMemberCref;
+            => node.IsKind(SyntaxKind.IndexerMemberCref);
 
         public SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true)
         {
@@ -808,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             // containing namespace(s) in source (if any)
             if ((options & DisplayNameOptions.IncludeNamespaces) != 0)
             {
-                while (parent != null && parent.Kind() == SyntaxKind.NamespaceDeclaration)
+                while (parent != null && parent.IsKind(SyntaxKind.NamespaceDeclaration))
                 {
                     names.Add(GetName(parent, options));
                     parent = parent.Parent;
@@ -1142,12 +1142,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace)
         {
-            if (token.Kind() == SyntaxKind.CloseBraceToken)
+            if (token.IsKind(SyntaxKind.CloseBraceToken))
             {
                 var tuple = token.Parent.GetBraces();
 
                 openBrace = tuple.openBrace;
-                return openBrace.Kind() == SyntaxKind.OpenBraceToken;
+                return openBrace.IsKind(SyntaxKind.OpenBraceToken);
             }
 
             openBrace = default;
@@ -1157,13 +1157,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
-            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
+            if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
             {
                 return trivia.FullSpan;
             }
 
             var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
-            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            if (token.IsKind(SyntaxKind.EndOfFileToken))
             {
                 var triviaList = token.LeadingTrivia;
                 foreach (var triviaTok in triviaList.Reverse())
@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => token.IsVerbatimStringLiteral();
 
         public bool IsNumericLiteral(SyntaxToken token)
-            => token.Kind() == SyntaxKind.NumericLiteralToken;
+            => token.IsKind(SyntaxKind.NumericLiteralToken);
 
         public void GetPartsOfInvocationExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode argumentList)
         {
@@ -1281,7 +1281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => trivia.IsPragmaDirective(out isDisable, out isActive, out errorCodes);
 
         public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
-            => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;
+            => trivia.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia);
 
         public bool IsDocumentationComment(SyntaxNode node)
             => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
@@ -1746,7 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxToken? GetDeclarationIdentifierIfOverride(SyntaxToken token)
         {
-            if (token.Kind() == SyntaxKind.OverrideKeyword && token.Parent is MemberDeclarationSyntax member)
+            if (token.IsKind(SyntaxKind.OverrideKeyword) && token.Parent is MemberDeclarationSyntax member)
             {
                 return member.GetNameToken();
             }
@@ -1887,7 +1887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                     _ => DeclarationModifiers.None,
                 };
 
-                isDefault |= token.Kind() == SyntaxKind.DefaultKeyword;
+                isDefault |= token.IsKind(SyntaxKind.DefaultKeyword);
             }
         }
 

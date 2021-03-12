@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Return Nothing
             End If
 
-            If node.CustomKeyword.Kind <> SyntaxKind.CustomKeyword Then
+            If Not node.CustomKeyword.IsKind(SyntaxKind.CustomKeyword) Then
                 Return Nothing
             End If
 

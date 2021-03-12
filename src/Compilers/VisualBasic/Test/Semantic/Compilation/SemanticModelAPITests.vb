@@ -590,7 +590,7 @@ End Class
             Dim typeBlock = DirectCast(root.Members(1), TypeBlockSyntax)
             Dim methodBlock = DirectCast(typeBlock.Members(0), MethodBlockSyntax)
             Dim originalStatement = DirectCast(methodBlock.Statements(0), ExecutableStatementSyntax)
-            Dim originalExpression = originalStatement.DescendantNodes().Where(Function(syntax) syntax.Kind = SyntaxKind.ObjectCreationExpression).FirstOrDefault()
+            Dim originalExpression = originalStatement.DescendantNodes().Where(Function(syntax) syntax.IsKind(SyntaxKind.ObjectCreationExpression)).FirstOrDefault()
 
             Dim speculatedExpression = SyntaxFactory.ParseExpression("DirectCast(3, Integer)")
             Dim speculatedStatement = originalStatement.ReplaceNode(originalExpression, speculatedExpression)
@@ -4007,7 +4007,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "sam.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-            Dim nodes = From n In tree.GetCompilationUnitRoot().DescendantNodes() Where n.Kind = SyntaxKind.IdentifierName Select CType(n, IdentifierNameSyntax)
+            Dim nodes = From n In tree.GetCompilationUnitRoot().DescendantNodes() Where n.IsKind(SyntaxKind.IdentifierName) Select CType(n, IdentifierNameSyntax)
             Dim enode = nodes.First(Function(n) n.ToString() = "e")
             Dim symbol = semanticModel.GetSymbolInfo(enode).Symbol
             Assert.NotNull(symbol)

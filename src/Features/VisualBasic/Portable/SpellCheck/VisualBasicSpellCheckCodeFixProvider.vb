@@ -58,8 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
         End Function
 
         Protected Overrides Function IsGeneric(nameToken As SyntaxToken) As Boolean
-            Return nameToken.GetNextToken().Kind() = SyntaxKind.OpenParenToken AndAlso
-                nameToken.GetNextToken().GetNextToken().Kind() = SyntaxKind.OfKeyword
+            Return nameToken.GetNextToken().IsKind(SyntaxKind.OpenParenToken) AndAlso
+                nameToken.GetNextToken().GetNextToken().IsKind(SyntaxKind.OfKeyword)
         End Function
 
         Protected Overrides Function IsGeneric(nameNode As SimpleNameSyntax) As Boolean

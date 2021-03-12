@@ -1822,7 +1822,7 @@ lUnsplitAndFinish:
                 ' Visit case block body
                 VisitStatement(caseBlock.Body)
 
-                hasCaseElse = hasCaseElse OrElse caseBlock.Syntax.Kind = SyntaxKind.CaseElseBlock
+                hasCaseElse = hasCaseElse OrElse caseBlock.Syntax.IsKind(SyntaxKind.CaseElseBlock)
 
                 ' If the select statement had a case else block, then the state at the end
                 ' of select statement is the merge of states at the end of all case blocks.

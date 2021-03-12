@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             //   extern a|
             var token = context.TargetToken;
 
-            if (token.Kind() == SyntaxKind.ExternKeyword)
+            if (token.IsKind(SyntaxKind.ExternKeyword))
             {
                 // members can be 'extern' but we don't want
                 // 'alias' to show up in a 'type'.

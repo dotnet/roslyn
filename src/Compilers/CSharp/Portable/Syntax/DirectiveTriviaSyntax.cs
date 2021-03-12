@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             var token = (SyntaxToken)this.ParentTrivia.Token;
             bool next = false;
-            while (token.Kind() != SyntaxKind.None)
+            while (!token.IsKind(SyntaxKind.None))
             {
                 foreach (var tr in token.LeadingTrivia)
                 {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             var token = (SyntaxToken)this.ParentTrivia.Token;
             bool next = false;
-            while (token.Kind() != SyntaxKind.None)
+            while (!token.IsKind(SyntaxKind.None))
             {
                 foreach (var tr in token.LeadingTrivia.Reverse())
                 {

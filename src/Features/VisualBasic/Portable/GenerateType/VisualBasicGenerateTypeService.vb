@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
                 ' Case : Public WithEvents G As Delegate1
                 Dim fieldDecl = nameOrMemberAccessExpression.GetAncestor(Of FieldDeclarationSyntax)()
-                If fieldDecl IsNot Nothing AndAlso fieldDecl.GetModifiers().Any(Function(n) n.Kind() = SyntaxKind.WithEventsKeyword) Then
+                If fieldDecl IsNot Nothing AndAlso fieldDecl.GetModifiers().Any(Function(n) n.IsKind(SyntaxKind.WithEventsKeyword)) Then
                     generateTypeServiceStateOptions.IsClassInterfaceTypes = True
                     Return True
                 End If
@@ -606,7 +606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             If containingTypeBlocks.Count() = 0 Then
                 Return True
             Else
-                Return containingTypeBlocks.All(Function(typeBlock) typeBlock.GetModifiers().Any(Function(n) n.Kind() = SyntaxKind.PublicKeyword))
+                Return containingTypeBlocks.All(Function(typeBlock) typeBlock.GetModifiers().Any(Function(n) n.IsKind(SyntaxKind.PublicKeyword)))
             End If
         End Function
 

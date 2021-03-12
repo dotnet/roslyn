@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
         End Function
 
         Public Function RewriteMethodStatement(func As MethodStatementSyntax, semanticModel As SemanticModel, oldFunc As MethodStatementSyntax, cancellationToken As CancellationToken) As MethodStatementSyntax
-            If func.DeclarationKeyword.Kind = SyntaxKind.FunctionKeyword Then
+            If func.DeclarationKeyword.IsKind(SyntaxKind.FunctionKeyword) Then
 
                 Dim modifiers = func.Modifiers
                 Dim parameterListOpt = func.ParameterList
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
         End Function
 
         Public Function RewriteLambdaHeader(lambdaHeader As LambdaHeaderSyntax, semanticModel As SemanticModel, oldLambdaHeader As LambdaHeaderSyntax, cancellationToken As CancellationToken) As LambdaHeaderSyntax
-            If lambdaHeader.DeclarationKeyword.Kind = SyntaxKind.FunctionKeyword AndAlso
+            If lambdaHeader.DeclarationKeyword.IsKind(SyntaxKind.FunctionKeyword) AndAlso
                lambdaHeader.AsClause IsNot Nothing AndAlso
                lambdaHeader.ParameterList IsNot Nothing Then
 

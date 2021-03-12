@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Dim identifierNode = identifier _
                 .Ancestors() _
                 .TakeWhile(Function(n)
-                               Return n.Kind = SyntaxKind.ParenthesizedExpression OrElse
+                               Return n.IsKind(SyntaxKind.ParenthesizedExpression) OrElse
                                       TypeOf n Is CastExpressionSyntax OrElse
                                       TypeOf n Is PredefinedCastExpressionSyntax
                            End Function) _

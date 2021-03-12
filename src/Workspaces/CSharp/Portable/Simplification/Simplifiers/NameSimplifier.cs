@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             // we can try to remove the Attribute suffix if this is the attribute name
             if (SyntaxFacts.IsAttributeName(name))
             {
-                if (name.Parent.Kind() == SyntaxKind.Attribute || name.IsRightSideOfDotOrColonColon())
+                if (name.Parent.IsKind(SyntaxKind.Attribute) || name.IsRightSideOfDotOrColonColon())
                 {
                     const string AttributeName = "Attribute";
 

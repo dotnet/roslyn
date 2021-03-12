@@ -118,10 +118,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function TryGetCorrespondingOpenBrace(token As SyntaxToken, ByRef openBrace As SyntaxToken) As Boolean Implements ISyntaxFacts.TryGetCorrespondingOpenBrace
 
-            If token.Kind = SyntaxKind.CloseBraceToken Then
+            If token.IsKind(SyntaxKind.CloseBraceToken) Then
                 Dim tuples = token.Parent.GetBraces()
                 openBrace = tuples.openBrace
-                Return openBrace.Kind = SyntaxKind.OpenBraceToken
+                Return openBrace.IsKind(SyntaxKind.OpenBraceToken)
             End If
 
             Return False
@@ -570,7 +570,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
                 Return
             End If
 
-            If node.Kind() = SyntaxKind.DictionaryAccessExpression Then
+            If node.IsKind(SyntaxKind.DictionaryAccessExpression) Then
                 GetPartsOfMemberAccessExpression(node, expression, argumentList)
                 Return
             End If
@@ -663,7 +663,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Dim parent = node.Parent
 
             While node IsNot Nothing
-                If node.Kind = SyntaxKind.VariableDeclarator AndAlso node.IsParentKind(SyntaxKind.FieldDeclaration) Then
+                If node.IsKind(SyntaxKind.VariableDeclarator) AndAlso node.IsParentKind(SyntaxKind.FieldDeclaration) Then
                     Return node
                 End If
 
@@ -721,7 +721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsElementAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsElementAccessExpression
             ' VB doesn't have a specialized node for element access.  Instead, it just uses an
             ' invocation expression or dictionary access expression.
-            Return node.Kind = SyntaxKind.InvocationExpression OrElse node.Kind = SyntaxKind.DictionaryAccessExpression
+            Return node.IsKind(SyntaxKind.InvocationExpression) OrElse node.IsKind(SyntaxKind.DictionaryAccessExpression)
         End Function
 
         Public Sub GetPartsOfParenthesizedExpression(
@@ -992,7 +992,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             If (options And DisplayNameOptions.IncludeNamespaces) <> 0 Then
                 ' containing namespace(s) in source (if any)
                 Dim containsGlobalKeyword As Boolean = False
-                While parent IsNot Nothing AndAlso parent.Kind() = SyntaxKind.NamespaceBlock
+                While parent IsNot Nothing AndAlso parent.IsKind(SyntaxKind.NamespaceBlock)
                     names.Push(GetName(parent, options, containsGlobalKeyword))
                     parent = parent.Parent
                 End While
@@ -1203,7 +1203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function GetInactiveRegionSpanAroundPosition(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TextSpan Implements ISyntaxFacts.GetInactiveRegionSpanAroundPosition
             Dim trivia = tree.FindTriviaToLeft(position, cancellationToken)
-            If trivia.Kind = SyntaxKind.DisabledTextTrivia Then
+            If trivia.IsKind(SyntaxKind.DisabledTextTrivia) Then
                 Return trivia.FullSpan
             End If
 
@@ -1274,9 +1274,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsNumericLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsNumericLiteral
-            Return token.Kind = SyntaxKind.DecimalLiteralToken OrElse
-                   token.Kind = SyntaxKind.FloatingLiteralToken OrElse
-                   token.Kind = SyntaxKind.IntegerLiteralToken
+            Return token.IsKind(SyntaxKind.DecimalLiteralToken) OrElse
+                   token.IsKind(SyntaxKind.FloatingLiteralToken) OrElse
+                   token.IsKind(SyntaxKind.IntegerLiteralToken)
         End Function
 
         Public Function IsVerbatimStringLiteral(token As SyntaxToken) As Boolean Implements ISyntaxFacts.IsVerbatimStringLiteral
@@ -1554,7 +1554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Overrides Function IsSingleLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.CommentTrivia
+            Return trivia.IsKind(SyntaxKind.CommentTrivia)
         End Function
 
         Public Overrides Function IsMultiLineCommentTrivia(trivia As SyntaxTrivia) As Boolean
@@ -1563,7 +1563,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Overrides Function IsSingleLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+            Return trivia.IsKind(SyntaxKind.DocumentationCommentTrivia)
         End Function
 
         Public Overrides Function IsMultiLineDocCommentTrivia(trivia As SyntaxTrivia) As Boolean
@@ -1581,11 +1581,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsRegularComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsRegularComment
-            Return trivia.Kind = SyntaxKind.CommentTrivia
+            Return trivia.IsKind(SyntaxKind.CommentTrivia)
         End Function
 
         Public Function IsDocumentationComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsDocumentationComment
-            Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+            Return trivia.IsKind(SyntaxKind.DocumentationCommentTrivia)
         End Function
 
         Public Function IsElastic(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsElastic
@@ -1788,7 +1788,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsDocumentationCommentExteriorTrivia(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFacts.IsDocumentationCommentExteriorTrivia
-            Return trivia.Kind() = SyntaxKind.DocumentationCommentExteriorTrivia
+            Return trivia.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia)
         End Function
 
         Private Function ISyntaxFacts_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, maxBannerLength As Integer, cancellationToken As CancellationToken) As String Implements ISyntaxFacts.GetBannerText
@@ -1858,11 +1858,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function IsConversionExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsConversionExpression
-            Return node.Kind = SyntaxKind.CTypeExpression
+            Return node.IsKind(SyntaxKind.CTypeExpression)
         End Function
 
         Public Function IsCastExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsCastExpression
-            Return node.Kind = SyntaxKind.DirectCastExpression
+            Return node.IsKind(SyntaxKind.DirectCastExpression)
         End Function
 
         Public Sub GetPartsOfCastExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef expression As SyntaxNode) Implements ISyntaxFacts.GetPartsOfCastExpression
@@ -1876,7 +1876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetDeclarationIdentifierIfOverride(token As SyntaxToken) As SyntaxToken? Implements ISyntaxFacts.GetDeclarationIdentifierIfOverride
-            If token.Kind() = SyntaxKind.OverridesKeyword Then
+            If token.IsKind(SyntaxKind.OverridesKeyword) Then
                 Dim parent = token.Parent
 
                 Select Case parent.Kind()

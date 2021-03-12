@@ -83,14 +83,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         {
             return node is AttributeListSyntax attributeList &&
                 attributeList.Target != null &&
-                attributeList.Target.Identifier.Kind() == SyntaxKind.AssemblyKeyword;
+                attributeList.Target.Identifier.IsKind(SyntaxKind.AssemblyKeyword);
         }
 
         protected override bool IsEndOfLine(SyntaxTrivia trivia)
             => trivia.IsKind(SyntaxKind.EndOfLineTrivia) || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
 
         protected override bool IsEndOfFileToken(SyntaxToken token)
-            => token.Kind() == SyntaxKind.EndOfFileToken;
+            => token.IsKind(SyntaxKind.EndOfFileToken);
 
         protected override SyntaxNode AddGlobalSuppressMessageAttribute(
             SyntaxNode newRoot,
@@ -230,10 +230,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
 
         protected override bool IsAnyPragmaDirectiveForId(SyntaxTrivia trivia, string id, out bool enableDirective, out bool hasMultipleIds)
         {
-            if (trivia.Kind() == SyntaxKind.PragmaWarningDirectiveTrivia)
+            if (trivia.IsKind(SyntaxKind.PragmaWarningDirectiveTrivia))
             {
                 var pragmaWarning = (PragmaWarningDirectiveTriviaSyntax)trivia.GetStructure();
-                enableDirective = pragmaWarning.DisableOrRestoreKeyword.Kind() == SyntaxKind.RestoreKeyword;
+                enableDirective = pragmaWarning.DisableOrRestoreKeyword.IsKind(SyntaxKind.RestoreKeyword);
                 hasMultipleIds = pragmaWarning.ErrorCodes.Count > 1;
                 return pragmaWarning.ErrorCodes.Any(n => n.ToString() == id);
             }
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
         {
             var pragmaWarning = (PragmaWarningDirectiveTriviaSyntax)trivia.GetStructure();
             var currentKeyword = pragmaWarning.DisableOrRestoreKeyword;
-            var toggledKeywordKind = currentKeyword.Kind() == SyntaxKind.DisableKeyword ? SyntaxKind.RestoreKeyword : SyntaxKind.DisableKeyword;
+            var toggledKeywordKind = currentKeyword.IsKind(SyntaxKind.DisableKeyword) ? SyntaxKind.RestoreKeyword : SyntaxKind.DisableKeyword;
             var toggledToken = SyntaxFactory.Token(currentKeyword.LeadingTrivia, toggledKeywordKind, currentKeyword.TrailingTrivia);
             var newPragmaWarning = pragmaWarning.WithDisableOrRestoreKeyword(toggledToken);
             return SyntaxFactory.Trivia(newPragmaWarning);
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression
             SyntaxToken token, SyntaxNode root, TextLineCollection lines, int indexOfLine)
         {
             var nextToken = token.GetNextToken();
-            if (nextToken.Kind() == SyntaxKind.SemicolonToken &&
+            if (nextToken.IsKind(SyntaxKind.SemicolonToken) &&
                 nextToken.Parent is StatementSyntax statement &&
                 statement.GetLastToken() == nextToken &&
                 token.Parent.FirstAncestorOrSelf<StatementSyntax>() == statement)

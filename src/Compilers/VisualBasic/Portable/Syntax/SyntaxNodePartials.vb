@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Dim token = CType(MyBase.ParentTrivia.Token, SyntaxToken)
 
             Dim [next] As Boolean = False
-            Do While (token.Kind <> SyntaxKind.None)
+            Do While (Not token.IsKind(SyntaxKind.None))
                 Dim tr As SyntaxTrivia
                 For Each tr In token.LeadingTrivia
                     If [next] Then
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Dim token As SyntaxToken = CType(MyBase.ParentTrivia.Token, SyntaxToken)
 
             Dim [next] As Boolean = False
-            Do While (token.Kind <> SyntaxKind.None)
+            Do While (Not token.IsKind(SyntaxKind.None))
                 For Each tr In token.LeadingTrivia.Reverse()
                     If [next] Then
                         If tr.IsDirective Then

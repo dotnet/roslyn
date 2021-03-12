@@ -297,8 +297,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     _instrumentTopLevelNonCompilerGeneratedExpressionsInQuery AndAlso
                     Instrument AndAlso
                     Not node.WasCompilerGenerated AndAlso
-                    node.Syntax.Kind <> SyntaxKind.GroupAggregation AndAlso
-                    ((node.Syntax.Kind = SyntaxKind.SimpleAsClause AndAlso node.Syntax.Parent.Kind = SyntaxKind.CollectionRangeVariable) OrElse
+                    Not node.Syntax.IsKind(SyntaxKind.GroupAggregation) AndAlso
+                    ((node.Syntax.IsKind(SyntaxKind.SimpleAsClause) AndAlso node.Syntax.Parent.IsKind(SyntaxKind.CollectionRangeVariable)) OrElse
                      TypeOf node.Syntax Is ExpressionSyntax)
 
             If instrumentExpressionInQuery Then

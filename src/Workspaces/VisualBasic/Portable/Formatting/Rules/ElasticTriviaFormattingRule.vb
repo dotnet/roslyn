@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
             nextOperation.Invoke()
 
-            If node.Kind = SyntaxKind.ObjectMemberInitializer Then
+            If node.IsKind(SyntaxKind.ObjectMemberInitializer) Then
                 Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
 
                 If initializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
             End If
 
-            If node.Kind = SyntaxKind.ObjectCollectionInitializer Then
+            If node.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
                 Dim collectionInitializer = DirectCast(node, ObjectCollectionInitializerSyntax)
 
                 If collectionInitializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                                       ByRef nextOperation As NextAlignTokensOperationAction)
             nextOperation.Invoke()
 
-            If node.Kind = SyntaxKind.ObjectMemberInitializer Then
+            If node.IsKind(SyntaxKind.ObjectMemberInitializer) Then
                 Dim initializer = DirectCast(node, ObjectMemberInitializerSyntax)
 
                 If initializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
             End If
 
-            If node.Kind = SyntaxKind.ObjectCollectionInitializer Then
+            If node.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
                 Dim collectionInitializer = DirectCast(node, ObjectCollectionInitializerSyntax)
 
                 If collectionInitializer.GetLeadingTrivia().HasAnyWhitespaceElasticTrivia() Then
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' remove blank lines between parameter lists and implements clauses
-            If currentToken.Kind = SyntaxKind.ImplementsKeyword AndAlso
+            If currentToken.IsKind(SyntaxKind.ImplementsKeyword) AndAlso
                (previousToken.GetAncestor(Of MethodStatementSyntax)() IsNot Nothing OrElse
                 previousToken.GetAncestor(Of PropertyStatementSyntax)() IsNot Nothing OrElse
                 previousToken.GetAncestor(Of EventStatementSyntax)() IsNot Nothing) Then
@@ -106,13 +106,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' handle comma separated lists in implements clauses
-            If previousToken.GetAncestor(Of ImplementsClauseSyntax)() IsNot Nothing AndAlso currentToken.Kind = SyntaxKind.CommaToken Then
+            If previousToken.GetAncestor(Of ImplementsClauseSyntax)() IsNot Nothing AndAlso currentToken.IsKind(SyntaxKind.CommaToken) Then
                 Return FormattingOperations.CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)
             End If
 
-            If currentToken.Kind = SyntaxKind.OpenBraceToken AndAlso
-               currentToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
-               currentToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+            If currentToken.IsKind(SyntaxKind.OpenBraceToken) AndAlso
+               currentToken.Parent.IsKind(SyntaxKind.CollectionInitializer) AndAlso
+               currentToken.Parent.Parent.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
                 Return New AdjustSpacesOperation(1,
                         [option]:=AdjustSpacesOption.ForceSpaces)
             End If
@@ -137,45 +137,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return operation
             End If
 
-            If currentToken.Kind = SyntaxKind.DotToken AndAlso
-               currentToken.Parent.Kind = SyntaxKind.NamedFieldInitializer Then
+            If currentToken.IsKind(SyntaxKind.DotToken) AndAlso
+               currentToken.Parent.IsKind(SyntaxKind.NamedFieldInitializer) Then
 
                 Return New AdjustNewLinesOperation(line:=1,
                     [option]:=AdjustNewLinesOption.ForceLines)
             End If
 
-            If previousToken.Kind = SyntaxKind.OpenBraceToken AndAlso
-               previousToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
-               previousToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+            If previousToken.IsKind(SyntaxKind.OpenBraceToken) AndAlso
+               previousToken.Parent.IsKind(SyntaxKind.CollectionInitializer) AndAlso
+               previousToken.Parent.Parent.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
 
                 Return New AdjustNewLinesOperation(line:=1,
                     [option]:=AdjustNewLinesOption.ForceLines)
             End If
 
-            If previousToken.Kind = SyntaxKind.CommaToken AndAlso
-               previousToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
-               previousToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+            If previousToken.IsKind(SyntaxKind.CommaToken) AndAlso
+               previousToken.Parent.IsKind(SyntaxKind.CollectionInitializer) AndAlso
+               previousToken.Parent.Parent.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
 
                 Return New AdjustNewLinesOperation(line:=1,
                     [option]:=AdjustNewLinesOption.ForceLines)
             End If
 
-            If currentToken.Kind = SyntaxKind.OpenBraceToken AndAlso
-               currentToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
-               currentToken.Parent.Parent.Kind = SyntaxKind.CollectionInitializer Then
+            If currentToken.IsKind(SyntaxKind.OpenBraceToken) AndAlso
+               currentToken.Parent.IsKind(SyntaxKind.CollectionInitializer) AndAlso
+               currentToken.Parent.Parent.IsKind(SyntaxKind.CollectionInitializer) Then
                 Return New AdjustNewLinesOperation(line:=1,
                     [option]:=AdjustNewLinesOption.ForceLines)
             End If
 
-            If currentToken.Kind = SyntaxKind.CloseBraceToken Then
-                If currentToken.Parent.Kind = SyntaxKind.ObjectMemberInitializer Then
+            If currentToken.IsKind(SyntaxKind.CloseBraceToken) Then
+                If currentToken.Parent.IsKind(SyntaxKind.ObjectMemberInitializer) Then
 
                     Return New AdjustNewLinesOperation(line:=1,
                         [option]:=AdjustNewLinesOption.ForceLines)
                 End If
 
-                If currentToken.Parent.Kind = SyntaxKind.CollectionInitializer AndAlso
-                   currentToken.Parent.Parent.Kind = SyntaxKind.ObjectCollectionInitializer Then
+                If currentToken.Parent.IsKind(SyntaxKind.CollectionInitializer) AndAlso
+                   currentToken.Parent.Parent.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
                     Return New AdjustNewLinesOperation(line:=1,
                         [option]:=AdjustNewLinesOption.ForceLines)
                 End If
@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' put attributes in its own line if it is top level attribute
             Dim attributeNode = TryCast(previousToken.Parent, AttributeListSyntax)
             If attributeNode IsNot Nothing AndAlso TypeOf attributeNode.Parent Is StatementSyntax AndAlso
-               attributeNode.GreaterThanToken = previousToken AndAlso currentToken.Kind <> SyntaxKind.LessThanToken Then
+               attributeNode.GreaterThanToken = previousToken AndAlso Not currentToken.IsKind(SyntaxKind.LessThanToken) Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines)
             End If
 
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' The previous token may end a statement, but it could be in a lambda inside parens.
-            If currentToken.Kind = SyntaxKind.CloseParenToken AndAlso
+            If currentToken.IsKind(SyntaxKind.CloseParenToken) AndAlso
                TypeOf currentToken.Parent Is ParenthesizedExpressionSyntax Then
 
                 Return operation
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private Shared Function AfterLastImportStatement(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
             ' in between two imports
-            If nextToken.Kind = SyntaxKind.ImportsKeyword Then
+            If nextToken.IsKind(SyntaxKind.ImportsKeyword) Then
                 Return False
             End If
 
@@ -263,8 +263,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Private Shared Function LineBreaksAfter(previousToken As SyntaxToken, currentToken As SyntaxToken) As Integer?
-            If currentToken.Kind = SyntaxKind.None OrElse
-               previousToken.Kind = SyntaxKind.None Then
+            If currentToken.IsKind(SyntaxKind.None) OrElse
+               previousToken.IsKind(SyntaxKind.None) Then
                 Return 0
             End If
 

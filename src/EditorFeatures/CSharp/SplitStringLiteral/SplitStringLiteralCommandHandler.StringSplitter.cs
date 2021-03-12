@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             private static bool IsInterpolationOpenBrace(SyntaxToken token, int position)
             {
-                return token.Kind() == SyntaxKind.OpenBraceToken &&
+                return token.IsKind(SyntaxKind.OpenBraceToken) &&
                     token.Parent.IsKind(SyntaxKind.Interpolation) &&
                     position == token.SpanStart;
             }

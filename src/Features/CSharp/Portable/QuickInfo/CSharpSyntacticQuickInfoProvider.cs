@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            if (token.Kind() != SyntaxKind.CloseBraceToken)
+            if (!token.IsKind(SyntaxKind.CloseBraceToken))
             {
                 return null;
             }
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 
             // Now check if we can find an open brace.
             var parent = token.Parent!;
-            var openBrace = parent.ChildNodesAndTokens().FirstOrDefault(n => n.Kind() == SyntaxKind.OpenBraceToken).AsToken();
-            if (openBrace.Kind() != SyntaxKind.OpenBraceToken)
+            var openBrace = parent.ChildNodesAndTokens().FirstOrDefault(n => n.IsKind(SyntaxKind.OpenBraceToken)).AsToken();
+            if (!openBrace.IsKind(SyntaxKind.OpenBraceToken))
             {
                 return null;
             }

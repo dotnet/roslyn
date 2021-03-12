@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Dim previousToken = token.GetPreviousToken()
 
                 ' Consume only modifiers on the same line
-                If previousToken.Kind = SyntaxKind.None OrElse Not IsOnStartLine(previousToken.SpanStart, text, startLine) Then
+                If previousToken.IsKind(SyntaxKind.None) OrElse Not IsOnStartLine(previousToken.SpanStart, text, startLine) Then
                     Exit Do
                 End If
 
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Loop
 
             modifiers = New DeclarationModifiers(isAbstract:=isMustOverride, isOverride:=True, isSealed:=isNotOverridable)
-            Return overridesToken.Kind = SyntaxKind.OverridesKeyword AndAlso IsOnStartLine(overridesToken.Parent.SpanStart, text, startLine)
+            Return overridesToken.IsKind(SyntaxKind.OverridesKeyword) AndAlso IsOnStartLine(overridesToken.Parent.SpanStart, text, startLine)
         End Function
 
         Public Overrides Function TryDetermineReturnType(startToken As SyntaxToken,

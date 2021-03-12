@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
 
             For Each node In methodSyntax.DescendantNodes()
-                If node.Kind = SyntaxKind.VariableDeclarator Then
+                If node.IsKind(SyntaxKind.VariableDeclarator) Then
                     For Each name In DirectCast(node, VariableDeclaratorSyntax).Names
                         Dim local = DirectCast(model.GetDeclaredSymbol(name), LocalSymbol)
                         locals.Add(local)
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
         Friend Shared Function GetLocalName(node As SyntaxNode) As String
-            If node.Kind = SyntaxKind.ModifiedIdentifier Then
+            If node.IsKind(SyntaxKind.ModifiedIdentifier) Then
                 Return DirectCast(node, ModifiedIdentifierSyntax).Identifier.ToString()
             End If
 

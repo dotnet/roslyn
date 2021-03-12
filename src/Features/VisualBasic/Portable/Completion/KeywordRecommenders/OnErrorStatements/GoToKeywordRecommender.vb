@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.OnEr
 
             Dim targetToken = context.TargetToken
 
-            Return If(targetToken.Kind = SyntaxKind.ErrorKeyword AndAlso IsOnErrorStatement(targetToken.Parent) AndAlso Not context.IsInLambda,
+            Return If(targetToken.IsKind(SyntaxKind.ErrorKeyword) AndAlso IsOnErrorStatement(targetToken.Parent) AndAlso Not context.IsInLambda,
                 s_keywords,
                 ImmutableArray(Of RecommendedKeyword).Empty)
         End Function

@@ -639,7 +639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     types.Add(argumentType)
 
-                    If nameSyntax.Kind() = SyntaxKind.IdentifierToken Then
+                    If nameSyntax.IsKind(SyntaxKind.IdentifierToken) Then
                         ' validate name if we have one
                         hasExplicitNames = True
                         Binder.CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames)

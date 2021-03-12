@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                                 mappedLine = ((int)value) - 1;
                             }
 
-                            if (directive.File.Kind() == SyntaxKind.StringLiteralToken)
+                            if (directive.File.IsKind(SyntaxKind.StringLiteralToken))
                             {
                                 mappedPathOpt = (string?)directive.File.Value;
                             }

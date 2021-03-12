@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override bool AreEquivalentActiveStatements(SyntaxNode oldStatement, SyntaxNode newStatement, int statementPart)
         {
-            if (oldStatement.Kind() != newStatement.Kind())
+            if (!oldStatement.IsKind(newStatement.Kind()))
             {
                 return false;
             }
@@ -1235,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private static bool IsLocalFunctionBody(SyntaxNode lambdaBody)
         {
             var lambda = LambdaUtilities.GetLambda(lambdaBody);
-            return lambda.Kind() == SyntaxKind.LocalFunctionStatement;
+            return lambda.IsKind(SyntaxKind.LocalFunctionStatement);
         }
 
         private static bool GroupBySignatureComparer(ImmutableArray<IParameterSymbol> oldParameters, ITypeSymbol oldReturnType, ImmutableArray<IParameterSymbol> newParameters, ITypeSymbol newReturnType)
@@ -3028,7 +3028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                         // skip try:
                         RoslynDebug.Assert(current.Parent is object);
-                        RoslynDebug.Assert(current.Parent.Kind() == SyntaxKind.TryStatement);
+                        RoslynDebug.Assert(current.Parent.IsKind(SyntaxKind.TryStatement));
                         current = current.Parent;
 
                         break;

@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
                     Dim nextToLast = children(children.Count - 2)
                     spans.Add(GetLineSeparatorSpanForNode(nextToLast))
                 End If
-                If lastChild.Parent.Kind = SyntaxKind.CompilationUnit Then
+                If lastChild.Parent.IsKind(SyntaxKind.CompilationUnit) Then
                     spans.Add(GetLineSeparatorSpanForNode(lastChild))
                 End If
             End If

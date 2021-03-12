@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {
-            Debug.Assert(oldNode.Kind() == newNode.Kind());
+            Debug.Assert(oldNode.IsKind(newNode.Kind()));
 
             var model = oldSemanticModel;
             if (!(oldNode is BaseMethodDeclarationSyntax oldMethod) || !(newNode is BaseMethodDeclarationSyntax newMethod) || oldMethod.Body == null)
@@ -255,8 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return node switch
             {
-                AssignmentExpressionSyntax _ when token.Kind() == SyntaxKind.EqualsToken => GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>(),
-                ForEachVariableStatementSyntax _ when token.Kind() == SyntaxKind.InKeyword => GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>(),
+                AssignmentExpressionSyntax _ when token.IsKind(SyntaxKind.EqualsToken) => GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>(),
+                ForEachVariableStatementSyntax _ when token.IsKind(SyntaxKind.InKeyword) => GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>(),
                 _ => GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols(),
             };
         }
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node)
             {
                 case OrderByClauseSyntax orderByClauseSyntax:
-                    if (token.Kind() == SyntaxKind.CommaToken)
+                    if (token.IsKind(SyntaxKind.CommaToken))
                     {
                         // Returning SymbolInfo for a comma token is the last resort
                         // in an order by clause if no other tokens to bind to a are present.
@@ -276,13 +276,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (index >= 0 && (index + 1) < orderByClauseSyntax.Orderings.Count)
                         {
                             var ordering = orderByClauseSyntax.Orderings[index + 1];
-                            if (ordering.AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
+                            if (ordering.AscendingOrDescendingKeyword.IsKind(SyntaxKind.None))
                             {
                                 return semanticModel.GetSymbolInfo(ordering, cancellationToken);
                             }
                         }
                     }
-                    else if (orderByClauseSyntax.Orderings[0].AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
+                    else if (orderByClauseSyntax.Orderings[0].AscendingOrDescendingKeyword.IsKind(SyntaxKind.None))
                     {
                         // The first ordering is displayed on the "orderby" keyword itself if there isn't a 
                         // ascending/descending keyword.

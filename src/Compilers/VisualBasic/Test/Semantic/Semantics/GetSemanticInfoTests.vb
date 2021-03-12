@@ -5980,7 +5980,7 @@ End Module
 
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
-            Dim node = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.MeExpression).Cast(Of MeExpressionSyntax)().Single()
+            Dim node = tree.GetRoot().DescendantNodes().Where(Function(n) n.IsKind(SyntaxKind.MeExpression)).Cast(Of MeExpressionSyntax)().Single()
 
             Dim symbolInfo = model.GetSymbolInfo(node)
 
@@ -6001,7 +6001,7 @@ End Module
 
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
-            Dim node = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.MeExpression).Cast(Of MeExpressionSyntax)().Single()
+            Dim node = tree.GetRoot().DescendantNodes().Where(Function(n) n.IsKind(SyntaxKind.MeExpression)).Cast(Of MeExpressionSyntax)().Single()
 
             Dim symbolInfo = model.GetSymbolInfo(node)
 
@@ -6151,12 +6151,12 @@ BC30087: 'End If' must be preceded by a matching 'If'.
             Dim tokens = tree.GetCompilationUnitRoot().DescendantTokens()
 
             ' ElseIf condition.
-            Dim expr = tokens.Single(Function(t) t.Kind = SyntaxKind.TrueKeyword).Parent
+            Dim expr = tokens.Single(Function(t) t.IsKind(SyntaxKind.TrueKeyword)).Parent
             Assert.Null(model.GetSymbolInfo(expr).Symbol)
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
 
             ' Block statement expression.
-            expr = tokens.Single(Function(t) t.Kind = SyntaxKind.FalseKeyword).Parent
+            expr = tokens.Single(Function(t) t.IsKind(SyntaxKind.FalseKeyword)).Parent
             Assert.Null(model.GetSymbolInfo(expr).Symbol)
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
@@ -6213,17 +6213,17 @@ BC30088: 'End Select' must be preceded by a matching 'Select Case'.
             Dim tokens = tree.GetCompilationUnitRoot().DescendantTokens()
 
             ' First Case clause.
-            Dim expr = tokens.Single(Function(t) t.Kind = SyntaxKind.TrueKeyword).Parent
+            Dim expr = tokens.Single(Function(t) t.IsKind(SyntaxKind.TrueKeyword)).Parent
             Assert.Null(model.GetSymbolInfo(expr).Symbol)
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
 
             ' Second Case clause.
-            expr = tokens.Single(Function(t) t.Kind = SyntaxKind.FalseKeyword).Parent
+            expr = tokens.Single(Function(t) t.IsKind(SyntaxKind.FalseKeyword)).Parent
             Assert.Null(model.GetSymbolInfo(expr).Symbol)
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
 
             ' Third Case clause.
-            expr = tokens.First(Function(t) t.Kind = SyntaxKind.IdentifierToken AndAlso t.Text = "P").Parent
+            expr = tokens.First(Function(t) t.IsKind(SyntaxKind.IdentifierToken) AndAlso t.Text = "P").Parent
             Assert.Equal("Property C.P As System.Object", model.GetSymbolInfo(expr).Symbol.ToTestDisplayString())
             Assert.Equal(SpecialType.System_Object, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
@@ -6253,7 +6253,7 @@ BC36593: Expression of type 'Object' is not queryable. Make sure you are not mis
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
             Dim tokens = tree.GetCompilationUnitRoot().DescendantTokens()
-            Dim expr = tokens.Single(Function(t) t.Kind = SyntaxKind.TrueKeyword).Parent
+            Dim expr = tokens.Single(Function(t) t.IsKind(SyntaxKind.TrueKeyword)).Parent
             Assert.Null(model.GetSymbolInfo(expr).Symbol)
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
@@ -6283,7 +6283,7 @@ BC36593: Expression of type 'Object' is not queryable. Make sure you are not mis
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
             Dim tokens = tree.GetCompilationUnitRoot().DescendantTokens()
-            Dim expr = tokens.Single(Function(t) t.Kind = SyntaxKind.TrueKeyword).Parent
+            Dim expr = tokens.Single(Function(t) t.IsKind(SyntaxKind.TrueKeyword)).Parent
             Assert.Null(model.GetSymbolInfo(expr).Symbol)
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
@@ -6313,7 +6313,7 @@ BC36593: Expression of type 'Object' is not queryable. Make sure you are not mis
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
             Dim tokens = tree.GetCompilationUnitRoot().DescendantTokens()
-            Dim expr = tokens.Single(Function(t) t.Kind = SyntaxKind.TrueKeyword).Parent
+            Dim expr = tokens.Single(Function(t) t.IsKind(SyntaxKind.TrueKeyword)).Parent
             Assert.Null(model.GetSymbolInfo(expr).Symbol)
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub
@@ -6351,7 +6351,7 @@ BC30383: 'End Try' must be preceded by a matching 'Try'.
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
             Dim tokens = tree.GetCompilationUnitRoot().DescendantTokens()
-            Dim expr = tokens.Single(Function(t) t.Kind = SyntaxKind.TrueKeyword).Parent
+            Dim expr = tokens.Single(Function(t) t.IsKind(SyntaxKind.TrueKeyword)).Parent
             Assert.Null(model.GetSymbolInfo(expr).Symbol)
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType)
         End Sub

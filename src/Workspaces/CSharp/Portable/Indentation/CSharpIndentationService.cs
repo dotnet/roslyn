@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             var previousToken = token.GetPreviousToken(includeZeroWidth: true);
 
             // only use smart token formatter when we have two visible tokens.
-            if (previousToken.Kind() == SyntaxKind.None || previousToken.IsMissing)
+            if (previousToken.IsKind(SyntaxKind.None) || previousToken.IsMissing)
             {
                 return false;
             }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
                 // only valid if the user has started to actually type a constructor initializer
                 if (node is ConstructorInitializerSyntax constructorInitializer &&
-                    constructorInitializer.ArgumentList.OpenParenToken.Kind() != SyntaxKind.None &&
+                    !constructorInitializer.ArgumentList.OpenParenToken.IsKind(SyntaxKind.None) &&
                     !constructorInitializer.ThisOrBaseKeyword.IsMissing)
                 {
                     var text = node.SyntaxTree.GetText();

@@ -288,7 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                     Dim variableDeclarator = TryCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
                     Dim fieldDecl = TryCast(variableDeclarator?.Parent, FieldDeclarationSyntax)
                     If fieldDecl IsNot Nothing Then
-                        Dim kind = If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
+                        Dim kind = If(fieldDecl.Modifiers.Any(Function(m) m.IsKind(SyntaxKind.ConstKeyword)),
                             DeclaredSymbolInfoKind.Constant,
                             DeclaredSymbolInfoKind.Field)
                         declaredSymbolInfo = New DeclaredSymbolInfo(
@@ -377,11 +377,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 Case SyntaxKind.ClassBlock
                     ' In a class, fields and shared-constructors are private by default,
                     ' everything Else Is Public
-                    If node.Kind() = SyntaxKind.FieldDeclaration Then
+                    If node.IsKind(SyntaxKind.FieldDeclaration) Then
                         Return Accessibility.Private
                     End If
 
-                    If node.Kind() = SyntaxKind.ConstructorBlock AndAlso
+                    If node.IsKind(SyntaxKind.ConstructorBlock) AndAlso
                        DirectCast(node, ConstructorBlockSyntax).SubNewStatement.Modifiers.Any(SyntaxKind.SharedKeyword) Then
                         Return Accessibility.Private
                     End If
@@ -477,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 End If
 
                 For Each modifier In parameter.Modifiers
-                    If modifier.Kind() <> SyntaxKind.ByValKeyword Then
+                    If Not modifier.IsKind(SyntaxKind.ByValKeyword) Then
                         builder.Append(modifier.Text)
                         builder.Append(" "c)
                     End If

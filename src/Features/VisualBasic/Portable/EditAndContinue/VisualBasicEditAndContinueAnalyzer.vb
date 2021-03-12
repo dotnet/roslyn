@@ -1013,64 +1013,64 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 ' declarations that always have block
 
                 Case SyntaxKind.NamespaceStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.NamespaceBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.NamespaceBlock))
                     Return parent
 
                 Case SyntaxKind.ClassStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.ClassBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.ClassBlock))
                     Return parent
 
                 Case SyntaxKind.StructureStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.StructureBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.StructureBlock))
                     Return parent
 
                 Case SyntaxKind.InterfaceStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.InterfaceBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.InterfaceBlock))
                     Return parent
 
                 Case SyntaxKind.ModuleStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.ModuleBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.ModuleBlock))
                     Return parent
 
                 Case SyntaxKind.EnumStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.EnumBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.EnumBlock))
                     Return parent
 
                 Case SyntaxKind.SubNewStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.ConstructorBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.ConstructorBlock))
                     Return parent
 
                 Case SyntaxKind.OperatorStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.OperatorBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.OperatorBlock))
                     Return parent
 
                 Case SyntaxKind.GetAccessorStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.GetAccessorBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.GetAccessorBlock))
                     Return parent
 
                 Case SyntaxKind.SetAccessorStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.SetAccessorBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.SetAccessorBlock))
                     Return parent
 
                 Case SyntaxKind.AddHandlerAccessorStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.AddHandlerAccessorBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.AddHandlerAccessorBlock))
                     Return parent
 
                 Case SyntaxKind.RemoveHandlerAccessorStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.RemoveHandlerAccessorBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.RemoveHandlerAccessorBlock))
                     Return parent
 
                 Case SyntaxKind.RaiseEventAccessorStatement
-                    Debug.Assert(parent.Kind = SyntaxKind.RaiseEventAccessorBlock)
+                    Debug.Assert(parent.IsKind(SyntaxKind.RaiseEventAccessorBlock))
                     Return parent
 
                 ' declarations that may or may not have block
 
                 Case SyntaxKind.SubStatement
-                    Return If(parent.Kind = SyntaxKind.SubBlock, parent, syntax)
+                    Return If(parent.IsKind(SyntaxKind.SubBlock), parent, syntax)
 
                 Case SyntaxKind.FunctionStatement
-                    Return If(parent.Kind = SyntaxKind.FunctionBlock, parent, syntax)
+                    Return If(parent.IsKind(SyntaxKind.FunctionBlock), parent, syntax)
 
                 ' declarations that never have a block
 
@@ -3072,7 +3072,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Case SyntaxKind.CatchBlock,
                          SyntaxKind.FinallyBlock
                         result.Add(node)
-                        Debug.Assert(node.Parent.Kind = SyntaxKind.TryBlock)
+                        Debug.Assert(node.Parent.IsKind(SyntaxKind.TryBlock))
                         node = node.Parent
 
                     Case SyntaxKind.ClassBlock,

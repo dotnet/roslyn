@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
             For Each match In matches
                 For Each trivia In match.Statement.GetLeadingTrivia()
-                    If trivia.Kind = SyntaxKind.CommentTrivia Then
+                    If trivia.IsKind(SyntaxKind.CommentTrivia) Then
                         totalTrivia.Add(trivia)
                         totalTrivia.Add(SyntaxFactory.ElasticMarker)
                     End If

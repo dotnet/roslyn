@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
                 inDeclaration = false;
                 diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
             }
-            else if (node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            else if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
                 diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
             }

@@ -77,13 +77,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Overrides ReadOnly Property TriggerCharacters As ImmutableHashSet(Of Char) = CompletionUtilities.CommonTriggerCharsAndParen
 
         Protected Overrides Function IsTriggerOnDot(token As SyntaxToken, characterPositoin As Integer) As Boolean
-            If token.Kind() <> SyntaxKind.DotToken Then
+            If Not token.IsKind(SyntaxKind.DotToken) Then
                 Return False
             End If
 
             Dim previousToken = token.GetPreviousToken()
-            If previousToken.Kind = SyntaxKind.IntegerLiteralToken Then
-                Return token.Parent.Kind <> SyntaxKind.SimpleMemberAccessExpression OrElse
+            If previousToken.IsKind(SyntaxKind.IntegerLiteralToken) Then
+                Return Not token.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) OrElse
                     Not DirectCast(token.Parent, MemberAccessExpressionSyntax).Expression.IsKind(SyntaxKind.NumericLiteralExpression)
             End If
 

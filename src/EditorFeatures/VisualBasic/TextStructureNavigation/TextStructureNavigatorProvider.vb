@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
         End Sub
 
         Protected Overrides Function ShouldSelectEntireTriviaFromStart(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind() = SyntaxKind.CommentTrivia
+            Return trivia.IsKind(SyntaxKind.CommentTrivia)
         End Function
 
         Protected Overrides Function IsWithinNaturalLanguage(token As SyntaxToken, position As Integer) As Boolean
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
         End Function
 
         Protected Overrides Function GetExtentOfWordFromToken(token As SyntaxToken, position As SnapshotPoint) As TextExtent
-            If token.Kind() = SyntaxKind.StringLiteralToken AndAlso position.Position = token.Span.End - 1 AndAlso token.Text.EndsWith("""", StringComparison.Ordinal) Then
+            If token.IsKind(SyntaxKind.StringLiteralToken) AndAlso position.Position = token.Span.End - 1 AndAlso token.Text.EndsWith("""", StringComparison.Ordinal) Then
                 ' Special case to treat the closing quote of a string literal as a separate token.  This allows the
                 ' cursor to stop during word navigation (Ctrl+LeftArrow, etc.) immediately before AND after the
                 ' closing quote, just like it did in VS2013 and like it currently does for interpolated strings.

@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
             Dim modifierFacts = context.ModifierCollectionFacts
 
             ' If we have a Widening or Narrowing declaration, then we must be a CType operator
-            If modifierFacts.NarrowingOrWideningKeyword.Kind <> SyntaxKind.None Then
+            If Not modifierFacts.NarrowingOrWideningKeyword.IsKind(SyntaxKind.None) Then
                 Return ImmutableArray.Create(New RecommendedKeyword("CType", VBFeaturesResources.Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_As_Type))
             Else
                 ' We could just be a normal name, so we list all possible options here. Dev10 allows you to type

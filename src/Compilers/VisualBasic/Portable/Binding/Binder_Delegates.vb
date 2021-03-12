@@ -571,7 +571,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Dev10 has squiggles under the operand of the AddressOf. The syntax of addressOfExpression
                 ' is the complete AddressOf expression, so we need to get the operand first.
                 Dim addressOfOperandSyntax = addressOfExpression.Syntax
-                If addressOfOperandSyntax.Kind = SyntaxKind.AddressOfExpression Then
+                If addressOfOperandSyntax.IsKind(SyntaxKind.AddressOfExpression) Then
                     addressOfOperandSyntax = DirectCast(addressOfOperandSyntax, UnaryExpressionSyntax).Operand
                 End If
 
@@ -629,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Dev10 has squiggles under the operand of the AddressOf. The syntax of addressOfExpression
             ' is the complete AddressOf expression, so we need to get the operand first.
             Dim addressOfOperandSyntax = addressOfExpression.Syntax
-            If addressOfOperandSyntax.Kind = SyntaxKind.AddressOfExpression Then
+            If addressOfOperandSyntax.IsKind(SyntaxKind.AddressOfExpression) Then
                 addressOfOperandSyntax = DirectCast(addressOfOperandSyntax, UnaryExpressionSyntax).Operand
             End If
 
@@ -998,7 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Me.OptionStrict = OptionStrict.On AndAlso Conversions.IsNarrowingConversion(delegateResolutionResult.DelegateConversions) Then
 
                 Dim addressOfOperandSyntax = addressOfExpression.Syntax
-                If addressOfOperandSyntax.Kind = SyntaxKind.AddressOfExpression Then
+                If addressOfOperandSyntax.IsKind(SyntaxKind.AddressOfExpression) Then
                     addressOfOperandSyntax = DirectCast(addressOfOperandSyntax, UnaryExpressionSyntax).Operand
                 End If
 

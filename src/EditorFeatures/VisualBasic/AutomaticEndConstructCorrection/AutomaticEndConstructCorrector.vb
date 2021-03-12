@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
 
         Private Shared Function GetLinkedEditSpans(snapshot As ITextSnapshot, token As SyntaxToken) As IEnumerable(Of ITrackingSpan)
             Dim startToken = GetBeginToken(token.Parent)
-            If startToken.Kind = SyntaxKind.None Then
+            If startToken.IsKind(SyntaxKind.None) Then
                 startToken = GetCorrespondingBeginToken(token)
             End If
 
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         Private Shared Function CorrespondingBeginTokenExist(token As SyntaxToken) As Boolean
             Dim pairToken = GetCorrespondingBeginToken(token)
 
-            Dim hasValidToken = pairToken.Kind <> SyntaxKind.None AndAlso Not pairToken.IsMissing AndAlso token.ValueText = pairToken.ValueText
+            Dim hasValidToken = Not pairToken.IsKind(SyntaxKind.None) AndAlso Not pairToken.IsMissing AndAlso token.ValueText = pairToken.ValueText
             If Not hasValidToken Then
                 Return False
             End If
@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         Private Shared Function CorrespondingEndTokenExist(token As SyntaxToken) As Boolean
             Dim pairToken = GetCorrespondingEndToken(token)
 
-            Return pairToken.Kind <> SyntaxKind.None AndAlso Not pairToken.IsMissing AndAlso token.ValueText = pairToken.ValueText
+            Return Not pairToken.IsKind(SyntaxKind.None) AndAlso Not pairToken.IsMissing AndAlso token.ValueText = pairToken.ValueText
         End Function
 
         Private Shared Function GetCorrespondingEndToken(token As SyntaxToken) As SyntaxToken
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         Private Shared Function IsChangeOnBeginToken(token As SyntaxToken) As Boolean
             Dim pairToken = GetBeginToken(token.Parent)
 
-            Dim hasValidToken = pairToken.Kind <> SyntaxKind.None AndAlso Not pairToken.IsMissing AndAlso token = pairToken
+            Dim hasValidToken = Not pairToken.IsKind(SyntaxKind.None) AndAlso Not pairToken.IsMissing AndAlso token = pairToken
             If Not hasValidToken Then
                 Return False
             End If

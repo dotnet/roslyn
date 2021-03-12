@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
 
             Dim tokenToLeft = tree.FindTokenOnLeftOfPosition(caretPosition.Value, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
-            If tokenToLeft.Kind = SyntaxKind.None Then
+            If tokenToLeft.IsKind(SyntaxKind.None) Then
                 Return Nothing
             End If
 
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                     End If
 
                     ' Are we in the middle of XML tags?
-                    If state.TokenToLeft.Kind = SyntaxKind.GreaterThanToken Then
+                    If state.TokenToLeft.IsKind(SyntaxKind.GreaterThanToken) Then
                         Dim element = state.TokenToLeft.GetAncestor(Of XmlElementSyntax)
                         If element IsNot Nothing Then
                             If element.StartTag IsNot Nothing AndAlso element.StartTag.Span.End = state.CaretPosition AndAlso
@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                     ' we're after the "Then" or "Else" token.
                     If statement Is Nothing Then
                         Return False
-                    ElseIf statement.Kind = SyntaxKind.SingleLineIfStatement Then
+                    ElseIf statement.IsKind(SyntaxKind.SingleLineIfStatement) Then
                         Dim asSingleLine = DirectCast(statement, SingleLineIfStatementSyntax)
 
                         If state.TokenToLeft <> asSingleLine.ThenKeyword AndAlso
@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 
                     Dim errors = state.SyntaxTree.GetDiagnostics(statement)
                     If errors.Any(Function(e) Not IsMissingStatementError(statement, e.Id)) Then
-                        If statement.Kind = SyntaxKind.SingleLineIfStatement Then
+                        If statement.IsKind(SyntaxKind.SingleLineIfStatement) Then
                             Dim asSingleLine = DirectCast(statement, SingleLineIfStatementSyntax)
 
                             Dim span = TextSpan.FromBounds(asSingleLine.IfKeyword.SpanStart, asSingleLine.ThenKeyword.Span.End)
@@ -281,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                     End If
 
                     ' Make sure this statement does not end with the line continuation character
-                    If statement.GetLastToken(includeZeroWidth:=True).TrailingTrivia.Any(Function(t) t.Kind = SyntaxKind.LineContinuationTrivia) Then
+                    If statement.GetLastToken(includeZeroWidth:=True).TrailingTrivia.Any(Function(t) t.IsKind(SyntaxKind.LineContinuationTrivia)) Then
                         Return False
                     End If
 
@@ -314,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
         End Sub
 
         Private Shared Function GetNodeFromToken(Of T As SyntaxNode)(token As SyntaxToken, expectedKind As SyntaxKind) As T
-            If token.Kind <> expectedKind Then
+            If Not token.IsKind(expectedKind) Then
                 Return Nothing
             End If
 

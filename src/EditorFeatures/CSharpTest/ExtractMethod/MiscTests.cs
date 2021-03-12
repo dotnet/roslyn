@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var rootWithAnnotation = result.Root;
 
             // find token to replace
-            var publicToken = rootWithAnnotation.DescendantTokens().First(t => t.Kind() == SyntaxKind.PublicKeyword);
+            var publicToken = rootWithAnnotation.DescendantTokens().First(t => t.IsKind(SyntaxKind.PublicKeyword));
 
             // replace the token with new one
             var newRoot = rootWithAnnotation.ReplaceToken(publicToken, SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var rootWithAnnotation = result.Root;
 
             // find token to replace
-            var publicToken = rootWithAnnotation.DescendantTokens().First(t => t.Kind() == SyntaxKind.PublicKeyword);
+            var publicToken = rootWithAnnotation.DescendantTokens().First(t => t.IsKind(SyntaxKind.PublicKeyword));
 
             // replace the token with new one
             var newRoot = rootWithAnnotation.ReplaceToken(publicToken, SyntaxFactory.Token(SyntaxKind.PrivateKeyword));

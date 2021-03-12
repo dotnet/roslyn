@@ -1558,7 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CSharpSyntaxNode parent = node.Parent;
             return (parent?.Kind() == SyntaxKind.Argument &&
-                ((ArgumentSyntax)parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword);
+                ((ArgumentSyntax)parent).RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword));
         }
 
         private BoundExpression SynthesizeMethodGroupReceiver(CSharpSyntaxNode syntax, ArrayBuilder<Symbol> members)
@@ -2705,7 +2705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (argumentSyntax.RefOrOutKeyword.Kind() != SyntaxKind.None)
+            if (!argumentSyntax.RefOrOutKeyword.IsKind(SyntaxKind.None))
             {
                 argumentSyntax.Expression.CheckDeconstructionCompatibleArgument(diagnostics);
             }
@@ -3671,7 +3671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
                 return ConstructNamedType(
                     type: spanType,
-                    typeSyntax: node.Kind() == SyntaxKind.StackAllocArrayCreationExpression
+                    typeSyntax: node.IsKind(SyntaxKind.StackAllocArrayCreationExpression)
                         ? ((StackAllocArrayCreationExpressionSyntax)node).Type
                         : node,
                     typeArgumentsSyntax: default,
@@ -4827,7 +4827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberInitializerSyntax = boundMemberInitializer.Syntax;
 
-                Debug.Assert(memberInitializerSyntax.Kind() == SyntaxKind.SimpleAssignmentExpression);
+                Debug.Assert(memberInitializerSyntax.IsKind(SyntaxKind.SimpleAssignmentExpression));
                 var namedAssignment = (AssignmentExpressionSyntax)memberInitializerSyntax;
 
                 var memberNameSyntax = namedAssignment.Left as IdentifierNameSyntax;
@@ -6371,7 +6371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (boundLeft.Kind == BoundKind.TypeExpression ||
                     boundLeft.Kind == BoundKind.BaseReference ||
-                    node.Kind() == SyntaxKind.AwaitExpression && plainName == WellKnownMemberNames.GetResult)
+                    node.IsKind(SyntaxKind.AwaitExpression) && plainName == WellKnownMemberNames.GetResult)
                 {
                     Error(diagnostics, ErrorCode.ERR_NoSuchMember, name, boundLeft.Type, plainName);
                 }

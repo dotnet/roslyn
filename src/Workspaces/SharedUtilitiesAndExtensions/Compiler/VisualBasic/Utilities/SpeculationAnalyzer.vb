@@ -61,10 +61,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Public Shared Function CanSpeculateOnNode(node As SyntaxNode) As Boolean
             Return TypeOf node Is ExecutableStatementSyntax OrElse
                 TypeOf node Is TypeSyntax OrElse
-                node.Kind = SyntaxKind.Attribute OrElse
-                node.Kind = SyntaxKind.EqualsValue OrElse
-                node.Kind = SyntaxKind.AsNewClause OrElse
-                node.Kind = SyntaxKind.RangeArgument
+                node.IsKind(SyntaxKind.Attribute) OrElse
+                node.IsKind(SyntaxKind.EqualsValue) OrElse
+                node.IsKind(SyntaxKind.AsNewClause) OrElse
+                node.IsKind(SyntaxKind.RangeArgument)
         End Function
 
         Protected Overrides Function GetSemanticRootOfReplacedExpression(semanticRootOfOriginalExpr As SyntaxNode, annotatedReplacedExpression As ExpressionSyntax) As SyntaxNode
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
             ' Speculation is not supported for AsNewClauseSyntax nodes.
             ' Generate an EqualsValueSyntax node with the inner NewExpression of the AsNewClauseSyntax node for speculation.
-            If semanticRootOfOriginalExpr.Kind = SyntaxKind.AsNewClause Then
+            If semanticRootOfOriginalExpr.IsKind(SyntaxKind.AsNewClause) Then
                 ' Because the original expression will change identity in the newly generated EqualsValueSyntax node,
                 ' we annotate it here to allow us to get back to it after replace.
                 Dim originalExprAnnotation = New SyntaxAnnotation()
@@ -349,11 +349,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                         Return True
                     End If
                 End If
-            ElseIf currentOriginalNode.Kind = SyntaxKind.ConditionalAccessExpression Then
+            ElseIf currentOriginalNode.IsKind(SyntaxKind.ConditionalAccessExpression) Then
                 Dim originalExpression = DirectCast(currentOriginalNode, ConditionalAccessExpressionSyntax)
                 Dim newExpression = DirectCast(currentReplacedNode, ConditionalAccessExpressionSyntax)
                 Return ReplacementBreaksConditionalAccessExpression(originalExpression, newExpression)
-            ElseIf currentOriginalNode.Kind = SyntaxKind.VariableDeclarator Then
+            ElseIf currentOriginalNode.IsKind(SyntaxKind.VariableDeclarator) Then
                 ' Heuristic: If replacing the node will result in changing the type of a local variable
                 ' that is type-inferred, we won't remove it. It's possible to do this analysis, but it's
                 ' very expensive and the benefit to the user is small.
@@ -365,16 +365,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 End If
 
                 Return False
-            ElseIf currentOriginalNode.Kind = SyntaxKind.CollectionInitializer Then
+            ElseIf currentOriginalNode.IsKind(SyntaxKind.CollectionInitializer) Then
                 Return _
                     previousOriginalNode IsNot Nothing AndAlso
                     ReplacementBreaksCollectionInitializerAddMethod(DirectCast(previousOriginalNode, ExpressionSyntax), DirectCast(previousReplacedNode, ExpressionSyntax))
-            ElseIf currentOriginalNode.Kind = SyntaxKind.Interpolation Then
+            ElseIf currentOriginalNode.IsKind(SyntaxKind.Interpolation) Then
                 Dim orignalInterpolation = DirectCast(currentOriginalNode, InterpolationSyntax)
                 Dim newInterpolation = DirectCast(currentReplacedNode, InterpolationSyntax)
 
                 Return ReplacementBreaksInterpolation(orignalInterpolation, newInterpolation)
-            ElseIf currentOriginalNode.Kind = SyntaxKind.WithStatement Then
+            ElseIf currentOriginalNode.IsKind(SyntaxKind.WithStatement) Then
                 Dim originalWithStatement = DirectCast(currentOriginalNode, WithStatementSyntax)
                 Dim newWithStatement = DirectCast(currentReplacedNode, WithStatementSyntax)
 

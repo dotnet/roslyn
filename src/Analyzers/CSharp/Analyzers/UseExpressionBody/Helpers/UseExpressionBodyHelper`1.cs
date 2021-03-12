@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                     out var expressionBody, out var semicolonToken);
 
                 var trailingTrivia = semicolonToken.TrailingTrivia
-                                                   .Where(t => t.Kind() != SyntaxKind.EndOfLineTrivia)
+                                                   .Where(t => !t.IsKind(SyntaxKind.EndOfLineTrivia))
                                                    .Concat(declaration.GetTrailingTrivia());
                 semicolonToken = semicolonToken.WithTrailingTrivia(trailingTrivia);
 

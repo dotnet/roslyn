@@ -723,7 +723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If statement IsNot Nothing Then
                 Dim nextToken = statement.GetLastToken().GetNextToken()
 
-                If nextToken.Kind = SyntaxKind.None Then
+                If nextToken.IsKind(SyntaxKind.None) Then
                     Return Nothing
                 End If
 

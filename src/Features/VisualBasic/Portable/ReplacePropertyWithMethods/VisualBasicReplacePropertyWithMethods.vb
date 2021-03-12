@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
         End Function
 
         Private Shared Function ConvertTrivia(trivia As SyntaxTrivia, documentationCommentRewriter As VisualBasicSyntaxRewriter) As SyntaxTrivia
-            If trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
+            If trivia.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
                 Dim converted = documentationCommentRewriter.Visit(trivia.GetStructure())
                 Return SyntaxFactory.Trivia(DirectCast(converted, StructuredTriviaSyntax))
             End If

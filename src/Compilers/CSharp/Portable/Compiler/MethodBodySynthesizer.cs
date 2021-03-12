@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = block.Syntax;
 
             Debug.Assert(method.MethodKind == MethodKind.Destructor);
-            Debug.Assert(syntax.Kind() == SyntaxKind.Block || syntax.Kind() == SyntaxKind.ArrowExpressionClause);
+            Debug.Assert(syntax.IsKind(SyntaxKind.Block) || syntax.IsKind(SyntaxKind.ArrowExpressionClause));
 
             // If this is a destructor and a base type has a Finalize method (see GetBaseTypeFinalizeMethod for exact
             // requirements), then we need to call that method in a finally block.  Otherwise, just return block as-is.
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         baseTypeFinalize))
                 { WasCompilerGenerated = true };
 
-                if (syntax.Kind() == SyntaxKind.Block)
+                if (syntax.IsKind(SyntaxKind.Block))
                 {
                     //sequence point to mimic Dev10
                     baseFinalizeCall = new BoundSequencePointWithSpan(

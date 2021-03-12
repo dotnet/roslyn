@@ -228,7 +228,7 @@ public partial class A {
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
             var tree = comp.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).First();
+            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.IsKind(SyntaxKind.VoidKeyword)).First();
 
             var otherSymbol = m.PartialImplementationPart;
             Assert.True(otherSymbol.IsPartialImplementation());
@@ -256,7 +256,7 @@ public partial class A {
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
             var tree = comp.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Last();
+            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.IsKind(SyntaxKind.VoidKeyword)).Last();
 
             var otherSymbol = m.PartialImplementationPart;
             Assert.True(otherSymbol.IsPartialImplementation());
@@ -281,7 +281,7 @@ public partial class A {
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
             var tree = comp.SyntaxTrees.Single().GetRoot();
-            var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Single();
+            var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.IsKind(SyntaxKind.VoidKeyword)).Single();
 
             Assert.Equal(node, returnSyntax);
         }
@@ -302,7 +302,7 @@ public partial class A {
             var returnSyntax = m.ExtractReturnTypeSyntax();
 
             var tree = comp.SyntaxTrees.Single().GetRoot();
-            var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Single();
+            var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.IsKind(SyntaxKind.VoidKeyword)).Single();
 
             Assert.Equal(node, returnSyntax);
         }

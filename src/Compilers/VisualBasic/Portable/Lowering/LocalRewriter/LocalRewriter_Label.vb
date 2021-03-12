@@ -18,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Keep track of line number if need to.
             If _currentLineTemporary IsNot Nothing AndAlso _currentMethodOrLambda Is _topMethod AndAlso
-               Not node.WasCompilerGenerated AndAlso node.Syntax.Kind = SyntaxKind.LabelStatement Then
+               Not node.WasCompilerGenerated AndAlso node.Syntax.IsKind(SyntaxKind.LabelStatement) Then
                 Dim labelSyntax = DirectCast(node.Syntax, LabelStatementSyntax)
 
-                If labelSyntax.LabelToken.Kind = SyntaxKind.IntegerLiteralToken Then
+                If labelSyntax.LabelToken.IsKind(SyntaxKind.IntegerLiteralToken) Then
 
                     Dim lineNumber As Integer = 0
 

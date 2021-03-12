@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                if (token.Kind() == SyntaxKind.None)
+                if (token.IsKind(SyntaxKind.None))
                 {
                     return token;
                 }

@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (tree.IsEntirelyWithinStringLiteral(position, cancellationToken))
             {
                 var token = tree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
-                if (token.Kind() == SyntaxKind.EndOfDirectiveToken || token.Kind() == SyntaxKind.EndOfFileToken)
+                if (token.IsKind(SyntaxKind.EndOfDirectiveToken) || token.IsKind(SyntaxKind.EndOfFileToken))
                 {
                     token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
                 }
 
-                if (token.Kind() == SyntaxKind.StringLiteralToken && token.Parent!.Kind() == directiveKind)
+                if (token.IsKind(SyntaxKind.StringLiteralToken) && token.Parent.IsKind(directiveKind))
                 {
                     stringLiteral = token;
                     return true;

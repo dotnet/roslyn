@@ -82,14 +82,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Dim items = New List(Of CompletionItem)()
 
                 Dim attachedToken = parent.ParentTrivia.Token
-                If attachedToken.Kind = SyntaxKind.None Then
+                If attachedToken.IsKind(SyntaxKind.None) Then
                     Return items
                 End If
 
                 Dim declaration = attachedToken.GetAncestor(Of DeclarationStatementSyntax)()
 
                 ' Maybe we're going to suggest the close tag
-                If token.Kind = SyntaxKind.LessThanSlashToken Then
+                If token.IsKind(SyntaxKind.LessThanSlashToken) Then
                     Return GetCloseTagItem(token)
                 ElseIf token.IsKind(SyntaxKind.XmlNameToken) AndAlso token.GetPreviousToken().IsKind(SyntaxKind.LessThanSlashToken) Then
                     Return GetCloseTagItem(token.GetPreviousToken())

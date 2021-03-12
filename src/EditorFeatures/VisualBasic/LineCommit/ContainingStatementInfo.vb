@@ -60,19 +60,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(point)
 
             ' If we're at the newline, we'll want to look to the left instead
-            If trivia.Kind = SyntaxKind.None Or trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+            If trivia.IsKind(SyntaxKind.None) Or trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
                 trivia = syntaxTree.FindTriviaToLeft(point, cancellationToken)
             End If
 
-            If trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.DocumentationCommentTrivia Then
+            If trivia.IsKind(SyntaxKind.CommentTrivia) OrElse trivia.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
                 Return GetContainingStatementInfoForTrivia(trivia, snapshot, pointLineNumber)
             End If
 
             ' We'll keep going to the left to see if we find a LineContinuation trivia before we see more than one newline
             Dim alreadySawNewLine = False
 
-            Do While trivia.Kind <> SyntaxKind.None
-                If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
+            Do While Not trivia.IsKind(SyntaxKind.None)
+                If trivia.IsKind(SyntaxKind.LineContinuationTrivia) Then
                     Dim lineNumberOfContinuation = snapshot.GetLineNumberFromPosition(trivia.SpanStart)
 
                     ' We can be either on the line, or the line immediately following it
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 trivia = syntaxTree.FindTriviaToLeft(trivia.SpanStart, cancellationToken)
 
-                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+                If trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
                     If alreadySawNewLine Then
                         Exit Do
                     Else

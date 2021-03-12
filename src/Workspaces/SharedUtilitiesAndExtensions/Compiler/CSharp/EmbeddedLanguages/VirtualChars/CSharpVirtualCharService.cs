@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         protected override bool IsStringOrCharLiteralToken(SyntaxToken token)
-            => token.Kind() == SyntaxKind.StringLiteralToken ||
-               token.Kind() == SyntaxKind.CharacterLiteralToken;
+            => token.IsKind(SyntaxKind.StringLiteralToken) ||
+               token.IsKind(SyntaxKind.CharacterLiteralToken);
 
         protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
@@ -44,17 +44,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 return default;
 
             Debug.Assert(!token.ContainsDiagnostics);
-            if (token.Kind() == SyntaxKind.StringLiteralToken)
+            if (token.IsKind(SyntaxKind.StringLiteralToken))
             {
                 return token.IsVerbatimStringLiteral()
                     ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
                     : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
             }
 
-            if (token.Kind() == SyntaxKind.CharacterLiteralToken)
+            if (token.IsKind(SyntaxKind.CharacterLiteralToken))
                 return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
 
-            if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
+            if (token.IsKind(SyntaxKind.InterpolatedStringTextToken))
             {
                 var parent = token.Parent;
                 if (parent is InterpolationFormatClauseSyntax)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
                 if (parent.Parent is InterpolatedStringExpressionSyntax interpolatedString)
                 {
-                    return interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken
+                    return interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken)
                        ? TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true)
                        : TryConvertStringToVirtualChars(token, "", "", escapeBraces: true);
                 }

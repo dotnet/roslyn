@@ -1059,7 +1059,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses,
             ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
             Dim caseStatement = boundCaseBlock.CaseStatement
-            If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
+            If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.IsKind(SyntaxKind.CaseElseStatement) Then
                 Return ImmutableArray.Create(Of ICaseClauseOperation)(
                             New DefaultCaseClauseOperation(
                                 label:=Nothing,
@@ -1651,7 +1651,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundReDimOperation(boundRedimStatement As BoundRedimStatement) As IReDimOperation
             Dim clauses As ImmutableArray(Of IReDimClauseOperation) = CreateFromArray(Of BoundRedimClause, IReDimClauseOperation)(boundRedimStatement.Clauses)
-            Dim preserve As Boolean = boundRedimStatement.Syntax.Kind = SyntaxKind.ReDimPreserveStatement
+            Dim preserve As Boolean = boundRedimStatement.Syntax.IsKind(SyntaxKind.ReDimPreserveStatement)
 #If DEBUG Then
             For Each clause In boundRedimStatement.Clauses
                 Debug.Assert(preserve = clause.Preserve)

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // root: |
-            if (token.Kind() == SyntaxKind.None)
+            if (token.IsKind(SyntaxKind.None))
             {
                 // root namespace
                 var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 return true;
             }
 
-            if (token.Kind() == SyntaxKind.OpenBraceToken &&
+            if (token.IsKind(SyntaxKind.OpenBraceToken) &&
                 token.Parent.IsKind(SyntaxKind.NamespaceDeclaration))
             {
                 return true;
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // using Goo;
             // |
-            if (token.Kind() == SyntaxKind.SemicolonToken)
+            if (token.IsKind(SyntaxKind.SemicolonToken))
             {
                 if (token.Parent.IsKind(SyntaxKind.ExternAliasDirective, SyntaxKind.UsingDirective))
                 {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // class C {}
             // |
-            if (token.Kind() == SyntaxKind.CloseBraceToken)
+            if (token.IsKind(SyntaxKind.CloseBraceToken))
             {
                 if (token.Parent is TypeDeclarationSyntax &&
                     !(token.Parent.Parent is TypeDeclarationSyntax))
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // delegate void D();
             // |
 
-            if (token.Kind() == SyntaxKind.SemicolonToken)
+            if (token.IsKind(SyntaxKind.SemicolonToken))
             {
                 if (token.Parent.IsKind(SyntaxKind.DelegateDeclaration) &&
                     !(token.Parent.Parent is TypeDeclarationSyntax))
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // [assembly: goo]
             // |
 
-            if (token.Kind() == SyntaxKind.CloseBracketToken &&
+            if (token.IsKind(SyntaxKind.CloseBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList) &&
                 token.Parent.IsParentKind(SyntaxKind.CompilationUnit))
             {

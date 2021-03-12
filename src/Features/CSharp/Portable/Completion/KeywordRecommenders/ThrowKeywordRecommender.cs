@@ -24,23 +24,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // void M() => throw
-            if (context.TargetToken.Kind() == SyntaxKind.EqualsGreaterThanToken)
+            if (context.TargetToken.IsKind(SyntaxKind.EqualsGreaterThanToken))
             {
                 return true;
             }
 
             // val ?? throw
-            if (context.TargetToken.Kind() == SyntaxKind.QuestionQuestionToken)
+            if (context.TargetToken.IsKind(SyntaxKind.QuestionQuestionToken))
             {
                 return true;
             }
 
             //  expr ? throw : ...
             //  expr ? ... : throw
-            if (context.TargetToken.Kind() == SyntaxKind.QuestionToken ||
-                context.TargetToken.Kind() == SyntaxKind.ColonToken)
+            if (context.TargetToken.IsKind(SyntaxKind.QuestionToken) ||
+                context.TargetToken.IsKind(SyntaxKind.ColonToken))
             {
-                return context.TargetToken.Parent.Kind() == SyntaxKind.ConditionalExpression;
+                return context.TargetToken.Parent.IsKind(SyntaxKind.ConditionalExpression);
             }
 
             return false;

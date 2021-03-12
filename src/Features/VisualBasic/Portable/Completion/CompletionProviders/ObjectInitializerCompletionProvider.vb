@@ -30,11 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             token = token.GetPreviousTokenIfTouchingWord(position)
 
             ' The dot wasn't part of the identifier, so move over one more to get the , or {
-            If token.Kind = SyntaxKind.DotToken Then
+            If token.IsKind(SyntaxKind.DotToken) Then
                 token = token.GetPreviousToken()
             End If
 
-            If token.Kind <> SyntaxKind.CommaToken AndAlso token.Kind <> SyntaxKind.OpenBraceToken Then
+            If Not token.IsKind(SyntaxKind.CommaToken) AndAlso Not token.IsKind(SyntaxKind.OpenBraceToken) Then
                 Return New HashSet(Of String)
             End If
 
@@ -59,13 +59,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             token = token.GetPreviousTokenIfTouchingWord(position)
 
             ' We should have gotten a ".", since that all we want to come up on 
-            If token.Kind <> SyntaxKind.DotToken Then
+            If Not token.IsKind(SyntaxKind.DotToken) Then
                 Return Nothing
             End If
 
             ' The dot must be following a comma or open brace
             Dim commaOrBrace = token.GetPreviousToken()
-            If commaOrBrace.Kind <> SyntaxKind.CommaToken AndAlso commaOrBrace.Kind <> SyntaxKind.OpenBraceToken Then
+            If Not commaOrBrace.IsKind(SyntaxKind.CommaToken) AndAlso Not commaOrBrace.IsKind(SyntaxKind.OpenBraceToken) Then
                 Return Nothing
             End If
 
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim containingInitializer = commaOrBrace.Parent
             If containingInitializer Is Nothing OrElse
                 containingInitializer.Parent Is Nothing OrElse
-                containingInitializer.Kind <> SyntaxKind.ObjectMemberInitializer Then
+                Not containingInitializer.IsKind(SyntaxKind.ObjectMemberInitializer) Then
                 Return Nothing
             End If
 

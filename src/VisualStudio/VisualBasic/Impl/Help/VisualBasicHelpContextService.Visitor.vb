@@ -62,9 +62,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitAttributeTarget(node As AttributeTargetSyntax)
-                If node.AttributeModifier.Kind() = SyntaxKind.ModuleKeyword Then
+                If node.AttributeModifier.IsKind(SyntaxKind.ModuleKeyword) Then
                     result = HelpKeywords.ModuleAttribute
-                ElseIf node.AttributeModifier.Kind() = SyntaxKind.AssemblyKeyword Then
+                ElseIf node.AttributeModifier.IsKind(SyntaxKind.AssemblyKeyword) Then
                     result = HelpKeywords.AssemblyAttribute
                 End If
             End Sub
@@ -274,7 +274,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
 
             Public Overrides Sub VisitTypeParameter(node As TypeParameterSyntax)
                 If node.VarianceKeyword.Span.IntersectsWith(_span) Then
-                    If node.VarianceKeyword.Kind() = SyntaxKind.OutKeyword Then
+                    If node.VarianceKeyword.IsKind(SyntaxKind.OutKeyword) Then
                         result = HelpKeywords.VarianceOut
                     Else
                         result = HelpKeywords.VarianceIn
@@ -373,7 +373,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     End If
 
                 ElseIf node.Identifier.Span.IntersectsWith(_span) AndAlso
-                        node.Parent.Parent.Kind() = SyntaxKind.ModuleBlock AndAlso
+                        node.Parent.Parent.IsKind(SyntaxKind.ModuleBlock) AndAlso
                         node.Identifier.GetIdentifierText().Equals("Main", StringComparison.CurrentCultureIgnoreCase) Then
 
                     result = HelpKeywords.Main
@@ -524,7 +524,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitStopOrEndStatement(node As StopOrEndStatementSyntax)
-                If node.StopOrEndKeyword.Kind() = SyntaxKind.EndKeyword Then
+                If node.StopOrEndKeyword.IsKind(SyntaxKind.EndKeyword) Then
                     result = Keyword(SyntaxKind.EndKeyword)
                 Else
                     result = Keyword(SyntaxKind.StopKeyword)
@@ -545,7 +545,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
 
             Public Overrides Sub VisitPropertyStatement(node As PropertyStatementSyntax)
                 If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.Identifier) Then
-                    If node.Parent.Kind() <> SyntaxKind.PropertyBlock Then
+                    If Not node.Parent.IsKind(SyntaxKind.PropertyBlock) Then
                         result = HelpKeywords.AutoProperty
                     Else
                         result = Keyword("Property")
@@ -586,7 +586,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitModifiedIdentifier(node As ModifiedIdentifierSyntax)
-                If node.Nullable.Kind() = SyntaxKind.QuestionToken Then
+                If node.Nullable.IsKind(SyntaxKind.QuestionToken) Then
                     result = HelpKeywords.Nullable
                 Else
                     Dim symbol = _semanticModel.GetDeclaredSymbol(node, _cancellationToken)

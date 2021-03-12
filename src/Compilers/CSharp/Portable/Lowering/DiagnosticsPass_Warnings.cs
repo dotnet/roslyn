@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                             case BoundKind.Local:
                                 var local = (BoundLocal)argument;
-                                if (local.Syntax.Kind() == SyntaxKind.DeclarationExpression)
+                                if (local.Syntax.IsKind(SyntaxKind.DeclarationExpression))
                                 {
                                     CheckOutDeclaration(local);
                                 }

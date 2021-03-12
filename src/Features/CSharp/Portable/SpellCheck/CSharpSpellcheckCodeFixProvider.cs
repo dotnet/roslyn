@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
         }
 
         protected override bool IsGeneric(SyntaxToken token)
-            => token.GetNextToken().Kind() == SyntaxKind.LessThanToken;
+            => token.GetNextToken().IsKind(SyntaxKind.LessThanToken);
 
         protected override bool IsGeneric(SimpleNameSyntax nameNode)
             => nameNode is GenericNameSyntax;

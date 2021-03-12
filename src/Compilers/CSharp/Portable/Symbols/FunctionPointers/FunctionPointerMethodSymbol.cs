@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (modifier.Kind())
                     {
                         case SyntaxKind.RefKeyword when refKind == RefKind.None:
-                            if (modifiers.Count > i + 1 && modifiers[i + 1].Kind() == SyntaxKind.ReadOnlyKeyword)
+                            if (modifiers.Count > i + 1 && modifiers[i + 1].IsKind(SyntaxKind.ReadOnlyKeyword))
                             {
                                 i++;
                                 refKind = RefKind.RefReadOnly;

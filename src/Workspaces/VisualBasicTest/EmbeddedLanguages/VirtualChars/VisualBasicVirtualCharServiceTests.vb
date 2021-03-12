@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Dim token = If(TypeOf expression Is LiteralExpressionSyntax,
                             DirectCast(expression, LiteralExpressionSyntax).Token,
                             DirectCast(expression, InterpolatedStringExpressionSyntax).Contents(0).ChildTokens().First())
-            Assert.True(token.Kind() = SyntaxKind.StringLiteralToken OrElse
-                        token.Kind() = SyntaxKind.InterpolatedStringTextToken)
+            Assert.True(token.IsKind(SyntaxKind.StringLiteralToken) OrElse
+                        token.IsKind(SyntaxKind.InterpolatedStringTextToken))
 
             Return token
         End Function

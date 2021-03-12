@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Create the generated code status on demand
                     bool isGenerated = GeneratedCodeUtilities.IsGeneratedCode(
                             this,
-                            isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
+                            isComment: trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia),
                             cancellationToken: default);
                     _lazyIsGeneratedCode = isGenerated ? GeneratedKind.MarkedGenerated : GeneratedKind.NotGenerated;
                 }

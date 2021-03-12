@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includePreviousTokenTrailingTriviaOnlyIfOnSameLine = false)
         {
             var prevToken = token.GetPreviousToken(includeSkipped: true);
-            if (prevToken.Kind() == SyntaxKind.None)
+            if (prevToken.IsKind(SyntaxKind.None))
             {
                 return token.LeadingTrivia;
             }

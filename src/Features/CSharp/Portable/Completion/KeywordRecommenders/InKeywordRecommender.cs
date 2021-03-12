@@ -63,14 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             var token = context.TargetToken;
 
-            if (token.Kind() == SyntaxKind.IdentifierToken)
+            if (token.IsKind(SyntaxKind.IdentifierToken))
             {
                 if (token.Parent is ForEachStatementSyntax statement && token == statement.Identifier)
                 {
                     return true;
                 }
             }
-            else if (token.Kind() == SyntaxKind.CloseParenToken)
+            else if (token.IsKind(SyntaxKind.CloseParenToken))
             {
                 var statement = token.GetAncestor<ForEachVariableStatementSyntax>();
                 if (statement != null && token.Span.End == statement.Variable.Span.End)
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var token = context.TargetToken;
 
-            if (token.Kind() == SyntaxKind.IdentifierToken)
+            if (token.IsKind(SyntaxKind.IdentifierToken))
             {
                 // case:
                 //   from x |
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var token = context.TargetToken;
 
-            if (token.Kind() == SyntaxKind.IdentifierToken)
+            if (token.IsKind(SyntaxKind.IdentifierToken))
             {
                 var joinClause = token.Parent.FirstAncestorOrSelf<JoinClauseSyntax>();
                 if (joinClause != null)

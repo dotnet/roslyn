@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         End Function
 
         Protected Overrides Function GetMethodNameAtInvocation(methodNames As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxToken
-            Return CType(methodNames.FirstOrDefault(Function(t) t.Parent.Kind <> SyntaxKind.SubStatement AndAlso t.Parent.Kind <> SyntaxKind.FunctionStatement), SyntaxToken)
+            Return CType(methodNames.FirstOrDefault(Function(t) Not t.Parent.IsKind(SyntaxKind.SubStatement) AndAlso Not t.Parent.IsKind(SyntaxKind.FunctionStatement)), SyntaxToken)
         End Function
 
         Protected Overrides Async Function CheckTypeAsync(document As Document,
@@ -142,8 +142,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Private Shared Function IsLessThanInAttribute(token As SyntaxToken) As Boolean
                 ' < in attribute
-                If token.Kind = SyntaxKind.LessThanToken AndAlso
-                   token.Parent.Kind = SyntaxKind.AttributeList AndAlso
+                If token.IsKind(SyntaxKind.LessThanToken) AndAlso
+                   token.Parent.IsKind(SyntaxKind.AttributeList) AndAlso
                    DirectCast(token.Parent, AttributeListSyntax).LessThanToken.Equals(token) Then
                     Return True
                 End If

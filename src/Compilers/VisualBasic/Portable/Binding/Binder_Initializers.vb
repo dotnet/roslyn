@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             fieldAccess.SetWasCompilerGenerated()
 
             Dim asNewVariablePlaceholder As BoundWithLValueExpressionPlaceholder = Nothing
-            If equalsValueOrAsNewSyntax.Kind = SyntaxKind.AsNewClause Then
+            If equalsValueOrAsNewSyntax.IsKind(SyntaxKind.AsNewClause) Then
                 ' CONSIDER: using a bound field access directly instead of a placeholder for AsNew declarations
                 '           with just one variable
 
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Me.IsSemanticModelBinder OrElse
                              fieldSymbols.Length = DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names.Count)
 
-                If equalsValueOrAsNewSyntax.Kind() = SyntaxKind.AsNewClause Then
+                If equalsValueOrAsNewSyntax.IsKind(SyntaxKind.AsNewClause) Then
                     For Each name In DirectCast(equalsValueOrAsNewSyntax.Parent, VariableDeclaratorSyntax).Names
                         If Not (name.ArrayRankSpecifiers.IsEmpty AndAlso name.ArrayBounds Is Nothing) Then
                             ' Arrays cannot be declared with AsNew syntax
@@ -389,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim fieldInitializerSyntax As VisualBasicSyntaxNode
 
-            If equalsValueOrAsNewSyntax.Kind = SyntaxKind.AsNewClause Then
+            If equalsValueOrAsNewSyntax.IsKind(SyntaxKind.AsNewClause) Then
                 Dim asNew = DirectCast(equalsValueOrAsNewSyntax, AsNewClauseSyntax)
                 Select Case asNew.NewExpression.Kind
                     Case SyntaxKind.ObjectCreationExpression

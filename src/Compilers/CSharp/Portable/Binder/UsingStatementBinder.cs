@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ExpressionSyntax expressionSyntax = TargetExpressionSyntax;
             VariableDeclarationSyntax declarationSyntax = _syntax.Declaration;
-            bool hasAwait = _syntax.AwaitKeyword.Kind() != default;
+            bool hasAwait = !_syntax.AwaitKeyword.IsKind(default);
 
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
 
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         internal static BoundStatement BindUsingStatementOrDeclarationFromParts(SyntaxNode syntax, SyntaxToken usingKeyword, SyntaxToken awaitKeyword, Binder originalBinder, UsingStatementBinder? usingBinderOpt, BindingDiagnosticBag diagnostics)
         {
-            bool isUsingDeclaration = syntax.Kind() == SyntaxKind.LocalDeclarationStatement;
-            bool isExpression = !isUsingDeclaration && syntax.Kind() != SyntaxKind.VariableDeclaration;
+            bool isUsingDeclaration = syntax.IsKind(SyntaxKind.LocalDeclarationStatement);
+            bool isExpression = !isUsingDeclaration && !syntax.IsKind(SyntaxKind.VariableDeclaration);
             bool hasAwait = awaitKeyword != default;
 
             Debug.Assert(isUsingDeclaration || usingBinderOpt != null);

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
             ' ElementEndTag, we don't have matching tags.  Instead we have a LessThanSlash token for
             ' the </ for example.
             Dim tok = CType(token, SyntaxToken)
-            Return tok.Parent.Kind <> SyntaxKind.XmlElementStartTag
+            Return Not tok.Parent.IsKind(SyntaxKind.XmlElementStartTag)
         End Function
     End Class
 End Namespace

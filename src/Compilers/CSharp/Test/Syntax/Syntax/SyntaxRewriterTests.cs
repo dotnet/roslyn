@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             bool first = true;
             var rewriter = new RedRewriter(rewriteToken: token =>
             {
-                if (token.Kind() == SyntaxKind.CommaToken && first)
+                if (token.IsKind(SyntaxKind.CommaToken) && first)
                 {
                     first = false;
                     return default(SyntaxToken);
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             //delete all commas
             var rewriter = new RedRewriter(rewriteToken: token =>
-                (token.Kind() == SyntaxKind.CommaToken) ? default(SyntaxToken) : token);
+                (token.IsKind(SyntaxKind.CommaToken)) ? default(SyntaxToken) : token);
 
             TestRed(input, output, rewriter, isExpr: false);
         }
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             //delete all whitespace trivia (leave comments)
             var rewriter = new RedRewriter(rewriteTrivia: trivia =>
-                trivia.Kind() == SyntaxKind.WhitespaceTrivia ? default(SyntaxTrivia) : trivia);
+                trivia.IsKind(SyntaxKind.WhitespaceTrivia) ? default(SyntaxTrivia) : trivia);
 
             TestRed(input, output, rewriter, isExpr: false);
         }
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(token1.ContainsDiagnostics);
 
             var trivia = SyntaxFactory.ParseTrailingTrivia(" ");
-            var rewriter = new RedRewriter(rewriteToken: tok => tok.Kind() == SyntaxKind.IdentifierToken ? tok.WithLeadingTrivia(trivia) : tok);
+            var rewriter = new RedRewriter(rewriteToken: tok => tok.IsKind(SyntaxKind.IdentifierToken) ? tok.WithLeadingTrivia(trivia) : tok);
 
             var ifStmt2 = (IfStatementSyntax)rewriter.Visit(ifStmt1);
             var exprStmt2 = (ExpressionStatementSyntax)ifStmt2.Statement;
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(token1.ContainsDiagnostics);
 
             var trivia = SyntaxFactory.ParseTrailingTrivia(" ");
-            var rewriter = new RedRewriter(rewriteToken: tok => tok.Kind() == SyntaxKind.IdentifierToken ? tok.WithLeadingTrivia(trivia) : tok);
+            var rewriter = new RedRewriter(rewriteToken: tok => tok.IsKind(SyntaxKind.IdentifierToken) ? tok.WithLeadingTrivia(trivia) : tok);
 
             var ifStmt2 = (IfStatementSyntax)rewriter.Visit(ifStmt1);
             var exprStmt2 = (ExpressionStatementSyntax)ifStmt2.Statement;

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
             VisitStatementSubList(builder, node.Statements);
 
-            if (!this.Instrument || (node != _rootStatement && (node.WasCompilerGenerated || node.Syntax.Kind() != SyntaxKind.Block)))
+            if (!this.Instrument || (node != _rootStatement && (node.WasCompilerGenerated || !node.Syntax.IsKind(SyntaxKind.Block))))
             {
                 return node.Update(node.Locals, node.LocalFunctions, builder.ToImmutableAndFree());
             }

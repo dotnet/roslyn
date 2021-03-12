@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 expressionOpt = VisitExpressionNode(expressionOpt)
 
                 If expressionOpt.Type.SpecialType = SpecialType.System_Int32 Then
-                    Debug.Assert(node.Syntax.Kind = SyntaxKind.ErrorStatement, "Must be an Error statement.")
+                    Debug.Assert(node.Syntax.IsKind(SyntaxKind.ErrorStatement), "Must be an Error statement.")
                     Dim nodeFactory As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node.Syntax, _compilationState, _diagnostics)
 
                     Dim createProjectError As MethodSymbol = nodeFactory.WellKnownMember(Of MethodSymbol)(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__CreateProjectError)

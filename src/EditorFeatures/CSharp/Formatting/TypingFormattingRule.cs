@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         private static bool SomeParentHasMissingCloseBrace(SyntaxNode node)
         {
-            while (node != null && node.Kind() != SyntaxKind.CompilationUnit)
+            while (node != null && !node.IsKind(SyntaxKind.CompilationUnit))
             {
                 var bracePair = node.GetBracePair();
                 if (bracePair.Item2.IsMissing)

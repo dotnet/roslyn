@@ -1923,7 +1923,7 @@ End Module
             Dim tk0 = prog.GetRoot().FindToken(25)
             Assert.Equal("xxxx", tk0.ToString)
 
-            Dim colons = tk0.TrailingTrivia().Where(Function(t) t.Kind = SyntaxKind.ColonTrivia).ToArray()
+            Dim colons = tk0.TrailingTrivia().Where(Function(t) t.IsKind(SyntaxKind.ColonTrivia)).ToArray()
             Assert.Equal(colons.Length, 2)
             For Each colon In colons
                 Assert.Equal(":", colon.ToString)
@@ -1938,7 +1938,7 @@ End Module
             Dim tk_zero1 = tk_nonzero1.GetNextToken(includeZeroWidth:=True)
             Assert.Equal("yyyy", tk_zero1.ToString)
 
-            Dim newline = tk_zero1.TrailingTrivia.Where(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia).First
+            Dim newline = tk_zero1.TrailingTrivia.Where(Function(t) t.IsKind(SyntaxKind.EndOfLineTrivia)).First
             Assert.Equal(vbLf, newline.ToString)
         End Sub
 
@@ -2149,7 +2149,7 @@ End Class
             Dim list As List(Of SyntaxToken) = New List(Of SyntaxToken)()
             Dim token As SyntaxToken = tree.GetRoot().GetFirstToken()
 
-            While token.Kind <> 0
+            While Not token.IsKind(SyntaxKind.None)
                 list.Add(token)
                 token = token.GetNextToken()
             End While
@@ -2163,14 +2163,14 @@ End Class
             ' Verify that EOF is returned when calling with Any predicate.
             list.Clear()
             token = tree.GetRoot().GetFirstToken()
-            While token.Kind <> 0
+            While Not token.IsKind(SyntaxKind.None)
                 list.Add(token)
                 token = token.GetNextToken(includeZeroWidth:=True)
             End While
-            Debug.Assert(list(list.Count - 1).Kind = SyntaxKind.EndOfFileToken)
+            Debug.Assert(list(list.Count - 1).IsKind(SyntaxKind.EndOfFileToken))
 
             Dim lastToken = tree.GetRoot().DescendantTokens().Last
-            Debug.Assert(lastToken.Kind = SyntaxKind.EndOfFileToken)
+            Debug.Assert(lastToken.IsKind(SyntaxKind.EndOfFileToken))
         End Sub
 
         <WorkItem(755236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755236")>

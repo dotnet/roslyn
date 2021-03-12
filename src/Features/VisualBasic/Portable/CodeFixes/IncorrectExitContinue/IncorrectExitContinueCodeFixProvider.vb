@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
         End Function
 
         Private Shared Function GetEnclosingContinuableBlockKinds(enclosingblocks As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SyntaxKind)
-            Return enclosingblocks.TakeWhile(Function(eb) eb.Kind() <> SyntaxKind.FinallyBlock) _
+            Return enclosingblocks.TakeWhile(Function(eb) Not eb.IsKind(SyntaxKind.FinallyBlock)) _
                                   .Where(Function(eb) eb.IsKind(SyntaxKind.WhileBlock,
                                                                 SyntaxKind.SimpleDoLoopBlock,
                                                                 SyntaxKind.DoWhileLoopBlock, SyntaxKind.DoUntilLoopBlock,

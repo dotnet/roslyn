@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 Visit(fromClause);
             }
 
-            foreach (var child in body.ChildNodes().Where(c => c.Kind() != SyntaxKind.QueryContinuation))
+            foreach (var child in body.ChildNodes().Where(c => !c.IsKind(SyntaxKind.QueryContinuation)))
             {
                 Visit(child);
             }

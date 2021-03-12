@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (argumentType != null &&
                     !IsPassedToDelegateCreationExpression(node, argumentType) &&
                     node.Expression.Kind() != SyntaxKind.DeclarationExpression &&
-                    node.RefOrOutKeyword.Kind() == SyntaxKind.None)
+                    node.RefOrOutKeyword.IsKind(SyntaxKind.None))
                 {
                     if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out var newArgumentExpressionWithCast))
                     {
@@ -622,11 +622,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // do not complexify further for location where only simple names are allowed
                 if (parent is MemberBindingExpressionSyntax ||
                     originalSimpleName.GetAncestor<NameEqualsSyntax>() != null ||
-                    (parent is MemberAccessExpressionSyntax && parent.Kind() != SyntaxKind.SimpleMemberAccessExpression) ||
-                    ((parent.Kind() == SyntaxKind.SimpleMemberAccessExpression || parent.Kind() == SyntaxKind.NameMemberCref) && originalSimpleName.IsRightSideOfDot()) ||
-                    (parent.Kind() == SyntaxKind.QualifiedName && originalSimpleName.IsRightSideOfQualifiedName()) ||
-                    (parent.Kind() == SyntaxKind.AliasQualifiedName) ||
-                    (parent.Kind() == SyntaxKind.NameColon))
+                    (parent is MemberAccessExpressionSyntax && !parent.IsKind(SyntaxKind.SimpleMemberAccessExpression)) ||
+                    ((parent.IsKind(SyntaxKind.SimpleMemberAccessExpression) || parent.IsKind(SyntaxKind.NameMemberCref)) && originalSimpleName.IsRightSideOfDot()) ||
+                    (parent.IsKind(SyntaxKind.QualifiedName) && originalSimpleName.IsRightSideOfQualifiedName()) ||
+                    (parent.IsKind(SyntaxKind.AliasQualifiedName)) ||
+                    (parent.IsKind(SyntaxKind.NameColon)))
                 {
                     return TryAddTypeArgumentToIdentifierName(newNode, symbol);
                 }
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 ////
 
                 // we need to treat the constructor as type name, so just get the containing type.
-                if (symbol.IsConstructor() && (parent.Kind() == SyntaxKind.ObjectCreationExpression || parent.Kind() == SyntaxKind.NameMemberCref))
+                if (symbol.IsConstructor() && (parent.IsKind(SyntaxKind.ObjectCreationExpression) || parent.IsKind(SyntaxKind.NameMemberCref)))
                 {
                     symbol = symbol.ContainingType;
                 }
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     foreach (var candidateToken in leftTokens)
                     {
-                        if (candidateToken.Kind() == SyntaxKind.LessThanToken || candidateToken.Kind() == SyntaxKind.GreaterThanToken)
+                        if (candidateToken.IsKind(SyntaxKind.LessThanToken) || candidateToken.IsKind(SyntaxKind.GreaterThanToken))
                         {
                             candidateTokens.Add(candidateToken);
                             continue;
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     if (parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression))
                     {
-                        return currentNode.Kind() == SyntaxKind.SimpleAssignmentExpression &&
+                        return currentNode.IsKind(SyntaxKind.SimpleAssignmentExpression) &&
                             object.Equals(((AssignmentExpressionSyntax)currentNode).Left, identifierName);
                     }
                     else if (parent is ExpressionSyntax)
@@ -1001,12 +1001,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private SyntaxToken ReplaceTokenForCref(SyntaxToken oldToken, SyntaxToken dummySameToken)
             {
-                if (oldToken.Kind() == SyntaxKind.LessThanToken)
+                if (oldToken.IsKind(SyntaxKind.LessThanToken))
                 {
                     return SyntaxFactory.Token(oldToken.LeadingTrivia, SyntaxKind.LessThanToken, "{", "{", oldToken.TrailingTrivia);
                 }
 
-                if (oldToken.Kind() == SyntaxKind.GreaterThanToken)
+                if (oldToken.IsKind(SyntaxKind.GreaterThanToken))
                 {
                     return SyntaxFactory.Token(oldToken.LeadingTrivia, SyntaxKind.GreaterThanToken, "}", "}", oldToken.TrailingTrivia);
                 }

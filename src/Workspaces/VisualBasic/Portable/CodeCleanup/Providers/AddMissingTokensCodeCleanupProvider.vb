@@ -186,9 +186,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Public Overrides Function VisitAccessorStatement(node As AccessorStatementSyntax) As SyntaxNode
                 Dim newNode = MyBase.VisitAccessorStatement(node)
-                If node.DeclarationKeyword.Kind <> SyntaxKind.AddHandlerKeyword AndAlso
-                   node.DeclarationKeyword.Kind <> SyntaxKind.RemoveHandlerKeyword AndAlso
-                   node.DeclarationKeyword.Kind <> SyntaxKind.RaiseEventKeyword Then
+                If Not node.DeclarationKeyword.IsKind(SyntaxKind.AddHandlerKeyword) AndAlso
+                   Not node.DeclarationKeyword.IsKind(SyntaxKind.RemoveHandlerKeyword) AndAlso
+                   Not node.DeclarationKeyword.IsKind(SyntaxKind.RaiseEventKeyword) Then
                     Return newNode
                 End If
 
@@ -366,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 Return Not lastToken _
                            .TrailingTrivia _
-                           .Where(Function(t) t.Kind = SyntaxKind.SkippedTokensTrivia) _
+                           .Where(Function(t) t.IsKind(SyntaxKind.SkippedTokensTrivia)) _
                            .SelectMany(Function(t) DirectCast(t.GetStructure(), SkippedTokensTriviaSyntax).Tokens) _
                            .Any(Function(t) kinds.Contains(t.Kind))
             End Function
@@ -408,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Public Overrides Function VisitSelectStatement(node As SelectStatementSyntax) As SyntaxNode
                 Dim newNode = DirectCast(MyBase.VisitSelectStatement(node), SelectStatementSyntax)
-                Return If(newNode.CaseKeyword.Kind = SyntaxKind.None,
+                Return If(newNode.CaseKeyword.IsKind(SyntaxKind.None),
                            newNode.WithCaseKeyword(SyntaxFactory.Token(SyntaxKind.CaseKeyword)),
                            newNode)
             End Function
@@ -454,8 +454,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 ' token is not missing or if missing token is identifier there is not much we can do
                 If Not originalToken.IsMissing OrElse
-                   originalToken.Kind = SyntaxKind.None OrElse
-                   originalToken.Kind = SyntaxKind.IdentifierToken Then
+                   originalToken.IsKind(SyntaxKind.None) OrElse
+                   originalToken.IsKind(SyntaxKind.IdentifierToken) Then
                     Return token
                 End If
 
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
             Private Shared Function IsOmitted(token As SyntaxToken) As Boolean
-                Return token.Kind = SyntaxKind.None
+                Return token.IsKind(SyntaxKind.None)
             End Function
 
             Private Shared Function ProcessOmittedToken(originalToken As SyntaxToken, token As SyntaxToken, parent As SyntaxNode) As SyntaxToken
@@ -542,13 +542,13 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private Shared Function InvalidOmittedToken(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
                 ' if previous token has a problem, don't bother
-                If previousToken.IsMissing OrElse previousToken.IsSkipped OrElse previousToken.Kind = 0 Then
+                If previousToken.IsMissing OrElse previousToken.IsSkipped OrElse previousToken.IsKind(0) Then
                     Return True
                 End If
 
                 ' if next token has a problem, do little bit more check
                 ' if there is no next token, it is okay to insert the missing token
-                If nextToken.Kind = 0 Then
+                If nextToken.IsKind(0) Then
                     Return False
                 End If
 

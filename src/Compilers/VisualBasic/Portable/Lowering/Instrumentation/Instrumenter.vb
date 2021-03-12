@@ -130,13 +130,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateSyncLockStatementPrologue(original As BoundSyncLockStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.SyncLockBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.SyncLockBlock))
             Return Nothing
         End Function
 
         Public Overridable Function InstrumentSyncLockObjectCapture(original As BoundSyncLockStatement, rewritten As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.SyncLockBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.SyncLockBlock))
             Return rewritten
         End Function
 
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateSyncLockExitDueToExceptionEpilogue(original As BoundSyncLockStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.SyncLockBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.SyncLockBlock))
             Return Nothing
         End Function
 
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateSyncLockExitNormallyEpilogue(original As BoundSyncLockStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.SyncLockBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.SyncLockBlock))
             Return Nothing
         End Function
 
@@ -163,13 +163,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function InstrumentWhileEpilogue(original As BoundWhileStatement, epilogueOpt As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.WhileBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.WhileBlock))
             Return epilogueOpt
         End Function
 
         Public Overridable Function InstrumentWhileStatementConditionalGotoStart(original As BoundWhileStatement, ifConditionGotoStart As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.WhileBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.WhileBlock))
             Return ifConditionGotoStart
         End Function
 
@@ -184,19 +184,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overridable Function InstrumentForEachStatementConditionalGotoStart(original As BoundForEachStatement, ifConditionGotoStart As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.ForEachBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.ForEachBlock))
             Return ifConditionGotoStart
         End Function
 
         Public Overridable Function InstrumentIfStatementConditionalGoto(original As BoundIfStatement, condGoto As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.MultiLineIfBlock OrElse original.Syntax.Kind = SyntaxKind.ElseIfBlock OrElse original.Syntax.Kind = SyntaxKind.SingleLineIfStatement)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.MultiLineIfBlock) OrElse original.Syntax.IsKind(SyntaxKind.ElseIfBlock) OrElse original.Syntax.IsKind(SyntaxKind.SingleLineIfStatement))
             Return condGoto
         End Function
 
         Public Overridable Function InstrumentIfStatementAfterIfStatement(original As BoundIfStatement, afterIfStatement As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.MultiLineIfBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.MultiLineIfBlock))
             Return afterIfStatement
         End Function
 
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function InstrumentIfStatementConsequenceEpilogue(original As BoundIfStatement, epilogueOpt As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.MultiLineIfBlock OrElse original.Syntax.Kind = SyntaxKind.ElseIfBlock OrElse original.Syntax.Kind = SyntaxKind.SingleLineIfStatement)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.MultiLineIfBlock) OrElse original.Syntax.IsKind(SyntaxKind.ElseIfBlock) OrElse original.Syntax.IsKind(SyntaxKind.SingleLineIfStatement))
             Return epilogueOpt
         End Function
 
@@ -214,8 +214,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function InstrumentIfStatementAlternativeEpilogue(original As BoundIfStatement, epilogueOpt As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.AlternativeOpt.Syntax.Kind = SyntaxKind.ElseBlock)
-            Debug.Assert(original.AlternativeOpt.Syntax.Parent.Kind = SyntaxKind.MultiLineIfBlock)
+            Debug.Assert(original.AlternativeOpt.Syntax.IsKind(SyntaxKind.ElseBlock))
+            Debug.Assert(original.AlternativeOpt.Syntax.Parent.IsKind(SyntaxKind.MultiLineIfBlock))
             Return epilogueOpt
         End Function
 
@@ -224,7 +224,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateIfStatementAlternativePrologue(original As BoundIfStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.AlternativeOpt.Syntax.Kind = SyntaxKind.ElseBlock OrElse original.AlternativeOpt.Syntax.Kind = SyntaxKind.SingleLineElseClause)
+            Debug.Assert(original.AlternativeOpt.Syntax.IsKind(SyntaxKind.ElseBlock) OrElse original.AlternativeOpt.Syntax.IsKind(SyntaxKind.SingleLineElseClause))
             Return Nothing
         End Function
 
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overridable Function InstrumentCatchBlockFilter(original As BoundCatchBlock, rewrittenFilter As BoundExpression, currentMethodOrLambda As MethodSymbol) As BoundExpression
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.CatchBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.CatchBlock))
             Debug.Assert(original.ExceptionFilterOpt IsNot Nothing)
             Debug.Assert(original.ExceptionFilterOpt.Syntax.Parent.IsKind(SyntaxKind.CatchFilterClause))
             Return rewrittenFilter
@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateCatchBlockPrologue(original As BoundCatchBlock) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.CatchBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.CatchBlock))
             Debug.Assert(original.ExceptionFilterOpt Is Nothing)
             Return Nothing
         End Function
@@ -283,9 +283,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateFinallyBlockPrologue(original As BoundTryStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.TryBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.TryBlock))
             Debug.Assert(original.FinallyBlockOpt IsNot Nothing)
-            Debug.Assert(original.FinallyBlockOpt.Syntax.Kind = SyntaxKind.FinallyBlock)
+            Debug.Assert(original.FinallyBlockOpt.Syntax.IsKind(SyntaxKind.FinallyBlock))
             Return Nothing
         End Function
 
@@ -294,13 +294,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateTryBlockPrologue(original As BoundTryStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.TryBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.TryBlock))
             Return Nothing
         End Function
 
         Public Overridable Function InstrumentTryStatement(original As BoundTryStatement, rewritten As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.TryBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.TryBlock))
             Return rewritten
         End Function
 
@@ -333,7 +333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function InstrumentSelectStatementEpilogue(original As BoundSelectStatement, epilogueOpt As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.SelectBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.SelectBlock))
             Return epilogueOpt
         End Function
 
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overridable Function InstrumentForEachLoopInitialization(original As BoundForEachStatement, initialization As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.ForEachBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.ForEachBlock))
             Return initialization
         End Function
 
@@ -357,26 +357,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function InstrumentForEachLoopEpilogue(original As BoundForEachStatement, epilogueOpt As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.ForEachBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.ForEachBlock))
             Return epilogueOpt
         End Function
 
         Public Overridable Function InstrumentForLoopInitialization(original As BoundForToStatement, initialization As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.ForBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.ForBlock))
             Return initialization
         End Function
 
         Public Overridable Function InstrumentForLoopIncrement(original As BoundForToStatement, increment As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.ForBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.ForBlock))
             Return increment
         End Function
 
         Public Overridable Function InstrumentLocalInitialization(original As BoundLocalDeclaration, rewritten As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.ModifiedIdentifier)
-            Debug.Assert(original.Syntax.Parent.Kind = SyntaxKind.VariableDeclarator)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.ModifiedIdentifier))
+            Debug.Assert(original.Syntax.Parent.IsKind(SyntaxKind.VariableDeclarator))
             Return rewritten
         End Function
 
@@ -385,13 +385,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateUsingStatementPrologue(original As BoundUsingStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.UsingBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.UsingBlock))
             Return Nothing
         End Function
 
         Public Overridable Function InstrumentUsingStatementResourceCapture(original As BoundUsingStatement, resourceIndex As Integer, rewritten As BoundStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.UsingBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.UsingBlock))
             Return rewritten
         End Function
 
@@ -400,7 +400,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateUsingStatementDisposePrologue(original As BoundUsingStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.UsingBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.UsingBlock))
             Return Nothing
         End Function
 
@@ -409,7 +409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateWithStatementPrologue(original As BoundWithStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.WithBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.WithBlock))
             Return Nothing
         End Function
 
@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable Function CreateWithStatementEpilogue(original As BoundWithStatement) As BoundStatement
             Debug.Assert(Not original.WasCompilerGenerated)
-            Debug.Assert(original.Syntax.Kind = SyntaxKind.WithBlock)
+            Debug.Assert(original.Syntax.IsKind(SyntaxKind.WithBlock))
             Return Nothing
         End Function
     End Class

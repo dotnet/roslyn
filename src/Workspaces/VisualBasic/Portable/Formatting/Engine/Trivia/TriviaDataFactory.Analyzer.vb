@@ -37,19 +37,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
 
                 For Each trivia In list
-                    If trivia.Kind = SyntaxKind.WhitespaceTrivia Then
+                    If trivia.IsKind(SyntaxKind.WhitespaceTrivia) Then
                         AnalyzeWhitespacesInTrivia(trivia, result)
-                    ElseIf trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+                    ElseIf trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
                         AnalyzeLineBreak(trivia, result)
-                    ElseIf trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.DocumentationCommentTrivia Then
+                    ElseIf trivia.IsKind(SyntaxKind.CommentTrivia) OrElse trivia.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
                         result.HasComments = True
-                    ElseIf trivia.Kind = SyntaxKind.DisabledTextTrivia OrElse trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
+                    ElseIf trivia.IsKind(SyntaxKind.DisabledTextTrivia) OrElse trivia.IsKind(SyntaxKind.SkippedTokensTrivia) Then
                         result.HasSkippedOrDisabledText = True
-                    ElseIf trivia.Kind = SyntaxKind.LineContinuationTrivia Then
+                    ElseIf trivia.IsKind(SyntaxKind.LineContinuationTrivia) Then
                         AnalyzeLineContinuation(trivia, result)
-                    ElseIf trivia.Kind = SyntaxKind.ColonTrivia Then
+                    ElseIf trivia.IsKind(SyntaxKind.ColonTrivia) Then
                         result.HasColonTrivia = True
-                    ElseIf trivia.Kind = SyntaxKind.ConflictMarkerTrivia Then
+                    ElseIf trivia.IsKind(SyntaxKind.ConflictMarkerTrivia) Then
                         result.HasConflictMarker = True
                     Else
                         Contract.ThrowIfFalse(SyntaxFacts.IsPreprocessorDirective(trivia.Kind))
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Private Shared Sub AnalyzeWhitespacesInTrivia(trivia As SyntaxTrivia, ByRef result As AnalysisResult)
                 ' trivia already has text. getting text should be noop
-                Debug.Assert(trivia.Kind = SyntaxKind.WhitespaceTrivia)
+                Debug.Assert(trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                 Debug.Assert(trivia.Width = trivia.FullWidth)
 
                 Dim space As Integer = 0

@@ -218,7 +218,7 @@ d</String>.Value
 
             Dim token = tree.GetRoot() _
                             .DescendantTokens() _
-                            .Where(Function(t) t.Kind = SyntaxKind.NamespaceKeyword) _
+                            .Where(Function(t) t.IsKind(SyntaxKind.NamespaceKeyword)) _
                             .First()
 
             For position = token.SpanStart To token.Span.End

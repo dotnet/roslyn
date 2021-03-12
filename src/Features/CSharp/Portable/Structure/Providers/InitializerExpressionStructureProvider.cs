@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 //  In this case, we want to collapse the "{ ... }," (including the comma).
 
                 var nextToken = node.CloseBraceToken.GetNextToken();
-                var end = nextToken.Kind() == SyntaxKind.CommaToken
+                var end = nextToken.IsKind(SyntaxKind.CommaToken)
                     ? nextToken.Span.End
                     : node.Span.End;
 

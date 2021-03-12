@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             rewritten = base.InstrumentYieldBreakStatement(original, rewritten);
 
-            if (original.WasCompilerGenerated && original.Syntax.Kind() == SyntaxKind.Block)
+            if (original.WasCompilerGenerated && original.Syntax.IsKind(SyntaxKind.Block))
             {
                 // implicit yield break added by the compiler
                 return new BoundSequencePointWithSpan(original.Syntax, rewritten, ((BlockSyntax)original.Syntax).CloseBraceToken.Span);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
         {
             var previous = base.CreateBlockPrologue(original, out synthesizedLocal);
-            if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
+            if (original.Syntax.IsKind(SyntaxKind.Block) && !original.WasCompilerGenerated)
             {
                 var oBspan = ((BlockSyntax)original.Syntax).OpenBraceToken.Span;
                 return new BoundSequencePointWithSpan(original.Syntax, previous, oBspan);
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var previous = base.CreateBlockEpilogue(original);
 
-            if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
+            if (original.Syntax.IsKind(SyntaxKind.Block) && !original.WasCompilerGenerated)
             {
                 // no need to mark "}" on the outermost block
                 // as it cannot leave it normally. The block will have "return" at the end.
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
         {
-            return AddSequencePoint(original.Syntax.Kind() == SyntaxKind.VariableDeclarator ?
+            return AddSequencePoint(original.Syntax.IsKind(SyntaxKind.VariableDeclarator) ?
                                         (VariableDeclaratorSyntax)original.Syntax :
                                         ((LocalDeclarationStatementSyntax)original.Syntax).Declaration.Variables.First(),
                                     base.InstrumentLocalInitialization(original, rewritten));
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             rewritten = base.InstrumentReturnStatement(original, rewritten);
 
-            if (original.WasCompilerGenerated && original.ExpressionOpt == null && original.Syntax.Kind() == SyntaxKind.Block)
+            if (original.WasCompilerGenerated && original.ExpressionOpt == null && original.Syntax.IsKind(SyntaxKind.Block))
             {
                 // implicit return added by the compiler
                 return new BoundSequencePointWithSpan(original.Syntax, rewritten, ((BlockSyntax)original.Syntax).CloseBraceToken.Span);

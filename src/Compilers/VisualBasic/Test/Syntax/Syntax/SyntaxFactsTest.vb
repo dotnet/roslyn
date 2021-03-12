@@ -1041,7 +1041,7 @@ End Namespace
                 nextToken = enumerator.Current
 
                 If currentToken = currentToken.Parent.AncestorsAndSelf.OfType(Of StatementSyntax).First.GetLastToken() OrElse
-                   nextToken.Kind = SyntaxKind.EndOfFileToken Then
+                   nextToken.IsKind(SyntaxKind.EndOfFileToken) Then
                     builder.Append(currentToken.ToFullString())
                     Continue Do
                 End If
@@ -1059,7 +1059,7 @@ End Namespace
 
                     For Each trivia In currentToken.TrailingTrivia
 
-                        If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
+                        If trivia.IsKind(SyntaxKind.LineContinuationTrivia) Then
 
                             If SyntaxFacts.AllowsTrailingImplicitLineContinuation(currentToken) OrElse
                                SyntaxFacts.AllowsLeadingImplicitLineContinuation(nextToken) Then
@@ -1072,7 +1072,7 @@ End Namespace
                             End If
 
                             hasContinuation = True
-                        ElseIf trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+                        ElseIf trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
                             If Not hasContinuation Then
                                 hasContinuation = True
                                 builder.Append(trivia.ToFullString())
@@ -1085,7 +1085,7 @@ End Namespace
 
                     If Not hasContinuation AndAlso
                        currentToken <> currentToken.Parent.AncestorsAndSelf.OfType(Of StatementSyntax).First.GetLastToken() AndAlso
-                       nextToken.Kind <> SyntaxKind.EndOfFileToken Then
+                       Not nextToken.IsKind(SyntaxKind.EndOfFileToken) Then
 
                         If SyntaxFacts.AllowsTrailingImplicitLineContinuation(currentToken) OrElse
                            SyntaxFacts.AllowsLeadingImplicitLineContinuation(nextToken) Then
@@ -1093,10 +1093,10 @@ End Namespace
                             builder.Append(vbCrLf)
 
                             ' These tokens appear in XML literals, explicit line continuation is illegal in these contexts.
-                        ElseIf currentToken.Kind <> SyntaxKind.XmlKeyword AndAlso
-                               currentToken.Kind <> SyntaxKind.XmlNameToken AndAlso
-                               currentToken.Kind <> SyntaxKind.DoubleQuoteToken AndAlso
-                               currentToken.Kind <> SyntaxKind.XmlTextLiteralToken Then
+                        ElseIf Not currentToken.IsKind(SyntaxKind.XmlKeyword) AndAlso
+                               Not currentToken.IsKind(SyntaxKind.XmlNameToken) AndAlso
+                               Not currentToken.IsKind(SyntaxKind.DoubleQuoteToken) AndAlso
+                               Not currentToken.IsKind(SyntaxKind.XmlTextLiteralToken) Then
 
                             builder.Append(explicitLineContinuation)
                         End If
@@ -1139,13 +1139,13 @@ End Namespace
                 ' Tokens for which adding trailing newline does nothing or
                 ' creates a new text which could parse differently but valid code.
                 If currentToken.TrailingTrivia.Any(Function(t)
-                                                       Return t.Kind = SyntaxKind.ColonTrivia OrElse t.Kind = SyntaxKind.EndOfLineTrivia
+                                                       Return t.IsKind(SyntaxKind.ColonTrivia) OrElse t.IsKind(SyntaxKind.EndOfLineTrivia)
                                                    End Function) OrElse
-                   currentToken.Kind = SyntaxKind.ColonToken OrElse
-                   currentToken.Kind = SyntaxKind.NextKeyword OrElse
-                   nextToken.Kind = SyntaxKind.DotToken OrElse
-                   nextToken.Kind = SyntaxKind.ColonToken OrElse
-                   nextToken.Kind = SyntaxKind.EndOfFileToken Then
+                   currentToken.IsKind(SyntaxKind.ColonToken) OrElse
+                   currentToken.IsKind(SyntaxKind.NextKeyword) OrElse
+                   nextToken.IsKind(SyntaxKind.DotToken) OrElse
+                   nextToken.IsKind(SyntaxKind.ColonToken) OrElse
+                   nextToken.IsKind(SyntaxKind.EndOfFileToken) Then
                     Continue Do
                 End If
 
@@ -1157,7 +1157,7 @@ End Namespace
                         SyntaxFacts.AllowsLeadingImplicitLineContinuation(nextToken)) Then
 
                     Dim newTrailing = Aggregate trivia In currentToken.TrailingTrivia
-                                      Where trivia.Kind <> SyntaxKind.EndOfLineTrivia
+                                      Where Not trivia.IsKind(SyntaxKind.EndOfLineTrivia)
                                       Into ToList()
 
                     newTrailing.Add(SyntaxFactory.EndOfLineTrivia(vbCrLf))
@@ -1190,7 +1190,7 @@ End Module
         Dim tokens = tree.GetRoot().DescendantTokens().ToArray()
         Dim index = 0
         For Each token In tokens
-            If token.Kind = SyntaxKind.ThenKeyword Then
+            If token.IsKind(SyntaxKind.ThenKeyword) Then
                 Dim prevToken = tokens(index - 1)
                 Dim nextToken = tokens(index)
                 Assert.False(SyntaxFacts.AllowsTrailingImplicitLineContinuation(prevToken))

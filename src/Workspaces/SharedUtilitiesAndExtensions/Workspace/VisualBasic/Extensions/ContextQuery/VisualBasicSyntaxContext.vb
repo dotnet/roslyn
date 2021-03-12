@@ -184,19 +184,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 targetToken = targetToken.GetPreviousToken()
             End If
 
-            Return targetToken.Kind = SyntaxKind.None OrElse
-                targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
+            Return targetToken.IsKind(SyntaxKind.None) OrElse
+                targetToken.IsKind(SyntaxKind.EndOfFileToken) OrElse
                 (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
         End Function
 
         Private Shared Function ComputeIsPreprocessorStartContext(position As Integer, targetToken As SyntaxToken) As Boolean
             ' The triggering hash token must be part of a directive (not trivia within it)
-            If targetToken.Kind = SyntaxKind.HashToken Then
+            If targetToken.IsKind(SyntaxKind.HashToken) Then
                 Return TypeOf targetToken.Parent Is DirectiveTriviaSyntax
             End If
 
-            Return targetToken.Kind = SyntaxKind.None OrElse
-                targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
+            Return targetToken.IsKind(SyntaxKind.None) OrElse
+                targetToken.IsKind(SyntaxKind.EndOfFileToken) OrElse
                 (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective())
         End Function
 

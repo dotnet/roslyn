@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
-            If context.TargetToken.Kind = SyntaxKind.None Then
+            If context.TargetToken.IsKind(SyntaxKind.None) Then
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 

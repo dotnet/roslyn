@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim newAlternative As BoundStatement = DirectCast(Visit(node.AlternativeOpt), BoundStatement)
 
             If instrument AndAlso newAlternative IsNot Nothing Then
-                If syntax.Kind <> SyntaxKind.SingleLineIfStatement Then
+                If Not syntax.IsKind(SyntaxKind.SingleLineIfStatement) Then
                     Dim asElse = TryCast(node.AlternativeOpt.Syntax, ElseBlockSyntax)
                     If asElse IsNot Nothing Then
                         ' Update the resume table to make sure that we are in the right scope when we Resume Next on [End If].
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Throw ExceptionUtilities.UnexpectedValue(instrumentationTargetOpt.Syntax.Kind)
                     End Select
 
-                    If instrumentationTargetOpt.Syntax.Kind = SyntaxKind.MultiLineIfBlock Then
+                    If instrumentationTargetOpt.Syntax.IsKind(SyntaxKind.MultiLineIfBlock) Then
                         ' If it is a multiline If and there is no else, associate afterIf with EndIf
                         afterIfStatement = _instrumenterOpt.InstrumentIfStatementAfterIfStatement(DirectCast(instrumentationTargetOpt, BoundIfStatement), afterIfStatement)
                     Else

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             var start = firstToken.Span.End;
 
             var nextToken = firstToken.GetNextToken();
-            if (nextToken.Kind() != SyntaxKind.None && nextToken.HasLeadingTrivia)
+            if (!nextToken.IsKind(SyntaxKind.None) && nextToken.HasLeadingTrivia)
             {
                 var lastLeadingCommentTrivia = nextToken.LeadingTrivia.GetLastComment();
                 if (lastLeadingCommentTrivia != null)
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         public static SyntaxToken GetLastInlineMethodBlockToken(SyntaxNode node)
         {
             var lastToken = node.GetLastToken(includeZeroWidth: true);
-            if (lastToken.Kind() == SyntaxKind.None)
+            if (lastToken.IsKind(SyntaxKind.None))
             {
                 return default;
             }
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // If the next token is a semicolon, and we aren't in the initializer of a for-loop, use that token as the end.
 
             var nextToken = lastToken.GetNextToken(includeSkipped: true);
-            if (nextToken.Kind() != SyntaxKind.None && nextToken.Kind() == SyntaxKind.SemicolonToken)
+            if (!nextToken.IsKind(SyntaxKind.None) && nextToken.IsKind(SyntaxKind.SemicolonToken))
             {
                 var forStatement = nextToken.GetAncestor<ForStatementSyntax>();
                 if (forStatement != null && forStatement.FirstSemicolonToken == nextToken)
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // actual structure.
             foreach (var child in node.ChildNodesAndTokens())
             {
-                if (child.Kind() != SyntaxKind.AttributeList)
+                if (!child.IsKind(SyntaxKind.AttributeList))
                 {
                     return TextSpan.FromBounds(child.SpanStart, endPos);
                 }

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 //  check the name to be unique
                 string? fieldName = null;
-                if (nameToken.Kind() == SyntaxKind.IdentifierToken)
+                if (nameToken.IsKind(SyntaxKind.IdentifierToken))
                 {
                     fieldName = nameToken.ValueText;
                     if (!uniqueFieldNames.Add(fieldName!))
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol fieldType = GetAnonymousTypeFieldType(boundExpressions[i], fieldInitializer, diagnostics, ref hasError);
 
                 // build anonymous type field descriptor
-                fieldSyntaxNodes[i] = (nameToken.Kind() == SyntaxKind.IdentifierToken) ? (CSharpSyntaxNode)nameToken.Parent! : fieldInitializer;
+                fieldSyntaxNodes[i] = (nameToken.IsKind(SyntaxKind.IdentifierToken)) ? (CSharpSyntaxNode)nameToken.Parent! : fieldInitializer;
                 fields[i] = new AnonymousTypeField(
                     fieldName == null ? "$" + i.ToString() : fieldName,
                     fieldSyntaxNodes[i].Location,

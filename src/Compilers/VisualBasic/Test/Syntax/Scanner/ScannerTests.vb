@@ -72,7 +72,7 @@ Public Class ScannerTests
         token = SyntaxFactory.ParseTokens(" <<<<<<<").First()
         Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
-        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+        Assert.True(token.LeadingTrivia.Single().IsKind(SyntaxKind.WhitespaceTrivia))
 
         ' Has to have at least seven characters.
         token = SyntaxFactory.ParseTokens("<<<<<< ").First()
@@ -83,7 +83,7 @@ Public Class ScannerTests
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
         Dim trivia = token.LeadingTrivia.Single()
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
 
         Assert.True(trivia.ContainsDiagnostics)
         Dim err = trivia.Errors().First
@@ -98,7 +98,7 @@ Public Class ScannerTests
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & " <<<<<<<").Skip(2).First()
         Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
-        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+        Assert.True(token.LeadingTrivia.Single().IsKind(SyntaxKind.WhitespaceTrivia))
 
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & "<<<<<< ").Skip(2).First()
         Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind())
@@ -107,7 +107,7 @@ Public Class ScannerTests
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
         Dim trivia = token.LeadingTrivia.Single()
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.True(trivia.SpanStart = 3)
         Assert.True(trivia.Span.Length = 8)
 
@@ -126,7 +126,7 @@ Public Class ScannerTests
         token = SyntaxFactory.ParseTokens(" >>>>>>>").First()
         Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
-        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+        Assert.True(token.LeadingTrivia.Single().IsKind(SyntaxKind.WhitespaceTrivia))
 
         ' Has to have at least seven characters.
         token = SyntaxFactory.ParseTokens(">>>>>> ").First()
@@ -137,7 +137,7 @@ Public Class ScannerTests
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
         Dim trivia = token.LeadingTrivia.Single()
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
 
         Assert.True(trivia.ContainsDiagnostics)
         Dim err = trivia.Errors().First
@@ -152,7 +152,7 @@ Public Class ScannerTests
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & " >>>>>>>").Skip(2).First()
         Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
-        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+        Assert.True(token.LeadingTrivia.Single().IsKind(SyntaxKind.WhitespaceTrivia))
 
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & ">>>>>> ").Skip(2).First()
         Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, token.Kind())
@@ -161,7 +161,7 @@ Public Class ScannerTests
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
         Dim trivia = token.LeadingTrivia.Single()
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.True(trivia.SpanStart = 3)
         Assert.True(trivia.Span.Length = 8)
 
@@ -176,7 +176,7 @@ Public Class ScannerTests
         Dim token = SyntaxFactory.ParseTokens(" =======").First()
         Assert.Equal(SyntaxKind.EqualsToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
-        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+        Assert.True(token.LeadingTrivia.Single().IsKind(SyntaxKind.WhitespaceTrivia))
 
         ' Has to have at least seven characters.
         token = SyntaxFactory.ParseTokens("====== ").First()
@@ -186,14 +186,14 @@ Public Class ScannerTests
         token = SyntaxFactory.ParseTokens("=======").First()
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
-        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(token.LeadingTrivia.Single().IsKind(SyntaxKind.ConflictMarkerTrivia))
 
         ' Start of line, seven characters
         token = SyntaxFactory.ParseTokens("======= trailing chars").First()
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
         Dim trivia = token.LeadingTrivia.Single()
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.Equal(trivia.Span.Length, 22)
 
         Assert.True(trivia.ContainsDiagnostics)
@@ -205,7 +205,7 @@ Public Class ScannerTests
         Assert.True(token.HasLeadingTrivia)
         Assert.Equal(3, token.LeadingTrivia.Count)
         trivia = token.LeadingTrivia(0)
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.Equal(trivia.Span.Length, 16)
 
         Assert.True(trivia.ContainsDiagnostics)
@@ -213,12 +213,12 @@ Public Class ScannerTests
         Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
 
         trivia = token.LeadingTrivia(1)
-        Assert.True(trivia.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.EndOfLineTrivia))
         Assert.Equal(trivia.Span.Start, 16)
         Assert.Equal(trivia.Span.Length, 2)
 
         trivia = token.LeadingTrivia(2)
-        Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.DisabledTextTrivia))
         Assert.Equal(trivia.Span.Start, 18)
         Assert.Equal(trivia.Span.Length, 13)
 
@@ -228,7 +228,7 @@ Public Class ScannerTests
         Assert.Equal(3, token.LeadingTrivia.Count)
 
         trivia = token.LeadingTrivia(0)
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.Equal(trivia.Span.Length, 16)
 
         Assert.True(trivia.ContainsDiagnostics)
@@ -236,11 +236,11 @@ Public Class ScannerTests
         Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
 
         trivia = token.LeadingTrivia(1)
-        Assert.True(trivia.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.EndOfLineTrivia))
         Assert.Equal(trivia.Span.Length, 2)
 
         trivia = token.LeadingTrivia(2)
-        Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.DisabledTextTrivia))
         Assert.Equal(trivia.Span.Length, 34)
 
 
@@ -249,7 +249,7 @@ Public Class ScannerTests
         Assert.True(token.HasLeadingTrivia)
         Assert.Equal(token.LeadingTrivia.Count, 4)
         Dim trivia1 = token.LeadingTrivia(0)
-        Assert.True(trivia1.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia1.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.Equal(trivia1.Span.Length, 16)
 
         Assert.True(trivia1.ContainsDiagnostics)
@@ -257,17 +257,17 @@ Public Class ScannerTests
         Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
 
         Dim trivia2 = token.LeadingTrivia(1)
-        Assert.True(trivia2.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.True(trivia2.IsKind(SyntaxKind.EndOfLineTrivia))
         Assert.Equal(trivia2.Span.Start, 16)
         Assert.Equal(trivia2.Span.Length, 2)
 
         Dim trivia3 = token.LeadingTrivia(2)
-        Assert.True(trivia3.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.True(trivia3.IsKind(SyntaxKind.DisabledTextTrivia))
         Assert.Equal(trivia3.Span.Start, 18)
         Assert.Equal(trivia3.Span.Length, 15)
 
         Dim trivia4 = token.LeadingTrivia(3)
-        Assert.True(trivia4.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia4.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.Equal(trivia4.Span.Start, 33)
         Assert.Equal(trivia4.Span.Length, 24)
 
@@ -282,7 +282,7 @@ Public Class ScannerTests
         Dim token = SyntaxFactory.ParseTokens("{" & vbCrLf & " =======").Skip(2).First()
         Assert.Equal(SyntaxKind.EqualsToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
-        Assert.True(token.LeadingTrivia.Single().Kind() = SyntaxKind.WhitespaceTrivia)
+        Assert.True(token.LeadingTrivia.Single().IsKind(SyntaxKind.WhitespaceTrivia))
 
         ' Has to have at least seven characters.
         token = SyntaxFactory.ParseTokens("{" & vbCrLf & "====== ").Skip(2).First()
@@ -293,7 +293,7 @@ Public Class ScannerTests
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
         Dim trivia = token.LeadingTrivia.Single()
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
 
         Assert.True(trivia.ContainsDiagnostics)
         Dim err = trivia.Errors().First
@@ -305,7 +305,7 @@ Public Class ScannerTests
         Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind())
         Assert.True(token.HasLeadingTrivia)
         trivia = token.LeadingTrivia.Single()
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.Equal(trivia.Span.Length, 22)
 
         Assert.True(trivia.ContainsDiagnostics)
@@ -317,7 +317,7 @@ Public Class ScannerTests
         Assert.True(token.HasLeadingTrivia)
         Assert.Equal(3, token.LeadingTrivia.Count)
         trivia = token.LeadingTrivia(0)
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.Equal(trivia.Span.Length, 16)
 
         Assert.True(trivia.ContainsDiagnostics)
@@ -325,12 +325,12 @@ Public Class ScannerTests
         Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
 
         trivia = token.LeadingTrivia(1)
-        Assert.True(trivia.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.EndOfLineTrivia))
         Assert.Equal(trivia.Span.Start, 19)
         Assert.Equal(trivia.Span.Length, 2)
 
         trivia = token.LeadingTrivia(2)
-        Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.DisabledTextTrivia))
         Assert.Equal(trivia.Span.Start, 21)
         Assert.Equal(trivia.Span.Length, 13)
 
@@ -340,7 +340,7 @@ Public Class ScannerTests
         Assert.Equal(3, token.LeadingTrivia.Count)
 
         trivia = token.LeadingTrivia(0)
-        Assert.True(trivia.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.Equal(trivia.Span.Length, 16)
 
         Assert.True(trivia.ContainsDiagnostics)
@@ -348,11 +348,11 @@ Public Class ScannerTests
         Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
 
         trivia = token.LeadingTrivia(1)
-        Assert.True(trivia.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.EndOfLineTrivia))
         Assert.Equal(trivia.Span.Length, 2)
 
         trivia = token.LeadingTrivia(2)
-        Assert.True(trivia.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.True(trivia.IsKind(SyntaxKind.DisabledTextTrivia))
         Assert.Equal(trivia.Span.Length, 34)
 
 
@@ -361,7 +361,7 @@ Public Class ScannerTests
         Assert.True(token.HasLeadingTrivia)
         Assert.Equal(token.LeadingTrivia.Count, 4)
         Dim trivia1 = token.LeadingTrivia(0)
-        Assert.True(trivia1.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia1.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.Equal(trivia1.Span.Length, 16)
 
         Assert.True(trivia1.ContainsDiagnostics)
@@ -369,17 +369,17 @@ Public Class ScannerTests
         Assert.Equal(ERRID.ERR_Merge_conflict_marker_encountered, err.Code)
 
         Dim trivia2 = token.LeadingTrivia(1)
-        Assert.True(trivia2.Kind() = SyntaxKind.EndOfLineTrivia)
+        Assert.True(trivia2.IsKind(SyntaxKind.EndOfLineTrivia))
         Assert.Equal(trivia2.Span.Start, 19)
         Assert.Equal(trivia2.Span.Length, 2)
 
         Dim trivia3 = token.LeadingTrivia(2)
-        Assert.True(trivia3.Kind() = SyntaxKind.DisabledTextTrivia)
+        Assert.True(trivia3.IsKind(SyntaxKind.DisabledTextTrivia))
         Assert.Equal(trivia3.Span.Start, 21)
         Assert.Equal(trivia3.Span.Length, 15)
 
         Dim trivia4 = token.LeadingTrivia(3)
-        Assert.True(trivia4.Kind() = SyntaxKind.ConflictMarkerTrivia)
+        Assert.True(trivia4.IsKind(SyntaxKind.ConflictMarkerTrivia))
         Assert.Equal(trivia4.Span.Start, 36)
         Assert.Equal(trivia4.Span.Length, 24)
 

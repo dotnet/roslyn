@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim enumFieldSymbol = TryCast(Me.MemberSymbol, SourceEnumConstantSymbol)
                     If enumFieldSymbol IsNot Nothing Then
                         Debug.Assert(initializer IsNot Nothing)
-                        If initializer.Kind = SyntaxKind.EqualsValue Then
+                        If initializer.IsKind(SyntaxKind.EqualsValue) Then
                             Dim enumSymbol = DirectCast(Me.MemberSymbol, SourceEnumConstantSymbol)
                             boundInitializer = binder.BindFieldAndEnumConstantInitializer(enumSymbol, DirectCast(initializer, EqualsValueSyntax), isEnum:=True, diagnostics:=diagnostics, constValue:=Nothing)
                         End If
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SymbolKind.Parameter
                     Debug.Assert(initializer IsNot Nothing)
-                    If initializer.Kind = SyntaxKind.EqualsValue Then
+                    If initializer.IsKind(SyntaxKind.EqualsValue) Then
                         Dim parameterSymbol = DirectCast(Me.RootBinder.ContainingMember, SourceComplexParameterSymbol)
                         boundInitializer = binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing)
 
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' syntax that the root bound node should be associated with.
             Dim rootSyntax = Me.Root
 
-            If rootSyntax.Kind = SyntaxKind.FieldDeclaration Then
+            If rootSyntax.IsKind(SyntaxKind.FieldDeclaration) Then
                 Dim fieldSymbol = TryCast(Me.RootBinder.ContainingMember, SourceFieldSymbol)
                 If fieldSymbol IsNot Nothing Then
                     rootSyntax = If(fieldSymbol.EqualsValueOrAsNewInitOpt, fieldSymbol.Syntax)
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         rootSyntax = initSyntax
                     End If
                 End If
-            ElseIf rootSyntax.Kind = SyntaxKind.PropertyStatement Then
+            ElseIf rootSyntax.IsKind(SyntaxKind.PropertyStatement) Then
                 Dim declSyntax As PropertyStatementSyntax = DirectCast(rootSyntax, PropertyStatementSyntax)
                 Dim initSyntax As VisualBasicSyntaxNode = declSyntax.AsClause
                 If initSyntax Is Nothing OrElse initSyntax.Kind <> SyntaxKind.AsNewClause Then
