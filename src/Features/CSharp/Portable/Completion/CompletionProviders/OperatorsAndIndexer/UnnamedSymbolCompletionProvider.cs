@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     [ExportCompletionProvider(nameof(UnnamedSymbolCompletionProvider), LanguageNames.CSharp), Shared]
+    [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
     internal partial class UnnamedSymbolCompletionProvider : LSPCompletionProvider
     {
         // CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties of
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = context.Position;
             var workspace = document.Project.Solution.Workspace;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var (_, potentialDotToken) = FindTokensAtPosition(root, position);
             if (potentialDotToken.Kind() != SyntaxKind.DotToken)
                 return;
@@ -165,19 +166,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        public override Task<CompletionDescription?> GetDescriptionAsync(
+        public override async Task<CompletionDescription?> GetDescriptionAsync(
             Document document,
             CompletionItem item,
             CancellationToken cancellationToken)
         {
-
             var properties = item.Properties;
             var kind = properties[KindName];
             return kind switch
             {
-                IndexerKindName => GetIndexerDescriptionAsync(document, item, cancellationToken),
-                OperatorKindName => GetOperatorDescriptionAsync(document, item, cancellationToken),
-                ConversionKindName => GetConversionDescriptionAsync(document, item, cancellationToken),
+                IndexerKindName => await GetIndexerDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false),
+                OperatorKindName => await GetOperatorDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false),
+                ConversionKindName => await GetConversionDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }

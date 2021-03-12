@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: ImmutableArray.Create(conversion),
                 rules: CompletionItemRules.Default,
                 contextPosition: position,
-                properties: ConversionProperties.Add(MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}");
+                properties: ConversionProperties.Add(MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}"));
 
             context.AddItem(item);
         }
