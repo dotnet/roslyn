@@ -561,7 +561,7 @@ End Structure
         Public Sub GetSymbolInfoTest(comp As VisualBasicCompilation, nodeName As String, expectedSymbol As ISymbol)
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim expressions = tree.GetCompilationUnitRoot().DescendantNodesAndSelf.Where(Function(x) x.Kind = SyntaxKind.MeExpression Or x.Kind = SyntaxKind.MyBaseExpression Or x.Kind = SyntaxKind.MyClassExpression Or x.Kind = SyntaxKind.SimpleMemberAccessExpression).ToList()
+            Dim expressions = tree.GetCompilationUnitRoot().DescendantNodesAndSelf.Where(Function(x) x.IsKind(SyntaxKind.MeExpression) Or x.IsKind(SyntaxKind.MyBaseExpression) Or x.IsKind(SyntaxKind.MyClassExpression) Or x.IsKind(SyntaxKind.SimpleMemberAccessExpression)).ToList()
             Dim expression = expressions.Where(Function(x) x.ToString = nodeName).First()
             Dim symbolInfo = model.GetSymbolInfo(DirectCast(expression, ExpressionSyntax))
 
@@ -579,7 +579,7 @@ End Structure
         Public Sub GetTypeInfoTest(comp As VisualBasicCompilation, nodeName As String, expectedTypeInfo As String)
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim expressions = tree.GetCompilationUnitRoot().DescendantNodesAndSelf.Where(Function(x) x.Kind = SyntaxKind.MeExpression Or x.Kind = SyntaxKind.MyBaseExpression Or x.Kind = SyntaxKind.MyClassExpression Or x.Kind = SyntaxKind.SimpleMemberAccessExpression).ToList()
+            Dim expressions = tree.GetCompilationUnitRoot().DescendantNodesAndSelf.Where(Function(x) x.IsKind(SyntaxKind.MeExpression) Or x.IsKind(SyntaxKind.MyBaseExpression) Or x.IsKind(SyntaxKind.MyClassExpression) Or x.IsKind(SyntaxKind.SimpleMemberAccessExpression)).ToList()
             Dim expression = expressions.Where(Function(x) x.ToString = nodeName).First()
 
             Dim typeInfo = model.GetTypeInfo(DirectCast(expression, ExpressionSyntax))

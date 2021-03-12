@@ -1541,7 +1541,7 @@ String
                     Assert.[True](boundInit.Kind = BoundKind.FieldInitializer OrElse boundInit.Kind = BoundKind.PropertyInitializer)
                     Dim boundFieldInit = DirectCast(boundInit, BoundFieldOrPropertyInitializer)
                     Dim initValueSyntax = boundFieldInit.InitialValue.Syntax
-                    If boundInit.Syntax.Kind <> SyntaxKind.AsNewClause Then
+                    If Not boundInit.Syntax.IsKind(SyntaxKind.AsNewClause) Then
                         Assert.Same(initValueSyntax.Parent, boundInit.Syntax)
                         Assert.Equal(expectedInitializer.InitialValue, initValueSyntax.ToString())
                     End If
