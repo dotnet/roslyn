@@ -3,38 +3,19 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Differencing
-Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
-    Friend MustInherit Class SyntaxComparer
-        Inherits TreeComparer(Of SyntaxNode)
+    Friend MustInherit Class AbstractSyntaxComparer
 
-        Friend Const IgnoredNode As Integer = -1
+        Inherits Microsoft.CodeAnalysis.Differencing.AbstractSyntaxComparer
 
-        Protected Const ExactMatchDist As Double = 0.0
-        Protected Const EpsilonDist As Double = 0.00001
-
-        Protected Sub New()
+        Friend Sub New(oldRoot As SyntaxNode, newRoot As SyntaxNode, oldRootChildren As IEnumerable(Of SyntaxNode), newRootChildren As IEnumerable(Of SyntaxNode), compareStatementSyntax As Boolean)
+            MyBase.New(oldRoot, newRoot, oldRootChildren, newRootChildren, compareStatementSyntax)
         End Sub
 
-        Protected NotOverridable Overrides Function TreesEqual(oldNode As SyntaxNode, newNode As SyntaxNode) As Boolean
-            Return oldNode.SyntaxTree Is newNode.SyntaxTree
-        End Function
-
-        Protected NotOverridable Overrides Function GetSpan(node As SyntaxNode) As TextSpan
-            Return node.Span
-        End Function
-
 #Region "Comparison"
-
-        ''' <summary>
-        ''' Calculates distance of two nodes based on their significant parts.
-        ''' Returns false if the nodes don't have any significant parts and should be compared as a whole.
-        ''' </summary>
-        Protected MustOverride Function TryComputeWeightedDistance(oldNode As SyntaxNode, newNode As SyntaxNode, <Out> ByRef distance As Double) As Boolean
 
         Public NotOverridable Overrides Function GetDistance(oldNode As SyntaxNode, newNode As SyntaxNode) As Double
             Debug.Assert(GetLabel(oldNode) = GetLabel(newNode) AndAlso GetLabel(oldNode) <> IgnoredNode)
