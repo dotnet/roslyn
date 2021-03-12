@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return _providers;
         }
 
-        private void Retrigger()
+        private void Retrigger(bool fromCaretMovement)
         {
             AssertIsForeground();
             if (!IsSessionActive)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return;
             }
 
-            sessionOpt.ComputeModel(GetProviders(), new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.RetriggerCommand));
+            sessionOpt.ComputeModel(GetProviders(), new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.RetriggerCommand, retriggerFromCaretMovement: fromCaretMovement));
         }
     }
 }

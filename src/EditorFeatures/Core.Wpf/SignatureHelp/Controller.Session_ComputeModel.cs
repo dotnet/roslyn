@@ -84,6 +84,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             {
                                 return currentModel;
                             }
+
+                            // if we have a model and we're retriggering from a caret movement, and the caret is not within
+                            // the span of the current model, then dismiss the session as the user has navigated out of the
+                            // signature that the session is for
+                            if (triggerInfo.RetriggerFromCaretMovement && !currentModel.TextSpan.Contains(caretPosition))
+                            {
+                                return null;
+                            }
                         }
 
                         // first try to query the providers that can trigger on the specified character
