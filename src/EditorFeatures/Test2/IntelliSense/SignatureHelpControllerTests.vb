@@ -221,13 +221,54 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact>
         Public Sub CaretMoveWithActiveSessionShouldRecomputeModel()
-            Dim controller = CreateController(waitForPresentation:=True)
+            Dim provider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
+            provider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+                .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(1), TextSpan.FromBounds(1, 4), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
+            Dim caretPosition As Integer = 2
+            Dim getCaretPosition = Function() caretPosition
+            Dim controller = CreateController(provider:=provider.Object, getCaretPosition:=getCaretPosition, triggerSession:=False)
 
+            ' Need to insert some text so that the span for the help item is valid
+            GetMocks(controller).Buffer.Insert(0, "// here is some text")
+            DirectCast(controller, IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs)).ExecuteCommand(
+                    New InvokeSignatureHelpCommandArgs(GetMocks(controller).View.Object, GetMocks(controller).Buffer), Nothing, TestCommandExecutionContext.Create())
+            controller.WaitForController()
+
+            ' Keep the caret inside the span
+            caretPosition = 3
             Mock.Get(GetMocks(controller).View.Object.Caret).Raise(Sub(c) AddHandler c.PositionChanged, Nothing, New CaretPositionChangedEventArgs(Nothing, Nothing, Nothing))
             controller.WaitForController()
 
             ' GetItemsAsync is called once initially, and then once as a result of handling the PositionChanged event
-            Assert.Equal(2, GetMocks(controller).Provider.GetItemsCount)
+            provider.Verify(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken)), Times.Exactly(2))
+            GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Never)
+        End Sub
+
+        <WpfFact>
+        Public Sub CaretMoveOutsideOfSpanShouldDismissSession()
+            Dim provider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
+            provider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+                .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(1), TextSpan.FromBounds(1, 4), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
+            Dim caretPosition As Integer = 2
+            Dim getCaretPosition = Function() caretPosition
+            Dim controller = CreateController(provider:=provider.Object, getCaretPosition:=getCaretPosition, triggerSession:=False)
+            GetMocks(controller).PresenterSession.Setup(Sub(p) p.Dismiss())
+
+            ' Need to insert some text so that the span for the help item is valid
+            GetMocks(controller).Buffer.Insert(0, "// here is some text")
+            DirectCast(controller, IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs)).ExecuteCommand(
+                    New InvokeSignatureHelpCommandArgs(GetMocks(controller).View.Object, GetMocks(controller).Buffer), Nothing, TestCommandExecutionContext.Create())
+            controller.WaitForController()
+
+            ' Move the caret outside the span
+            caretPosition = 6
+            Mock.Get(GetMocks(controller).View.Object.Caret).Raise(Sub(c) AddHandler c.PositionChanged, Nothing, New CaretPositionChangedEventArgs(Nothing, Nothing, Nothing))
+            controller.WaitForController()
+
+            ' GetItemsAsync is called once initially
+            provider.Verify(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken)), Times.Exactly(1))
+            ' The session is dismissed because the caret move is not within the original models span
+            GetMocks(controller).PresenterSession.Verify(Sub(p) p.Dismiss(), Times.Once)
         End Sub
 
         <WpfFact>
@@ -267,7 +308,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                  Optional items As IList(Of SignatureHelpItem) = Nothing,
                                                  Optional provider As ISignatureHelpProvider = Nothing,
                                                  Optional waitForPresentation As Boolean = False,
-                                                 Optional triggerSession As Boolean = True) As Controller
+                                                 Optional triggerSession As Boolean = True,
+                                                 Optional getCaretPosition As Func(Of Integer) = Nothing) As Controller
             Dim document As Document =
                 (Function()
                      Dim workspace = TestWorkspace.CreateWorkspace(
@@ -282,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim threadingContext = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of IThreadingContext)
             Dim bufferFactory As ITextBufferFactoryService = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
             Dim buffer = bufferFactory.CreateTextBuffer()
-            Dim view = CreateMockTextView(buffer)
+            Dim view = CreateMockTextView(buffer, getCaretPosition)
             Dim asyncListener = AsynchronousOperationListenerProvider.NullListener
             If documentProvider Is Nothing Then
                 documentProvider = New Mock(Of IDocumentProvider)(MockBehavior.Strict)
@@ -364,9 +406,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Function
         End Class
 
-        Private Shared Function CreateMockTextView(buffer As ITextBuffer) As Mock(Of ITextView)
+        Private Shared Function CreateMockTextView(buffer As ITextBuffer, getCaretPosition As Func(Of Integer)) As Mock(Of ITextView)
             Dim caret = New Mock(Of ITextCaret)(MockBehavior.Strict)
-            caret.Setup(Function(c) c.Position).Returns(Function() New CaretPosition(New VirtualSnapshotPoint(buffer.CurrentSnapshot, buffer.CurrentSnapshot.Length), CreateMock(Of IMappingPoint), PositionAffinity.Predecessor))
+            If getCaretPosition Is Nothing Then
+                getCaretPosition = Function() buffer.CurrentSnapshot.Length
+            End If
+            caret.Setup(Function(c) c.Position).Returns(Function() New CaretPosition(New VirtualSnapshotPoint(buffer.CurrentSnapshot, getCaretPosition()), CreateMock(Of IMappingPoint), PositionAffinity.Predecessor))
             Dim view = New Mock(Of ITextView)(MockBehavior.Strict) With {.DefaultValue = DefaultValue.Mock}
             view.Setup(Function(v) v.Caret).Returns(caret.Object)
             view.Setup(Function(v) v.TextBuffer).Returns(buffer)
