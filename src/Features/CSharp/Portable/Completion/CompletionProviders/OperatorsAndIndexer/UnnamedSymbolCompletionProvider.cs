@@ -92,6 +92,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (potentialDotToken.Kind() != SyntaxKind.DotToken)
                 return;
 
+            // don't want to trigger after a number.  All other cases after dot are ok.
+            if (potentialDotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
+                return;
+
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -158,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var properties = item.Properties;
             var kind = properties[KindName];
             return kind switch
-            { 
+            {
                 IndexerKindName => GetIndexerChangeAsync(document, item, cancellationToken),
                 OperatorKindName => GetOperatorChangeAsync(document, item, cancellationToken),
                 ConversionKindName => GetConversionChangeAsync(document, item, cancellationToken),
