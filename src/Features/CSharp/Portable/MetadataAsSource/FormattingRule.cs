@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
                 // We are not between members or usings if the last token wasn't the end of a statement or if the current token
                 // is the end of a scope.
-                if ((previousToken.Kind() != SyntaxKind.SemicolonToken && previousToken.Kind() != SyntaxKind.CloseBraceToken) ||
-                    currentToken.Kind() == SyntaxKind.CloseBraceToken)
+                if ((!previousToken.IsKind(SyntaxKind.SemicolonToken) && !previousToken.IsKind(SyntaxKind.CloseBraceToken)) ||
+                    currentToken.IsKind(SyntaxKind.CloseBraceToken))
                 {
                     return null;
                 }
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
 
                 // Is the previous statement an using directive? If so, treat it like a member to add
                 // the right number of lines.
-                if (previousToken.Kind() == SyntaxKind.SemicolonToken && previousToken.Parent.Kind() == SyntaxKind.UsingDirective)
+                if (previousToken.IsKind(SyntaxKind.SemicolonToken) && previousToken.Parent.IsKind(SyntaxKind.UsingDirective))
                 {
                     previousMember = previousToken.Parent;
                 }
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MetadataAsSource
                 }
 
                 // If we have two members of the same kind, we won't insert a blank line 
-                if (previousMember.Kind() == nextMember.Kind())
+                if (previousMember.IsKind(nextMember.Kind()))
                 {
                     return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
                 }

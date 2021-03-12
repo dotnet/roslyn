@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             var token = root.FindToken(span.Start);
 
             // Move back if the user is at: X.Goo$$(
-            if (span.IsEmpty && token.Kind() == SyntaxKind.OpenParenToken)
+            if (span.IsEmpty && token.IsKind(SyntaxKind.OpenParenToken))
                 token = token.GetPreviousToken();
 
             // Offer the feature if the user is anywhere between the start of the explicit-impl of

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
             // that is relevant is the \ character, and it's only relevant if we insert into
             // a normal string and not a verbatim string.  There are no other regex characters
             // that completion will produce that need any escaping. 
-            Debug.Assert(token.Kind() == SyntaxKind.StringLiteralToken);
+            Debug.Assert(token.IsKind(SyntaxKind.StringLiteralToken));
             return token.IsVerbatimStringLiteral()
                 ? text
                 : text.Replace(@"\", @"\\");

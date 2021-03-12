@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     .FindTokenOnLeftOfPosition(position, cancellationToken)
                     .GetPreviousTokenIfTouchingWord(position);
 
-                if (token.Kind() == SyntaxKind.None)
+                if (token.IsKind(SyntaxKind.None))
                     return null;
 
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // We'll show the builder after an open brace or comma, because that's where the
                 // user can start declaring new named parts. 
-                return token.Kind() == SyntaxKind.OpenBraceToken || token.Kind() == SyntaxKind.CommaToken;
+                return token.IsKind(SyntaxKind.OpenBraceToken) || token.IsKind(SyntaxKind.CommaToken);
             }
 
             return false;
@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // Typing a generic type parameter, the tree might look like a binary expression around the < token.
             // If we infer a delegate type here (because that's what on the other side of the binop), 
             // ignore it.
-            if (token.Kind() == SyntaxKind.LessThanToken && token.Parent is BinaryExpressionSyntax)
+            if (token.IsKind(SyntaxKind.LessThanToken) && token.Parent is BinaryExpressionSyntax)
             {
                 return false;
             }
 
             // We might be in the arguments to a parenthesized lambda
-            if (token.Kind() == SyntaxKind.OpenParenToken || token.Kind() == SyntaxKind.CommaToken)
+            if (token.IsKind(SyntaxKind.OpenParenToken) || token.IsKind(SyntaxKind.CommaToken))
             {
                 if (token.Parent != null && token.Parent is ParameterListSyntax)
                 {
@@ -145,16 +145,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // Walk up a single level to allow for typing the beginning of a lambda:
             // new AssemblyLoadEventHandler(($$
-            if (token.Kind() == SyntaxKind.OpenParenToken &&
-                token.GetRequiredParent().Kind() == SyntaxKind.ParenthesizedExpression)
+            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+                token.GetRequiredParent().IsKind(SyntaxKind.ParenthesizedExpression))
             {
                 position = token.GetRequiredParent().SpanStart;
             }
 
             // WorkItem 834609: Automatic brace completion inserts the closing paren, making it
             // like a cast.
-            if (token.Kind() == SyntaxKind.OpenParenToken &&
-                token.GetRequiredParent().Kind() == SyntaxKind.CastExpression)
+            if (token.IsKind(SyntaxKind.OpenParenToken) &&
+                token.GetRequiredParent().IsKind(SyntaxKind.CastExpression))
             {
                 position = token.GetRequiredParent().SpanStart;
             }

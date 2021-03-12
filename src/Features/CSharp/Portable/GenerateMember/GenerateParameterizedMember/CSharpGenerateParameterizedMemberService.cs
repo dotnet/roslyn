@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             {
                 return
                     _invocationExpression.ArgumentList.Arguments.Select(
-                        a => a.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword ? RefKind.Ref :
-                             a.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None).ToImmutableArray();
+                        a => a.RefOrOutKeyword.IsKind(SyntaxKind.RefKeyword) ? RefKind.Ref :
+                             a.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword) ? RefKind.Out : RefKind.None).ToImmutableArray();
             }
 
             protected override ImmutableArray<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // class C<T> |
 
-            if (token.Kind() == SyntaxKind.GreaterThanToken)
+            if (token.IsKind(SyntaxKind.GreaterThanToken))
             {
                 var typeParameters = token.GetAncestor<TypeParameterListSyntax>();
                 if (typeParameters != null && token == typeParameters.GetLastToken(includeSkipped: true))
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             // delegate void D<T>() |
-            if (token.Kind() == SyntaxKind.CloseParenToken &&
+            if (token.IsKind(SyntaxKind.CloseParenToken) &&
                 token.Parent.IsKind(SyntaxKind.ParameterList) &&
                 token.Parent.IsParentKind(SyntaxKind.DelegateDeclaration))
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // void Goo<T>() |
 
-            if (token.Kind() == SyntaxKind.CloseParenToken &&
+            if (token.IsKind(SyntaxKind.CloseParenToken) &&
                 token.Parent.IsKind(SyntaxKind.ParameterList) &&
                 token.Parent.IsParentKind(SyntaxKind.MethodDeclaration))
             {

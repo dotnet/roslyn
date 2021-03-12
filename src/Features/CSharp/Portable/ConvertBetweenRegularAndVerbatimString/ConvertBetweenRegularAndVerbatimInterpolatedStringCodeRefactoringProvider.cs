@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
         }
 
         protected override bool IsVerbatim(InterpolatedStringExpressionSyntax literalExpression)
-            => literalExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken;
+            => literalExpression.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
 
         private static InterpolatedStringExpressionSyntax Convert(
             IVirtualCharService charService, StringBuilder sb, InterpolatedStringExpressionSyntax stringExpression,

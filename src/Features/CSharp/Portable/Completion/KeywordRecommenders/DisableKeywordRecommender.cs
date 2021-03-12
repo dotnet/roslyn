@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var previousToken2 = previousToken1.GetPreviousToken(includeSkipped: true);
             var previousToken3 = previousToken2.GetPreviousToken(includeSkipped: true);
 
-            if (previousToken1.Kind() == SyntaxKind.NullableKeyword &&
-                previousToken2.Kind() == SyntaxKind.HashToken)
+            if (previousToken1.IsKind(SyntaxKind.NullableKeyword) &&
+                previousToken2.IsKind(SyntaxKind.HashToken))
             {
                 // # nullable |
                 // # nullable d|
@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // # pragma warning |
             // # pragma warning d|
             return
-                previousToken1.Kind() == SyntaxKind.WarningKeyword &&
-                previousToken2.Kind() == SyntaxKind.PragmaKeyword &&
-                previousToken3.Kind() == SyntaxKind.HashToken;
+                previousToken1.IsKind(SyntaxKind.WarningKeyword) &&
+                previousToken2.IsKind(SyntaxKind.PragmaKeyword) &&
+                previousToken3.IsKind(SyntaxKind.HashToken);
         }
     }
 }

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             var identifierNode = identifier
                 .Ancestors()
-                .TakeWhile(n => n.Kind() == SyntaxKind.ParenthesizedExpression || n.Kind() == SyntaxKind.CastExpression)
+                .TakeWhile(n => n.IsKind(SyntaxKind.ParenthesizedExpression) || n.IsKind(SyntaxKind.CastExpression))
                 .LastOrDefault();
 
             if (identifierNode == null)
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 
             if (identifierNode.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax argument))
             {
-                if (argument.RefOrOutKeyword.Kind() != SyntaxKind.None)
+                if (!argument.RefOrOutKeyword.IsKind(SyntaxKind.None))
                 {
                     return true;
                 }

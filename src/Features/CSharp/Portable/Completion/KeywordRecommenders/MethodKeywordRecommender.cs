@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             var token = context.TargetToken;
 
-            if (token.Kind() == SyntaxKind.OpenBracketToken &&
+            if (token.IsKind(SyntaxKind.OpenBracketToken) &&
                 token.Parent.IsKind(SyntaxKind.AttributeList))
             {
                 if (token.GetAncestor<PropertyDeclarationSyntax>() != null ||

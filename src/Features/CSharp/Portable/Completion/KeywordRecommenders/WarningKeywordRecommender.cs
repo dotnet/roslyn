@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var previousToken2 = previousToken1.GetPreviousToken(includeSkipped: true);
 
             return
-                previousToken1.Kind() == SyntaxKind.PragmaKeyword &&
-                previousToken2.Kind() == SyntaxKind.HashToken;
+                previousToken1.IsKind(SyntaxKind.PragmaKeyword) &&
+                previousToken2.IsKind(SyntaxKind.HashToken);
         }
     }
 }

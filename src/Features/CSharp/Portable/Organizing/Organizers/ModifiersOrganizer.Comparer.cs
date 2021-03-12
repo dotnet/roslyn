@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
 
             public int Compare(SyntaxToken x, SyntaxToken y)
             {
-                if (x.Kind() == y.Kind())
+                if (x.IsKind(y.Kind()))
                 {
                     return 0;
                 }
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
             }
 
             private static readonly ImmutableArray<Func<SyntaxToken, IComparable>> s_comparers =
-                ImmutableArray.Create<Func<SyntaxToken, IComparable>>(t => t.Kind() == SyntaxKind.PartialKeyword, t => GetOrdering(t));
+                ImmutableArray.Create<Func<SyntaxToken, IComparable>>(t => t.IsKind(SyntaxKind.PartialKeyword), t => GetOrdering(t));
 
             private static Ordering GetOrdering(SyntaxToken token)
             {

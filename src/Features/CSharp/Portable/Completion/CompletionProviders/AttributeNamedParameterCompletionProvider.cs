@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool IsAfterNameColonArgument(SyntaxToken token)
         {
-            if (token.Kind() == SyntaxKind.CommaToken && token.Parent is AttributeArgumentListSyntax argumentList)
+            if (token.IsKind(SyntaxKind.CommaToken) && token.Parent is AttributeArgumentListSyntax argumentList)
             {
                 foreach (var item in argumentList.Arguments.GetWithSeparators())
                 {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static bool IsAfterNameEqualsArgument(SyntaxToken token)
         {
-            if (token.Kind() == SyntaxKind.CommaToken && token.Parent is AttributeArgumentListSyntax argumentList)
+            if (token.IsKind(SyntaxKind.CommaToken) && token.Parent is AttributeArgumentListSyntax argumentList)
             {
                 foreach (var item in argumentList.Arguments.GetWithSeparators())
                 {

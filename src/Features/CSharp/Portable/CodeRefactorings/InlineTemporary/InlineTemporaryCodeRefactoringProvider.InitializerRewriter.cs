@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 // Note - leave this as SyntaxNode for now, we might have already re-written it
                 var newNode = base.VisitAssignmentExpression(node);
 
-                if (newNode.Kind() == SyntaxKind.SimpleAssignmentExpression)
+                if (newNode.IsKind(SyntaxKind.SimpleAssignmentExpression))
                 {
                     // It's okay to just look at the text, since we're explicitly looking for an
                     // identifier standing alone, and we know we're in a local's initializer.
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             {
                 var newNode = base.VisitParenthesizedExpression(node);
 
-                if (node != newNode && newNode.Kind() == SyntaxKind.ParenthesizedExpression)
+                if (node != newNode && newNode.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
                     return newNode.WithAdditionalAnnotations(Simplifier.Annotation);
                 }

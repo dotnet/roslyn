@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var token = root.FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
 
             // Allow the user to invoke Change-Sig if they've written:   Goo(a, b, c);$$ 
-            if (token.Kind() == SyntaxKind.SemicolonToken && token.Parent is StatementSyntax)
+            if (token.IsKind(SyntaxKind.SemicolonToken) && token.Parent is StatementSyntax)
             {
                 token = token.GetPreviousToken();
                 position = token.Span.End;
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             for (var current = node; current != null; current = current.Parent)
             {
                 if (restrictToDeclarations &&
-                    current.Kind() == SyntaxKind.Block || current.Kind() == SyntaxKind.ArrowExpressionClause)
+                    current.IsKind(SyntaxKind.Block) || current.IsKind(SyntaxKind.ArrowExpressionClause))
                 {
                     return null;
                 }

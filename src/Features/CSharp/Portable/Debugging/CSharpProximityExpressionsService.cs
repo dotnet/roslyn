@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             var expression = SyntaxFactory.ParseExpression(expressionValue);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
-            if (token.Kind() == SyntaxKind.CloseBraceToken && token.GetPreviousToken().Kind() != SyntaxKind.None)
+            if (token.IsKind(SyntaxKind.CloseBraceToken) && !token.GetPreviousToken().IsKind(SyntaxKind.None))
             {
                 token = token.GetPreviousToken();
             }

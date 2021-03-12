@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             GetNestedFunctionsParts(leftNode, out var leftParameters, out var leftAsync, out var leftBody, out var leftModifiers, out var leftReturnType, out var leftIdentifier, out var leftTypeParameters);
             GetNestedFunctionsParts(rightNode, out var rightParameters, out var rightAsync, out var rightBody, out var rightModifiers, out var rightReturnType, out var rightIdentifier, out var rightTypeParameters);
 
-            if ((leftAsync.Kind() == SyntaxKind.AsyncKeyword) != (rightAsync.Kind() == SyntaxKind.AsyncKeyword))
+            if ((leftAsync.IsKind(SyntaxKind.AsyncKeyword)) != (rightAsync.IsKind(SyntaxKind.AsyncKeyword)))
             {
                 return 1.0;
             }

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
         protected override string Escape(InterpolatedStringExpressionSyntax interpolatedString, string formatString)
         {
             var result = new StringBuilder();
-            if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
+            if (interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken))
             {
                 foreach (var c in formatString)
                 {

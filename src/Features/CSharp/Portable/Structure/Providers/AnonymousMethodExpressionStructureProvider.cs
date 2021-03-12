@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             }
 
             var lastToken = CSharpStructureHelpers.GetLastInlineMethodBlockToken(anonymousMethod);
-            if (lastToken.Kind() == SyntaxKind.None)
+            if (lastToken.IsKind(SyntaxKind.None))
             {
                 return;
             }

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             var count = firstToken.LeadingTrivia.Count(t => t.IsDocComment());
 
             var previousToken = firstToken.GetPreviousToken();
-            if (previousToken.Kind() != SyntaxKind.None)
+            if (!previousToken.IsKind(SyntaxKind.None))
             {
                 count += previousToken.TrailingTrivia.Count(t => t.IsDocComment());
             }
@@ -191,9 +191,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             var lastTextToken = textTokens.Last();
             var firstTextToken = textTokens.First();
 
-            return lastTextToken.Kind() == SyntaxKind.XmlTextLiteralNewLineToken
+            return lastTextToken.IsKind(SyntaxKind.XmlTextLiteralNewLineToken)
                 && firstTextToken.LeadingTrivia.Count == 1
-                && firstTextToken.LeadingTrivia.ElementAt(0).Kind() == SyntaxKind.DocumentationCommentExteriorTrivia
+                && firstTextToken.LeadingTrivia.ElementAt(0).IsKind(SyntaxKind.DocumentationCommentExteriorTrivia)
                 && firstTextToken.LeadingTrivia.ElementAt(0).ToString() == ExteriorTriviaText
                 && lastTextToken.TrailingTrivia.Count == 0;
         }
@@ -245,9 +245,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             var lastTextToken = textTokens.LastOrDefault();
             var firstTextToken = textTokens.FirstOrDefault();
 
-            return lastTextToken.Kind() == SyntaxKind.XmlTextLiteralNewLineToken
+            return lastTextToken.IsKind(SyntaxKind.XmlTextLiteralNewLineToken)
                 && firstTextToken.LeadingTrivia.Count == 1
-                && firstTextToken.LeadingTrivia.ElementAt(0).Kind() == SyntaxKind.DocumentationCommentExteriorTrivia
+                && firstTextToken.LeadingTrivia.ElementAt(0).IsKind(SyntaxKind.DocumentationCommentExteriorTrivia)
                 && firstTextToken.LeadingTrivia.ElementAt(0).ToString() == ExteriorTriviaText
                 && lastTextToken.TrailingTrivia.Count == 0;
         }
@@ -256,6 +256,6 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
             => documentationComment.IsMultilineDocComment();
 
         protected override bool HasSkippedTrailingTrivia(SyntaxToken token)
-            => token.TrailingTrivia.Any(t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
+            => token.TrailingTrivia.Any(t => t.IsKind(SyntaxKind.SkippedTokensTrivia));
     }
 }

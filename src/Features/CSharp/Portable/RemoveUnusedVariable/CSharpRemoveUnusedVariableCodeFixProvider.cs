@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
         protected override SyntaxNode GetNodeToRemoveOrReplace(SyntaxNode node)
         {
             node = node.Parent;
-            if (node.Kind() == SyntaxKind.SimpleAssignmentExpression)
+            if (node.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
                 var parent = node.Parent;
-                if (parent.Kind() == SyntaxKind.ExpressionStatement)
+                if (parent.IsKind(SyntaxKind.ExpressionStatement))
                 {
                     return parent;
                 }

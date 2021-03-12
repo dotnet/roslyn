@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                                .WithSemicolonToken(getMethodDeclaration.SemicolonToken);
             }
 
-            if (getMethodDeclaration.SemicolonToken.Kind() != SyntaxKind.None)
+            if (!getMethodDeclaration.SemicolonToken.IsKind(SyntaxKind.None))
             {
                 return accessor.WithSemicolonToken(getMethodDeclaration.SemicolonToken);
             }
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                                .WithSemicolonToken(setMethodDeclaration.SemicolonToken);
             }
 
-            if (setMethodDeclaration.SemicolonToken.Kind() != SyntaxKind.None)
+            if (!setMethodDeclaration.SemicolonToken.IsKind(SyntaxKind.None))
             {
                 return accessor.WithSemicolonToken(setMethodDeclaration.SemicolonToken);
             }
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
         public static void ReplaceInvocation(SyntaxEditor editor, SyntaxToken nameToken, string propertyName, bool nameChanged,
             Action<SyntaxEditor, InvocationExpressionSyntax, SimpleNameSyntax, SimpleNameSyntax> replace)
         {
-            if (nameToken.Kind() != SyntaxKind.IdentifierToken)
+            if (!nameToken.IsKind(SyntaxKind.IdentifierToken))
             {
                 return;
             }

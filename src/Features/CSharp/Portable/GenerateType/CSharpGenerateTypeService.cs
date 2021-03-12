@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             // something.  They're really just trying to reference something that exists but
             // isn't available for some reason (i.e. a missing reference).
             var usingDirectiveSyntax = simpleName.GetAncestorOrThis<UsingDirectiveSyntax>();
-            if (usingDirectiveSyntax != null && usingDirectiveSyntax.StaticKeyword.Kind() != SyntaxKind.StaticKeyword)
+            if (usingDirectiveSyntax != null && !usingDirectiveSyntax.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
             {
                 return false;
             }
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 {
                     if (node.Parent is TypeDeclarationSyntax typeDecl)
                     {
-                        if (typeDecl.GetModifiers().Any(m => m.Kind() == SyntaxKind.PublicKeyword))
+                        if (typeDecl.GetModifiers().Any(m => m.IsKind(SyntaxKind.PublicKeyword)))
                         {
                             return IsAllContainingTypeDeclsPublic(typeDecl);
                         }
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     }
 
                     // Make sure that Event Declaration themselves are Public in the first place
-                    if (!node.GetModifiers().Any(m => m.Kind() == SyntaxKind.PublicKeyword))
+                    if (!node.GetModifiers().Any(m => m.IsKind(SyntaxKind.PublicKeyword)))
                     {
                         return false;
                     }
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             }
             else
             {
-                return containingTypeDeclarations.All(typedecl => typedecl.GetModifiers().Any(m => m.Kind() == SyntaxKind.PublicKeyword));
+                return containingTypeDeclarations.All(typedecl => typedecl.GetModifiers().Any(m => m.IsKind(SyntaxKind.PublicKeyword)));
             }
         }
 

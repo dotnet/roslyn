@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return;
             }
 
-            if (argumentNode.RefOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
+            if (!argumentNode.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
             {
                 // Immediately bail if this is not an out-argument.  If it's not an out-argument
                 // we clearly can't convert it to be an out-variable-declaration.

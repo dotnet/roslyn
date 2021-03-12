@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.ConstructorInitializerPlacement
             if (colonToken.TrailingTrivia.Count == 0)
                 return;
 
-            if (colonToken.TrailingTrivia.Last().Kind() != SyntaxKind.EndOfLineTrivia)
+            if (!colonToken.TrailingTrivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
                 return;
 
             if (colonToken.TrailingTrivia.Any(t => !t.IsWhitespaceOrEndOfLine()))

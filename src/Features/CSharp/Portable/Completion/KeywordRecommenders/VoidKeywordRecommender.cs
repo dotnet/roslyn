@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
                 var token = context.TargetToken;
 
-                if (token.Kind() == SyntaxKind.OpenParenToken &&
+                if (token.IsKind(SyntaxKind.OpenParenToken) &&
                     token.Parent.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
                     return true;

@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                     // The embedded statement already has braces, which is always allowed.
                     return;
 
-                case SyntaxKind.IfStatement when statement.Kind() == SyntaxKind.ElseClause:
+                case SyntaxKind.IfStatement when statement.IsKind(SyntaxKind.ElseClause):
                     // Constructs like the following are always allowed:
                     //
                     //   if (something)
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                     //    }
                     //
                     // The first statement needs no block as it formatted with the same indentation.
-                    if (statement.Kind() == embeddedStatement.Kind())
+                    if (statement.IsKind(embeddedStatement.Kind()))
                     {
                         return;
                     }

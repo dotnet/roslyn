@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // # nullable enable |
             // # nullable enable w|
             return
-                (previousToken1.Kind() == SyntaxKind.EnableKeyword || previousToken1.Kind() == SyntaxKind.DisableKeyword || previousToken1.Kind() == SyntaxKind.RestoreKeyword) &&
-                previousToken2.Kind() == SyntaxKind.NullableKeyword &&
-                previousToken3.Kind() == SyntaxKind.HashToken;
+                (previousToken1.IsKind(SyntaxKind.EnableKeyword) || previousToken1.IsKind(SyntaxKind.DisableKeyword) || previousToken1.IsKind(SyntaxKind.RestoreKeyword)) &&
+                previousToken2.IsKind(SyntaxKind.NullableKeyword) &&
+                previousToken3.IsKind(SyntaxKind.HashToken);
         }
     }
 }

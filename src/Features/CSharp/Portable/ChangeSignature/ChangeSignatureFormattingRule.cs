@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
-            if (previousToken.Kind() == SyntaxKind.CommaToken && s_allowableKinds.Contains(previousToken.Parent.Kind()))
+            if (previousToken.IsKind(SyntaxKind.CommaToken) && s_allowableKinds.Contains(previousToken.Parent.Kind()))
             {
                 return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }

@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.Kind() != SyntaxKind.CommaToken && token.Kind() != SyntaxKind.OpenBraceToken)
+            if (!token.IsKind(SyntaxKind.CommaToken) && !token.IsKind(SyntaxKind.OpenBraceToken))
             {
                 return null;
             }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // If we got a comma, we can syntactically find out if we're in an ObjectInitializerExpression or WithExpression
-            if (token.Kind() == SyntaxKind.CommaToken &&
+            if (token.IsKind(SyntaxKind.CommaToken) &&
                 !token.Parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.WithInitializerExpression))
             {
                 return null;
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                             .GetPreviousTokenIfTouchingWord(position);
 
             // We should have gotten back a { or ,
-            if (token.Kind() == SyntaxKind.CommaToken || token.Kind() == SyntaxKind.OpenBraceToken)
+            if (token.IsKind(SyntaxKind.CommaToken) || token.IsKind(SyntaxKind.OpenBraceToken))
             {
                 if (token.Parent != null)
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     if (token.Parent is InitializerExpressionSyntax initializer)
                     {
                         return new HashSet<string>(initializer.Expressions.OfType<AssignmentExpressionSyntax>()
-                            .Where(b => b.OperatorToken.Kind() == SyntaxKind.EqualsToken)
+                            .Where(b => b.OperatorToken.IsKind(SyntaxKind.EqualsToken))
                             .Select(b => b.Left)
                             .OfType<IdentifierNameSyntax>()
                             .Select(i => i.Identifier.ValueText));

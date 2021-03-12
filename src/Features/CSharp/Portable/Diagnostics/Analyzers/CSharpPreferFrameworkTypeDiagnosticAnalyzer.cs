@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
         /// every predefined type keyword except <c>void</c> can be replaced by its framework type in code.
         ///</remarks>
         protected override bool IsPredefinedTypeReplaceableWithFrameworkType(PredefinedTypeSyntax node)
-            => node.Keyword.Kind() != SyntaxKind.VoidKeyword;
+            => !node.Keyword.IsKind(SyntaxKind.VoidKeyword);
 
         protected override bool IsInMemberAccessOrCrefReferenceContext(ExpressionSyntax node)
             => node.IsDirectChildOfMemberAccessExpression() || node.InsideCrefReference();

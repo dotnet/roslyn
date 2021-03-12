@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
         {
             var lastToken = genericIdentifier.FindLastTokenOfPartialGenericName();
             var nextToken = lastToken.GetNextNonZeroWidthTokenOrEndOfFile();
-            Contract.ThrowIfTrue(nextToken.Kind() == 0);
+            Contract.ThrowIfTrue(nextToken.IsKind(0));
             return TextSpan.FromBounds(genericIdentifier.SpanStart, nextToken.SpanStart);
         }
     }

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return false;
             }
 
-            if (!modifiersGetter(decl).Any(t => t.Kind() == SyntaxKind.ConstKeyword))
+            if (!modifiersGetter(decl).Any(t => t.IsKind(SyntaxKind.ConstKeyword)))
             {
                 return false;
             }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             foreach (var token in tokens)
             {
-                if (token.Kind() != SyntaxKind.ThrowKeyword)
+                if (!token.IsKind(SyntaxKind.ThrowKeyword))
                 {
                     continue;
                 }

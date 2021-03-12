@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             var (openBrace, closeBrace) = token.Parent.GetParentheses();
 
             // We can complete the brace if the closing brace is missing or the incorrect kind.
-            if (closeBrace.Kind() != SyntaxKind.CloseParenToken || closeBrace.Span.Length == 0)
+            if (!closeBrace.IsKind(SyntaxKind.CloseParenToken) || closeBrace.Span.Length == 0)
             {
                 return true;
             }

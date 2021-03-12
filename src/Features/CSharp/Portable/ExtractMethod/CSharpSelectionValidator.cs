@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var assign = (AssignmentExpressionSyntax)expressionNode;
 
             // make sure there is a visible token at right side expression
-            if (assign.Right.GetLastToken().Kind() == SyntaxKind.None)
+            if (assign.Right.GetLastToken().IsKind(SyntaxKind.None))
             {
                 return selectionInfo;
             }
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             var firstTokenInSelection = root.FindTokenOnRightOfPosition(adjustedSpan.Start, includeSkipped: false);
             var lastTokenInSelection = root.FindTokenOnLeftOfPosition(adjustedSpan.End, includeSkipped: false);
 
-            if (firstTokenInSelection.Kind() == SyntaxKind.None || lastTokenInSelection.Kind() == SyntaxKind.None)
+            if (firstTokenInSelection.IsKind(SyntaxKind.None) || lastTokenInSelection.IsKind(SyntaxKind.None))
             {
                 return new SelectionInfo { Status = new OperationStatus(OperationStatusFlag.None, CSharpFeaturesResources.Invalid_selection), OriginalSpan = adjustedSpan };
             }
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // TODO : check whether this can be handled by control flow analysis engine
-            if (tokens.Any(t => t.Kind() == SyntaxKind.YieldKeyword))
+            if (tokens.Any(t => t.IsKind(SyntaxKind.YieldKeyword)))
             {
                 selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.BestEffort, CSharpFeaturesResources.Selection_can_not_contain_a_yield_statement));
             }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             // For now patterns are being blanket disabled for extract method.  This issue covers designing extractions for them
             // and re-enabling this. 
             // https://github.com/dotnet/roslyn/issues/9244
-            if (commonNode.Kind() == SyntaxKind.IsPatternExpression)
+            if (commonNode.IsKind(SyntaxKind.IsPatternExpression))
             {
                 selectionInfo = selectionInfo.WithStatus(s => s.With(OperationStatusFlag.None, CSharpFeaturesResources.Selection_can_not_contain_a_pattern_expression));
             }
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             var lastToken = root.FindToken(textSpan.End);
-            if (lastToken.Kind() == SyntaxKind.None)
+            if (lastToken.IsKind(SyntaxKind.None))
             {
                 return false;
             }
@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             // make sure this method doesn't have return type.
             return method.ReturnType is PredefinedTypeSyntax p &&
-                p.Keyword.Kind() == SyntaxKind.VoidKeyword;
+                p.Keyword.IsKind(SyntaxKind.VoidKeyword);
         }
 
         private static TextSpan GetAdjustedSpan(SourceText text, TextSpan textSpan)

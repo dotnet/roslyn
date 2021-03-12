@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             => xmlText.TextTokens;
 
         protected override bool IsXmlWhitespaceToken(SyntaxToken token)
-            => token.Kind() == SyntaxKind.XmlTextLiteralToken && IsWhitespace(token.Text);
+            => token.IsKind(SyntaxKind.XmlTextLiteralToken) && IsWhitespace(token.Text);
 
         protected override bool IsXmlNewLineToken(SyntaxToken token)
-            => token.Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
+            => token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken);
 
         private static bool IsWhitespace(string text)
         {

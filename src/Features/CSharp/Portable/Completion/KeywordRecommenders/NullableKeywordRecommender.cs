@@ -31,11 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             return
                // # pragma warning <action> |
-               (previousToken1.Kind() == SyntaxKind.DisableKeyword || previousToken1.Kind() == SyntaxKind.RestoreKeyword ||
-                previousToken1.Kind() == SyntaxKind.EnableKeyword) &&
-               previousToken2.Kind() == SyntaxKind.WarningKeyword &&
-               previousToken3.Kind() == SyntaxKind.PragmaKeyword &&
-               previousToken4.Kind() == SyntaxKind.HashToken;
+               (previousToken1.IsKind(SyntaxKind.DisableKeyword) || previousToken1.IsKind(SyntaxKind.RestoreKeyword) ||
+                previousToken1.IsKind(SyntaxKind.EnableKeyword)) &&
+               previousToken2.IsKind(SyntaxKind.WarningKeyword) &&
+               previousToken3.IsKind(SyntaxKind.PragmaKeyword) &&
+               previousToken4.IsKind(SyntaxKind.HashToken);
         }
     }
 }

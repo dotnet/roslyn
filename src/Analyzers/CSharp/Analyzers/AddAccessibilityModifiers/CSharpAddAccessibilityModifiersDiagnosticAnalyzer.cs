@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 
             // Have to have a name to report the issue on.
             var name = member.GetNameToken();
-            if (name.Kind() == SyntaxKind.None)
+            if (name.IsKind(SyntaxKind.None))
             {
                 return;
             }
