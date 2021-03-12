@@ -2149,7 +2149,7 @@ End Class
             Dim list As List(Of SyntaxToken) = New List(Of SyntaxToken)()
             Dim token As SyntaxToken = tree.GetRoot().GetFirstToken()
 
-            While Not token.IsKind(0)
+            While Not token.IsKind(SyntaxKind.None)
                 list.Add(token)
                 token = token.GetNextToken()
             End While
@@ -2163,7 +2163,7 @@ End Class
             ' Verify that EOF is returned when calling with Any predicate.
             list.Clear()
             token = tree.GetRoot().GetFirstToken()
-            While Not token.IsKind(0)
+            While Not token.IsKind(SyntaxKind.None)
                 list.Add(token)
                 token = token.GetNextToken(includeZeroWidth:=True)
             End While
