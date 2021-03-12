@@ -485,7 +485,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
                 : symbols;
 
-            var unnamedSymbols = containerType != null ? GetUnnamedSymbols(containerType) : default;
+            var unnamedSymbols = containerType == null || _context.IsNameOfContext
+                ? default
+                : GetUnnamedSymbols(containerType);
             return new RecommendedSymbols(namedSymbols, unnamedSymbols);
         }
 
