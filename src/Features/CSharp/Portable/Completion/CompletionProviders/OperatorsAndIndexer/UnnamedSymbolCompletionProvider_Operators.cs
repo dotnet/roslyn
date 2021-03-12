@@ -11,8 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -31,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private readonly int OperatorSortingGroupIndex = 3;
+
+        private readonly string OperatorName = nameof(OperatorName);
         private readonly ImmutableDictionary<string, string> OperatorProperties =
             ImmutableDictionary<string, string>.Empty.Add(KindName, OperatorKindName);
 
@@ -45,47 +49,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: ImmutableArray.Create(op),
                 rules: CompletionItemRules.Default,
                 contextPosition: context.Position,
-                properties: OperatorProperties);
+                properties: OperatorProperties
+                    .Add(OperatorName, op.Name));
             context.AddItem(item);
         }
 
         private async Task<CompletionChange> GetOperatorChangeAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
-            if (symbols.FirstOrDefault() is IMethodSymbol symbol && symbol.IsUserDefinedOperator())
+            var operatorName = item.Properties[OperatorName];
+
+            var operatorPosition = GetOperatorPosition(operatorName);
+
+            if (operatorPosition.HasFlag(OperatorPosition.Infix))
+                return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $" {item.DisplayText} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
+
+            if (operatorPosition.HasFlag(OperatorPosition.Postfix))
+                return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $"{item.DisplayText} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
+
+            if (operatorPosition.HasFlag(OperatorPosition.Prefix))
             {
-                var operatorPosition = GetOperatorPosition(symbol);
-                var operatorSign = GetOperatorDisplayText(symbol);
+                var position = SymbolCompletionItem.GetContextPosition(item);
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var (_, dotToken) = FindTokensAtPosition(root, position);
 
-                if (operatorPosition.HasFlag(OperatorPosition.Infix))
-                    return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $" {operatorSign} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
+                var expression = (ExpressionSyntax)dotToken.GetRequiredParent();
+                expression = expression.GetRootConditionalAccessExpression() ?? expression;
 
-                if (operatorPosition.HasFlag(OperatorPosition.Postfix))
-                    return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $"{operatorSign} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
+                var textChanges = TemporaryArray<TextChange>.Empty;
 
-                if (operatorPosition.HasFlag(OperatorPosition.Prefix))
-                {
-                    throw new NotImplementedException();
-                    //var position = SymbolCompletionItem.GetContextPosition(item);
-                    //var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    //var (_, potentialDotTokenLeftOfCursor) = FindTokensAtPosition(root, position);
+                // Place the new operator before the expression, and delete the dot.
+                textChanges.Add(new TextChange(new TextSpan(expression.SpanStart, 0), item.DisplayText));
+                textChanges.Add(new TextChange(dotToken.Span, ""));
 
-                    //var rootExpression = GetRootExpressionOfToken(potentialDotTokenLeftOfCursor);
-                    //// base.ProvideCompletionsAsync checks GetParentExpressionOfToken is not null.
-                    //// If GetRootExpressionOfToken returns something, so does GetParentExpressionOfToken.
-                    //Contract.ThrowIfNull(rootExpression);
+                var replacement = item.DisplayText + text.ToString(TextSpan.FromBounds(expression.SpanStart, dotToken.SpanStart));
+                var fullTextChange = new TextChange(
+                    TextSpan.FromBounds(expression.SpanStart, dotToken.Span.End),
+                    replacement);
 
-                    //var spanToReplace = TextSpan.FromBounds(rootExpression.Span.Start, rootExpression.Span.End);
-                    //var cursorPositionOffset = spanToReplace.End - position;
-                    //var fromRootToParent = rootExpression.ToString();
-                    //var prefixed = $"{operatorSign}{fromRootToParent}";
-                    //var newPosition = spanToReplace.Start + prefixed.Length - cursorPositionOffset;
-                    //return CompletionChange.Create(new TextChange(spanToReplace, prefixed), newPosition);
-                }
+                var newPosition = expression.SpanStart + replacement.Length;
+                return CompletionChange.Create(fullTextChange, textChanges.ToImmutableAndClear(), newPosition);
             }
 
-            return await GetChangeAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
+            throw ExceptionUtilities.UnexpectedValue(operatorPosition);
         }
 
         private Task<CompletionDescription> GetOperatorDescriptionAsync(
@@ -203,9 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private static OperatorPosition GetOperatorPosition(IMethodSymbol method)
+        private static OperatorPosition GetOperatorPosition(string operatorName)
         {
-            switch (method.Name)
+            switch (operatorName)
             {
                 // binary
                 case WellKnownMemberNames.AdditionOperatorName:
@@ -242,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return OperatorPosition.Prefix;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(method.Name);
+                    throw ExceptionUtilities.UnexpectedValue(operatorName);
             }
         }
     }

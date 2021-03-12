@@ -430,7 +430,7 @@ public class Program
     public static void Main()
     {{
         var c = new C();
-        {prefixOperator}c.$$
+        {prefixOperator}c$$
     }}
 }}
 ");

@@ -72,11 +72,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected static string SortText(int sortingGroupIndex, string sortTextSymbolPart)
             => $"{SortingPrefix}{sortingGroupIndex:000}{sortTextSymbolPart}";
 
-        protected static (SyntaxToken tokenAtPosition, SyntaxToken potentialDotTokenLeftOfCursor) FindTokensAtPosition(
+        protected static (SyntaxToken tokenAtPosition, SyntaxToken dotToken) FindTokensAtPosition(
             SyntaxNode root, int position)
         {
             var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
             var potentialDotTokenLeftOfCursor = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
+            if (potentialDotTokenLeftOfCursor.Kind() != SyntaxKind.DotToken)
+                return default;
+
+            if (potentialDotTokenLeftOfCursor.Parent is not ExpressionSyntax)
+                return default;
+
+            // don't want to trigger after a number.  All other cases after dot are ok.
+            if (potentialDotTokenLeftOfCursor.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
+                return default;
+
             return (tokenAtPosition, potentialDotTokenLeftOfCursor);
         }
 
@@ -88,12 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var workspace = document.Project.Solution.Workspace;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var (_, potentialDotToken) = FindTokensAtPosition(root, position);
-            if (potentialDotToken.Kind() != SyntaxKind.DotToken)
-                return;
-
-            // don't want to trigger after a number.  All other cases after dot are ok.
-            if (potentialDotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
+            var (_, dotToken) = FindTokensAtPosition(root, position);
+            if (dotToken == default)
                 return;
 
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
