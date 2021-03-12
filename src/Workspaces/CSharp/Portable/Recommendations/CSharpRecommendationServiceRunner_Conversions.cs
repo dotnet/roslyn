@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             static string SeeTag(string? id)
             {
-                return $@"<see cref=""T:{id}""/>";
+                return $@"<see cref=""{id}""/>";
             }
         }
 
