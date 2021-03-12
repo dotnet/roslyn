@@ -40,13 +40,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 _lastTokenEndedInWhitespace = False
             End If
 
-            If token.Kind() = SyntaxKind.StringLiteralToken OrElse
-               token.Kind() = SyntaxKind.InterpolatedStringTextToken Then
+            If token.IsKind(SyntaxKind.StringLiteralToken) OrElse
+               token.IsKind(SyntaxKind.InterpolatedStringTextToken) Then
 
                 If s_newlinePattern.IsMatch(token.Text) Then
                     Dim newText = s_newlinePattern.Replace(token.Text, " ")
 
-                    If token.Kind() = SyntaxKind.StringLiteralToken Then
+                    If token.IsKind(SyntaxKind.StringLiteralToken) Then
                         token = SyntaxFactory.StringLiteralToken(
                             token.LeadingTrivia,
                             newText, newText,

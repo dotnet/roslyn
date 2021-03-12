@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If trailing.Count = 1 Then
                 Dim trivia = trailing.First()
 
-                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+                If trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
                     Return token.IsLastTokenOfStatement()
                 End If
 
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' little bit more expansive case
             For Each trivia In trailing
-                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+                If trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
                     Return token.IsLastTokenOfStatement()
                 End If
             Next
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Return statement _
                     .GetTrailingTrivia() _
-                    .FirstOrNull(Function(t) t.Kind = SyntaxKind.ColonTrivia)
+                    .FirstOrNull(Function(t) t.IsKind(SyntaxKind.ColonTrivia))
         End Function
 
         Private Function PartOfSingleLineLambda(node As SyntaxNode) As Boolean
@@ -250,7 +250,7 @@ recurse:
             ' #IF false Then
             ' |$
 
-            If syntaxTree.FindTriviaToLeft(position, cancellationToken).Kind = SyntaxKind.DisabledTextTrivia Then
+            If syntaxTree.FindTriviaToLeft(position, cancellationToken).IsKind(SyntaxKind.DisabledTextTrivia) Then
                 Return True
             End If
 
@@ -309,18 +309,18 @@ recurse:
         <Extension()>
         Public Function IsRightOfDot(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-            If token.Kind = SyntaxKind.None Then
+            If token.IsKind(SyntaxKind.None) Then
                 Return False
             End If
 
             token = token.GetPreviousTokenIfTouchingWord(position)
-            Return token.Kind = SyntaxKind.DotToken
+            Return token.IsKind(SyntaxKind.DotToken)
         End Function
 
         <Extension()>
         Public Function IsRightOfIntegerLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-            Return token.Kind = SyntaxKind.IntegerLiteralToken
+            Return token.IsKind(SyntaxKind.IntegerLiteralToken)
         End Function
 
         <Extension()>

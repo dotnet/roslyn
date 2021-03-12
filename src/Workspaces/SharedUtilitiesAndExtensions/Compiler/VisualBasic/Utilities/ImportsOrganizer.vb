@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Private Shared Sub EnsureNewLines(list As List(Of ImportsStatementSyntax))
             Dim endOfLine = GetExistingEndOfLineTrivia(list)
-            endOfLine = If(endOfLine.Kind = SyntaxKind.None, s_newLine, endOfLine)
+            endOfLine = If(endOfLine.IsKind(SyntaxKind.None), s_newLine, endOfLine)
 
             For i = 0 To list.Count - 1
                 If Not list(i).GetTrailingTrivia().Any(SyntaxKind.EndOfLineTrivia) Then
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 End If
 
                 list(i) = list(i).WithLeadingTrivia(list(i).GetLeadingTrivia().SkipWhile(
-                    Function(t) t.Kind = SyntaxKind.WhitespaceTrivia OrElse t.Kind = SyntaxKind.EndOfLineTrivia))
+                    Function(t) t.IsKind(SyntaxKind.WhitespaceTrivia) OrElse t.IsKind(SyntaxKind.EndOfLineTrivia)))
             Next
         End Sub
 
@@ -119,13 +119,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Dim endOfLine As SyntaxTrivia
             For Each node In list
                 For Each token In node.DescendantTokens()
-                    endOfLine = token.LeadingTrivia.FirstOrDefault(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
-                    If endOfLine.Kind <> SyntaxKind.None Then
+                    endOfLine = token.LeadingTrivia.FirstOrDefault(Function(t) t.IsKind(SyntaxKind.EndOfLineTrivia))
+                    If Not endOfLine.IsKind(SyntaxKind.None) Then
                         Return endOfLine
                     End If
 
-                    endOfLine = token.TrailingTrivia.FirstOrDefault(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
-                    If endOfLine.Kind <> SyntaxKind.None Then
+                    endOfLine = token.TrailingTrivia.FirstOrDefault(Function(t) t.IsKind(SyntaxKind.EndOfLineTrivia))
+                    If Not endOfLine.IsKind(SyntaxKind.None) Then
                         Return endOfLine
                     End If
                 Next

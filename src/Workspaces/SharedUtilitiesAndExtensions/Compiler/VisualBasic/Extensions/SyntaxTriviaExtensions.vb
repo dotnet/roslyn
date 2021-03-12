@@ -9,15 +9,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SyntaxTriviaExtensions
         <Extension()>
         Public Function IsKind(trivia As SyntaxTrivia, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
-            Return trivia.Kind = kind1 OrElse
-                   trivia.Kind = kind2
+            Return trivia.IsKind(kind1) OrElse
+                   trivia.IsKind(kind2)
         End Function
 
         <Extension()>
         Public Function IsKind(trivia As SyntaxTrivia, kind1 As SyntaxKind, kind2 As SyntaxKind, kind3 As SyntaxKind) As Boolean
-            Return trivia.Kind = kind1 OrElse
-                   trivia.Kind = kind2 OrElse
-                   trivia.Kind = kind3
+            Return trivia.IsKind(kind1) OrElse
+                   trivia.IsKind(kind2) OrElse
+                   trivia.IsKind(kind3)
         End Function
 
         <Extension>
@@ -27,17 +27,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function IsWhitespace(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.WhitespaceTrivia
+            Return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
         End Function
 
         <Extension>
         Public Function IsEndOfLine(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.EndOfLineTrivia
+            Return trivia.IsKind(SyntaxKind.EndOfLineTrivia)
         End Function
 
         <Extension>
         Public Function IsRegularOrDocComment(trivia As SyntaxTrivia) As Boolean
-            Return trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+            Return trivia.IsKind(SyntaxKind.CommentTrivia) OrElse trivia.IsKind(SyntaxKind.DocumentationCommentTrivia)
         End Function
 
         <Extension()>

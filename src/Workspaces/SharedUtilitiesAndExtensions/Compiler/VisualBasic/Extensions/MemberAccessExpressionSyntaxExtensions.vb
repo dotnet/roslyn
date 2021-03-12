@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim statement As SyntaxNode
             If TypeOf memberAccess.Parent Is InvocationExpressionSyntax Then
                 statement = memberAccess.Parent.Parent
-                isCall = statement IsNot Nothing AndAlso (statement.Kind = SyntaxKind.CallStatement OrElse statement.Kind = SyntaxKind.ExpressionStatement)
+                isCall = statement IsNot Nothing AndAlso (statement.IsKind(SyntaxKind.CallStatement) OrElse statement.IsKind(SyntaxKind.ExpressionStatement))
             Else
                 statement = memberAccess.Parent
                 isCall = statement.IsKind(SyntaxKind.CallStatement)

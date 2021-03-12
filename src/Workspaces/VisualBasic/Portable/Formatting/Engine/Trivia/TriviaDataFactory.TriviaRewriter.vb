@@ -45,18 +45,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                     Dim tuple = GetTrailingAndLeadingTrivia(pair)
 
-                    If pair.Key.Item1.Kind <> 0 Then
+                    If Not pair.Key.Item1.IsKind(0) Then
                         _trailingTriviaMap.Add(pair.Key.Item1, tuple.Item1)
                     End If
 
-                    If pair.Key.Item2.Kind <> 0 Then
+                    If Not pair.Key.Item2.IsKind(0) Then
                         _leadingTriviaMap.Add(pair.Key.Item2, tuple.Item2)
                     End If
                 Next pair
             End Sub
 
             Private Function GetTrailingAndLeadingTrivia(pair As KeyValuePair(Of ValueTuple(Of SyntaxToken, SyntaxToken), TriviaData)) As (SyntaxTriviaList, SyntaxTriviaList)
-                If pair.Key.Item1.Kind = 0 OrElse _lastToken = pair.Key.Item2 Then
+                If pair.Key.Item1.IsKind(0) OrElse _lastToken = pair.Key.Item2 Then
                     Return (SyntaxTriviaList.Empty,
                             GetSyntaxTriviaList(GetTextSpan(pair.Key), pair.Value, _cancellationToken))
                 End If
@@ -82,11 +82,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Function
 
             Private Function GetTextSpan(pair As ValueTuple(Of SyntaxToken, SyntaxToken)) As TextSpan
-                If pair.Item1.Kind = 0 Then
+                If pair.Item1.IsKind(0) Then
                     Return TextSpan.FromBounds(_node.FullSpan.Start, pair.Item2.SpanStart)
                 End If
 
-                If pair.Item2.Kind = 0 Then
+                If pair.Item2.IsKind(0) Then
                     Return TextSpan.FromBounds(pair.Item1.Span.End, _node.FullSpan.End)
                 End If
 
@@ -96,8 +96,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Private Shared Function GetIndexForEndOfLeadingTrivia(triviaList As SyntaxTriviaList) As Integer
                 For i As Integer = 0 To triviaList.Count - 1
                     Dim trivia = triviaList(i)
-                    If trivia.Kind = SyntaxKind.EndOfLineTrivia Or
-                       trivia.Kind = SyntaxKind.ColonTrivia Then
+                    If trivia.IsKind(SyntaxKind.EndOfLineTrivia) Or
+                       trivia.IsKind(SyntaxKind.ColonTrivia) Then
                         Return i
                     End If
                 Next i

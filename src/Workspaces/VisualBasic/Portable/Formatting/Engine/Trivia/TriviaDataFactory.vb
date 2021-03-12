@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Private Function CalculateSpaces(token1 As SyntaxToken, token2 As SyntaxToken) As Integer
-            Dim initialColumn = If(token1.Kind = 0, 0, Me.TreeInfo.GetOriginalColumn(Me.Options.GetOption(FormattingOptions2.TabSize), token1) + token1.Width)
+            Dim initialColumn = If(token1.IsKind(0), 0, Me.TreeInfo.GetOriginalColumn(Me.Options.GetOption(FormattingOptions2.TabSize), token1) + token1.Width)
             Dim textSnippet = Me.TreeInfo.GetTextBetween(token1, token2)
 
             Return textSnippet.ConvertTabToSpace(Me.Options.GetOption(FormattingOptions2.TabSize), initialColumn, textSnippet.Length)

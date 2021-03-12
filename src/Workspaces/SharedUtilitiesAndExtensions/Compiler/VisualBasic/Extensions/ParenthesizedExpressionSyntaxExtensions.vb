@@ -330,8 +330,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Select is the only keyword in LINQ which has dual usage 1. Case selection 2. Query Select Clause
             If isNodeCloseParenLastTokenOfStatement AndAlso
                 EndsQuery(lastToken, semanticModel, cancellationToken) AndAlso
-                nextToken.Kind = SyntaxKind.SelectKeyword AndAlso
-                nextNextToken.Kind <> SyntaxKind.CaseKeyword Then
+                nextToken.IsKind(SyntaxKind.SelectKeyword) AndAlso
+                Not nextNextToken.IsKind(SyntaxKind.CaseKeyword) Then
                 Return False
             End If
 
@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' (Await Task.Run(Function() i)),
             If node.Expression.IsKind(SyntaxKind.AwaitExpression) AndAlso
                 (isNodeCloseParenLastTokenOfStatement OrElse
-                nextToken.Kind = SyntaxKind.CommaToken) Then
+                nextToken.IsKind(SyntaxKind.CommaToken)) Then
                 Return True
             End If
 
@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             '   Dim x = <x <%= (Sub() If True Then Else) %>/>
             If TypeOf expression Is SingleLineLambdaExpressionSyntax Then
                 If node.CloseParenToken.IsLastTokenOfStatementWithEndOfLine() AndAlso
-                    lastToken.Kind = SyntaxKind.ThenKeyword Then
+                    lastToken.IsKind(SyntaxKind.ThenKeyword) Then
                     Return False
                 End If
 
@@ -451,10 +451,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 '                                End Sub) Is Object
                 ' 4. TypeOf (Sub() If True Then Dim y = Sub()
                 '                                End Sub) IsNot Object
-                If (node.Parent.Kind = SyntaxKind.InvocationExpression OrElse
-                        node.Parent.Kind = SyntaxKind.IsExpression OrElse
-                        node.Parent.Kind = SyntaxKind.TypeOfIsExpression OrElse
-                        node.Parent.Kind = SyntaxKind.TypeOfIsNotExpression) Then
+                If (node.Parent.IsKind(SyntaxKind.InvocationExpression) OrElse
+                        node.Parent.IsKind(SyntaxKind.IsExpression) OrElse
+                        node.Parent.IsKind(SyntaxKind.TypeOfIsExpression) OrElse
+                        node.Parent.IsKind(SyntaxKind.TypeOfIsNotExpression)) Then
                     Return False
                 End If
 
@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If nextToken.IsKindOrHasMatchingText(SyntaxKind.CloseParenToken) OrElse
                        nextToken.IsKindOrHasMatchingText(SyntaxKind.CloseBraceToken) OrElse
                        lastToken.IsLastTokenOfStatement(checkColonTrivia:=True) OrElse
-                       node.Parent.Kind = SyntaxKind.XmlEmbeddedExpression Then
+                       node.Parent.IsKind(SyntaxKind.XmlEmbeddedExpression) Then
                     Return True
                 End If
 

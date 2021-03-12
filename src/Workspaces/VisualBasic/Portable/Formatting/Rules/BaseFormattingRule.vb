@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Sub
 
         Protected Shared Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
-            If startToken.Kind = SyntaxKind.None OrElse endToken.Kind = SyntaxKind.None Then
+            If startToken.IsKind(SyntaxKind.None) OrElse endToken.IsKind(SyntaxKind.None) Then
                 Return
             End If
 
@@ -58,9 +58,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim nextToken = endToken.GetNextToken(includeZeroWidth:=True)
 
             For Each trivia In nextToken.LeadingTrivia.Reverse()
-                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
+                If trivia.IsKind(SyntaxKind.EndOfLineTrivia) Then
                     Exit For
-                ElseIf trivia.Kind = SyntaxKind.ColonTrivia Then
+                ElseIf trivia.IsKind(SyntaxKind.ColonTrivia) Then
                     Return TextSpan.FromBounds(spanStart, trivia.FullSpan.Start)
                 End If
             Next
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 #Enable Warning IDE0060 ' Remove unused parameter
 
         Protected Shared Sub AddAnchorIndentationOperation(operations As List(Of AnchorIndentationOperation), startToken As SyntaxToken, endToken As SyntaxToken)
-            If startToken.Kind = SyntaxKind.None OrElse endToken.Kind = SyntaxKind.None Then
+            If startToken.IsKind(SyntaxKind.None) OrElse endToken.IsKind(SyntaxKind.None) Then
                 Return
             End If
 

@@ -21,18 +21,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
         End Function
 
         Protected Overrides Function IsStringOrCharLiteralToken(token As SyntaxToken) As Boolean
-            Return token.Kind() = SyntaxKind.StringLiteralToken OrElse
-                   token.Kind() = SyntaxKind.CharacterLiteralToken
+            Return token.IsKind(SyntaxKind.StringLiteralToken) OrElse
+                   token.IsKind(SyntaxKind.CharacterLiteralToken)
         End Function
 
         Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As VirtualCharSequence
             Debug.Assert(Not token.ContainsDiagnostics)
 
-            If token.Kind() = SyntaxKind.StringLiteralToken Then
+            If token.IsKind(SyntaxKind.StringLiteralToken) Then
                 Return TryConvertSimpleDoubleQuoteString(token, """", """", escapeBraces:=False)
             End If
 
-            If token.Kind() = SyntaxKind.InterpolatedStringTextToken Then
+            If token.IsKind(SyntaxKind.InterpolatedStringTextToken) Then
                 Return TryConvertSimpleDoubleQuoteString(token, "", "", escapeBraces:=True)
             End If
 

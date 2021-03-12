@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Module FormattingHelpers
         Public Function IsLessThanInAttribute(token As SyntaxToken) As Boolean
             ' < in attribute
-            If token.Kind = SyntaxKind.LessThanToken AndAlso
-               token.Parent.Kind = SyntaxKind.AttributeList AndAlso
+            If token.IsKind(SyntaxKind.LessThanToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.AttributeList) AndAlso
                DirectCast(token.Parent, AttributeListSyntax).LessThanToken.Equals(token) Then
                 Return True
             End If
@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Function IsGreaterThanInAttribute(token As SyntaxToken) As Boolean
             ' > in attribute
-            If token.Kind = SyntaxKind.GreaterThanToken AndAlso
-               token.Parent.Kind = SyntaxKind.AttributeList AndAlso
+            If token.IsKind(SyntaxKind.GreaterThanToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.AttributeList) AndAlso
                DirectCast(token.Parent, AttributeListSyntax).GreaterThanToken.Equals(token) Then
                 Return True
             End If
@@ -34,9 +34,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return False
             End If
 
-            If (token.Kind = SyntaxKind.DoubleQuoteToken OrElse
-                token.Kind = SyntaxKind.SingleQuoteToken) AndAlso
-               token.Parent.Kind = SyntaxKind.XmlString AndAlso
+            If (token.IsKind(SyntaxKind.DoubleQuoteToken) OrElse
+                token.IsKind(SyntaxKind.SingleQuoteToken)) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlString) AndAlso
                (DirectCast(token.Parent, XmlStringSyntax).StartQuoteToken.Equals(token) OrElse
                 DirectCast(token.Parent, XmlStringSyntax).EndQuoteToken.Equals(token)) Then
                 Return True
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return False
             End If
 
-            If token.Parent.Kind = SyntaxKind.XmlString AndAlso
+            If token.Parent.IsKind(SyntaxKind.XmlString) AndAlso
                 Not DirectCast(token.Parent, XmlStringSyntax).StartQuoteToken.Equals(token) AndAlso
                 Not DirectCast(token.Parent, XmlStringSyntax).EndQuoteToken.Equals(token) Then
                 Return True
@@ -89,8 +89,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' < in empty element
-            If token.Kind = SyntaxKind.LessThanToken AndAlso
-               token.Parent.Kind = SyntaxKind.XmlEmptyElement Then
+            If token.IsKind(SyntaxKind.LessThanToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlEmptyElement) Then
                 Dim xmlElement = DirectCast(token.Parent, XmlEmptyElementSyntax)
                 If xmlElement.LessThanToken = token Then
                     Return True
@@ -99,8 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' @ in xml attribute access expression
-            If token.Kind = SyntaxKind.AtToken AndAlso
-               token.Parent.Kind = SyntaxKind.XmlAttributeAccessExpression Then
+            If token.IsKind(SyntaxKind.AtToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlAttributeAccessExpression) Then
                 Dim xmlMemberAccess = DirectCast(token.Parent, XmlMemberAccessExpressionSyntax)
                 If xmlMemberAccess.Token2 = token Then
                     Return True
@@ -109,8 +109,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' : in xml prefix
-            If token.Kind = SyntaxKind.ColonToken AndAlso
-               token.Parent.Kind = SyntaxKind.XmlPrefix Then
+            If token.IsKind(SyntaxKind.ColonToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlPrefix) Then
                 Dim xmlElement = DirectCast(token.Parent, XmlPrefixSyntax)
                 If xmlElement.ColonToken = token Then
                     Return True
@@ -119,8 +119,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' = in xml attribute
-            If token.Kind = SyntaxKind.EqualsToken AndAlso
-               token.Parent.Kind = SyntaxKind.XmlAttribute Then
+            If token.IsKind(SyntaxKind.EqualsToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlAttribute) Then
                 Dim xmlElement = DirectCast(token.Parent, XmlAttributeSyntax)
                 If xmlElement.EqualsToken = token Then
                     Return True
@@ -129,8 +129,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' = in documentation comment cref attribute
-            If token.Kind = SyntaxKind.EqualsToken AndAlso
-               token.Parent.Kind = SyntaxKind.XmlCrefAttribute Then
+            If token.IsKind(SyntaxKind.EqualsToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlCrefAttribute) Then
                 Dim xmlElement = DirectCast(token.Parent, XmlCrefAttributeSyntax)
                 If xmlElement.EqualsToken = token Then
                     Return True
@@ -139,8 +139,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' = in documentation comment name attribute
-            If token.Kind = SyntaxKind.EqualsToken AndAlso
-               token.Parent.Kind = SyntaxKind.XmlNameAttribute Then
+            If token.IsKind(SyntaxKind.EqualsToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlNameAttribute) Then
                 Dim xmlElement = DirectCast(token.Parent, XmlNameAttributeSyntax)
                 If xmlElement.EqualsToken = token Then
                     Return True
@@ -149,8 +149,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' < in xml namespace imports
-            If token.Kind = SyntaxKind.LessThanToken AndAlso
-               token.Parent.Kind = SyntaxKind.XmlNamespaceImportsClause Then
+            If token.IsKind(SyntaxKind.LessThanToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlNamespaceImportsClause) Then
                 Dim xmlElement = DirectCast(token.Parent, XmlNamespaceImportsClauseSyntax)
                 If xmlElement.LessThanToken = token Then
                     Return True
@@ -159,8 +159,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' > in xml namespace imports
-            If token.Kind = SyntaxKind.GreaterThanToken AndAlso
-               token.Parent.Kind = SyntaxKind.XmlNamespaceImportsClause Then
+            If token.IsKind(SyntaxKind.GreaterThanToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlNamespaceImportsClause) Then
                 Dim xmlElement = DirectCast(token.Parent, XmlNamespaceImportsClauseSyntax)
                 If xmlElement.GreaterThanToken = token Then
                     Return True
@@ -169,8 +169,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' < in xml literals
-            If token.Kind = SyntaxKind.LessThanToken AndAlso
-               token.Parent.Kind = SyntaxKind.XmlBracketedName Then
+            If token.IsKind(SyntaxKind.LessThanToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlBracketedName) Then
                 Dim xmlBracketedName = DirectCast(token.Parent, XmlBracketedNameSyntax)
                 If xmlBracketedName.LessThanToken = token Then
                     Return True
@@ -179,8 +179,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' > in xml literals
-            If token.Kind = SyntaxKind.GreaterThanToken AndAlso
-               token.Parent.Kind = SyntaxKind.XmlBracketedName Then
+            If token.IsKind(SyntaxKind.GreaterThanToken) AndAlso
+               token.Parent.IsKind(SyntaxKind.XmlBracketedName) Then
                 Dim xmlBracketedName = DirectCast(token.Parent, XmlBracketedNameSyntax)
                 If xmlBracketedName.GreaterThanToken = token Then
                     Return True
@@ -193,8 +193,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' < in xml element
-            If token.Kind = SyntaxKind.LessThanToken AndAlso
-               token.Parent.Parent.Kind = SyntaxKind.XmlElement Then
+            If token.IsKind(SyntaxKind.LessThanToken) AndAlso
+               token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
                 Dim xmlElement = DirectCast(token.Parent.Parent, XmlElementSyntax)
                 If xmlElement.StartTag.LessThanToken = token Then
                     Return True
@@ -203,8 +203,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' > in xml element
-            If token.Kind = SyntaxKind.GreaterThanToken AndAlso
-               token.Parent.Parent.Kind = SyntaxKind.XmlElement Then
+            If token.IsKind(SyntaxKind.GreaterThanToken) AndAlso
+               token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
                 Dim xmlElement = DirectCast(token.Parent.Parent, XmlElementSyntax)
                 If IsGreaterThanInXmlTag(xmlElement.StartTag, token) OrElse
                    IsGreaterThanInXmlTag(xmlElement.EndTag, token) Then
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' > in start/end tag
-            If token.Kind = SyntaxKind.GreaterThanToken AndAlso IsGreaterThanInXmlTag(token.Parent, token) Then
+            If token.IsKind(SyntaxKind.GreaterThanToken) AndAlso IsGreaterThanInXmlTag(token.Parent, token) Then
                 Return True
             End If
 
@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Public Function IsQuestionInNullableType(currentToken As SyntaxToken) As Boolean
-            If currentToken.Kind <> SyntaxKind.QuestionToken Then
+            If Not currentToken.IsKind(SyntaxKind.QuestionToken) Then
                 Return False
             End If
 
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Public Function IsColonAfterAttributeTarget(previousToken As SyntaxToken, currentToken As SyntaxToken) As Boolean
-            If currentToken.Kind <> SyntaxKind.ColonToken Then
+            If Not currentToken.IsKind(SyntaxKind.ColonToken) Then
                 Return False
             End If
 
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Public Function IsExclamationInDictionaryAccess(token As SyntaxToken) As Boolean
-            If token.Kind <> SyntaxKind.ExclamationToken Then
+            If Not token.IsKind(SyntaxKind.ExclamationToken) Then
                 Return False
             End If
 
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Public Function IsMemberAccessDotWithoutExpression(token As SyntaxToken) As Boolean
-            If token.Kind <> SyntaxKind.DotToken Then
+            If Not token.IsKind(SyntaxKind.DotToken) Then
                 Return False
             End If
 
@@ -331,7 +331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Public Function IsDictionaryAccessExclamationWithoutExpression(token As SyntaxToken) As Boolean
-            If token.Kind <> SyntaxKind.ExclamationToken Then
+            If Not token.IsKind(SyntaxKind.ExclamationToken) Then
                 Return False
             End If
 

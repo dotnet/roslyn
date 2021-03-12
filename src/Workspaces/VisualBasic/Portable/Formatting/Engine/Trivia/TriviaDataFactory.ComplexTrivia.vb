@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return False
                 End If
 
-                Dim beginningOfNewLine = Me.Token1.Kind = SyntaxKind.None
+                Dim beginningOfNewLine = Me.Token1.IsKind(SyntaxKind.None)
 
                 If Not Me.SecondTokenIsFirstTokenOnLine AndAlso Not beginningOfNewLine Then
                     Return CodeShapeAnalyzer.ShouldFormatSingleLine(list)
