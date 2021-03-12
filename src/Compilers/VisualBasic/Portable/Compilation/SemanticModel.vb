@@ -926,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Do not return any type information for a ObjectCreationExpressionSyntax.Type node.
             If boundNodes.LowestBoundNodeOfSyntacticParent IsNot Nothing AndAlso
-               boundNodes.LowestBoundNodeOfSyntacticParent.Syntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso
+               boundNodes.LowestBoundNodeOfSyntacticParent.Syntax.IsKind(SyntaxKind.ObjectCreationExpression) AndAlso
                DirectCast(boundNodes.LowestBoundNodeOfSyntacticParent.Syntax, ObjectCreationExpressionSyntax).Type Is lowestExpr.Syntax Then
                 Return Nothing
             End If
@@ -993,7 +993,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim parentSyntax As SyntaxNode = boundNodes.LowestBoundNodeOfSyntacticParent.Syntax
                 If parentSyntax IsNot Nothing AndAlso
                    parentSyntax Is boundNodes.LowestBoundNode.Syntax.Parent AndAlso
-                   ((parentSyntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso (DirectCast(parentSyntax, ObjectCreationExpressionSyntax).Type Is boundNodes.LowestBoundNode.Syntax))) Then
+                   ((parentSyntax.IsKind(SyntaxKind.ObjectCreationExpression) AndAlso (DirectCast(parentSyntax, ObjectCreationExpressionSyntax).Type Is boundNodes.LowestBoundNode.Syntax))) Then
                     type = DirectCast(boundNodes.LowestBoundNodeOfSyntacticParent, BoundBadExpression).Type
                 End If
             End If
@@ -1032,7 +1032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' Watch out for not creatable types within object creation syntax
                         If boundNodes.LowestBoundNodeOfSyntacticParent IsNot Nothing AndAlso
-                           boundNodes.LowestBoundNodeOfSyntacticParent.Syntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso
+                           boundNodes.LowestBoundNodeOfSyntacticParent.Syntax.IsKind(SyntaxKind.ObjectCreationExpression) AndAlso
                            DirectCast(boundNodes.LowestBoundNodeOfSyntacticParent.Syntax, ObjectCreationExpressionSyntax).Type Is boundNodes.LowestBoundNode.Syntax AndAlso
                            boundNodes.LowestBoundNodeOfSyntacticParent.Kind = BoundKind.BadExpression AndAlso
                            DirectCast(boundNodes.LowestBoundNodeOfSyntacticParent, BoundBadExpression).ResultKind = LookupResultKind.NotCreatable Then
@@ -1140,7 +1140,7 @@ _Default:
                             lowestExpr.GetExpressionSymbols(symbolsBuilder)
                             resultKind = lowestExpr.ResultKind
 
-                            If lowestExpr.Kind = BoundKind.BadExpression AndAlso lowestExpr.Syntax.Kind = SyntaxKind.ObjectCreationExpression Then
+                            If lowestExpr.Kind = BoundKind.BadExpression AndAlso lowestExpr.Syntax.IsKind(SyntaxKind.ObjectCreationExpression) Then
                                 ' Look for a method group under this bad node
                                 Dim typeSyntax = DirectCast(lowestExpr.Syntax, ObjectCreationExpressionSyntax).Type
 
@@ -1424,7 +1424,7 @@ _Default:
             If parentSyntax IsNot Nothing AndAlso
                lowestBoundNode IsNot Nothing AndAlso
                parentSyntax Is lowestBoundNode.Syntax.Parent AndAlso
-               parentSyntax.Kind = SyntaxKind.Attribute AndAlso
+               parentSyntax.IsKind(SyntaxKind.Attribute) AndAlso
                (DirectCast(parentSyntax, AttributeSyntax).Name Is lowestBoundNode.Syntax) Then
 
                 Dim unwrappedSymbols = UnwrapAliases(bindingSymbols)

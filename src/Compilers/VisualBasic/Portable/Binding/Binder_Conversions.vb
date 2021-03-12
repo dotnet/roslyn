@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              diagnostics As BindingDiagnosticBag
          ) As BoundExpression
 
-            Debug.Assert(node.Keyword.Kind = SyntaxKind.CTypeKeyword)
+            Debug.Assert(node.Keyword.IsKind(SyntaxKind.CTypeKeyword))
 
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              diagnostics As BindingDiagnosticBag
          ) As BoundExpression
 
-            Debug.Assert(node.Keyword.Kind = SyntaxKind.DirectCastKeyword)
+            Debug.Assert(node.Keyword.IsKind(SyntaxKind.DirectCastKeyword))
 
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              diagnostics As BindingDiagnosticBag
          ) As BoundExpression
 
-            Debug.Assert(node.Keyword.Kind = SyntaxKind.TryCastKeyword)
+            Debug.Assert(node.Keyword.IsKind(SyntaxKind.TryCastKeyword))
 
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
@@ -457,7 +457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          TypeOf argument.Syntax.Parent Is BinaryExpressionSyntax OrElse
                          TypeOf argument.Syntax.Parent Is UnaryExpressionSyntax OrElse
                          TypeOf argument.Syntax.Parent Is TupleExpressionSyntax OrElse
-                         (TypeOf argument.Syntax.Parent Is AssignmentStatementSyntax AndAlso argument.Syntax.Parent.Kind <> SyntaxKind.SimpleAssignmentStatement),
+                         (TypeOf argument.Syntax.Parent Is AssignmentStatementSyntax AndAlso Not argument.Syntax.Parent.IsKind(SyntaxKind.SimpleAssignmentStatement)),
                          "Applying yet another conversion to an implicit conversion from NOTHING, probably MakeRValue was called too early.")
 
             Dim sourceType = argument.Type
@@ -1247,7 +1247,7 @@ DoneWithDiagnostics:
                             Debug.Assert(Not isExplicit OrElse reclassifyBinder.OptionStrict = VisualBasic.OptionStrict.Off)
 
                             argument = reclassifyBinder.ReclassifyAddressOf(addressOfExpression, delegateResolutionResult, targetType, diagnostics, isForHandles:=False,
-                                                                            warnIfResultOfAsyncMethodIsDroppedDueToRelaxation:=Not isExplicit AndAlso tree.Kind <> SyntaxKind.ObjectCreationExpression)
+                                                                            warnIfResultOfAsyncMethodIsDroppedDueToRelaxation:=Not isExplicit AndAlso Not tree.IsKind(SyntaxKind.ObjectCreationExpression))
                             hasErrors = argument.HasErrors
 
                             Debug.Assert(convKind = delegateResolutionResult.DelegateConversions)
@@ -1471,7 +1471,7 @@ DoneWithDiagnostics:
                                                                                      methodGroup,
                                                                                      boundLambda.DelegateRelaxation,
                                                                                      isZeroArgumentKnownToBeUsed:=False,
-                                                                                     warnIfResultOfAsyncMethodIsDroppedDueToRelaxation:=Not isExplicit AndAlso tree.Kind <> SyntaxKind.ObjectCreationExpression,
+                                                                                     warnIfResultOfAsyncMethodIsDroppedDueToRelaxation:=Not isExplicit AndAlso Not tree.IsKind(SyntaxKind.ObjectCreationExpression),
                                                                                      diagnostics:=diagnostics)
             End If
 

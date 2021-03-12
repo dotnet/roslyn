@@ -832,7 +832,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Handle type parameter variance.
             Dim varianceKeyword = typeParamSyntax.VarianceKeyword
             Dim variance As VarianceKind = VarianceKind.None
-            If varianceKeyword.Kind <> SyntaxKind.None Then
+            If Not varianceKeyword.IsKind(SyntaxKind.None) Then
                 If allowVarianceSpecifier Then
                     variance = Binder.DecodeVariance(varianceKeyword)
                 Else

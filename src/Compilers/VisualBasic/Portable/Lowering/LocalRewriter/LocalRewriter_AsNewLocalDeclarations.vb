@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' We might want to look into this option later.
 
                         Debug.Assert(node.Syntax IsNot Nothing)
-                        Debug.Assert(node.Syntax.Kind = SyntaxKind.VariableDeclarator)
+                        Debug.Assert(node.Syntax.IsKind(SyntaxKind.VariableDeclarator))
                         Dim asNew = DirectCast(DirectCast(node.Syntax, VariableDeclaratorSyntax).AsClause, AsNewClauseSyntax)
 
                         Dim objectCreationExpressionSyntax = DirectCast(asNew.NewExpression, ObjectCreationExpressionSyntax)

@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' We need to create a new Block with locals, initialization 
             ' statements, bound block and optional clean-up statements
             Dim initStatements = ArrayBuilder(Of BoundStatement).GetInstance
-            Dim instrument As Boolean = Me.Instrument(node) AndAlso syntax.Kind = SyntaxKind.WithBlock
+            Dim instrument As Boolean = Me.Instrument(node) AndAlso syntax.IsKind(SyntaxKind.WithBlock)
 
             If instrument Then
                 Dim prologue = _instrumenterOpt.CreateWithStatementPrologue(node)

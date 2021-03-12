@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 For index = 0 To caseBlockBuilder.Count - 1
                     Dim caseBlock = caseBlockBuilder(index)
-                    If caseBlock.Syntax.Kind <> SyntaxKind.CaseElseBlock AndAlso
+                    If Not caseBlock.Syntax.IsKind(SyntaxKind.CaseElseBlock) AndAlso
                         Not caseBlock.CaseStatement.Syntax.IsMissing Then
 
                         Dim caseStatement = caseBlock.CaseStatement

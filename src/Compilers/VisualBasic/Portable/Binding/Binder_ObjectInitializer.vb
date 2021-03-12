@@ -642,7 +642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each fieldInitializer In memberInitializerSyntax.Initializers
                 ' NamedFieldInitializerSyntax is derived from FieldInitializerSyntax, which has this optional keyword as a member
                 ' however it should not be set in case of a NamedFieldInitializerSyntax
-                Debug.Assert(fieldInitializer.KeyKeyword.Kind <> SyntaxKind.KeyKeyword)
+                Debug.Assert(Not fieldInitializer.KeyKeyword.IsKind(SyntaxKind.KeyKeyword))
 
                 Dim target As BoundExpression
                 Dim namedFieldInitializer = DirectCast(fieldInitializer, NamedFieldInitializerSyntax)

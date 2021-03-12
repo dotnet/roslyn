@@ -584,12 +584,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(isCrefAttribute OrElse attributeNode.Kind = SyntaxKind.XmlNameAttribute)
 
             Dim trivia As SyntaxTrivia = DirectCast(parent, DocumentationCommentTriviaSyntax).ParentTrivia
-            If trivia.Kind = SyntaxKind.None Then
+            If trivia.IsKind(SyntaxKind.None) Then
                 Return Nothing
             End If
 
             Dim token As SyntaxToken = CType(trivia.Token, SyntaxToken)
-            If token.Kind = SyntaxKind.None Then
+            If token.IsKind(SyntaxKind.None) Then
                 Return Nothing
             End If
 

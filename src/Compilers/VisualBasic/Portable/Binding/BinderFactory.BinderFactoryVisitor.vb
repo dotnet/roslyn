@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function DefaultVisit(node As SyntaxNode) As Binder
-                If _factory.InScript AndAlso node.Parent.Kind = SyntaxKind.CompilationUnit Then
+                If _factory.InScript AndAlso node.Parent.IsKind(SyntaxKind.CompilationUnit) Then
                     ' Use CompilationUnitSyntax as a key to the cache for all statements to get a single shared instance of TopLeveCodeBinder
                     Return GetBinderForNodeAndUsage(DirectCast(node.Parent, VisualBasicSyntaxNode), NodeUsage.TopLevelExecutableStatement, DirectCast(node.Parent, VisualBasicSyntaxNode), _position)
                 End If

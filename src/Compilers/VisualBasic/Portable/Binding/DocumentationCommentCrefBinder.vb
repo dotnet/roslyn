@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function HasTrailingSkippedTokensAndShouldReportError(reference As CrefReferenceSyntax) As Boolean
             Dim triviaList As SyntaxTriviaList = reference.GetTrailingTrivia()
             For Each trivia In triviaList
-                If trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
+                If trivia.IsKind(SyntaxKind.SkippedTokensTrivia) Then
                     ' ignore those, representing VB intrinsic types
                     Dim name As TypeSyntax = reference.Name
                     If name.Kind = SyntaxKind.IdentifierName Then
@@ -467,7 +467,7 @@ lAgain:
                     signatureTypes.Add(
                         New SignatureElement(
                             typeParameterAwareBinder.BindTypeSyntax(part.Type, diagnostic),
-                            part.Modifier.Kind = SyntaxKind.ByRefKeyword))
+                            part.Modifier.IsKind(SyntaxKind.ByRefKeyword)))
                 Next
             End If
 

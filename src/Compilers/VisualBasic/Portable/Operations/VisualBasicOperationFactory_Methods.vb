@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol),
             isDefault As Boolean
         ) As IArgumentOperation
-            Dim isImplicit As Boolean = argument.WasCompilerGenerated AndAlso argument.Syntax.Kind <> SyntaxKind.OmittedArgument
+            Dim isImplicit As Boolean = argument.WasCompilerGenerated AndAlso Not argument.Syntax.IsKind(SyntaxKind.OmittedArgument)
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Dim byRefArgument = DirectCast(argument, BoundByRefArgumentWithCopyBack)
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             isImplicit As Boolean) As IArgumentOperation
 
             ' put argument syntax to argument operation
-            Dim syntax = If(valueNode.Syntax.Kind = SyntaxKind.OmittedArgument, valueNode.Syntax, TryCast(valueNode.Syntax?.Parent, ArgumentSyntax))
+            Dim syntax = If(valueNode.Syntax.IsKind(SyntaxKind.OmittedArgument), valueNode.Syntax, TryCast(valueNode.Syntax?.Parent, ArgumentSyntax))
             Dim value = Create(valueNode)
 
             If syntax Is Nothing Then
@@ -600,12 +600,12 @@ Namespace Microsoft.CodeAnalysis.Operations
             ' In the case of AddressOf, the operand can be a BoundDelegateCreationExpression, a BoundAddressOfOperator, or
             ' a BoundBadExpression. For simplicity, we just do a syntax check to make sure it's an AddressOfExpression so
             ' we don't have to compare against all 3 BoundKinds
-            Dim validAddressOfConversionSyntax = operand.Syntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
-                                                 (conversionSyntax.Kind() = SyntaxKind.CTypeExpression OrElse
-                                                  conversionSyntax.Kind() = SyntaxKind.DirectCastExpression OrElse
-                                                  conversionSyntax.Kind() = SyntaxKind.TryCastExpression OrElse
-                                                  conversionSyntax.Kind() = SyntaxKind.ObjectCreationExpression OrElse
-                                                  (conversionSyntax.Kind() = SyntaxKind.AddressOfExpression AndAlso
+            Dim validAddressOfConversionSyntax = operand.Syntax.IsKind(SyntaxKind.AddressOfExpression) AndAlso
+                                                 (conversionSyntax.IsKind(SyntaxKind.CTypeExpression) OrElse
+                                                  conversionSyntax.IsKind(SyntaxKind.DirectCastExpression) OrElse
+                                                  conversionSyntax.IsKind(SyntaxKind.TryCastExpression) OrElse
+                                                  conversionSyntax.IsKind(SyntaxKind.ObjectCreationExpression) OrElse
+                                                  (conversionSyntax.IsKind(SyntaxKind.AddressOfExpression) AndAlso
                                                    conversionSyntax Is operand.Syntax))
 
             Dim validLambdaConversionNode = operand.Kind = BoundKind.Lambda OrElse

@@ -1029,7 +1029,7 @@ OtherExpressions:
                         End If
                     Next
                 Else
-                    Debug.Assert(caseBlock.Syntax.Kind = SyntaxKind.CaseElseBlock)
+                    Debug.Assert(caseBlock.Syntax.IsKind(SyntaxKind.CaseElseBlock))
 
                     ' We have a case else block, update the fallThroughLabel to the corresponding caseBlockLabel
                     fallThroughLabel = caseBlockLabel

@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function MakeBinder(node As SyntaxNode, position As Integer) As Binder
             If SyntaxFacts.InSpanOrEffectiveTrailingOfNode(node, position) OrElse
-               node.Kind = SyntaxKind.CompilationUnit Then
+               node.IsKind(SyntaxKind.CompilationUnit) Then
 
                 Dim visitor = _binderFactoryVisitorPool.Allocate()
                 visitor.Position = position
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return binder
                 End If
 
-                If node.Kind = SyntaxKind.DocumentationCommentTrivia Then
+                If node.IsKind(SyntaxKind.DocumentationCommentTrivia) Then
                     node = DirectCast(DirectCast(node, StructuredTriviaSyntax).ParentTrivia.Token.Parent, VisualBasicSyntaxNode)
                 Else
                     node = node.Parent

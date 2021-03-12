@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 else
                     errId = errId.ERR_BranchOutOfFinally
 
-                    If syntax.Kind = SyntaxKind.GoToStatement Then
+                    If syntax.IsKind(SyntaxKind.GoToStatement) Then
                         errorLocation = DirectCast(syntax, GoToStatementSyntax).Label
                     Else
                         errorLocation = syntax

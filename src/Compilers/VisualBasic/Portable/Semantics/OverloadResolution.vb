@@ -3413,7 +3413,7 @@ Bailout:
             Dim parent As SyntaxNode = syntax.Parent
 
             While parent IsNot Nothing
-                If parent.Kind = SyntaxKind.Attribute Then
+                If parent.IsKind(SyntaxKind.Attribute) Then
                     Return DirectCast(parent, AttributeSyntax).Name.Span.Contains(syntax.Position)
                 ElseIf TypeOf parent Is ExpressionSyntax OrElse TypeOf parent Is StatementSyntax Then
                     Exit While

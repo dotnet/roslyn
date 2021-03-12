@@ -798,10 +798,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     End If
                                     Return CreateErrorTypedConstant(node.Type)
                                 Else
-                                    If node.Syntax.Kind = SyntaxKind.PredefinedCastExpression Then
+                                    If node.Syntax.IsKind(SyntaxKind.PredefinedCastExpression) Then
                                         Dim cast = DirectCast(node.Syntax, PredefinedCastExpressionSyntax)
 
-                                        If cast.Keyword.Kind = SyntaxKind.CObjKeyword Then
+                                        If cast.Keyword.IsKind(SyntaxKind.CObjKeyword) Then
                                             InternalSyntax.Parser.CheckFeatureAvailability(diagBag,
                                                                                            cast.Keyword.GetLocation(),
                                                                                            DirectCast(cast.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,

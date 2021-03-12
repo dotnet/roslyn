@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     alternate.AddRange(list, 0, i)
                 End If
 
-                If alternate IsNot Nothing AndAlso visited IsNot Nothing AndAlso visited.Kind <> SyntaxKind.None Then
+                If alternate IsNot Nothing AndAlso visited IsNot Nothing AndAlso Not visited.IsKind(SyntaxKind.None) Then
                     alternate.Add(visited)
                 End If
 
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     alternate.Add(list, 0, i)
                 End If
 
-                If alternate IsNot Nothing AndAlso visited.Kind <> SyntaxKind.None Then ' skip the null check since SyntaxToken is a value type
+                If alternate IsNot Nothing AndAlso Not visited.IsKind(SyntaxKind.None) Then ' skip the null check since SyntaxToken is a value type
                     alternate.Add(visited)
                 End If
             Next
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         alternate.Add(list, 0, index)
                     End If
 
-                    If alternate IsNot Nothing AndAlso visited.Kind() <> SyntaxKind.None Then
+                    If alternate IsNot Nothing AndAlso Not visited.IsKind(SyntaxKind.None) Then
                         alternate.Add(visited)
                     End If
                 Next

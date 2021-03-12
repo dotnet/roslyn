@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If rewrittenCaseCondition Is Nothing Then
                 ' This must be a Case Else Block
-                Debug.Assert(curCaseBlock.Syntax.Kind = SyntaxKind.CaseElseBlock)
+                Debug.Assert(curCaseBlock.Syntax.IsKind(SyntaxKind.CaseElseBlock))
                 Debug.Assert(Not curCaseBlock.CaseStatement.CaseClauses.Any())
 
                 ' Only the last block can be a Case Else block 
@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     rewrittenStatement = rewrittenBody
                 End If
             Else
-                Debug.Assert(curCaseBlock.Syntax.Kind = SyntaxKind.CaseBlock)
+                Debug.Assert(curCaseBlock.Syntax.IsKind(SyntaxKind.CaseBlock))
                 If instrument Then
                     rewrittenCaseCondition = _instrumenterOpt.InstrumentSelectStatementCaseCondition(selectStatement, rewrittenCaseCondition, _currentMethodOrLambda, lazyConditionalBranchLocal)
                 End If
@@ -324,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As BoundExpression
             If node.CaseClauses.Any() Then
                 ' Case block
-                Debug.Assert(node.Syntax.Kind = SyntaxKind.CaseStatement)
+                Debug.Assert(node.Syntax.IsKind(SyntaxKind.CaseStatement))
                 Debug.Assert(node.ConditionOpt IsNot Nothing)
                 unstructuredExceptionHandlingResumeTarget = If(generateUnstructuredExceptionHandlingResumeCode,
                                                                RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, canThrow:=True),
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return VisitExpressionNode(node.ConditionOpt)
             Else
                 ' Case Else block
-                Debug.Assert(node.Syntax.Kind = SyntaxKind.CaseElseStatement)
+                Debug.Assert(node.Syntax.IsKind(SyntaxKind.CaseElseStatement))
                 unstructuredExceptionHandlingResumeTarget = Nothing
                 Return Nothing
             End If

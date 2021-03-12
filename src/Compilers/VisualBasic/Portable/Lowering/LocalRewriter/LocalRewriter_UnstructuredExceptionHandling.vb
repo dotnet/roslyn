@@ -478,7 +478,7 @@ Done:
 #End If
 
             If Not (TypeOf statement.Syntax Is StatementSyntax) Then
-                If statement.Syntax.Parent IsNot Nothing AndAlso statement.Syntax.Parent.Kind = SyntaxKind.EraseStatement Then
+                If statement.Syntax.Parent IsNot Nothing AndAlso statement.Syntax.Parent.IsKind(SyntaxKind.EraseStatement) Then
                     Debug.Assert(TypeOf statement.Syntax Is ExpressionSyntax)
                 Else
                     Select Case statement.Syntax.Kind
@@ -495,9 +495,9 @@ Done:
                         Case SyntaxKind.ModifiedIdentifier
                             If statement.Kind <> BoundKind.LocalDeclaration OrElse
                                statement.Syntax.Parent Is Nothing OrElse
-                               statement.Syntax.Parent.Kind <> SyntaxKind.VariableDeclarator OrElse
+                               Not statement.Syntax.Parent.IsKind(SyntaxKind.VariableDeclarator) OrElse
                                statement.Syntax.Parent.Parent Is Nothing OrElse
-                               statement.Syntax.Parent.Parent.Kind <> SyntaxKind.LocalDeclarationStatement Then
+                               Not statement.Syntax.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement) Then
                                 Return False
                             End If
 
@@ -522,26 +522,26 @@ Done:
                 If Not (TypeOf statement.Syntax Is ExecutableStatementSyntax) Then
                     Select Case statement.Kind
                         Case BoundKind.IfStatement
-                            Debug.Assert(statement.Syntax.Kind = SyntaxKind.ElseIfBlock AndAlso
+                            Debug.Assert(statement.Syntax.IsKind(SyntaxKind.ElseIfBlock) AndAlso
                                          statement.Syntax.Parent IsNot Nothing AndAlso
-                                         statement.Syntax.Parent.Kind = SyntaxKind.MultiLineIfBlock AndAlso
+                                         statement.Syntax.Parent.IsKind(SyntaxKind.MultiLineIfBlock) AndAlso
                                          _unstructuredExceptionHandlingResumableStatements.ContainsKey(statement.Syntax.Parent))
 
                         Case BoundKind.CaseBlock
-                            Debug.Assert((statement.Syntax.Kind = SyntaxKind.CaseBlock OrElse statement.Syntax.Kind = SyntaxKind.CaseElseBlock) AndAlso
+                            Debug.Assert((statement.Syntax.IsKind(SyntaxKind.CaseBlock) OrElse statement.Syntax.IsKind(SyntaxKind.CaseElseBlock)) AndAlso
                                          statement.Syntax.Parent IsNot Nothing AndAlso
-                                         statement.Syntax.Parent.Kind = SyntaxKind.SelectBlock AndAlso
+                                         statement.Syntax.Parent.IsKind(SyntaxKind.SelectBlock) AndAlso
                                          _unstructuredExceptionHandlingResumableStatements.ContainsKey(statement.Syntax.Parent))
 
                         Case BoundKind.LocalDeclaration
-                            Debug.Assert(statement.Syntax.Kind = SyntaxKind.ModifiedIdentifier AndAlso
+                            Debug.Assert(statement.Syntax.IsKind(SyntaxKind.ModifiedIdentifier) AndAlso
                                          statement.Syntax.Parent IsNot Nothing AndAlso
-                                         statement.Syntax.Parent.Kind = SyntaxKind.VariableDeclarator AndAlso
+                                         statement.Syntax.Parent.IsKind(SyntaxKind.VariableDeclarator) AndAlso
                                          statement.Syntax.Parent.Parent IsNot Nothing AndAlso
-                                         statement.Syntax.Parent.Parent.Kind = SyntaxKind.LocalDeclarationStatement)
+                                         statement.Syntax.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement))
 
                         Case BoundKind.ExpressionStatement
-                            Debug.Assert((statement.Syntax.Kind = SyntaxKind.RedimClause AndAlso
+                            Debug.Assert((statement.Syntax.IsKind(SyntaxKind.RedimClause) AndAlso
                                                 TypeOf statement.Syntax.Parent Is ReDimStatementSyntax) OrElse
                                          (TypeOf statement.Syntax Is ExpressionSyntax AndAlso
                                                 TypeOf statement.Syntax.Parent Is EraseStatementSyntax))

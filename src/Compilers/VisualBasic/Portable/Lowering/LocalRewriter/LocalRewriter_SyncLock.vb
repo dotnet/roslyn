@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If TryGetWellknownMember(enterMethod, WellKnownMember.System_Threading_Monitor__Enter2, syntaxNode, isOptional:=True) Then
                 ' create local for the lockTaken boolean and initialize it with "False"
                 Dim tempLockTaken As LocalSymbol
-                If syntaxNode.Parent.Kind = SyntaxKind.SyncLockStatement Then
+                If syntaxNode.Parent.IsKind(SyntaxKind.SyncLockStatement) Then
                     tempLockTaken = New SynthesizedLocal(Me._currentMethodOrLambda, enterMethod.Parameters(1).Type, SynthesizedLocalKind.LockTaken, DirectCast(syntaxNode.Parent, SyncLockStatementSyntax))
                 Else
                     tempLockTaken = New SynthesizedLocal(Me._currentMethodOrLambda, enterMethod.Parameters(1).Type, SynthesizedLocalKind.LoweringTemp)

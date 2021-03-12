@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          Left.IsLateBound OrElse
                          IsByRefPropertyGet(Left) OrElse
                          Left.Type.IsSameTypeIgnoringAll(Type) OrElse
-                         (Type.IsVoidType() AndAlso Syntax.Kind = SyntaxKind.MidAssignmentStatement) OrElse
+                         (Type.IsVoidType() AndAlso Syntax.IsKind(SyntaxKind.MidAssignmentStatement)) OrElse
                          (Left.Kind = BoundKind.FieldAccess AndAlso
                                 DirectCast(Left, BoundFieldAccess).FieldSymbol.AssociatedSymbol.Kind = SymbolKind.Property AndAlso
                                 Type.IsVoidType()))

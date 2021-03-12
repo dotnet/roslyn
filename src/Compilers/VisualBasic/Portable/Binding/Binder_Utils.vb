@@ -64,9 +64,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim badKeyword = FindFirstKeyword(modifiers, keywordKinds)
             ' Special case: Report "Protected Friend" as error combination if 
             ' Protected is bad and both Protected and Friend found inside modifiers.
-            If badKeyword.Kind = SyntaxKind.ProtectedKeyword Then
+            If badKeyword.IsKind(SyntaxKind.ProtectedKeyword) Then
                 Dim friendToken = FindFirstKeyword(modifiers, s_friendKeyword)
-                If friendToken.Kind <> SyntaxKind.None Then
+                If Not friendToken.IsKind(SyntaxKind.None) Then
                     Dim startLoc As Integer = Math.Min(badKeyword.SpanStart, friendToken.SpanStart)
                     Dim endLoc As Integer = Math.Max(badKeyword.Span.End, friendToken.Span.End)
                     Dim location = Me.SyntaxTree.GetLocation(New TextSpan(startLoc, endLoc - startLoc))
@@ -1211,7 +1211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' does not have NotInheritable, then only MustOverride has an error reported for it, and the error has a different code.
 
                     Dim containingTypeBLock = GetContainingTypeBlock(modifierList.First())
-                    If containingTypeBLock IsNot Nothing AndAlso FindFirstKeyword(containingTypeBLock.BlockStatement.Modifiers, s_notInheritableKeyword).Kind = SyntaxKind.None Then
+                    If containingTypeBLock IsNot Nothing AndAlso FindFirstKeyword(containingTypeBLock.BlockStatement.Modifiers, s_notInheritableKeyword).IsKind(SyntaxKind.None) Then
                         ' Containing type block doesn't have a NotInheritable modifier on it. Must be from other partial declaration.
 
                         If (flags And SourceMemberFlags.InvalidInNotInheritableOtherPartialClass) <> 0 Then

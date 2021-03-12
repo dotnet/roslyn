@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim ignore As XmlNameSyntax = Nothing
             Dim nameToken As SyntaxToken = expr.ExtractAnonymousTypeMemberName(ignore)
-            Return If(nameToken.Kind() = SyntaxKind.IdentifierToken, nameToken.ValueText, Nothing)
+            Return If(nameToken.IsKind(SyntaxKind.IdentifierToken), nameToken.ValueText, Nothing)
         End Function
     End Module
 End Namespace
