@@ -12,13 +12,14 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 {
-    internal class CSharpRecommendationServiceRunner : AbstractRecommendationServiceRunner<CSharpSyntaxContext>
+    internal partial class CSharpRecommendationServiceRunner : AbstractRecommendationServiceRunner<CSharpSyntaxContext>
     {
         public CSharpRecommendationServiceRunner(
             CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
@@ -484,7 +485,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
                 : symbols;
 
-            return new RecommendedSymbols(namedSymbols, default);
+            var unnamedSymbols = containerType != null ? GetUnnamedSymbols(containerType) : default;
+            return new RecommendedSymbols(namedSymbols, unnamedSymbols);
+        }
+
+        private ImmutableArray<ISymbol> GetUnnamedSymbols(ITypeSymbol container)
+        {
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
+
+            AddIndexers(container, symbols);
+            AddOperators(container, symbols);
+            AddConversions(container, symbols);
+
+            return symbols.ToImmutable();
+        }
+
+        private void AddIndexers(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
+        {
+            var containingType =_context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
+            if (containingType == null)
+                return;
+
+            foreach (var member in container.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(containingType))
+            {
+                if (member.IsIndexer)
+                    symbols.Add(member);
+            }
         }
     }
 }

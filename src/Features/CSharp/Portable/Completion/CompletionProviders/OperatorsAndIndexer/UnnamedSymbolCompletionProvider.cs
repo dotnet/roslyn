@@ -2,23 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal abstract class OperatorIndexerCompletionProviderBase : LSPCompletionProvider
+    [ExportCompletionProvider(nameof(UnnamedSymbolCompletionProvider), LanguageNames.CSharp), Shared]
+    internal partial class UnnamedSymbolCompletionProvider : LSPCompletionProvider
     {
         // CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties of
         // the type.  We accomplish this by placing a character known to be greater than all other normal identifier
@@ -26,14 +29,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // have specialized logic for what they need to do.
         private const string SortingPrefix = "\uFFFD";
 
-        protected abstract int SortingGroupIndex { get; }
+        private const string KindName = "Kind";
+        private const string IndexerKindName = "Indexer";
+        private const string OperatorKindName = "Operator";
+        private const string ConversionKindName = "Conversion";
 
-        protected abstract ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(
-            SemanticModel semanticModel,
-            ITypeSymbol container,
-            int position,
-            bool isAccessedByConditionalAccess,
-            CancellationToken cancellationToken);
+        private const string MinimalTypeNamePropertyName = "MinimalTypeName";
+
+        [ImportingConstructor]
+        [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public UnnamedSymbolCompletionProvider()
+        {
+        }
+
+        //protected abstract int SortingGroupIndex { get; }
+
+        //protected abstract ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(
+        //    SemanticModel semanticModel,
+        //    ITypeSymbol container,
+        //    int position,
+        //    bool isAccessedByConditionalAccess,
+        //    CancellationToken cancellationToken);
 
         public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
@@ -52,8 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return builder.ToImmutable();
         }
 
-        protected string SortText(string sortTextSymbolPart)
-            => $"{SortingPrefix}{SortingGroupIndex:000}{sortTextSymbolPart}";
+        protected static string SortText(int sortingGroupIndex, string sortTextSymbolPart)
+            => $"{SortingPrefix}{sortingGroupIndex:000}{sortTextSymbolPart}";
 
         protected static (SyntaxToken tokenAtPosition, SyntaxToken potentialDotTokenLeftOfCursor) FindTokensAtPosition(
             SyntaxNode root, int position)
@@ -68,35 +84,102 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
             var position = context.Position;
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var workspace = document.Project.Solution.Workspace;
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var (_, potentialDotToken) = FindTokensAtPosition(root, position);
-            if (!potentialDotToken.IsKind(SyntaxKind.DotToken))
+            if (potentialDotToken.Kind() != SyntaxKind.DotToken)
                 return;
 
-            var expression = GetParentExpressionOfToken(potentialDotToken);
-            if (expression is null || expression.IsKind(SyntaxKind.NumericLiteralExpression))
-                return;
+            var recommender = document.GetRequiredLanguageService<IRecommendationService>();
 
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(expression.SpanStart, cancellationToken).ConfigureAwait(false);
-            var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            if (container is null)
-                return;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken);
 
-            var expressionSymbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            if (expressionSymbolInfo.Symbol is INamedTypeSymbol)
+            var unnamedSymbols = recommendedSymbols.UnnamedSymbols;
+            var indexers = unnamedSymbols.WhereAsArray(s => s.IsIndexer());
+            AddIndexers(context, indexers);
+
+            foreach (var symbol in recommendedSymbols.UnnamedSymbols)
             {
-                // Expression looks like an access to a static member. Operator, indexer and conversions are not applicable.
-                return;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (symbol.IsConversion())
+                {
+                    AddConversion(context, semanticModel, position, (IMethodSymbol)symbol);
+                }
+                else if (symbol.IsUserDefinedOperator())
+                {
+                    AddOperator(context, (IMethodSymbol)symbol);
+                }
             }
 
-            if (expression.IsInsideNameOfExpression(semanticModel, cancellationToken))
-            {
-                return;
-            }
+            //var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            //var (_, potentialDotToken) = FindTokensAtPosition(root, position);
+            //if (!potentialDotToken.IsKind(SyntaxKind.DotToken))
+            //    return;
 
-            var isAccessedByConditionalAccess = expression.GetRootConditionalAccessExpression() is not null;
-            var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, position, isAccessedByConditionalAccess, cancellationToken);
-            context.AddItems(completionItems);
+            //var expression = GetParentExpressionOfToken(potentialDotToken);
+            //if (expression is null || expression.IsKind(SyntaxKind.NumericLiteralExpression))
+            //    return;
+
+            //var semanticModel = await document.ReuseExistingSpeculativeModelAsync(expression.SpanStart, cancellationToken).ConfigureAwait(false);
+            //var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            //if (container is null)
+            //    return;
+
+            //var expressionSymbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+            //if (expressionSymbolInfo.Symbol is INamedTypeSymbol)
+            //{
+            //    // Expression looks like an access to a static member. Operator, indexer and conversions are not applicable.
+            //    return;
+            //}
+
+            //if (expression.IsInsideNameOfExpression(semanticModel, cancellationToken))
+            //{
+            //    return;
+            //}
+
+            //var isAccessedByConditionalAccess = expression.GetRootConditionalAccessExpression() is not null;
+            //var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, position, isAccessedByConditionalAccess, cancellationToken);
+            //context.AddItems(completionItems);
+        }
+
+        internal override Task<CompletionChange> GetChangeAsync(
+            Document document,
+            CompletionItem item,
+            TextSpan completionListSpan,
+            char? commitKey,
+            bool disallowAddingImports,
+            CancellationToken cancellationToken)
+        {
+            var properties = item.Properties;
+            var kind = properties[KindName];
+            return kind switch
+            { 
+                IndexerKindName => GetIndexerChangeAsync(document, item, cancellationToken),
+                OperatorKindName => GetOperatorChangeAsync(document, item, cancellationToken),
+                ConversionKindName => GetConversionChangeAsync(document, item, cancellationToken),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
+        }
+
+        public override Task<CompletionDescription?> GetDescriptionAsync(
+            Document document,
+            CompletionItem item,
+            CancellationToken cancellationToken)
+        {
+
+            var properties = item.Properties;
+            var kind = properties[KindName];
+            return kind switch
+            {
+                IndexerKindName => GetIndexerDescriptionAsync(document, item, cancellationToken),
+                OperatorKindName => GetOperatorDescriptionAsync(document, item, cancellationToken),
+                ConversionKindName => GetConversionDescriptionAsync(document, item, cancellationToken),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
         }
 
         protected static SyntaxToken? FindTokenToRemoveAtCursorPosition(SyntaxToken tokenAtCursor) => tokenAtCursor switch
