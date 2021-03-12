@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 controlVariable = DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable
             End If
 
-            If controlVariable.Kind = SyntaxKind.VariableDeclarator Then
+            If controlVariable.IsKind(SyntaxKind.VariableDeclarator) Then
                 ' it's only legal to have one name in the variable declarator for for and foreach loops.
                 tokens.Add(DirectCast(controlVariable, VariableDeclaratorSyntax).Names.First().Identifier)
             Else
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     ' is this local declared in the for or for each loop?
                     ' if not it was already added to the tracker before.
                     If local.IsFor OrElse local.IsForEach Then
-                        If controlVariable.Kind = SyntaxKind.IdentifierName Then
+                        If controlVariable.IsKind(SyntaxKind.IdentifierName) Then
                             tokens.Add(DirectCast(controlVariable, IdentifierNameSyntax).Identifier)
                         Else
                             Debug.Fail($"Unexpected control variable kind '{controlVariable.Kind}'")

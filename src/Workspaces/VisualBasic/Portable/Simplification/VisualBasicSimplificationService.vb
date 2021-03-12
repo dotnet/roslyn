@@ -70,8 +70,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Dim methodBlockBase = TryCast(nodeToSpeculate, MethodBlockBaseSyntax)
 
             ' Speculation over Field Declarations is not supported
-            If originalNode.Kind() = SyntaxKind.VariableDeclarator AndAlso
-               originalNode.Parent.Kind() = SyntaxKind.FieldDeclaration Then
+            If originalNode.IsKind(SyntaxKind.VariableDeclarator) AndAlso
+               originalNode.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
                 Return originalSemanticModel
             End If
 
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Contract.ThrowIfFalse(SpeculationAnalyzer.CanSpeculateOnNode(nodeToSpeculate))
 
-            Dim isAsNewClause = nodeToSpeculate.Kind = SyntaxKind.AsNewClause
+            Dim isAsNewClause = nodeToSpeculate.IsKind(SyntaxKind.AsNewClause)
             If isAsNewClause Then
                 ' Currently, there is no support for speculating on an AsNewClauseSyntax node.
                 ' So we synthesize an EqualsValueSyntax with the inner NewExpression and speculate on this EqualsValueSyntax node.
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Protected Overrides Function TransformReducedNode(reducedNode As SyntaxNode, originalNode As SyntaxNode) As SyntaxNode
             ' Please see comments within the above GetSpeculativeSemanticModel method for details.
 
-            If originalNode.Kind = SyntaxKind.AsNewClause AndAlso reducedNode.Kind = SyntaxKind.EqualsValue Then
+            If originalNode.IsKind(SyntaxKind.AsNewClause) AndAlso reducedNode.IsKind(SyntaxKind.EqualsValue) Then
                 Return originalNode.ReplaceNode(DirectCast(originalNode, AsNewClauseSyntax).NewExpression, DirectCast(reducedNode, EqualsValueSyntax).Value)
             End If
 

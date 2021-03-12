@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     DirectCast(element.Parent, XmlAttributeSyntax).Name Is element Then
                     type = ClassificationTypeNames.XmlLiteralAttributeName
                 ElseIf TypeOf element.Parent Is XmlMemberAccessExpressionSyntax AndAlso
-                    element.Parent.Kind = SyntaxKind.XmlAttributeAccessExpression AndAlso
+                    element.Parent.IsKind(SyntaxKind.XmlAttributeAccessExpression) AndAlso
                     DirectCast(element.Parent, XmlMemberAccessExpressionSyntax).Name Is element Then
                     type = ClassificationTypeNames.XmlLiteralAttributeName
                 ElseIf IsElementName(element) Then
@@ -314,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 ' to be classified as well
                 Dim childNodesAndTokens = syntax.ChildNodesAndTokens()
                 Dim lastChild = If(childNodesAndTokens.IsEmpty, Nothing, childNodesAndTokens(childNodesAndTokens.Count - 1))
-                If lastChild.Kind() <> SyntaxKind.None Then
+                If Not lastChild.IsKind(SyntaxKind.None) Then
                     Select Case lastChild.Kind()
                         Case SyntaxKind.XmlName
                             ClassifyXmlName(DirectCast(lastChild.AsNode(), XmlNameSyntax))

@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
 
             Dim targetToken = context.TargetToken
-            If targetToken.Kind = SyntaxKind.None OrElse targetToken.Parent Is Nothing Then
+            If targetToken.IsKind(SyntaxKind.None) OrElse targetToken.Parent Is Nothing Then
                 Return False
             End If
 

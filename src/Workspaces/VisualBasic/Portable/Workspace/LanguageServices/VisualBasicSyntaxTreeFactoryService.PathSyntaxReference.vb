@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         i = i + 1
                     End While
 
-                    System.Diagnostics.Debug.Assert(node.Kind = Me._kind)
+                    System.Diagnostics.Debug.Assert(node.IsKind(Me._kind))
                     System.Diagnostics.Debug.Assert(node.Span = Me._span)
                     Return node
 

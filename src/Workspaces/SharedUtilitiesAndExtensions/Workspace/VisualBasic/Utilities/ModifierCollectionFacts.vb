@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Dim defaultPropertyFlags = PossibleDeclarationTypes.Property Or PossibleDeclarationTypes.ProtectedMember Or PossibleDeclarationTypes.OverridableMethod
 
             Do While targetToken.IsModifier() OrElse
-                     targetToken.Kind = SyntaxKind.DimKeyword OrElse
+                     targetToken.IsKind(SyntaxKind.DimKeyword) OrElse
                      targetToken.HasMatchingText(SyntaxKind.AsyncKeyword) OrElse
                      targetToken.HasMatchingText(SyntaxKind.IteratorKeyword)
 

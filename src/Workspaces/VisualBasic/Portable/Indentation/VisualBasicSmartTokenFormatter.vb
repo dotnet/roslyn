@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
         End Sub
 
         Public Function FormatTokenAsync(workspace As Workspace, token As SyntaxToken, cancellationToken As CancellationToken) As Tasks.Task(Of IList(Of TextChange)) Implements ISmartTokenFormatter.FormatTokenAsync
-            Contract.ThrowIfTrue(token.Kind = SyntaxKind.None OrElse token.Kind = SyntaxKind.EndOfFileToken)
+            Contract.ThrowIfTrue(token.IsKind(SyntaxKind.None) OrElse token.IsKind(SyntaxKind.EndOfFileToken))
 
             ' get previous token
             Dim previousToken = token.GetPreviousToken()

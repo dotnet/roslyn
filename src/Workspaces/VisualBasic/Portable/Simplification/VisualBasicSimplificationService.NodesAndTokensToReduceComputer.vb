@@ -81,8 +81,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Function
 
             Private Shared Function IsNodeVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As Boolean
-                Return node IsNot Nothing AndAlso node.Kind() = SyntaxKind.VariableDeclarator AndAlso
-                    node.Parent IsNot Nothing AndAlso node.Parent.Kind() = SyntaxKind.FieldDeclaration
+                Return node IsNot Nothing AndAlso node.IsKind(SyntaxKind.VariableDeclarator) AndAlso
+                    node.Parent IsNot Nothing AndAlso node.Parent.IsKind(SyntaxKind.FieldDeclaration)
             End Function
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim savedSimplifyAllDescendants = Me._simplifyAllDescendants
                 Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse token.HasAnnotation(Simplifier.Annotation)
 
-                If Me._simplifyAllDescendants AndAlso Not Me._insideSpeculatedNode AndAlso token.Kind <> SyntaxKind.None Then
+                If Me._simplifyAllDescendants AndAlso Not Me._insideSpeculatedNode AndAlso Not token.IsKind(SyntaxKind.None) Then
                     Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(token, simplifyAllDescendants:=True, originalNodeOrToken:=token))
                 End If
 

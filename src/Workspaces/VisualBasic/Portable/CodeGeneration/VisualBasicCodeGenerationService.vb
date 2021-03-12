@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim seenOptional = currentParamsCount > 0 AndAlso parameterList.Parameters(currentParamsCount - 1).Default IsNot Nothing
 
             For Each parameter In parameters
-                If nodesAndTokens.Count > 0 AndAlso nodesAndTokens.Last().Kind() <> SyntaxKind.CommaToken Then
+                If nodesAndTokens.Count > 0 AndAlso Not nodesAndTokens.Last().IsKind(SyntaxKind.CommaToken) Then
                     nodesAndTokens.Add(SyntaxFactory.Token(SyntaxKind.CommaToken))
                 End If
 

@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Friend Module VisualBasicSimplificationHelpers
         Public Function TryEscapeIdentifierToken(identifierToken As SyntaxToken) As SyntaxToken
-            If identifierToken.Kind <> SyntaxKind.IdentifierToken OrElse identifierToken.ValueText.Length = 0 Then
+            If Not identifierToken.IsKind(SyntaxKind.IdentifierToken) OrElse identifierToken.ValueText.Length = 0 Then
                 Return identifierToken
             End If
 

@@ -63,12 +63,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             ' Same behavior for Multi Line Lambda
             If SyntaxFacts.GetContextualKeywordKind(unescapedIdentifier) = SyntaxKind.AwaitKeyword Then
                 Dim enclosingSingleLineLambda = parent.GetAncestor(Of LambdaExpressionSyntax)()
-                If enclosingSingleLineLambda IsNot Nothing AndAlso enclosingSingleLineLambda.SubOrFunctionHeader.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.AsyncKeyword) Then
+                If enclosingSingleLineLambda IsNot Nothing AndAlso enclosingSingleLineLambda.SubOrFunctionHeader.Modifiers.Any(Function(modifier) modifier.IsKind(SyntaxKind.AsyncKeyword)) Then
                     Return identifier
                 End If
 
                 Dim enclosingMethodBlock = parent.GetAncestor(Of MethodBlockBaseSyntax)()
-                If enclosingMethodBlock IsNot Nothing AndAlso enclosingMethodBlock.BlockStatement.Modifiers.Any(Function(modifier) modifier.Kind = SyntaxKind.AsyncKeyword) Then
+                If enclosingMethodBlock IsNot Nothing AndAlso enclosingMethodBlock.BlockStatement.Modifiers.Any(Function(modifier) modifier.IsKind(SyntaxKind.AsyncKeyword)) Then
                     Return identifier
                 End If
             End If
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             ' handle identifier Group in a function aggregation
             If SyntaxFacts.GetContextualKeywordKind(unescapedIdentifier) = SyntaxKind.GroupKeyword Then
-                If parent.Kind = SyntaxKind.FunctionAggregation AndAlso parent.GetFirstToken() = identifier Then
+                If parent.IsKind(SyntaxKind.FunctionAggregation) AndAlso parent.GetFirstToken() = identifier Then
                     Return identifier
                 End If
             End If

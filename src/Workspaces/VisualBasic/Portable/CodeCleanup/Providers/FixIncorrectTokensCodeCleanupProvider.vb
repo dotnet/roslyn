@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim newTrivia = MyBase.VisitTrivia(trivia)
 
                 ' convert fullwidth single quotes into halfwidth single quotes.
-                If newTrivia.Kind = SyntaxKind.CommentTrivia Then
+                If newTrivia.IsKind(SyntaxKind.CommentTrivia) Then
                     Dim triviaText = newTrivia.ToString()
                     If triviaText.Length > 0 AndAlso s_smartSingleQuotes.Contains(triviaText(0)) Then
                         triviaText = s_CH_STRGHT_Q + triviaText.Substring(1)
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Public Overrides Function VisitEndBlockStatement(node As EndBlockStatementSyntax) As SyntaxNode
                 Dim newStatement = DirectCast(MyBase.VisitEndBlockStatement(node), EndBlockStatementSyntax)
 
-                Return If(newStatement.BlockKeyword.Kind = SyntaxKind.IfKeyword,
+                Return If(newStatement.BlockKeyword.IsKind(SyntaxKind.IfKeyword),
                            RewriteEndIfStatementOrDirectiveSyntax(newStatement, newStatement.EndKeyword, newStatement.BlockKeyword),
                            newStatement)
             End Function
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                             Dim structuredTrivia = DirectCast(trivia.GetStructure(), StructuredTriviaSyntax)
                             If structuredTrivia.Kind = SyntaxKind.SkippedTokensTrivia Then
                                 Dim skippedTokens = DirectCast(structuredTrivia, SkippedTokensTriviaSyntax).Tokens
-                                If skippedTokens.Count = 1 AndAlso skippedTokens.First.Kind = SyntaxKind.EndIfKeyword Then
+                                If skippedTokens.Count = 1 AndAlso skippedTokens.First.IsKind(SyntaxKind.EndIfKeyword) Then
                                     endIfKeywordFound = True
                                     Continue For
                                 End If

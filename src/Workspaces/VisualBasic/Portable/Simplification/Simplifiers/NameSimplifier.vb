@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     Return False
                 End If
 
-                If name.Parent.Kind = SyntaxKind.Attribute OrElse name.IsRightSideOfDot() Then
+                If name.Parent.IsKind(SyntaxKind.Attribute) OrElse name.IsRightSideOfDot() Then
                     Dim newIdentifierText = String.Empty
 
                     ' an attribute that should keep it (unnecessary "Attribute" suffix should be annotated with a DontSimplifyAnnotation

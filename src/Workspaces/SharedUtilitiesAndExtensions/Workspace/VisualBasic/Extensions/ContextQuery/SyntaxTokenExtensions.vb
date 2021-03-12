@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         <Extension>
         Friend Function IsMandatoryNamedParameterPosition(token As SyntaxToken) As Boolean
-            If token.Kind() = SyntaxKind.CommaToken Then
+            If token.IsKind(SyntaxKind.CommaToken) Then
                 Dim argumentList = TryCast(token.Parent, ArgumentListSyntax)
                 If argumentList Is Nothing Then
                     Return False

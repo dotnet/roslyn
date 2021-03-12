@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
         End Function
 
         Protected Overrides Function GetUsingsAndAliases(node As SyntaxNode) As SyntaxList(Of ImportsStatementSyntax)
-            If node.Kind() = SyntaxKind.CompilationUnit Then
+            If node.IsKind(SyntaxKind.CompilationUnit) Then
                 Return DirectCast(node, CompilationUnitSyntax).Imports
             End If
 

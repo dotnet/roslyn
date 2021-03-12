@@ -127,9 +127,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Private Sub ClassifyXmlTextToken(token As SyntaxToken)
-                If token.Kind = SyntaxKind.XmlEntityLiteralToken Then
+                If token.IsKind(SyntaxKind.XmlEntityLiteralToken) Then
                     _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentEntityReference)
-                ElseIf token.Kind() <> SyntaxKind.DocumentationCommentLineBreakToken Then
+                ElseIf Not token.IsKind(SyntaxKind.DocumentationCommentLineBreakToken) Then
                     Select Case token.Parent.Kind
                         Case SyntaxKind.XmlText
                             _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentText)

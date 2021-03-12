@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
             If modifiedIdentifier.ArrayBounds IsNot Nothing OrElse
                modifiedIdentifier.ArrayRankSpecifiers.Count > 0 OrElse
-               modifiedIdentifier.Nullable.Kind <> SyntaxKind.None Then
+               Not modifiedIdentifier.Nullable.IsKind(SyntaxKind.None) Then
 
                 Return
             End If

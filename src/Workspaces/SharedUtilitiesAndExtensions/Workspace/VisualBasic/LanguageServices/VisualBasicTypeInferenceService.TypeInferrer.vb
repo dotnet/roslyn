@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return CreateResult(info.ConvertedType)
                     End If
 
-                    If node.Kind = SyntaxKind.AddressOfExpression Then
+                    If node.IsKind(SyntaxKind.AddressOfExpression) Then
                         Dim unaryExpression = DirectCast(node, UnaryExpressionSyntax)
                         Dim symbol = SemanticModel.GetSymbolInfo(unaryExpression.Operand, CancellationToken).GetAnySymbol()
                         Dim type = symbol.ConvertToType(Me.Compilation)
@@ -429,12 +429,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInAsClause(asClause As AsClauseSyntax,
                                                  Optional expressionOpt As ExpressionSyntax = Nothing,
                                                  Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.AsKeyword Then
+                If previousToken <> Nothing AndAlso Not previousToken.IsKind(SyntaxKind.AsKeyword) Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
                 If asClause.IsParentKind(SyntaxKind.CatchStatement) Then
-                    If expressionOpt Is asClause.Type OrElse previousToken.Kind = SyntaxKind.AsKeyword Then
+                    If expressionOpt Is asClause.Type OrElse previousToken.IsKind(SyntaxKind.AsKeyword) Then
                         Return CreateResult(Me.Compilation.ExceptionType)
                     End If
                 End If
@@ -714,7 +714,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeForReturnStatement(returnStatement As ReturnStatementSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
                 ' If we're position based, we must have gotten the Return token
-                If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.ReturnKeyword Then
+                If previousToken <> Nothing AndAlso Not previousToken.IsKind(SyntaxKind.ReturnKeyword) Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
@@ -807,7 +807,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInTernaryConditionalExpression(conditional As TernaryConditionalExpressionSyntax,
                                                                      Optional expressionOpt As ExpressionSyntax = Nothing,
                                                                      Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
-                If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.OpenParenToken AndAlso previousToken.Kind <> SyntaxKind.CommaToken Then
+                If previousToken <> Nothing AndAlso Not previousToken.IsKind(SyntaxKind.OpenParenToken) AndAlso Not previousToken.IsKind(SyntaxKind.CommaToken) Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 ElseIf previousToken = conditional.OpenParenToken Then
                     Return CreateResult(SpecialType.System_Boolean)
@@ -826,7 +826,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeInThrowStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of TypeInferenceInfo)
                 ' If we're not the Throw token, there's nothing to do
-                If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.ThrowKeyword Then
+                If previousToken <> Nothing AndAlso Not previousToken.IsKind(SyntaxKind.ThrowKeyword) Then
                     Return SpecializedCollections.EmptyEnumerable(Of TypeInferenceInfo)()
                 End If
 
@@ -1057,8 +1057,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' New List(of T) From { $$
-                If previousToken.Kind() = SyntaxKind.OpenBraceToken OrElse
-                   previousToken.Kind() = SyntaxKind.CommaToken Then
+                If previousToken.IsKind(SyntaxKind.OpenBraceToken) OrElse
+                   previousToken.IsKind(SyntaxKind.CommaToken) Then
 
                     Dim objectInitializer = TryCast(collectionInitializer.Parent, ObjectCollectionInitializerSyntax)
                     Dim objectCreation = TryCast(objectInitializer?.Parent, ObjectCreationExpressionSyntax)

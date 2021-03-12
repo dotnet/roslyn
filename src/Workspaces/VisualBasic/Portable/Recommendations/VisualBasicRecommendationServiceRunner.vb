@@ -28,9 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             If _context.IsGlobalStatementContext Then
                 Return GetSymbolsForGlobalStatementContext()
             ElseIf _context.IsRightOfNameSeparator Then
-                If node.Kind = SyntaxKind.SimpleMemberAccessExpression Then
+                If node.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                     Return GetSymbolsForMemberAccessExpression(DirectCast(node, MemberAccessExpressionSyntax))
-                ElseIf node.Kind = SyntaxKind.QualifiedName Then
+                ElseIf node.IsKind(SyntaxKind.QualifiedName) Then
                     Return GetSymbolsForQualifiedNameSyntax(DirectCast(node, QualifiedNameSyntax))
                 End If
             ElseIf _context.SyntaxTree.IsQueryIntoClauseContext(_context.Position, _context.TargetToken, _cancellationToken) Then
