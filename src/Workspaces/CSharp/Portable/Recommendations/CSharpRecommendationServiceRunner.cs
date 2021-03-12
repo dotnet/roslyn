@@ -487,16 +487,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             var unnamedSymbols = containerType == null || _context.IsNameOfContext || excludeInstance
                 ? default
-                : GetUnnamedSymbols(containerType);
+                : GetUnnamedSymbols(originalExpression, containerType);
             return new RecommendedSymbols(namedSymbols, unnamedSymbols);
         }
 
-        private ImmutableArray<ISymbol> GetUnnamedSymbols(ITypeSymbol container)
+        private ImmutableArray<ISymbol> GetUnnamedSymbols(ExpressionSyntax originalExpression, ITypeSymbol container)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             AddIndexers(container, symbols);
-            AddOperators(container, symbols);
+            AddOperators(originalExpression, container, symbols);
             AddConversions(container, symbols);
 
             return symbols.ToImmutable();

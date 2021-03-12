@@ -147,10 +147,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         private void AddUserDefinedConversionsOfType(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
         {
-            // Base types are valid sources for user-defined conversions.
-            // Note: We only look in the source (aka container), because target could be any type (in scope) of the compilation.
-            // No need to check for accessibility as operators must always be public.
-            // The target type is lifted, if containerIsNullable and the target of the conversion is a struct
+// https://github.com/dotnet/csharplang/blob/main/spec/expressions.md#lifted-operators
+
+// Base types are valid sources for user-defined conversions.
+// Note: We only look in the source (aka container), because target could be any type (in scope) of the compilation.
+// No need to check for accessibility as operators must always be public.
+// The target type is lifted, if containerIsNullable and the target of the conversion is a struct
 
             foreach (var type in container.GetBaseTypesAndThis())
             {
