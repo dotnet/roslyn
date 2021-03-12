@@ -66,15 +66,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
                     var node = nodes.Pop();
                     if (!cancellationToken.IsCancellationRequested)
                     {
-                        if (node.Kind() == SyntaxKind.ClassDeclaration ||
-                            node.Kind() == SyntaxKind.RecordDeclaration ||
-                            node.Kind() == SyntaxKind.DelegateDeclaration ||
-                            node.Kind() == SyntaxKind.EnumDeclaration ||
-                            node.Kind() == SyntaxKind.InterfaceDeclaration ||
-                            node.Kind() == SyntaxKind.StructDeclaration ||
-                            node.Kind() == SyntaxKind.VariableDeclarator ||
-                            node.Kind() == SyntaxKind.MethodDeclaration ||
-                            node.Kind() == SyntaxKind.PropertyDeclaration)
+                        if (node.IsKind(SyntaxKind.ClassDeclaration) ||
+                            node.IsKind(SyntaxKind.RecordDeclaration) ||
+                            node.IsKind(SyntaxKind.DelegateDeclaration) ||
+                            node.IsKind(SyntaxKind.EnumDeclaration) ||
+                            node.IsKind(SyntaxKind.InterfaceDeclaration) ||
+                            node.IsKind(SyntaxKind.StructDeclaration) ||
+                            node.IsKind(SyntaxKind.VariableDeclarator) ||
+                            node.IsKind(SyntaxKind.MethodDeclaration) ||
+                            node.IsKind(SyntaxKind.PropertyDeclaration))
                         {
                             yield return node;
                         }

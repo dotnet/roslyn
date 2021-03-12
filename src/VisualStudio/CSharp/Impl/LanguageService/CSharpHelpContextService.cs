@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
 
             var trivia = root.FindTrivia(span.Start, findInsideTrivia: true);
-            if (trivia.Span.IntersectsWith(span) && trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia &&
+            if (trivia.Span.IntersectsWith(span) && trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia) &&
                 trivia.Token.GetAncestor<RegionDirectiveTriviaSyntax>() != null)
             {
                 return "#region";
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private static bool IsValid(SyntaxToken token, TextSpan span)
         {
             // If the token doesn't actually intersect with our position, give up
-            return token.Kind() == SyntaxKind.EndIfDirectiveTrivia || token.Span.IntersectsWith(span);
+            return token.IsKind(SyntaxKind.EndIfDirectiveTrivia) || token.Span.IntersectsWith(span);
         }
 
         private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             var statement = _statmentPrefix + text;
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
             var token = parsedStatement.DescendantTokens().ToArray()[3];
-            Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
+            Assert.True(token.IsKind(SyntaxKind.StringLiteralToken));
 
             return token;
         }

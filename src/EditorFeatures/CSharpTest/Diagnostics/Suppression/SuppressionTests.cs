@@ -923,7 +923,7 @@ class Class
 
                             case SyntaxKind.EnumDeclaration:
                                 // Report diagnostic on each descendant comment trivia
-                                foreach (var trivia in context.Node.DescendantTrivia().Where(t => t.Kind() == SyntaxKind.SingleLineCommentTrivia || t.Kind() == SyntaxKind.MultiLineCommentTrivia))
+                                foreach (var trivia in context.Node.DescendantTrivia().Where(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia) || t.IsKind(SyntaxKind.MultiLineCommentTrivia)))
                                 {
                                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, trivia.GetLocation()));
                                 }

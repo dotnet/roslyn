@@ -373,7 +373,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             container is BaseTypeDeclarationSyntax;
 
         private static bool IsNamespaceOrTypeDeclaration(SyntaxNode node) =>
-            node.Kind() == SyntaxKind.NamespaceDeclaration ||
+            node.IsKind(SyntaxKind.NamespaceDeclaration) ||
             node is BaseTypeDeclarationSyntax ||
             node is DelegateDeclarationSyntax;
 
@@ -823,7 +823,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return "operator " + ((OperatorDeclarationSyntax)node).OperatorToken.ToString();
                 case SyntaxKind.ConversionOperatorDeclaration:
                     var conversionOperator = (ConversionOperatorDeclarationSyntax)node;
-                    return (conversionOperator.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword ? "implicit " : "explicit ")
+                    return (conversionOperator.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ImplicitKeyword) ? "implicit " : "explicit ")
                         + "operator "
                         + conversionOperator.Type.ToString();
                 case SyntaxKind.EnumMemberDeclaration:
@@ -943,7 +943,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override string GetFullName(SyntaxNode node, SemanticModel semanticModel)
         {
-            if (node.Kind() == SyntaxKind.UsingDirective)
+            if (node.IsKind(SyntaxKind.UsingDirective))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -1043,23 +1043,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
             var modifiers = member.GetModifiers();
 
-            if (modifiers.Any(t => t.Kind() == SyntaxKind.PublicKeyword))
+            if (modifiers.Any(t => t.IsKind(SyntaxKind.PublicKeyword)))
             {
                 return EnvDTE.vsCMAccess.vsCMAccessPublic;
             }
-            else if (modifiers.Any(t => t.Kind() == SyntaxKind.ProtectedKeyword) && modifiers.Any(t => t.Kind() == SyntaxKind.InternalKeyword))
+            else if (modifiers.Any(t => t.IsKind(SyntaxKind.ProtectedKeyword)) && modifiers.Any(t => t.IsKind(SyntaxKind.InternalKeyword)))
             {
                 return EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected;
             }
-            else if (modifiers.Any(t => t.Kind() == SyntaxKind.InternalKeyword))
+            else if (modifiers.Any(t => t.IsKind(SyntaxKind.InternalKeyword)))
             {
                 return EnvDTE.vsCMAccess.vsCMAccessProject;
             }
-            else if (modifiers.Any(t => t.Kind() == SyntaxKind.ProtectedKeyword))
+            else if (modifiers.Any(t => t.IsKind(SyntaxKind.ProtectedKeyword)))
             {
                 return EnvDTE.vsCMAccess.vsCMAccessProtected;
             }
-            else if (modifiers.Any(t => t.Kind() == SyntaxKind.PrivateKeyword))
+            else if (modifiers.Any(t => t.IsKind(SyntaxKind.PrivateKeyword)))
             {
                 return EnvDTE.vsCMAccess.vsCMAccessPrivate;
             }
@@ -1143,8 +1143,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 throw Exceptions.ThrowEFail();
             }
 
-            if (member.Parent.Kind() == SyntaxKind.InterfaceDeclaration ||
-                member.Parent.Kind() == SyntaxKind.EnumDeclaration)
+            if (member.Parent.IsKind(SyntaxKind.InterfaceDeclaration) ||
+                member.Parent.IsKind(SyntaxKind.EnumDeclaration))
             {
                 if (newAccess == EnvDTE.vsCMAccess.vsCMAccessDefault ||
                     newAccess == EnvDTE.vsCMAccess.vsCMAccessPublic)
@@ -1214,8 +1214,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     commentList.Add(trivia);
                 }
-                else if (trivia.Kind() != SyntaxKind.WhitespaceTrivia &&
-                    trivia.Kind() != SyntaxKind.EndOfLineTrivia)
+                else if (!trivia.IsKind(SyntaxKind.WhitespaceTrivia) &&
+                    !trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                 {
                     break;
                 }
@@ -1292,7 +1292,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 // Note: single line comments have a trailing new-line but that won't be
                 // returned by CollectComments. So, we may need to remove an additional new line below.
                 if (firstIndex < leadingTriviaList.Count &&
-                    leadingTriviaList[firstIndex].Kind() == SyntaxKind.EndOfLineTrivia)
+                    leadingTriviaList[firstIndex].IsKind(SyntaxKind.EndOfLineTrivia))
                 {
                     leadingTriviaList.RemoveAt(firstIndex);
                 }
@@ -1650,7 +1650,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             Debug.Assert(attributeArgumentNode is AttributeArgumentSyntax);
 
             var argument = (AttributeArgumentSyntax)attributeArgumentNode;
-            var attribute = (AttributeSyntax)argument.Ancestors().First(n => n.Kind() == SyntaxKind.Attribute);
+            var attribute = (AttributeSyntax)argument.Ancestors().First(n => n.IsKind(SyntaxKind.Attribute));
 
             attributeNode = attribute;
             index = attribute.ArgumentList.Arguments.IndexOf((AttributeArgumentSyntax)attributeArgumentNode);
@@ -1827,7 +1827,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         {
             if (importNode is UsingDirectiveSyntax usingDirective)
             {
-                namespaceNode = usingDirective.Parent.Kind() == SyntaxKind.CompilationUnit
+                namespaceNode = usingDirective.Parent.IsKind(SyntaxKind.CompilationUnit)
                     ? null
                     : usingDirective.Parent;
 
@@ -2830,7 +2830,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     break;
                 }
 
-                if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                 {
                     if (contiguousEndOfLines > 0)
                     {
@@ -2841,7 +2841,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         contiguousEndOfLines++;
                     }
                 }
-                else if (trivia.Kind() != SyntaxKind.WhitespaceTrivia)
+                else if (!trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                 {
                     contiguousEndOfLines = 0;
                 }
@@ -3148,7 +3148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         protected override SyntaxNode GetFieldFromVariableNode(SyntaxNode node)
         {
-            return node.Kind() == SyntaxKind.VariableDeclarator
+            return node.IsKind(SyntaxKind.VariableDeclarator)
                 ? node.FirstAncestorOrSelf<BaseFieldDeclarationSyntax>()
                 : node;
         }
@@ -3171,13 +3171,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         protected override TextSpan GetSpanToFormat(SyntaxNode root, TextSpan span)
         {
             var startToken = root.FindToken(span.Start).GetPreviousToken();
-            if (startToken.Kind() == SyntaxKind.OpenBraceToken)
+            if (startToken.IsKind(SyntaxKind.OpenBraceToken))
             {
                 startToken = startToken.GetPreviousToken();
             }
 
             var endToken = root.FindToken(span.End).GetNextToken();
-            if (endToken.Kind() == SyntaxKind.CloseBraceToken)
+            if (endToken.IsKind(SyntaxKind.CloseBraceToken))
             {
                 endToken = endToken.GetPreviousToken();
             }
@@ -3267,7 +3267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var triviaList = nextToken.LeadingTrivia;
 
             var lastNonWhitespaceTrivia = triviaList.LastOrDefault(trivia => !trivia.IsWhitespaceOrEndOfLine());
-            if (lastNonWhitespaceTrivia.Kind() == SyntaxKind.EndRegionDirectiveTrivia)
+            if (lastNonWhitespaceTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
             {
                 newContainer = newContainer
                     .ReplaceToken(nextToken, nextToken.WithLeadingTrivia(SyntaxTriviaList.Empty));
@@ -3582,7 +3582,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override object GetFunctionExtender(string name, SyntaxNode node, ISymbol symbol)
         {
-            if (node == null || node.Kind() != SyntaxKind.MethodDeclaration ||
+            if (node == null || !node.IsKind(SyntaxKind.MethodDeclaration) ||
                 symbol == null || symbol.Kind != SymbolKind.Method)
             {
                 throw Exceptions.ThrowEUnexpected();
@@ -3622,7 +3622,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override object GetPropertyExtender(string name, SyntaxNode node, ISymbol symbol)
         {
-            if (node == null || node.Kind() != SyntaxKind.PropertyDeclaration ||
+            if (node == null || !node.IsKind(SyntaxKind.PropertyDeclaration) ||
                 symbol == null || symbol.Kind != SymbolKind.Property)
             {
                 throw Exceptions.ThrowEUnexpected();

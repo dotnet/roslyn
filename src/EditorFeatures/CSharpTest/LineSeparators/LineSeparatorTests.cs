@@ -527,7 +527,7 @@ class Program
             var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
             var lineSeparatorService = Assert.IsType<CSharpLineSeparatorService>(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ILineSeparatorService>());
             var spans = await lineSeparatorService.GetLineSeparatorsAsync(document, (await document.GetSyntaxRootAsync()).FullSpan, CancellationToken.None);
-            var tokens = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Where(t => t.Kind() == SyntaxKind.CloseBraceToken || t.Kind() == SyntaxKind.SemicolonToken);
+            var tokens = (await document.GetSyntaxRootAsync(CancellationToken.None)).DescendantTokens().Where(t => t.IsKind(SyntaxKind.CloseBraceToken) || t.IsKind(SyntaxKind.SemicolonToken));
 
             Assert.Equal(tokenIndices.Length, spans.Count());
 

@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                                                  .Where(t => !t.MatchesKind(SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia))
                                                  .FirstOrDefault();
 
-                if (significantTrivia.Kind() != SyntaxKind.None)
+                if (!significantTrivia.IsKind(SyntaxKind.None))
                 {
                     nextPosition = significantTrivia.SpanStart;
                 }

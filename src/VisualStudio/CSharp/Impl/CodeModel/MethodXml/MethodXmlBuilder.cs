@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml
             foreach (var trivia in triviaList)
             {
                 // Multi-line comment forms are ignored.
-                if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia)
+                if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
                 {
                     // In order to be valid, the comment must appear on its own line.
                     var line = Text.Lines.GetLineFromPosition(trivia.SpanStart);
