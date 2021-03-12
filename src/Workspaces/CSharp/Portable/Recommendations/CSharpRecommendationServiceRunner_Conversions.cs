@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -223,16 +225,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             foreach (var specialType in specialTypes)
             {
                 var targetTypeSymbol = _context.SemanticModel.Compilation.GetSpecialType(specialType);
-                symbols.Add(CreateConversion(from: container, to: targetTypeSymbol));
+                symbols.Add(CreateConversion(fromType: container, toType: targetTypeSymbol));
                 //var targetTypeName = targetTypeSymbol.ToMinimalDisplayString(semanticModel, position);
                 //builder.Add(CreateSymbolCompletionItem(
                 //    targetTypeName, targetTypeIsNullable: containerIsNullable, position, fromType, targetTypeSymbol));
             }
         }
 
-        private ISymbol CreateConversion(INamedTypeSymbol from, INamedTypeSymbol to)
+        private static ISymbol CreateConversion(INamedTypeSymbol fromType, INamedTypeSymbol toType)
         {
-            throw new NotImplementedException();
+            return CodeGenerationSymbolFactory.CreateConversionSymbol(
+                attributes: default,
+                accessibility: Accessibility.Public,
+                modifiers: DeclarationModifiers.Static,
+                toType: toType,
+                fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"));
         }
 
         private void AddBuiltInEnumConversions(INamedTypeSymbol container, ArrayBuilder<ISymbol> symbols)

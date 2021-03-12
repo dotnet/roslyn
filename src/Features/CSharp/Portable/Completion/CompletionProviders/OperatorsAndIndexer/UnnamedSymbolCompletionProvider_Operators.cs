@@ -225,18 +225,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 case WellKnownMemberNames.RightShiftOperatorName:
                 case WellKnownMemberNames.SubtractionOperatorName:
                     return OperatorPosition.Infix;
+
                 // Unary
                 case WellKnownMemberNames.DecrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
                     return OperatorPosition.Prefix | OperatorPosition.Postfix;
+
                 case WellKnownMemberNames.FalseOperatorName:
                 case WellKnownMemberNames.TrueOperatorName:
                     return OperatorPosition.None;
+
                 case WellKnownMemberNames.LogicalNotOperatorName:
                 case WellKnownMemberNames.OnesComplementOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
                     return OperatorPosition.Prefix;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(method.Name);
             }
