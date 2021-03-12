@@ -1389,18 +1389,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool requiresAnalysis = true)
         {
             Debug.Assert(snapshotBuilderOpt is null || symbol is object);
+            var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol!) ?? -1;
             try
             {
                 bool badRegion = false;
-                var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol!) ?? -1;
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialState);
-                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
                 diagnostics?.AddRange(walker.Diagnostics);
                 Debug.Assert(!badRegion);
             }
             catch (CancelledByStackGuardException ex) when (diagnostics != null)
             {
                 ex.AddAnError(diagnostics);
+            }
+            finally
+            {
+                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
             }
 
             walker.RecordNullableAnalysisData(symbol, requiresAnalysis);
@@ -2665,25 +2668,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.State = state.CreateNestedMethodState(_variables);
             var previousSlot = _snapshotBuilderOpt?.EnterNewWalker(lambdaOrFunctionSymbol) ?? -1;
 
-            var oldPending = SavePending();
-
-            EnterParameters();
-
-            var oldPending2 = SavePending();
-
-            // If this is an iterator, there's an implicit branch before the first statement
-            // of the function where the enumerable is returned.
-            if (lambdaOrFunctionSymbol.IsIterator)
+            try
             {
-                PendingBranches.Add(new PendingBranch(null, this.State, null));
+                var oldPending = SavePending();
+
+                EnterParameters();
+
+                var oldPending2 = SavePending();
+
+                // If this is an iterator, there's an implicit branch before the first statement
+                // of the function where the enumerable is returned.
+                if (lambdaOrFunctionSymbol.IsIterator)
+                {
+                    PendingBranches.Add(new PendingBranch(null, this.State, null));
+                }
+
+                VisitAlways(lambdaOrFunction.Body);
+                RestorePending(oldPending2); // process any forward branches within the lambda body
+                ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
+                RestorePending(oldPending);
+            }
+            finally
+            {
+                _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
             }
 
-            VisitAlways(lambdaOrFunction.Body);
-            RestorePending(oldPending2); // process any forward branches within the lambda body
-            ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
-            RestorePending(oldPending);
-
-            _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
             _variables = _variables.Container!;
             this.State = oldState;
             _returnTypesOpt = oldReturnTypes;

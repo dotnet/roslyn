@@ -316,5 +316,70 @@ $@"        if (F({i}))
                 });
             }
         }
+
+        [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+        public void NullableAnalysisNestedExpressionsInMethod()
+        {
+            NullableAnalysisNestedExpressions(insideLocalFunction: false);
+        }
+
+        [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+        public void NullableAnalysisNestedExpressionsInLocalFunction()
+        {
+            NullableAnalysisNestedExpressions(insideLocalFunction: true);
+        }
+
+        private static void NullableAnalysisNestedExpressions(bool insideLocalFunction)
+        {
+            int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
+            {
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 650,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1600,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 250,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 800,
+                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+            };
+
+            RunTest(nestingLevel, runTest);
+
+            void runTest(int nestingLevel)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine("#nullable enable");
+                builder.AppendLine("class C");
+                builder.AppendLine("{");
+                builder.AppendLine("    C F(int i) => this;");
+                builder.AppendLine("    static void Main()");
+                builder.AppendLine("    {");
+                if (insideLocalFunction)
+                {
+                    builder.AppendLine("        Local();");
+                    builder.AppendLine("        static void Local()");
+                    builder.AppendLine("        {");
+                }
+                builder.AppendLine("        C c = new C()");
+                for (int i = 0; i < nestingLevel; i++)
+                {
+                    builder.AppendLine($"            .F({i})");
+                }
+                builder.AppendLine("            ;");
+                if (insideLocalFunction)
+                {
+                    builder.AppendLine("        }");
+                    builder.AppendLine("        Local();");
+                }
+                builder.AppendLine("    }");
+                builder.AppendLine("}");
+
+                var source = builder.ToString();
+                RunInThread(() =>
+                {
+                    var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+                    comp.VerifyDiagnostics();
+                });
+            }
+        }
     }
 }
