@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             ' get whitespace trivia inside structured directive trivia
             Dim deepTrivia = From d In expr.GetDirectives().SelectMany(Function(d)
-                                                                           Return d.DescendantTrivia.Where(Function(tr) tr.Kind = SyntaxKind.WhitespaceTrivia)
+                                                                           Return d.DescendantTrivia.Where(Function(tr) tr.IsKind(SyntaxKind.WhitespaceTrivia))
                                                                        End Function).ToList
 
 
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim expr = SyntaxFactory.ParseExpression("a + b")
             Dim twoSpaces = SyntaxFactory.Whitespace("  ")
             Dim trivia = (From tr In expr.DescendantTrivia()
-                          Where tr.Kind = SyntaxKind.WhitespaceTrivia
+                          Where tr.IsKind(SyntaxKind.WhitespaceTrivia)
                           Select tr).ToList
 
             Dim replaced As ExpressionSyntax = expr.ReplaceTrivia(trivia, Function(tr, tr2) twoSpaces)
@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim expr = SyntaxFactory.ParseExpression("a + (c - b)")
             Dim twoSpaces = SyntaxFactory.Whitespace("  ")
             Dim trivia = (From tr In expr.DescendantTrivia()
-                          Where tr.Kind = SyntaxKind.WhitespaceTrivia
+                          Where tr.IsKind(SyntaxKind.WhitespaceTrivia)
                           Select tr).ToList
 
             Dim replaced As ExpressionSyntax = expr.ReplaceTrivia(trivia, Function(tr, tr2) twoSpaces)

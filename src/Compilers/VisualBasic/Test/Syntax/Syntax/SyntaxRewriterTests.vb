@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' delete the middle type argument (should clear the following comma)
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.Kind = SyntaxKind.SimpleArgument AndAlso node.ToString() = "B", Nothing, node)
+                    Return If(node.IsKind(SyntaxKind.SimpleArgument) AndAlso node.ToString() = "B", Nothing, node)
                 End Function)
 
             Dim caught As Exception = Nothing
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' delete all arguments, should clear the intervening commas
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.Kind = SyntaxKind.SimpleArgument, Nothing, node)
+                    Return If(node.IsKind(SyntaxKind.SimpleArgument), Nothing, node)
                 End Function)
 
             Dim caught As Exception = Nothing
@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim first As Boolean = True
             Dim rewriter = New RedRewriter(rewriteToken:=
                 Function(token)
-                    If token.Kind = SyntaxKind.CommaToken AndAlso first Then
+                    If token.IsKind(SyntaxKind.CommaToken) AndAlso first Then
                         first = False
                         Return Nothing
                     End If
@@ -248,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' delete all commas
             Dim rewriter = New RedRewriter(rewriteToken:=
                 Function(token)
-                    Return If(token.Kind = SyntaxKind.CommaToken, Nothing, token)
+                    Return If(token.IsKind(SyntaxKind.CommaToken), Nothing, token)
                 End Function)
 
             TestRed(input, output, rewriter, isStmt:=False)
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' delete all whitespace trivia (leave comments)
             Dim rewriter = New RedRewriter(rewriteTrivia:=
                 Function(trivia)
-                    Return If(trivia.Kind = SyntaxKind.WhitespaceTrivia, Nothing, trivia)
+                    Return If(trivia.IsKind(SyntaxKind.WhitespaceTrivia), Nothing, trivia)
                 End Function)
 
             TestRed(input, output, rewriter, isStmt:=True)
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.Kind = SyntaxKind.AttributeList AndAlso node.ToString().Contains("2"), Nothing, node)
+                    Return If(node.IsKind(SyntaxKind.AttributeList) AndAlso node.ToString().Contains("2"), Nothing, node)
                 End Function)
 
             TestRed(input, output, rewriter, isStmt:=False)
@@ -366,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.Kind = SyntaxKind.AttributeList, Nothing, node)
+                    Return If(node.IsKind(SyntaxKind.AttributeList), Nothing, node)
                 End Function)
 
             TestRed(input, output, rewriter, isStmt:=False)
@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' delete the last argument (should clear the *preceding* comma)
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.Kind = SyntaxKind.SimpleArgument AndAlso node.ToString() = "C", Nothing, node)
+                    Return If(node.IsKind(SyntaxKind.SimpleArgument) AndAlso node.ToString() = "C", Nothing, node)
                 End Function)
 
             TestRed(input, output, rewriter, isStmt:=True)
@@ -417,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim rewriter = New RedRewriter(rewriteNode:=
                 Function(node)
-                    Return If(node.Kind = SyntaxKind.SubBlock AndAlso node.ToString().Contains("B"), Nothing, node)
+                    Return If(node.IsKind(SyntaxKind.SubBlock) AndAlso node.ToString().Contains("B"), Nothing, node)
                 End Function)
 
             Dim caught As Exception = Nothing
@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             Dim rewriter = New RedRewriter(rewriteToken:=
                 Function(token)
-                    Return If(token.Kind = SyntaxKind.CommaToken, Nothing, token)
+                    Return If(token.IsKind(SyntaxKind.CommaToken), Nothing, token)
                 End Function)
 
             Assert.Throws(Of InvalidOperationException)(Sub() rewriter.Visit(red))

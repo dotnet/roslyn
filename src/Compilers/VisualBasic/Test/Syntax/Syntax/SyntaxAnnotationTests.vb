@@ -644,7 +644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Sub
 
             Public Overrides Sub VisitToken(token As SyntaxToken)
-                If token.Kind <> SyntaxKind.None Then
+                If Not token.IsKind(SyntaxKind.None) Then
                     Me.NodeOrTokens.Add(token)
                 End If
 
@@ -652,7 +652,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Sub
 
             Public Overrides Sub VisitTrivia(trivia As SyntaxTrivia)
-                If trivia.Kind <> SyntaxKind.None Then
+                If Not trivia.IsKind(SyntaxKind.None) Then
                     Me.Trivia.Add(trivia)
                 End If
 
@@ -678,7 +678,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
-                If token.Kind = SyntaxKind.None Then
+                If token.IsKind(SyntaxKind.None) Then
                     Return token
                 End If
 
@@ -686,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-                If trivia.Kind = SyntaxKind.None Then
+                If trivia.IsKind(SyntaxKind.None) Then
                     Return trivia
                 End If
 
@@ -719,7 +719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
-                If token.Kind = SyntaxKind.None Then
+                If token.IsKind(SyntaxKind.None) Then
                     Return token
                 End If
 
@@ -728,7 +728,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-                If trivia.Kind = SyntaxKind.None Then
+                If trivia.IsKind(SyntaxKind.None) Then
                     Return trivia
                 End If
 
@@ -762,7 +762,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
-                If token.Kind = SyntaxKind.None Then
+                If token.IsKind(SyntaxKind.None) Then
                     Return token
                 End If
 
@@ -770,7 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End Function
 
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-                If trivia.Kind = SyntaxKind.None Then
+                If trivia.IsKind(SyntaxKind.None) Then
                     Return trivia
                 End If
 

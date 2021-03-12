@@ -220,7 +220,7 @@ Public Class ParseExpressionTest
 
         Assert.True(exp.ContainsDiagnostics)
 
-        Dim unexp = From t In exp.GetTrailingTrivia() Where t.Kind = SyntaxKind.SkippedTokensTrivia
+        Dim unexp = From t In exp.GetTrailingTrivia() Where t.IsKind(SyntaxKind.SkippedTokensTrivia)
 
         'ERRID_NullableCharNotSupported = 36637
         Assert.Equal(1, unexp.Count)
@@ -2257,7 +2257,7 @@ End Module
         Dim text = SourceText.From(source)
         Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
-        Dim varNameEquals = nodes.First(Function(n) n.Kind = SyntaxKind.VariableNameEquals)
+        Dim varNameEquals = nodes.First(Function(n) n.IsKind(SyntaxKind.VariableNameEquals))
         Assert.Equal(varNameEquals.ToFullString(), "a = ")
     End Sub
 
@@ -2274,7 +2274,7 @@ End Module
         Dim text = SourceText.From(source)
         Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
-        Dim varNameEquals = nodes.First(Function(n) n.Kind = SyntaxKind.VariableNameEquals)
+        Dim varNameEquals = nodes.First(Function(n) n.IsKind(SyntaxKind.VariableNameEquals))
         Assert.Equal(varNameEquals.ToFullString(), "a As Class C")
     End Sub
 
@@ -2291,7 +2291,7 @@ End Module
         Dim text = SourceText.From(source)
         Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
-        Dim collectionRangeVar = DirectCast(nodes.First(Function(n) n.Kind = SyntaxKind.CollectionRangeVariable), CollectionRangeVariableSyntax)
+        Dim collectionRangeVar = DirectCast(nodes.First(Function(n) n.IsKind(SyntaxKind.CollectionRangeVariable)), CollectionRangeVariableSyntax)
         Dim varName = collectionRangeVar.Identifier
         Assert.Equal(varName.ToFullString(), "a ")
     End Sub
@@ -2309,7 +2309,7 @@ End Module
         Dim text = SourceText.From(source)
         Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
-        Dim collectionRangeVar = DirectCast(nodes.First(Function(n) n.Kind = SyntaxKind.CollectionRangeVariable), CollectionRangeVariableSyntax)
+        Dim collectionRangeVar = DirectCast(nodes.First(Function(n) n.IsKind(SyntaxKind.CollectionRangeVariable)), CollectionRangeVariableSyntax)
         Dim asClause = collectionRangeVar.AsClause
         Assert.Equal(asClause.ToFullString(), "As Object ")
     End Sub

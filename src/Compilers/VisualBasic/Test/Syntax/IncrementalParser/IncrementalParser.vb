@@ -1710,7 +1710,7 @@ End Class
         ''''''''''
         Dim tempTree2 = VisualBasicSyntaxTree.ParseText(text)
         Dim tempRoot2 = tempTree2.GetRoot()
-        Dim tempToken2 = tempRoot2.DescendantTokens().First(Function(t) t.Kind = SyntaxKind.IdentifierToken)
+        Dim tempToken2 = tempRoot2.DescendantTokens().First(Function(t) t.IsKind(SyntaxKind.IdentifierToken))
         Dim oldRoot2 = tempRoot2.ReplaceToken(tempToken2, tempToken2.WithAdditionalAnnotations(New SyntaxAnnotation()))
         Assert.True(oldRoot2.ContainsAnnotations, "Should contain annotations.")
         Assert.Equal(text, oldRoot2.ToFullString())

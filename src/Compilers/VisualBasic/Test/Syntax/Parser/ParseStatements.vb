@@ -4366,7 +4366,7 @@ End Class
         ' Find last '(' token.
         Dim indexOfOpenParen = -1
         For i = 0 To tokens.Length - 1
-            If tokens(i).Kind = SyntaxKind.OpenParenToken Then
+            If tokens(i).IsKind(SyntaxKind.OpenParenToken) Then
                 indexOfOpenParen = i
             End If
         Next
@@ -6503,7 +6503,7 @@ End Module
         Dim tokens = tree.GetRoot().DescendantTokens().Select(Function(t) t.Node).ToArray()
         Dim allTrivia = tree.GetRoot().DescendantTrivia().ToArray()
         For Each trivia In allTrivia
-            If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
+            If trivia.IsKind(SyntaxKind.LineContinuationTrivia) Then
                 Assert.Equal(trivia.Width, 1)
                 Assert.Equal(trivia.ToString(), charAsString)
             End If
@@ -6520,7 +6520,7 @@ End Module
         Dim tokens = tree.GetRoot().DescendantTokens().Select(Function(t) t.Node).ToArray()
         Dim allTrivia = tree.GetRoot().DescendantTrivia().ToArray()
         For Each trivia In allTrivia
-            If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
+            If trivia.IsKind(SyntaxKind.LineContinuationTrivia) Then
                 Assert.Equal(trivia.Width, 1)
                 Assert.Equal(trivia.ToString(), charAsString)
             End If
@@ -6555,7 +6555,7 @@ End Module
         Dim tokens = tree.GetRoot().DescendantTokens().Select(Function(t) t.Node).ToArray()
         Dim allTrivia = tree.GetRoot().DescendantTrivia().ToArray()
         For Each trivia In allTrivia
-            If trivia.Kind = SyntaxKind.ColonTrivia Then
+            If trivia.IsKind(SyntaxKind.ColonTrivia) Then
                 Assert.Equal(trivia.Width, 1)
                 Assert.Equal(trivia.ToString(), singleColon)
             End If
