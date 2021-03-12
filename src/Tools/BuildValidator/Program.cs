@@ -127,7 +127,7 @@ namespace BuildValidator
 
                 logAssemblyInfos();
 
-                var success = ValidateFiles(assemblyInfos.Select(x => new FileInfo(x.FilePath)), options, loggerFactory);
+                var success = ValidateFiles(assemblyInfos, options, loggerFactory);
 
                 Console.Out.Flush();
                 return success ? ExitSuccess : ExitFailure;
@@ -199,7 +199,7 @@ namespace BuildValidator
             }
         }
 
-        private static bool ValidateFiles(IEnumerable<FileInfo> originalBinaries, Options options, ILoggerFactory loggerFactory)
+        private static bool ValidateFiles(IEnumerable<AssemblyInfo> assemblyInfos, Options options, ILoggerFactory loggerFactory)
         {
             var logger = loggerFactory.CreateLogger<Program>();
 
@@ -209,17 +209,21 @@ namespace BuildValidator
             var buildConstructor = new BuildConstructor(logger);
 
             var assembliesCompiled = new List<CompilationDiff>();
-            foreach (var file in originalBinaries)
+            foreach (var assemblyInfo in assemblyInfos)
             {
-                var compilationDiff = ValidateFile(file, buildConstructor, logger, options, sourceResolver, referenceResolver);
-
-                if (compilationDiff is null)
-                {
-                    logger.LogInformation($"Ignoring {file.FullName}");
-                    continue;
-                }
-
+                var compilationDiff = ValidateFile(assemblyInfo, buildConstructor, logger, options, sourceResolver, referenceResolver);
                 assembliesCompiled.Add(compilationDiff);
+
+                if (!compilationDiff.Succeeded)
+                {
+                    logger.LogError($"Validation failed for {assemblyInfo.FilePath}");
+                    var debugPath = Path.Combine(
+                        options.DebugPath,
+                        assemblyInfo.TargetFramework,
+                        Path.GetFileNameWithoutExtension(assemblyInfo.FileName));
+                    logger.LogInformation($@"Writing diffs to ""{Path.GetFullPath(debugPath)}""");
+                    compilationDiff.WriteArtifacts(debugPath, logger);
+                }
             }
 
             bool success = true;
@@ -227,46 +231,52 @@ namespace BuildValidator
             using var summary = logger.BeginScope("Summary");
             using (logger.BeginScope("Successful rebuilds"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == true))
+                foreach (var diff in assembliesCompiled.Where(a => a.Outcome == CompilationOutcome.Success))
                 {
-                    logger.LogInformation($"\t{diff.OriginalPath}");
-                }
-            }
-
-            using (logger.BeginScope("Rebuilds with configuration issues"))
-            {
-                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual is null && a.Diagnostics.IsDefaultOrEmpty))
-                {
-                    logger.LogError($"{diff.OriginalPath} was missing required metadata for rebuilding. Was it built with a recent enough compiler with the required settings?");
-                    // dependencies which don't have the required metadata have a way of sneaking into the obj folder.
-                    // for now, let's not let presence of these assemblies cause the rebuild to fail.
+                    logger.LogInformation($"\t{diff.AssemblyInfo.FilePath}");
                 }
             }
 
             using (logger.BeginScope("Rebuilds with output differences"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.AreEqual == false))
+                foreach (var diff in assembliesCompiled.Where(a => a.Outcome == CompilationOutcome.BinaryDifference))
                 {
-                    // TODO: can we include the path to any diff artifacts?
-                    logger.LogWarning($"\t{diff.OriginalPath}");
+                    logger.LogWarning($"\t{diff.AssemblyInfo.FilePath}");
                     success = false;
                 }
             }
 
             using (logger.BeginScope("Rebuilds with compilation errors"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => !a.Diagnostics.IsDefaultOrEmpty))
+                foreach (var diff in assembliesCompiled.Where(a => a.Outcome == CompilationOutcome.CompilationError))
                 {
-                    logger.LogError($"{diff.OriginalPath} had {diff.Diagnostics.Length} diagnostics.");
+                    logger.LogError($"\t{diff.AssemblyInfo.FilePath} had {diff.Diagnostics.Length} diagnostics.");
                     success = false;
+                }
+            }
+
+            using (logger.BeginScope("Rebuilds with missing references"))
+            {
+                foreach (var diff in assembliesCompiled.Where(a => a.Outcome == CompilationOutcome.MissingReferences))
+                {
+                    logger.LogError($"\t{diff.AssemblyInfo.FilePath}");
+                    success = false;
+                }
+            }
+
+            using (logger.BeginScope("Rebuilds with other issues"))
+            {
+                foreach (var diff in assembliesCompiled.Where(a => a.Outcome == CompilationOutcome.MiscError))
+                {
+                    logger.LogError($"{diff.AssemblyInfo.FilePath} {diff.MiscErrorMessage}");
                 }
             }
 
             return success;
         }
 
-        private static CompilationDiff? ValidateFile(
-            FileInfo originalBinary,
+        private static CompilationDiff ValidateFile(
+            AssemblyInfo assemblyInfo,
             BuildConstructor buildConstructor,
             ILogger logger,
             Options options,
@@ -278,11 +288,12 @@ namespace BuildValidator
             try
             {
                 // Find the embedded pdb
-                using var originalBinaryStream = originalBinary.OpenRead();
+                using var originalBinaryStream = File.OpenRead(assemblyInfo.FilePath);
                 using var originalPeReader = new PEReader(originalBinaryStream);
+                var originalBinary = new FileInfo(assemblyInfo.FilePath);
 
                 var pdbOpened = originalPeReader.TryOpenAssociatedPortablePdb(
-                    peImagePath: originalBinary.FullName,
+                    peImagePath: assemblyInfo.FilePath,
                     filePath => File.Exists(filePath) ? File.OpenRead(filePath) : null,
                     out pdbReaderProvider,
                     out var pdbPath);
@@ -290,13 +301,17 @@ namespace BuildValidator
                 if (!pdbOpened || pdbReaderProvider is null)
                 {
                     logger.LogError($"Could not find pdb for {originalBinary.FullName}");
-                    return CompilationDiff.CreatePlaceholder(originalBinary, isError: false);
+                    return CompilationDiff.CreateMiscError(assemblyInfo, "Could not find pdb");
                 }
 
                 using var _ = logger.BeginScope($"Verifying {originalBinary.FullName} with pdb {pdbPath ?? "[embedded]"}");
 
                 var pdbReader = pdbReaderProvider.GetMetadataReader();
                 var optionsReader = new CompilationOptionsReader(logger, pdbReader, originalPeReader);
+                if (!optionsReader.HasMetadataCompilationOptions)
+                {
+                    return CompilationDiff.CreateMiscError(assemblyInfo, "Missing metadata compilation options");
+                }
 
                 var encoding = optionsReader.GetEncoding();
                 var metadataReferenceInfos = optionsReader.GetMetadataReferences();
@@ -306,7 +321,7 @@ namespace BuildValidator
                 if (!referenceResolver.TryResolveReferences(metadataReferenceInfos, out var metadataReferences))
                 {
                     logger.LogError($"Failed to rebuild {originalBinary.Name} due to missing metadata references");
-                    return CompilationDiff.CreatePlaceholder(originalBinary, isError: true);
+                    return CompilationDiff.CreateMissingReferences(assemblyInfo, referenceResolver, metadataReferenceInfos);
                 }
                 logResolvedMetadataReferences();
 
@@ -314,22 +329,25 @@ namespace BuildValidator
                 if (sourceResolver.ResolveSources(sourceFileInfos, sourceLinks, encoding) is not { } sources)
                 {
                     logger.LogError($"Failed to resolve sources");
-                    return CompilationDiff.CreatePlaceholder(originalBinary, isError: true);
+                    return CompilationDiff.CreateMiscError(assemblyInfo, "Failed to resolve sources");
                 }
                 logResolvedSources();
 
-                var (compilation, isError) = buildConstructor.CreateCompilation(
-                    optionsReader,
-                    originalBinary.Name,
-                    sources,
-                    metadataReferences);
-                if (compilation is null)
+                Compilation? compilation = null;
+                try
                 {
-                    return CompilationDiff.CreatePlaceholder(originalBinary, isError);
+                    compilation = buildConstructor.CreateCompilation(
+                        optionsReader,
+                        originalBinary.Name,
+                        sources,
+                        metadataReferences);
+                }
+                catch (Exception ex)
+                {
+                    return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message);
                 }
 
-                var compilationDiff = CompilationDiff.Create(originalBinary, optionsReader, compilation, logger, options);
-                return compilationDiff;
+                return CompilationDiff.Create(assemblyInfo, optionsReader, compilation, logger);
 
                 void logResolvedMetadataReferences()
                 {
