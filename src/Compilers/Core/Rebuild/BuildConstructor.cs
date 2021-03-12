@@ -178,9 +178,9 @@ namespace BuildValidator
             };
 
         private static Platform GetPlatform(string? platform)
-        => platform is null
-            ? Platform.AnyCpu
-            : (Platform)Enum.Parse(typeof(Platform), platform);
+            => platform is null
+                ? Platform.AnyCpu
+                : (Platform)Enum.Parse(typeof(Platform), platform);
 
         private Compilation CreateVisualBasicCompilation(
             string fileName,
