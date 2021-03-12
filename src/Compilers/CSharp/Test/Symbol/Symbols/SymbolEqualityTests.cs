@@ -407,8 +407,8 @@ public class A
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
-            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
-            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -445,8 +445,8 @@ public class A
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
-            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
-            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -476,8 +476,8 @@ public class A
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
-            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
-            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -519,8 +519,8 @@ public class A<T>
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
-            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
-            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -550,8 +550,8 @@ public class A<T>
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
-            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
-            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -586,8 +586,8 @@ public class A
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
-            var create1Syntax = (InvocationExpressionSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.InvocationExpression);
-            var create2Syntax = (InvocationExpressionSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.InvocationExpression);
+            var create1Syntax = (InvocationExpressionSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.InvocationExpression));
+            var create2Syntax = (InvocationExpressionSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.InvocationExpression));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -621,8 +621,8 @@ public class B
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
 
-            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
-            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -670,8 +670,8 @@ public class B
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
 
-            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.ClassDeclaration).DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
-            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.ClassDeclaration).DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.ClassDeclaration)).DescendantNodes().First(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.ClassDeclaration)).DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -722,8 +722,8 @@ public class B
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
 
-            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
-            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.FieldDeclaration);
+            var member1Syntax = (FieldDeclarationSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
+            var member2Syntax = (FieldDeclarationSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.FieldDeclaration));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -772,8 +772,8 @@ public class A<T>
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
 
-            var member1Syntax = (ClassDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.ClassDeclaration);
-            var member2Syntax = (IdentifierNameSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.IdentifierName);
+            var member1Syntax = (ClassDeclarationSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.ClassDeclaration));
+            var member2Syntax = (IdentifierNameSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.IdentifierName));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -823,8 +823,8 @@ public class A<T>
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
 
-            var member1Syntax = (ClassDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.ClassDeclaration);
-            var member2Syntax = (IdentifierNameSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.SimpleMemberAccessExpression).DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.IdentifierName);
+            var member1Syntax = (ClassDeclarationSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.ClassDeclaration));
+            var member2Syntax = (IdentifierNameSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.SimpleMemberAccessExpression)).DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.IdentifierName));
 
             var model = comp.GetSemanticModel(syntaxTree);
 
@@ -884,8 +884,8 @@ public class A<T>
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
 
-            var member1Syntax = (ClassDeclarationSyntax)root.DescendantNodes().First(sn => sn.Kind() == SyntaxKind.ClassDeclaration);
-            var member2Syntax = (IdentifierNameSyntax)root.DescendantNodes().Last(sn => sn.Kind() == SyntaxKind.IdentifierName);
+            var member1Syntax = (ClassDeclarationSyntax)root.DescendantNodes().First(sn => sn.IsKind(SyntaxKind.ClassDeclaration));
+            var member2Syntax = (IdentifierNameSyntax)root.DescendantNodes().Last(sn => sn.IsKind(SyntaxKind.IdentifierName));
 
             var model = comp.GetSemanticModel(syntaxTree);
 

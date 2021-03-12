@@ -5911,7 +5911,7 @@ class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens();
-            var expr = tokens.Single(t => t.Kind() == SyntaxKind.TrueKeyword).Parent;
+            var expr = tokens.Single(t => t.IsKind(SyntaxKind.TrueKeyword)).Parent;
             Assert.Null(model.GetSymbolInfo(expr).Symbol);
             Assert.Equal(SpecialType.System_Boolean, model.GetTypeInfo(expr).Type.SpecialType);
         }
