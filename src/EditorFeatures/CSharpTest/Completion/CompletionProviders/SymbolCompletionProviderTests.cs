@@ -9585,7 +9585,7 @@ class C
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs;
 
             // should not crash
-            await VerifyItemExistsAsync(markup, "ToString");
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact]
