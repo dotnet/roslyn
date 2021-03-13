@@ -924,10 +924,10 @@ public class Program
         public async Task ExplicitConversionOfConditionalAccessFromClassOrStructToClassOrStruct(
             [CombinatorialValues("struct", "class")] string fromClassOrStruct,
             [CombinatorialValues("struct", "class")] string toClassOrStruct,
-            bool propertyIsNullabale,
+            bool propertyIsNullable,
             bool conditionalAccess)
         {
-            if (fromClassOrStruct == "class" && propertyIsNullabale)
+            if (fromClassOrStruct == "class" && propertyIsNullable)
             {
                 // This test is solely about lifting of nullable value types. The CombinatorialData also 
                 // adds cases for nullable reference types: public class From ... public From? From { get; }
@@ -938,9 +938,9 @@ public class Program
             var assertShouldBeNullable =
                 fromClassOrStruct == "struct" &&
                 toClassOrStruct == "struct" &&
-                (propertyIsNullabale || conditionalAccess);
+                (propertyIsNullable || conditionalAccess);
 
-            var propertyNullableQuestionmark = propertyIsNullabale ? "?" : "";
+            var propertyNullableQuestionmark = propertyIsNullable ? "?" : "";
             var conditionalAccessQuestionmark = conditionalAccess ? "?" : "";
             var shouldBeNullableQuestionMark = assertShouldBeNullable ? "?" : "";
             await VerifyCustomCommitProviderAsync(@$"
