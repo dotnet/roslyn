@@ -68,20 +68,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = SymbolCompletionItem.GetContextPosition(item);
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var (_, dotToken) = FindTokensAtPosition(root, position);
+                var (_, dotLikeToken, expression) = FindTokensAtPosition(root, position);
 
-                var expression = (ExpressionSyntax)dotToken.GetRequiredParent();
                 expression = expression.GetRootConditionalAccessExpression() ?? expression;
 
                 var textChanges = TemporaryArray<TextChange>.Empty;
 
                 // Place the new operator before the expression, and delete the dot.
                 textChanges.Add(new TextChange(new TextSpan(expression.SpanStart, 0), item.DisplayText));
-                textChanges.Add(new TextChange(dotToken.Span, ""));
+                textChanges.Add(new TextChange(dotLikeToken.Span, ""));
 
-                var replacement = item.DisplayText + text.ToString(TextSpan.FromBounds(expression.SpanStart, dotToken.SpanStart));
+                var replacement = item.DisplayText + text.ToString(TextSpan.FromBounds(expression.SpanStart, dotLikeToken.SpanStart));
                 var fullTextChange = new TextChange(
-                    TextSpan.FromBounds(expression.SpanStart, dotToken.Span.End),
+                    TextSpan.FromBounds(
+                        expression.SpanStart,
+                        dotLikeToken.Kind() == SyntaxKind.DotDotToken ? dotLikeToken.Span.Start + 1 : dotLikeToken.Span.End),
                     replacement);
 
                 var newPosition = expression.SpanStart + replacement.Length;

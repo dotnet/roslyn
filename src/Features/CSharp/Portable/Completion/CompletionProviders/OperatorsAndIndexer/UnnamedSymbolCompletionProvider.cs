@@ -51,22 +51,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static string SortText(int sortingGroupIndex, string sortTextSymbolPart)
             => $"{SortingPrefix}{sortingGroupIndex:000}{sortTextSymbolPart}";
 
-        private static (SyntaxToken tokenAtPosition, SyntaxToken dotToken) FindTokensAtPosition(
+        private static (SyntaxToken tokenAtPosition, SyntaxToken dotLikeToken, ExpressionSyntax expression) FindTokensAtPosition(
             SyntaxNode root, int position)
         {
             var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
-            var potentialDotTokenLeftOfCursor = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
-            if (potentialDotTokenLeftOfCursor.Kind() != SyntaxKind.DotToken)
+            var dotToken = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
+
+            if (!CompletionUtilities.TreatAsDot(dotToken, position - 1))
                 return default;
 
-            if (potentialDotTokenLeftOfCursor.Parent is not ExpressionSyntax)
+            ExpressionSyntax? expression;
+            if (dotToken.Kind() == SyntaxKind.DotToken)
+            {
+                expression = dotToken.Parent as ExpressionSyntax;
+            }
+            else if (dotToken.Kind() == SyntaxKind.DotDotToken)
+            {
+                expression = (dotToken.Parent as RangeExpressionSyntax)?.LeftOperand;
+            }
+            else
+            {
+                return default;
+            }
+
+            if (expression == null)
                 return default;
 
             // don't want to trigger after a number.  All other cases after dot are ok.
-            if (potentialDotTokenLeftOfCursor.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
+            if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
                 return default;
 
-            return (tokenAtPosition, potentialDotTokenLeftOfCursor);
+            return (tokenAtPosition, dotToken, expression);
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -77,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var workspace = document.Project.Solution.Workspace;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var (_, dotToken) = FindTokensAtPosition(root, position);
+            var (_, dotToken, _) = FindTokensAtPosition(root, position);
             if (dotToken == default)
                 return;
 
@@ -147,22 +162,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var (tokenAtPosition, token) = FindTokensAtPosition(root, position);
-            Contract.ThrowIfFalse(token.IsKind(SyntaxKind.DotToken)); // ProvideCompletionsAsync bails out, if token is not a DotToken
+            var (tokenAtPosition, dotToken, _) = FindTokensAtPosition(root, position);
 
-            var replacementStart = GetReplacementStart(removeConditionalAccess, token);
+            var replacementStart = GetReplacementStart(removeConditionalAccess, dotToken);
             var newPosition = replacementStart + text.Length + positionOffset;
             var replaceSpan = TextSpan.FromBounds(replacementStart, tokenAtPosition.Span.End);
 
             return CompletionChange.Create(new TextChange(replaceSpan, text), newPosition);
         }
 
-        private static int GetReplacementStart(bool removeConditionalAccess, SyntaxToken token)
+        private static int GetReplacementStart(bool removeConditionalAccess, SyntaxToken dotToken)
         {
-            var replacementStart = token.SpanStart;
+            var replacementStart = dotToken.SpanStart;
             if (removeConditionalAccess)
             {
-                if (token.Parent is MemberBindingExpressionSyntax memberBinding &&
+                if (dotToken.Parent is MemberBindingExpressionSyntax memberBinding &&
                     memberBinding.GetParentConditionalAccessExpression() is { } conditional)
                 {
                     replacementStart = conditional.OperatorToken.SpanStart;
