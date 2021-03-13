@@ -1,0 +1,33 @@
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
+    Public Class CSharpCompletionCommandHandlerTests_Conversions
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function BuiltInConversion(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Text.RegularExpressions;
+class C
+{
+    void goo()
+    {
+        var x = 0;
+        var y = x.$$
+    }
+}
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                state.SendTypeChars("by")
+                Await state.AssertSelectedCompletionItem("(byte)")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal("        var y = ((byte)x)", state.GetLineTextFromCaretPosition())
+                Assert.Equal(state.GetLineFromCurrentCaretPosition().End, state.GetCaretPoint().BufferPosition)
+            End Using
+        End Function
+    End Class
+End Namespace
