@@ -5,17 +5,18 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 {
+    /// <summary>
+    /// Adds user defined and predefined conversions to the unnamed recommendation set.
+    /// </summary>
     internal partial class CSharpRecommendationServiceRunner
     {
-        private static readonly ImmutableArray<SpecialType> s_builtInEnumConversionTargets = ImmutableArray.Create(
+        private static readonly ImmutableArray<SpecialType> s_predefinedEnumConversionTargets = ImmutableArray.Create(
             // Presorted alphabetical to reduce sorting cost of the completion items. 
             SpecialType.System_Byte,
             SpecialType.System_Char,
@@ -171,9 +172,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     if (method.Parameters.Length != 1)
                         continue;
 
+                    // Has to be a conversion that actually converts the type we're operating on.
                     if (!type.Equals(method.Parameters[0].Type))
                         continue;
 
+                    // If this is a nullable context, then 'lift' the conversion so we offer the nullable form of it to
+                    // the user instead.
                     symbols.Add(containerIsNullable && IsLiftableConversion(method)
                         ? LiftConversion(compilation, method)
                         : method);
@@ -187,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             //
             // Given a user-defined conversion operator that converts from a non-nullable value type S to a non-nullable
             // value type T, a lifted conversion operator exists that converts from S? to T?
-            return !method.ReturnType.IsNullable() && method.Parameters.Length == 1 && !method.Parameters[0].Type.IsNullable();
+            return method.ReturnType.IsNonNullableValueType() && method.Parameters.Single().Type.IsNonNullableValueType();
         }
 
         private IMethodSymbol LiftConversion(Compilation compilation, IMethodSymbol method)
@@ -286,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // * From any enum_type to any other enum_type.
 
             if (containerWithoutNullable.IsEnumType())
-                AddCompletionItemsForSpecialTypes(container, containerWithoutNullable, symbols, s_builtInEnumConversionTargets);
+                AddCompletionItemsForSpecialTypes(container, containerWithoutNullable, symbols, s_predefinedEnumConversionTargets);
         }
     }
 }
