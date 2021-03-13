@@ -142,8 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             bool disallowAddingImports,
             CancellationToken cancellationToken)
         {
-            var properties = item.Properties;
-            var kind = properties[KindName];
+            var kind = item.Properties[KindName];
             return kind switch
             {
                 IndexerKindName => GetIndexerChangeAsync(document, item, cancellationToken),
@@ -158,8 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             CompletionItem item,
             CancellationToken cancellationToken)
         {
-            var properties = item.Properties;
-            var kind = properties[KindName];
+            var kind = item.Properties[KindName];
             return kind switch
             {
                 IndexerKindName => await GetIndexerDescriptionAsync(document, item, cancellationToken).ConfigureAwait(false),
@@ -169,14 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private static Task<CompletionChange> ReplaceTextAfterOperatorAsync(
-            Document document,
-            CompletionItem item,
-            string text,
-            CancellationToken cancellationToken)
-        {
-            return ReplaceTextAfterOperatorAsync(document, item, text, keepQuestion: false, positionOffset: 0, cancellationToken);
-        }
+        private static Task<CompletionChange> ReplaceTextAfterOperatorAsync(Document document, CompletionItem item, string text, CancellationToken cancellationToken)
+            => ReplaceTextAfterOperatorAsync(document, item, text, keepQuestion: false, positionOffset: 0, cancellationToken);
 
         private static async Task<CompletionChange> ReplaceTextAfterOperatorAsync(
             Document document,
