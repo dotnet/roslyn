@@ -406,6 +406,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For purpose of nullability analysis, awaits create pending branches, so async usings and foreachs do too
         public sealed override bool AwaitUsingAndForeachAddsPendingBranch => true;
 
+        protected override void EnsureSufficientExecutionStack(int recursionDepth)
+        {
+            if (recursionDepth > StackGuard.MaxUncheckedRecursionDepth &&
+                compilation.NullableAnalysisData is { MaxRecursionDepth: var depth } &&
+                depth > 0 &&
+                recursionDepth > depth)
+            {
+                throw new InsufficientExecutionStackException();
+            }
+
+            base.EnsureSufficientExecutionStack(recursionDepth);
+        }
+
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return true;
@@ -1411,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordNullableAnalysisData(Symbol? symbol, bool requiredAnalysis)
         {
-            if (compilation.NullableAnalysisData is { } state)
+            if (compilation.NullableAnalysisData?.Data is { } state)
             {
                 var key = (object?)symbol ?? methodMainNode.Syntax;
                 if (state.TryGetValue(key, out var result))
