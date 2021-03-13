@@ -23,17 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             => typeof(UnnamedSymbolCompletionProvider);
 
         private static string FormatExplicitConversionDescription(string fromType, string toType)
-        {
-            return string.Format(
-                WorkspacesResources.@Explicit_conversion_of_0_to_1,
-                SeeTag(fromType),
-                SeeTag(toType));
-
-            static string SeeTag(string id)
-            {
-                return $@"<see cref=""T:{id}""/>";
-            }
-        }
+            => string.Format(WorkspacesResources.Explicit_conversion_of_0_to_1, fromType, toType);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
@@ -1273,7 +1263,7 @@ public class Program
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
 $@"E.explicit operator int(E value)
-{FormatExplicitConversionDescription("E", "System.Int32")}");
+{FormatExplicitConversionDescription("E", "int")}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1296,7 +1286,7 @@ public class Program
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
 $@"E.explicit operator int(E value)
-{FormatExplicitConversionDescription(fromType: "E", toType: "System.Int32")}");
+{(FormatExplicitConversionDescription(fromType: "E", toType: "int"))}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1325,7 +1315,7 @@ namespace A.C
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
 @$"B.E.explicit operator int(B.E value)
-{FormatExplicitConversionDescription("B.E", "System.Int32")}");
+{FormatExplicitConversionDescription("B.E", "int")}");
         }
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
