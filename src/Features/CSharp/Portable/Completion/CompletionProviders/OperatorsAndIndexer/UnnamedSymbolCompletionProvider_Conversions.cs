@@ -29,12 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var symbols = GetConversionSymbols(conversion);
 
             var targetTypeName = conversion.ReturnType.ToMinimalDisplayString(semanticModel, position);
-            var targetTypeIsNullable = false;
-            var optionalNullableQuestionmark = targetTypeIsNullable ? "?" : "";
             var item = SymbolCompletionItem.CreateWithSymbolId(
                 displayTextPrefix: "(",
                 displayText: targetTypeName,
-                displayTextSuffix: $"{optionalNullableQuestionmark})",
+                displayTextSuffix: ")",
                 filterText: targetTypeName,
                 sortText: SortText(ConversionSortingGroupIndex, targetTypeName),
                 glyph: Glyph.Operator,

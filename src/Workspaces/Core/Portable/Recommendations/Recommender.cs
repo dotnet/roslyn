@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return languageRecommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken).NamedSymbols;
         }
 
-        public static async Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+        public static Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
              SemanticModel semanticModel,
              int position,
              Workspace workspace,
-             OptionSet options = null,
+             OptionSet? options = null,
              CancellationToken cancellationToken = default)
         {
             return Task.FromResult(GetRecommendedSymbolsAtPosition(semanticModel, position, workspace, options, cancellationToken));
