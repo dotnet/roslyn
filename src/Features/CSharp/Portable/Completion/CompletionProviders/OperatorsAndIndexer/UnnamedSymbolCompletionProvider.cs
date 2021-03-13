@@ -117,15 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private void AddUnnamedSymbols(
             CompletionContext context, int position, SemanticModel semanticModel, ImmutableArray<ISymbol> unnamedSymbols, CancellationToken cancellationToken)
         {
-            var indexers = unnamedSymbols.WhereAsArray(s => s.IsIndexer());
-
             // Add one 'this[]' entry for all the indexers this type may have.
-            AddIndexers(context, indexers);
+            AddIndexers(context, unnamedSymbols.WhereAsArray(s => s.IsIndexer()));
 
             // Group all the related operators and add a single completion entry per group.
-            var operators = unnamedSymbols.WhereAsArray(s => s.IsUserDefinedOperator());
-            var operatorGroups = operators.GroupBy(op => op.Name);
-
+            var operatorGroups = unnamedSymbols.WhereAsArray(s => s.IsUserDefinedOperator()).GroupBy(op => op.Name);
             foreach (var opGroup in operatorGroups)
                 AddOperatorGroup(context, opGroup.Key, opGroup);
 
