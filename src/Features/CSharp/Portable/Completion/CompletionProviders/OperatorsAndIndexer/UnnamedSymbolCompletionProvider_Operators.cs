@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -139,32 +138,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return method.Name switch
             {
                 // binary
-                WellKnownMemberNames.AdditionOperatorName => "a + b",
-                WellKnownMemberNames.BitwiseAndOperatorName => "a & b",
-                WellKnownMemberNames.BitwiseOrOperatorName => "a | b",
-                WellKnownMemberNames.DivisionOperatorName => "a / b",
-                WellKnownMemberNames.EqualityOperatorName => "a == b",
-                WellKnownMemberNames.ExclusiveOrOperatorName => "a ^ b",
-                WellKnownMemberNames.GreaterThanOperatorName => "a > b",
-                WellKnownMemberNames.GreaterThanOrEqualOperatorName => "a >= b",
-                WellKnownMemberNames.InequalityOperatorName => "a != b",
-                WellKnownMemberNames.LeftShiftOperatorName => "a << b",
-                WellKnownMemberNames.LessThanOperatorName => "a < b",
-                WellKnownMemberNames.LessThanOrEqualOperatorName => "a <= b",
-                WellKnownMemberNames.ModulusOperatorName => "a % b",
-                WellKnownMemberNames.MultiplyOperatorName => "a * b",
-                WellKnownMemberNames.RightShiftOperatorName => "a >> b",
-                WellKnownMemberNames.SubtractionOperatorName => "a - b",
+                WellKnownMemberNames.AdditionOperatorName => "x + y",
+                WellKnownMemberNames.BitwiseAndOperatorName => "x & y",
+                WellKnownMemberNames.BitwiseOrOperatorName => "x | y",
+                WellKnownMemberNames.DivisionOperatorName => "x / y",
+                WellKnownMemberNames.EqualityOperatorName => "x == y",
+                WellKnownMemberNames.ExclusiveOrOperatorName => "x ^ y",
+                WellKnownMemberNames.GreaterThanOperatorName => "x > y",
+                WellKnownMemberNames.GreaterThanOrEqualOperatorName => "x >= y",
+                WellKnownMemberNames.InequalityOperatorName => "x != y",
+                WellKnownMemberNames.LeftShiftOperatorName => "x << y",
+                WellKnownMemberNames.LessThanOperatorName => "x < y",
+                WellKnownMemberNames.LessThanOrEqualOperatorName => "x <= y",
+                WellKnownMemberNames.ModulusOperatorName => "x % y",
+                WellKnownMemberNames.MultiplyOperatorName => "x * y",
+                WellKnownMemberNames.RightShiftOperatorName => "x >> y",
+                WellKnownMemberNames.SubtractionOperatorName => "x - y",
 
                 // Unary
-                WellKnownMemberNames.DecrementOperatorName => "a--",
+                WellKnownMemberNames.DecrementOperatorName => "x--",
                 WellKnownMemberNames.FalseOperatorName => "false",
-                WellKnownMemberNames.IncrementOperatorName => "a++",
-                WellKnownMemberNames.LogicalNotOperatorName => "!a",
-                WellKnownMemberNames.OnesComplementOperatorName => "~a",
+                WellKnownMemberNames.IncrementOperatorName => "x++",
+                WellKnownMemberNames.LogicalNotOperatorName => "!x",
+                WellKnownMemberNames.OnesComplementOperatorName => "~x",
                 WellKnownMemberNames.TrueOperatorName => "true",
-                WellKnownMemberNames.UnaryNegationOperatorName => "-a",
-                WellKnownMemberNames.UnaryPlusOperatorName => "+a",
+                WellKnownMemberNames.UnaryNegationOperatorName => "-x",
+                WellKnownMemberNames.UnaryPlusOperatorName => "+x",
 
                 var name => throw ExceptionUtilities.UnexpectedValue(name),
             };
