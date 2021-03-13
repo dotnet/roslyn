@@ -12,9 +12,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -64,7 +66,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private async Task<CompletionChange> GetConversionChangeAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var position = SymbolCompletionItem.GetContextPosition(item);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var (_, dotToken) = FindTokensAtPosition(root, position);
+
+            var expression = (ExpressionSyntax)dotToken.GetRequiredParent();
+            expression = expression.GetRootConditionalAccessExpression() ?? expression;
+
+            var textChanges = TemporaryArray<TextChange>.Empty;
+
+            // Place the new operator before the expression, and delete the dot.
+            textChanges.Add(new TextChange(new TextSpan(expression.SpanStart, 0), $"(({item.DisplayText})"));
+            textChanges.Add(new TextChange(dotToken.Span, ")"));
+
+            var replacement = $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, dotToken.SpanStart))})";
+            var fullTextChange = new TextChange(
+                TextSpan.FromBounds(expression.SpanStart, dotToken.Span.End),
+                replacement);
+
+            var newPosition = expression.SpanStart + replacement.Length;
+            return CompletionChange.Create(fullTextChange, textChanges.ToImmutableAndClear(), newPosition);
+
 
             //var position = SymbolCompletionItem.GetContextPosition(item);
             //Contract.ThrowIfFalse(item.Properties.TryGetValue(MinimalTypeNamePropertyName, out var typeName));

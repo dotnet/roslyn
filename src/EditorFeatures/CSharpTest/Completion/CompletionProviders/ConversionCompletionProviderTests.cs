@@ -733,7 +733,7 @@ public class Program
     {
         {
             var c = new C<int>();
-            ((D<int>)c).$$
+            ((D<int>)c)$$
         }
     }
 }
@@ -773,7 +773,7 @@ public class Program
     {
         {
             var c = new C();
-            ((int[])c).$$
+            ((int[])c)$$
         }
     }
 }
@@ -858,7 +858,7 @@ public class Program
         s.$$
     }
 }
-", "int", @"
+", "int?", @"
 public struct S {
     public static explicit operator int(S _) => 0;
 }
@@ -867,7 +867,7 @@ public class Program
     public static void Main()
     {
         S? s = null;
-        ((int?)s).$$
+        ((int?)s)$$
     }
 }
 ");
@@ -907,7 +907,7 @@ public class Program
     public static void Main()
     {
         C c = null;
-        ((int?)c?.S).$$
+        ((int?)c?.S)$$
     }
 }
 ");
@@ -1056,7 +1056,7 @@ public class Program
     public static void Main()
     {
         long l = 0;
-        ((int)l).$$
+        ((int)l)$$
     }
 }
 ");
@@ -1152,13 +1152,13 @@ public class Program
         l.$$
     }
 }
-", "int", @"
+", "int?", @"
 public class Program
 {
     public static void Main()
     {
         long? l = 0;
-        ((int?)l).$$
+        ((int?)l)$$
     }
 }
 ");
@@ -1187,7 +1187,7 @@ public class Program
     public static void Main()
     {
         var e = E.One;
-        ((int)e).$$
+        ((int)e)$$
     }
 }
 ");
@@ -1209,14 +1209,14 @@ public class Program
         e.$$
     }
 }
-", "int", @"
+", "int?", @"
 public enum E { One }
 public class Program
 {
     public static void Main()
     {
         E? e = null;
-        ((int?)e).$$
+        ((int?)e)$$
     }
 }
 ");
