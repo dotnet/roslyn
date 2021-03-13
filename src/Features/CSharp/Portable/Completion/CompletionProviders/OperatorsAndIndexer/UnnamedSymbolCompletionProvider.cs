@@ -48,13 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => text[insertedCharacterPosition] == '.';
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-
-        protected static string SortText(int sortingGroupIndex, string sortTextSymbolPart)
+        private static string SortText(int sortingGroupIndex, string sortTextSymbolPart)
             => $"{SortingPrefix}{sortingGroupIndex:000}{sortTextSymbolPart}";
 
-        protected static (SyntaxToken tokenAtPosition, SyntaxToken dotToken) FindTokensAtPosition(
+        private static (SyntaxToken tokenAtPosition, SyntaxToken dotToken) FindTokensAtPosition(
             SyntaxNode root, int position)
         {
             var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
@@ -107,36 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     AddOperator(context, (IMethodSymbol)symbol);
                 }
             }
-
-            //var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            //var (_, potentialDotToken) = FindTokensAtPosition(root, position);
-            //if (!potentialDotToken.IsKind(SyntaxKind.DotToken))
-            //    return;
-
-            //var expression = GetParentExpressionOfToken(potentialDotToken);
-            //if (expression is null || expression.IsKind(SyntaxKind.NumericLiteralExpression))
-            //    return;
-
-            //var semanticModel = await document.ReuseExistingSpeculativeModelAsync(expression.SpanStart, cancellationToken).ConfigureAwait(false);
-            //var container = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            //if (container is null)
-            //    return;
-
-            //var expressionSymbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            //if (expressionSymbolInfo.Symbol is INamedTypeSymbol)
-            //{
-            //    // Expression looks like an access to a static member. Operator, indexer and conversions are not applicable.
-            //    return;
-            //}
-
-            //if (expression.IsInsideNameOfExpression(semanticModel, cancellationToken))
-            //{
-            //    return;
-            //}
-
-            //var isAccessedByConditionalAccess = expression.GetRootConditionalAccessExpression() is not null;
-            //var completionItems = GetCompletionItemsForTypeSymbol(semanticModel, container, position, isAccessedByConditionalAccess, cancellationToken);
-            //context.AddItems(completionItems);
         }
 
         internal override Task<CompletionChange> GetChangeAsync(
@@ -174,56 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        protected static SyntaxToken? FindTokenToRemoveAtCursorPosition(SyntaxToken tokenAtCursor) => tokenAtCursor switch
-        {
-            var token when token.IsKind(SyntaxKind.IdentifierToken) => token,
-            var token when token.IsKeyword() => token,
-            _ => null,
-        };
-
-        /// <summary>
-        /// Returns the expression left to the passed dot <paramref name="token"/>.
-        /// </summary>
-        /// <example>
-        /// Expression: a.b?.ccc.
-        /// Token     :  ↑  ↑   ↑
-        /// Returns   :  a  a.b .ccc
-        /// </example>
-        /// <param name="token">A dot token.</param>
-        /// <returns>The expression left to the dot token or null.</returns>
-        protected static ExpressionSyntax? GetParentExpressionOfToken(SyntaxToken token)
-        {
-            var syntaxNode = token.Parent;
-            return syntaxNode switch
-            {
-                MemberAccessExpressionSyntax memberAccess => memberAccess.Expression,
-                MemberBindingExpressionSyntax memberBinding => memberBinding.GetParentConditionalAccessExpression()?.Expression,
-                _ => null,
-            };
-        }
-
-        /// <summary>
-        /// Returns the expression left to the passed dot <paramref name="token"/>.
-        /// </summary>
-        /// <example>
-        /// Given the expression a.b?.c.d. returns a.b?.c.d. for all dot tokens
-        /// </example>
-        /// <param name="token">A dot token.</param>
-        /// <returns>The root expression associated with the dot or null.</returns>
-        protected static ExpressionSyntax? GetRootExpressionOfToken(SyntaxToken token)
-        {
-            var syntaxNode = token.Parent;
-            return syntaxNode switch
-            {
-                MemberAccessExpressionSyntax memberAccess
-                    => memberAccess.Expression.GetRootConditionalAccessExpression() ?? (ExpressionSyntax)memberAccess,
-                MemberBindingExpressionSyntax memberBinding
-                    => memberBinding.GetRootConditionalAccessExpression(),
-                _ => null,
-            };
-        }
-
-        protected static async Task<CompletionChange> ReplaceDotAndTokenAfterWithTextAsync(Document document,
+        private static async Task<CompletionChange> ReplaceDotAndTokenAfterWithTextAsync(Document document,
             CompletionItem item, string text, bool removeConditionalAccess, int positionOffset,
             CancellationToken cancellationToken)
         {
