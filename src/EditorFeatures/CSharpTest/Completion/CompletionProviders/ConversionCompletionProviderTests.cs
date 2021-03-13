@@ -940,8 +940,8 @@ public class Program
                 toClassOrStruct == "struct" &&
                 (propertyIsNullable || conditionalAccess);
 
-            var propertyNullableQuestionmark = propertyIsNullable ? "?" : "";
-            var conditionalAccessQuestionmark = conditionalAccess ? "?" : "";
+            var propertyNullableQuestionMark = propertyIsNullable ? "?" : "";
+            var conditionalAccessQuestionMark = conditionalAccess ? "?" : "";
             var shouldBeNullableQuestionMark = assertShouldBeNullable ? "?" : "";
             await VerifyCustomCommitProviderAsync(@$"
 public {fromClassOrStruct} From {{
@@ -950,31 +950,31 @@ public {fromClassOrStruct} From {{
 public {toClassOrStruct} To {{
 }}
 public class C {{
-    public From{propertyNullableQuestionmark} From {{ get; }} = default;
+    public From{propertyNullableQuestionMark} From {{ get; }} = default;
 }}
 public class Program
 {{
     public static void Main()
     {{
         C c = null;
-        c{conditionalAccessQuestionmark}.From.$$
+        c{conditionalAccessQuestionMark}.From.$$
     }}
 }}
-", $"To", @$"
+", $"To{shouldBeNullableQuestionMark}", @$"
 public {fromClassOrStruct} From {{
     public static explicit operator To(From _) => default;
 }}
 public {toClassOrStruct} To {{
 }}
 public class C {{
-    public From{propertyNullableQuestionmark} From {{ get; }} = default;
+    public From{propertyNullableQuestionMark} From {{ get; }} = default;
 }}
 public class Program
 {{
     public static void Main()
     {{
         C c = null;
-        ((To{shouldBeNullableQuestionMark})c{conditionalAccessQuestionmark}.From)$$
+        ((To{shouldBeNullableQuestionMark})c{conditionalAccessQuestionMark}.From)$$
     }}
 }}
 ");
