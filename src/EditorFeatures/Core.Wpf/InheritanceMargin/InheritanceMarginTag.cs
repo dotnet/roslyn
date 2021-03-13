@@ -112,6 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 
     internal class MemberPresentEntry
     {
+        public readonly string Name;
         public readonly string DisplayContent;
         public readonly Glyph Glyph;
         public readonly ImmutableArray<TargetPresentEntry> Targets;
@@ -129,16 +130,15 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 
     internal class TargetPresentEntry
     {
-        public readonly string _title;
-        public readonly ImmutableArray<DefinitionItem> _definitionItems;
+        public readonly string Title;
+        public readonly ImmutableArray<DefinitionItem> DefinitionItems;
+        public readonly string Name;
 
         public TargetPresentEntry(
             Glyph glyph,
             string title,
             ImmutableArray<DefinitionItem> definitionItems)
         {
-            _title = title;
-            _definitionItems = definitionItems;
         }
     }
 }

@@ -21,10 +21,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var allDeclarationNodes = GetDeclarationNodes(root);
-            var allIdentifierPositions = allDeclarationNodes.SelectMany(node => GetMembers(node)).ToImmutableArray();
+            var allDeclarationNodes = GetMembers(root);
 
-            if (allIdentifierPositions.IsEmpty)
+            if (allDeclarationNodes.IsEmpty)
             {
                 return ImmutableArray<InheritanceMemberItem>.Empty;
             }
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<InheritanceMemberItem>.GetInstance(out var builder);
 
-            foreach (var memberDeclarationNode in allIdentifierPositions)
+            foreach (var memberDeclarationNode in allDeclarationNodes)
             {
                 var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
                 var lineNumber = sourceText.Lines.GetLineFromPosition(memberDeclarationNode.SpanStart).LineNumber;
