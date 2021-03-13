@@ -788,7 +788,7 @@ public class Program
         [InlineData("/* Leading */c.fl$$",
                     "/* Leading */((float)c)$$")]
         [InlineData("c.  $$",
-                    "((float)c)$$")]
+                    "((float)c)$$  ")]
         [InlineData("(true ? /* Inline */ c : c).$$",
                     "((float)(true ? /* Inline */ c : c))$$")]
         [InlineData("c.fl$$ /* Trailing */",
