@@ -204,7 +204,6 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
 
                 internal void ExitWalker(SharedWalkerState stableState, int previousSlot)
                 {
-                    Debug.Assert(_currentWalkerSlot == previousSlot + 1);
                     _walkerStates.SetItem(_currentWalkerSlot, stableState);
                     _currentWalkerSlot = previousSlot;
                 }
