@@ -223,14 +223,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (session is null)
                 throw new ArgumentNullException(nameof(session));
 
-            session.Dismissed += Session_Dismissed;
             session.Properties[TriggerLocation] = triggerLocation;
             return GetCompletionContextWorkerAsync(session, trigger, triggerLocation, isExpanded: false, cancellationToken);
-        }
-
-        private void Session_Dismissed(object sender, EventArgs e)
-        {
-            
         }
 
         public async Task<AsyncCompletionData.CompletionContext> GetExpandedCompletionContextAsync(
