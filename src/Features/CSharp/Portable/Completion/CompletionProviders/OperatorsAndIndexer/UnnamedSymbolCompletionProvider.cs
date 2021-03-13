@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             => $"{SortingPrefix}{sortingGroupIndex:000}_{sortTextSymbolPart}";
 
         /// <summary>
-        /// Gets the relevant tokens and expression of interest surrounding the immediately preceding <c>.</c> (dot).
+        /// Gets the dot-like token we're after, and also the start of the expression we'd want to place any text before.
         /// </summary>
         private static (SyntaxToken dotLikeToken, int expressionStart) GetDotAndExpressionStart(SyntaxNode root, int position)
         {
@@ -74,6 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // Has to be a . or a .. token
             if (!CompletionUtilities.TreatAsDot(dotToken, position - 1))
+                return default;
+
+            // don't want to trigger after a number.  All other cases after dot are ok.
+            if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
                 return default;
 
             // if we have `.Name`, we want to get the parent member-access of that to find the starting position.
@@ -87,11 +91,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             // If we're after a ?. find teh root of that conditional to find the start position of the expression.
             expression = expression.GetRootConditionalAccessExpression() ?? expression;
-
-            // don't want to trigger after a number.  All other cases after dot are ok.
-            if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
-                return default;
-
             return (dotToken, expression.SpanStart);
         }
 
