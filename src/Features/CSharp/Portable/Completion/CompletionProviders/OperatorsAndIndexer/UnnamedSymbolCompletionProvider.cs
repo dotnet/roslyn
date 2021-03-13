@@ -67,36 +67,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <summary>
         /// Gets the relevant tokens and expression of interest surrounding the immediately preceding <c>.</c> (dot).
         /// </summary>
-        private static (SyntaxToken dotLikeToken, ExpressionSyntax expression) GetDotAndExpression(SyntaxNode root, int position)
+        private static (SyntaxToken dotLikeToken, int expressionStart) GetDotAndExpressionStart(SyntaxNode root, int position)
         {
             var tokenOnLeft = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
             var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
 
+            // Has to be a . or a .. token
             if (!CompletionUtilities.TreatAsDot(dotToken, position - 1))
                 return default;
 
-            ExpressionSyntax? expression;
-            if (dotToken.Kind() == SyntaxKind.DotToken)
-            {
-                expression = dotToken.Parent as ExpressionSyntax;
-            }
-            else if (dotToken.Kind() == SyntaxKind.DotDotToken)
-            {
-                expression = (dotToken.Parent as RangeExpressionSyntax)?.LeftOperand;
-            }
-            else
-            {
-                return default;
-            }
+            // if we have `.Name`, we want to get the parent member-access of that to find the starting position.
+            // Otherwise, if we have .. then we want the left side of that to find the starting position.
+            var expression = dotToken.Kind() == SyntaxKind.DotToken
+                ? dotToken.Parent as ExpressionSyntax
+                : (dotToken.Parent as RangeExpressionSyntax)?.LeftOperand;
 
             if (expression == null)
                 return default;
+
+            // If we're after a ?. find teh root of that conditional to find the start position of the expression.
+            expression = expression.GetRootConditionalAccessExpression() ?? expression;
 
             // don't want to trigger after a number.  All other cases after dot are ok.
             if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
                 return default;
 
-            return (dotToken, expression);
+            return (dotToken, expression.SpanStart);
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -106,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = context.Position;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var dotAndExpr = GetDotAndExpression(root, position);
-            if (dotAndExpr == default)
+            var dotAndExprStart = GetDotAndExpressionStart(root, position);
+            if (dotAndExprStart == default)
                 return;
 
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
@@ -189,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
 
-            var (dotToken, _) = GetDotAndExpression(root, position);
+            var (dotToken, _) = GetDotAndExpressionStart(root, position);
 
             var replacementStart = GetReplacementStart(removeConditionalAccess, dotToken);
             var newPosition = replacementStart + text.Length + positionOffset;

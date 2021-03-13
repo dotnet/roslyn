@@ -128,25 +128,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = SymbolCompletionItem.GetContextPosition(item);
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var (dotLikeToken, expression) = GetDotAndExpression(root, position);
+                var (dotLikeToken, expressionStart) = GetDotAndExpressionStart(root, position);
 
-                expression = expression.GetRootConditionalAccessExpression() ?? expression;
-
-                var textChanges = TemporaryArray<TextChange>.Empty;
 
                 // Place the new operator before the expression, and delete the dot.
-                textChanges.Add(new TextChange(new TextSpan(expression.SpanStart, 0), item.DisplayText));
-                textChanges.Add(new TextChange(dotLikeToken.Span, ""));
-
-                var replacement = item.DisplayText + text.ToString(TextSpan.FromBounds(expression.SpanStart, dotLikeToken.SpanStart));
+                var replacement = item.DisplayText + text.ToString(TextSpan.FromBounds(expressionStart, dotLikeToken.SpanStart));
                 var fullTextChange = new TextChange(
                     TextSpan.FromBounds(
-                        expression.SpanStart,
+                        expressionStart,
                         dotLikeToken.Kind() == SyntaxKind.DotDotToken ? dotLikeToken.Span.Start + 1 : dotLikeToken.Span.End),
                     replacement);
 
-                var newPosition = expression.SpanStart + replacement.Length;
-                return CompletionChange.Create(fullTextChange, textChanges.ToImmutableAndClear(), newPosition);
+                var newPosition = expressionStart + replacement.Length;
+                return CompletionChange.Create(fullTextChange, newPosition);
             }
 
             throw ExceptionUtilities.UnexpectedValue(operatorPosition);
