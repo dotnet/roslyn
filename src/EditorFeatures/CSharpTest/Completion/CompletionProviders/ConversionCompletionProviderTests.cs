@@ -410,7 +410,7 @@ public class Program
                     "((Black)white)?$$")]
         [InlineData("white?.$$b", "Black",
                     "((Black)white)?$$b")]
-        [InlineData("white?$$b.c()", "Black",
+        [InlineData("white?.$$b.c()", "Black",
                     "((Black)white)?$$b.c()")]
         [InlineData("white?.$$b()", "Black",
                     "((Black)white)?$$b()")]

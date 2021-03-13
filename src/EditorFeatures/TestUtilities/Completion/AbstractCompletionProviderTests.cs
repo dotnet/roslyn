@@ -484,8 +484,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             document = WithChangedOptions(document);
 
             var service = GetCompletionService(document.Project);
-            var completionLlist = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
-            var items = completionLlist.Items;
+            var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
+            var items = completionList.Items;
 
             Assert.Contains(itemToCommit, items.Select(x => x.DisplayText), GetStringComparer());
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
             else
             {
-                await VerifyCustomCommitWorkerAsync(service, document, firstItem, completionLlist.Span, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                await VerifyCustomCommitWorkerAsync(service, document, firstItem, completionList.Span, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
         }
 
