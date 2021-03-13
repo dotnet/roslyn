@@ -24,18 +24,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
     internal partial class UnnamedSymbolCompletionProvider : LSPCompletionProvider
     {
-        // CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties of
-        // the type.  We accomplish this by placing a character known to be greater than all other normal identifier
-        // characters as the start of our item's name. this doesn't affect what we insert though as all derived providers
-        // have specialized logic for what they need to do.
+        /// <summary>
+        /// CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties
+        /// of the type.  We accomplish this by placing a character known to be greater than all other normal identifier
+        /// characters as the start of our item's name. this doesn't affect what we insert though as all derived
+        /// providers have specialized logic for what they need to do.
+        /// </summary> 
         private const string SortingPrefix = "\uFFFD";
 
+        /// <summary>
+        /// Used to store what sort of unnamed symbol a completion item represents.
+        /// </summary>
         internal const string KindName = "Kind";
         internal const string IndexerKindName = "Indexer";
         internal const string OperatorKindName = "Operator";
         internal const string ConversionKindName = "Conversion";
 
-        private const string MinimalTypeNamePropertyName = "MinimalTypeName";
+        /// <summary>
+        /// Used to store the doc comment for some operators/conversions.  This is because some of them will be
+        /// synthesized, so there will be no symbol we can recover after the fact in <see cref="GetDescriptionAsync"/>.
+        /// </summary>
         private const string DocumentationCommentXmlName = "DocumentationCommentXml";
 
         [ImportingConstructor]
