@@ -187,15 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     if (!type.Equals(method.Parameters[0].Type))
                         continue;
 
-                    if (containerIsNullable)
-                    {
-                        if (IsLiftableConversion(method))
-                            symbols.Add(LiftConversion(compilation, method));
-                    }
-                    else
-                    {
-                        symbols.Add(method);
-                    }
+                    symbols.Add(containerIsNullable && IsLiftableConversion(method)
+                        ? LiftConversion(compilation, method)
+                        : method);
                 }
             }
         }
