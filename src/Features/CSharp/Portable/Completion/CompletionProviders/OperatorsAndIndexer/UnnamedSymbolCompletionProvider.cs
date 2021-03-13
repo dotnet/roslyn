@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
@@ -44,15 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        //protected abstract int SortingGroupIndex { get; }
-
-        //protected abstract ImmutableArray<CompletionItem> GetCompletionItemsForTypeSymbol(
-        //    SemanticModel semanticModel,
-        //    ITypeSymbol container,
-        //    int position,
-        //    bool isAccessedByConditionalAccess,
-        //    CancellationToken cancellationToken);
-
         public override ImmutableHashSet<char> TriggerCharacters => ImmutableHashSet.Create('.');
 
         public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
@@ -60,15 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
             => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-
-        protected static ImmutableDictionary<string, string> CreatePropertiesBag(params (string key, string value)[] properties)
-        {
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            foreach (var (key, value) in properties)
-                builder.Add(key, value);
-
-            return builder.ToImmutable();
-        }
 
         protected static string SortText(int sortingGroupIndex, string sortTextSymbolPart)
             => $"{SortingPrefix}{sortingGroupIndex:000}{sortTextSymbolPart}";
