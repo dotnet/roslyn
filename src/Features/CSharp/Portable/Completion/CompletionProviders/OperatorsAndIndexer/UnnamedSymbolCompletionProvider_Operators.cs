@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = SymbolCompletionItem.GetContextPosition(item);
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var (_, dotLikeToken, expression) = FindTokensAtPosition(root, position);
+                var (dotLikeToken, expression) = GetDotAndExpression(root, position);
 
                 expression = expression.GetRootConditionalAccessExpression() ?? expression;
 

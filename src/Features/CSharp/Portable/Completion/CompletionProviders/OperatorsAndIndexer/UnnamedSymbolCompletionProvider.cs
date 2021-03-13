@@ -67,11 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <summary>
         /// Gets the relevant tokens and expression of interest surrounding the immediately preceding <c>.</c> (dot).
         /// </summary>
-        private static (SyntaxToken tokenAtPosition, SyntaxToken dotLikeToken, ExpressionSyntax expression) FindTokensAtPosition(
-            SyntaxNode root, int position)
+        private static (SyntaxToken dotLikeToken, ExpressionSyntax expression) GetDotAndExpression(SyntaxNode root, int position)
         {
-            var tokenAtPosition = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
-            var dotToken = tokenAtPosition.GetPreviousTokenIfTouchingWord(position);
+            var tokenOnLeft = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
+            var dotToken = tokenOnLeft.GetPreviousTokenIfTouchingWord(position);
 
             if (!CompletionUtilities.TreatAsDot(dotToken, position - 1))
                 return default;
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (dotToken.GetPreviousToken().Kind() == SyntaxKind.NumericLiteralToken)
                 return default;
 
-            return (tokenAtPosition, dotToken, expression);
+            return (dotToken, expression);
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -107,8 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = context.Position;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var tokens = FindTokensAtPosition(root, position);
-            if (tokens == default)
+            var dotAndExpr = GetDotAndExpression(root, position);
+            if (dotAndExpr == default)
                 return;
 
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
@@ -179,19 +178,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private static async Task<CompletionChange> ReplaceDotAndTokenAfterWithTextAsync(Document document,
-            CompletionItem item, string text, bool removeConditionalAccess, int positionOffset,
+        private static async Task<CompletionChange> ReplaceDotAndTokenAfterWithTextAsync(
+            Document document,
+            CompletionItem item,
+            string text,
+            bool removeConditionalAccess,
+            int positionOffset,
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var position = SymbolCompletionItem.GetContextPosition(item);
-            var (tokenAtPosition, dotToken, _) = FindTokensAtPosition(root, position);
+
+            var (dotToken, _) = GetDotAndExpression(root, position);
 
             var replacementStart = GetReplacementStart(removeConditionalAccess, dotToken);
             var newPosition = replacementStart + text.Length + positionOffset;
-            var replaceSpan = TextSpan.FromBounds(replacementStart, tokenAtPosition.Span.End);
 
-            return CompletionChange.Create(new TextChange(replaceSpan, text), newPosition);
+            var tokenOnLeft = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
+            return CompletionChange.Create(
+                new TextChange(TextSpan.FromBounds(replacementStart, tokenOnLeft.Span.End), text),
+                newPosition);
         }
 
         private static int GetReplacementStart(bool removeConditionalAccess, SyntaxToken dotToken)

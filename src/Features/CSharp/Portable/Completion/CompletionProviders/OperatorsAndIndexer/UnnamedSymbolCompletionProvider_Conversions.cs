@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var (token, dotToken, _) = FindTokensAtPosition(root, position);
+            var (dotToken, _) = GetDotAndExpression(root, position);
 
             var questionToken = dotToken.GetPreviousToken().Kind() == SyntaxKind.QuestionToken
                 ? dotToken.GetPreviousToken()
@@ -75,10 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 : $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, dotToken.SpanStart))})";
 
             // If we're at `x.$$.y` then we only want to replace up through the first dot.
+            var tokenOnLeft = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
             var fullTextChange = new TextChange(
                 TextSpan.FromBounds(
                     expression.SpanStart,
-                    token.Kind() == SyntaxKind.DotDotToken ? token.SpanStart + 1 : token.Span.End),
+                    tokenOnLeft.Kind() == SyntaxKind.DotDotToken ? tokenOnLeft.SpanStart + 1 : tokenOnLeft.Span.End),
                 replacement);
 
             var newPosition = expression.SpanStart + replacement.Length;
