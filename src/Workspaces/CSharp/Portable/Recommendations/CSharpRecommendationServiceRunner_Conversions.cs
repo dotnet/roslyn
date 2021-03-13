@@ -145,12 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // In a case like `x?.Y` if we bind the type of `.Y` we will get a value type back (like `int`), and not
             // `int?`.  However, we want to think of the constructed type as that's the type of the overall expression
             // that will be casted.
-            if (container.IsValueType &&
-                !container.IsNullable() &&
-                originalExpression.GetRootConditionalAccessExpression() != null)
-            {
-                container = semanticModel.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(container);
-            }
+            if (originalExpression.GetRootConditionalAccessExpression() != null)
+                container = TryMakeNullable(semanticModel.Compilation, container);
 
             var containerWithoutNullable = container.RemoveNullableIfPresent();
 
@@ -160,6 +156,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 AddBuiltInNumericConversions(container, namedType, symbols);
                 AddBuiltInEnumConversions(container, namedType, symbols);
             }
+        }
+
+        private static ITypeSymbol TryMakeNullable(Compilation compilation, ITypeSymbol container)
+        {
+            return container.IsValueType && !container.IsNullable()
+                ? compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(container)
+                : container;
         }
 
         private void AddUserDefinedConversionsOfType(
@@ -201,14 +204,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         }
 
         private IMethodSymbol LiftConversion(Compilation compilation, IMethodSymbol method)
-        {
-            var nullableType = compilation.GetSpecialType(SpecialType.System_Nullable_T);
-            return CreateConversion(
+            => CreateConversion(
                 method.ContainingType,
-                nullableType.Construct(method.Parameters.Single().Type),
-                nullableType.Construct(method.ReturnType),
+                TryMakeNullable(compilation, method.Parameters.Single().Type),
+                TryMakeNullable(compilation, method.ReturnType),
                 method.GetDocumentationCommentXml(cancellationToken: _cancellationToken));
-        }
 
         private void AddBuiltInNumericConversions(
             ITypeSymbol container, INamedTypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
