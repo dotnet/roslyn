@@ -3,17 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -32,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Postfix = 4,
         }
 
-        private readonly int OperatorSortingGroupIndex = 3;
+        private readonly int OperatorSortingGroupIndex = 2;
 
         private readonly string OperatorName = nameof(OperatorName);
         private readonly ImmutableDictionary<string, string> OperatorProperties =
@@ -95,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             throw ExceptionUtilities.UnexpectedValue(operatorPosition);
         }
 
-        private Task<CompletionDescription> GetOperatorDescriptionAsync(
+        private static Task<CompletionDescription> GetOperatorDescriptionAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);

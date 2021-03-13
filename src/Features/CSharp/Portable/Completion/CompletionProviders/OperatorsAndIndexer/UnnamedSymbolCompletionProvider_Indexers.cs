@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class UnnamedSymbolCompletionProvider
     {
-        // private readonly int IndexerSortingGroupIndex = 1;
         private readonly ImmutableDictionary<string, string> IndexerProperties =
             ImmutableDictionary<string, string>.Empty.Add(KindName, IndexerKindName);
 
