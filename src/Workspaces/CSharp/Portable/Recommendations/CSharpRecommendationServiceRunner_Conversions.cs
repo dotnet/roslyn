@@ -195,13 +195,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             return !method.ReturnType.IsNullable() && method.Parameters.Length == 1 && !method.Parameters[0].Type.IsNullable();
         }
 
-        private static IMethodSymbol LiftConversion(Compilation compilation, IMethodSymbol method)
+        private IMethodSymbol LiftConversion(Compilation compilation, IMethodSymbol method)
         {
             var nullableType = compilation.GetSpecialType(SpecialType.System_Nullable_T);
             return CreateConversion(
                 method.ContainingType,
                 nullableType.Construct(method.Parameters.Single().Type),
-                nullableType.Construct(method.ReturnType));
+                nullableType.Construct(method.ReturnType),
+                method.GetDocumentationCommentXml(cancellationToken: _cancellationToken));
         }
 
         private void AddBuiltInNumericConversions(
@@ -248,7 +249,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             foreach (var specialType in specialTypes)
             {
                 var targetTypeSymbol = _context.SemanticModel.Compilation.GetSpecialType(specialType);
-                var conversion = CreateConversion(containerWithoutNullable, fromType: containerWithoutNullable, toType: targetTypeSymbol);
+                var conversion = CreateConversion(
+                    containerWithoutNullable, fromType: containerWithoutNullable, toType: targetTypeSymbol,
+                    CreateConversionDocumentationCommentXml(containerWithoutNullable, targetTypeSymbol));
                 symbols.Add(conversion);
 
                 var containerIsNullable = container.IsNullable();
@@ -258,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         }
 
         private static IMethodSymbol CreateConversion(
-            INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType)
+            INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType, string? documentationCommentXml)
         {
             return CodeGenerationSymbolFactory.CreateConversionSymbol(
                 attributes: default,
@@ -267,9 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 toType: toType,
                 fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
                 containingType: containingType,
-                documentationCommentXml: CreateConversionDocumentationCommentXml(
-                    fromType.RemoveNullableIfPresent(),
-                    toType.RemoveNullableIfPresent()));
+                documentationCommentXml: documentationCommentXml);
         }
 
         private static string CreateConversionDocumentationCommentXml(ITypeSymbol fromType, ITypeSymbol toType)
