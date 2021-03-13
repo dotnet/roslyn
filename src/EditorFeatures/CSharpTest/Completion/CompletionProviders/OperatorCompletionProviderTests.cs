@@ -462,12 +462,12 @@ public class Program
                 i =>
                 {
                     Assert.Equal("+", i.DisplayText);
-                    Assert.EndsWith("003007", i.SortText); // Addition
+                    Assert.EndsWith("002007", i.SortText); // Addition
                 },
                 i =>
                 {
                     Assert.Equal("+", i.DisplayText);
-                    Assert.EndsWith("003014", i.SortText); // unary plus
+                    Assert.EndsWith("002014", i.SortText); // unary plus
                 });
         }
 

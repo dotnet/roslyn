@@ -76,8 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var replacement = questionToken != null
                 ? $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, questionToken.Value.FullSpan.Start))}){questionToken.Value}"
                 : $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, dotToken.SpanStart))})";
+
+            // If we're at `x.$$.y` then we only want to replace up through the first dot.
             var fullTextChange = new TextChange(
-                TextSpan.FromBounds(expression.SpanStart, token.Span.End),
+                TextSpan.FromBounds(
+                    expression.SpanStart,
+                    token.Kind() == SyntaxKind.DotDotToken ? token.SpanStart + 1 : token.Span.End),
                 replacement);
 
             var newPosition = expression.SpanStart + replacement.Length;

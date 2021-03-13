@@ -7736,10 +7736,10 @@ namespace B
                     "ExtensionImported",
                     "GetHashCode",
                     "GetType",
+                    "this[]", ' Indexer
                     "ToString",
                     "Z",
                     "ZM",
-                    "this[]", ' Indexer
                     "(int)", ' Conversions
                     "+", ' Operators
                     "ExtensionUnimported" 'Unimported extension methods
