@@ -9,6 +9,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 {
+    /// <summary>
+    /// Adds user defined operators to the unnamed recommendation set.
+    /// </summary>
     internal partial class CSharpRecommendationServiceRunner
     {
         private static void AddOperators(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
@@ -25,15 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             {
                 foreach (var member in type.GetMembers())
                 {
-                    if (member is not IMethodSymbol method)
+                    if (member is not IMethodSymbol { MethodKind: MethodKind.UserDefinedOperator } method)
                         continue;
 
-                    if (!method.IsUserDefinedOperator())
-                        continue;
-
+                    // Don't add operator true/false.  They only are used for conversions in special boolean contexts
+                    // (like `if` statement conditions), and are not invoked explicitly by the user.
                     if (method.Name is WellKnownMemberNames.TrueOperatorName or WellKnownMemberNames.FalseOperatorName)
                         continue;
 
+                    // If we're on a nullable version of the type, but this operator wouldn't naturally 'lift' to be
+                    // available for it, then don't include it.
                     if (containerIsNullable && !IsLiftableOperator(method))
                         continue;
 
