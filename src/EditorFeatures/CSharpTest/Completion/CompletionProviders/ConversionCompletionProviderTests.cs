@@ -937,6 +937,7 @@ public class Program
 
             var assertShouldBeNullable =
                 fromClassOrStruct == "struct" &&
+                toClassOrStruct == "struct" &&
                 (propertyIsNullable || conditionalAccess);
 
             var propertyNullableQuestionMark = propertyIsNullable ? "?" : "";
