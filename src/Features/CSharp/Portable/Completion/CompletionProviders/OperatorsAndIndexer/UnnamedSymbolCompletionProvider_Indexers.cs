@@ -35,7 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static Task<CompletionChange> GetIndexerChangeAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            return ReplaceDotAndTokenAfterWithTextAsync(document, item, text: "[]", removeConditionalAccess: false, positionOffset: -1, cancellationToken);
+            // Remove the dot, but leave the ? if one is there.  Place the caret one space back so it is between the braces.
+            return ReplaceTextAfterOperatorAsync(
+                document, item, text: "[]", keepQuestion: true, positionOffset: -1, cancellationToken);
         }
 
         private static Task<CompletionDescription> GetIndexerDescriptionAsync(

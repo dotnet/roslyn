@@ -174,11 +174,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private static async Task<CompletionChange> ReplaceDotAndTokenAfterWithTextAsync(
+        private static Task<CompletionChange> ReplaceTextAfterOperatorAsync(
             Document document,
             CompletionItem item,
             string text,
-            bool removeConditionalAccess,
+            CancellationToken cancellationToken)
+        {
+            return ReplaceTextAfterOperatorAsync(document, item, text, keepQuestion: false, positionOffset: 0, cancellationToken);
+        }
+
+        private static async Task<CompletionChange> ReplaceTextAfterOperatorAsync(
+            Document document,
+            CompletionItem item,
+            string text,
+            bool keepQuestion,
             int positionOffset,
             CancellationToken cancellationToken)
         {
@@ -186,29 +195,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var position = SymbolCompletionItem.GetContextPosition(item);
 
             var (dotToken, _) = GetDotAndExpressionStart(root, position);
+            var questionToken = dotToken.GetPreviousToken().Kind() == SyntaxKind.QuestionToken
+                ? dotToken.GetPreviousToken()
+                : (SyntaxToken?)null;
 
-            var replacementStart = GetReplacementStart(removeConditionalAccess, dotToken);
+            var replacementStart = !keepQuestion && questionToken != null
+                ? questionToken.Value.SpanStart
+                : dotToken.SpanStart;
             var newPosition = replacementStart + text.Length + positionOffset;
 
             var tokenOnLeft = root.FindTokenOnLeftOfPosition(position, includeSkipped: true);
             return CompletionChange.Create(
                 new TextChange(TextSpan.FromBounds(replacementStart, tokenOnLeft.Span.End), text),
                 newPosition);
-        }
-
-        private static int GetReplacementStart(bool removeConditionalAccess, SyntaxToken dotToken)
-        {
-            var replacementStart = dotToken.SpanStart;
-            if (removeConditionalAccess)
-            {
-                if (dotToken.Parent is MemberBindingExpressionSyntax memberBinding &&
-                    memberBinding.GetParentConditionalAccessExpression() is { } conditional)
-                {
-                    replacementStart = conditional.OperatorToken.SpanStart;
-                }
-            }
-
-            return replacementStart;
         }
     }
 }

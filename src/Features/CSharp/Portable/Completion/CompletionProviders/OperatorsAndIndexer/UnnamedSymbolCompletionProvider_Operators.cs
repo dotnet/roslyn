@@ -118,20 +118,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var operatorPosition = GetOperatorPosition(operatorName);
 
             if (operatorPosition.HasFlag(OperatorPosition.Infix))
-                return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $" {item.DisplayText} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
+                return await ReplaceTextAfterOperatorAsync(document, item, text: $" {item.DisplayText} ", cancellationToken).ConfigureAwait(false);
 
             if (operatorPosition.HasFlag(OperatorPosition.Postfix))
-                return await ReplaceDotAndTokenAfterWithTextAsync(document, item, text: $"{item.DisplayText} ", removeConditionalAccess: true, positionOffset: 0, cancellationToken).ConfigureAwait(false);
+                return await ReplaceTextAfterOperatorAsync(document, item, text: $"{item.DisplayText} ", cancellationToken).ConfigureAwait(false);
 
             if (operatorPosition.HasFlag(OperatorPosition.Prefix))
             {
                 var position = SymbolCompletionItem.GetContextPosition(item);
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var (dotLikeToken, expressionStart) = GetDotAndExpressionStart(root, position);
 
-
                 // Place the new operator before the expression, and delete the dot.
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var replacement = item.DisplayText + text.ToString(TextSpan.FromBounds(expressionStart, dotLikeToken.SpanStart));
                 var fullTextChange = new TextChange(
                     TextSpan.FromBounds(
