@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 {
     internal partial class CSharpRecommendationServiceRunner
     {
-        private void AddOperators(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
+        private static void AddOperators(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
         {
             var containerWithoutNullable = container.RemoveNullableIfPresent();
 

@@ -5,11 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -34,27 +37,81 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private readonly ImmutableDictionary<string, string> OperatorProperties =
             ImmutableDictionary<string, string>.Empty.Add(KindName, OperatorKindName);
 
+        private static readonly ImmutableArray<(string name, OperatorPosition position)> s_operatorInfo =
+            ImmutableArray.Create(
+                (WellKnownMemberNames.EqualityOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.InequalityOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.GreaterThanOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.GreaterThanOrEqualOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.LessThanOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.LessThanOrEqualOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.LogicalNotOperatorName, OperatorPosition.Prefix),
+                (WellKnownMemberNames.AdditionOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.SubtractionOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.MultiplyOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.DivisionOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.ModulusOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.IncrementOperatorName, OperatorPosition.Prefix | OperatorPosition.Postfix),
+                (WellKnownMemberNames.DecrementOperatorName, OperatorPosition.Prefix | OperatorPosition.Postfix),
+                (WellKnownMemberNames.UnaryPlusOperatorName, OperatorPosition.Prefix),
+                (WellKnownMemberNames.UnaryNegationOperatorName, OperatorPosition.Prefix),
+                (WellKnownMemberNames.BitwiseAndOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.BitwiseOrOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.ExclusiveOrOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.LeftShiftOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.RightShiftOperatorName, OperatorPosition.Infix),
+                (WellKnownMemberNames.OnesComplementOperatorName, OperatorPosition.Prefix),
+                (WellKnownMemberNames.FalseOperatorName, OperatorPosition.None),
+                (WellKnownMemberNames.TrueOperatorName, OperatorPosition.None));
+
+        private static readonly CompletionItemRules s_operatorRules;
+
+        static UnnamedSymbolCompletionProvider()
+        {
+            using var _ = PooledHashSet<char>.GetInstance(out var filterCharacters);
+
+            foreach (var (opName, _) in s_operatorInfo)
+            {
+                var opText = GetOperatorText(opName);
+                foreach (var ch in opText)
+                {
+                    if (!char.IsLetterOrDigit(ch))
+                        filterCharacters.Add(ch);
+                }
+            }
+
+            var opCharacters = ImmutableArray.CreateRange(filterCharacters);
+            s_operatorRules = CompletionItemRules.Default
+                .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, opCharacters))
+                .WithCommitCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, opCharacters));
+        }
+
         private void AddOperatorGroup(CompletionContext context, string opName, IEnumerable<ISymbol> operators)
         {
+            var sortIndex = s_operatorInfo.IndexOf(i => i.name == opName);
+            var displayText = GetOperatorText(opName);
+
             var item = SymbolCompletionItem.CreateWithSymbolId(
-                displayText: GetOperatorDisplayText(opName),
+                displayText: displayText,
                 displayTextSuffix: null,
                 inlineDescription: GetOperatorInlineDescription(opName),
-                filterText: "",
-                sortText: SortText(OperatorSortingGroupIndex, $"{GetOperatorSortIndex(opName):000}"),
+                filterText: displayText,
+                sortText: SortText(OperatorSortingGroupIndex, $"{sortIndex:000}"),
                 symbols: operators.ToImmutableArray(),
-                rules: CompletionItemRules.Default,
+                rules: s_operatorRules,
                 contextPosition: context.Position,
                 properties: OperatorProperties
                     .Add(OperatorName, opName));
             context.AddItem(item);
         }
 
+        private static string GetOperatorText(string opName)
+            => SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(opName));
+
         private async Task<CompletionChange> GetOperatorChangeAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var operatorName = item.Properties[OperatorName];
-
             var operatorPosition = GetOperatorPosition(operatorName);
 
             if (operatorPosition.HasFlag(OperatorPosition.Infix))
@@ -92,162 +149,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             throw ExceptionUtilities.UnexpectedValue(operatorPosition);
         }
 
+        private static OperatorPosition GetOperatorPosition(string operatorName)
+            => s_operatorInfo.Single(t => t.name == operatorName).position;
+
         private static Task<CompletionDescription> GetOperatorDescriptionAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
-        private static string GetOperatorDisplayText(string opName)
-        {
-            return opName switch
-            {
-                // binary
-                WellKnownMemberNames.AdditionOperatorName => "+",
-                WellKnownMemberNames.BitwiseAndOperatorName => "&",
-                WellKnownMemberNames.BitwiseOrOperatorName => "|",
-                WellKnownMemberNames.DivisionOperatorName => "/",
-                WellKnownMemberNames.EqualityOperatorName => "==",
-                WellKnownMemberNames.ExclusiveOrOperatorName => "^",
-                WellKnownMemberNames.GreaterThanOperatorName => ">",
-                WellKnownMemberNames.GreaterThanOrEqualOperatorName => ">=",
-                WellKnownMemberNames.InequalityOperatorName => "!=",
-                WellKnownMemberNames.LeftShiftOperatorName => "<<",
-                WellKnownMemberNames.LessThanOperatorName => "<",
-                WellKnownMemberNames.LessThanOrEqualOperatorName => "<=",
-                WellKnownMemberNames.ModulusOperatorName => "%",
-                WellKnownMemberNames.MultiplyOperatorName => "*",
-                WellKnownMemberNames.RightShiftOperatorName => ">>",
-                WellKnownMemberNames.SubtractionOperatorName => "-",
-
-                // Unary
-                WellKnownMemberNames.DecrementOperatorName => "--",
-                WellKnownMemberNames.FalseOperatorName => "false",
-                WellKnownMemberNames.IncrementOperatorName => "++",
-                WellKnownMemberNames.LogicalNotOperatorName => "!",
-                WellKnownMemberNames.OnesComplementOperatorName => "~",
-                WellKnownMemberNames.TrueOperatorName => "true",
-                WellKnownMemberNames.UnaryNegationOperatorName => "-",
-                WellKnownMemberNames.UnaryPlusOperatorName => "+",
-
-                var name => throw ExceptionUtilities.UnexpectedValue(name),
-            };
-        }
-
         private static string GetOperatorInlineDescription(string opName)
         {
-            return opName switch
+            var opText = GetOperatorText(opName);
+            return GetOperatorPosition(opName) switch
             {
-                // binary
-                WellKnownMemberNames.AdditionOperatorName => "x + y",
-                WellKnownMemberNames.BitwiseAndOperatorName => "x & y",
-                WellKnownMemberNames.BitwiseOrOperatorName => "x | y",
-                WellKnownMemberNames.DivisionOperatorName => "x / y",
-                WellKnownMemberNames.EqualityOperatorName => "x == y",
-                WellKnownMemberNames.ExclusiveOrOperatorName => "x ^ y",
-                WellKnownMemberNames.GreaterThanOperatorName => "x > y",
-                WellKnownMemberNames.GreaterThanOrEqualOperatorName => "x >= y",
-                WellKnownMemberNames.InequalityOperatorName => "x != y",
-                WellKnownMemberNames.LeftShiftOperatorName => "x << y",
-                WellKnownMemberNames.LessThanOperatorName => "x < y",
-                WellKnownMemberNames.LessThanOrEqualOperatorName => "x <= y",
-                WellKnownMemberNames.ModulusOperatorName => "x % y",
-                WellKnownMemberNames.MultiplyOperatorName => "x * y",
-                WellKnownMemberNames.RightShiftOperatorName => "x >> y",
-                WellKnownMemberNames.SubtractionOperatorName => "x - y",
-
-                // Unary
-                WellKnownMemberNames.DecrementOperatorName => "x--",
-                WellKnownMemberNames.FalseOperatorName => "false",
-                WellKnownMemberNames.IncrementOperatorName => "x++",
-                WellKnownMemberNames.LogicalNotOperatorName => "!x",
-                WellKnownMemberNames.OnesComplementOperatorName => "~x",
-                WellKnownMemberNames.TrueOperatorName => "true",
-                WellKnownMemberNames.UnaryNegationOperatorName => "-x",
-                WellKnownMemberNames.UnaryPlusOperatorName => "+x",
-
-                var name => throw ExceptionUtilities.UnexpectedValue(name),
+                OperatorPosition.Prefix => $"{opText}x",
+                OperatorPosition.Infix => $"x {opText} y",
+                OperatorPosition.Postfix => $"x{opText}",
+                _ => opText,
             };
-        }
-
-        private static int GetOperatorSortIndex(string opName)
-        {
-            return opName switch
-            {
-                // comparison and negation
-                WellKnownMemberNames.EqualityOperatorName => 0,             // ==
-                WellKnownMemberNames.InequalityOperatorName => 1,           // !=
-                WellKnownMemberNames.GreaterThanOperatorName => 2,          // >
-                WellKnownMemberNames.GreaterThanOrEqualOperatorName => 3,   // >=
-                WellKnownMemberNames.LessThanOperatorName => 4,             // <
-                WellKnownMemberNames.LessThanOrEqualOperatorName => 5,      // <=
-                WellKnownMemberNames.LogicalNotOperatorName => 6,           // !
-                // mathematical
-                WellKnownMemberNames.AdditionOperatorName => 7,             // +
-                WellKnownMemberNames.SubtractionOperatorName => 8,          // -
-                WellKnownMemberNames.MultiplyOperatorName => 9,             // *
-                WellKnownMemberNames.DivisionOperatorName => 10,            // /
-                WellKnownMemberNames.ModulusOperatorName => 11,             // %
-                WellKnownMemberNames.IncrementOperatorName => 12,           // ++
-                WellKnownMemberNames.DecrementOperatorName => 13,           // --
-                WellKnownMemberNames.UnaryPlusOperatorName => 14,           // +
-                WellKnownMemberNames.UnaryNegationOperatorName => 15,       // -
-                // bit operations
-                WellKnownMemberNames.BitwiseAndOperatorName => 16,          // &
-                WellKnownMemberNames.BitwiseOrOperatorName => 17,           // |
-                WellKnownMemberNames.ExclusiveOrOperatorName => 18,         // ^
-                WellKnownMemberNames.LeftShiftOperatorName => 19,           // <<
-                WellKnownMemberNames.RightShiftOperatorName => 20,          // >>
-                WellKnownMemberNames.OnesComplementOperatorName => 21,      // ~
-                // true false
-                WellKnownMemberNames.FalseOperatorName => 22,               // false
-                WellKnownMemberNames.TrueOperatorName => 23,                // true
-
-                var name => throw ExceptionUtilities.UnexpectedValue(name),
-            };
-        }
-
-        private static OperatorPosition GetOperatorPosition(string operatorName)
-        {
-            switch (operatorName)
-            {
-                // binary
-                case WellKnownMemberNames.AdditionOperatorName:
-                case WellKnownMemberNames.BitwiseAndOperatorName:
-                case WellKnownMemberNames.BitwiseOrOperatorName:
-                case WellKnownMemberNames.DivisionOperatorName:
-                case WellKnownMemberNames.EqualityOperatorName:
-                case WellKnownMemberNames.ExclusiveOrOperatorName:
-                case WellKnownMemberNames.GreaterThanOperatorName:
-                case WellKnownMemberNames.GreaterThanOrEqualOperatorName:
-                case WellKnownMemberNames.InequalityOperatorName:
-                case WellKnownMemberNames.LeftShiftOperatorName:
-                case WellKnownMemberNames.LessThanOperatorName:
-                case WellKnownMemberNames.LessThanOrEqualOperatorName:
-                case WellKnownMemberNames.ModulusOperatorName:
-                case WellKnownMemberNames.MultiplyOperatorName:
-                case WellKnownMemberNames.RightShiftOperatorName:
-                case WellKnownMemberNames.SubtractionOperatorName:
-                    return OperatorPosition.Infix;
-
-                // Unary
-                case WellKnownMemberNames.DecrementOperatorName:
-                case WellKnownMemberNames.IncrementOperatorName:
-                    return OperatorPosition.Prefix | OperatorPosition.Postfix;
-
-                case WellKnownMemberNames.FalseOperatorName:
-                case WellKnownMemberNames.TrueOperatorName:
-                    return OperatorPosition.None;
-
-                case WellKnownMemberNames.LogicalNotOperatorName:
-                case WellKnownMemberNames.OnesComplementOperatorName:
-                case WellKnownMemberNames.UnaryNegationOperatorName:
-                case WellKnownMemberNames.UnaryPlusOperatorName:
-                    return OperatorPosition.Prefix;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(operatorName);
-            }
         }
     }
 }
