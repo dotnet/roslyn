@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,19 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private readonly ImmutableDictionary<string, string> OperatorProperties =
             ImmutableDictionary<string, string>.Empty.Add(KindName, OperatorKindName);
 
-        private void AddOperator(CompletionContext context, IMethodSymbol op)
+        private void AddOperatorGroup(CompletionContext context, string opName, IEnumerable<ISymbol> operators)
         {
             var item = SymbolCompletionItem.CreateWithSymbolId(
-                displayText: GetOperatorDisplayText(op),
+                displayText: GetOperatorDisplayText(opName),
                 displayTextSuffix: null,
-                inlineDescription: GetOperatorInlineDescription(op),
+                inlineDescription: GetOperatorInlineDescription(opName),
                 filterText: "",
-                sortText: SortText(OperatorSortingGroupIndex, $"{GetOperatorSortIndex(op):000}"),
-                symbols: ImmutableArray.Create(op),
+                sortText: SortText(OperatorSortingGroupIndex, $"{GetOperatorSortIndex(opName):000}"),
+                symbols: operators.ToImmutableArray(),
                 rules: CompletionItemRules.Default,
                 contextPosition: context.Position,
                 properties: OperatorProperties
-                    .Add(OperatorName, op.Name));
+                    .Add(OperatorName, opName));
             context.AddItem(item);
         }
 
@@ -97,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
-        private static string GetOperatorDisplayText(IMethodSymbol method)
+        private static string GetOperatorDisplayText(string opName)
         {
-            return method.Name switch
+            return opName switch
             {
                 // binary
                 WellKnownMemberNames.AdditionOperatorName => "+",
@@ -133,9 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private static string GetOperatorInlineDescription(IMethodSymbol method)
+        private static string GetOperatorInlineDescription(string opName)
         {
-            return method.Name switch
+            return opName switch
             {
                 // binary
                 WellKnownMemberNames.AdditionOperatorName => "x + y",
@@ -169,9 +170,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             };
         }
 
-        private static int GetOperatorSortIndex(IMethodSymbol method)
+        private static int GetOperatorSortIndex(string opName)
         {
-            return method.Name switch
+            return opName switch
             {
                 // comparison and negation
                 WellKnownMemberNames.EqualityOperatorName => 0,             // ==

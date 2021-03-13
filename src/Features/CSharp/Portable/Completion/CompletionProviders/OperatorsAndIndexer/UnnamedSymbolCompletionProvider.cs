@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -106,18 +107,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var indexers = unnamedSymbols.WhereAsArray(s => s.IsIndexer());
             AddIndexers(context, indexers);
 
+            var operators = unnamedSymbols.WhereAsArray(s => s.IsUserDefinedOperator());
+            var operatorGroups = operators.GroupBy(op => op.Name);
+
+            foreach (var opGroup in operatorGroups)
+                AddOperatorGroup(context, opGroup.Key, opGroup);
+
             foreach (var symbol in recommendedSymbols.UnnamedSymbols)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (symbol.IsConversion())
-                {
                     AddConversion(context, semanticModel, position, (IMethodSymbol)symbol);
-                }
-                else if (symbol.IsUserDefinedOperator())
-                {
-                    AddOperator(context, (IMethodSymbol)symbol);
-                }
             }
         }
 
