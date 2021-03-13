@@ -5,50 +5,43 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Media.TextFormatting;
-using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis.Editor.InheritanceMargin;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceChainMargin
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 {
     [Trait(Traits.Feature, Traits.Features.InheritanceChainMargin)]
-    public abstract class AbstractInheritanceChainMarginTest
+    public abstract class InheritanceMarginTaggerTests
     {
-        protected readonly string BaseType = nameof(BaseType);
-        protected readonly string SubType = nameof(SubType);
-        protected readonly string Overriding = nameof(Overriding);
-        protected readonly string Overriden = nameof(Overriden);
-        protected readonly string Implementing = nameof(Implementing);
-        protected readonly string Implemented = nameof(Implemented);
-        protected readonly string ImplementingAndOverriden = nameof(ImplementingAndOverriden);
-        protected readonly string ImplementingAndOverriding = nameof(ImplementingAndOverriding);
+        private readonly string Overriding = KnownMonikers.Overriding.ToString();
+        private readonly string Overriden = KnownMonikers.Overridden.ToString();
+        private readonly string Implementing = KnownMonikers.Implementing.ToString();
+        private readonly string Implemented = KnownMonikers.Implemented.ToString();
+        private readonly string ImplementingOverriden = KnownMonikers.ImplementingOverridden.ToString();
+        private readonly string ImplementingAndOverriding = KnownMonikers.ImplementingOverriding.ToString();
 
-        public Task VerifyInDifferentFileAsync(
-            string membersMarkup,
-            string targetsMarkup,
-            bool testInSingleProject)
+        [Fact]
+        public Task Test1()
         {
-
+            var markup = @"
+interface {|target1 IBar|} { }
+{|margin, implemented, A target1=IBar, |}class A : IBar { } ";
+            return VerifyInSameFileAsync(markup, LanguageNames.CSharp);
         }
 
-        public async Task VerifyInSameFileAsync(string markup, string languageName)
+        private async Task VerifyInSameFileAsync(string markup, string languageName)
         {
             TestFileMarkupParser.GetPositionsAndSpans(
                 markup,
@@ -76,6 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceChainMargin
             var context = new TaggerContext<InheritanceMarginTag>(document, testHostDocument.GetTextView().TextSnapshot);
             await testAccessor.ProduceTagsAsync(context).ConfigureAwait(false);
             var tagSpans = context.tagSpans.ToImmutableArray();
+            await VerifyTagAsync(document, selectedSpans, tagSpans);
         }
 
         private async Task VerifyTagAsync(
@@ -83,9 +77,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceChainMargin
             ImmutableDictionary<string, ImmutableArray<TextSpan>> selectedSpan,
             ImmutableArray<ITagSpan<InheritanceMarginTag>> tagSpans)
         {
-            var x = @"
-interface {|target1 IBar|} { }
-{|margin, implemented, A target1=IBar, |}class A : IBar { } ";
             var sourceText = await document.GetTextAsync().ConfigureAwait(false);
             var allExpectedMargins = selectedSpan
                 .Where(kvp => kvp.Key.StartsWith("margin"))
@@ -99,11 +90,21 @@ interface {|target1 IBar|} { }
                     kvp => kvp.Key,
                     kvp => kvp.Value.SelectAsArray(span => new DocumentSpan(document, span)));
 
-            var allExpectedMarin = allExpectedMargins
-                .SelectAsArray(kvp => ParseTestLineMargin(kvp.Key, kvp.Value, sourceText, targetToSpans));
+            var testLineMargins = allExpectedMargins
+                .Select(kvp => ParseTestLineMargin(kvp.Key, kvp.Value, sourceText, targetToSpans))
+                .OrderBy(testMargin => testMargin.LineNumber)
+                .ToImmutableArray();
+            var sortedTagSpans = tagSpans
+                .OrderBy(tagSpan => tagSpan.Span.Start)
+                .ToImmutableArray();
+            Assert.Equal(testLineMargins.Length, sortedTagSpans.Length);
+            for (int i = 0; i < testLineMargins.Length; i++)
+            {
+                VerifyTestLineMargin(testLineMargins[i], sortedTagSpans[i]);
+            }
         }
 
-        private void VerifyTestLineMargin(TestLineMargin expectedMargin, ITagSpan<InheritanceMarginTag> actualTaggedSpan)
+        private static void VerifyTestLineMargin(TestLineMargin expectedMargin, ITagSpan<InheritanceMarginTag> actualTaggedSpan)
         {
             var snapshot = actualTaggedSpan.Span.Snapshot;
             var span = actualTaggedSpan.Span;
@@ -150,7 +151,7 @@ interface {|target1 IBar|} { }
                         elementSelector: text => text.Split(' ')
                             .Skip(1)
                             .SelectAsArray(targetAndName => (TargetId: targetAndName.Substring(0, targetAndName.IndexOf("=", StringComparison.Ordinal)), Name: targetAndName.Substring(targetAndName.IndexOf("=", StringComparison.Ordinal) + 1))));
-            using var _ = PooledObjects.ArrayBuilder<TestMemberTag>.GetInstance(out var builder);
+            using var _ = ArrayBuilder<TestMemberTag>.GetInstance(out var builder);
             foreach (var (member, targets) in memberToTargets)
             {
                 var testTargetTags = targets
@@ -199,6 +200,5 @@ interface {|target1 IBar|} { }
                 Definitions = definitions;
             }
         }
-
     }
 }
