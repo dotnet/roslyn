@@ -838,7 +838,7 @@ public class Program
         s.$$
     }
 }
-", "int", displayTextPrefix: "(", displayTextSuffix: "?)", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
+", "int?", displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1027,11 +1027,11 @@ public class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: "?)",
+            await VerifyItemExistsAsync(Markup, "int?", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
-@"S.explicit operator int(S value)
+@"S.explicit operator int?(S? value)
 Explicit conversion of S to int.");
         }
 
@@ -1129,11 +1129,11 @@ public class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(Markup, "byte", displayTextPrefix: "(", displayTextSuffix: "?)",
+            await VerifyItemExistsAsync(Markup, "byte?", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
-$@"int.explicit operator byte(int value)
+$@"int.explicit operator byte?(int? value)
 {(FormatExplicitConversionDescription(fromType: "int", toType: "byte"))}");
         }
 
