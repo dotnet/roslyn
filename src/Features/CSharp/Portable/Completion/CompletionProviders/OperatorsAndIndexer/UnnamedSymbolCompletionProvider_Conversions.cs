@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 rules: CompletionItemRules.Default,
                 contextPosition: position,
                 properties: ConversionProperties
-                    .Add(MinimalTypeNamePropertyName, $"{targetTypeName}{optionalNullableQuestionmark}")
                     .Add(DocumentationCommentXmlName, conversion.GetDocumentationCommentXml(cancellationToken: context.CancellationToken) ?? ""));
 
             context.AddItem(item);
