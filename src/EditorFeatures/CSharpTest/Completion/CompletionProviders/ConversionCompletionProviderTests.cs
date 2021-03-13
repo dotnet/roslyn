@@ -393,43 +393,43 @@ public class Program
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         [InlineData("white.$$", "Black",
-           "((Black)white).$$")]
+                    "((Black)white)$$")]
         [InlineData("white.$$;", "Black",
-           "((Black)white).$$;")]
+                    "((Black)white)$$;")]
         [InlineData("white.Bl$$", "Black",
-           "((Black)white).$$")]
+                    "((Black)white)$$")]
         [InlineData("white.Bl$$;", "Black",
-           "((Black)white).$$;")]
+                    "((Black)white)$$;")]
         [InlineData("white?.Bl$$;", "Black",
-           "((Black)white)?.$$;")]
+                    "((Black)white)?$$;")]
         [InlineData("white.$$Bl;", "Black",
-           "((Black)white).$$Bl;")]
+                    "((Black)white)$$Bl;")]
         [InlineData("var f = white.$$;", "Black",
-           "var f = ((Black)white).$$;")]
+                    "var f = ((Black)white)$$;")]
         [InlineData("white?.$$", "Black",
-           "((Black)white)?.$$")]
+                    "((Black)white)?$$")]
         [InlineData("white?.$$b", "Black",
-           "((Black)white)?.$$b")]
-        [InlineData("white?.$$b.c()", "Black",
-           "((Black)white)?.$$b.c()")]
+                    "((Black)white)?$$b")]
+        [InlineData("white?$$b.c()", "Black",
+                    "((Black)white)?$$b.c()")]
         [InlineData("white?.$$b()", "Black",
-           "((Black)white)?.$$b()")]
+                    "((Black)white)?$$b()")]
         [InlineData("white.Black?.$$", "White",
-           "((White)white.Black)?.$$")]
+                    "((White)white.Black)?$$")]
         [InlineData("white.Black.$$", "White",
-           "((White)white.Black).$$")]
+                    "((White)white.Black)$$")]
         [InlineData("white?.Black?.$$", "White",
-           "((White)white?.Black)?.$$")]
+                    "((White)white?.Black)?$$")]
         [InlineData("white?.Black?.fl$$", "White",
-           "((White)white?.Black)?.$$")]
+                    "((White)white?.Black)?$$")]
         [InlineData("white?.Black.fl$$", "White",
-           "((White)white?.Black).$$")]
+                    "((White)white?.Black)$$")]
         [InlineData("white?.Black.White.Bl$$ack?.White", "Black",
-           "((Black)white?.Black.White).$$?.White")]
+                    "((Black)white?.Black.White)$$?.White")]
         [InlineData("((White)white).$$", "Black",
-           "((Black)((White)white)).$$")]
+                    "((Black)((White)white))$$")]
         [InlineData("(true ? white : white).$$", "Black",
-           "((Black)(true ? white : white)).$$")]
+                    "((Black)(true ? white : white))$$")]
         public async Task ExplicitUserDefinedConversionIsAppliedForDifferentExpressions(string expression, string conversionOffering, string fixedCode)
         {
             await VerifyCustomCommitProviderAsync($@"
@@ -532,7 +532,7 @@ namespace N
         public static void Main()
         {{
             var c = new C();
-            (({builtinType})c).$$
+            (({builtinType})c)$$
         }}
     }}
 }}
@@ -688,7 +688,7 @@ namespace N
         public static void Main()
         {{
             var c = new C();
-            (({keyword}Class)c).$$
+            (({keyword}Class)c)$$
         }}
     }}
 }}
@@ -783,11 +783,16 @@ public class Program
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        [InlineData("/* Leading */c.$$", "/* Leading */((float)c).$$")]
-        [InlineData("/* Leading */c.fl$$", "/* Leading */((float)c).$$")]
-        [InlineData("c.  $$", "((float)c).  $$")]
-        [InlineData("(true ? /* Inline */ c : c).$$", "((float)(true ? /* Inline */ c : c)).$$")]
-        [InlineData("c.fl$$ /* Trailing */", "((float)c).$$ /* Trailing */")]
+        [InlineData("/* Leading */c.$$",
+                    "/* Leading */((float)c)$$")]
+        [InlineData("/* Leading */c.fl$$",
+                    "/* Leading */((float)c)$$")]
+        [InlineData("c.  $$",
+                    "((float)c)$$")]
+        [InlineData("(true ? /* Inline */ c : c).$$",
+                    "((float)(true ? /* Inline */ c : c))$$")]
+        [InlineData("c.fl$$ /* Trailing */",
+                    "((float)c)$$ /* Trailing */")]
         public async Task ExplicitUserDefinedConversionTriviaHandling(string expression, string fixedCode)
         {
             await VerifyCustomCommitProviderAsync($@"

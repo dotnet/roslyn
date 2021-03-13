@@ -176,12 +176,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     if (!type.Equals(method.Parameters[0].Type))
                         continue;
 
-                    // Always add the direct conversion.  It is always viable regardless if the type is nullable or not.
-                    // Optionally add the lifted conversion as well if it is viable.  In other words, if you have a
-                    // `long?` then both `(int)` and `(int?)` are supported conversions that one could use.
-                    symbols.Add(method);
-                    if (containerIsNullable && IsLiftableConversion(method))
-                        symbols.Add(LiftConversion(compilation, method));
+                    if (containerIsNullable)
+                    {
+                        if (IsLiftableConversion(method))
+                            symbols.Add(LiftConversion(compilation, method));
+                    }
+                    else
+                    {
+                        symbols.Add(method);
+                    }
                 }
             }
         }
@@ -252,11 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 var conversion = CreateConversion(
                     containerWithoutNullable, fromType: containerWithoutNullable, toType: targetTypeSymbol,
                     CreateConversionDocumentationCommentXml(containerWithoutNullable, targetTypeSymbol));
-                symbols.Add(conversion);
 
-                var containerIsNullable = container.IsNullable();
-                if (containerIsNullable)
-                    symbols.Add(LiftConversion(compilation, conversion));
+                symbols.Add(container.IsNullable() ? LiftConversion(compilation, conversion) : conversion);
             }
         }
 
