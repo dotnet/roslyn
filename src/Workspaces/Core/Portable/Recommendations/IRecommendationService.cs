@@ -34,39 +34,17 @@ namespace Microsoft.CodeAnalysis.Recommendations
         /// </summary>
         public ImmutableArray<ISymbol> UnnamedSymbols => _unnamedSymbols.NullToEmpty();
 
-        ///// <summary>
-        ///// The container the recommended symbols were found within if this we are recommending items after dotting into
-        ///// something.
-        ///// </summary>
-        //public readonly INamespaceOrTypeSymbol? Container;
-
-        ///// <summary>
-        ///// Whether the container represents an instance of a type or the type itself.  For example
-        ///// <c>Int32.TryParse</c> vs <c>0.ToString()</c>.  In both cases the container will be <see
-        ///// cref="System.Int32"/>. In the former case the container will not be an instance, but in the latter case it
-        ///// will be.
-        ///// </summary>
-        //public readonly bool IsInstance;
-
         public RecommendedSymbols(ImmutableArray<ISymbol> namedSymbols)
-            : this(namedSymbols, default/*, null, false*/)
+            : this(namedSymbols, default)
         {
         }
 
         public RecommendedSymbols(
             ImmutableArray<ISymbol> namedSymbols,
             ImmutableArray<ISymbol> unnamedSymbols = default)
-            //,
-            //INamespaceOrTypeSymbol? container,
-            //bool isInstance)
         {
             _namedSymbols = namedSymbols;
             _unnamedSymbols = unnamedSymbols;
-            //Container = container;
-            //IsInstance = isInstance;
         }
-
-        public RecommendedSymbols WithNamedSymbols(ImmutableArray<ISymbol> namedSymbols)
-            => new(namedSymbols, UnnamedSymbols/*, Container, IsInstance*/);
     }
 }
