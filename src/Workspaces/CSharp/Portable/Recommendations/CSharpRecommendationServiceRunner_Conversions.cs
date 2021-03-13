@@ -267,7 +267,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 toType: toType,
                 fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
                 containingType: containingType,
-                documentationCommentXml: CreateConversionDocumentationCommentXml(fromType, toType));
+                documentationCommentXml: CreateConversionDocumentationCommentXml(
+                    fromType.RemoveNullableIfPresent(),
+                    toType.RemoveNullableIfPresent()));
         }
 
         private static string CreateConversionDocumentationCommentXml(ITypeSymbol fromType, ITypeSymbol toType)

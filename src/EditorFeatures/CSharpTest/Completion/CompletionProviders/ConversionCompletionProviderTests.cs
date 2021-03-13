@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             => typeof(UnnamedSymbolCompletionProvider);
 
         private static string FormatExplicitConversionDescription(string fromType, string toType)
-            => string.Format(WorkspacesResources.Explicit_conversion_of_0_to_1, fromType, toType);
+            => string.Format(WorkspacesResources.Predefined_conversion_from_0_to_1, fromType, toType);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
@@ -1286,7 +1286,7 @@ public class Program
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
 $@"E.explicit operator int?(E? value)
-{(FormatExplicitConversionDescription(fromType: "E?", toType: "int?"))}");
+{(FormatExplicitConversionDescription(fromType: "E", toType: "int"))}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
