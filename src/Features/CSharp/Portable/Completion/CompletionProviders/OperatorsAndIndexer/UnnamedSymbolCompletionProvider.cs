@@ -57,9 +57,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => text[insertedCharacterPosition] == '.';
 
+        /// <summary>
+        /// We keep operators sorted in a specific order.  We don't want to sort them alphabetically, but instead want
+        /// to keep things like <c>==</c> and <c>!=</c> together.
+        /// </summary>
         private static string SortText(int sortingGroupIndex, string sortTextSymbolPart)
-            => $"{SortingPrefix}{sortingGroupIndex:000}{sortTextSymbolPart}";
+            => $"{SortingPrefix}{sortingGroupIndex:000}_{sortTextSymbolPart}";
 
+        /// <summary>
+        /// Gets the relevant tokens and expression of interest surrounding the immediately preceding <c>.</c> (dot).
+        /// </summary>
         private static (SyntaxToken tokenAtPosition, SyntaxToken dotLikeToken, ExpressionSyntax expression) FindTokensAtPosition(
             SyntaxNode root, int position)
         {
@@ -98,30 +105,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
             var position = context.Position;
-            var workspace = document.Project.Solution.Workspace;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var (_, dotToken, _) = FindTokensAtPosition(root, position);
-            if (dotToken == default)
+            var tokens = FindTokensAtPosition(root, position);
+            if (tokens == default)
                 return;
 
             var recommender = document.GetRequiredLanguageService<IRecommendationService>();
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(document.Project.Solution.Workspace, semanticModel, position, options, cancellationToken);
 
-            var unnamedSymbols = recommendedSymbols.UnnamedSymbols;
+            AddUnnamedSymbols(context, position, semanticModel, recommendedSymbols.UnnamedSymbols, cancellationToken);
+        }
+
+        private void AddUnnamedSymbols(
+            CompletionContext context, int position, SemanticModel semanticModel, ImmutableArray<ISymbol> unnamedSymbols, CancellationToken cancellationToken)
+        {
             var indexers = unnamedSymbols.WhereAsArray(s => s.IsIndexer());
+
+            // Add one 'this[]' entry for all the indexers this type may have.
             AddIndexers(context, indexers);
 
+            // Group all the related operators and add a single completion entry per group.
             var operators = unnamedSymbols.WhereAsArray(s => s.IsUserDefinedOperator());
             var operatorGroups = operators.GroupBy(op => op.Name);
 
             foreach (var opGroup in operatorGroups)
                 AddOperatorGroup(context, opGroup.Key, opGroup);
 
-            foreach (var symbol in recommendedSymbols.UnnamedSymbols)
+            foreach (var symbol in unnamedSymbols)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
