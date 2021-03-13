@@ -353,7 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
                 var typeMembers = GetSymbolsOffOfBoundExpression(originalExpression, expression, speculativeSymbolInfo, container);
 
-                result = result.WithNamedSymbols(result.NamedSymbols.Concat(typeMembers.NamedSymbols));
+                result = new RecommendedSymbols(
+                    result.NamedSymbols.Concat(typeMembers.NamedSymbols),
+                    result.UnnamedSymbols);
             }
 
             return result;
