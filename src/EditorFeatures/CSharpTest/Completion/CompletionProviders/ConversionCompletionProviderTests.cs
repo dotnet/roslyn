@@ -969,7 +969,7 @@ public class Program
     public static void Main()
     {{
         C c = null;
-        ((To{shouldBeNullableQuestionMark})c{conditionalAccessQuestionmark}.From).$$
+        ((To{shouldBeNullableQuestionMark})c{conditionalAccessQuestionmark}.From)$$
     }}
 }}
 ");
