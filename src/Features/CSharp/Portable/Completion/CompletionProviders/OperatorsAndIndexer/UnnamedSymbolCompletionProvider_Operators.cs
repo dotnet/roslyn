@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private readonly ImmutableDictionary<string, string> OperatorProperties =
             ImmutableDictionary<string, string>.Empty.Add(KindName, OperatorKindName);
 
+        /// <summary>
+        /// Ordered in the order we want to display operators in the completion list.
+        /// </summary>
         private static readonly ImmutableArray<(string name, OperatorPosition position)> s_operatorInfo =
             ImmutableArray.Create(
                 (WellKnownMemberNames.EqualityOperatorName, OperatorPosition.Infix),

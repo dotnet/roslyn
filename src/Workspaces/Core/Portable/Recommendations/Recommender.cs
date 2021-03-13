@@ -7,25 +7,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
     public static class Recommender
     {
-        internal static ImmutableArray<ISymbol> GetRecommendedSymbols(
-            SemanticModel semanticModel,
-            int position,
-            Workspace workspace,
-            OptionSet? options,
-            CancellationToken cancellationToken)
-        {
-            options ??= workspace.Options;
-            var languageRecommender = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<IRecommendationService>();
-
-            return languageRecommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken).NamedSymbols;
-        }
-
         public static IEnumerable<ISymbol> GetRecommendedSymbolsAtPosition(
             SemanticModel semanticModel,
             int position,
@@ -33,7 +19,20 @@ namespace Microsoft.CodeAnalysis.Recommendations
             OptionSet? options = null,
             CancellationToken cancellationToken = default)
         {
-            return GetRecommendedSymbols(semanticModel, position, workspace, options, cancellationToken);
+            options ??= workspace.Options;
+            var languageRecommender = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<IRecommendationService>();
+
+            return languageRecommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken).NamedSymbols;
+        }
+
+        public static async Task<IEnumerable<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
+             SemanticModel semanticModel,
+             int position,
+             Workspace workspace,
+             OptionSet options = null,
+             CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(GetRecommendedSymbolsAtPosition(semanticModel, position, workspace, options, cancellationToken));
         }
     }
 }
