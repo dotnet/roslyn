@@ -1281,12 +1281,12 @@ public class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(Markup, "int", displayTextPrefix: "(", displayTextSuffix: "?)",
+            await VerifyItemExistsAsync(Markup, "int?", displayTextPrefix: "(", displayTextSuffix: ")",
                 glyph: (int)Glyph.Operator,
                 matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter },
                 expectedDescriptionOrNull:
-$@"E.explicit operator int(E value)
-{(FormatExplicitConversionDescription(fromType: "E", toType: "int"))}");
+$@"E.explicit operator int?(E? value)
+{(FormatExplicitConversionDescription(fromType: "E?", toType: "int?"))}");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

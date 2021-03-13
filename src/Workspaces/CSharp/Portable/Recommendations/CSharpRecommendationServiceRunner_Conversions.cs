@@ -192,23 +192,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             //
             // Given a user-defined conversion operator that converts from a non-nullable value type S to a non-nullable
             // value type T, a lifted conversion operator exists that converts from S? to T?
-            return method.ReturnType.IsNullable() && method.Parameters.Length == 1 && method.Parameters[0].Type.IsNullable();
+            return !method.ReturnType.IsNullable() && method.Parameters.Length == 1 && !method.Parameters[0].Type.IsNullable();
         }
 
-        private IMethodSymbol LiftConversion(Compilation compilation, IMethodSymbol method)
+        private static IMethodSymbol LiftConversion(Compilation compilation, IMethodSymbol method)
         {
             var nullableType = compilation.GetSpecialType(SpecialType.System_Nullable_T);
-
-            var parameter = method.Parameters.Single();
-            return CodeGenerationSymbolFactory.CreateConversionSymbol(
-                method.GetAttributes(),
-                method.DeclaredAccessibility,
-                DeclarationModifiers.From(method),
-                nullableType.Construct(method.ReturnType),
-                CodeGenerationSymbolFactory.CreateParameterSymbol(parameter, type: nullableType.Construct(parameter.Type)),
-                containingType: method.ContainingType,
-                isImplicit: method.Name == WellKnownMemberNames.ImplicitConversionName,
-                documentationCommentXml: method.GetDocumentationCommentXml(cancellationToken: _cancellationToken));
+            return CreateConversion(
+                method.ContainingType,
+                nullableType.Construct(method.Parameters.Single().Type),
+                nullableType.Construct(method.ReturnType));
         }
 
         private void AddBuiltInNumericConversions(
@@ -261,20 +254,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 var containerIsNullable = container.IsNullable();
                 if (containerIsNullable)
                     symbols.Add(LiftConversion(compilation, conversion));
-
-                //var targetTypeName = targetTypeSymbol.ToMinimalDisplayString(semanticModel, position);
-                //builder.Add(CreateSymbolCompletionItem(
-                //    targetTypeName, targetTypeIsNullable: containerIsNullable, position, fromType, targetTypeSymbol));
             }
         }
 
         private static IMethodSymbol CreateConversion(
             INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType)
         {
-            var docCommentXml = string.Format(WorkspacesResources.Explicit_conversion_of_0_to_1,
-                SeeTag(fromType.GetDocumentationCommentId()),
-                SeeTag(toType.GetDocumentationCommentId()));
-
             return CodeGenerationSymbolFactory.CreateConversionSymbol(
                 attributes: default,
                 accessibility: Accessibility.Public,
@@ -282,13 +267,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 toType: toType,
                 fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
                 containingType: containingType,
-                documentationCommentXml:
-                $"<summary>{docCommentXml}</summary>");
+                documentationCommentXml: CreateConversionDocumentationCommentXml(fromType, toType));
+        }
+
+        private static string CreateConversionDocumentationCommentXml(ITypeSymbol fromType, ITypeSymbol toType)
+        {
+            var summary = string.Format(WorkspacesResources.Predefined_conversion_from_0_to_1,
+                SeeTag(fromType.GetDocumentationCommentId()),
+                SeeTag(toType.GetDocumentationCommentId()));
+
+            return $"<summary>{summary}</summary>";
 
             static string SeeTag(string? id)
-            {
-                return $@"<see cref=""{id}""/>";
-            }
+                => $@"<see cref=""{id}""/>";
         }
 
         private void AddBuiltInEnumConversions(
