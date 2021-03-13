@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26717")]
+        [Fact]
         public void TestSupportedDiagnosticsMessageHelpLinkUri()
         {
             using (var workspace = new AdhocWorkspace())
@@ -122,7 +122,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
                 {
-                    Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
+                    if (descriptor.Id is "IDE0043" or "IDE1007" or "IDE1008" or "RemoveUnnecessaryImportsFixable" or "RE0001")
+                    {
+                        Assert.True(descriptor.HelpLinkUri == string.Empty, $"Expected empty help link for {descriptor.Id}");
+                    }
+                    else
+                    {
+                        Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
+                    }
                 }
             }
         }
