@@ -66,7 +66,7 @@ public class Program
                 {
                     Assert.Same(c, castCompletionItem);
                     Assert.Equal("float", c.DisplayText);
-                    Assert.Equal("\uFFFD001float", c.SortText);
+                    Assert.Equal("\uFFFD001_float", c.SortText);
                     Assert.Equal("float", c.FilterText);
                 });
         }

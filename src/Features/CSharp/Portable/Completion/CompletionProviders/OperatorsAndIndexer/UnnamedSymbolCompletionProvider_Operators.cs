@@ -164,13 +164,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static string GetOperatorInlineDescription(string opName)
         {
             var opText = GetOperatorText(opName);
-            return GetOperatorPosition(opName) switch
-            {
-                OperatorPosition.Prefix => $"{opText}x",
-                OperatorPosition.Infix => $"x {opText} y",
-                OperatorPosition.Postfix => $"x{opText}",
-                _ => opText,
-            };
+            var position = GetOperatorPosition(opName);
+
+            if (position.HasFlag(OperatorPosition.Postfix))
+                return $"x{opText}";
+
+            if (position.HasFlag(OperatorPosition.Infix))
+                return $"x {opText} y";
+
+            if (position.HasFlag(OperatorPosition.Prefix))
+                return $"{opText}x";
+
+            return opText;
         }
     }
 }
