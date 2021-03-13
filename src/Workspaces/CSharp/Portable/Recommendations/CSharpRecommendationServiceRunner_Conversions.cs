@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -143,6 +144,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var container = semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
             if (container == null)
                 return;
+
+            // In a case like `x?.Y` if we bind the type of `.Y` we will get a value type back (like `int`), and not
+            // `int?`.  However, we want to think of the constructed type as that's the type of the overall expression
+            // that will be casted.
+            if (container.IsValueType &&
+                !container.IsNullable() &&
+                originalExpression.GetRootConditionalAccessExpression() != null)
+            {
+                container = semanticModel.Compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(container);
+            }
 
             var containerWithoutNullable = container.RemoveNullableIfPresent();
 
