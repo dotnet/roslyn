@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _syntaxTree.Options.Kind == SourceCodeKind.Script;
+                return _syntaxTree.Options.Kind != SourceCodeKind.Regular;
             }
         }
 
@@ -167,15 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultBinder;
         }
 
-        /// <summary>
-        /// Returns binder that binds usings and aliases 
-        /// </summary>
-        /// <param name="unit">
-        /// Specify <see cref="NamespaceDeclarationSyntax"/> imports in the corresponding namespace, or
-        /// <see cref="CompilationUnitSyntax"/> for top-level imports.
-        /// </param>
-        /// <param name="inUsing">True if the binder will be used to bind a using directive.</param>
-        internal Binder GetImportsBinder(CSharpSyntaxNode unit, bool inUsing = false)
+        internal Binder GetInNamespaceBinder(CSharpSyntaxNode unit)
         {
             switch (unit.Kind())
             {
@@ -183,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);
-                        Binder result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: inUsing);
+                        Binder result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, BinderFactoryVisitor.UsingContext.NotInUsing);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }
@@ -193,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);
-                        Binder result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: inUsing, inScript: InScript);
+                        Binder result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, BinderFactoryVisitor.UsingContext.NotInUsing, inScript: InScript);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }

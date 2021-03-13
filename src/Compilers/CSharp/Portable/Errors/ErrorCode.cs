@@ -1934,6 +1934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_GlobalUsingInNamespace = 9001,
         ERR_GlobalUsingOutOfOrder = 9002,
+        ERR_GlobalUsingInScript = 9003,
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

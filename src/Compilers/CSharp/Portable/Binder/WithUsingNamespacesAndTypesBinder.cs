@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Since this method is intended to be used for error reporting, it stops as soon as it finds
         /// any type forwarder (or an error to report). It does not check other assemblies for consistency or better results.
         /// </remarks>
-        protected override AssemblySymbol GetForwardedToAssemblyInUsingNamespaces(string name, ref NamespaceOrTypeSymbol qualifierOpt, BindingDiagnosticBag diagnostics, Location location)
+        protected override AssemblySymbol? GetForwardedToAssemblyInUsingNamespaces(string name, ref NamespaceOrTypeSymbol qualifierOpt, BindingDiagnosticBag diagnostics, Location location)
         {
             foreach (var typeOrNamespace in GetUsings(basesBeingResolved: null))
             {
@@ -252,14 +252,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Imports GetImports();
 
-        internal static WithUsingNamespacesAndTypesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool withPreviousSubmissionImports = false, bool withImportChainEntry = false)
+        internal static WithUsingNamespacesAndTypesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool withPreviousSubmissionImports)
         {
+            Debug.Assert(declarationSyntax.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
+
             if (withPreviousSubmissionImports)
             {
-                return new FromSyntaxWithPreviousSubmissionImports(declaringSymbol, declarationSyntax, next, withImportChainEntry);
+                return new FromSyntaxWithPreviousSubmissionImports(declaringSymbol, declarationSyntax, next, withImportChainEntry: true);
             }
 
-            return new FromSyntax(declaringSymbol, declarationSyntax, next, withImportChainEntry);
+            return new FromSyntax(declaringSymbol, declarationSyntax, next, withImportChainEntry: true, useOnlyGlobalUsings: false);
+        }
+
+        internal static WithUsingNamespacesAndTypesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, bool useOnlyGlobalUsings, Binder next)
+        {
+            return new FromSyntax(declaringSymbol, declarationSyntax, next, withImportChainEntry: false, useOnlyGlobalUsings: useOnlyGlobalUsings);
         }
 
         internal static WithUsingNamespacesAndTypesBinder Create(ImmutableArray<NamespaceOrTypeAndUsingDirective> namespacesOrTypes, Binder next, bool withImportChainEntry = false)
@@ -271,21 +278,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly SourceNamespaceSymbol _declaringSymbol;
             private readonly CSharpSyntaxNode _declarationSyntax;
+            private readonly bool _useOnlyGlobalUsings;
             private ImmutableArray<NamespaceOrTypeAndUsingDirective> _lazyUsings;
 
-            internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool withImportChainEntry)
+            internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool withImportChainEntry, bool useOnlyGlobalUsings)
                 : base(next, withImportChainEntry)
             {
                 Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
+                Debug.Assert(!useOnlyGlobalUsings || (declarationSyntax.IsKind(SyntaxKind.CompilationUnit) && declarationSyntax.SyntaxTree.Options.Kind == SourceCodeKind.Regular));
                 _declaringSymbol = declaringSymbol;
                 _declarationSyntax = declarationSyntax;
+                _useOnlyGlobalUsings = useOnlyGlobalUsings;
             }
 
             internal override ImmutableArray<NamespaceOrTypeAndUsingDirective> GetUsings(ConsList<TypeSymbol>? basesBeingResolved)
             {
                 if (_lazyUsings.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyUsings, _declaringSymbol.GetUsingNamespacesOrTypes(_declarationSyntax, basesBeingResolved));
+                    ImmutableArray<NamespaceOrTypeAndUsingDirective> result;
+
+                    if (_useOnlyGlobalUsings)
+                    {
+                        result = _declaringSymbol.GetGlobalUsingNamespacesOrTypes(basesBeingResolved);
+                    }
+                    else
+                    {
+                        result = _declaringSymbol.GetUsingNamespacesOrTypes(_declarationSyntax, basesBeingResolved);
+                    }
+
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyUsings, result);
                 }
 
                 return _lazyUsings;

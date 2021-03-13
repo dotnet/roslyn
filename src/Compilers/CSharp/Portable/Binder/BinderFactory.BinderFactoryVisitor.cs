@@ -769,16 +769,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // namespace X class C { }
                 bool inBody = LookupPosition.IsBetweenTokens(_position, parent.OpenBraceToken, parent.CloseBraceToken);
 
-                bool inUsing = IsInUsing(parent);
+                UsingContext usingContext = IsInUsing(parent);
 
-                return VisitNamespaceDeclaration(parent, _position, inBody, inUsing);
+                return VisitNamespaceDeclaration(parent, _position, inBody, usingContext);
             }
 
-            internal Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent, int position, bool inBody, bool inUsing)
+            internal Binder VisitNamespaceDeclaration(NamespaceDeclarationSyntax parent, int position, bool inBody, UsingContext inUsing)
             {
-                Debug.Assert(!inUsing || inBody, "inUsing => inBody");
+                Debug.Assert(inUsing != UsingContext.InGlobalUsing);
+                Debug.Assert(inUsing == UsingContext.NotInUsing || inBody, "inUsing => inBody");
 
-                var extraInfo = inUsing ? NodeUsage.NamespaceUsings : (inBody ? NodeUsage.NamespaceBody : NodeUsage.Normal);  // extra info for the cache.
+                var extraInfo = inUsing != UsingContext.NotInUsing ? NodeUsage.NamespaceUsings : (inBody ? NodeUsage.NamespaceBody : NodeUsage.Normal);  // extra info for the cache.
                 var key = CreateBinderCacheKey(parent, extraInfo);
 
                 Binder result;
@@ -792,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Although namespaces are not allowed in script code we still bind them so that we don't report useless errors.
                         // A namespace in script code is not bound within the scope of a Script class, 
                         // but still within scope of compilation unit extern aliases and usings.
-                        outer = VisitCompilationUnit((CompilationUnitSyntax)container, inUsing: false, inScript: false);
+                        outer = VisitCompilationUnit((CompilationUnitSyntax)container, UsingContext.NotInUsing, inScript: false);
                     }
                     else
                     {
@@ -816,11 +817,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private static Binder MakeNamespaceBinder(CSharpSyntaxNode node, NameSyntax name, Binder outer, bool inUsing)
+            private static Binder MakeNamespaceBinder(CSharpSyntaxNode node, NameSyntax name, Binder outer, UsingContext inUsing)
             {
                 if (name is QualifiedNameSyntax dotted)
                 {
-                    outer = MakeNamespaceBinder(dotted.Left, dotted.Left, outer, inUsing: false);
+                    outer = MakeNamespaceBinder(dotted.Left, dotted.Left, outer, UsingContext.NotInUsing);
                     name = dotted.Right;
                     Debug.Assert(name is not QualifiedNameSyntax);
                 }
@@ -846,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(!inUsing);
+                    Debug.Assert(inUsing == UsingContext.NotInUsing);
                 }
 
                 return new InContainerBinder(ns, outer);
@@ -860,16 +861,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     inScript: InScript);
             }
 
-            internal Binder VisitCompilationUnit(CompilationUnitSyntax compilationUnit, bool inUsing, bool inScript)
+            internal Binder VisitCompilationUnit(CompilationUnitSyntax compilationUnit, UsingContext inUsing, bool inScript)
             {
                 if (compilationUnit != syntaxTree.GetRoot())
                 {
                     throw new ArgumentOutOfRangeException(nameof(compilationUnit), "node not part of tree");
                 }
 
-                var extraInfo = inUsing
-                    ? (inScript ? NodeUsage.CompilationUnitScriptUsings : NodeUsage.CompilationUnitUsings)
-                    : (inScript ? NodeUsage.CompilationUnitScript : NodeUsage.Normal);  // extra info for the cache.
+                NodeUsage extraInfo;
+
+                if (inScript)
+                {
+                    Debug.Assert(inUsing != UsingContext.InGlobalUsing);
+                    extraInfo = inUsing != UsingContext.NotInUsing
+                        ? NodeUsage.CompilationUnitScriptUsings
+                        : NodeUsage.CompilationUnitScript;
+                }
+                else
+                {
+                    extraInfo = inUsing switch { UsingContext.NotInUsing => NodeUsage.Normal, UsingContext.InGlobalUsing => NodeUsage.CompilationUnitGlobalUsings, UsingContext.InUsing => NodeUsage.CompilationUnitUsings, _ => throw ExceptionUtilities.UnexpectedValue(inUsing) };
+                }
+
                 var key = CreateBinderCacheKey(compilationUnit, extraInfo);
 
                 Binder result;
@@ -879,6 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (inScript)
                     {
+                        Debug.Assert(inUsing != UsingContext.InGlobalUsing);
                         Debug.Assert((object)compilation.ScriptClass != null);
 
                         //
@@ -896,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var scriptClass = compilation.ScriptClass;
                         bool isSubmissionClass = scriptClass.IsSubmissionClass;
 
-                        if (!inUsing)
+                        if (inUsing == UsingContext.NotInUsing)
                         {
                             result = WithUsingNamespacesAndTypesBinder.Create(compilation.GlobalImports, result, withImportChainEntry: true);
 
@@ -906,8 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // ever consumed.  Aliases are actually checked in InSubmissionClassBinder (below).
                                 // Note: #loaded trees don't consume previous submission imports.
                                 result = WithUsingNamespacesAndTypesBinder.Create((SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace, compilationUnit, result,
-                                                                                  withPreviousSubmissionImports: compilation.PreviousSubmission != null && isSubmissionTree,
-                                                                                  withImportChainEntry: true);
+                                                                                  withPreviousSubmissionImports: compilation.PreviousSubmission != null && isSubmissionTree);
                             }
                         }
 
@@ -920,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (isSubmissionClass)
                         {
-                            result = new InSubmissionClassBinder(scriptClass, result, compilationUnit, inUsing);
+                            result = new InSubmissionClassBinder(scriptClass, result, compilationUnit, inUsings: inUsing != UsingContext.NotInUsing);
                         }
                         else
                         {
@@ -930,6 +942,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        Debug.Assert(inUsing != UsingContext.InGlobalUsing || !InScript);
+
                         //
                         // Binder chain in regular code:
                         //
@@ -941,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = AddInImportsBinders((SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace, compilationUnit, result, inUsing);
                         result = new InContainerBinder(globalNamespace, result);
 
-                        if (!inUsing &&
+                        if (inUsing == UsingContext.NotInUsing &&
                             SimpleProgramNamedTypeSymbol.GetSimpleProgramEntryPoint(compilation, compilationUnit, fallbackToMainEntryPoint: true) is SynthesizedSimpleProgramEntryPointSymbol simpleProgram)
                         {
                             ExecutableCodeBinder bodyBinder = simpleProgram.GetBodyBinder(_factory._ignoreAccessibility);
@@ -955,19 +969,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            private static Binder AddInImportsBinders(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool inUsing)
+            private static Binder AddInImportsBinders(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, UsingContext inUsing)
             {
                 Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
 
-                if (inUsing)
+                if (!declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.SyntaxTree.Options.Kind != SourceCodeKind.Regular)
                 {
-                    // Extern aliases are in scope
-                    return WithExternAliasesBinder.Create(declaringSymbol, declarationSyntax, next);
+                    switch (inUsing)
+                    {
+                        case UsingContext.InUsing:
+                            // Extern aliases are in scope
+                            return WithExternAliasesBinder.Create(declaringSymbol, declarationSyntax, next);
+
+                        case UsingContext.NotInUsing:
+                            // All imports are in scope
+                            return WithExternAndUsingAliasesBinder.Create(declaringSymbol, declarationSyntax, fromUsingsUseOnlyGlobalAliases: false,
+                                                                          WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, declarationSyntax, useOnlyGlobalUsings: false, next));
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(inUsing);
+                    }
                 }
-                else
+
+                Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit));
+
+                switch (inUsing)
                 {
-                    // All imports are in scope
-                    return WithExternAndUsingAliasesBinder.Create(declaringSymbol, declarationSyntax, WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, declarationSyntax, next));
+                    case UsingContext.InGlobalUsing:
+                        // Extern aliases are in scope
+                        return WithExternAliasesBinder.Create(declaringSymbol, declarationSyntax, next);
+
+                    case UsingContext.InUsing:
+                        // Extern aliases and global usings are in scope
+                        return WithExternAndUsingAliasesBinder.Create(declaringSymbol, declarationSyntax, fromUsingsUseOnlyGlobalAliases: true,
+                                                                      WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, declarationSyntax, useOnlyGlobalUsings: true, next));
+
+                    case UsingContext.NotInUsing:
+                        // All imports are in scope
+                        return WithExternAndUsingAliasesBinder.Create(declaringSymbol, declarationSyntax, fromUsingsUseOnlyGlobalAliases: false,
+                                                                      WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, declarationSyntax, useOnlyGlobalUsings: false, next));
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(inUsing);
                 }
             }
 
@@ -977,15 +1020,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BinderCacheKey(node, usage);
             }
 
+            internal enum UsingContext
+            {
+                NotInUsing,
+                InGlobalUsing,
+                InUsing,
+            }
+
             /// <summary>
-            /// Returns true if containingNode has a child that contains the specified position
+            /// Returns <see cref="UsingContext.InGlobalUsing"/> or <see cref="UsingContext.InUsing"/> if containingNode has a child that contains the specified position
             /// and has kind UsingDirective.
             /// </summary>
             /// <remarks>
             /// Usings can't see other usings, so this is extra info when looking at a namespace
             /// or compilation unit scope.
             /// </remarks>
-            private bool IsInUsing(CSharpSyntaxNode containingNode)
+            private UsingContext IsInUsing(CSharpSyntaxNode containingNode)
             {
                 TextSpan containingSpan = containingNode.Span;
 
@@ -998,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (_position < containingSpan.Start || _position > containingSpan.End) //NB: > not >=
                 {
-                    return false;
+                    return UsingContext.NotInUsing;
                 }
                 else
                 {
@@ -1014,12 +1064,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // within a using directive.
                     if (node.IsKind(SyntaxKind.UsingDirective) && node.Parent == containingNode)
                     {
-                        return true;
+                        return ((UsingDirectiveSyntax)node).GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword) && !InScript && containingNode.IsKind(SyntaxKind.CompilationUnit) ?
+                                    UsingContext.InGlobalUsing :
+                                    UsingContext.InUsing;
                     }
 
                     node = node.Parent;
                 }
-                return false;
+                return UsingContext.NotInUsing;
             }
 
             public override Binder VisitDocumentationCommentTrivia(DocumentationCommentTriviaSyntax parent)
