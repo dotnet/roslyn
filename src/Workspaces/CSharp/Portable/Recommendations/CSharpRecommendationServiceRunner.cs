@@ -485,19 +485,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
                 : symbols;
 
-            var unnamedSymbols = containerType == null || _context.IsNameOfContext || excludeInstance
+            var unnamedSymbols = _context.IsNameOfContext || excludeInstance
                 ? default
-                : GetUnnamedSymbols(originalExpression, containerType);
+                : GetUnnamedSymbols(originalExpression);
             return new RecommendedSymbols(namedSymbols, unnamedSymbols);
         }
 
-        private ImmutableArray<ISymbol> GetUnnamedSymbols(ExpressionSyntax originalExpression, ITypeSymbol container)
+        private ImmutableArray<ISymbol> GetUnnamedSymbols(ExpressionSyntax originalExpression)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
+            var semanticModel = _context.SemanticModel;
+            var container = semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
+            if (container == null)
+                return ImmutableArray<ISymbol>.Empty;
+
+            // In a case like `x?.Y` if we bind the type of `.Y` we will get a value type back (like `int`), and not
+            // `int?`.  However, we want to think of the constructed type as that's the type of the overall expression
+            // that will be casted.
+            if (originalExpression.GetRootConditionalAccessExpression() != null)
+                container = TryMakeNullable(semanticModel.Compilation, container);
+
             AddIndexers(container, symbols);
-            AddOperators(originalExpression, container, symbols);
-            AddConversions(originalExpression, container, symbols);
+            AddOperators(container, symbols);
+            AddConversions(container, symbols);
 
             return symbols.ToImmutable();
         }
@@ -508,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (containingType == null)
                 return;
 
-            foreach (var member in container.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(containingType))
+            foreach (var member in container.RemoveNullableIfPresent().GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(containingType))
             {
                 if (member.IsIndexer)
                     symbols.Add(member);

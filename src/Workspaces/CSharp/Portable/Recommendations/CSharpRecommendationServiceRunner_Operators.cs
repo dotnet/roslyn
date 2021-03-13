@@ -12,13 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 {
     internal partial class CSharpRecommendationServiceRunner
     {
-        private void AddOperators(ExpressionSyntax originalExpression, ITypeSymbol _, ArrayBuilder<ISymbol> symbols)
+        private void AddOperators(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
         {
-            var semanticModel = _context.SemanticModel;
-            var container = semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
-            if (container == null)
-                return;
-
             var containerWithoutNullable = container.RemoveNullableIfPresent();
 
             // Don't bother showing operators for basic built-in types.  They're well known already and will only

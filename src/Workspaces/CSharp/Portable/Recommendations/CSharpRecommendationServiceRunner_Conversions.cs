@@ -135,24 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             SpecialType.System_SByte,
             SpecialType.System_Int16);
 
-        private void AddConversions(ExpressionSyntax originalExpression, ITypeSymbol _, ArrayBuilder<ISymbol> symbols)
+        private void AddConversions(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
         {
-            var semanticModel = _context.SemanticModel;
-            var container = semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
-            if (container == null)
-                return;
-
-            // In a case like `x?.Y` if we bind the type of `.Y` we will get a value type back (like `int`), and not
-            // `int?`.  However, we want to think of the constructed type as that's the type of the overall expression
-            // that will be casted.
-            if (originalExpression.GetRootConditionalAccessExpression() != null)
-                container = TryMakeNullable(semanticModel.Compilation, container);
-
-            var containerWithoutNullable = container.RemoveNullableIfPresent();
-
-            AddUserDefinedConversionsOfType(container, containerWithoutNullable, symbols);
-            if (containerWithoutNullable is INamedTypeSymbol namedType)
+            if (container.RemoveNullableIfPresent() is INamedTypeSymbol namedType)
             {
+                AddUserDefinedConversionsOfType(container, namedType, symbols);
                 AddBuiltInNumericConversions(container, namedType, symbols);
                 AddBuiltInEnumConversions(container, namedType, symbols);
             }
@@ -166,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         }
 
         private void AddUserDefinedConversionsOfType(
-            ITypeSymbol container, ITypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
+            ITypeSymbol container, INamedTypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
         {
             var compilation = _context.SemanticModel.Compilation;
             var containerIsNullable = container.IsNullable();
