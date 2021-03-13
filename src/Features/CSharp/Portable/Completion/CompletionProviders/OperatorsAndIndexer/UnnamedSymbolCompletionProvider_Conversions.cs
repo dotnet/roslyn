@@ -71,22 +71,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var (token, dotToken) = FindTokensAtPosition(root, position);
 
+            var questionToken = dotToken.GetPreviousToken().Kind() == SyntaxKind.QuestionToken
+                ? dotToken.GetPreviousToken()
+                : (SyntaxToken?)null;
+
             var expression = (ExpressionSyntax)dotToken.GetRequiredParent();
             expression = expression.GetRootConditionalAccessExpression() ?? expression;
 
-            var textChanges = TemporaryArray<TextChange>.Empty;
-
-            // Place the new operator before the expression, and delete the dot.
-            textChanges.Add(new TextChange(new TextSpan(expression.SpanStart, 0), $"(({item.DisplayText})"));
-            textChanges.Add(new TextChange(TextSpan.FromBounds(dotToken.SpanStart, token.Span.End), ")"));
-
-            var replacement = $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, dotToken.SpanStart))})";
+            var replacement = questionToken != null
+                ? $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, questionToken.Value.FullSpan.Start))}){questionToken.Value}"
+                : $"(({item.DisplayText}){text.ToString(TextSpan.FromBounds(expression.SpanStart, dotToken.SpanStart))})";
             var fullTextChange = new TextChange(
                 TextSpan.FromBounds(expression.SpanStart, token.Span.End),
                 replacement);
 
             var newPosition = expression.SpanStart + replacement.Length;
-            return CompletionChange.Create(fullTextChange, textChanges.ToImmutableAndClear(), newPosition);
+            return CompletionChange.Create(fullTextChange, newPosition);
 
 
             //var position = SymbolCompletionItem.GetContextPosition(item);
