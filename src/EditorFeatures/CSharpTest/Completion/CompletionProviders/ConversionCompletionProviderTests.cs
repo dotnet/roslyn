@@ -384,7 +384,7 @@ public class Program
     public static void Main()
     {
         var c = new C();
-        ((float)c).$$
+        ((float)c)$$
     }
 }
 ");
@@ -895,7 +895,7 @@ public class Program
         c?.S.$$
     }
 }
-", "int", @"
+", "int?", @"
 public struct S {
     public static explicit operator int(S _) => 0;
 }
