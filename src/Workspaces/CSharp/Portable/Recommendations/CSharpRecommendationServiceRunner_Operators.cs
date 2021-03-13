@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // https://github.com/dotnet/csharplang/blob/main/spec/expressions.md#lifted-operators
 
             // Common for all:
-            if (symbol.IsUserDefinedOperator() && symbol.Parameters.All(p => p.Type.IsValueType))
+            if (symbol.IsUserDefinedOperator() && symbol.Parameters.All(p => p.Type.IsValueType && !p.Type.IsNullable()))
             {
                 switch (symbol.Name)
                 {
