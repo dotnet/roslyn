@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
             var containerWithoutNullable = container.RemoveNullableIfPresent();
 
-            if (IsExcludedOperator(container))
+            // Don't bother showing operators for basic built-in types.  They're well known already and will only
+            // clutter the display.
+            if (ExcludeOperatorType(containerWithoutNullable))
                 return;
 
             var containerIsNullable = container.IsNullable();
@@ -41,24 +43,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     if (containerIsNullable && !IsLiftableOperator(method))
                         continue;
 
+                    // We don't need to bother lifting operators.  We'll just show the basic operator in the list as the
+                    // information for it is sufficient for completion (i.e. we only insert the operator itself, not any
+                    // of the parameter or return types).
                     symbols.Add(method);
                 }
             }
         }
 
-        private static bool IsExcludedOperator(ITypeSymbol container)
-        {
-            return container.IsSpecialType() ||
-                container.SpecialType == SpecialType.System_IntPtr ||
-                container.SpecialType == SpecialType.System_UIntPtr;
-        }
+        private static bool ExcludeOperatorType(ITypeSymbol container)
+            => container.IsSpecialType() || container.SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr;
 
         private static bool IsLiftableOperator(IMethodSymbol symbol)
         {
             // https://github.com/dotnet/csharplang/blob/main/spec/expressions.md#lifted-operators
 
             // Common for all:
-            if (symbol.IsUserDefinedOperator() && symbol.Parameters.All(p => p.Type.IsValueType && !p.Type.IsNullable()))
+            if (symbol.IsUserDefinedOperator() && symbol.Parameters.All(p => p.Type.IsValueType))
             {
                 switch (symbol.Name)
                 {
