@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (symbols.Length == 1)
             {
                 // We successfully found the original conversion method.
-                symbol = symbols[1];
+                symbol = symbols[0];
             }
             else if (symbols.Length == 3 &&
                 symbols[0] is INamedTypeSymbol containingType &&
