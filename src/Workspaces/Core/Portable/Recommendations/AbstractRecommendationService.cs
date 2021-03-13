@@ -31,18 +31,18 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language);
             var result = CreateRunner(context, filterOutOfScopeLocals, cancellationToken).GetRecommendedSymbols();
 
-            var symbols = result.NamedSymbols;
-            if (symbols.Length > 0)
-            {
-                var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language);
-                symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation);
+            var namedSymbols = result.NamedSymbols;
+            var unnamedSymbols = result.UnnamedSymbols;
 
-                var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(context, cancellationToken);
-                symbols = symbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
-                result = result.WithNamedSymbols(symbols);
-            }
+            var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language);
+            namedSymbols = namedSymbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation);
+            unnamedSymbols = unnamedSymbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation);
 
-            return result;
+            var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(context, cancellationToken);
+            namedSymbols = namedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
+            unnamedSymbols = unnamedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
+
+            return new RecommendedSymbols(namedSymbols, unnamedSymbols);
         }
 
         private sealed class ShouldIncludeSymbolContext
