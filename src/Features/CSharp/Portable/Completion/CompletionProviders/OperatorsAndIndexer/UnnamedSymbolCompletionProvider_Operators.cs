@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Postfix = 4,
         }
 
+        // Place operators after conversions.
         private readonly int OperatorSortingGroupIndex = 2;
 
         private readonly string OperatorName = nameof(OperatorName);
