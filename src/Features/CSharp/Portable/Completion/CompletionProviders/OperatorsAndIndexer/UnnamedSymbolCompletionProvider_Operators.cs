@@ -5,15 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -40,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <summary>
         /// Ordered in the order we want to display operators in the completion list.
         /// </summary>
-        private static readonly ImmutableArray<(string name, OperatorPosition position)> s_operatorInfo =
+        private static readonly ImmutableArray<(string name, OperatorPosition position)> s_operatorInfo1 =
             ImmutableArray.Create(
                 (WellKnownMemberNames.EqualityOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.InequalityOperatorName, OperatorPosition.Infix),
@@ -63,19 +59,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (WellKnownMemberNames.ExclusiveOrOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.LeftShiftOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.RightShiftOperatorName, OperatorPosition.Infix),
-                (WellKnownMemberNames.OnesComplementOperatorName, OperatorPosition.Prefix),
-                (WellKnownMemberNames.FalseOperatorName, OperatorPosition.None),
-                (WellKnownMemberNames.TrueOperatorName, OperatorPosition.None));
+                (WellKnownMemberNames.OnesComplementOperatorName, OperatorPosition.Prefix));
+
+        /// <summary>
+        /// Mapping from operator name to info about it.
+        /// </summary>
+        private static readonly Dictionary<string, (int sortOrder, OperatorPosition position)> s_operatorNameToInfo = new();
 
         private static readonly CompletionItemRules s_operatorRules;
 
         static UnnamedSymbolCompletionProvider()
         {
+            // Collect all the characters used in C# operators and make them filter characters and not commit
+            // characters. We want people to be able to write `x.=` and have that filter down to operators like `==` and
+            // `!=` so they can select and commit them.
             using var _ = PooledHashSet<char>.GetInstance(out var filterCharacters);
 
-            foreach (var (opName, _) in s_operatorInfo)
+            for (var i = 0; i < s_operatorInfo1.Length; i++)
             {
+                var (opName, position) = s_operatorInfo1[i];
                 var opText = GetOperatorText(opName);
+                s_operatorNameToInfo[opName] = (sortOrder: i, position);
+
                 foreach (var ch in opText)
                 {
                     if (!char.IsLetterOrDigit(ch))
@@ -91,21 +96,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private void AddOperatorGroup(CompletionContext context, string opName, IEnumerable<ISymbol> operators)
         {
-            var sortIndex = s_operatorInfo.IndexOf(i => i.name == opName);
+            if (!s_operatorNameToInfo.TryGetValue(opName, out var sortOrderAndPosition))
+                return;
+
             var displayText = GetOperatorText(opName);
 
-            var item = SymbolCompletionItem.CreateWithSymbolId(
+            context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
                 displayTextSuffix: null,
                 inlineDescription: GetOperatorInlineDescription(opName),
                 filterText: displayText,
-                sortText: SortText(OperatorSortingGroupIndex, $"{sortIndex:000}"),
+                sortText: SortText(OperatorSortingGroupIndex, $"{sortOrderAndPosition.sortOrder:000}"),
                 symbols: operators.ToImmutableArray(),
                 rules: s_operatorRules,
                 contextPosition: context.Position,
-                properties: OperatorProperties
-                    .Add(OperatorName, opName));
-            context.AddItem(item);
+                properties: OperatorProperties.Add(OperatorName, opName)));
         }
 
         private static string GetOperatorText(string opName)
@@ -114,16 +119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private async Task<CompletionChange> GetOperatorChangeAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var operatorName = item.Properties[OperatorName];
-            var operatorPosition = GetOperatorPosition(operatorName);
+            var opName = item.Properties[OperatorName];
+            var opPosition = GetOperatorPosition(opName);
 
-            if (operatorPosition.HasFlag(OperatorPosition.Infix))
+            if (opPosition.HasFlag(OperatorPosition.Infix))
                 return await ReplaceTextAfterOperatorAsync(document, item, text: $" {item.DisplayText} ", cancellationToken).ConfigureAwait(false);
 
-            if (operatorPosition.HasFlag(OperatorPosition.Postfix))
+            if (opPosition.HasFlag(OperatorPosition.Postfix))
                 return await ReplaceTextAfterOperatorAsync(document, item, text: $"{item.DisplayText} ", cancellationToken).ConfigureAwait(false);
 
-            if (operatorPosition.HasFlag(OperatorPosition.Prefix))
+            if (opPosition.HasFlag(OperatorPosition.Prefix))
             {
                 var position = SymbolCompletionItem.GetContextPosition(item);
                 var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -142,30 +147,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return CompletionChange.Create(fullTextChange, newPosition);
             }
 
-            throw ExceptionUtilities.UnexpectedValue(operatorPosition);
+            throw ExceptionUtilities.UnexpectedValue(opPosition);
         }
 
         private static OperatorPosition GetOperatorPosition(string operatorName)
-            => s_operatorInfo.Single(t => t.name == operatorName).position;
+            => s_operatorNameToInfo[operatorName].position;
 
-        private static Task<CompletionDescription> GetOperatorDescriptionAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
-        }
+        private static Task<CompletionDescription> GetOperatorDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
 
         private static string GetOperatorInlineDescription(string opName)
         {
             var opText = GetOperatorText(opName);
-            var position = GetOperatorPosition(opName);
+            var opPosition = GetOperatorPosition(opName);
 
-            if (position.HasFlag(OperatorPosition.Postfix))
+            if (opPosition.HasFlag(OperatorPosition.Postfix))
                 return $"x{opText}";
 
-            if (position.HasFlag(OperatorPosition.Infix))
+            if (opPosition.HasFlag(OperatorPosition.Infix))
                 return $"x {opText} y";
 
-            if (position.HasFlag(OperatorPosition.Prefix))
+            if (opPosition.HasFlag(OperatorPosition.Prefix))
                 return $"{opText}x";
 
             return opText;
