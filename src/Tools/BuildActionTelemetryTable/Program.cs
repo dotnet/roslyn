@@ -96,7 +96,7 @@ namespace BuildActionTelemetryTable
             table.AppendLine("let actions = datatable(ActionName: string, StringHash: string, FnvHash: string)");
             table.AppendLine("[");
 
-            foreach (var (actionTypeName, prefix, suffix) in telemetryInfos)
+            foreach (var (actionTypeName, stringHash, fnvHash) in telemetryInfos)
             {
                 table.AppendLine(@$"  ""{actionTypeName}"", ""{stringHash}"", ""{fnvHash}"",");
             }
