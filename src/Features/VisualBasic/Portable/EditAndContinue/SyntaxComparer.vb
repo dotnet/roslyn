@@ -1020,6 +1020,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return True
 
                 Case SyntaxKind.VariableDeclarator
+                    ' For top level syntax a variable declarator is seen for field declarations as we need to treat
+                    ' them differently to local declarations, which is what is seen in statement syntax
+                    If Not _compareStatementSyntax Then
+                        Dim leftIdentifiers = DirectCast(leftNode, VariableDeclaratorSyntax).Names.Select(Function(n) n.Identifier)
+                        Dim rightIdentifiers = DirectCast(rightNode, VariableDeclaratorSyntax).Names.Select(Function(n) n.Identifier)
+                        distance = ComputeDistance(leftIdentifiers, rightIdentifiers)
+                        Return True
+                    End If
+
                     distance = ComputeDistance(DirectCast(leftNode, VariableDeclaratorSyntax).Names, DirectCast(rightNode, VariableDeclaratorSyntax).Names)
                     Return True
 
