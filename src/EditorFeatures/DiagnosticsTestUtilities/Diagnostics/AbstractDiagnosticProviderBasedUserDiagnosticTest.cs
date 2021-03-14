@@ -109,31 +109,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [Fact]
-        public void TestSupportedDiagnosticsMessageHelpLinkUri()
-        {
-            using (var workspace = new AdhocWorkspace())
-            {
-                var diagnosticAnalyzer = CreateDiagnosticProviderAndFixer(workspace).Item1;
-                if (diagnosticAnalyzer == null)
-                {
-                    return;
-                }
-
-                foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
-                {
-                    if (descriptor.Id is "IDE0043" or "IDE1007" or "IDE1008" or "RemoveUnnecessaryImportsFixable" or "RE0001")
-                    {
-                        Assert.True(descriptor.HelpLinkUri == string.Empty, $"Expected empty help link for {descriptor.Id}");
-                    }
-                    else
-                    {
-                        Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
-                    }
-                }
-            }
-        }
-
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
