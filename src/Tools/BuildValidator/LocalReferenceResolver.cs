@@ -113,24 +113,30 @@ namespace BuildValidator
                             continue;
                         }
 
-                        if (GetMvidForFile(file) is not { } mvid)
+                        if (Util.GetPortableExecutableInfo(file.FullName) is not { } peInfo)
                         {
                             _logger.LogWarning($@"Could not read MVID from ""{file.FullName}""");
                             continue;
                         }
 
-                        if (_cache.ContainsKey(mvid))
+                        if (peInfo.IsReadyToRun)
+                        {
+                            _logger.LogInformation($@"Skipping ReadyToRun image ""{file.FullName}""");
+                            continue;
+                        }
+
+                        if (_cache.ContainsKey(peInfo.Mvid))
                         {
                             continue;
                         }
 
-                        if (mvid != reference.Mvid)
+                        if (peInfo.Mvid != reference.Mvid)
                         {
                             continue;
                         }
 
-                        _logger.LogTrace($"Caching [{mvid}, {file.FullName}]");
-                        _cache[mvid] = file.FullName;
+                        _logger.LogTrace($"Caching [{peInfo.Mvid}, {file.FullName}]");
+                        _cache[peInfo.Mvid] = file.FullName;
                     }
                 }
             }
@@ -147,25 +153,6 @@ namespace BuildValidator
             }
 
             return true;
-        }
-
-        private static Guid? GetMvidForFile(FileInfo fileInfo)
-        {
-            using (var stream = fileInfo.OpenRead())
-            {
-                PEReader reader = new PEReader(stream);
-
-                if (reader.HasMetadata)
-                {
-                    var metadataReader = reader.GetMetadataReader();
-                    var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                    return metadataReader.GetGuid(mvidHandle);
-                }
-                else
-                {
-                    return null;
-                }
-            }
         }
     }
 }

@@ -67,41 +67,17 @@ namespace BuildValidator
             FileInfo originalBinaryPath,
             CompilationOptionsReader optionsReader,
             Compilation producedCompilation,
-            IMethodSymbol? debugEntryPoint,
             ILogger logger,
             Options options)
         {
             using var rebuildPeStream = new MemoryStream();
-
-            var peHeader = optionsReader.PeReader.PEHeaders.PEHeader!;
-            var win32Resources = optionsReader.PeReader.GetSectionData(peHeader.ResourceTableDirectory.RelativeVirtualAddress);
-            using var win32ResourceStream = new UnmanagedMemoryStream(win32Resources.Pointer, win32Resources.Length);
-
-            var sourceLink = optionsReader.GetSourceLinkUTF8();
-
-            var embeddedTexts = producedCompilation.SyntaxTrees
-                    .Select(st => (path: st.FilePath, text: st.GetText()))
-                    .Where(pair => pair.text.CanBeEmbedded)
-                    .Select(pair => EmbeddedText.FromSource(pair.path, pair.text))
-                    .ToImmutableArray();
-
-            var emitResult = producedCompilation.Emit(
-                peStream: rebuildPeStream,
-                pdbStream: null,
-                xmlDocumentationStream: null,
-                win32Resources: win32ResourceStream,
-                useRawWin32Resources: true,
-                manifestResources: optionsReader.GetManifestResources(),
-                options: new EmitOptions(
-                    debugInformationFormat: DebugInformationFormat.Embedded,
-                    highEntropyVirtualAddressSpace: (peHeader.DllCharacteristics & DllCharacteristics.HighEntropyVirtualAddressSpace) != 0,
-                    subsystemVersion: SubsystemVersion.Create(peHeader.MajorSubsystemVersion, peHeader.MinorSubsystemVersion)),
-                debugEntryPoint: debugEntryPoint,
-                metadataPEStream: null,
-                pdbOptionsBlobReader: optionsReader.GetMetadataCompilationOptionsBlobReader(),
-                sourceLinkStream: sourceLink != null ? new MemoryStream(sourceLink) : null,
-                embeddedTexts: embeddedTexts,
-                cancellationToken: CancellationToken.None);
+            var emitResult = BuildConstructor.Emit(
+                rebuildPeStream,
+                originalBinaryPath,
+                optionsReader,
+                producedCompilation,
+                logger,
+                CancellationToken.None);
 
             if (!emitResult.Success)
             {
