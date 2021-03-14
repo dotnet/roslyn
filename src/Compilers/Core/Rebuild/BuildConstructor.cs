@@ -102,15 +102,16 @@ namespace BuildValidator
             using var scope = _logger.BeginScope("Options");
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
-            var langVersionString = pdbCompilationOptions.GetUniqueOption("language-version");
-            var optimization = pdbCompilationOptions.GetUniqueOption("optimization");
+            var langVersionString = pdbCompilationOptions.GetUniqueOption(CompilationOptionNames.LanguageVersion);
+            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
+            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Platform, out var platform);
 
             // TODO: Check portability policy if needed
             // pdbCompilationOptions.TryGetValue("portability-policy", out var portabilityPolicyString);
-            pdbCompilationOptions.TryGetUniqueOption(_logger, "define", out var define);
-            pdbCompilationOptions.TryGetUniqueOption(_logger, "checked", out var checkedString);
-            pdbCompilationOptions.TryGetUniqueOption(_logger, "nullable", out var nullable);
-            pdbCompilationOptions.TryGetUniqueOption(_logger, "unsafe", out var unsafeString);
+            pdbCompilationOptions.TryGetUniqueOption(_logger, CompilationOptionNames.Define, out var define);
+            pdbCompilationOptions.TryGetUniqueOption(_logger, CompilationOptionNames.Checked, out var checkedString);
+            pdbCompilationOptions.TryGetUniqueOption(_logger, CompilationOptionNames.Nullable, out var nullable);
+            pdbCompilationOptions.TryGetUniqueOption(_logger, CompilationOptionNames.Unsafe, out var unsafeString);
 
             CS.LanguageVersionFacts.TryParse(langVersionString, out var langVersion);
 
@@ -142,7 +143,7 @@ namespace BuildValidator
                 cryptoKeyFile: null,
                 cryptoPublicKey: optionsReader.GetPublicKey()?.ToImmutableArray() ?? default,
                 delaySign: null,
-                Platform.AnyCpu,
+                GetPlatform(platform),
 
                 // presence of diagnostics is expected to not affect emit.
                 ReportDiagnostic.Suppress,
@@ -176,6 +177,11 @@ namespace BuildValidator
                 _ => throw new InvalidDataException($"Optimization \"{optimizationLevel}\" level not recognized")
             };
 
+        private static Platform GetPlatform(string? platform)
+            => platform is null
+                ? Platform.AnyCpu
+                : (Platform)Enum.Parse(typeof(Platform), platform);
+
         private Compilation CreateVisualBasicCompilation(
             string fileName,
             CompilationOptionsReader optionsReader,
@@ -197,6 +203,7 @@ namespace BuildValidator
 
             var langVersionString = pdbCompilationOptions.GetUniqueOption(CompilationOptionNames.LanguageVersion);
             pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
+            pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Platform, out var platform);
             pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.GlobalNamespaces, out var globalNamespacesString);
 
             IEnumerable<GlobalImport>? globalImports = null;
@@ -247,7 +254,7 @@ namespace BuildValidator
                 cryptoKeyFile: null,
                 cryptoPublicKey: optionsReader.GetPublicKey()?.ToImmutableArray() ?? default,
                 delaySign: null,
-                platform: Platform.AnyCpu,
+                platform: GetPlatform(platform),
                 generalDiagnosticOption: ReportDiagnostic.Default,
                 specificDiagnosticOptions: null,
                 concurrentBuild: true,
