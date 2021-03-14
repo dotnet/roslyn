@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             public static bool IsSolutionFilterFilename(string filename)
             {
-                return Path.GetExtension(filename) == ".slnf";
+                return Path.GetExtension(filename).Equals(".slnf", StringComparison.OrdinalIgnoreCase);
             }
 
             public static bool TryRead(string filterFilename, PathResolver pathResolver, out string solutionFilename, out ImmutableHashSet<string> projectFilter)
