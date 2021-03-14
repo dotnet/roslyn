@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -17,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
     internal partial class CSharpRecommendationServiceRunner
     {
         private static readonly ImmutableArray<SpecialType> s_predefinedEnumConversionTargets = ImmutableArray.Create(
-            // Presorted alphabetical to reduce sorting cost of the completion items. 
             SpecialType.System_Byte,
             SpecialType.System_Char,
             SpecialType.System_Decimal,
@@ -123,19 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             SpecialType.System_SByte,
             SpecialType.System_Int16);
 
-        private static readonly ImmutableArray<SpecialType> s_decimalConversions = ImmutableArray.Create(
-            SpecialType.System_Byte,
-            SpecialType.System_Char,
-            SpecialType.System_Double,
-            SpecialType.System_Single,
-            SpecialType.System_Int32,
-            SpecialType.System_Int64,
-            SpecialType.System_UInt32,
-            SpecialType.System_UInt64,
-            SpecialType.System_UInt16,
-            SpecialType.System_SByte,
-            SpecialType.System_Int16);
-
         private void AddConversions(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
         {
             if (container.RemoveNullableIfPresent() is INamedTypeSymbol namedType)
@@ -183,15 +168,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                         : method);
                 }
             }
-        }
 
-        private static bool IsLiftableConversion(IMethodSymbol method)
-        {
+            return;
+
             // https://github.com/dotnet/csharplang/blob/main/spec/conversions.md#lifted-conversion-operators      
             //
             // Given a user-defined conversion operator that converts from a non-nullable value type S to a non-nullable
             // value type T, a lifted conversion operator exists that converts from S? to T?
-            return method.ReturnType.IsNonNullableValueType() && method.Parameters.Single().Type.IsNonNullableValueType();
+            static bool IsLiftableConversion(IMethodSymbol method)
+                => method.ReturnType.IsNonNullableValueType() && method.Parameters.Single().Type.IsNonNullableValueType();
         }
 
         private IMethodSymbol LiftConversion(Compilation compilation, IMethodSymbol method)
@@ -204,13 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         private void AddBuiltInNumericConversions(
             ITypeSymbol container, INamedTypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
         {
-            if (containerWithoutNullable.SpecialType == SpecialType.System_Decimal)
-            {
-                // Decimal is defined in the spec with integrated conversions, but is the only type that reports it's
-                // conversions as normal method symbols
-                return;
-            }
-
             var numericConversions = GetBuiltInNumericConversions(containerWithoutNullable);
             if (!numericConversions.HasValue)
                 return;
@@ -218,7 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             AddCompletionItemsForSpecialTypes(container, containerWithoutNullable, symbols, numericConversions.Value);
         }
 
-        // Sorted alphabetical
         public static ImmutableArray<SpecialType>? GetBuiltInNumericConversions(ITypeSymbol container)
             => container.SpecialType switch
             {
@@ -233,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 SpecialType.System_Char => s_charConversions,
                 SpecialType.System_Single => s_singleConversions,
                 SpecialType.System_Double => s_doubleConversions,
-                SpecialType.System_Decimal => s_decimalConversions,
+                // Decimal intentionally not here as it exposes its conversions as normal methods in the symbol model.
                 _ => null,
             };
 
