@@ -487,6 +487,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 ? symbols.WhereAsArray(s => !(s.IsStatic || s is ITypeSymbol))
                 : symbols;
 
+            // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
+            // applicable to it as well.
             var unnamedSymbols = _context.IsNameOfContext || excludeInstance
                 ? default
                 : GetUnnamedSymbols(originalExpression);
