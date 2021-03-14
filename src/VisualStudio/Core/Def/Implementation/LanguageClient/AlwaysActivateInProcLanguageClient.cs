@@ -63,6 +63,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             {
                 serverCapabilities = _defaultCapabilitiesProvider.GetCapabilities();
             }
+            else
+            {
+                // Even if the flag is off, we want to include text sync capabilities.
+                serverCapabilities.TextDocumentSync = new TextDocumentSyncOptions
+                {
+                    Change = TextDocumentSyncKind.Incremental,
+                    OpenClose = true,
+                };
+            }
 
             serverCapabilities.SupportsDiagnosticRequests = Workspace.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
 

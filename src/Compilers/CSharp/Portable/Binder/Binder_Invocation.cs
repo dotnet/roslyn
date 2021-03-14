@@ -1411,7 +1411,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         GenerateImplicitConversionError(diagnostics, syntax, conversion, defaultValue, parameterType);
                     }
-                    defaultValue = CreateConversion(defaultValue, conversion, parameterType, diagnostics);
+                    var isCast = conversion.IsExplicit;
+                    defaultValue = CreateConversion(
+                        defaultValue.Syntax,
+                        defaultValue,
+                        conversion,
+                        isCast,
+                        isCast ? new ConversionGroup(conversion, parameter.TypeWithAnnotations) : null,
+                        parameterType,
+                        diagnostics);
                 }
 
                 return defaultValue;
