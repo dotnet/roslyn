@@ -21,15 +21,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal partial class UnnamedSymbolCompletionProvider
     {
         private readonly int ConversionSortingGroupIndex = 1;
-        private readonly ImmutableDictionary<string, string> ConversionProperties =
+
+        /// <summary>
+        /// Tag to let us know we need to rehydrate the conversion from the parameter and return type.
+        /// </summary>
+        private const string RehydrateName = "Rehydrate";
+        private static readonly ImmutableDictionary<string, string> ConversionProperties =
             ImmutableDictionary<string, string>.Empty.Add(KindName, ConversionKindName);
 
         private void AddConversion(CompletionContext context, SemanticModel semanticModel, int position, IMethodSymbol conversion)
         {
-            var symbols = GetConversionSymbols(conversion);
+            var (symbols, properties) = GetConversionSymbolsAndProperties(context, conversion);
 
             var targetTypeName = conversion.ReturnType.ToMinimalDisplayString(semanticModel, position);
-            var item = SymbolCompletionItem.CreateWithSymbolId(
+            context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                 displayTextPrefix: "(",
                 displayText: targetTypeName,
                 displayTextSuffix: ")",
@@ -39,20 +44,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 symbols: symbols,
                 rules: CompletionItemRules.Default,
                 contextPosition: position,
-                properties: ConversionProperties
-                    .Add(DocumentationCommentXmlName, conversion.GetDocumentationCommentXml(cancellationToken: context.CancellationToken) ?? ""));
-
-            context.AddItem(item);
+                properties: properties));
         }
 
-        private static ImmutableArray<ISymbol> GetConversionSymbols(IMethodSymbol conversion)
+        private static (ImmutableArray<ISymbol> symbols, ImmutableDictionary<string, string> properties) GetConversionSymbolsAndProperties(
+            CompletionContext context, IMethodSymbol conversion)
         {
             // If it's a non-synthesized method, then we can just encode it as is.
             if (conversion is not CodeGenerationSymbol)
-                return ImmutableArray.Create<ISymbol>(conversion);
+                return (ImmutableArray.Create<ISymbol>(conversion), ConversionProperties);
 
-            // Otherwise, keep track of the to/from types and we'll rehydrate this when needed.
-            return ImmutableArray.Create<ISymbol>(conversion.ContainingType, conversion.Parameters.First().Type, conversion.ReturnType);
+            // Otherwise, encode the constituent parts so we can recover it in GetConversionDescriptionAsync;
+            var properties = ConversionProperties
+                .Add(RehydrateName, RehydrateName)
+                .Add(DocumentationCommentXmlName, conversion.GetDocumentationCommentXml(cancellationToken: context.CancellationToken) ?? "");
+            var symbols = ImmutableArray.Create<ISymbol>(conversion.ContainingType, conversion.Parameters.First().Type, conversion.ReturnType);
+            return (symbols, properties);
         }
 
         private static async Task<CompletionChange> GetConversionChangeAsync(
@@ -88,36 +95,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static async Task<CompletionDescription?> GetConversionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+            var conversion = await TryRehydrateAsync(document, item, cancellationToken).ConfigureAwait(false);
+            if (conversion == null)
+                return null;
 
-            ISymbol symbol;
-            if (symbols.Length == 1)
+            return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(
+                item, document, ImmutableArray.Create(conversion), cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<ISymbol?> TryRehydrateAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            // If we're need to rehydrate the conversion, pull out the necessary parts.
+            if (item.Properties.ContainsKey(RehydrateName))
             {
-                // We successfully found the original conversion method.
-                symbol = symbols[0];
-            }
-            else if (symbols.Length == 3 &&
-                symbols[0] is INamedTypeSymbol containingType &&
-                symbols[1] is ITypeSymbol fromType &&
-                symbols[2] is ITypeSymbol toType)
-            {
-                // Otherwise, this was synthesized.  So rehydrate the synthesized symbol.
-                symbol = CodeGenerationSymbolFactory.CreateConversionSymbol(
-                    attributes: default,
-                    accessibility: Accessibility.Public,
-                    modifiers: DeclarationModifiers.Static,
-                    toType: toType,
-                    fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
-                    containingType: containingType,
-                    documentationCommentXml: item.Properties[DocumentationCommentXmlName]);
+                var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+                if (symbols.Length == 3 &&
+                    symbols[0] is INamedTypeSymbol containingType &&
+                    symbols[1] is ITypeSymbol fromType &&
+                    symbols[2] is ITypeSymbol toType)
+                {
+                    return CodeGenerationSymbolFactory.CreateConversionSymbol(
+                        attributes: default,
+                        accessibility: Accessibility.Public,
+                        modifiers: DeclarationModifiers.Static,
+                        toType: toType,
+                        fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
+                        containingType: containingType,
+                        documentationCommentXml: item.Properties[DocumentationCommentXmlName]);
+                }
+
+                return null;
             }
             else
             {
-                return null;
+                // Otherwise, just go retrieve the conversion directly.
+                var symbols = await SymbolCompletionItem.GetSymbolsAsync(item, document, cancellationToken).ConfigureAwait(false);
+                return symbols.Length == 1 ? symbols.Single() : null;
             }
-
-            return await SymbolCompletionItem.GetDescriptionForSymbolsAsync(
-                item, document, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
         }
     }
 }
