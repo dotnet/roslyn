@@ -216,6 +216,31 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Creates a method symbol that can be used to describe a conversion declaration.
         /// </summary>
         public static IMethodSymbol CreateConversionSymbol(
+            ITypeSymbol toType,
+            IParameterSymbol fromType,
+            INamedTypeSymbol? containingType = null,
+            bool isImplicit = false,
+            ImmutableArray<SyntaxNode> statements = default,
+            ImmutableArray<AttributeData> toTypeAttributes = default,
+            string? documentationCommentXml = null)
+        {
+            return CreateConversionSymbol(
+                attributes: default,
+                accessibility: Accessibility.Public,
+                DeclarationModifiers.Static,
+                toType,
+                fromType,
+                containingType,
+                isImplicit,
+                statements,
+                toTypeAttributes,
+                documentationCommentXml);
+        }
+
+        /// <summary>
+        /// Creates a method symbol that can be used to describe a conversion declaration.
+        /// </summary>
+        public static IMethodSymbol CreateConversionSymbol(
             ImmutableArray<AttributeData> attributes,
             Accessibility accessibility,
             DeclarationModifiers modifiers,

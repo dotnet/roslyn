@@ -115,9 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     symbols[2] is ITypeSymbol toType)
                 {
                     return CodeGenerationSymbolFactory.CreateConversionSymbol(
-                        attributes: default,
-                        accessibility: Accessibility.Public,
-                        modifiers: DeclarationModifiers.Static,
                         toType: toType,
                         fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
                         containingType: containingType,

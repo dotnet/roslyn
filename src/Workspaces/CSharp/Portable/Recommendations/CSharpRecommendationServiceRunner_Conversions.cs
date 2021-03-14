@@ -257,9 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType, string? documentationCommentXml)
         {
             return CodeGenerationSymbolFactory.CreateConversionSymbol(
-                attributes: default,
-                accessibility: Accessibility.Public,
-                modifiers: DeclarationModifiers.Static,
                 toType: toType,
                 fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
                 containingType: containingType,
