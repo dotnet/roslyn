@@ -189,14 +189,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         private void AddBuiltInNumericConversions(
             ITypeSymbol container, INamedTypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
         {
-            var numericConversions = GetBuiltInNumericConversions(containerWithoutNullable);
-            if (!numericConversions.HasValue)
+            var conversions = GetPredefinedInNumericConversions(containerWithoutNullable);
+            if (!conversions.HasValue)
                 return;
 
-            AddCompletionItemsForSpecialTypes(container, containerWithoutNullable, symbols, numericConversions.Value);
+            AddCompletionItemsForSpecialTypes(container, containerWithoutNullable, symbols, conversions.Value);
         }
 
-        public static ImmutableArray<SpecialType>? GetBuiltInNumericConversions(ITypeSymbol container)
+        public static ImmutableArray<SpecialType>? GetPredefinedInNumericConversions(ITypeSymbol container)
             => container.SpecialType switch
             {
                 SpecialType.System_SByte => s_sbyteConversions,
@@ -228,29 +228,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
                 symbols.Add(container.IsNullable() ? LiftConversion(compilation, conversion) : conversion);
             }
+
+            return;
+
+            static string CreateConversionDocumentationCommentXml(ITypeSymbol fromType, ITypeSymbol toType)
+            {
+                var summary = string.Format(WorkspacesResources.Predefined_conversion_from_0_to_1,
+                    SeeTag(fromType.GetDocumentationCommentId()),
+                    SeeTag(toType.GetDocumentationCommentId()));
+
+                return $"<summary>{summary}</summary>";
+
+                static string SeeTag(string? id)
+                    => $@"<see cref=""{id}""/>";
+            }
         }
 
-        private static IMethodSymbol CreateConversion(
-            INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType, string? documentationCommentXml)
-        {
-            return CodeGenerationSymbolFactory.CreateConversionSymbol(
+        private static IMethodSymbol CreateConversion(INamedTypeSymbol containingType, ITypeSymbol fromType, ITypeSymbol toType, string? documentationCommentXml)
+            => CodeGenerationSymbolFactory.CreateConversionSymbol(
                 toType: toType,
                 fromType: CodeGenerationSymbolFactory.CreateParameterSymbol(fromType, "value"),
                 containingType: containingType,
                 documentationCommentXml: documentationCommentXml);
-        }
-
-        private static string CreateConversionDocumentationCommentXml(ITypeSymbol fromType, ITypeSymbol toType)
-        {
-            var summary = string.Format(WorkspacesResources.Predefined_conversion_from_0_to_1,
-                SeeTag(fromType.GetDocumentationCommentId()),
-                SeeTag(toType.GetDocumentationCommentId()));
-
-            return $"<summary>{summary}</summary>";
-
-            static string SeeTag(string? id)
-                => $@"<see cref=""{id}""/>";
-        }
 
         private void AddBuiltInEnumConversions(
             ITypeSymbol container, INamedTypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
