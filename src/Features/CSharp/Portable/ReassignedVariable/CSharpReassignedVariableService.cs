@@ -62,18 +62,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
             }
         }
 
-        private static void AddBodies(SyntaxNode declaration, ref TemporaryArray<SyntaxNode> bodies)
+        private static void AddBodies(SyntaxNode? declaration, ref TemporaryArray<SyntaxNode> bodies)
         {
             switch (declaration)
             {
+                case null:
+                    return;
+
+                case AccessorDeclarationSyntax accessor:
+                    bodies.AddIfNotNull(accessor.Body);
+                    AddBodies(accessor.ExpressionBody, ref bodies);
+                    break;
+
+                case ArrowExpressionClauseSyntax arrowExpressionClause:
+                    bodies.Add(arrowExpressionClause.Expression);
+                    break;
+
                 case BaseMethodDeclarationSyntax methodDeclaration:
                     bodies.AddIfNotNull(methodDeclaration.Body);
-                    bodies.AddIfNotNull(methodDeclaration.ExpressionBody?.Expression);
+                    AddBodies(methodDeclaration.ExpressionBody, ref bodies);
                     break;
 
                 case LocalFunctionStatementSyntax localFunction:
                     bodies.AddIfNotNull(localFunction.Body);
-                    bodies.AddIfNotNull(localFunction.ExpressionBody?.Expression);
+                    AddBodies(localFunction.ExpressionBody, ref bodies);
                     break;
 
                 case AnonymousFunctionExpressionSyntax anonymousFunction:
@@ -81,19 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
                     bodies.AddIfNotNull(anonymousFunction.ExpressionBody);
                     break;
 
-                case ArrowExpressionClauseSyntax arrowExpression:
-                    bodies.AddIfNotNull(arrowExpression.Expression);
-                    break;
-
                 case IndexerDeclarationSyntax indexer:
                     bodies.AddIfNotNull(indexer.ExpressionBody?.Expression);
                     if (indexer.AccessorList != null)
                     {
                         foreach (var accessor in indexer.AccessorList.Accessors)
-                        {
-                            bodies.AddIfNotNull(accessor.Body);
-                            bodies.AddIfNotNull(accessor.ExpressionBody?.Expression);
-                        }
+                            AddBodies(accessor, ref bodies);
                     }
                     break;
 
