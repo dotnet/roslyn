@@ -86,5 +86,168 @@ class C
     }
 }");
         }
+
+        [Fact]
+        public async Task TestParameterWithExprBodyWithReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(int [|p|]) => Console.WriteLine([|p|]++);
+}");
+        }
+
+        [Fact]
+        public async Task TestLocalFunctionWithExprBodyWithReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        void Local(int [|p|])
+            => Console.WriteLine([|p|]++);
+}");
+        }
+
+        [Fact]
+        public async Task TestIndexerWithWriteInExprBody()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int this[int [|p|]] => [|p|]++;
+}");
+        }
+
+        [Fact]
+        public async Task TestIndexerWithWriteInGetter()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int this[int [|p|]] { get => [|p|]++; }
+}");
+        }
+
+        [Fact]
+        public async Task TestIndexerWithWriteInSetter()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int this[int [|p|]] { set => [|p|]++; }
+}");
+        }
+
+        [Fact]
+        public async Task TestPropertyWithAssignmentToValue()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int Goo { set => value = value + 1; }
+}");
+        }
+
+        [Fact]
+        public async Task TestLambdaParameterWithoutReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        Action<int> a = x => Console.WriteLine(x);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestLambdaParameterWithReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        Action<int> a = [|x|] => Console.WriteLine([|x|]++);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestLambdaParameterWithReassignment2()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        Action<int> a = (int [|x|]) => Console.WriteLine([|x|]++);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestLocalWithoutInitializerWithoutReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(bool b)
+    {
+        int p;
+        if (b)
+            p = 1;
+        else
+            p = 2;
+
+        Console.WriteLine(p);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestLocalWithoutInitializerWithReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(bool b)
+    {
+        int [|p|];
+        if (b)
+            [|p|] = 1;
+        else
+            [|p|] = 2;
+
+        [|p|] = 0;
+        Console.WriteLine([|p|]);
+    }
+}");
+        }
     }
 }
