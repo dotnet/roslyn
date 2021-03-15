@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public override void Disconnect()
                 => _subjectBuffer.Changed -= OnTextBufferChanged;
 
-            private void OnTextBufferChanged(object sender, TextContentChangedEventArgs e)
+            private void OnTextBufferChanged(object? sender, TextContentChangedEventArgs e)
             {
                 if (e.Changes.Count == 0)
                 {

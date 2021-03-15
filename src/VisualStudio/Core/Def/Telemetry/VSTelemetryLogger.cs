@@ -11,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Telemetry;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
@@ -89,8 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                         EndScope<UserTaskEvent>(functionId, blockId, kvLogMessage, cancellationToken);
                         return;
                     default:
-                        FatalError.Report(new Exception($"unknown type: {kind}"));
-                        break;
+                        throw ExceptionUtilities.UnexpectedValue(kind);
                 }
             }
             catch
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             {
                 LogType.Trace => _session.StartOperation(eventName),
                 LogType.UserAction => _session.StartUserTask(eventName),
-                _ => (object)FatalError.Report(new Exception($"unknown type: {kind}")),
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }
 

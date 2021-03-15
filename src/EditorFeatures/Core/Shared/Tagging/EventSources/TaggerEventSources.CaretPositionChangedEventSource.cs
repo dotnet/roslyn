@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public override void Disconnect()
                 => _textView.Caret.PositionChanged -= OnCaretPositionChanged;
 
-            private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
+            private void OnCaretPositionChanged(object? sender, CaretPositionChangedEventArgs e)
                 => this.RaiseChanged();
         }
     }

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString)]
     internal class ConvertBetweenRegularAndVerbatimInterpolatedStringCodeRefactoringProvider
         : AbstractConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider<InterpolatedStringExpressionSyntax>
     {

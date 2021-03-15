@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
@@ -13,30 +14,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Decl
     Friend Class OverloadableOperatorRecommender
         Inherits AbstractKeywordRecommender
 
-        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of RecommendedKeyword)
+        Protected Overrides Function RecommendKeywords(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of RecommendedKeyword)
             If context.FollowsEndOfStatement Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim targetToken = context.TargetToken
 
             If Not targetToken.IsKind(SyntaxKind.OperatorKeyword) OrElse
                Not targetToken.Parent.IsKind(SyntaxKind.OperatorStatement) Then
-                Return SpecializedCollections.EmptyEnumerable(Of RecommendedKeyword)()
+                Return ImmutableArray(Of RecommendedKeyword).Empty
             End If
 
             Dim modifierFacts = context.ModifierCollectionFacts
 
             ' If we have a Widening or Narrowing declaration, then we must be a CType operator
             If modifierFacts.NarrowingOrWideningKeyword.Kind <> SyntaxKind.None Then
-                Return SpecializedCollections.SingletonEnumerable(New RecommendedKeyword("CType", VBFeaturesResources.Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_As_Type))
+                Return ImmutableArray.Create(New RecommendedKeyword("CType", VBFeaturesResources.Returns_the_result_of_explicitly_converting_an_expression_to_a_specified_data_type_object_structure_class_or_interface_CType_Object_As_Expression_Object_As_Type_As_Type))
             Else
                 ' We could just be a normal name, so we list all possible options here. Dev10 allows you to type
                 ' "Operator Narrowing", so we also list the Narrowing/Widening options as well.
                 ' TODO: fix parser to actually deal with such stupidities like "Operator Narrowing"
                 Return {"+", "-", "IsFalse", "IsTrue", "Not",
                         "*", "/", "\", "&", "^", ">>", "<<", "=", "<>", ">", ">=", "<", "<=", "And", "Like", "Mod", "Or", "Xor",
-                        "Narrowing", "Widening"}.Select(Function(s) New RecommendedKeyword(s, GetToolTipForKeyword(s)))
+                        "Narrowing", "Widening"}.Select(Function(s) New RecommendedKeyword(s, GetToolTipForKeyword(s))).ToImmutableArray()
             End If
         End Function
 

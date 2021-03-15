@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return OperatorPrecedence.Unary;
 
                 case SyntaxKind.RangeExpression:
-                    // From C# spec, https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/ranges.md#systemrange
+                    // From C# spec, https://github.com/dotnet/csharplang/blob/main/proposals/csharp-8.0/ranges.md#systemrange
                     // Range: ..
 
                     return OperatorPrecedence.Range;
@@ -808,6 +808,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // Conditional: ?:
 
                     return OperatorPrecedence.AssignmentAndLambdaExpression;
+
+                case SyntaxKind.SwitchExpression:
+                    return OperatorPrecedence.Switch;
 
                 default:
                     return OperatorPrecedence.None;

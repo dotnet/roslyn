@@ -37,14 +37,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Public TrySymbolNavigationNotifyProvidedSymbol As ISymbol
             Public TrySymbolNavigationNotifyProvidedProject As Project
-            Public TrySymbolNavigationNotifyReturnValue As Boolean = False
+            Public TrySymbolNavigationNotifyReturnValue As Boolean
 
             Public WouldNavigateToSymbolProvidedDefinitionItem As DefinitionItem
             Public WouldNavigateToSymbolProvidedSolution As Solution
-            Public WouldNavigateToSymbolReturnValue As Boolean = False
+            Public WouldNavigateToSymbolReturnValue As Boolean
             Public NavigationFilePathReturnValue As String = String.Empty
-            Public NavigationLineNumberReturnValue As Integer = 0
-            Public NavigationCharOffsetReturnValue As Integer = 0
+            Public NavigationLineNumberReturnValue As Integer
+            Public NavigationCharOffsetReturnValue As Integer
 
             Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional options As OptionSet = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
                 Me.TryNavigateToSymbolProvidedSymbol = symbol

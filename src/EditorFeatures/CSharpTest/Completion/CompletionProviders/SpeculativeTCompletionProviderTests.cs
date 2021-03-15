@@ -921,7 +921,7 @@ class Program
 
         [WorkItem(13480, "https://github.com/dotnet/roslyn/issues/13480")]
         [Fact]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionReturnType()
         {
             var markup = @"
@@ -936,7 +936,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionAfterAyncTask()
         {
             var markup = @"
@@ -951,7 +951,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public async Task LocalFunctionAfterAsync()
         {
             var markup = @"

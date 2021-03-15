@@ -5,9 +5,11 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.IO.Pipes;
@@ -16,11 +18,19 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    public class VBCSCompilerServerTests
+    public class VBCSCompilerServerTests : IDisposable
     {
+        public TempRoot TempRoot { get; } = new TempRoot();
+
+        public void Dispose()
+        {
+            TempRoot.Dispose();
+        }
+
         public class StartupTests : VBCSCompilerServerTests
         {
             [Fact]
@@ -37,16 +47,23 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public class ShutdownTests : VBCSCompilerServerTests
         {
-            private static Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
+            internal XunitCompilerServerLogger Logger { get; }
+
+            public ShutdownTests(ITestOutputHelper testOutputHelper)
+            {
+                Logger = new XunitCompilerServerLogger(testOutputHelper);
+            }
+
+            private Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
             {
                 var appSettings = new NameValueCollection();
-                return new BuildServerController(appSettings).RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
+                return new BuildServerController(appSettings, Logger).RunShutdownAsync(pipeName, waitForProcess, timeout, cancellationToken);
             }
 
             [Fact]
             public async Task Standard()
             {
-                using var serverData = await ServerUtil.CreateServer();
+                using var serverData = await ServerUtil.CreateServer(Logger);
                 var exitCode = await RunShutdownAsync(serverData.PipeName, waitForProcess: false).ConfigureAwait(false);
                 Assert.Equal(CommonCompiler.Succeeded, exitCode);
 
@@ -186,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return ProtocolUtil.EmptyBuildResponse;
                 });
 
-                using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost).ConfigureAwait(false);
 
                 // Get the server to the point that it is running the compilation.
                 var compileTask = serverData.SendAsync(ProtocolUtil.EmptyCSharpBuildRequest);
@@ -225,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return ProtocolUtil.EmptyBuildResponse;
                 });
 
-                using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost).ConfigureAwait(false);
 
                 // Get the server to the point that it is running the compilation.
                 var compileTask = serverData.SendAsync(ProtocolUtil.EmptyCSharpBuildRequest);
@@ -250,6 +267,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public class KeepAliveTests : VBCSCompilerServerTests
         {
+            internal XunitCompilerServerLogger Logger { get; }
+
+            public KeepAliveTests(ITestOutputHelper testOutputHelper)
+            {
+                Logger = new XunitCompilerServerLogger(testOutputHelper);
+            }
+
             /// <summary>
             /// Ensure server hits keep alive when processing no connections
             /// </summary>
@@ -258,6 +282,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var compilerServerHost = new TestableCompilerServerHost((request, cancellationToken) => ProtocolUtil.EmptyBuildResponse);
                 using var serverData = await ServerUtil.CreateServer(
+                    Logger,
                     keepAlive: TimeSpan.FromSeconds(3),
                     compilerServerHost: compilerServerHost).ConfigureAwait(false);
 
@@ -277,12 +302,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public async Task SimpleCases(int connectionCount)
             {
                 var compilerServerHost = new TestableCompilerServerHost((request, cancellationToken) => ProtocolUtil.EmptyBuildResponse);
-                using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                var workingDirectory = TempRoot.CreateDirectory().Path;
 
                 for (var i = 0; i < connectionCount; i++)
                 {
                     var request = i + 1 >= connectionCount
-                        ? ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3))
+                        ? ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3), workingDirectory)
                         : ProtocolUtil.EmptyCSharpBuildRequest;
                     await serverData.SendAsync(request).ConfigureAwait(false);
                 }
@@ -309,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return ProtocolUtil.EmptyBuildResponse;
                 });
 
-                using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost).ConfigureAwait(false);
                 var list = new List<Task>();
                 for (var i = 0; i < connectionCount; i++)
                 {
@@ -318,7 +344,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 readyMre.Set();
 
-                await serverData.SendAsync(ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3))).ConfigureAwait(false);
+                var workingDirectory = TempRoot.CreateDirectory().Path;
+                await serverData.SendAsync(ProtocolUtil.CreateEmptyCSharpWithKeepAlive(TimeSpan.FromSeconds(3), workingDirectory)).ConfigureAwait(false);
                 await Task.WhenAll(list).ConfigureAwait(false);
 
                 // Don't use Complete here because we want to see the server shutdown naturally
@@ -331,6 +358,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public class MiscTests : VBCSCompilerServerTests
         {
+            internal XunitCompilerServerLogger Logger { get; }
+
+            public MiscTests(ITestOutputHelper testOutputHelper)
+            {
+                Logger = new XunitCompilerServerLogger(testOutputHelper);
+            }
+
             [Fact]
             public async Task CompilationExceptionShouldShutdown()
             {
@@ -340,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     hitCompilation = true;
                     throw new Exception("");
                 });
-                using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost).ConfigureAwait(false);
 
                 var response = await serverData.SendAsync(ProtocolUtil.EmptyBasicBuildRequest).ConfigureAwait(false);
                 Assert.True(response is RejectedBuildResponse);
@@ -357,10 +391,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var compilerServerHost = new TestableCompilerServerHost(delegate
                 {
-                    return new AnalyzerInconsistencyBuildResponse();
+                    return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(Array.Empty<string>()));
                 });
 
-                using var serverData = await ServerUtil.CreateServer(compilerServerHost: compilerServerHost).ConfigureAwait(false);
+                using var serverData = await ServerUtil.CreateServer(Logger, compilerServerHost: compilerServerHost).ConfigureAwait(false);
 
                 var response = await serverData.SendAsync(ProtocolUtil.EmptyBasicBuildRequest).ConfigureAwait(false);
                 Assert.True(response is AnalyzerInconsistencyBuildResponse);

@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
 {
     /// <summary>
-    /// Simple wrapper struct for a <see cref="SqlStatement"/> that helps ensure that the statement
-    /// is always <see cref="SqlStatement.Reset"/> after it is used.
-    /// 
+    /// Simple wrapper struct for a <see cref="SqlStatement"/> that helps ensure that the statement is always has it's
+    /// bindings cleared (<see cref="SqlStatement.ClearBindings"/>) and is <see cref="SqlStatement.Reset"/> after it is
+    /// used.
+    /// <para/>
     /// See https://sqlite.org/c3ref/stmt.html:
     /// The life-cycle of a prepared statement object usually goes like this:
     ///    1) Create the prepared statement object using sqlite3_prepare_v2().
@@ -33,6 +32,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             => Statement = statement;
 
         public void Dispose()
-            => Statement.Reset();
+        {
+            // Clear out any bindings we've made so the statement doesn't hold onto data longer than necessary.
+            Statement.ClearBindings();
+
+            // Reset the statement so it can be run again.
+            Statement.Reset();
+        }
     }
 }

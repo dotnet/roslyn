@@ -32,11 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateDefaultConstructo
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Offer the feature if we're on the header for the class/struct, or if we're on the 
-            // first base-type of a class.
+            // Offer the feature if we're on the header / between members of the class/struct,
+            // or if we're on the first base-type of a class
 
             var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, out var typeDeclaration))
+            if (syntaxFacts.IsOnTypeHeader(semanticDocument.Root, textSpan.Start, out var typeDeclaration) ||
+                syntaxFacts.IsBetweenTypeMembers(semanticDocument.Text, semanticDocument.Root, textSpan.Start, out typeDeclaration))
             {
                 classType = semanticDocument.SemanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) as INamedTypeSymbol;
                 return classType?.TypeKind == TypeKind.Class;

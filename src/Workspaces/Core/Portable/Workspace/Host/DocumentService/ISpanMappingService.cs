@@ -24,6 +24,11 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface ISpanMappingService : IDocumentService
     {
         /// <summary>
+        /// Whether this span mapping service can handle mapping import directives added to a document.
+        /// </summary>
+        bool SupportsMappingImportDirectives { get; }
+
+        /// <summary>
         /// Map spans in the document to more appropriate locations
         /// 
         /// in current design, this can NOT map a span to a span that is not backed by a file.

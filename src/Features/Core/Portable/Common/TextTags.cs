@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis
         public const string EnumMember = nameof(EnumMember);
         public const string ExtensionMethod = nameof(ExtensionMethod);
         public const string Constant = nameof(Constant);
+        public const string Record = nameof(Record);
 
         /// <summary>
         /// Indicates the start of a text container. The elements after <see cref="ContainerStart"/> through (but not

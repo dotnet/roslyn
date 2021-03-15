@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     _ = await client.TryInvokeAsync<IRemoteSymbolFinderService>(
                         solution,
-                        (service, solutionInfo, cancellationToken) => service.FindLiteralReferencesAsync(solutionInfo, value, typeCode, cancellationToken),
+                        (service, solutionInfo, callbackId, cancellationToken) => service.FindLiteralReferencesAsync(solutionInfo, callbackId, value, typeCode, cancellationToken),
                         serverCallback,
                         cancellationToken).ConfigureAwait(false);
                 }

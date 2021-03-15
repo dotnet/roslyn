@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions
@@ -32,14 +33,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 return Enumerable.Empty<TaggedText>();
             }
 
-            var formatter = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var codeProject = document.GetCodeProject();
+            var formatter = codeProject.LanguageServices.GetService<IDocumentationCommentFormattingService>();
             if (formatter == null)
             {
                 return Enumerable.Empty<TaggedText>();
             }
 
             // TODO: Should we get this from the code-behind document instead?
-            var codeDocument = document.Project.Documents.FirstOrDefault();
+            var codeDocument = codeProject.Documents.FirstOrDefault();
             if (codeDocument == null)
             {
                 return Enumerable.Empty<TaggedText>();

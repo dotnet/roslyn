@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="XunitXml.TestLogger" Version="$(XunitXmlTestLoggerVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Include BannedSymbols covering all test projects -->
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\test\BannedSymbols.txt" />
   </ItemGroup>

@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -136,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // if both accessors are on the same line, format the accessor list
                 // { get; set; }
                 if (GetEnclosingMember(endToken) is PropertyDeclarationSyntax propertyDeclaration &&
-                    AreTwoTokensOnSameLine(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken))
+                    AreTwoTokensOnSameLine(propertyDeclaration.AccessorList!.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken))
                 {
                     return ValueTuple.Create(propertyDeclaration.AccessorList.OpenBraceToken, propertyDeclaration.AccessorList.CloseBraceToken);
                 }
@@ -336,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // now check a special case where previous token belongs to a label.
             if (previousToken.IsLastTokenInLabelStatement())
             {
+                RoslynDebug.AssertNotNull(previousToken.Parent?.Parent);
                 var labelNode = previousToken.Parent.Parent;
                 return GetAppropriatePreviousToken(labelNode.GetFirstToken());
             }
@@ -376,8 +376,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 node.Kind() == SyntaxKind.RemoveAccessorDeclaration;
         }
 
-        private static SyntaxNode GetTopContainingNode(SyntaxNode node)
+        private static SyntaxNode? GetTopContainingNode([DisallowNull] SyntaxNode? node)
         {
+            RoslynDebug.AssertNotNull(node.Parent);
+
             node = node.Parent;
             if (!IsSpecialContainingNode(node))
             {
@@ -428,8 +430,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 && previousMember != nextMember;
         }
 
-        public static MemberDeclarationSyntax GetEnclosingMember(SyntaxToken token)
+        public static MemberDeclarationSyntax? GetEnclosingMember(SyntaxToken token)
         {
+            RoslynDebug.AssertNotNull(token.Parent);
+
             if (token.Kind() == SyntaxKind.CloseBraceToken)
             {
                 if (token.Parent.Kind() == SyntaxKind.Block ||

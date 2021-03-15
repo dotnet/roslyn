@@ -22,59 +22,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// <summary>
     /// Handle a completion request.
     /// </summary>
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentCompletionName, mutatesSolutionState: false, StringConstants.XamlLanguageName)]
-    internal class CompletionHandler : IRequestHandler<CompletionParams, CompletionItem[]>
+    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ProvidesMethod(Methods.TextDocumentCompletionName)]
+    internal class CompletionHandler : AbstractStatelessRequestHandler<CompletionParams, CompletionList?>
     {
+        public override string Method => Methods.TextDocumentCompletionName;
+        private const string CreateEventHandlerCommandTitle = "Create Event Handler";
+
+        public override bool MutatesSolutionState => false;
+        public override bool RequiresLSPSolution => true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CompletionHandler()
         {
         }
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request) => request.TextDocument;
 
-        public async Task<CompletionItem[]> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
+        public override async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
             {
-                return CreateErrorItem($"Cannot find document in solution!", request.TextDocument.Uri.ToString());
+                return null;
             }
 
             var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var offset = text.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(request.Position));
-            var completionResult = await completionService.GetCompletionsAsync(new XamlCompletionContext(document, offset, request.Context.TriggerCharacter?.FirstOrDefault() ?? '\0'), cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionResult = await completionService.GetCompletionsAsync(new XamlCompletionContext(document, offset, request.Context?.TriggerCharacter?.FirstOrDefault() ?? '\0'), cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionResult?.Completions == null)
             {
-                return Array.Empty<CompletionItem>();
+                return null;
             }
 
-            return completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position)).ToArray();
+            return new VSCompletionList
+            {
+                Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position, request.TextDocument)).ToArray(),
+                SuggestionMode = false,
+            };
         }
 
-        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position)
+        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position, TextDocumentIdentifier textDocument)
         {
-            TextEdit? textEdit = null;
-
-            if (xamlCompletion.Span.HasValue)
-            {
-                textEdit = new TextEdit
-                {
-                    NewText = xamlCompletion.InsertText,
-                    Range = ProtocolConversions.LinePositionToRange(text.Lines.GetLinePositionSpan(xamlCompletion.Span.Value))
-                };
-            }
-
-            return new VSCompletionItem
+            var item = new VSCompletionItem
             {
                 Label = xamlCompletion.DisplayText,
                 CommitCharacters = xamlCompletion.CommitCharacters,
                 Detail = xamlCompletion.Detail,
                 InsertText = xamlCompletion.InsertText,
-                TextEdit = textEdit,
-                Preselect = xamlCompletion.Preselect,
+                Preselect = xamlCompletion.Preselect.GetValueOrDefault(),
                 SortText = xamlCompletion.SortText,
                 FilterText = xamlCompletion.FilterText,
                 Kind = GetItemKind(xamlCompletion.Kind),
@@ -82,19 +80,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 Icon = xamlCompletion.Icon,
                 Data = new CompletionResolveData { ProjectGuid = documentId.ProjectId.Id, DocumentGuid = documentId.Id, Position = position, DisplayText = xamlCompletion.DisplayText }
             };
-        }
 
-        private static CompletionItem[] CreateErrorItem(string message, string? details = null)
-        {
-            var item = new CompletionItem
+            if (xamlCompletion.Span.HasValue)
             {
-                Label = message,
-                Documentation = details,
-                InsertText = string.Empty,
-                Kind = CompletionItemKind.Text,
-            };
+                item.TextEdit = new TextEdit
+                {
+                    NewText = xamlCompletion.InsertText,
+                    Range = ProtocolConversions.LinePositionToRange(text.Lines.GetLinePositionSpan(xamlCompletion.Span.Value))
+                };
+            }
 
-            return new[] { item };
+            if (xamlCompletion.EventDescription.HasValue)
+            {
+                item.Command = new Command()
+                {
+                    CommandIdentifier = StringConstants.CreateEventHandlerCommand,
+                    Arguments = new object[] { textDocument, xamlCompletion.EventDescription },
+                    Title = CreateEventHandlerCommandTitle
+                };
+            }
+
+            return item;
         }
 
         private static CompletionItemKind GetItemKind(XamlCompletionKind kind)

@@ -101,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
                 }
 
-                FatalError.ReportWithoutCrash(
+                FatalError.ReportAndCatch(
                     new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
 
                 return NoOpFormattingRule.Instance;

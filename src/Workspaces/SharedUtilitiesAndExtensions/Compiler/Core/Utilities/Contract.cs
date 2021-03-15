@@ -22,7 +22,7 @@ namespace Roslyn.Utilities
         /// all builds
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>([NotNull] T value) where T : class?
+        public static void ThrowIfNull<T>([NotNull] T value)
         {
             if (value is null)
             {
@@ -35,7 +35,7 @@ namespace Roslyn.Utilities
         /// all builds
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>([NotNull] T value, string message) where T : class?
+        public static void ThrowIfNull<T>([NotNull] T value, string message)
         {
             if (value is null)
             {

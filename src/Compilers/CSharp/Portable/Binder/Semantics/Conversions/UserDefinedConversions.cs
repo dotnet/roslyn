@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class ConversionsBase
     {
-        private static TypeSymbol GetUnderlyingEffectiveType(TypeSymbol type, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbol GetUnderlyingEffectiveType(TypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Spec 6.4.4: User-defined implicit conversions 
             // Spec 6.4.5: User-defined explicit conversions 
@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (type.IsTypeParameter())
                 {
-                    type = ((TypeParameterSymbol)type).EffectiveBaseClass(ref useSiteDiagnostics);
+                    type = ((TypeParameterSymbol)type).EffectiveBaseClass(ref useSiteInfo);
                 }
             }
 
             return type;
         }
 
-        public static void AddTypesParticipatingInUserDefinedConversion(ArrayBuilder<NamedTypeSymbol> result, TypeSymbol type, bool includeBaseTypes, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public static void AddTypesParticipatingInUserDefinedConversion(ArrayBuilder<NamedTypeSymbol> result, TypeSymbol type, bool includeBaseTypes, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if ((object)type == null)
             {
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            NamedTypeSymbol t = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+            NamedTypeSymbol t = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             while ((object)t != null)
             {
                 if (!excludeExisting || !HasIdentityConversionToAny(t, result))
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result.Add(t);
                 }
 
-                t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                t = t.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
             }
         }
     }

@@ -8,8 +8,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Callback object we pass to the OOP server to hear about the result 
         /// of the FindReferencesEngine as it executes there.
         /// </summary>
-        internal sealed class FindReferencesServerCallback : IRemoteSymbolFinderService.ICallback, IEqualityComparer<SerializableSymbolAndProjectId>
+        internal sealed class FindReferencesServerCallback : IEqualityComparer<SerializableSymbolAndProjectId>
         {
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
@@ -39,11 +37,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _definitionMap = new Dictionary<SerializableSymbolAndProjectId, ISymbol>(this);
             }
 
-            public ValueTask AddItemsAsync(int count) => _progress.ProgressTracker.AddItemsAsync(count);
-            public ValueTask ItemCompletedAsync() => _progress.ProgressTracker.ItemCompletedAsync();
+            public ValueTask AddItemsAsync(int count)
+                => _progress.ProgressTracker.AddItemsAsync(count);
 
-            public ValueTask OnStartedAsync() => _progress.OnStartedAsync();
-            public ValueTask OnCompletedAsync() => _progress.OnCompletedAsync();
+            public ValueTask ItemCompletedAsync()
+                => _progress.ProgressTracker.ItemCompletedAsync();
+
+            public ValueTask OnStartedAsync()
+                => _progress.OnStartedAsync();
+
+            public ValueTask OnCompletedAsync()
+                => _progress.OnCompletedAsync();
 
             public ValueTask OnFindInDocumentStartedAsync(DocumentId documentId)
             {
@@ -101,9 +105,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             int IEqualityComparer<SerializableSymbolAndProjectId>.GetHashCode(SerializableSymbolAndProjectId obj)
                 => obj.SymbolKeyData.GetHashCode();
-
-            public ValueTask OnLiteralReferenceFoundAsync(DocumentId documentId, TextSpan span)
-                => throw ExceptionUtilities.Unreachable;
         }
     }
 }

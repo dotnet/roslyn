@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -13,13 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static partial class SyntaxTokenExtensions
     {
-        public static bool TryParseGenericName(this SyntaxToken genericIdentifier, CancellationToken cancellationToken, out GenericNameSyntax genericName)
+        public static bool TryParseGenericName(this SyntaxToken genericIdentifier, CancellationToken cancellationToken, [NotNullWhen(true)] out GenericNameSyntax? genericName)
         {
             if (genericIdentifier.GetNextToken(includeSkipped: true).Kind() == SyntaxKind.LessThanToken)
             {
                 var lastToken = genericIdentifier.FindLastTokenOfPartialGenericName();
 
-                var syntaxTree = genericIdentifier.SyntaxTree;
+                var syntaxTree = genericIdentifier.SyntaxTree!;
                 var name = SyntaxFactory.ParseName(syntaxTree.GetText(cancellationToken).ToString(TextSpan.FromBounds(genericIdentifier.SpanStart, lastToken.Span.End)));
 
                 genericName = name as GenericNameSyntax;

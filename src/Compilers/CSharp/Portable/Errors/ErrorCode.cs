@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CallerLineNumberPreferredOverCallerFilePath = 7082,
         ERR_InvalidDynamicCondition = 7083,
         ERR_WinRtEventPassedByRef = 7084,
-        ERR_ByRefReturnUnsupported = 7085,
+        //ERR_ByRefReturnUnsupported = 7085,
         ERR_NetModuleNameMismatch = 7086,
         ERR_BadModuleName = 7087,
         ERR_BadCompilationOptionValue = 7088,
@@ -1441,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewWithTupleTypeSyntax = 8181,
         ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
         ERR_DiscardTypeInferenceFailed = 8183,
-        ERR_MixedDeconstructionUnsupported = 8184,
+        // ERR_MixedDeconstructionUnsupported = 8184,
         ERR_DeclarationExpressionNotPermitted = 8185,
         ERR_MustDeclareForeachIteration = 8186,
         ERR_TupleElementNamesInDeconstruction = 8187,
@@ -1747,9 +1747,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InternalError = 8751,
 
-        ERR_TypelessNewIllegalTargetType = 8752,
-        ERR_TypelessNewNotValid = 8753,
-        ERR_TypelessNewNoTargetType = 8754,
+        ERR_ImplicitObjectCreationIllegalTargetType = 8752,
+        ERR_ImplicitObjectCreationNotValid = 8753,
+        ERR_ImplicitObjectCreationNoTargetType = 8754,
 
         ERR_BadFuncPointerParamModifier = 8755,
         ERR_BadFuncPointerArgCount = 8756,
@@ -1782,6 +1782,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_ParameterDisallowsNull = 8777,
         WRN_ConstOutOfRangeChecked = 8778,
 
+        ERR_DuplicateInterfaceWithDifferencesInBaseList = 8779,
         ERR_DesignatorBeneathPatternCombinator = 8780,
         ERR_UnsupportedTypeForRelationalPattern = 8781,
         ERR_RelationalPatternWithNaN = 8782,
@@ -1847,7 +1848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_PrecedenceInversion = 8848,
         ERR_ExpressionTreeContainsWithExpression = 8849,
 
-        // Available = 8850,
+        WRN_AnalyzerReferencesFramework = 8850,
 
         // WRN_EqualsWithoutGetHashCode is for object.Equals and works for classes.
         // WRN_RecordEqualsWithoutGetHashCode is for IEquatable<T>.Equals and works for records.
@@ -1918,9 +1919,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InitCannotBeReadonly = 8903,
 
-        #endregion diagnostics introduced for C# 9.0
+        ERR_UnexpectedVarianceStaticMember = 8904,
+        ERR_FunctionPointersCannotBeCalledWithNamedArguments = 8905,
 
-        ERR_UnexpectedVarianceStaticMember = 9100,
+        ERR_EqualityContractRequiresGetter = 8906,
+        WRN_UnreadRecordParameter = 8907,
+        ERR_BadFieldTypeInRecord = 8908,
+
+        WRN_DoNotCompareFunctionPointers = 8909,
+        ERR_RecordAmbigCtor = 8910,
+        ERR_FunctionPointerTypesInAttributeNotSupported = 8911,
+
+        #endregion diagnostics introduced for C# 9.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }

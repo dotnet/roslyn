@@ -61,7 +61,7 @@
         If 'RunAnalyzers' is not set, then fallback to user facing property 'RunAnalyzersDuringBuild'.
         Latter property allows users to disable analyzers only for non-design time builds.
         Design time builds are background builds inside Visual Studio,
-        see details here: https://github.com/dotnet/project-system/blob/master/docs/design-time-builds.md.
+        see details here: https://github.com/dotnet/project-system/blob/main/docs/design-time-builds.md.
         Setting 'RunAnalyzersDuringBuild' to false, without setting 'RunAnalyzers', allows users to
         continue running analyzers in the background in Visual Studio while typing (i.e. intellisense),
         while disabling analyzer execution on explicitly invoked non-design time builds.
@@ -103,17 +103,14 @@
     -->
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.GenerateMSBuildEditorConfig" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
-  <PropertyGroup>
-    <GeneratedMSBuildEditorConfigFile Condition="'$(GeneratedMSBuildEditorConfigFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildEditorConfig.editorconfig</GeneratedMSBuildEditorConfigFile>
-    <GenerateMSBuildEditorConfigFile Condition="'$(GenerateMSBuildEditorConfigFile)' == ''">true</GenerateMSBuildEditorConfigFile>
-  </PropertyGroup>
-
   <Target Name="GenerateMSBuildEditorConfigFile"
           BeforeTargets="BeforeCompile;CoreCompile"
           DependsOnTargets="PrepareForBuild;GenerateMSBuildEditorConfigFileShouldRun;GenerateMSBuildEditorConfigFileCore" />
 
   <Target Name="GenerateMSBuildEditorConfigFileShouldRun">
     <PropertyGroup>
+      <GeneratedMSBuildEditorConfigFile Condition="'$(GeneratedMSBuildEditorConfigFile)' == ''">$(IntermediateOutputPath)$(MSBuildProjectName).GeneratedMSBuildEditorConfig.editorconfig</GeneratedMSBuildEditorConfigFile>
+      <GenerateMSBuildEditorConfigFile Condition="'$(GenerateMSBuildEditorConfigFile)' == ''">true</GenerateMSBuildEditorConfigFile>
       <_GeneratedEditorConfigHasItems Condition="'@(CompilerVisibleItemMetadata->Count())' != '0'">true</_GeneratedEditorConfigHasItems>
       <_GeneratedEditorConfigShouldRun Condition="'$(GenerateMSBuildEditorConfigFile)' == 'true' and ('$(_GeneratedEditorConfigHasItems)' == 'true' or '@(CompilerVisibleProperty->Count())' != '0')">true</_GeneratedEditorConfigShouldRun>
     </PropertyGroup>
@@ -296,5 +293,16 @@
     <MakeDir Condition="'$(CompilerGeneratedFilesOutputPath)' != ''" 
              Directories="$(CompilerGeneratedFilesOutputPath)"  />
   </Target>
-  
+
+  <!--
+    ========================
+    Component Debugger Support
+    ========================
+    
+    Add the specified VS capability if a user indicates this project supports component debugging
+    -->
+  <ItemGroup>
+    <ProjectCapability Include="RoslynComponent" Condition="'$(IsRoslynComponent)' == 'true'"/>
+  </ItemGroup>
+
 </Project>

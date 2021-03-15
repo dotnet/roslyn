@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _service = service;
             }
 
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
             {
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 

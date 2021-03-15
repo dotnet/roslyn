@@ -69,7 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SemanticClassif
                 await client.TryInvokeAsync<IRemoteSemanticClassificationCacheService>(
                     document.Project.Solution,
                     (service, solutionInfo, cancellationToken) => service.CacheSemanticClassificationsAsync(solutionInfo, document.Id, cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
         }

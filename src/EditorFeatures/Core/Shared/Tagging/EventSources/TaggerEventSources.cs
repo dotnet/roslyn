@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,13 +31,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
         public static ITaggerEventSource OnCaretPositionChanged(ITextView textView, ITextBuffer subjectBuffer, TaggerDelay delay)
             => new CaretPositionChangedEventSource(textView, subjectBuffer, delay);
-
-        public static ITaggerEventSource OnCompletionClosed(
-            IIntellisenseSessionStack sessionStack,
-            TaggerDelay delay)
-        {
-            return new CompletionClosedEventSource(sessionStack, delay);
-        }
 
         public static ITaggerEventSource OnTextChanged(ITextBuffer subjectBuffer, TaggerDelay delay)
         {

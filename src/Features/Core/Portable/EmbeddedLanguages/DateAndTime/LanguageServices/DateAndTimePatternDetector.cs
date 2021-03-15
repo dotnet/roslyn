@@ -163,9 +163,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             {
                 var interpolationFormatClause = token.Parent!;
                 var interpolation = interpolationFormatClause.Parent!;
-                if (interpolation!.RawKind == syntaxFacts.SyntaxKinds.Interpolation)
+                if (interpolation.RawKind == syntaxFacts.SyntaxKinds.Interpolation)
                 {
-                    var expression = syntaxFacts.GetExpressionOfInterpolation(interpolation);
+                    var expression = syntaxFacts.GetExpressionOfInterpolation(interpolation)!;
                     var type = _semanticModel.GetTypeInfo(expression, cancellationToken).Type;
                     return IsDateTimeType(type);
                 }

@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             }
         }
 
-        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Action action, IAsyncToken asyncToken, CancellationToken cancellationToken)
             => RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
 
-        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Func<bool> action, IAsyncToken asyncToken, CancellationToken cancellationToken)
             => RegisterNotification(action, DefaultTimeSliceInMS, asyncToken, cancellationToken);
 
-        public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Action action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken)
         {
             Debug.Assert(delay >= 0);
 
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue.Enqueue(new PendingWork(current + delay, action, asyncToken, cancellationToken));
         }
 
-        public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken = default)
+        public void RegisterNotification(Func<bool> action, int delay, IAsyncToken asyncToken, CancellationToken cancellationToken)
         {
             Debug.Assert(delay >= 0);
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                     // run them in UI thread
                     await InvokeBelowInputPriorityAsync(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
                 }
-                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                 {
                     // This is an error condition but we must continue to drain the work queue.  If we
                     // do not then IAsyncToken values will remain uncomplete and the unit test code
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                         {
                             // eat up cancellation
                         }
-                        catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
                         {
                             // The PendingWork callbacks should never throw.  In the case they do we
                             // must ensure the IAsyncToken implementation is completed.  If it is not

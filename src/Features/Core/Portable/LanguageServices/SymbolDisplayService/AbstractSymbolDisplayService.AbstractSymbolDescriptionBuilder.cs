@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private async Task AddDescriptionPartAsync(ISymbol symbol)
             {
-                if (symbol.GetAttributes().Any(x => x.AttributeClass.MetadataName == "ObsoleteAttribute"))
+                if (symbol.IsObsolete())
                 {
                     AddDeprecatedPrefix();
                 }

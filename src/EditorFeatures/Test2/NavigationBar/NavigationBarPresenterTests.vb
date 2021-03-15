@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.GetTextBuffer())
 
                 Dim provider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
-                Await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
+                Await provider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 
                 Assert.True(presentItemsCalled)
             End Using
@@ -316,7 +316,7 @@ End Class
                 Await workspaceWaiter.ExpeditedWaitAsync()
                 Await navigationBarWaiter.ExpeditedWaitAsync()
 
-                Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
+                Await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.Workspace, FeatureAttribute.NavigationBar)
 
                 Assert.Equal("VBProj2", projectName)
             End Using

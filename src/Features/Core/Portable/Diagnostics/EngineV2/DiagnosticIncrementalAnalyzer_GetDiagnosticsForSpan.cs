@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     Debug.Assert(!_blockForData || containsFullResult);
                     return containsFullResult;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

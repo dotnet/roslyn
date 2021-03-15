@@ -11,15 +11,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class LinkedFileReferenceFinder : IReferenceFinder
     {
-        public Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            ISymbol symbol, Solution solution, IImmutableSet<Project> projects,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
+            ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
+            FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
+            CancellationToken cancellationToken)
         {
-            return SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken);
+            if (!options.Cascade)
+                return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
+
+            var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            return linkedSymbols.SelectAsArray(s => (s, cascadeDirection));
         }
 
         public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            ISymbol symbol, Project project, IImmutableSet<Document> documents,
+            ISymbol symbol, Project project, IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<Document>();
@@ -28,11 +33,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         public Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project>? projects = null, CancellationToken cancellationToken = default)
             => SpecializedTasks.EmptyImmutableArray<Project>();
 
-        public Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        public ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ISymbol symbol, Document document, SemanticModel semanticModel,
             FindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
-            return SpecializedTasks.EmptyImmutableArray<FinderLocation>();
+            return new ValueTask<ImmutableArray<FinderLocation>>(ImmutableArray<FinderLocation>.Empty);
         }
     }
 }

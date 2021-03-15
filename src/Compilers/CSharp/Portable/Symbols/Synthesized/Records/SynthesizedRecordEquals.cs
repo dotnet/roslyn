@@ -22,20 +22,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly PropertySymbol _equalityContract;
 
-        public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol equalityContract, int memberOffset, DiagnosticBag diagnostics)
+        public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectEquals, hasBody: true, memberOffset, diagnostics)
         {
             _equalityContract = equalityContract;
         }
 
-        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, DiagnosticBag diagnostics)
+        protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
             DeclarationModifiers result = DeclarationModifiers.Public | (ContainingType.IsSealed ? DeclarationModifiers.None : DeclarationModifiers.Virtual);
             Debug.Assert((result & ~allowedModifiers) == 0);
             return result;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override int GetParameterCountFromSyntax() => 1;
 
-        internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
 
@@ -64,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
+                    if (_equalityContract.GetMethod is null)
+                    {
+                        // The equality contract isn't usable, an error was reported elsewhere
+                        F.CloseMethod(F.ThrowNull());
+                        return;
+                    }
+
                     if (_equalityContract.IsStatic || !_equalityContract.Type.Equals(DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions))
                     {
                         // There is a signature mismatch, an error was reported elsewhere
@@ -108,8 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // delegate to:
                     //
                     // virtual bool Equals(Derived other) =>
-                    //     base.Equals((Base)other) &&
-                    //     field1 == other.field1 && ... && fieldN == other.fieldN;
+                    //     (object)other == this || (base.Equals((Base)other) &&
+                    //     field1 == other.field1 && ... && fieldN == other.fieldN);
                     retExpr = F.Call(
                         F.Base(baseEquals.ContainingType),
                         baseEquals,
@@ -118,14 +125,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // field1 == other.field1 && ... && fieldN == other.fieldN
                 var fields = ArrayBuilder<FieldSymbol>.GetInstance();
+                bool foundBadField = false;
                 foreach (var f in ContainingType.GetFieldsToEmit())
                 {
                     if (!f.IsStatic)
                     {
                         fields.Add(f);
+
+                        var parameterType = f.Type;
+                        if (parameterType.IsUnsafe())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadFieldTypeInRecord, f.Locations.FirstOrNone(), parameterType);
+                            foundBadField = true;
+                        }
+                        else if (parameterType.IsRestrictedType())
+                        {
+                            // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
+                            foundBadField = true;
+                        }
                     }
                 }
-                if (fields.Count > 0)
+                if (fields.Count > 0 && !foundBadField)
                 {
                     retExpr = MethodBodySynthesizer.GenerateFieldEquals(
                         retExpr,
@@ -135,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 fields.Free();
-
+                retExpr = F.LogicalOr(F.ObjectEqual(F.This(), other), retExpr);
                 F.CloseMethod(F.Block(F.Return(retExpr)));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

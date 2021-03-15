@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Structure
 
         /// <summary>
         /// Gets the <see cref="BlockStructure"/> for the provided document. Note that the
-        /// default implementation works by calling into <see cref="GetBlockStructureAsync"/>
+        /// default implementation works by calling into <see cref="GetBlockStructureAsync(Document, CancellationToken)"/>
         /// and blocking on the async operation. Subclasses should provide more efficient
         /// implementations that do not block on async operations if possible.
         /// </summary>

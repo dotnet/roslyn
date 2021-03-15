@@ -752,7 +752,7 @@ class Program : Exception
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
         public async Task Tuple()
         {
             await TestInRegularAndScriptAsync(
@@ -781,7 +781,7 @@ class B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNames()
         {
             await TestInRegularAndScriptAsync(
@@ -927,6 +927,76 @@ abstract class B
 }",
 @"class C : B
 {
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedConstructorCursorAtTypeOpening()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : B
+{
+
+[||]
+
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedConstructorCursorBetweenTypeMembers()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C : B
+{
+    int X;
+[||]
+    int Y;
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    int X;
+
+    int Y;
+
     public C(int x) : base(x)
     {
     }
@@ -1275,29 +1345,29 @@ sealed class Program : Base
         public async Task TestRecord()
         {
             await TestInRegularAndScriptAsync(
-@"record Base
+@"record C : [||]B
 {
-    public Base(int x)
-    {
-    }
 }
 
-record Sub : [||]Base
+record B
 {
+    public B(int x)
+    {
+    }
 }",
-@"record Base
+@"record C : B
 {
-    public Base(int x)
+    public C(int x) : base(x)
     {
     }
 }
 
-record Sub : Base
+record B
 {
-    public Sub(int x) : base(x)
+    public B(int x)
     {
     }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
@@ -1307,14 +1377,12 @@ record Sub : Base
 @"record Base(int X)
 {
 }
-
 record Sub : [||]Base
 {
 }",
 @"record Base(int X)
 {
 }
-
 record Sub : Base
 {
     public Sub(int X) : base(X)
@@ -1330,12 +1398,10 @@ record Sub : Base
 @"record Base(int X)
 {
 }
-
 record Sub : [||]Base;",
 @"record Base(int X)
 {
 }
-
 record Sub : Base
 {
     public Sub(int X) : base(X)
@@ -1343,5 +1409,5 @@ record Sub : Base
     }
 }");
         }
-    }
+	}
 }

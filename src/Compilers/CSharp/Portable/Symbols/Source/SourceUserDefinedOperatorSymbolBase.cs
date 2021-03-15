@@ -4,14 +4,10 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -33,8 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasBody,
             bool isExpressionBodied,
             bool isIterator,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), location, isIterator)
+            bool isNullableAnalysisEnabled,
+            BindingDiagnosticBag diagnostics) :
+            base(containingType, syntax.GetReference(), location, isIterator: isIterator)
         {
             _name = name;
             _isExpressionBodied = isExpressionBodied;
@@ -45,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // assume that the return type is non-void; when we do the lazy initialization
             // of the parameters and return type we will update the flag if necessary.
 
-            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
                 (methodKind == MethodKind.Conversion || name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName))
@@ -97,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected static DeclarationModifiers MakeDeclarationModifiers(BaseMethodDeclarationSyntax syntax, Location location, DiagnosticBag diagnostics)
+        protected static DeclarationModifiers MakeDeclarationModifiers(BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
         {
             var defaultAccess = DeclarationModifiers.Private;
             var allowedModifiers =
@@ -112,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected abstract Location ReturnTypeLocation { get; }
 
-        protected (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BaseMethodDeclarationSyntax declarationSyntax, TypeSyntax returnTypeSyntax, DiagnosticBag diagnostics)
+        protected (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BaseMethodDeclarationSyntax declarationSyntax, TypeSyntax returnTypeSyntax, BindingDiagnosticBag diagnostics)
         {
             TypeWithAnnotations returnType;
             ImmutableArray<ParameterSymbol> parameters;
@@ -166,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (returnType, parameters);
         }
 
-        protected override void MethodChecks(DiagnosticBag diagnostics)
+        protected override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             (_lazyReturnType, _lazyParameters) = MakeParametersAndBindReturnType(diagnostics);
 
@@ -189,9 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckOperatorSignatures(diagnostics);
         }
 
-        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(DiagnosticBag diagnostics);
+        protected abstract (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics);
 
-        private void CheckValueParameters(DiagnosticBag diagnostics)
+        private void CheckValueParameters(BindingDiagnosticBag diagnostics)
         {
             // SPEC: The parameters of an operator must be value parameters.
             foreach (var p in this.Parameters)
@@ -204,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckOperatorSignatures(DiagnosticBag diagnostics)
+        private void CheckOperatorSignatures(BindingDiagnosticBag diagnostics)
         {
             // Have we even got the right formal parameter arity? If not then 
             // we are in an error recovery scenario and we should just bail 
@@ -269,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckUserDefinedConversionSignature(DiagnosticBag diagnostics)
+        private void CheckUserDefinedConversionSignature(BindingDiagnosticBag diagnostics)
         {
             if (this.ReturnsVoid)
             {
@@ -414,24 +411,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // "same" is the containing class, so it can't be a type parameter
                 Debug.Assert(!same.IsTypeParameter());
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
-                if (same.IsDerivedFrom(different, ComparisonForUserDefinedOperators, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
+                if (same.IsDerivedFrom(different, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
                 {
                     // '{0}': user-defined conversions to or from a base type are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithBase, this.Locations[0], this);
                 }
-                else if (different.IsDerivedFrom(same, ComparisonForUserDefinedOperators, useSiteDiagnostics: ref useSiteDiagnostics)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
+                else if (different.IsDerivedFrom(same, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo)) // tomat: ignoreDynamic should be true, but we don't want to introduce breaking change. See bug 605326.
                 {
                     // '{0}': user-defined conversions to or from a derived type are not allowed
                     diagnostics.Add(ErrorCode.ERR_ConversionWithDerived, this.Locations[0], this);
                 }
 
-                diagnostics.Add(this.Locations[0], useSiteDiagnostics);
+                diagnostics.Add(this.Locations[0], useSiteInfo);
             }
         }
 
-        private void CheckUnarySignature(DiagnosticBag diagnostics)
+        private void CheckUnarySignature(BindingDiagnosticBag diagnostics)
         {
             // SPEC: A unary + - ! ~ operator must take a single parameter of type
             // SPEC: T or T? and can return any type.
@@ -450,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckTrueFalseSignature(DiagnosticBag diagnostics)
+        private void CheckTrueFalseSignature(BindingDiagnosticBag diagnostics)
         {
             // SPEC: A unary true or false operator must take a single parameter of type
             // SPEC: T or T? and must return type bool.
@@ -468,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckIncrementDecrementSignature(DiagnosticBag diagnostics)
+        private void CheckIncrementDecrementSignature(BindingDiagnosticBag diagnostics)
         {
             // SPEC: A unary ++ or -- operator must take a single parameter of type T or T?
             // SPEC: and it must return that same type or a type derived from it.
@@ -509,21 +506,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // the return type.
 
             var parameterType = this.GetParameterType(0);
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
             if (!MatchesContainingType(parameterType.StrippedType()))
             {
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
             }
-            else if (!this.ReturnType.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, ComparisonForUserDefinedOperators, useSiteDiagnostics: ref useSiteDiagnostics))
+            else if (!this.ReturnType.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo))
             {
                 // CS0448: The return type for ++ or -- operator must match the parameter type
                 //         or be derived from the parameter type
                 diagnostics.Add(ErrorCode.ERR_BadIncDecRetType, this.Locations[0]);
             }
 
-            diagnostics.Add(this.Locations[0], useSiteDiagnostics);
+            diagnostics.Add(this.Locations[0], useSiteInfo);
         }
 
         private bool MatchesContainingType(TypeSymbol type)
@@ -531,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.Equals(this.ContainingType, ComparisonForUserDefinedOperators);
         }
 
-        private void CheckShiftSignature(DiagnosticBag diagnostics)
+        private void CheckShiftSignature(BindingDiagnosticBag diagnostics)
         {
             // SPEC: A binary << or >> operator must take two parameters, the first
             // SPEC: of which must have type T or T? and the second of which must
@@ -554,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckBinarySignature(DiagnosticBag diagnostics)
+        private void CheckBinarySignature(BindingDiagnosticBag diagnostics)
         {
             // SPEC: A binary nonshift operator must take two parameters, at least
             // SPEC: one of which must have the type T or T?, and can return any type.
@@ -645,8 +642,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool canIgnoreNullableContext)
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         public sealed override RefKind RefKind
         {
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _isExpressionBodied; }
         }
 
-        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             // Check constraints on return type and parameters. Note: Dev10 uses the
             // method name location for any such errors. We'll do the same for return

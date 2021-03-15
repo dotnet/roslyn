@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             // Some combination we didn't anticipate.  Can't do anything here.  Log the issue
             // and bail out.
-            FatalError.ReportWithoutCrash(new Exception($"extract method encountered unknown states: {key.ToString()}"));
+            FatalError.ReportAndCatch(new Exception($"extract method encountered unknown states: {key.ToString()}"));
 
             return false;
         }

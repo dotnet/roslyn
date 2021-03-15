@@ -874,7 +874,7 @@ class C
         }
 
         [WorkItem(43291, "https://github.com/dotnet/roslyn/issues/43291")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44036"), Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw1()
         {
             await TestInRegularAndScript1Async(
@@ -899,12 +899,12 @@ class C
 {
     void M()
     {
-        object o = true ? throw new System.Exception() : ""b"";
+        var o = true ? throw new System.Exception() : (object)""b"";
     }
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44036"), Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
         public async Task TestConversionWithUseVarForAll_CastInsertedToKeepTypeSame_Throw2()
         {
             await TestInRegularAndScript1Async(
@@ -929,7 +929,7 @@ class C
 {
     void M()
     {
-        object o = true ? ""a"" : throw new System.Exception();
+        var o = true ? (object)""a"" : throw new System.Exception();
     }
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
@@ -990,7 +990,7 @@ class C
 {
     void M()
     {
-        string s = true ? throw new System.Exception() : (string)null;
+        var s = true ? throw new System.Exception() : (string)null;
     }
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }
@@ -1021,7 +1021,7 @@ class C
 {
     void M()
     {
-        string s = true ? ""a"" : throw new System.Exception();
+        var s = true ? ""a"" : throw new System.Exception();
     }
 }", new TestParameters(options: PreferImplicitTypeAlways));
         }

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 return CSharpCompilation.Create(
                     projectName,
                     syntaxTrees: new[] { syntaxTree },
-                    references: new[] { TestBase.MscorlibRef });
+                    references: new[] { TestBase.MscorlibRef, TestBase.ValueTupleRef });
             }
             else
             {

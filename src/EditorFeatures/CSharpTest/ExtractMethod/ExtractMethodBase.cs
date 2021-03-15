@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 : await doc.GetSyntaxRootAsync();
         }
 
-        protected static async Task TestSelectionAsync(string codeWithMarker, bool expectedFail = false, CSharpParseOptions parseOptions = null)
+        protected static async Task TestSelectionAsync(string codeWithMarker, bool expectedFail = false, CSharpParseOptions parseOptions = null, TextSpan? textSpanOverride = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
             var testDocument = workspace.Documents.Single();
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var options = await document.GetOptionsAsync(CancellationToken.None);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-            var validator = new CSharpSelectionValidator(semanticDocument, namedSpans["b"].Single(), options);
+            var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), options);
             var result = await validator.GetValidSelectionAsync(CancellationToken.None);
 
             Assert.True(expectedFail ? result.Status.Failed() : result.Status.Succeeded());

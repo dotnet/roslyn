@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     internal enum ProjectAnalysisSummary
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         NoChanges,
 
         /// <summary>
-        /// Project contains syntactic and/or semantic errors.
+        /// Project contains compilation errors that block EnC analysis.
         /// </summary>
         CompilationErrors,
 

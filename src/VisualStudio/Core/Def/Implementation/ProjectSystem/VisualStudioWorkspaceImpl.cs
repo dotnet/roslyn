@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -73,6 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
         private readonly Dictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = new();
+        private readonly Dictionary<ProjectId, string> _projectToDependencyNodeTargetIdentifier = new();
 
         /// <summary>
         /// A map to fetch the path to a rule set file for a project. This right now is only used to implement
@@ -1106,7 +1108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only
                 // depends on the file path.
 
-                var openDocumentService = ServiceProvider.GlobalProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+                var openDocumentService = IServiceProviderExtensions.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(ServiceProvider.GlobalProvider);
                 return ErrorHandler.Succeeded(openDocumentService.OpenDocumentViaProject(
                     filePath,
                     VSConstants.LOGVIEWID.TextView_guid,
@@ -1145,7 +1147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var filePath = this.GetFilePath(documentId);
                 if (filePath != null)
                 {
-                    var openDocumentService = ServiceProvider.GlobalProvider.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
+                    var openDocumentService = IServiceProviderExtensions.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(ServiceProvider.GlobalProvider);
                     if (ErrorHandler.Succeeded(openDocumentService.IsDocumentOpen(null, 0, filePath, Guid.Empty, 0, out _, null, out var frame, out _)))
                     {
                         // TODO: do we need save argument for CloseDocument?
@@ -1204,7 +1206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (document.FilePath == null)
                 {
-                    FatalError.ReportWithoutCrash(new Exception("Attempting to change the information of a document without a file path."));
+                    FatalError.ReportAndCatch(new Exception("Attempting to change the information of a document without a file path."));
                     return;
                 }
 
@@ -1311,6 +1313,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             // This doesn't take a lock since _projectToGuidMap is immutable
             return _projectToGuidMap.GetValueOrDefault(projectId, defaultValue: Guid.Empty);
+        }
+
+        internal string? TryGetDependencyNodeTargetIdentifier(ProjectId projectId)
+        {
+            lock (_gate)
+            {
+                return _projectToDependencyNodeTargetIdentifier.GetValueOrDefault(projectId, defaultValue: null);
+            }
         }
 
         internal override void SetDocumentContext(DocumentId documentId)
@@ -1428,9 +1438,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void EnsureEditableDocuments(params DocumentId[] documents)
             => this.EnsureEditableDocuments((IEnumerable<DocumentId>)documents);
 
-        internal override async Task<bool> CanAddProjectReferenceAsync(ProjectId referencingProject, ProjectId referencedProject, CancellationToken cancellationToken)
+        internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
-            await _foregroundObject.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _foregroundObject.AssertIsForeground();
 
             if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
                 !TryGetHierarchy(referencedProject, out var referencedHierarchy))
@@ -1587,6 +1597,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
                 _projectToGuidMap = _projectToGuidMap.Remove(projectId);
                 _projectToMaxSupportedLangVersionMap.Remove(projectId);
+                _projectToDependencyNodeTargetIdentifier.Remove(projectId);
                 _projectToRuleSetFilePath.Remove(projectId);
 
                 foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
@@ -1604,6 +1615,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 base.OnProjectRemoved(projectId);
 
+                // Try to update the UI context info.  But cancel that work if we're shutting down.
                 _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
                 {
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -1716,6 +1728,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool CanConvertMetadataReferenceToProjectReference_NoLock(ProjectId projectIdWithMetadataReference, ProjectId referencedProjectId)
         {
             Debug.Assert(Monitor.IsEntered(_gate));
+
+            // We can never make a project reference ourselves. This isn't a meaningful scenario, but if somebody does this by accident
+            // we do want to throw exceptions.
+            if (projectIdWithMetadataReference == referencedProjectId)
+            {
+                return false;
+            }
 
             // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
             // Project instances to get created.
@@ -1957,8 +1976,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void EnsureDocumentOptionProvidersInitialized()
+        internal async Task EnsureDocumentOptionProvidersInitializedAsync(CancellationToken cancellationToken)
         {
+            // HACK: switch to the UI thread, ensure we initialize our options provider which depends on a
+            // UI-affinitized experimentation service
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             _foregroundObject.AssertIsForeground();
 
             if (_documentOptionsProvidersInitialized)
@@ -1975,6 +1998,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 _projectToMaxSupportedLangVersionMap[projectId] = maxLanguageVersion;
+            }
+        }
+
+        internal void SetDependencyNodeTargetIdentifier(ProjectId projectId, string targetIdentifier)
+        {
+            lock (_gate)
+            {
+                _projectToDependencyNodeTargetIdentifier[projectId] = targetIdentifier;
             }
         }
 

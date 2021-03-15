@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             await context.SetSearchTitleAsync(string.Format(EditorFeaturesResources._0_references,
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
 
-            var options = FindSymbols.FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
+            var options = FindReferencesSearchOptions.GetFeatureOptionsForStartingSymbol(symbol);
 
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
                 _ = await client.TryInvokeAsync<IRemoteFindUsagesService>(
                     solution,
-                    (service, solutionInfo, cancellationToken) => service.FindReferencesAsync(solutionInfo, symbolAndProjectId, options, cancellationToken),
+                    (service, solutionInfo, callbackId, cancellationToken) => service.FindReferencesAsync(solutionInfo, callbackId, symbolAndProjectId, options, cancellationToken),
                     serverCallback,
                     cancellationToken).ConfigureAwait(false);
             }

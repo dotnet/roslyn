@@ -77,11 +77,5 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// If diagnosticIdOpt is not null, it gets diagnostics only for this given diagnosticIdOpt value
         /// </summary>
         Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string? diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, Func<string, IDisposable?>? addOperationScope = null, CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Check whether given <see cref="DiagnosticAnalyzer"/> is compilation end analyzer
-        /// By compilation end analyzer, it means compilation end analysis here
-        /// </summary>
-        Task<bool> IsCompilationEndAnalyzerAsync(DiagnosticAnalyzer analyzer, Project project, CancellationToken cancellationToken);
     }
 }

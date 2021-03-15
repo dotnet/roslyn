@@ -9064,5 +9064,71 @@ class Class
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestNegativeIfGeneratingInDocumentFromSourceGenerator()
+        {
+            await TestMissingAsync(
+@" <Workspace>
+                    <Project Language=""C#"" AssemblyName=""ClassLibrary1"" CommonReferences=""true"">
+                        <Document>
+public class C
+{
+    public void M()
+    {
+        GeneratedClass.Me$$thod();
+    }
+}
+                        </Document>
+                        <DocumentFromSourceGenerator>
+public class GeneratedClass
+{
+}
+                        </DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestIfGeneratingInPartialClassWithFileFromSourceGenerator()
+        {
+            await TestInRegularAndScriptAsync(
+@" <Workspace>
+                    <Project Language=""C#"" AssemblyName=""ClassLibrary1"" CommonReferences=""true"">
+                        <Document>
+public class C
+{
+    public void M()
+    {
+        ClassWithGeneratedPartial.Me$$thod();
+    }
+}
+                        </Document>
+                        <Document>
+// regular file
+public partial class ClassWithGeneratedPartial
+{
+}
+                        </Document>
+                        <DocumentFromSourceGenerator>
+// generated file
+public partial class ClassWithGeneratedPartial
+{
+}
+                        </DocumentFromSourceGenerator>
+                    </Project>
+                </Workspace>", @"
+// regular file
+using System;
+
+public partial class ClassWithGeneratedPartial
+{
+    internal static void Method()
+    {
+        throw new NotImplementedException();
+    }
+}
+                        ");
+        }
     }
 }

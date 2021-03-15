@@ -13,12 +13,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -40,7 +42,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var remoteWorkspace = CreateRemoteWorkspace();
 
             var solution = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
             var synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
@@ -59,7 +61,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var solution = workspace.CurrentSolution;
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
             var synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch, solution.WorkspaceVersion, cancellationToken: CancellationToken.None);
             Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
@@ -87,7 +89,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     ProjectId.CreateNewId(), VersionStamp.Create(), "test", "test.dll", LanguageNames.CSharp,
                     filePath: filePath, outputFilePath: filePath));
 
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, workspace.CurrentSolution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, workspace.CurrentSolution);
 
             var solutionChecksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
             var solution = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
@@ -116,7 +118,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                     ProjectId.CreateNewId(), VersionStamp.Create(), "test", "test.dll", LanguageNames.CSharp,
                     filePath: filePath, outputFilePath: filePath));
 
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, workspace.CurrentSolution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, workspace.CurrentSolution);
 
             var solutionChecksum = await workspace.CurrentSolution.State.GetChecksumAsync(CancellationToken.None);
             var solution = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
@@ -140,7 +142,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             using var remoteWorkspace = CreateRemoteWorkspace();
 
             var solution = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
             var first = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: false, workspaceVersion: -1, CancellationToken.None);
@@ -340,7 +342,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // create solution service
             var solution = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
 
             // update primary workspace
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
@@ -383,7 +385,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // create solution service
             var solution1 = workspace.CurrentSolution;
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution1);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution1);
 
             var remoteSolution1 = await GetInitialOOPSolutionAsync(remoteWorkspace, assetProvider, solution1);
 
@@ -433,6 +435,44 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem(48564, "https://github.com/dotnet/roslyn/issues/48564")]
+        public async Task TestAddingProjectsWithExplicitOptions(bool useDefaultOptionValue)
+        {
+            using var workspace = TestWorkspace.CreateCSharp(@"public class C { }");
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            // Initial empty solution
+            var solution = workspace.CurrentSolution;
+            solution = solution.RemoveProject(solution.ProjectIds.Single());
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+            var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            var synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 0, CancellationToken.None);
+            Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+
+            // Add a C# project and a VB project, set some options, and check again
+            var csharpDocument = new TestHostDocument("public class C { }");
+            var csharpProject = new TestHostProject(workspace, csharpDocument, language: LanguageNames.CSharp, name: "project2");
+            var csharpProjectInfo = csharpProject.ToProjectInfo();
+
+            var vbDocument = new TestHostDocument("Public Class D \r\n  Inherits C\r\nEnd Class");
+            var vbProject = new TestHostProject(workspace, vbDocument, language: LanguageNames.VisualBasic, name: "project3");
+            var vbProjectInfo = vbProject.ToProjectInfo();
+
+            solution = solution.AddProject(csharpProjectInfo).AddProject(vbProjectInfo);
+            var newOptionValue = useDefaultOptionValue
+                ? FormattingOptions2.NewLine.DefaultValue
+                : FormattingOptions2.NewLine.DefaultValue + FormattingOptions2.NewLine.DefaultValue;
+            solution = solution.WithOptions(solution.Options
+                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.CSharp, newOptionValue)
+                .WithChangedOption(FormattingOptions2.NewLine, LanguageNames.VisualBasic, newOptionValue));
+
+            assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
+            solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
+            synched = await remoteWorkspace.GetSolutionAsync(assetProvider, solutionChecksum, fromPrimaryBranch: true, workspaceVersion: 2, CancellationToken.None);
+            Assert.Equal(solutionChecksum, await synched.State.GetChecksumAsync(CancellationToken.None));
+        }
+
         private static async Task VerifySolutionUpdate(string code, Func<Solution, Solution> newSolutionGetter)
         {
             using var workspace = TestWorkspace.CreateCSharp(code);
@@ -451,7 +491,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var map = new Dictionary<Checksum, object>();
 
             using var remoteWorkspace = CreateRemoteWorkspace();
-            var assetProvider = await GetAssetProviderAsync(remoteWorkspace, solution, map);
+            var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution, map);
             var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
 
             // update primary workspace
@@ -485,7 +525,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             newSolutionValidator?.Invoke(recoveredNewSolution);
         }
 
-        private static async Task<AssetProvider> GetAssetProviderAsync(RemoteWorkspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
+        private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, RemoteWorkspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
         {
             // make sure checksum is calculated
             await solution.State.GetChecksumAsync(CancellationToken.None);
@@ -495,7 +535,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var sessionId = 0;
             var storage = new SolutionAssetCache();
-            var assetSource = new SimpleAssetSource(map);
+            var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
         }

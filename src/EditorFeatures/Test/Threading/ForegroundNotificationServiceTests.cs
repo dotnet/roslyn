@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             }
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         public async Task Test_Enqueue()
         {
             var asyncToken = EmptyAsyncToken.Instance;

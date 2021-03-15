@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,10 +12,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzersMap;
 
-        public TestAnalyzerReferenceByLanguage(IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
-            => _analyzersMap = analyzersMap;
+        public TestAnalyzerReferenceByLanguage(IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap, string? fullPath = null)
+        {
+            _analyzersMap = analyzersMap;
+            FullPath = fullPath;
+        }
 
-        public override string FullPath => null;
+        public override string? FullPath { get; }
         public override string Display => nameof(TestAnalyzerReferenceByLanguage);
         public override object Id => Display;
 

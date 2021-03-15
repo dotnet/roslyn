@@ -78,6 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         ""BC30420"": {{
           ""id"": ""BC30420"",
           ""defaultLevel"": ""error"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC30420)"",
           ""properties"": {{
             ""category"": ""Compiler"",
             ""isEnabledByDefault"": true,
@@ -92,6 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
           ""id"": ""BC42024"",
           ""shortDescription"": ""Unused local variable"",
           ""defaultLevel"": ""warning"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC42024)"",
           ""properties"": {{
             ""category"": ""Compiler"",
             ""isEnabledByDefault"": true,
@@ -155,6 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         ""BC30420"": {{
           ""id"": ""BC30420"",
           ""defaultLevel"": ""error"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC30420)"",
           ""properties"": {{
             ""category"": ""Compiler"",
             ""isEnabledByDefault"": true,
@@ -169,6 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
           ""id"": ""BC42024"",
           ""shortDescription"": ""Unused local variable"",
           ""defaultLevel"": ""warning"",
+          ""helpUri"": ""https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC42024)"",
           ""properties"": {{
             ""category"": ""Compiler"",
             ""isEnabledByDefault"": true,

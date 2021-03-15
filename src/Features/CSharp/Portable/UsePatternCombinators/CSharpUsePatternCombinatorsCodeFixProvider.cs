@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
@@ -87,25 +89,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternCombinators
                     Token(p.Token.LeadingTrivia, p.IsDisjunctive ? SyntaxKind.OrKeyword : SyntaxKind.AndKeyword,
                         TriviaList(p.Token.GetAllTrailingTrivia())),
                     AsPatternSyntax(p.Right).Parenthesize()),
-                Constant p => ConstantPattern(AsExpressionSyntax(p)),
+                Constant p => ConstantPattern(AsExpressionSyntax(p.ExpressionSyntax, p)),
                 Source p => p.PatternSyntax,
                 Type p => TypePattern(p.TypeSyntax),
-                Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), p.Value.Parenthesize()),
+                Relational p => RelationalPattern(Token(MapToSyntaxKind(p.OperatorKind)), AsExpressionSyntax(p.Value, p)),
                 Not p => UnaryPattern(AsPatternSyntax(p.Pattern).Parenthesize()),
                 var p => throw ExceptionUtilities.UnexpectedValue(p)
             };
         }
 
-        private static ExpressionSyntax AsExpressionSyntax(Constant constant)
+        private static ExpressionSyntax AsExpressionSyntax(ExpressionSyntax expr, AnalyzedPattern p)
         {
-            var expr = constant.ExpressionSyntax;
-            if (expr.IsKind(SyntaxKind.DefaultLiteralExpression))
+            var semanticModel = p.Target.SemanticModel;
+            Debug.Assert(semanticModel != null);
+            var type = semanticModel.GetTypeInfo(expr).Type;
+            if (type != null)
             {
-                // default literals are not permitted in patterns
-                var convertedType = constant.Target.SemanticModel.GetTypeInfo(expr).ConvertedType;
-                if (convertedType != null)
+                if (expr.IsKind(SyntaxKind.DefaultLiteralExpression))
                 {
-                    return DefaultExpression(convertedType.GenerateTypeSyntax());
+                    // default literals are not permitted in patterns
+                    return DefaultExpression(type.GenerateTypeSyntax());
+                }
+
+                var governingType = semanticModel.GetTypeInfo(p.Target.Syntax).Type;
+                if (governingType != null && !governingType.Equals(type))
+                {
+                    return CastExpression(governingType.GenerateTypeSyntax(), expr.Parenthesize()).WithAdditionalAnnotations(Simplifier.Annotation);
                 }
             }
 

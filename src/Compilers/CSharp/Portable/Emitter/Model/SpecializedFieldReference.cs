@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 Debug.Assert(_underlyingField.OriginalDefinition.IsDefinition);
-                return _underlyingField.OriginalDefinition;
+                return _underlyingField.OriginalDefinition.GetCciAdapter();
             }
         }
 

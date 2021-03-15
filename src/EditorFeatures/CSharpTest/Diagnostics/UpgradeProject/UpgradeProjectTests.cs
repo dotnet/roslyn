@@ -991,7 +991,7 @@ class Test
         }
 
         [Fact]
-        public async Task UpgradeProjectForVarianceSafetyForStaticInterfaceMembers_CS9100()
+        public async Task UpgradeProjectForVarianceSafetyForStaticInterfaceMembers_CS8904()
         {
             await TestLanguageVersionUpgradedAsync(
 @"

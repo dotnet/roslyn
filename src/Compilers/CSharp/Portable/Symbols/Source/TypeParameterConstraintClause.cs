@@ -40,6 +40,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Default = 0x100,
 
         /// <summary>
+        /// <see cref="TypeParameterConstraintKind"/> mismatch is detected during merging process for partial type declarations.
+        /// </summary>
+        PartialMismatch = 0x200,
+        ValueTypeFromConstraintTypes = 0x400, // Not set if any flag from AllValueTypeKinds is set
+        ReferenceTypeFromConstraintTypes = 0x800,
+
+        /// <summary>
         /// All bits involved into describing various aspects of 'class' constraint. 
         /// </summary>
         AllReferenceTypeKinds = NullableReferenceType | NotNullableReferenceType,
@@ -63,21 +70,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static readonly TypeParameterConstraintClause Empty = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.None,
-            ImmutableArray<TypeWithAnnotations>.Empty,
-            ignoresNullableContext: false);
+            ImmutableArray<TypeWithAnnotations>.Empty);
 
         internal static readonly TypeParameterConstraintClause ObliviousNullabilityIfReferenceType = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType,
-            ImmutableArray<TypeWithAnnotations>.Empty,
-            ignoresNullableContext: false);
+            ImmutableArray<TypeWithAnnotations>.Empty);
 
         internal static TypeParameterConstraintClause Create(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeWithAnnotations> constraintTypes,
-            bool ignoresNullableContext)
+            ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
             Debug.Assert(!constraintTypes.IsDefault);
-            if (!ignoresNullableContext && constraintTypes.IsEmpty)
+            if (constraintTypes.IsEmpty)
             {
                 switch (constraints)
                 {
@@ -89,13 +93,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return new TypeParameterConstraintClause(constraints, constraintTypes, ignoresNullableContext);
+            return new TypeParameterConstraintClause(constraints, constraintTypes);
         }
 
         private TypeParameterConstraintClause(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeWithAnnotations> constraintTypes,
-            bool ignoresNullableContext)
+            ImmutableArray<TypeWithAnnotations> constraintTypes)
         {
 #if DEBUG
             switch (constraints & TypeParameterConstraintKind.AllReferenceTypeKinds)
@@ -111,55 +114,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Debug.Assert((constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0 ||
-                         (constraints & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor | TypeParameterConstraintKind.Default)) == 0);
+                         (constraints & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor | TypeParameterConstraintKind.Default |
+                                          TypeParameterConstraintKind.PartialMismatch | TypeParameterConstraintKind.ValueTypeFromConstraintTypes | TypeParameterConstraintKind.ReferenceTypeFromConstraintTypes)) == 0);
 #endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
-            this.IgnoresNullableContext = ignoresNullableContext;
         }
 
         public readonly TypeParameterConstraintKind Constraints;
         public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
-        public readonly bool IgnoresNullableContext;
 
-        internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty;
-
-        /// <summary>
-        /// Adjust unresolved instances of <see cref="TypeWithAnnotations"/> which represent nullable type parameters
-        /// of the <paramref name="container"/> within constraint types according to the IsValueType state inferred
-        /// from the constraint types.
-        /// </summary>
-        internal static void AdjustConstraintTypes(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters,
-                                                   ArrayBuilder<TypeParameterConstraintClause> constraintClauses,
-                                                   ref IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride)
+        internal static SmallDictionary<TypeParameterSymbol, bool> BuildIsValueTypeMap(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters,
+                                                                                       ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
-            Debug.Assert(constraintClauses.Count == typeParameters.Length);
+            Debug.Assert(constraintClauses.Length == typeParameters.Length);
 
-            if (isValueTypeOverride == null)
+            var isValueTypeMap = new SmallDictionary<TypeParameterSymbol, bool>(ReferenceEqualityComparer.Instance);
+
+            foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
-                var isValueTypeOverrideBuilder = new Dictionary<TypeParameterSymbol, bool>(typeParameters.Length, ReferenceEqualityComparer.Instance);
-
-                foreach (TypeParameterSymbol typeParameter in typeParameters)
-                {
-                    isValueType(typeParameter, constraintClauses, isValueTypeOverrideBuilder, ConsList<TypeParameterSymbol>.Empty);
-                }
-
-                isValueTypeOverride = new ReadOnlyDictionary<TypeParameterSymbol, bool>(isValueTypeOverrideBuilder);
+                isValueType(typeParameter, constraintClauses, isValueTypeMap, ConsList<TypeParameterSymbol>.Empty);
             }
 
-            foreach (TypeParameterConstraintClause constraintClause in constraintClauses)
-            {
-                adjustConstraintTypes(container, constraintClause.ConstraintTypes, isValueTypeOverride);
-            }
+            return isValueTypeMap;
 
-            static bool isValueType(TypeParameterSymbol thisTypeParameter, ArrayBuilder<TypeParameterConstraintClause> constraintClauses, Dictionary<TypeParameterSymbol, bool> isValueTypeOverrideBuilder, ConsList<TypeParameterSymbol> inProgress)
+            static bool isValueType(TypeParameterSymbol thisTypeParameter, ImmutableArray<TypeParameterConstraintClause> constraintClauses, SmallDictionary<TypeParameterSymbol, bool> isValueTypeMap, ConsList<TypeParameterSymbol> inProgress)
             {
                 if (inProgress.ContainsReference(thisTypeParameter))
                 {
                     return false;
                 }
 
-                if (isValueTypeOverrideBuilder.TryGetValue(thisTypeParameter, out bool knownIsValueType))
+                if (isValueTypeMap.TryGetValue(thisTypeParameter, out bool knownIsValueType))
                 {
                     return knownIsValueType;
                 }
@@ -183,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (type is TypeParameterSymbol typeParameter && (object)typeParameter.ContainingSymbol == (object)container)
                         {
-                            if (isValueType(typeParameter, constraintClauses, isValueTypeOverrideBuilder, inProgress))
+                            if (isValueType(typeParameter, constraintClauses, isValueTypeMap, inProgress))
                             {
                                 result = true;
                                 break;
@@ -197,65 +183,74 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                isValueTypeOverrideBuilder.Add(thisTypeParameter, result);
+                isValueTypeMap.Add(thisTypeParameter, result);
                 return result;
             }
+        }
 
-            static void adjustConstraintTypes(Symbol container, ImmutableArray<TypeWithAnnotations> constraintTypes, IReadOnlyDictionary<TypeParameterSymbol, bool> isValueTypeOverride)
+        internal static SmallDictionary<TypeParameterSymbol, bool> BuildIsReferenceTypeFromConstraintTypesMap(Symbol container, ImmutableArray<TypeParameterSymbol> typeParameters,
+                                                                                                              ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        {
+            Debug.Assert(constraintClauses.Length == typeParameters.Length);
+
+            var isReferenceTypeFromConstraintTypesMap = new SmallDictionary<TypeParameterSymbol, bool>(ReferenceEqualityComparer.Instance);
+
+            foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
-                foreach (var constraintType in constraintTypes)
-                {
-                    constraintType.VisitType(null, (type, args, unused2) =>
-                    {
-                        if (type.DefaultType is TypeParameterSymbol typeParameterSymbol && typeParameterSymbol.ContainingSymbol == (object)args.container)
-                        {
-                            type.TryForceResolve(args.isValueTypeOverride[typeParameterSymbol]);
-                        }
-                        return false;
-                    }, typePredicate: null, arg: (container, isValueTypeOverride), canDigThroughNullable: false, useDefaultType: true);
-                }
+                isReferenceTypeFromConstraintTypes(typeParameter, constraintClauses, isReferenceTypeFromConstraintTypesMap, ConsList<TypeParameterSymbol>.Empty);
             }
-        }
-    }
 
-    internal static class TypeParameterConstraintClauseExtensions
-    {
-        internal static bool HasValue(this ImmutableArray<TypeParameterConstraintClause> constraintClauses, bool canIgnoreNullableContext)
-        {
-            if (constraintClauses.IsDefault)
+            return isReferenceTypeFromConstraintTypesMap;
+
+            static bool isReferenceTypeFromConstraintTypes(TypeParameterSymbol thisTypeParameter, ImmutableArray<TypeParameterConstraintClause> constraintClauses,
+                                                           SmallDictionary<TypeParameterSymbol, bool> isReferenceTypeFromConstraintTypesMap, ConsList<TypeParameterSymbol> inProgress)
             {
-                return false;
-            }
-            return canIgnoreNullableContext || !constraintClauses.IgnoresNullableContext();
-        }
-
-        internal static bool IgnoresNullableContext(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
-        {
-            return constraintClauses.Any(clause => clause.IgnoresNullableContext);
-        }
-
-        internal static bool ContainsOnlyEmptyConstraintClauses(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
-        {
-            return constraintClauses.All(clause => clause.IsEmpty);
-        }
-
-        // Returns true if constraintClauses was updated with value.
-        // Returns false if constraintClauses already had a value with sufficient 'IgnoresNullableContext'
-        // or was updated to a value with sufficient 'IgnoresNullableContext' on another thread.
-        internal static bool InterlockedUpdate(ref ImmutableArray<TypeParameterConstraintClause> constraintClauses, ImmutableArray<TypeParameterConstraintClause> value)
-        {
-            bool canIgnoreNullableContext = value.IgnoresNullableContext();
-            while (true)
-            {
-                var comparand = constraintClauses;
-                if (comparand.HasValue(canIgnoreNullableContext))
+                if (inProgress.ContainsReference(thisTypeParameter))
                 {
                     return false;
                 }
-                if (ImmutableInterlocked.InterlockedCompareExchange(ref constraintClauses, value, comparand) == comparand)
+
+                if (isReferenceTypeFromConstraintTypesMap.TryGetValue(thisTypeParameter, out bool knownIsReferenceTypeFromConstraintTypes))
                 {
-                    return true;
+                    return knownIsReferenceTypeFromConstraintTypes;
                 }
+
+                TypeParameterConstraintClause constraintClause = constraintClauses[thisTypeParameter.Ordinal];
+
+                bool result = false;
+
+                Symbol container = thisTypeParameter.ContainingSymbol;
+                inProgress = inProgress.Prepend(thisTypeParameter);
+
+                foreach (TypeWithAnnotations constraintType in constraintClause.ConstraintTypes)
+                {
+                    TypeSymbol type = constraintType.IsResolved ? constraintType.Type : constraintType.DefaultType;
+
+                    if (type is TypeParameterSymbol typeParameter)
+                    {
+                        if ((object)typeParameter.ContainingSymbol == (object)container)
+                        {
+                            if (isReferenceTypeFromConstraintTypes(typeParameter, constraintClauses, isReferenceTypeFromConstraintTypesMap, inProgress))
+                            {
+                                result = true;
+                                break;
+                            }
+                        }
+                        else if (typeParameter.IsReferenceTypeFromConstraintTypes)
+                        {
+                            result = true;
+                            break;
+                        }
+                    }
+                    else if (TypeParameterSymbol.NonTypeParameterConstraintImpliesReferenceType(type))
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+
+                isReferenceTypeFromConstraintTypesMap.Add(thisTypeParameter, result);
+                return result;
             }
         }
     }

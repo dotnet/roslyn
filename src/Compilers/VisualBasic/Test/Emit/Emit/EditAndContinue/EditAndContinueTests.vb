@@ -969,7 +969,7 @@ End Class
             Dim members = compilation1.GetMember(Of NamedTypeSymbol)("A.B").GetMembers("M")
             Assert.Equal(members.Length, 2)
             For Each member In members
-                Dim other = DirectCast(matcher.MapDefinition(DirectCast(member, Cci.IMethodDefinition)), MethodSymbol)
+                Dim other = DirectCast(matcher.MapDefinition(DirectCast(member.GetCciAdapter(), Cci.IMethodDefinition)).GetInternalSymbol(), MethodSymbol)
                 Assert.NotNull(other)
             Next
         End Sub
@@ -993,7 +993,7 @@ End Class
 
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
-            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member, Cci.IMethodDefinition)), MethodSymbol)
+            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member.GetCciAdapter(), Cci.IMethodDefinition)).GetInternalSymbol(), MethodSymbol)
             Assert.NotNull(other)
         End Sub
 
@@ -1027,7 +1027,7 @@ End Class
             Assert.Equal(nModifiers, DirectCast(member1.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
 
             Dim matcher = CreateMatcher(compilation1, compilation0)
-            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member1, Cci.IMethodDefinition)), MethodSymbol)
+            Dim other = DirectCast(matcher.MapDefinition(DirectCast(member1.GetCciAdapter(), Cci.IMethodDefinition)).GetInternalSymbol(), MethodSymbol)
             Assert.NotNull(other)
             Assert.Equal(nModifiers, DirectCast(other.ReturnType, ArrayTypeSymbol).CustomModifiers.Length)
         End Sub

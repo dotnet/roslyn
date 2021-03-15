@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -35,7 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         // If we don't implement any interface members explicitly we can't convert this to be
         // implicit.
         protected override bool CheckMemberCanBeConverted(ISymbol member)
-            => member.ExplicitInterfaceImplementations().Length > 0;
+        {
+            var memberInterfaceImplementations = member.ExplicitInterfaceImplementations();
+            if (memberInterfaceImplementations.Length == 0)
+                return false;
+            var containingTypeInterfaces = member.ContainingType.AllInterfaces;
+            if (containingTypeInterfaces.Length == 0)
+                return false;
+            return memberInterfaceImplementations.Any(impl => containingTypeInterfaces.Contains(impl.ContainingType));
+        }
 
         // When converting to implicit, we don't need to update any references.
         protected override Task UpdateReferencesAsync(Project project, SolutionEditor solutionEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken)

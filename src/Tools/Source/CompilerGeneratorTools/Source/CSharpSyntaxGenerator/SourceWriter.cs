@@ -8,22 +8,23 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 
 namespace CSharpSyntaxGenerator
 {
     internal class SourceWriter : AbstractFileWriter
     {
-        private SourceWriter(TextWriter writer, Tree tree)
-            : base(writer, tree)
+        private SourceWriter(TextWriter writer, Tree tree, CancellationToken cancellationToken = default)
+            : base(writer, tree, cancellationToken)
         {
         }
 
-        public static void WriteMain(TextWriter writer, Tree tree) => new SourceWriter(writer, tree).WriteMain();
+        public static void WriteMain(TextWriter writer, Tree tree, CancellationToken cancellationToken = default) => new SourceWriter(writer, tree, cancellationToken).WriteMain();
 
-        public static void WriteInternal(TextWriter writer, Tree tree) => new SourceWriter(writer, tree).WriteInternal();
+        public static void WriteInternal(TextWriter writer, Tree tree, CancellationToken cancellationToken = default) => new SourceWriter(writer, tree, cancellationToken).WriteInternal();
 
-        public static void WriteSyntax(TextWriter writer, Tree tree) => new SourceWriter(writer, tree).WriteSyntax();
+        public static void WriteSyntax(TextWriter writer, Tree tree, CancellationToken cancellationToken = default) => new SourceWriter(writer, tree, cancellationToken).WriteSyntax();
 
         private void WriteFileHeader()
         {

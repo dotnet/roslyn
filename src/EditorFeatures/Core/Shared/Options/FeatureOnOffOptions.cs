@@ -35,25 +35,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly PerLanguageOption2<bool> FormatOnPaste = new(nameof(FeatureOnOffOptions), nameof(FormatOnPaste), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.FormatOnPaste"));
 
-        public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(nameof(FeatureOnOffOptions), nameof(AutoXmlDocCommentGeneration), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
-
         public static readonly PerLanguageOption2<bool> AutoInsertBlockCommentStartString = new(nameof(FeatureOnOffOptions), nameof(AutoInsertBlockCommentStartString), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String"));
 
         public static readonly PerLanguageOption2<bool> PrettyListing = new(nameof(FeatureOnOffOptions), nameof(PrettyListing), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PrettyListing"));
 
-        public static readonly PerLanguageOption2<bool> InlineParameterNameHints = new(nameof(FeatureOnOffOptions), nameof(InlineParameterNameHints), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.InlineParameterNameHints"));
-
         public static readonly PerLanguageOption2<bool> AutoFormattingOnTyping = new(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnTyping), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Typing"));
-
-        public static readonly PerLanguageOption2<bool> AutoFormattingOnCloseBrace = new(
-            nameof(FeatureOnOffOptions), nameof(AutoFormattingOnCloseBrace), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Close Brace"));
 
         public static readonly PerLanguageOption2<bool> AutoFormattingOnSemicolon = new(
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnSemicolon), defaultValue: true,
@@ -89,6 +79,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         public static readonly Option2<int> UseEnhancedColors = new(
             nameof(FeatureOnOffOptions), nameof(UseEnhancedColors), defaultValue: 1,
             storageLocations: new RoamingProfileStorageLocation("WindowManagement.Options.UseEnhancedColorsForManagedLanguages"));
+
+        public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
+            nameof(FeatureOnOffOptions), nameof(AddImportsOnPaste), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(AddImportsOnPaste)}"));
+
+        public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
+            nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: null,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
     }
 
     [ExportOptionProvider, Shared]
@@ -108,18 +106,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.KeywordHighlighting,
             FeatureOnOffOptions.ReferenceHighlighting,
             FeatureOnOffOptions.FormatOnPaste,
-            FeatureOnOffOptions.AutoXmlDocCommentGeneration,
             FeatureOnOffOptions.AutoInsertBlockCommentStartString,
             FeatureOnOffOptions.PrettyListing,
-            FeatureOnOffOptions.InlineParameterNameHints,
             FeatureOnOffOptions.AutoFormattingOnTyping,
-            FeatureOnOffOptions.AutoFormattingOnCloseBrace,
             FeatureOnOffOptions.AutoFormattingOnSemicolon,
             FeatureOnOffOptions.RenameTrackingPreview,
             FeatureOnOffOptions.RenameTracking,
             FeatureOnOffOptions.RefactoringVerification,
             FeatureOnOffOptions.StreamingGoToImplementation,
             FeatureOnOffOptions.NavigateToDecompiledSources,
-            FeatureOnOffOptions.UseEnhancedColors);
+            FeatureOnOffOptions.UseEnhancedColors,
+            FeatureOnOffOptions.AddImportsOnPaste,
+            FeatureOnOffOptions.OfferRemoveUnusedReferences);
     }
 }

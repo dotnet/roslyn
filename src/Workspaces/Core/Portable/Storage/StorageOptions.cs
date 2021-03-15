@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -21,10 +19,6 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public static readonly Option<StorageDatabase> Database = new(
             OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite);
-
-        public static readonly Option<bool> SQLiteInMemoryWriteCache = new(
-            OptionName, nameof(SQLiteInMemoryWriteCache), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SQLiteInMemoryWriteCache)));
     }
 
     [ExportOptionProvider, Shared]
@@ -37,7 +31,6 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            StorageOptions.Database,
-            StorageOptions.SQLiteInMemoryWriteCache);
+            StorageOptions.Database);
     }
 }

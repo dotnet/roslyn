@@ -81,14 +81,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                                               arity As Integer,
                                               options As LookupOptions,
                                               originalBinder As Binder,
-                                              <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+                                              <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
             Debug.Assert(lookupResult.IsClear)
 
             ' Parameters and locals always have arity 0 and are not namespaces or types.
             If (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly Or LookupOptions.MustNotBeLocalOrParameter)) = 0 Then
                 Dim symbol As Symbol = Nothing
                 If _nameToSymbolMap.TryGetValue(name, symbol) Then
-                    lookupResult.SetFrom(CheckViability(symbol, arity, options, Nothing, useSiteDiagnostics))
+                    lookupResult.SetFrom(CheckViability(symbol, arity, options, Nothing, useSiteInfo))
                 End If
             End If
         End Sub

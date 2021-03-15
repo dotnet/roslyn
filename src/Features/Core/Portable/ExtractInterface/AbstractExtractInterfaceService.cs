@@ -421,7 +421,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         internal virtual bool IsExtractableMember(ISymbol m)
         {
             if (m.IsStatic ||
-                m.DeclaredAccessibility != Accessibility.Public)
+                m.DeclaredAccessibility != Accessibility.Public ||
+                m.Name == "<Clone>$") // TODO: Use WellKnownMemberNames.CloneMethodName when it's public.
             {
                 return false;
             }

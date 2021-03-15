@@ -6,235 +6,235 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.St
     Public Class ElseKeywordRecommenderTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseNotInMethodBodyTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Else")
-        End Function
+        Public Sub ElseNotInMethodBodyTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseInMultiLineIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then
+        Public Sub ElseInMultiLineIfTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then
 |
 End If</MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseInMultiLineElseIf1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then
+        Public Sub ElseInMultiLineElseIf1Test()
+            VerifyRecommendationsContain(<MethodBody>If True Then
 ElseIf True Then
 |
 End If</MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseInMultiLineElseIf2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then
+        Public Sub ElseInMultiLineElseIf2Test()
+            VerifyRecommendationsContain(<MethodBody>If True Then
 Else If True Then
 |
 End If</MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseNotInMultiLineElseTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>If True Then
+        Public Sub ElseNotInMultiLineElseTest()
+            VerifyRecommendationsMissing(<MethodBody>If True Then
 Else 
 |
 End If</MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterInvocationTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then System.Console.Write("Goo") |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterInvocationTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then System.Console.Write("Goo") |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then q = q + 3 |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then q = q + 3 |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterDeclarationTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Dim q = 3 |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterDeclarationTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Dim q = 3 |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterStopTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Stop |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterStopTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Stop |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterEndTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then End |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterEndTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then End |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterReDimTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then ReDim array(1, 1, 1) |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterReDimTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then ReDim array(1, 1, 1) |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterEraseTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Erase goo, quux |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterEraseTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Erase goo, quux |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Error 23 |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterErrorTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Error 23 |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterExitTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Exit Do |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterExitTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Exit Do |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterGoToTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then GoTo goo |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterGoToTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then GoTo goo |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterResumeTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Resume |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterResumeTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Resume |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterResumeNextTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Resume Next |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterResumeNextTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Resume Next |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterContinueTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Continue Do |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterContinueTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Continue Do |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterReturnTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Return |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterReturnTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Return |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterReturnExpressionInPropertyGetTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub SingleLineIfElseAfterReturnExpressionInPropertyGetTest()
+            VerifyRecommendationsContain(
                 <ClassDeclaration>
                     ReadOnly Property Goo As Integer
                         Get
                             If True Then Return |
                 </ClassDeclaration>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterReturnExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Function Goo as String 
+        Public Sub SingleLineIfElseAfterReturnExpressionTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Function Goo as String 
                 If True Then Return goo |</ClassDeclaration>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterThrowTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Try
+        Public Sub SingleLineIfElseAfterThrowTest()
+            VerifyRecommendationsContain(<MethodBody>Try
                 If True Then Throw |
                 Catch</MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterThrowExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Try
+        Public Sub SingleLineIfElseAfterThrowExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>Try
             If True Then Throw goo |
             Catch</MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterAddHandlerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then AddHandler Obj.Ev_Event, AddressOf EventHandler |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterAddHandlerTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then AddHandler Obj.Ev_Event, AddressOf EventHandler |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterRaiseEventTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then RaiseEvent Ev_Event() |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterRaiseEventTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then RaiseEvent Ev_Event() |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SingleLineIfElseAfterColonSeparatedStatementsTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If True Then Console.WriteLine("goo") : Console.WriteLine("bar")  |</MethodBody>, "Else")
-        End Function
+        Public Sub SingleLineIfElseAfterColonSeparatedStatementsTest()
+            VerifyRecommendationsContain(<MethodBody>If True Then Console.WriteLine("goo") : Console.WriteLine("bar")  |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseNotInSingleLineIf1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>If True Then |</MethodBody>, "Else")
-        End Function
+        Public Sub ElseNotInSingleLineIf1Test()
+            VerifyRecommendationsMissing(<MethodBody>If True Then |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseNotInSingleLineIf2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>If True Then Stop Else |</MethodBody>, "Else")
-        End Function
+        Public Sub ElseNotInSingleLineIf2Test()
+            VerifyRecommendationsMissing(<MethodBody>If True Then Stop Else |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseNotSingleLineIfNoStatementsTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>If True Then Else |</MethodBody>, "Else")
-        End Function
+        Public Sub ElseNotSingleLineIfNoStatementsTest()
+            VerifyRecommendationsMissing(<MethodBody>If True Then Else |</MethodBody>, "Else")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseAfterCaseTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub ElseAfterCaseTest()
+            VerifyRecommendationsContain(
 <MethodBody>
 Select Case x
     Case |
 </MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoElseAfterCaseIfExistsTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NoElseAfterCaseIfExistsTest()
+            VerifyRecommendationsMissing(
 <MethodBody>
 Select Case x
     Case Else End
     Case |
 </MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoElseAfterCaseIfNotLastCaseTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NoElseAfterCaseIfNotLastCaseTest()
+            VerifyRecommendationsMissing(
 <MethodBody>
 Select Case x
     Case |
     Case 1
 </MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseWithinIfWithinElseTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub ElseWithinIfWithinElseTest()
+            VerifyRecommendationsContain(
 <MethodBody>
 If True Then
 
@@ -244,12 +244,12 @@ Else
     End If
 End If
 </MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseWithinElseIfWithinElseTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub ElseWithinElseIfWithinElseTest()
+            VerifyRecommendationsContain(
 <MethodBody>
 If True Then
 
@@ -260,12 +260,12 @@ Else
     End If
 End If
 </MethodBody>, "Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function ElseNotWithinDoTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub ElseNotWithinDoTest()
+            VerifyRecommendationsMissing(
 <MethodBody>
 If True Then
 Do While True
@@ -273,6 +273,6 @@ Do While True
 End While
 End If
 </MethodBody>, "Else")
-        End Function
+        End Sub
     End Class
 End Namespace

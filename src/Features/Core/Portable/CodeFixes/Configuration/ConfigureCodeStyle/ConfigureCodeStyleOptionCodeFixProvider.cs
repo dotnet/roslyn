@@ -119,7 +119,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 
                 using var _ = ArrayBuilder<CodeAction>.GetInstance(out var nestedActions);
 
-                var severity = codeStyleOption.Notification.ToEditorConfigString();
                 string optionName = null;
                 if (codeStyleOption.Value is bool)
                 {

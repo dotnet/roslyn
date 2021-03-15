@@ -232,9 +232,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Indexer; }
         }
 
-        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration) =>
-            Update(ReceiverOpt, Indexer, Arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, Expanded, ArgsToParamsOpt, BinderOpt, useSetterForDefaultArgumentGeneration, OriginalIndexersOpt, Type);
-
         public override LookupResultKind ResultKind
         {
             get
@@ -286,6 +283,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Symbol? ExpressionSymbol
         {
             get { return this.MethodOpt; }
+        }
+    }
+
+    internal partial class BoundInterpolatedString
+    {
+        public override ConstantValue? ConstantValue
+        {
+            get { return this.ConstantValueOpt; }
         }
     }
 
@@ -430,9 +435,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
-                binderOpt: BinderOpt,
                 type: changeTypeOpt ?? Type);
         }
     }
@@ -591,11 +596,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public Symbol ValueSymbol { get; }
         public BoundExpression ValueExpression { get; }
-        public DiagnosticBag ValueDiagnostics { get; }
+        public BindingDiagnosticBag ValueDiagnostics { get; }
         public BoundExpression TypeExpression { get; }
-        public DiagnosticBag TypeDiagnostics { get; }
+        public BindingDiagnosticBag TypeDiagnostics { get; }
 
-        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, DiagnosticBag valueDiagnostics, BoundExpression typeExpression, DiagnosticBag typeDiagnostics)
+        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, BindingDiagnosticBag valueDiagnostics, BoundExpression typeExpression, BindingDiagnosticBag typeDiagnostics)
         {
             Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");

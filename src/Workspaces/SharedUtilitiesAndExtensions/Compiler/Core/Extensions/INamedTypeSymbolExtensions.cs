@@ -68,20 +68,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (symbol.IsAbstract)
             {
                 return type.GetBaseTypesAndThis().SelectMany(t => t.GetMembers(symbol.Name))
-                                                 .FirstOrDefault(s => symbol.Equals(GetOverriddenMember(s)));
+                                                 .FirstOrDefault(s => symbol.Equals(s.GetOverriddenMember()));
             }
 
             return null;
         }
-
-        internal static ISymbol? GetOverriddenMember(this ISymbol? symbol)
-            => symbol switch
-            {
-                IMethodSymbol method => method.OverriddenMethod,
-                IPropertySymbol property => property.OverriddenProperty,
-                IEventSymbol @event => @event.OverriddenEvent,
-                _ => null,
-            };
 
         private static bool ImplementationExists(INamedTypeSymbol classOrStructType, ISymbol member)
             => classOrStructType.FindImplementationForInterfaceMember(member) != null;
@@ -574,13 +565,39 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (!member.IsImplicitlyDeclared)
+                // An implicitly declared override is still something the user can provide their own explicit override
+                // for.  This is true for all implicit overrides *except* for the one for `bool object.Equals(object)`.
+                // This override is not one the user is allowed to provide their own override for as it must have a very
+                // particular implementation to ensure proper record equality semantics.
+                if (!member.IsImplicitlyDeclared || IsEqualsObjectOverride(member))
                 {
-                    var overriddenMember = member.OverriddenMember();
+                    var overriddenMember = member.GetOverriddenMember();
                     if (overriddenMember != null)
                         result.Remove(overriddenMember);
                 }
             }
+        }
+
+        private static bool IsEqualsObjectOverride(ISymbol? member)
+        {
+            if (member == null)
+                return false;
+
+            if (IsEqualsObject(member))
+                return true;
+
+            return IsEqualsObjectOverride(member.GetOverriddenMember());
+        }
+
+        private static bool IsEqualsObject(ISymbol member)
+        {
+            return member is IMethodSymbol
+            {
+                Name: nameof(Equals),
+                IsStatic: false,
+                ContainingType: { SpecialType: SpecialType.System_Object },
+                Parameters: { Length: 1 },
+            };
         }
 
         public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)

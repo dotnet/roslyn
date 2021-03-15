@@ -5,15 +5,13 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-        internal sealed class FindLiteralsServerCallback : IRemoteSymbolFinderService.ICallback
+        internal sealed class FindLiteralsServerCallback
         {
             private readonly Solution _solution;
             private readonly IStreamingFindLiteralReferencesProgress _progress;
@@ -37,24 +35,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var document = _solution.GetDocument(documentId);
                 await _progress.OnReferenceFoundAsync(document, span).ConfigureAwait(false);
             }
-
-            public ValueTask OnCompletedAsync()
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId)
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask OnFindInDocumentStartedAsync(DocumentId documentId)
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask OnReferenceFoundAsync(SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
-                => throw ExceptionUtilities.Unreachable;
-
-            public ValueTask OnStartedAsync()
-                => throw ExceptionUtilities.Unreachable;
         }
     }
 }

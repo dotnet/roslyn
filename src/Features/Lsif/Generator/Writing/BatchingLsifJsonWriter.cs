@@ -57,6 +57,14 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
             }
         }
 
+        public void WriteAll(List<Element> elements)
+        {
+            lock (_elementsGate)
+            {
+                _elements.AddRange(elements);
+            }
+        }
+
         public void FlushToUnderlyingAndEmpty()
         {
             lock (_writingGate)
@@ -69,10 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
                     _elements = new List<Element>();
                 }
 
-                foreach (var element in localElements)
-                {
-                    _underlyingWriter.Write(element);
-                }
+                _underlyingWriter.WriteAll(localElements);
             }
         }
     }

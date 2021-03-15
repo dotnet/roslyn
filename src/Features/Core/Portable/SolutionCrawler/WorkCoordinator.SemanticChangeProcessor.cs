@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // TODO: if there is a reliable way to track changed member, we could use GetSemanticModel here which could
                     //       rebuild compilation from scratch
                     if (!document.TryGetSemanticModel(out var model) ||
-                        !changedMember.TryResolve(await document.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false), out SyntaxNode declarationNode))
+                        !changedMember.TryResolve(await document.GetSyntaxRootAsync(CancellationToken).ConfigureAwait(false), out SyntaxNode? declarationNode))
                     {
                         return false;
                     }

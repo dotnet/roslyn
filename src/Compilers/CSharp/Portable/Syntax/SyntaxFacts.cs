@@ -314,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case InvocationExpression:
                 case TupleExpression:
                 case ObjectCreationExpression:
+                case ImplicitObjectCreationExpression:
                 case ObjectInitializerExpression:
                 case ElementAccessExpression:
                 case Attribute:

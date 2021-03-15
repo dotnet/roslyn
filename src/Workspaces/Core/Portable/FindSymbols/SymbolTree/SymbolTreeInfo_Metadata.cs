@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static Task<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        public static ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution, PortableExecutableReference reference,
             bool loadOnly, CancellationToken cancellationToken)
         {
@@ -79,7 +79,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Produces a <see cref="SymbolTreeInfo"/> for a given <see cref="PortableExecutableReference"/>.
         /// Note:  will never return null;
         /// </summary>
-        public static async Task<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
+        [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
+        public static async ValueTask<SymbolTreeInfo> GetInfoForMetadataReferenceAsync(
             Solution solution,
             PortableExecutableReference reference,
             Checksum checksum,
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 createAsync: () => CreateMetadataSymbolTreeInfoAsync(solution, checksum, reference),
                 keySuffix: "_Metadata_" + filePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, (names, nodes) => GetSpellCheckerAsync(solution, checksum, filePath, names, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(solution, checksum, filePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfFalse(result != null || loadOnly == true, "Result can only be null if 'loadOnly: true' was passed.");
             return result;
@@ -319,12 +320,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 // Return all the metadata nodes back to the pool so that they can be
                 // used for the next PEReference we read.
-                foreach (var kvp in _parentToChildren)
+                foreach (var (_, children) in _parentToChildren)
                 {
-                    foreach (var child in kvp.Value)
-                    {
+                    foreach (var child in children)
                         MetadataNode.Free(child);
-                    }
                 }
 
                 MetadataNode.Free(_rootNode);
@@ -341,10 +340,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 {
                     LookupMetadataDefinitions(globalNamespace, definitionMap);
 
-                    foreach (var kvp in definitionMap)
-                    {
-                        GenerateMetadataNodes(_rootNode, kvp.Key, kvp.Value);
-                    }
+                    foreach (var (name, definitions) in definitionMap)
+                        GenerateMetadataNodes(_rootNode, name, definitions);
                 }
                 finally
                 {
@@ -380,10 +377,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         LookupMetadataDefinitions(definition, definitionMap);
                     }
 
-                    foreach (var kvp in definitionMap)
-                    {
-                        GenerateMetadataNodes(childNode, kvp.Key, kvp.Value);
-                    }
+                    foreach (var (name, definitions) in definitionMap)
+                        GenerateMetadataNodes(childNode, name, definitions);
                 }
                 finally
                 {

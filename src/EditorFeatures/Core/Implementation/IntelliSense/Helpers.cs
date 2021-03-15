@@ -138,11 +138,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                         }
                         else
                         {
+                            // ⚠ PERF: avoid capturing Solution (including indirectly through Project or Document
+                            // instances) as part of the navigationAction delegate.
                             var target = part.NavigationTarget;
                             var tooltip = part.NavigationHint;
+                            var documentId = document.Id;
+                            var workspace = document.Project.Solution.Workspace;
                             currentRuns.Add(new ClassifiedTextRun(
                                 part.Tag.ToClassificationTypeName(), part.Text,
-                                () => NavigateToQuickInfoTarget(target, document, threadingContext, streamingPresenter.Value), tooltip, style));
+                                () => NavigateToQuickInfoTarget(target, workspace, documentId, threadingContext, streamingPresenter.Value), tooltip, style));
                         }
                     }
                     else
@@ -171,14 +175,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         private static void NavigateToQuickInfoTarget(
             string navigationTarget,
-            Document document,
+            Workspace workspace,
+            DocumentId documentId,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter)
         {
+            var solution = workspace.CurrentSolution;
             SymbolKeyResolution resolvedSymbolKey;
             try
             {
-                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, document.Project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
+                var project = solution.GetRequiredProject(documentId.ProjectId);
+                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, project.GetRequiredCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), cancellationToken: CancellationToken.None);
             }
             catch
             {
@@ -188,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
             if (resolvedSymbolKey.GetAnySymbol() is { } symbol)
             {
-                GoToDefinitionHelpers.TryGoToDefinition(symbol, document.Project.Solution, threadingContext, streamingPresenter, CancellationToken.None);
+                GoToDefinitionHelpers.TryGoToDefinition(symbol, solution, threadingContext, streamingPresenter, CancellationToken.None);
                 return;
             }
         }

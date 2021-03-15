@@ -168,6 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     {
                         subKey.SetValue(key, (int)value, RegistryValueKind.DWord);
                     }
+
                     return true;
                 }
                 else

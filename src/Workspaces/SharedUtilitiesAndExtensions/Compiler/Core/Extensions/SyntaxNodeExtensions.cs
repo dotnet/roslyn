@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxNodeExtensions
     {
+        public static SyntaxNode GetRequiredParent(this SyntaxNode node)
+            => node.Parent ?? throw new InvalidOperationException("Node's parent was null");
+
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNode node)
             => SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
 
@@ -134,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <typeparam name="TParent">The type of the parent node.</typeparam>
         /// <param name="node">The node that we are testing.</param>
         /// <param name="childGetter">A function that, when given the parent node, returns the child token we are interested in.</param>
-        public static bool IsChildNode<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode> childGetter)
+        public static bool IsChildNode<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode?> childGetter)
             where TParent : SyntaxNode
         {
             var ancestor = node.GetAncestor<TParent>();
@@ -490,29 +493,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         if (nodesToReplace.TryGetValue(span, out var currentNode))
                         {
-                            var original = (SyntaxNode)retryAnnotations.GetAnnotations(currentNode).SingleOrDefault() ?? currentNode;
+                            var original = (SyntaxNode?)retryAnnotations.GetAnnotations(currentNode).SingleOrDefault() ?? currentNode;
                             var newNode = await computeReplacementNodeAsync!(original, currentNode, cancellationToken).ConfigureAwait(false);
                             nodeReplacements[currentNode] = newNode;
                         }
                         else if (tokensToReplace.TryGetValue(span, out var currentToken))
                         {
-                            var original = (SyntaxToken)retryAnnotations.GetAnnotations(currentToken).SingleOrDefault();
-                            if (original == default)
-                            {
-                                original = currentToken;
-                            }
-
+                            var original = (SyntaxToken?)retryAnnotations.GetAnnotations(currentToken).SingleOrDefault() ?? currentToken;
                             var newToken = await computeReplacementTokenAsync!(original, currentToken, cancellationToken).ConfigureAwait(false);
                             tokenReplacements[currentToken] = newToken;
                         }
                         else if (triviaToReplace.TryGetValue(span, out var currentTrivia))
                         {
-                            var original = (SyntaxTrivia)retryAnnotations.GetAnnotations(currentTrivia).SingleOrDefault();
-                            if (original == default)
-                            {
-                                original = currentTrivia;
-                            }
-
+                            var original = (SyntaxTrivia?)retryAnnotations.GetAnnotations(currentTrivia).SingleOrDefault() ?? currentTrivia;
                             var newTrivia = await computeReplacementTriviaAsync!(original, currentTrivia, cancellationToken).ConfigureAwait(false);
                             triviaReplacements[currentTrivia] = newTrivia;
                         }

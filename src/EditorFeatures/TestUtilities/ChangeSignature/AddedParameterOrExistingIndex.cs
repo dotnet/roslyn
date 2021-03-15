@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 
         internal AddedParameter GetAddedParameter(Document document)
         {
-            var semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).Result;
+            var semanticModel = document.GetRequiredSemanticModelAsync(CancellationToken.None).AsTask().Result;
 
             var type = document.Project.Language switch
             {

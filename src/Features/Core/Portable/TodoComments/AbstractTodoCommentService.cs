@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
                     continue;
                 }
 
-                todoList.Add(new TodoComment(commentDescriptor, message.Substring(index), start + index));
+                todoList.Add(new TodoComment(commentDescriptor, message[index..], start + index));
             }
         }
 

@@ -9,8 +9,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities

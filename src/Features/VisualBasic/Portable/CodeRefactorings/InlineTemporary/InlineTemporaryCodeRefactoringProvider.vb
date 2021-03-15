@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.InlineTemporary
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -18,7 +19,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InlineTemporary), [Shared]>
     Partial Friend Class InlineTemporaryCodeRefactoringProvider
-        Inherits CodeRefactoringProvider
+        Inherits AbstractInlineTemporaryCodeRefactoringProvider(Of ModifiedIdentifierSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
@@ -53,34 +54,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 Return
             End If
 
-            Dim references = Await GetReferencesAsync(document, modifiedIdentifier, cancellationToken).ConfigureAwait(False)
+            Dim references = Await GetReferenceLocationsAsync(document, modifiedIdentifier, cancellationToken).ConfigureAwait(False)
             If Not references.Any() Then
                 Return
             End If
 
             context.RegisterRefactoring(
                 New MyCodeAction(VBFeaturesResources.Inline_temporary_variable, Function(c) InlineTemporaryAsync(document, modifiedIdentifier, c)), variableDeclarator.Span)
-        End Function
-
-        Private Shared Async Function GetReferencesAsync(
-            document As Document,
-            modifiedIdentifier As ModifiedIdentifierSyntax,
-            cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ReferenceLocation))
-
-            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-            Dim local = TryCast(semanticModel.GetDeclaredSymbol(modifiedIdentifier, cancellationToken), ILocalSymbol)
-
-            If local IsNot Nothing Then
-                Dim solution = document.Project.Solution
-                Dim findReferencesResult = Await SymbolFinder.FindReferencesAsync(local, solution, cancellationToken).ConfigureAwait(False)
-
-                Dim locations = findReferencesResult.Single(Function(r) Equals(r.Definition, local)).Locations
-                If Not locations.Any(Function(loc) semanticModel.SyntaxTree.OverlapsHiddenPosition(loc.Location.SourceSpan, cancellationToken)) Then
-                    Return locations
-                End If
-            End If
-
-            Return SpecializedCollections.EmptyEnumerable(Of ReferenceLocation)()
         End Function
 
         Private Shared Function HasConflict(
@@ -146,9 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
             Dim expressionToInline = Await CreateExpressionToInlineAsync(updatedDocument, cancellationToken).ConfigureAwait(False)
 
             ' Collect the identifier names for each reference.
-            Dim local = semanticModel.GetDeclaredSymbol(modifiedIdentifier, cancellationToken)
-            Dim symbolRefs = Await SymbolFinder.FindReferencesAsync(local, updatedDocument.Project.Solution, cancellationToken).ConfigureAwait(False)
-            Dim references = symbolRefs.Single(Function(r) Equals(r.Definition, local)).Locations
+            Dim references = Await GetReferenceLocationsAsync(updatedDocument, modifiedIdentifier, cancellationToken).ConfigureAwait(False)
             Dim syntaxRoot = Await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             ' Collect the target statement for each reference.
@@ -286,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 Return localDeclaration.RemoveNode(modifiedIdentifier, SyntaxRemoveOptions.KeepEndOfLine)
             End If
 
-            throw ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Private Shared Function RemoveDefinition(modifiedIdentifier As ModifiedIdentifierSyntax, newBlock As SyntaxNode) As SyntaxNode

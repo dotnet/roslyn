@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -3200,7 +3199,7 @@ class C
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
-            var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+            var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), new BindingDiagnosticBag(diagnostics));
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
             var results = string.Join("\n",
                 query(tree.PreorderTraversal())
@@ -7178,8 +7177,8 @@ public class RubyTime
                 }
                 else
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, left, right, result, ref useSiteDiagnostics);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, left, right, result, ref discardedUseSiteInfo);
                 }
                 var signature = result.Best.Signature.Kind;
                 result.Free();
@@ -7478,7 +7477,8 @@ public class RubyTime
             Assert.Null(symbol2);
         }
 
-        [Fact()]
+        [Fact]
+        [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void CheckedUnaryIntrinsicSymbols()
         {
             var source =
@@ -7698,6 +7698,7 @@ class Module1
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
+        [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void BinaryIntrinsicSymbols2()
         {
             BinaryOperatorKind[] operators =

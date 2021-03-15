@@ -28,8 +28,11 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             IsPrimaryBranch = isPrimaryBranch;
         }
 
-        public static explicit operator SolutionKey(Solution solution)
-            => new(solution.Id, solution.FilePath, solution.BranchId == solution.Workspace.PrimaryBranchId);
+        public static SolutionKey ToSolutionKey(Solution solution)
+            => ToSolutionKey(solution.State);
+
+        public static SolutionKey ToSolutionKey(SolutionState solutionState)
+            => new(solutionState.Id, solutionState.FilePath, solutionState.BranchId == solutionState.Workspace.PrimaryBranchId);
 
         public SerializableSolutionKey Dehydrate()
             => new(Id, FilePath, IsPrimaryBranch);

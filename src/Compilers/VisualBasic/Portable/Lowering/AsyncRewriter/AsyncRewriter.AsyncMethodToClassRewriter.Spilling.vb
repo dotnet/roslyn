@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          fieldAccess.FieldSymbol,
                                                          fieldAccess.IsLValue,
                                                          fieldAccess.SuppressVirtualCalls,
-                                                         fieldAccess.ConstantsInProgressOpt,
+                                                         constantsInProgressOpt:=Nothing,
                                                          fieldAccess.Type)
 
                         If evaluateSideEffectsHere Then

@@ -15,15 +15,19 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly SyntheticBoundNodeFactory _factory;
         private readonly int _methodOrdinal;
+        private readonly int _localFunctionOrdinal;
         private NamedTypeSymbol? _currentDynamicCallSiteContainer;
         private int _callSiteIdDispenser;
 
-        internal LoweredDynamicOperationFactory(SyntheticBoundNodeFactory factory, int methodOrdinal)
+        internal LoweredDynamicOperationFactory(SyntheticBoundNodeFactory factory, int methodOrdinal, int localFunctionOrdinal = -1)
         {
             Debug.Assert(factory != null);
             _factory = factory;
             _methodOrdinal = methodOrdinal;
+            _localFunctionOrdinal = localFunctionOrdinal;
         }
+
+        public int MethodOrdinal => _methodOrdinal;
 
         // We could read the values of the following enums from metadata instead of hardcoding them here but 
         // - they can never change since existing programs have the values inlined and would be broken if the values changed their meaning,
@@ -639,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_currentDynamicCallSiteContainer is null)
             {
-                _currentDynamicCallSiteContainer = CreateCallSiteContainer(_factory, _methodOrdinal);
+                _currentDynamicCallSiteContainer = CreateCallSiteContainer(_factory, _methodOrdinal, _localFunctionOrdinal);
             }
 
             var containerDef = (SynthesizedContainer)_currentDynamicCallSiteContainer.OriginalDefinition;
@@ -689,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return temporariesBuilder.ToImmutableAndFree();
         }
 
-        private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal)
+        private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal, int localFunctionOrdinal)
         {
             Debug.Assert(factory.CompilationState.ModuleBuilderOpt is { });
             Debug.Assert(factory.TopLevelMethod is { });
@@ -697,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We don't reuse call-sites during EnC. Each edit creates a new container and sites.
             int generation = factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
-            var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, generation);
+            var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, localFunctionOrdinal, generation);
 
             var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod, factory.CurrentFunction);
             factory.AddNestedType(synthesizedContainer);
@@ -714,7 +718,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var fieldName = GeneratedNames.MakeDynamicCallSiteFieldName(_callSiteIdDispenser++);
             var delegateTypeOverContainerTypeParameters = methodToContainerTypeParametersMap.SubstituteNamedType(delegateTypeOverMethodTypeParameters);
-            var callSiteType = _factory.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T).Construct(new[] { delegateTypeOverContainerTypeParameters });
+            var callSiteType = _factory.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T);
+            _factory.Diagnostics.ReportUseSite(callSiteType, _factory.Syntax);
+            callSiteType = callSiteType.Construct(new[] { delegateTypeOverContainerTypeParameters });
             var field = new SynthesizedFieldSymbol(containerDefinition, callSiteType, fieldName, isPublic: true, isStatic: true);
             _factory.AddField(containerDefinition, field);
             Debug.Assert(_currentDynamicCallSiteContainer is { });
@@ -752,6 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateType = _factory.Compilation.GetWellKnownType(wkDelegateType);
                     if (!delegateType.HasUseSiteError)
                     {
+                        _factory.Diagnostics.AddDependencies(delegateType);
                         return delegateType.Construct(delegateSignature);
                     }
                 }

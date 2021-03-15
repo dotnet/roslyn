@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
                     ? $"{nameof(contextDocumentId)} was null."
                     : $"{nameof(contextDocumentId)} was not null.";
 
-                FatalError.ReportWithoutCrash(new InvalidOperationException("Could not retrieve document. " + message));
+                FatalError.ReportAndCatch(new InvalidOperationException("Could not retrieve document. " + message));
 
                 return null;
             }

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
             Debug.Assert(node.Indexer.IsIndexer || node.Indexer.IsIndexedProperty);
-            Debug.Assert((object)node.Indexer.GetOwnOrInheritedGetMethod() != null);
+            Debug.Assert((object?)node.Indexer.GetOwnOrInheritedGetMethod() != null);
 
             return VisitIndexerAccess(node, isLeftOfAssignment: false);
         }
@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ArgumentRefKindsOpt,
                 node.Expanded,
                 node.ArgsToParamsOpt,
+                node.DefaultArguments,
                 node.Type,
                 node,
                 isLeftOfAssignment);
@@ -109,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
+            BitVector defaultArguments,
             TypeSymbol type,
             BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
@@ -119,13 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, null, isLeftOfAssignment, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, null, isLeftOfAssignment, type);
+                    oldNodeOpt.Update(rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
+                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
             }
             else
             {
                 var getMethod = indexer.GetOwnOrInheritedGetMethod();
-                Debug.Assert((object)getMethod != null);
+                Debug.Assert(getMethod is not null);
 
                 // We have already lowered each argument, but we may need some additional rewriting for the arguments,
                 // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
@@ -134,7 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenArguments,
                     indexer,
-                    getMethod,
                     expanded,
                     argsToParamsOpt,
                     ref argumentRefKindsOpt,
@@ -251,6 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default,
                     expanded: false,
                     argsToParamsOpt: default,
+                    defaultArguments: default,
                     intIndexer.Type,
                     oldNodeOpt: null,
                     isLeftOfAssignment));

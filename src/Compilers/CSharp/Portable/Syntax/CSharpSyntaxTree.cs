@@ -712,11 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NullableContextState GetNullableContextState(int position)
             => GetNullableContextStateMap().GetContextState(position);
 
-        /// <summary>
-        /// Returns true if there are any nullable directives that enable annotations, warnings, or both.
-        /// This does not include any restore directives.
-        /// </summary>
-        internal bool HasNullableEnables() => GetNullableContextStateMap().HasNullableEnables();
+        internal bool? IsNullableAnalysisEnabled(TextSpan span) => GetNullableContextStateMap().IsNullableAnalysisEnabled(span);
 
         internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider, CancellationToken cancellationToken)
         {

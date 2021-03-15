@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     var result = serializer.ReadObject(stream) as IEnumerable<int>;
                     return result ?? Array.Empty<int>();
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     return ImmutableArray<int>.Empty;
                 }

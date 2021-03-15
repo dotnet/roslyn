@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
         // Internal only comparisons:
         internal static readonly SymbolEqualityComparer ConsiderEverything = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything);
         internal static readonly SymbolEqualityComparer IgnoreAll = new SymbolEqualityComparer(TypeCompareKind.AllIgnoreOptions);
+        internal static readonly SymbolEqualityComparer CLRSignature = new SymbolEqualityComparer(TypeCompareKind.CLRSignatureCompareOptions);
 
         internal TypeCompareKind CompareKind { get; }
 

@@ -6,10 +6,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -45,13 +45,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             lock (_gate)
             {
-                var result = ArrayBuilder<ReferencedSymbol>.GetInstance();
-                foreach (var kvp in _symbolToLocations)
-                {
-                    result.Add(new ReferencedSymbol(kvp.Key, kvp.Value.ToList()));
-                }
+                using var _ = ArrayBuilder<ReferencedSymbol>.GetInstance(out var result);
+                foreach (var (symbol, locations) in _symbolToLocations)
+                    result.Add(new ReferencedSymbol(symbol, locations.ToImmutableArray()));
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
         }
 

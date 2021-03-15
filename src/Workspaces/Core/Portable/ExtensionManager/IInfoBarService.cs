@@ -12,16 +12,9 @@ namespace Microsoft.CodeAnalysis.Extensions
     internal interface IInfoBarService : IWorkspaceService
     {
         /// <summary>
-        /// Show an info bar in the current active view.
-        ///
-        /// Different hosts can have different definitions on what active view means.
-        /// </summary>
-        void ShowInfoBarInActiveView(string message, params InfoBarUI[] items);
-
-        /// <summary>
         /// Show global info bar
         /// </summary>
-        void ShowInfoBarInGlobalView(string message, params InfoBarUI[] items);
+        void ShowInfoBar(string message, params InfoBarUI[] items);
     }
 
     internal struct InfoBarUI

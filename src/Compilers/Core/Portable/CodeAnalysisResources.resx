@@ -721,4 +721,7 @@
   <data name="WRN_InvalidGlobalSectionName_Title" xml:space="preserve">
     <value>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</value>
   </data>
+  <data name="ChangesMustBeWithinBoundsOfSourceText" xml:space="preserve">
+    <value>Changes must be within bounds of SourceText</value>
+  </data>
 </root>

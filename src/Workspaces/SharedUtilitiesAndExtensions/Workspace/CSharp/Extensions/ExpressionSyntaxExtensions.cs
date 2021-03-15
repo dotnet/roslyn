@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -28,6 +26,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // on a ref-expression node.  But this node isn't a true expression that be operated
             // on like with everything else.
             if (expression.IsKind(SyntaxKind.RefExpression))
+            {
+                return expression;
+            }
+
+            // Throw expressions are not permitted to be parenthesized:
+            //
+            //     "a" ?? throw new ArgumentNullException()
+            //
+            // is legal whereas
+            //
+            //     "a" ?? (throw new ArgumentNullException())
+            //
+            // is not.
+            if (expression.IsKind(SyntaxKind.ThrowExpression))
             {
                 return expression;
             }

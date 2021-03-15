@@ -46,7 +46,7 @@ namespace Microsoft.Cci
             _symWriterFactory = symWriterFactory;
             _hashAlgorithmNameOpt = hashAlgorithmNameOpt;
             _documentIndex = new Dictionary<DebugSourceDocument, int>();
-            _qualifiedNameCache = new Dictionary<object, string>();
+            _qualifiedNameCache = new Dictionary<object, string>(ReferenceEqualityComparer.Instance);
         }
 
         public void WriteTo(Stream stream)

@@ -9,7 +9,6 @@ Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -3078,7 +3077,8 @@ BC30662: Attribute 'NonSerializedAttribute' cannot be applied to 'e2' because th
 ]]></expected>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
         Public Sub TestIsSerializableProperty()
             Dim missing =
@@ -3555,7 +3555,7 @@ end structure
                     Assert.NotNull(hostProtectionAttr)
 
                     ' Verify type security attributes
-                    Dim type = DirectCast([module].GlobalNamespace.GetMember("EventDescriptor"), Microsoft.Cci.ITypeDefinition)
+                    Dim type = DirectCast([module].GlobalNamespace.GetMember("EventDescriptor").GetCciAdapter(), Microsoft.Cci.ITypeDefinition)
                     Debug.Assert(type.HasDeclarativeSecurity)
                     Dim typeSecurityAttributes As IEnumerable(Of Microsoft.Cci.SecurityAttribute) = type.SecurityAttributes
 

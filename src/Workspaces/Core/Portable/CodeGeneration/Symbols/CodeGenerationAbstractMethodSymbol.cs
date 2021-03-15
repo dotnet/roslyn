@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public abstract int Arity { get; }
+        public abstract System.Reflection.MethodImplAttributes MethodImplementationFlags { get; }
         public abstract bool ReturnsVoid { get; }
         public abstract bool ReturnsByRef { get; }
         public abstract bool ReturnsByRefReadonly { get; }
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
         public abstract IMethodSymbol PartialDefinitionPart { get; }
         public abstract IMethodSymbol PartialImplementationPart { get; }
+        public abstract bool IsPartialDefinition { get; }
 
         public NullableAnnotation ReceiverNullableAnnotation => ReceiverType.NullableAnnotation;
         public NullableAnnotation ReturnNullableAnnotation => ReturnType.NullableAnnotation;

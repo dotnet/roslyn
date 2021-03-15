@@ -25,17 +25,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal class InProcOrRemoteHostAnalyzerRunner
     {
         private readonly IAsynchronousOperationListener _asyncOperationListener;
-        private readonly IDocumentTrackingService? _documentTrackingService;
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; }
 
         public InProcOrRemoteHostAnalyzerRunner(
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
-            Workspace workspace,
             IAsynchronousOperationListener? operationListener = null)
         {
             AnalyzerInfoCache = analyzerInfoCache;
             _asyncOperationListener = operationListener ?? AsynchronousOperationListenerProvider.NullListener;
-            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
         }
 
         public Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeDocumentAsync(
@@ -144,16 +141,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 _ = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
                     (service, cancellationToken) => service.ReportAnalyzerPerformanceAsync(performanceInfo, count, cancellationToken),
-                    callbackTarget: null,
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex))
             {
                 // ignore all, this is fire and forget method
             }
         }
 
-        private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
+        private static async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
             DocumentAnalysisScope? documentAnalysisScope,
             Project project,
             CompilationWithAnalyzers compilationWithAnalyzers,
@@ -177,12 +173,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty;
             }
 
-            // Use high priority if we are force executing all analyzers for user action OR serving an active document request.
-            var isHighPriority = forceExecuteAllAnalyzers ||
-                documentAnalysisScope != null && _documentTrackingService?.TryGetActiveDocument() == documentAnalysisScope.TextDocument.Id;
-
             var argument = new DiagnosticArguments(
-                isHighPriority,
                 compilationWithAnalyzers.AnalysisOptions.ReportSuppressedDiagnostics,
                 logPerformanceInfo,
                 getTelemetryInfo,
@@ -195,7 +186,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var result = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, SerializableDiagnosticAnalysisResults>(
                 solution,
                 invocation: (service, solutionInfo, cancellationToken) => service.CalculateDiagnosticsAsync(solutionInfo, argument, cancellationToken),
-                callbackTarget: null,
                 cancellationToken).ConfigureAwait(false);
 
             if (!result.HasValue)

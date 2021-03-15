@@ -24,15 +24,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
 
             private ImmutableArray<TypeImportCompletionItemInfo> ItemInfos { get; }
 
+            /// <summary>
+            /// The number of items in this entry for types declared as public.
+            /// This is used to minimize memory allocation in case non-public items aren't needed.
+            /// </summary>
+            private int PublicItemCount { get; }
+
             private CacheEntry(
                 Checksum checksum,
                 string language,
-                ImmutableArray<TypeImportCompletionItemInfo> items)
+                ImmutableArray<TypeImportCompletionItemInfo> items,
+                int publicItemCount)
             {
                 Checksum = checksum;
                 Language = language;
 
                 ItemInfos = items;
+                PublicItemCount = publicItemCount;
             }
 
             public ImmutableArray<CompletionItem> GetItemsForContext(
@@ -45,6 +53,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
             {
                 var isSameLanguage = Language == language;
                 using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var builder);
+
+                // PERF: try set the capacity upfront to avoid allocation from Resize
+                if (!isAttributeContext)
+                {
+                    if (isInternalsVisible)
+                    {
+                        builder.EnsureCapacity(ItemInfos.Length);
+                    }
+                    else
+                    {
+                        builder.EnsureCapacity(PublicItemCount);
+                    }
+                }
 
                 foreach (var info in ItemInfos)
                 {
@@ -106,6 +127,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                 private readonly Checksum _checksum;
                 private readonly EditorBrowsableInfo _editorBrowsableInfo;
 
+                private int _publicItemCount;
+
                 private readonly ArrayBuilder<TypeImportCompletionItemInfo> _itemsBuilder;
 
                 public Builder(Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo)
@@ -123,7 +146,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                     return new CacheEntry(
                         _checksum,
                         _language,
-                        _itemsBuilder.ToImmutable());
+                        _itemsBuilder.ToImmutable(),
+                        _publicItemCount);
                 }
 
                 public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
@@ -158,6 +182,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
                         _genericTypeSuffix,
                         CompletionItemFlags.CachedAndExpanded,
                         extensionMethodData: null);
+
+                    if (isPublic)
+                        _publicItemCount++;
 
                     _itemsBuilder.Add(new TypeImportCompletionItemInfo(item, isPublic, isGeneric, isAttribute, isEditorBrowsableStateAdvanced));
                 }
