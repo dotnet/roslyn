@@ -52,19 +52,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 return Enumerable.Empty<TaggedText>();
             }
 
-            var description = await symbolDisplayService.ToDescriptionPartsAsync(codeProject.Solution.Workspace, semanticModel, 0, ImmutableArray.Create(symbol), SymbolDescriptionGroups.MainDescription, cancellationToken).ConfigureAwait(false);
+            var description = await symbolDisplayService.ToDescriptionPartsAsync(codeProject.Solution.Workspace, semanticModel, position: 0, ImmutableArray.Create(symbol), SymbolDescriptionGroups.MainDescription, cancellationToken).ConfigureAwait(false);
 
             var builder = new List<TaggedText>();
             builder.AddRange(description.ToTaggedText());
 
-            var documentation = symbol.GetDocumentationParts(semanticModel, 0, formatter, cancellationToken);
+            var documentation = symbol.GetDocumentationParts(semanticModel, position: 0, formatter, cancellationToken);
             if (documentation.Any())
             {
                 builder.AddLineBreak();
                 builder.AddRange(documentation);
             }
 
-            var remarksDocumentation = symbol.GetRemarksDocumentationParts(semanticModel, 0, formatter, cancellationToken);
+            var remarksDocumentation = symbol.GetRemarksDocumentationParts(semanticModel, position: 0, formatter, cancellationToken);
             if (remarksDocumentation.Any())
             {
                 builder.AddLineBreak();
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 builder.AddRange(remarksDocumentation);
             }
 
-            var returnsDocumentation = symbol.GetReturnsDocumentationParts(semanticModel, 0, formatter, cancellationToken);
+            var returnsDocumentation = symbol.GetReturnsDocumentationParts(semanticModel, position: 0, formatter, cancellationToken);
             if (returnsDocumentation.Any())
             {
                 builder.AddLineBreak();
@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
             }
 
-            var valueDocumentation = symbol.GetValueDocumentationParts(semanticModel, 0, formatter, cancellationToken);
+            var valueDocumentation = symbol.GetValueDocumentationParts(semanticModel, position: 0, formatter, cancellationToken);
             if (valueDocumentation.Any())
             {
                 builder.AddLineBreak();
