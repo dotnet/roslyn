@@ -13,11 +13,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
 {
-    [Export]
+    [ExportWorkspaceService(typeof(DotNetWatchEditAndContinueWorkspaceService))]
     [Shared]
     internal sealed class DotNetWatchEditAndContinueWorkspaceService : IWorkspaceService
     {
-        private readonly SolutionActiveStatementSpanProvider _nullSolutionActiveStatementSpanProvider = (_, __) => new(ImmutableArray<TextSpan>.Empty);
+        private readonly SolutionActiveStatementSpanProvider _nullSolutionActiveStatementSpanProvider = (_, _) => new(ImmutableArray<TextSpan>.Empty);
         private readonly IEditAndContinueWorkspaceService _workspaceService;
 
         [ImportingConstructor]
