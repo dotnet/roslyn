@@ -38,9 +38,8 @@ class TestClass
 @"using System;
 class TestClass
 {
-    void M(int x, int y, int z, int v) 
+    void M(int x, int y, int z, int m) 
     {
-        int m = {|Rename:v|};
     }
 }";
 
@@ -73,7 +72,7 @@ class TestClass
 {
     void M(int x, int y, int z)
     {
-        int m = [|x * y * z|];
+        int m = [|x * z * z|];
     }
 
     void M1(int x, int y, int z) 
@@ -86,14 +85,13 @@ class TestClass
 @"using System;
 class TestClass
 {
-    void M(int x, int y, int z, int v)
+    void M(int x, int y, int z, int m)
     {
-        int m = {|Rename:v|};
     }
 
     void M1(int x, int y, int z) 
     {
-        M(z, y, x, z * y * x);
+        M(z, y, x, z * x * x);
     }
 }";
 
@@ -127,9 +125,8 @@ class TestClass
     {
         int m = M2(x, z, x * z);
                         
-        int M2(int x, int y, int v)
+        int M2(int x, int y, int val)
         {
-            int val = {|Rename:v|};
             return val;
         }
     }
@@ -182,9 +179,8 @@ class TestClass
 @"using System;
 class TestClass
 {
-    void M(int x, int y, int z, int v)
+    void M(int x, int y, int z, int m)
     {
-        int m = {|Rename:v|};
     }
 
     void M1(int x, int y, int z) 
@@ -220,10 +216,9 @@ class TestClass
 @"using System;
 class TestClass
 {
-    void M(int x, int y, int z, int v)
+    void M(int x, int y, int z, int m)
     {
-        int m = {|Rename:v|};
-        int f = {|Rename:v|};
+        int f = m;
     }
 
     void M1(int x, int y, int z) 
@@ -252,14 +247,13 @@ class TestClass
 @"using System;
 class TestClass
 {
-    private int M_v(int x, int y, int z)
+    private int M_m(int x, int y, int z)
     {
         return x * y * z;
     }
 
-    void M(int x, int y, int z, int v) 
+    void M(int x, int y, int z, int m) 
     {
-        int m = {|Rename:v|};
     }
 }";
 
@@ -288,19 +282,18 @@ class TestClass
 @"using System;
 class TestClass
 {
-    private int M_v(int x, int y, int z)
+    private int M_m(int x, int y, int z)
     {
         return x * y * z;
     }
 
-    void M(int x, int y, int z, int v)
+    void M(int x, int y, int z, int m)
     {
-        int m = {|Rename:v|};
     }
 
     void M1(int x, int y, int z) 
     {
-        M(z, y, x, M_v(z, y, x));
+        M(z, y, x, M_m(z, y, x));
     }
 }";
 
@@ -330,20 +323,19 @@ class TestClass
 @"using System;
 class TestClass
 {
-    private int M_v(int x, int y, int z)
+    private int M_m(int x, int y, int z)
     {
         return x * y * z;
     }
 
-    void M(int x, int y, int z, int v)
+    void M(int x, int y, int z, int m)
     {
-        int m = {|Rename:v|};
-        int l = {|Rename:v|};
+        int l = m;
     }
 
     void M1(int x, int y, int z) 
     {
-        M(z, y, x, M_v(z, y, x));
+        M(z, y, x, M_m(z, y, x));
     }
 }";
 
@@ -372,9 +364,8 @@ class TestClass
         M(x, y, z, x * y * z);
     }
 
-    void M(int x, int y, int z, int v) 
+    void M(int x, int y, int z, int m) 
     {
-        int m = {|Rename:v|};
     }
 }";
 
@@ -408,9 +399,8 @@ class TestClass
         M(x, y, z, x * y * z);
     }
 
-    void M(int x, int y, int z, int v)
+    void M(int x, int y, int z, int m)
     {
-        int m = {|Rename:v|};
     }
 
     void M1(int x, int y, int z) 
@@ -439,9 +429,8 @@ class TestClass
 @"using System;
 class TestClass
 {
-    int M(int x, int y, int z, int v)
+    int M(int x, int y, int z, int m)
     {
-        int m = {|Rename:v|};
         return M(x, x, z, x * x * z);
     }
 }";
@@ -466,13 +455,100 @@ class TestClass
 @"using System;
 class TestClass
 {
-    int M(int x, int y, int z, int v)
+    int M(int x, int y, int z, int m)
     {
-        int m = {|Rename:v|};
         return M(x, x, M(x, y, z, x * y * z), x * x * M(x, y, z, x * y * z));
     }
 }";
             await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithParamsArg()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(params int[] args)
+    {
+        int m = [|args[0] + args[1]|];
+        return m;
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    int M(params int[] args, int m)
+    {
+        return m;
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithRecursiveCallTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y, int z)
+    {
+        int m = [|x * y * z|];
+        return M(x, x, z);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    private int M_m(int x, int y, int z)
+    {
+        return x * y * z;
+    }
+
+    int M(int x, int y, int z, int m)
+    {
+        return M(x, x, z, M_m(x, x, z));
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithNestedRecursiveCallTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y, int z)
+    {
+        int m = [|x * y * z|];
+        return M(x, x, M(x, y, x));
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    private int M_m(int x, int y, int z)
+    {
+        return x * y * z;
+    }
+
+    int M(int x, int y, int z, int m)
+    {
+        return M(x, x, M(x, y, x, M_m(x, y, x)), M_m(x, x, M(x, y, x, M_m(x, y, x))));
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
     }
 }

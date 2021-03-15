@@ -117,8 +117,20 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         protected static string GetNewParameterName(SemanticDocument document, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
+            if (IsExpressionRemovable(document, expression))
+            {
+                var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                return syntaxFacts.GetIdentifierOfVariableDeclarator(expression.Parent.Parent).ValueText;
+            }
+
             var semanticFacts = document.Document.GetRequiredLanguageService<ISemanticFactsService>();
             return semanticFacts.GenerateNameForExpression(document.SemanticModel, expression, capitalize: false, cancellationToken);
+        }
+
+        protected static bool IsExpressionRemovable(SemanticDocument document, TExpressionSyntax expression)
+        {
+            var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            return expression.Parent is not null && expression.Parent.Parent is not null && syntaxFacts.IsVariableDeclarator(expression.Parent.Parent);
         }
 
         /// <summary>
@@ -134,33 +146,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             return (IMethodSymbol)annotatedSemanticDocument.SemanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken)!;
-        }
-
-        /// <summary>
-        /// Rewrites the expression with the new parameter
-        /// </summary>
-        /// <param name="document"> The document after changing the method header </param>
-        /// <param name="newExpression"> The annotated expression </param>
-        /// <param name="parameterName"> The parameter name that was added to the method header </param>
-        /// <param name="allOccurrences"> Checks if we want to change all occurrences of the expression or just the original expression </param>
-        /// <returns></returns>
-        protected SyntaxNode ConvertExpressionWithNewParameter(SemanticDocument document,
-                                                               TExpressionSyntax newExpression,
-                                                               string parameterName,
-                                                               bool allOccurrences,
-                                                               CancellationToken cancellationToken)
-        {
-            var generator = SyntaxGenerator.GetGenerator(document.Document);
-            var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var parameterNameSyntax = (TIdentifierNameSyntax)generator.IdentifierName(parameterName);
-            var scope = newExpression.FirstAncestorOrSelf<SyntaxNode>(s => IsMethodDeclaration(s), true);
-
-            RoslynDebug.AssertNotNull(scope);
-            var matches = FindMatches(document, newExpression, document, scope, allOccurrences, cancellationToken);
-
-            var newInnerMostBlock = Rewrite(
-                document, newExpression, parameterNameSyntax, document, scope, allOccurrences, cancellationToken);
-            return newInnerMostBlock;
         }
 
         /// <summary>
@@ -275,22 +260,41 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                                               bool allOccurrences, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(semanticDocument.Document);
-            var matches = FindMatches(semanticDocument, expression, semanticDocument, scope, allOccurrences, cancellationToken);
+            var matches = FindMatches(semanticDocument, expression, semanticDocument, scope, allOccurrences, cancellationToken).ToArray();
             var parameterNameSyntax = (TIdentifierNameSyntax)generator.IdentifierName(parameterName);
             // Parenthesize the variable, and go and replace anything we find with it.
             // NOTE: we do not want elastic trivia as we want to just replace the existing code 
             // as is, while preserving the trivia there.  We do not want to update it.
-            var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var expressionToken = syntaxFacts.GetIdentifierOfIdentifierName(parameterNameSyntax);
-            var updatedExpressionToken = expressionToken.WithAdditionalAnnotations(RenameAnnotation.Create());
-            parameterNameSyntax = parameterNameSyntax.ReplaceToken(expressionToken, updatedExpressionToken);
 
             var replacement = generator.AddParentheses(parameterNameSyntax, includeElasticTrivia: false)
                                          .WithAdditionalAnnotations(Formatter.Annotation);
 
-            foreach (var match in matches)
+            var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            for (var i = 0; i < matches.Length; i++)
             {
-                editor.ReplaceNode(match, replacement);
+                if (i == 0)
+                {
+                    if (IsExpressionRemovable(semanticDocument, expression))
+                    {
+                        var localDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => syntaxFacts.IsLocalDeclarationStatement(node));
+                        editor.RemoveNode(localDeclaration);
+                    }
+                    else
+                    {
+                        var expressionToken = syntaxFacts.GetIdentifierOfIdentifierName(parameterNameSyntax);
+                        var updatedExpressionToken = expressionToken.WithAdditionalAnnotations(RenameAnnotation.Create());
+                        parameterNameSyntax = parameterNameSyntax.ReplaceToken(expressionToken, updatedExpressionToken);
+
+                        replacement = generator.AddParentheses(parameterNameSyntax, includeElasticTrivia: false)
+                                                     .WithAdditionalAnnotations(Formatter.Annotation);
+                        editor.ReplaceNode(matches[i], replacement);
+                    }
+                }
+                else
+                {
+                    editor.ReplaceNode(matches[i], replacement);
+                }
             }
         }
 
@@ -327,6 +331,23 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var editor = new SyntaxEditor(root, generator);
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                    if (trampoline)
+                    {
+                        foreach (var invocationExpression in invocationExpressionList)
+                        {
+                            editor.ReplaceNode(invocationExpression, (currentInvocation, _) =>
+                            {
+                                var invocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvocation);
+                                var methodName = generator.IdentifierName(newMethodIdentifier);
+                                var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
+                                var newMethodInvocation = generator.InvocationExpression(methodName, invocationArguments);
+                                var allArguments = invocationArguments.Add(newMethodInvocation);
+                                return editor.Generator.InvocationExpression(expressionFromInvocation, allArguments);
+                            });
+                        }
+                    }
+
                     if (document.Id == semanticDocument.Document.Id)
                     {
                         if (trampoline)
@@ -338,31 +359,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                             await IntroduceNewMethodOverloadAsync(semanticDocument, expression, methodSymbol, editor, cancellationToken).ConfigureAwait(false);
                         }
 
+                        var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsMethodDeclaration(node), ascendOutOfTrivia: true)!;
+                        UpdateExpressionInOriginalFunction(semanticDocument, expression, oldMethodDeclaration, parameterName, editor, allOccurrences, cancellationToken);
+
                         var parameterType = semanticDocument.SemanticModel.GetTypeInfo(expression, cancellationToken).Type ?? semanticDocument.SemanticModel.Compilation.ObjectType;
                         var refKind = syntaxFacts.GetRefKindOfArgument(expression);
-                        var newMethodDeclaration = ConvertExpressionWithNewParameter(semanticDocument, expression, parameterName, allOccurrences, cancellationToken);
-                        var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsMethodDeclaration(node), ascendOutOfTrivia: true)!;
-
-                        var parameter = new List<SyntaxNode>
-                        {
-                            generator.ParameterDeclaration(name: parameterName, type: generator.TypeExpression(parameterType), refKind: refKind)
-                        };
-
-                        newMethodDeclaration = generator.AddParameters(newMethodDeclaration, parameter);
-                        editor.ReplaceNode(oldMethodDeclaration, newMethodDeclaration);
-                    }
-
-                    if (trampoline)
-                    {
-                        foreach (var invocationExpression in invocationExpressionList)
-                        {
-                            var invocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
-                            var methodName = generator.IdentifierName(newMethodIdentifier);
-                            var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-                            var newMethodInvocation = generator.InvocationExpression(methodName, invocationArguments);
-                            var allArguments = invocationArguments.Add(newMethodInvocation);
-                            editor.ReplaceNode(invocationExpression, editor.Generator.InvocationExpression(expressionFromInvocation, allArguments));
-                        }
+                        var parameter = generator.ParameterDeclaration(name: parameterName, type: generator.TypeExpression(parameterType), refKind: refKind);
+                        editor.AddParameter(oldMethodDeclaration, parameter);
                     }
 
                     var newRoot = editor.GetChangedRoot();
@@ -386,7 +389,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             var expressionCopy = expression;
             var mappingDictionary = MapExpressionToParameters(semanticDocument, expression, cancellationToken);
-            expression = expression.TrackNodes(mappingDictionary.Values);
+            expression = expression.TrackNodes(mappingDictionary.Keys);
             var identifiers = expression.DescendantNodes().Where(node => node is TIdentifierNameSyntax);
 
             var firstCallSite = callSites.Keys.First();
@@ -414,30 +417,33 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     {
                         var newArgumentExpression = expression;
                         var invocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
-
-                        var associatedIdentifiers = invocationArguments.Select(argument => semanticFacts.FindParameterForArgument(invocationSemanticModel, argument, cancellationToken))
-                        .Select(p => mappingDictionary.ContainsKey(p) ? mappingDictionary[p] : null).ToArray();
+                        var variablesInExpression = expressionCopy.DescendantNodes().OfType<TIdentifierNameSyntax>();
 
                         editor.ReplaceNode(invocationExpression, (currentInvo, _) =>
                         {
-                            var invocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvo);
-                            for (var i = 0; i < invocationArguments.ToArray().Length; i++)
+                            var updatedInvocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvo);
+
+                            foreach (var variable in variablesInExpression)
                             {
-                                var identifier = associatedIdentifiers[i];
-                                var argument = invocationArguments[i];
-
-                                if (identifier is null)
+                                if (mappingDictionary.TryGetValue(variable, out var mappedParameter))
                                 {
-                                    continue;
+                                    for (var i = 0; i < invocationArguments.ToArray().Length; i++)
+                                    {
+                                        var argumentParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, invocationArguments.ToArray()[i], cancellationToken);
+                                        if (argumentParameter.Equals(mappedParameter, SymbolEqualityComparer.Default))
+                                        {
+                                            var updatedInvocationArgument = updatedInvocationArguments.ToArray()[i];
+                                            var argumentExpression = syntaxFacts.GetExpressionOfArgument(updatedInvocationArgument);
+                                            var parenthesizedArgumentExpression = generator.AddParentheses(argumentExpression, includeElasticTrivia: false);
+                                            newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(variable), parenthesizedArgumentExpression);
+                                            break;
+                                        }
+                                    }
                                 }
-
-                                var argumentExpression = syntaxFacts.GetExpressionOfArgument(argument);
-                                var parenthesizedArgumentExpression = generator.AddParentheses(argumentExpression, includeElasticTrivia: false);
-                                newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(identifier), parenthesizedArgumentExpression);
                             }
 
                             var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-                            var allArguments = AddArgumentToArgumentList(invocationArguments, newArgumentExpression.WithAdditionalAnnotations(Formatter.Annotation));
+                            var allArguments = AddArgumentToArgumentList(updatedInvocationArguments, newArgumentExpression.WithAdditionalAnnotations(Formatter.Annotation));
                             var newInvo = editor.Generator.InvocationExpression(expressionFromInvocation, allArguments);
                             return newInvo;
                         });
@@ -465,9 +471,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// <summary>
         /// Ties the identifiers within the expression back to their associated parameter
         /// </summary>
-        public static Dictionary<IParameterSymbol, TIdentifierNameSyntax> MapExpressionToParameters(SemanticDocument document, TExpressionSyntax expression, CancellationToken cancellationToken)
+        public static Dictionary<TIdentifierNameSyntax, IParameterSymbol> MapExpressionToParameters(SemanticDocument document, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
-            var nameToParameterDict = new Dictionary<IParameterSymbol, TIdentifierNameSyntax>();
+            var nameToParameterDict = new Dictionary<TIdentifierNameSyntax, IParameterSymbol>();
             var variablesInExpression = expression.DescendantNodes().OfType<TIdentifierNameSyntax>();
             var semanticModel = document.SemanticModel;
 
@@ -476,7 +482,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var symbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
                 if (symbol != null && symbol is IParameterSymbol parameterSymbol)
                 {
-                    nameToParameterDict.Add(parameterSymbol, variable);
+                    if (!nameToParameterDict.ContainsKey(variable))
+                    {
+                        nameToParameterDict.Add(variable, parameterSymbol);
+                    }
                 }
             }
             return nameToParameterDict;
@@ -592,37 +601,5 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 => operation is IMemberReferenceOperation memberReferenceOperation &&
                     memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
         }
-
-        protected TNode Rewrite<TNode>(SemanticDocument originalDocument,
-                                       TExpressionSyntax expressionInOriginal,
-                                       TIdentifierNameSyntax variableName,
-                                       SemanticDocument currentDocument,
-                                       TNode withinNodeInCurrent,
-                                       bool allOccurrences,
-                                       CancellationToken cancellationToken)
-            where TNode : SyntaxNode
-        {
-            var generator = SyntaxGenerator.GetGenerator(originalDocument.Document);
-            var matches = FindMatches(originalDocument, expressionInOriginal, currentDocument, withinNodeInCurrent, allOccurrences, cancellationToken);
-
-            // Parenthesize the variable, and go and replace anything we find with it.
-            // NOTE: we do not want elastic trivia as we want to just replace the existing code 
-            // as is, while preserving the trivia there.  We do not want to update it.
-            var syntaxFacts = originalDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var expressionToken = syntaxFacts.GetIdentifierOfIdentifierName(variableName);
-            var updatedExpressionToken = expressionToken.WithAdditionalAnnotations(RenameAnnotation.Create());
-            variableName = variableName.ReplaceToken(expressionToken, updatedExpressionToken);
-
-            var replacement = generator.AddParentheses(variableName, includeElasticTrivia: false)
-                                         .WithAdditionalAnnotations(Formatter.Annotation);
-
-            return RewriteCore(withinNodeInCurrent, replacement, matches);
-        }
-
-        protected abstract TNode RewriteCore<TNode>(
-            TNode node,
-            SyntaxNode replacementNode,
-            ISet<TExpressionSyntax> matches)
-            where TNode : SyntaxNode;
     }
 }

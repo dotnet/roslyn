@@ -46,15 +46,5 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override bool IsMethodDeclaration(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement) || node.IsKind(SyntaxKind.MethodDeclaration) || node.IsKind(SyntaxKind.SimpleLambdaExpression);
-
-        protected override TNode RewriteCore<TNode>(
-            TNode node,
-            SyntaxNode replacementNode,
-            ISet<ExpressionSyntax> matches)
-        {
-            var newNode = (TNode?)Rewriter.Visit(node, replacementNode, matches);
-            RoslynDebug.AssertNotNull(newNode);
-            return newNode;
-        }
     }
 }

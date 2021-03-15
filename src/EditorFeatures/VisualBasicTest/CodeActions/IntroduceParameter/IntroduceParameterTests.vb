@@ -55,7 +55,7 @@ End Class"
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
-        M(z, y, x, z * y* x)
+        M(z, y, x, z * y * x)
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=0)
@@ -113,7 +113,7 @@ End Class"
 
     Sub M1(x As Integer, y As Integer, z As Integer)
         M(z, y, x, z * y* x)
-        M(a + b, 5, x, (a + b) * 5* x)
+        M(a + b, 5, x, (a + b) * 5 * x)
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=0)
@@ -140,7 +140,7 @@ End Class"
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
-        M(z, y, x, z * y* x)
+        M(z, y, x, z * y * x)
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=1)
