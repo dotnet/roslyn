@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 return IsSymbolReassigned(symbol);
             }
 
-            bool IsSymbolReassigned(ISymbol symbol)
+            bool IsSymbolReassigned([NotNullWhen(true)] ISymbol? symbol)
             {
                 // Note: we don't need to test range variables, and they are never reassignable.
                 if (symbol is not IParameterSymbol and not ILocalSymbol)
