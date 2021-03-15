@@ -20,105 +20,123 @@ using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.VisualBasic;
 using System.Text;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
     public class OptionRoundTripTests : CSharpTestBase
     {
-        public static readonly object[][] s_platforms = ((Platform[])Enum.GetValues(typeof(Platform))).Select(p => new[] { (object)p }).ToArray();
+        public static readonly CSharpCompilationOptions BaseCSharpCompliationOptions = TestOptions.DebugExe.WithDeterministic(true);
 
-        [Theory]
-        [MemberData(nameof(s_platforms))]
-        public void Platform_RoundTrip(Platform platform)
+        // https://github.com/dotnet/roslyn/issues/51873
+        // Once the above issue is fixed please remove the embedVbCoreRuntime option as that is working around
+        // the bug. Tests need to individually decide if they want to support this.
+        public static readonly VisualBasicCompilationOptions BaseVisualBasicCompliationOptions = new VisualBasicCompilationOptions(
+            outputKind: OutputKind.ConsoleApplication,
+            deterministic: true,
+            embedVbCoreRuntime: true);
+
+        public static readonly object[][] Platforms = ((Platform[])Enum.GetValues(typeof(Platform))).Select(p => new[] { (object)p }).ToArray();
+
+        private static void VerifyRoundTrip<TCompilation>(TCompilation original)
+            where TCompilation : Compilation
         {
-            const string path = "test";
-
-            var original = CreateCompilation(
-                "class C { static void Main() { } }",
-                options: TestOptions.DebugExe.WithPlatform(platform));
+            Assert.True(original.SyntaxTrees.All(x => !string.IsNullOrEmpty(x.FilePath)));
+            Assert.True(original.Options.Deterministic);
 
             original.VerifyDiagnostics();
-
             var originalBytes = original.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded));
-            var peReader = new PEReader(originalBytes);
-            Assert.True(peReader.TryOpenAssociatedPortablePdb(path, path => null, out var provider, out _));
-            var pdbReader = provider!.GetMetadataReader();
+            var originalReader = new PEReader(originalBytes);
+            var originalPdbReader = originalReader.GetEmbeddedPdbMetadataReader();
 
             var factory = LoggerFactory.Create(configure => { });
-            var logger = factory.CreateLogger(path);
-            // TODO: shouldn't need to pass a logger.
-            var bc = new BuildConstructor(logger);
-
-            var optionsReader = new CompilationOptionsReader(logger, pdbReader, peReader);
-
-            var sources = original.SyntaxTrees.Select(st =>
+            var logger = factory.CreateLogger("RoundTripVerification");
+            var buildConstructor = new BuildConstructor(logger);
+            var optionsReader = new CompilationOptionsReader(logger, originalPdbReader, originalReader);
+            var assemblyFileName = original.AssemblyName!;
+            if (typeof(TCompilation) == typeof(CSharpCompilation))
             {
-                var text = st.GetText();
-                return new ResolvedSource(OnDiskPath: null, text, new SourceFileInfo(path, text.ChecksumAlgorithm, text.GetChecksum().ToArray(), text, embeddedCompressedHash: null));
-            }).ToImmutableArray();
-            var references = original.References.ToImmutableArray();
-            var compilation = bc.CreateCompilation(optionsReader, path, sources, references);
+                var assemblyFileExtension = original.Options.OutputKind switch
+                {
+                    OutputKind.DynamicallyLinkedLibrary => ".dll",
+                    OutputKind.ConsoleApplication => ".exe",
+                    _ => throw new InvalidOperationException(),
+                };
+                assemblyFileName += assemblyFileExtension;
+            }
 
-            Assert.Equal(platform, compilation.Options.Platform);
+            var rebuild = buildConstructor.CreateCompilation(
+                assemblyFileName,
+                optionsReader,
+                original.SyntaxTrees.Select(x => SyntaxTreeInfo.Create(x)).ToImmutableArray(),
+                metadataReferences: original.References.ToImmutableArray());
 
-            // TODO: we should be able to get byte-for-byte equality here.
-            // it will probably be necessary to expose some diagnostic facility in the Rebuild API to figure out what's wrong here.
+            Assert.IsType<TCompilation>(rebuild);
+            VerifyOptions(original.Options, rebuild.Options);
 
-            // using var rebuildStream = new MemoryStream();
-            // var result = BuildConstructor.Emit(rebuildStream, new FileInfo(path), optionsReader, compilation, logger, CancellationToken.None);
-            // Assert.Empty(result.Diagnostics);
-            // Assert.True(result.Success);
-            // Assert.Equal(originalBytes.ToArray(), rebuildStream.ToArray());
+            using var rebuildStream = new MemoryStream();
+            var result = BuildConstructor.Emit(
+                rebuildStream,
+                optionsReader,
+                rebuild,
+                embeddedTexts: ImmutableArray<EmbeddedText>.Empty,
+                CancellationToken.None);
+            Assert.Empty(result.Diagnostics);
+            Assert.True(result.Success);
+
+            Assert.Equal(originalBytes.ToArray(), rebuildStream.ToArray());
+        }
+
+        private static void VerifyOptions<TOptions>(TOptions originalOptions, TOptions rebuildOptions)
+            where TOptions : CompilationOptions
+        {
+            var type = typeof(TOptions);
+            foreach (var propertyInfo in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                // Several options are expected to be different and they are special cased here.
+                if (propertyInfo.Name == nameof(CompilationOptions.GeneralDiagnosticOption) ||
+                    propertyInfo.Name == nameof(CompilationOptions.ModuleName) ||
+                    propertyInfo.Name == nameof(CompilationOptions.MainTypeName) ||
+                    propertyInfo.Name == nameof(CompilationOptions.WarningLevel))
+                {
+                    continue;
+                }
+
+                var originalValue = propertyInfo.GetValue(originalOptions);
+                var rebuildValue = propertyInfo.GetValue(rebuildOptions);
+
+                Assert.Equal(originalValue, rebuildValue);
+            }
         }
 
         [Theory]
-        [MemberData(nameof(s_platforms))]
+        [MemberData(nameof(Platforms))]
+        public void Platform_RoundTrip(Platform platform)
+        {
+            var original = CreateCompilation(
+                "class C { static void Main() { } }",
+                options: BaseCSharpCompliationOptions.WithPlatform(platform),
+                sourceFileName: "test.cs");
+
+            VerifyRoundTrip(original);
+        }
+
+        [Theory]
+        [MemberData(nameof(Platforms))]
         public void Platform_RoundTrip_VB(Platform platform)
         {
-            const string path = "test";
-
             var original = CreateVisualBasicCompilation(
-                path,
-                compilationOptions: new VisualBasicCompilationOptions(outputKind: OutputKind.ConsoleApplication, platform: platform),
+                compilationOptions: BaseVisualBasicCompliationOptions.WithPlatform(platform).WithModuleName("test"),
                 encoding: Encoding.UTF8,
                 code: @"
 Class C
     Shared Sub Main()
     End Sub
-End Class");
+End Class",
+                assemblyName: "test",
+                sourceFileName: "test.vb");
 
-            original.VerifyDiagnostics();
-
-            var originalBytes = original.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded));
-            var peReader = new PEReader(originalBytes);
-            Assert.True(peReader.TryOpenAssociatedPortablePdb(path, path => null, out var provider, out _));
-            var pdbReader = provider!.GetMetadataReader();
-
-            var factory = LoggerFactory.Create(configure => { });
-            var logger = factory.CreateLogger(path);
-            // TODO: shouldn't need to pass a logger.
-            var bc = new BuildConstructor(logger);
-
-            var optionsReader = new CompilationOptionsReader(logger, pdbReader, peReader);
-
-            var sources = original.SyntaxTrees.Select(st =>
-            {
-                var text = st.GetText();
-                return new ResolvedSource(OnDiskPath: null, text, new SourceFileInfo(path, text.ChecksumAlgorithm, text.GetChecksum().ToArray(), text, embeddedCompressedHash: null));
-            }).ToImmutableArray();
-            var references = original.References.ToImmutableArray();
-            var compilation = bc.CreateCompilation(optionsReader, path, sources, references);
-
-            Assert.Equal(platform, compilation.Options.Platform);
-
-            // TODO: we should be able to get byte-for-byte equality here.
-            // it will probably be necessary to expose some diagnostic facility in the Rebuild API to figure out what's wrong here.
-
-            // using var rebuildStream = new MemoryStream();
-            // var result = BuildConstructor.Emit(rebuildStream, new FileInfo(path), optionsReader, compilation, logger, CancellationToken.None);
-            // Assert.Empty(result.Diagnostics);
-            // Assert.True(result.Success);
-            // Assert.Equal(originalBytes.ToArray(), rebuildStream.ToArray());
+            VerifyRoundTrip(original);
         }
     }
 }
