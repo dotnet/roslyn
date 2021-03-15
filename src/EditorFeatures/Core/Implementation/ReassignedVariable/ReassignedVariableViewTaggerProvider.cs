@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.UnderlineReassignment
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             this.AssertIsForeground();
-            const TaggerDelay Delay = TaggerDelay.Medium;
+            const TaggerDelay Delay = TaggerDelay.Short;
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
             // SemanticChange notification. 
