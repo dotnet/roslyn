@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string Text = "text";
 
         public const string StaticSymbol = "static symbol";
+        public const string ReassignedVariable = "reassigned variable";
 
         public const string PreprocessorText = "preprocessor text";
         public const string Punctuation = "punctuation";
