@@ -101,6 +101,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.UnderlineReassignment
             if (document == null)
                 return;
 
+            var option = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var enabled = option.GetOption(ReassignedVariableOptions.Underline);
+            if (!enabled)
+                return;
+
+            // Don't force the entire compilation to be ready, just to determine if something is assigned or not.  It's
+            // expensive, and not actually needed to answer the question accurately enough.
             document = document.WithFrozenPartialSemantics(cancellationToken);
             var service = document.GetLanguageService<IReassignedVariableService>();
             if (service == null)
