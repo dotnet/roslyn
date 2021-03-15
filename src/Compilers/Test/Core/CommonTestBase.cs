@@ -363,6 +363,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 compilationOptions = new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
             }
 
+            compilationOptions = compilationOptions.WithParseOptions(parseOptions);
             var references = new List<MetadataReference>();
             if (referencedAssemblies == null)
             {

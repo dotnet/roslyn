@@ -28,13 +28,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     {
         public static readonly CSharpCompilationOptions BaseCSharpCompliationOptions = TestOptions.DebugExe.WithDeterministic(true);
 
-        // https://github.com/dotnet/roslyn/issues/51873
-        // Once the above issue is fixed please remove the embedVbCoreRuntime option as that is working around
-        // the bug. Tests need to individually decide if they want to support this.
         public static readonly VisualBasicCompilationOptions BaseVisualBasicCompliationOptions = new VisualBasicCompilationOptions(
             outputKind: OutputKind.ConsoleApplication,
-            deterministic: true,
-            embedVbCoreRuntime: true);
+            deterministic: true);
 
         public static readonly object[][] Platforms = ((Platform[])Enum.GetValues(typeof(Platform))).Select(p => new[] { (object)p }).ToArray();
 
@@ -72,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 metadataReferences: original.References.ToImmutableArray());
 
             Assert.IsType<TCompilation>(rebuild);
-            VerifyOptions(original.Options, rebuild.Options);
+            VerifyCompilationOptions(original.Options, rebuild.Options);
 
             using var rebuildStream = new MemoryStream();
             var result = BuildConstructor.Emit(
@@ -83,21 +79,49 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 CancellationToken.None);
             Assert.Empty(result.Diagnostics);
             Assert.True(result.Success);
-
             Assert.Equal(originalBytes.ToArray(), rebuildStream.ToArray());
         }
 
-        private static void VerifyOptions<TOptions>(TOptions originalOptions, TOptions rebuildOptions)
-            where TOptions : CompilationOptions
+        private static void VerifyCompilationOptions(CompilationOptions originalOptions, CompilationOptions rebuildOptions)
         {
-            var type = typeof(TOptions);
-            foreach (var propertyInfo in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            var type = originalOptions.GetType();
+            foreach (var propertyInfo in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            {
+                switch (propertyInfo.Name)
+                {
+                    case nameof(CompilationOptions.GeneralDiagnosticOption):
+                    case nameof(CompilationOptions.Features):
+                    case nameof(CompilationOptions.ModuleName):
+                    case nameof(CompilationOptions.MainTypeName):
+                    case nameof(CompilationOptions.ConcurrentBuild):
+                    case nameof(CompilationOptions.WarningLevel):
+                        // Can be different and are special cased
+                        break;
+                    case nameof(VisualBasicCompilationOptions.ParseOptions):
+                        {
+                            var originalValue = propertyInfo.GetValue(originalOptions)!;
+                            var rebuildValue = propertyInfo.GetValue(rebuildOptions)!;
+                            VerifyParseOptions((ParseOptions)originalValue, (ParseOptions)rebuildValue);
+                        }
+                        break;
+                    default:
+                        {
+                            var originalValue = propertyInfo.GetValue(originalOptions);
+                            var rebuildValue = propertyInfo.GetValue(rebuildOptions);
+                            Assert.Equal(originalValue, rebuildValue);
+                        }
+                        break;
+                }
+            }
+        }
+
+        private static void VerifyParseOptions(ParseOptions originalOptions, ParseOptions rebuildOptions)
+        {
+            var type = originalOptions.GetType();
+            foreach (var propertyInfo in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 // Several options are expected to be different and they are special cased here.
-                if (propertyInfo.Name == nameof(CompilationOptions.GeneralDiagnosticOption) ||
-                    propertyInfo.Name == nameof(CompilationOptions.ModuleName) ||
-                    propertyInfo.Name == nameof(CompilationOptions.MainTypeName) ||
-                    propertyInfo.Name == nameof(CompilationOptions.WarningLevel))
+                if (propertyInfo.Name == nameof(VisualBasicParseOptions.SpecifiedLanguageVersion))
                 {
                     continue;
                 }
