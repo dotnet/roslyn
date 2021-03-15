@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (applyIsGlobalFilter == false)
                     {
-                        // define all of the global usings. They may be used by the target of a regular using
+                        // Define all of the global usings. They may cause conflicts, etc.
                         globalUsingAliasesMap = declaringSymbol.GetGlobalUsingAliasesMap(basesBeingResolved);
                         globalUsingNamespacesOrTypes = declaringSymbol.GetGlobalUsingNamespacesOrTypes(basesBeingResolved);
                         globalUsingAliases = GetGlobalUsingAliases(declaringSymbol, declarationSyntax, basesBeingResolved);
