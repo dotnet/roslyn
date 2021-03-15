@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Text;
@@ -21,14 +22,17 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
     internal abstract class AbstractReassignedVariableService<
         TParameterSyntax,
         TVariableDeclaratorSyntax,
+        TVariableSyntax,
         TIdentifierNameSyntax>
         : IReassignedVariableService
         where TParameterSyntax : SyntaxNode
         where TVariableDeclaratorSyntax : SyntaxNode
+        where TVariableSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
+        protected abstract void AddVariables(TVariableDeclaratorSyntax declarator, ref TemporaryArray<TVariableSyntax> temporaryArray);
         protected abstract SyntaxNode GetParentScope(SyntaxNode localDeclaration);
-        protected abstract SyntaxNode GetMethodBlock(SyntaxNode methodDeclaration);
+        protected abstract SyntaxToken GetIdentifierOfVariable(TVariableSyntax variable);
         protected abstract DataFlowAnalysis? AnalyzeMethodBodyDataFlow(SemanticModel semanticModel, SyntaxNode methodBlock, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<TextSpan>> GetReassignedVariablesAsync(
@@ -86,6 +90,11 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
             void ProcessIdentifier(TIdentifierNameSyntax identifier)
             {
+                // Don't bother even looking at identifiers that aren't standalone (i.e. they're not on the left of some
+                // expression).  These could not refer to locals or fields.
+                if (syntaxFacts.GetStandaloneExpression(identifier) != identifier)
+                    return;
+
                 var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
                 if (symbol == null)
                     return;
@@ -101,11 +110,17 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     result.Add(syntaxFacts.GetIdentifierOfParameter(parameterSyntax).Span);
             }
 
-            void ProcessVariable(TVariableDeclaratorSyntax variable)
+            void ProcessVariable(TVariableDeclaratorSyntax declarator)
             {
-                var local = semanticModel.GetDeclaredSymbol(variable, cancellationToken);
-                if (IsSymbolReassigned(local))
-                    result.Add(syntaxFacts.GetIdentifierOfVariableDeclarator(variable).Span);
+                using var variables = TemporaryArray<TVariableSyntax>.Empty;
+                AddVariables(declarator, ref variables.AsRef());
+
+                foreach (var variable in variables)
+                {
+                    var local = semanticModel.GetDeclaredSymbol(variable, cancellationToken);
+                    if (IsSymbolReassigned(local))
+                        result.Add(GetIdentifierOfVariable(variable).Span);
+                }
             }
 
             bool IsSymbolReassigned([NotNullWhen(true)] ISymbol? symbol)
@@ -150,8 +165,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 if (methodDeclaration.SyntaxTree != semanticModel.SyntaxTree)
                     return false;
 
-                var methodBlock = GetMethodBlock(methodDeclaration);
-                var dataFlow = AnalyzeMethodBodyDataFlow(semanticModel, methodBlock, cancellationToken);
+                var dataFlow = AnalyzeMethodBodyDataFlow(semanticModel, methodDeclaration, cancellationToken);
                 if (dataFlow == null)
                     return false;
 

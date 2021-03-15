@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReassignedVariable;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
     internal class CSharpReassignedVariableService : AbstractReassignedVariableService<
         ParameterSyntax,
         VariableDeclaratorSyntax,
+        VariableDeclaratorSyntax,
         IdentifierNameSyntax>
     {
         [ImportingConstructor]
@@ -26,10 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
         {
         }
 
+        protected override void AddVariables(VariableDeclaratorSyntax declarator, ref TemporaryArray<VariableDeclaratorSyntax> variables)
+            => variables.Add(declarator);
+
+        protected override SyntaxToken GetIdentifierOfVariable(VariableDeclaratorSyntax variable)
+            => variable.Identifier;
+
         protected override DataFlowAnalysis? AnalyzeMethodBodyDataFlow(
-            SemanticModel semanticModel, SyntaxNode methodBlock, CancellationToken cancellationToken)
+            SemanticModel semanticModel, SyntaxNode methodDeclaration, CancellationToken cancellationToken)
         {
-            var body = InitializeParameterHelpers.GetBody(methodBlock);
+            var body = InitializeParameterHelpers.GetBody(methodDeclaration);
             if (body is BlockSyntax or ExpressionSyntax)
             {
                 return semanticModel.AnalyzeDataFlow(body);
@@ -43,9 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
                 throw ExceptionUtilities.UnexpectedValue(body);
             }
         }
-
-        protected override SyntaxNode GetMethodBlock(SyntaxNode methodDeclaration)
-            => methodDeclaration;
 
         protected override SyntaxNode GetParentScope(SyntaxNode localDeclaration)
         {
