@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -197,10 +195,26 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 var parentScope = GetParentScope(localDeclaration);
 
                 // Now, walk the scope, looking for all usages of the local.  See if any are a reassignment.
-                foreach (var id in parentScope.DescendantNodes().OfType<TIdentifierNameSyntax>())
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+                stack.Push(parentScope);
+
+                while (stack.Count != 0)
                 {
+                    var current = stack.Last();
+                    stack.RemoveLast();
+
+                    foreach (var child in current.ChildNodesAndTokens())
+                    {
+                        if (child.IsNode)
+                            stack.Add(child.AsNode()!);
+                    }
+
                     // Ignore any nodes before the local decl.
-                    if (id.SpanStart <= localDeclaration.SpanStart)
+                    if (current.SpanStart <= localDeclaration.SpanStart)
+                        continue;
+
+                    // Only examine identifiers.
+                    if (current is not TIdentifierNameSyntax id)
                         continue;
 
                     // Ignore identifiers that don't match the local name.
