@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.ReassignedVariable
+namespace Microsoft.CodeAnalysis.ReassignedVariable
 {
     internal class ReassignedVariableOptions
     {

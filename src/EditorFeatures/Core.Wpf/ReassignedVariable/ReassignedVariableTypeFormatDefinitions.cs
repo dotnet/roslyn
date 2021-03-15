@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReassignedVariable
     internal sealed class ReassignedVariableTypeFormatDefinitions
     {
         [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.ReassignedVariable)]
-        [Name(ClassificationTypeNames.ReassignedVariable)]
+        [ClassificationType(ClassificationTypeNames = ReassignedVariableClassificationTypeDefinitions.ReassignedVariable)]
+        [Name(ReassignedVariableClassificationTypeDefinitions.ReassignedVariable)]
         [Order(After = Priority.High)]
         [UserVisible(false)]
         [ExcludeFromCodeCoverage]
