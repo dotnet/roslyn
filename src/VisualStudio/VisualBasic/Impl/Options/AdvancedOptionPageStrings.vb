@@ -283,5 +283,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
             ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
+
+        Public ReadOnly Property Show_Inheritance_Margin As String =
+            ServicesVSResources.Show_Inheritance_Margin
+
+        Public ReadOnly Property Inheritance_Margin_experimental As String =
+            ServicesVSResources.Inheritance_Margin_experimental
     End Module
 End Namespace

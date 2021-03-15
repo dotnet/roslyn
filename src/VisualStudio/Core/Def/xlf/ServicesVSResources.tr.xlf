@@ -332,6 +332,11 @@
         <target state="translated">Depo içinde dizini oluşturulmuş</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inheritance_Margin_experimental">
+        <source>Inheritance Margin (experimental)</source>
+        <target state="new">Inheritance Margin (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_Hints_experimental">
         <source>Inline Hints (experimental)</source>
         <target state="translated">Satır İçi İpuçları (deneysel)</target>
@@ -870,6 +875,11 @@
       <trans-unit id="Select_members_colon">
         <source>Select members:</source>
         <target state="translated">Üye seçin:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_Inheritance_Margin">
+        <source>Show Inheritance Margin</source>
+        <target state="new">Show Inheritance Margin</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">

@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Experiments
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Fading
 Imports Microsoft.CodeAnalysis.ImplementType
+Imports Microsoft.CodeAnalysis.InheritanceMargin
 Imports Microsoft.CodeAnalysis.InlineHints
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Remote
@@ -115,6 +116,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(ShowHintsForEverythingElse, InlineHintsOptions.ForOtherParameters, LanguageNames.VisualBasic)
             BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptions.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
             BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptions.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
+
+            BindToOption(ShowInheritanceMargin, InheritanceMarginOptions.ShowInheritanceMargin, LanguageNames.VisualBasic)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -149,6 +152,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Private Sub DisplayInlineParameterNameHints_Unchecked()
             Me.OptionStore.SetOption(InlineHintsOptions.EnabledForParameters, LanguageNames.VisualBasic, False)
             UpdateInlineHintsOptions()
+        End Sub
+
+        Private Sub ShowInheritanceMargin_Checked(sender As object, e As RoutedEventArgs)
+            OptionStore.SetOption(InheritanceMarginOptions.ShowInheritanceMargin, LanguageNames.VisualBasic, True)
+        End Sub
+
+        Private Sub ShowInheritanceMargin_Unchecked(sender As object, e As RoutedEventArgs)
+            OptionStore.SetOption(InheritanceMarginOptions.ShowInheritanceMargin, LanguageNames.VisualBasic, False)
         End Sub
     End Class
 End Namespace

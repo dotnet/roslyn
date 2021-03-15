@@ -46,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         {
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener),
-                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle));
+                TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
+                TaggerEventSources.OnOptionChanged(subjectBuffer, InheritanceMarginOptions.ShowInheritanceMargin, TaggerDelay.OnIdle));
         }
 
         protected override async Task ProduceTagsAsync(

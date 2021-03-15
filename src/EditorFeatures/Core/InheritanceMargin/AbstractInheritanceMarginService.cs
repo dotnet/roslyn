@@ -16,6 +16,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Document document,
             CancellationToken cancellationToken)
         {
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var featureEnabled = options.GetOption(InheritanceMarginOptions.ShowInheritanceMargin);
+            if (!featureEnabled)
+            {
+                return ImmutableArray<InheritanceMemberItem>.Empty;
+            }
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var allDeclarationNodes = GetMembers(root);
 
@@ -32,56 +39,59 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             foreach (var memberDeclarationNode in allDeclarationNodes)
             {
                 var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
-                var mappingSymbolAndProject = await GetMappingSymbolAsync(
-                    document,
-                    member,
-                    cancellationToken).ConfigureAwait(false);
-
-                if (mappingSymbolAndProject != null)
+                if (member != null)
                 {
-                    if (member is INamedTypeSymbol { TypeKind: not TypeKind.Error } namedTypeSymbol)
+                    var mappingSymbolAndProject = await GetMappingSymbolAsync(
+                        document,
+                        member,
+                        cancellationToken).ConfigureAwait(false);
+
+                    if (mappingSymbolAndProject != null)
                     {
-                        var baseTypes = GetImplementingSymbols(namedTypeSymbol);
-                        var derivedTypes = await GetImplementedSymbolsAsync(
-                            document,
-                            namedTypeSymbol,
-                            cancellationToken).ConfigureAwait(false);
-                        if (!(baseTypes.IsEmpty && derivedTypes.IsEmpty))
+                        if (member is INamedTypeSymbol { TypeKind: not TypeKind.Error } namedTypeSymbol)
                         {
-                            var lineNumber = lines.GetLineFromPosition(memberDeclarationNode.SpanStart).LineNumber;
-                            var item = await CreateInheritanceMemberInfoAsync(
+                            var baseTypes = GetImplementingSymbols(namedTypeSymbol);
+                            var derivedTypes = await GetImplementedSymbolsAsync(
                                 document,
                                 namedTypeSymbol,
-                                lineNumber,
-                                baseSymbols: baseTypes,
-                                derivedTypesSymbols: derivedTypes,
                                 cancellationToken).ConfigureAwait(false);
-                            builder.Add(item);
+                            if (!(baseTypes.IsEmpty && derivedTypes.IsEmpty))
+                            {
+                                var lineNumber = lines.GetLineFromPosition(memberDeclarationNode.SpanStart).LineNumber;
+                                var item = await CreateInheritanceMemberInfoAsync(
+                                    document,
+                                    namedTypeSymbol,
+                                    lineNumber,
+                                    baseSymbols: baseTypes,
+                                    derivedTypesSymbols: derivedTypes,
+                                    cancellationToken).ConfigureAwait(false);
+                                builder.Add(item);
+                            }
                         }
-                    }
 
-                    if (member is IMethodSymbol or IEventSymbol or IPropertySymbol)
-                    {
-                        var overridenSymbols = await GetOverridenSymbolsAsync(document, member, cancellationToken).ConfigureAwait(false);
-                        var overridingMembers = GetOverridingSymbols(member);
-                        var implementedMembers = await GetImplementedSymbolsAsync(document, member, cancellationToken).ConfigureAwait(false);
-                        var implementingMembers = GetImplementingSymbols(member);
-                        if (!(overridenSymbols.IsEmpty
-                            && !overridingMembers.IsEmpty
-                            && !implementingMembers.IsEmpty
-                            && !implementedMembers.IsEmpty))
+                        if (member is IMethodSymbol or IEventSymbol or IPropertySymbol)
                         {
-                            var lineNumber = lines.GetLineFromPosition(memberDeclarationNode.SpanStart).LineNumber;
-                            var item = await CreateInheritanceMemberInfoForMemberAsync(
-                                document,
-                                member,
-                                lineNumber,
-                                implementingMembers: implementingMembers,
-                                implementedMembers: implementedMembers,
-                                overridenMembers: overridenSymbols,
-                                overridingMembers: overridingMembers,
-                                cancellationToken).ConfigureAwait(false);
-                            builder.Add(item);
+                            var overridenSymbols = await GetOverridenSymbolsAsync(document, member, cancellationToken).ConfigureAwait(false);
+                            var overridingMembers = GetOverridingSymbols(member);
+                            var implementedMembers = await GetImplementedSymbolsAsync(document, member, cancellationToken).ConfigureAwait(false);
+                            var implementingMembers = GetImplementingSymbols(member);
+                            if (!(overridenSymbols.IsEmpty
+                                && !overridingMembers.IsEmpty
+                                && !implementingMembers.IsEmpty
+                                && !implementedMembers.IsEmpty))
+                            {
+                                var lineNumber = lines.GetLineFromPosition(memberDeclarationNode.SpanStart).LineNumber;
+                                var item = await CreateInheritanceMemberInfoForMemberAsync(
+                                    document,
+                                    member,
+                                    lineNumber,
+                                    implementingMembers: implementingMembers,
+                                    implementedMembers: implementedMembers,
+                                    overridenMembers: overridenSymbols,
+                                    overridingMembers: overridingMembers,
+                                    cancellationToken).ConfigureAwait(false);
+                                builder.Add(item);
+                            }
                         }
                     }
                 }
