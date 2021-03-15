@@ -95,10 +95,22 @@ namespace BuildValidator
             var builder = ImmutableArray.CreateBuilder<MetadataReference>(references.Length);
             foreach (var reference in references)
             {
-                var file = GetCachedReferencePath(reference);
-                builder.Add(MetadataReference.CreateFromFile(
-                    file,
-                    new MetadataReferenceProperties(
+                var filePath = GetCachedReferencePath(reference);
+                using var fileStream = File.OpenRead(filePath);
+
+                // This is deliberately using an ordinal comparison here. The name of the assembly is written out 
+                // into the PDB. Rebuild will only succeed if the provided reference has the same name with the
+                // same casing
+                if (Path.GetFileName(filePath) != reference.Name)
+                {
+                    filePath = Path.Combine(Path.GetDirectoryName(filePath)!, reference.Name);
+                }
+
+
+                builder.Add(MetadataReference.CreateFromStream(
+                    fileStream,
+                    filePath: filePath,
+                    properties: new MetadataReferenceProperties(
                         kind: MetadataImageKind.Assembly,
                         aliases: reference.ExternAliases,
                         embedInteropTypes: reference.EmbedInteropTypes)));

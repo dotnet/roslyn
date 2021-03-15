@@ -68,7 +68,7 @@ namespace BuildValidator
         {
             get
             {
-                EnsureRebuildReslt(RebuildResult.CompilationError);
+                EnsureRebuildResult(RebuildResult.CompilationError);
                 return _diagnostics;
             }
         }
@@ -77,7 +77,7 @@ namespace BuildValidator
         {
             get
             {
-                EnsureRebuildReslt(RebuildResult.MiscError);
+                EnsureRebuildResult(RebuildResult.MiscError);
                 Debug.Assert(_message is object);
                 return _message;
             }
@@ -169,7 +169,7 @@ namespace BuildValidator
             }
         }
 
-        private void EnsureRebuildReslt(RebuildResult result)
+        private void EnsureRebuildResult(RebuildResult result)
         {
             if (Result != result)
             {
