@@ -17,17 +17,17 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ReassignedVariable
 {
     internal abstract class AbstractReassignedVariableService<
-        TParameterDeclaration,
-        TVariableDeclarator,
+        TParameterSyntax,
+        TVariableDeclaratorSyntax,
         TIdentifierNameSyntax>
         : IReassignedVariableService
-        where TParameterDeclaration : SyntaxNode
-        where TVariableDeclarator : SyntaxNode
+        where TParameterSyntax : SyntaxNode
+        where TVariableDeclaratorSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
         protected abstract SyntaxNode GetParentScope(SyntaxNode localDeclaration);
         protected abstract SyntaxNode GetMethodBlock(SyntaxNode methodDeclaration);
-        protected abstract DataFlowAnalysis AnalyzeMethodBodyDataFlow(SyntaxNode methodBlock, CancellationToken cancellationToken);
+        protected abstract DataFlowAnalysis? AnalyzeMethodBodyDataFlow(SemanticModel semanticModel, SyntaxNode methodBlock, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<TextSpan>> GetReassignedVariablesAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     result.Add(identifier.Span);
             }
 
-            var parameterDecls = root.DescendantNodes(span).OfType<TParameterDeclaration>();
+            var parameterDecls = root.DescendantNodes(span).OfType<TParameterSyntax>();
             foreach (var decl in parameterDecls)
             {
                 var parameter = semanticModel.GetDeclaredSymbol(decl, cancellationToken) as IParameterSymbol;
@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 var isReassigned = await IsReassignedAsync(
                     semanticFacts, syntaxFacts, semanticModel, symbolToIsReassigned, parameter, cancellationToken).ConfigureAwait(false);
                 if (isReassigned)
-                    result.Add(syntaxFacts.GetIdentifierOfParameterDeclaration(decl).Span);
+                    result.Add(syntaxFacts.GetIdentifierOfParameter(decl).Span);
             }
 
-            var variableDecls = root.DescendantNodes(span).OfType<TVariableDeclarator>();
+            var variableDecls = root.DescendantNodes(span).OfType<TVariableDeclaratorSyntax>();
             foreach (var decl in variableDecls)
             {
                 var local = semanticModel.GetDeclaredSymbol(decl, cancellationToken);
@@ -155,7 +155,9 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 return false;
 
             var methodBlock = GetMethodBlock(methodDeclaration);
-            var dataFlow = AnalyzeMethodBodyDataFlow(methodBlock, cancellationToken);
+            var dataFlow = AnalyzeMethodBodyDataFlow(semanticModel, methodBlock, cancellationToken);
+            if (dataFlow == null)
+                return false;
 
             foreach (var methodParam in method.Parameters)
                 symbolToIsReassigned[methodParam] = dataFlow.WrittenInside.Contains(methodParam);

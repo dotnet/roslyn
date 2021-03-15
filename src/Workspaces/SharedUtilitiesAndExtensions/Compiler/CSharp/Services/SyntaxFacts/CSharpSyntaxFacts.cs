@@ -1402,6 +1402,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Identifier;
 
+        public SyntaxToken GetIdentifierOfParameter(SyntaxNode node)
+            => ((ParameterSyntax)node).Identifier;
+
         public bool IsLocalFunctionStatement([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement);
 

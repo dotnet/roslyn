@@ -1457,6 +1457,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, VariableDeclaratorSyntax).Names.Last().Identifier
         End Function
 
+        Public Function GetIdentifierOfParameter(node As SyntaxNode) As SyntaxToken Implements ISyntaxFacts.GetIdentifierOfParameter
+            Return DirectCast(node, ParameterSyntax).Identifier.Identifier
+        End Function
+
         Public Function IsLocalFunctionStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsLocalFunctionStatement
             ' VB does not have local functions
             Return False
