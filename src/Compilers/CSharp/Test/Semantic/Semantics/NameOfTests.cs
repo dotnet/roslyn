@@ -1508,5 +1508,42 @@ public class C
             var option = TestOptions.ReleaseDll;
             CreateCompilation(source, options: option).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TestNameofDeclaredVar()
+        {
+            var source = @"
+using static System.Console;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        string s1 = nameof(s1);
+        WriteLine(s1);
+        var s2 = nameof(s2);
+        WriteLine(s2);
+        dynamic s3 = nameof(s3);
+        WriteLine(s3);
+
+/*
+        var i1 = nameof(i1).Length;
+        WriteLine(i1);
+        var i2 = (nameof(i2) + nameof(i1)).Length;
+        WriteLine(i2);
+        var i3 = (nameof(i2) + nameof(i3)).Length;
+        WriteLine(i3);
+*/
+    }
+}
+";
+            var option = TestOptions.ReleaseExe;
+            var compilation = CreateCompilationWithCSharp(source, options: option).VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"s1
+s2
+s3
+");
+        }
     }
 }

@@ -1684,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Local:
                     {
                         var localSymbol = (LocalSymbol)symbol;
-                        TypeSymbol type;
+                        TypeSymbol type = null;
                         bool isNullableUnknown;
 
                         if (ReportSimpleProgramLocalReferencedOutsideOfTopLevelStatement(node, localSymbol, diagnostics))
@@ -1756,25 +1756,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
                             isNullableUnknown = true;
                         }
-                        else if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node) == true)
-                        {
-                            // A var (type-inferred) local variable has been used in its own initialization (the "forbidden zone").
-                            // There are many cases where this occurs, including:
-                            //
-                            // 1. var x = M(out x);
-                            // 2. M(out var x, out x);
-                            // 3. var (x, y) = (y, x);
-                            //
-                            // localSymbol.ForbiddenDiagnostic provides a suitable diagnostic for whichever case applies.
-                            //
-                            diagnostics.Add(localSymbol.ForbiddenDiagnostic, node.Location, node);
-                            type = new ExtendedErrorTypeSymbol(
-                                this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
-                            isNullableUnknown = true;
-                        }
                         else
                         {
-                            type = localSymbol.Type;
+                            if ((localSymbol as SourceLocalSymbol)?.IsVar == true)
+                            {
+                                // We need to somehow know whether the candidate bound symbol is a nameof expression or a method invocation
+                                // If nameof becomes a non-contextual keyword, this can be greatly improved
+                                var descendants = localSymbol.ForbiddenZone?.DescendantNodes();
+                                bool isForbidden = false;
+                                if (descendants is not null)
+                                {
+                                    foreach (var d in descendants)
+                                    {
+                                        if (d.IsEquivalentTo(node))
+                                        {
+                                            var invocationExpression = d.Parent.Parent.Parent as InvocationExpressionSyntax;
+                                            if (invocationExpression is null || invocationExpression.ArgumentList.Arguments.Count != 1)
+                                            {
+                                                isForbidden = true;
+                                                break;
+                                            }
+
+                                            var identifier = (invocationExpression.Expression as IdentifierNameSyntax);
+                                            if (identifier is null)
+                                            {
+                                                isForbidden = true;
+                                                break;
+                                            }
+
+                                            var nameofText = SyntaxFacts.GetText(SyntaxKind.NameOfKeyword);
+                                            if (identifier.Identifier.ValueText != nameofText)
+                                            {
+                                                isForbidden = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (isForbidden)
+                                {
+                                    // A var (type-inferred) local variable has been used in its own initialization (the "forbidden zone").
+                                    // There are many cases where this occurs, including:
+                                    //
+                                    // 1. var x = M(out x);
+                                    // 2. M(out var x, out x);
+                                    // 3. var (x, y) = (y, x);
+                                    //
+                                    // localSymbol.ForbiddenDiagnostic provides a suitable diagnostic for whichever case applies.
+                                    //
+                                    diagnostics.Add(localSymbol.ForbiddenDiagnostic, node.Location, node);
+                                    type = new ExtendedErrorTypeSymbol(
+                                        this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+                                    isNullableUnknown = true;
+                                }
+                                else
+                                {
+                                    // It's a nameof expression that should not be considred forbidden
+                                    var equalsClause = localSymbol.ForbiddenZone as EqualsValueClauseSyntax;
+                                    if (equalsClause is null)
+                                        type = Compilation.GetSpecialType(SpecialType.System_String);
+                                    else
+                                    {
+                                        type = Compilation.GetSpecialType(SpecialType.System_String);
+
+                                        // This recursively calls this method and results in an assertion exception before a SO happens
+                                        //type = BindValue(equalsClause.Value, BindingDiagnosticBag.Discarded, BindValueKind.RValue).Type;
+                                    }
+                                }
+                            }
+
+                            type ??= localSymbol.Type;
                             isNullableUnknown = false;
                             if (IsBadLocalOrParameterCapture(localSymbol, type, localSymbol.RefKind))
                             {
