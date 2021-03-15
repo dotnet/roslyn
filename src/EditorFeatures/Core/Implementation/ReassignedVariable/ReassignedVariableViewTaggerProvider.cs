@@ -9,6 +9,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
@@ -16,8 +17,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -92,12 +97,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.UnderlineReassignment
             Debug.Fail("Unsupported call to ProduceTagsSynchronously");
         }
 
-        protected override Task ProduceTagsAsync(TaggerContext<ClassificationTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
+        protected override async Task ProduceTagsAsync(TaggerContext<ClassificationTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
-            context.AddTag(new TagSpan<ClassificationTag>(
-                new SnapshotSpan(spanToTag.SnapshotSpan.Snapshot, 0, 5),
-                new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeNames.ReassignedVariable))));
-            return Task.CompletedTask;
+            var document = spanToTag.Document;
+            if (document == null)
+                return;
+
+            var service = document.GetLanguageService<IReassignedVariableService>();
+            if (service == null)
+                return;
+
+            var snapshotSpan = spanToTag.SnapshotSpan;
+            var reassignedVariables = await service.GetReassignedVariablesAsync(
+                document, snapshotSpan.Span.ToTextSpan(), context.CancellationToken).ConfigureAwait(false);
+
+            var tag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeNames.ReassignedVariable));
+            foreach (var variable in reassignedVariables)
+                context.AddTag(new TagSpan<ClassificationTag>(variable.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
         }
+    }
+
+    internal interface IReassignedVariableService : ILanguageService
+    {
+        Task<ImmutableArray<TextSpan>> GetReassignedVariablesAsync(Document document, TextSpan span, CancellationToken cancellationToken);
     }
 }
