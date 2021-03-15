@@ -323,12 +323,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.Kind() == SyntaxKind.OpenBracketToken &&
                 token.Parent.IsKind(SyntaxKind.AttributeList))
             {
-                var isRecordParameter = token.Parent.IsParentKind(SyntaxKind.Parameter) &&
+                if (token.Parent.IsParentKind(SyntaxKind.Parameter) &&
                     token.Parent.Parent.IsParentKind(SyntaxKind.ParameterList) &&
-                    token.Parent.Parent.Parent.IsParentKind(SyntaxKind.RecordDeclaration);
+                    token.Parent.Parent.Parent.IsParentKind(SyntaxKind.RecordDeclaration))
+                {
+                    return true;
+                }
 
-                return isRecordParameter || SyntaxTree.IsMemberDeclarationContext(
-                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken);
+                if (SyntaxTree.IsMemberDeclarationContext(
+                    token.SpanStart, contextOpt: null, validModifiers: null, validTypeDeclarations: validTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+                {
+                    return true;
+                }
             }
 
             return false;
