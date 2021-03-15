@@ -231,7 +231,7 @@ namespace BuildValidator
             using var summary = logger.BeginScope("Summary");
             using (logger.BeginScope("Successful rebuilds"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.Outcome == CompilationOutcome.Success))
+                foreach (var diff in assembliesCompiled.Where(a => a.Result == RebuildResult.Success))
                 {
                     logger.LogInformation($"\t{diff.AssemblyInfo.FilePath}");
                 }
@@ -239,7 +239,7 @@ namespace BuildValidator
 
             using (logger.BeginScope("Rebuilds with output differences"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.Outcome == CompilationOutcome.BinaryDifference))
+                foreach (var diff in assembliesCompiled.Where(a => a.Result == RebuildResult.BinaryDifference))
                 {
                     logger.LogWarning($"\t{diff.AssemblyInfo.FilePath}");
                     success = false;
@@ -248,7 +248,7 @@ namespace BuildValidator
 
             using (logger.BeginScope("Rebuilds with compilation errors"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.Outcome == CompilationOutcome.CompilationError))
+                foreach (var diff in assembliesCompiled.Where(a => a.Result == RebuildResult.CompilationError))
                 {
                     logger.LogError($"\t{diff.AssemblyInfo.FilePath} had {diff.Diagnostics.Length} diagnostics.");
                     success = false;
@@ -257,7 +257,7 @@ namespace BuildValidator
 
             using (logger.BeginScope("Rebuilds with missing references"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.Outcome == CompilationOutcome.MissingReferences))
+                foreach (var diff in assembliesCompiled.Where(a => a.Result == RebuildResult.MissingReferences))
                 {
                     logger.LogError($"\t{diff.AssemblyInfo.FilePath}");
                     success = false;
@@ -266,9 +266,10 @@ namespace BuildValidator
 
             using (logger.BeginScope("Rebuilds with other issues"))
             {
-                foreach (var diff in assembliesCompiled.Where(a => a.Outcome == CompilationOutcome.MiscError))
+                foreach (var diff in assembliesCompiled.Where(a => a.Result == RebuildResult.MiscError))
                 {
                     logger.LogError($"{diff.AssemblyInfo.FilePath} {diff.MiscErrorMessage}");
+                    success = false;
                 }
             }
 
@@ -333,7 +334,7 @@ namespace BuildValidator
                 }
                 logResolvedSources();
 
-                Compilation? compilation = null;
+                Compilation compilation;
                 try
                 {
                     compilation = buildConstructor.CreateCompilation(

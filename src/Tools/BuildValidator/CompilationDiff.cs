@@ -25,7 +25,7 @@ using Microsoft.Metadata.Tools;
 
 namespace BuildValidator
 {
-    internal enum CompilationOutcome
+    internal enum RebuildResult
     {
         Success,
         MissingReferences,
@@ -60,15 +60,15 @@ namespace BuildValidator
         private readonly string? _message;
 
         public AssemblyInfo AssemblyInfo { get; }
-        public CompilationOutcome Outcome { get; }
+        public RebuildResult Result { get; }
 
-        public bool Succeeded => Outcome == CompilationOutcome.Success;
+        public bool Succeeded => Result == RebuildResult.Success;
 
         public ImmutableArray<Diagnostic> Diagnostics
         {
             get
             {
-                Debug.Assert(Outcome == CompilationOutcome.CompilationError);
+                EnsureRebuildReslt(RebuildResult.CompilationError);
                 return _diagnostics;
             }
         }
@@ -77,7 +77,7 @@ namespace BuildValidator
         {
             get
             {
-                Debug.Assert(Outcome == CompilationOutcome.MiscError);
+                EnsureRebuildReslt(RebuildResult.MiscError);
                 Debug.Assert(_message is object);
                 return _message;
             }
@@ -85,7 +85,7 @@ namespace BuildValidator
 
         private CompilationDiff(
             AssemblyInfo assemblyInfo,
-            CompilationOutcome outcome,
+            RebuildResult outcome,
             ImmutableArray<Diagnostic> diagnostics = default,
             byte[]? originalPortableExecutableBytes = null,
             byte[]? rebuildPortableExecutableBytes = null,
@@ -95,7 +95,7 @@ namespace BuildValidator
             string? message = null)
         {
             AssemblyInfo = assemblyInfo;
-            Outcome = outcome;
+            Result = outcome;
             _diagnostics = diagnostics;
             _originalPortableExecutableBytes = originalPortableExecutableBytes;
             _rebuildPortableExecutableBytes = rebuildPortableExecutableBytes;
@@ -105,12 +105,12 @@ namespace BuildValidator
             _message = message;
         }
 
-        public static unsafe CompilationDiff CreateMiscError(
+        public static CompilationDiff CreateMiscError(
             AssemblyInfo assemblyInfo,
             string message) =>
             new CompilationDiff(
                 assemblyInfo,
-                CompilationOutcome.MiscError,
+                RebuildResult.MiscError,
                 message: message);
 
         public static unsafe CompilationDiff CreateMissingReferences(
@@ -119,7 +119,7 @@ namespace BuildValidator
             ImmutableArray<MetadataReferenceInfo> references) =>
             new CompilationDiff(
                 assemblyInfo,
-                CompilationOutcome.MissingReferences,
+                RebuildResult.MissingReferences,
                 localReferenceResolver: resolver,
                 references: references);
 
@@ -146,7 +146,7 @@ namespace BuildValidator
 
                 return new CompilationDiff(
                     assemblyInfo,
-                    CompilationOutcome.CompilationError,
+                    RebuildResult.CompilationError,
                     diagnostics: emitResult.Diagnostics);
             }
             else
@@ -155,13 +155,13 @@ namespace BuildValidator
                 var rebuildBytes = rebuildPeStream.ToArray();
                 if (originalBytes.SequenceEqual(rebuildBytes))
                 {
-                    return new CompilationDiff(assemblyInfo, CompilationOutcome.Success);
+                    return new CompilationDiff(assemblyInfo, RebuildResult.Success);
                 }
                 else
                 {
                     return new CompilationDiff(
                         assemblyInfo,
-                        CompilationOutcome.BinaryDifference,
+                        RebuildResult.BinaryDifference,
                         originalPortableExecutableBytes: originalBytes,
                         rebuildPortableExecutableBytes: rebuildBytes,
                         rebuildCompilation: producedCompilation);
@@ -169,30 +169,38 @@ namespace BuildValidator
             }
         }
 
+        private void EnsureRebuildReslt(RebuildResult result)
+        {
+            if (Result != result)
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
         public unsafe void WriteArtifacts(string debugPath, ILogger logger)
         {
-            if (Outcome == CompilationOutcome.Success)
+            if (Result == RebuildResult.Success)
             {
                 return;
             }
 
             Directory.CreateDirectory(debugPath);
-            switch (Outcome)
+            switch (Result)
             {
-                case CompilationOutcome.BinaryDifference:
+                case RebuildResult.BinaryDifference:
                     writeBinaryDiffArtifacts();
                     break;
-                case CompilationOutcome.CompilationError:
+                case RebuildResult.CompilationError:
                     writeDiagnostics(Diagnostics);
                     break;
-                case CompilationOutcome.MissingReferences:
+                case RebuildResult.MissingReferences:
                     writeMissingReferences();
                     break;
-                case CompilationOutcome.MiscError:
+                case RebuildResult.MiscError:
                     // No artifacts to write here
                     break;
                 default:
-                    throw new Exception($"Unexpected value {Outcome}");
+                    throw new Exception($"Unexpected value {Result}");
             }
 
             void writeDiagnostics(ImmutableArray<Diagnostic> diagnostics)
@@ -227,15 +235,16 @@ namespace BuildValidator
 
             void writeBinaryDiffArtifacts()
             {
-                Debug.Assert(Outcome == CompilationOutcome.BinaryDifference);
+                Debug.Assert(Result == RebuildResult.BinaryDifference);
                 Debug.Assert(_originalPortableExecutableBytes is object);
                 Debug.Assert(_rebuildPortableExecutableBytes is object);
                 Debug.Assert(_rebuildCompilation is object);
 
-                fixed (byte* ptr = _rebuildPortableExecutableBytes)
+                fixed (byte* originalPtr = _originalPortableExecutableBytes)
+                fixed (byte* rebuildPtr = _rebuildPortableExecutableBytes)
                 {
-                    using var originalPeReader = new PEReader(ptr, _originalPortableExecutableBytes.Length);
-                    using var rebuildPeReader = new PEReader(ptr, _rebuildPortableExecutableBytes.Length);
+                    using var originalPeReader = new PEReader(originalPtr, _originalPortableExecutableBytes.Length);
+                    using var rebuildPeReader = new PEReader(rebuildPtr, _rebuildPortableExecutableBytes.Length);
                     var originalInfo = new BuildInfo(
                         AssemblyBytes: _originalPortableExecutableBytes,
                         AssemblyReader: originalPeReader,
