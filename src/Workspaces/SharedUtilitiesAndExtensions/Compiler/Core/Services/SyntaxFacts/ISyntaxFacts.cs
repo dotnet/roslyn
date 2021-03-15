@@ -255,6 +255,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode? node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
+        SyntaxToken GetIdentifierOfParameterDeclaration(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
         SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node);
 

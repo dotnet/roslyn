@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
@@ -21,7 +17,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -55,15 +50,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.UnderlineReassignment
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             this.AssertIsForeground();
-            const TaggerDelay Delay = TaggerDelay.Short;
+            const TaggerDelay Delay = TaggerDelay.Medium;
 
             // Note: we don't listen for OnTextChanged.  They'll get reported by the ViewSpan changing and also the
             // SemanticChange notification. 
             // 
-            // Note: when the user scrolls, we will try to reclassify as soon as possible.  That way we appear
+            // Note: when the user scrolls, we will try to reclassify variables as soon as possible.  That way we appear
             // unclassified for a very short amount of time.
             //
-            // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
+            // Note: because we use frozen-partial documents for classifying these, we may end up with incomplete
             // semantics (esp. during solution load).  Because of this, we also register to hear when the full
             // compilation is available so that reclassify and bring ourselves up to date.
             return new CompilationAvailableTaggerEventSource(
@@ -99,26 +94,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.UnderlineReassignment
 
         protected override async Task ProduceTagsAsync(TaggerContext<ClassificationTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
+            var cancellationToken = context.CancellationToken;
+
             var document = spanToTag.Document;
             if (document == null)
                 return;
 
+            document = document.WithFrozenPartialSemantics(cancellationToken);
             var service = document.GetLanguageService<IReassignedVariableService>();
             if (service == null)
                 return;
 
             var snapshotSpan = spanToTag.SnapshotSpan;
             var reassignedVariables = await service.GetReassignedVariablesAsync(
-                document, snapshotSpan.Span.ToTextSpan(), context.CancellationToken).ConfigureAwait(false);
+                document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
 
             var tag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeNames.ReassignedVariable));
             foreach (var variable in reassignedVariables)
                 context.AddTag(new TagSpan<ClassificationTag>(variable.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
         }
-    }
-
-    internal interface IReassignedVariableService : ILanguageService
-    {
-        Task<ImmutableArray<TextSpan>> GetReassignedVariablesAsync(Document document, TextSpan span, CancellationToken cancellationToken);
     }
 }
