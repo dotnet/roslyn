@@ -609,10 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var param in symbol.Parameters)
                 {
-                    if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
-                    {
-                        AddParameterRefKind(param.RefKind);
-                    }
+                    AddParameterRefKind(param.RefKind);
 
                     AddCustomModifiersIfRequired(param.RefCustomModifiers);
 
@@ -626,11 +623,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol.ReturnsByRef)
                 {
-                    AddRefIfRequired();
+                    AddRef();
                 }
                 else if (symbol.ReturnsByRefReadonly)
                 {
-                    AddRefReadonlyIfRequired();
+                    AddRefReadonly();
                 }
 
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers);
@@ -950,20 +947,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
             {
-                AddKeyword(SyntaxKind.RefKeyword);
-                AddSpace();
+                AddRef();
             }
+        }
+
+        private void AddRef()
+        {
+            AddKeyword(SyntaxKind.RefKeyword);
+            AddSpace();
         }
 
         private void AddRefReadonlyIfRequired()
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef))
             {
-                AddKeyword(SyntaxKind.RefKeyword);
-                AddSpace();
-                AddKeyword(SyntaxKind.ReadOnlyKeyword);
-                AddSpace();
+                AddRefReadonly();
             }
+        }
+
+        private void AddRefReadonly()
+        {
+            AddKeyword(SyntaxKind.RefKeyword);
+            AddSpace();
+            AddKeyword(SyntaxKind.ReadOnlyKeyword);
+            AddSpace();
         }
 
         private void AddReadOnlyIfRequired()

@@ -962,15 +962,15 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (6,47): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
+                // (6,47): error CS0266: Cannot implicitly convert type 'delegate*<ref string>' to 'delegate*<ref readonly string>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<ref readonly string> ptr1 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(6, 47),
-                // (7,34): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref string>", "delegate*<ref readonly string>").WithLocation(6, 47),
+                // (7,34): error CS0266: Cannot implicitly convert type 'delegate*<ref string>' to 'delegate*<string>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<string> ptr2 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(7, 34),
-                // (8,34): error CS0266: Cannot implicitly convert type 'delegate*<string>' to 'delegate*<object>'. An explicit conversion exists (are you missing a cast?)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref string>", "delegate*<string>").WithLocation(7, 34),
+                // (8,34): error CS0266: Cannot implicitly convert type 'delegate*<ref string>' to 'delegate*<object>'. An explicit conversion exists (are you missing a cast?)
                 //         delegate*<object> ptr3 = param1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<string>", "delegate*<object>").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "param1").WithArguments("delegate*<ref string>", "delegate*<object>").WithLocation(8, 34)
             );
 
             var tree = comp.SyntaxTrees[0];
@@ -1865,9 +1865,9 @@ unsafe class C
                 // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string, void>[]' and 'delegate* unmanaged[Cdecl]<string, void>[]'
                 //         _ = b ? ptr1 : ptr4;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string, void>[]", "delegate* unmanaged[Cdecl]<string, void>[]").WithLocation(12, 13),
-                // (18,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<string>[]'
+                // (18,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<ref string>[]'
                 //         _ = b ? ptr5 : ptr6;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr6").WithArguments("delegate*<string>[]", "delegate*<string>[]").WithLocation(18, 13),
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr6").WithArguments("delegate*<string>[]", "delegate*<ref string>[]").WithLocation(18, 13),
                 // (19,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>[]' and 'delegate*<int>[]'
                 //         _ = b ? ptr5 : ptr7;
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>[]", "delegate*<int>[]").WithLocation(19, 13),
@@ -1953,24 +1953,24 @@ unsafe class C
 }");
 
             comp.VerifyDiagnostics(
-                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string>'
+                // (12,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<ref string>'
                 //         _ = b ? ptr1 : ptr3;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(12, 13),
-                // (13,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string?>'
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr3").WithArguments("delegate*<string>", "delegate*<ref string>").WithLocation(12, 13),
+                // (13,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<ref string?>'
                 //         _ = b ? ptr1 : ptr4;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string>", "delegate*<string?>").WithLocation(13, 13),
-                // (14,24): warning CS8619: Nullability of reference types in value of type 'delegate*<string?>' doesn't match target type 'delegate*<string>'.
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr1 : ptr4").WithArguments("delegate*<string>", "delegate*<ref string?>").WithLocation(13, 13),
+                // (14,24): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string?>' doesn't match target type 'delegate*<ref string>'.
                 //         _ = b ? ptr3 : ptr4;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr4").WithArguments("delegate*<string?>", "delegate*<string>").WithLocation(14, 24),
-                // (21,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string>'
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr4").WithArguments("delegate*<ref string?>", "delegate*<ref string>").WithLocation(14, 24),
+                // (21,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<ref string>'
                 //         _ = b ? ptr5 : ptr7;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>", "delegate*<string>").WithLocation(21, 13),
-                // (22,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<string?>'
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr7").WithArguments("delegate*<string>", "delegate*<ref string>").WithLocation(21, 13),
+                // (22,13): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'delegate*<string>' and 'delegate*<ref string?>'
                 //         _ = b ? ptr5 : ptr8;
-                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>", "delegate*<string?>").WithLocation(22, 13),
-                // (23,24): warning CS8619: Nullability of reference types in value of type 'delegate*<string?>' doesn't match target type 'delegate*<string>'.
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? ptr5 : ptr8").WithArguments("delegate*<string>", "delegate*<ref string?>").WithLocation(22, 13),
+                // (23,24): warning CS8619: Nullability of reference types in value of type 'delegate*<ref string?>' doesn't match target type 'delegate*<ref string>'.
                 //         _ = b ? ptr7 : ptr8;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr8").WithArguments("delegate*<string?>", "delegate*<string>").WithLocation(23, 24)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "ptr8").WithArguments("delegate*<ref string?>", "delegate*<ref string>").WithLocation(23, 24)
             );
 
             var tree = comp.SyntaxTrees[0];
