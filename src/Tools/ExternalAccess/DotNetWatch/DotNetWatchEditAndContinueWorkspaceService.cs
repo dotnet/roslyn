@@ -9,19 +9,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
 {
-    [ExportWorkspaceService(typeof(DotNetWatchEditAndContinueWorkspaceService))]
     [Shared]
     internal sealed class DotNetWatchEditAndContinueWorkspaceService : IWorkspaceService
     {
+        [ExportWorkspaceServiceFactory(typeof(DotNetWatchEditAndContinueWorkspaceService)), Shared]
+        private sealed class Factory : IWorkspaceServiceFactory
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Factory()
+            {
+            }
+
+            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+            public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
+            {
+                return new DotNetWatchEditAndContinueWorkspaceService(workspaceServices.GetRequiredService<IEditAndContinueWorkspaceService>());
+            }
+        }
+
         private readonly SolutionActiveStatementSpanProvider _nullSolutionActiveStatementSpanProvider = (_, _) => new(ImmutableArray<TextSpan>.Empty);
         private readonly IEditAndContinueWorkspaceService _workspaceService;
 
-        [ImportingConstructor]
-        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
         public DotNetWatchEditAndContinueWorkspaceService(IEditAndContinueWorkspaceService workspaceService)
         {
             _workspaceService = workspaceService;
