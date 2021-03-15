@@ -552,10 +552,10 @@ class Program
         }
 
         [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
-        [ConditionalFact(typeof(WindowsOnly), typeof(IsRelease))]
+        [ConditionalFact(typeof(IsRelease))]
         public void NullableAnalysisNestedExpressionsInMethod()
         {
-            const int nestingLevel = 200;
+            const int nestingLevel = 40;
 
             var builder = new StringBuilder();
             builder.AppendLine("#nullable enable");
@@ -583,10 +583,10 @@ class Program
         }
 
         [WorkItem(51739, "https://github.com/dotnet/roslyn/issues/51739")]
-        [ConditionalFact(typeof(WindowsOnly), typeof(IsRelease))]
+        [ConditionalFact(typeof(IsRelease))]
         public void NullableAnalysisNestedExpressionsInLocalFunction()
         {
-            const int nestingLevel = 200;
+            const int nestingLevel = 40;
 
             var builder = new StringBuilder();
             builder.AppendLine("#nullable enable");
