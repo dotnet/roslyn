@@ -139,11 +139,9 @@ namespace BuildValidator
         // Here we only want to give the caller the main type name if the main method is named "Main" per convention.
         // If the main method has another name, we have to assume that specifying a main type name won't work.
         // For example, if the compilation uses top-level statements.
-        public string? GetMainTypeName() => GetMainMethodInfo() is (string typeName, WellKnownMemberNames.EntryPointMethodName)
-            ? typeName
-            : null;
+        public string? GetMainTypeName() => GetMainMethodInfo()?.MainTypeName;
 
-        private (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
+        public (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
         {
             if (!(PdbReader.DebugMetadataHeader is { } header) ||
                 header.EntryPoint.IsNil)
@@ -154,6 +152,11 @@ namespace BuildValidator
             var mdReader = PeReader.GetMetadataReader();
             var methodDefinition = mdReader.GetMethodDefinition(header.EntryPoint);
             var methodName = mdReader.GetString(methodDefinition.Name);
+            if (methodName != WellKnownMemberNames.EntryPointMethodName)
+            {
+                return null;
+            }
+
             var typeHandle = methodDefinition.GetDeclaringType();
             var typeDefinition = mdReader.GetTypeDefinition(typeHandle);
             var typeName = mdReader.GetString(typeDefinition.Name);
