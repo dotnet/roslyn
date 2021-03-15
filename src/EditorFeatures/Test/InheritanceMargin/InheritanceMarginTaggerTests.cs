@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -120,18 +119,18 @@ interface {|target1: IBar|} { }
 
             var tag = actualTaggedSpan.Tag;
             Assert.Equal(expectedMargin.Moniker, tag.Moniker.ToString());
-            Assert.Equal(expectedMargin.Members.Length, tag.Members.Length);
+            Assert.Equal(expectedMargin.Members.Length, tag.MembersOnLine.Length);
             for (var i = 0; i < expectedMargin.Members.Length; i++)
             {
                 var expectedMember = expectedMargin.Members[i];
-                var actualMember = tag.Members[i];
-                Assert.Equal(expectedMember.MemberName, actualMember.DisplayContent);
-                Assert.Equal(expectedMember.Targets.Length, actualMember.Targets.Length);
+                var actualMember = tag.MembersOnLine[i];
+                Assert.Equal(expectedMember.MemberName, actualMember.MemberDescription.Text);
+                Assert.Equal(expectedMember.Targets.Length, actualMember.TargetItems.Length);
                 for (var j = 0; j < expectedMember.Targets.Length; j++)
                 {
                     var expectedTarget = expectedMember.Targets[j];
-                    var actualTarget = actualMember.Targets[j];
-                    Assert.Equal(expectedTarget.TargetName, actualTarget.Name);
+                    var actualTarget = actualMember.TargetItems[j];
+                    Assert.Equal(expectedTarget.TargetName, actualTarget.TargetDescription.Text);
                     Assert.Equal(expectedTarget.DocumentSpans, actualTarget.DefinitionItem.SourceSpans);
                 }
             }

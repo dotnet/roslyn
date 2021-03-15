@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         Overriden = 0x8,
     }
 
-    internal class InheritanceMemberItem
+    internal readonly struct InheritanceMemberItem
     {
         public readonly int LineNumber;
         public readonly TaggedText MemberDescription;
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         }
     }
 
-    internal class InheritanceTargetItem
+    internal readonly struct InheritanceTargetItem
     {
         public readonly TaggedText TargetDescription;
         public readonly Glyph Glyph;

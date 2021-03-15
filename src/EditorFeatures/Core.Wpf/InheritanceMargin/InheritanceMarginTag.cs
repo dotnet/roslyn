@@ -17,68 +17,17 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
     internal class InheritanceMarginTag : IGlyphTag
     {
         public readonly ImageMoniker Moniker;
-        public readonly string Tooltip;
-        public readonly ImmutableArray<MemberPresentEntry> Members;
+        public readonly ImmutableArray<InheritanceMemberItem> MembersOnLine;
 
-        public InheritanceMarginTag(ImageMoniker moniker, string tooltip, ImmutableArray<MemberPresentEntry> members)
+        public InheritanceMarginTag(ImmutableArray<InheritanceMemberItem> membersOnLine)
         {
-            Moniker = moniker;
-            Tooltip = tooltip;
-            Members = members;
-        }
+            Debug.Assert(!membersOnLine.IsEmpty);
 
-        public static InheritanceMarginTag FromInheritanceInfo(ImmutableArray<InheritanceMemberItem> membersOnTheLine)
-        {
-            Debug.Assert(!membersOnTheLine.IsEmpty);
-
-            var aggregateRelationship = membersOnTheLine
+            MembersOnLine = membersOnLine;
+            var aggregateRelationship = membersOnLine
                 .SelectMany(member => member.TargetItems.Select(target => target.RelationToMember))
                 .Aggregate((r1, r2) => r1 | r2);
-            var moniker = GetMonikers(aggregateRelationship);
-            var tooltip = GetTooltip(membersOnTheLine);
-            var presentEntriesByLine = membersOnTheLine
-                .SelectAsArray(CreatePresentEntryForItem);
-            return new InheritanceMarginTag(moniker, tooltip, presentEntriesByLine);
-        }
-
-        private static string GetTooltip(ImmutableArray<InheritanceMemberItem> members)
-        {
-            // TODO: All the strings should be put into resources
-            string tooltip;
-            if (members.Length > 1)
-            {
-                tooltip = "Click to view all members in the line";
-            }
-            else if (members.Length == 1)
-            {
-                var member = members[0];
-                var memberName = members[0].MemberDescription.Text;
-                var targets = members[0].TargetItems;
-                if (targets.Length == 1)
-                {
-                    var target = targets[0];
-                    var relationship = target.RelationToMember;
-                    var targetName = target.TargetDescription.Text;
-                    tooltip = relationship switch
-                    {
-                        InheritanceRelationship.Implemented => $"{memberName} implements {targetName}, click to navigate",
-                        InheritanceRelationship.Implementing => $"{targetName} implements {memberName}, click to navigate",
-                        InheritanceRelationship.Overriden => $"{targetName} overrides {memberName}, click to navigate",
-                        InheritanceRelationship.Overriding => $"{memberName} overrides {targetName}, click to navigate",
-                        _ => throw ExceptionUtilities.Unreachable,
-                    };
-                }
-                else
-                {
-                    tooltip = $"Click to view all inherited and base members";
-                }
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(members.Length);
-            }
-
-            return tooltip;
+            Moniker = GetMonikers(aggregateRelationship);
         }
 
         private static ImageMoniker GetMonikers(InheritanceRelationship inheritanceRelationship)
@@ -92,50 +41,5 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 _ when inheritanceRelationship.HasFlag(InheritanceRelationship.Overriding) => KnownMonikers.Overriding,
                 _ => throw ExceptionUtilities.Unreachable,
             };
-
-        private static MemberPresentEntry CreatePresentEntryForItem(
-            InheritanceMemberItem memberItem)
-        {
-            var targets = memberItem.TargetItems;
-            var navigableEntries = targets
-                .SelectAsArray(CreatePresentEntryForTarget);
-            return new MemberPresentEntry(memberItem.MemberDescription.Text, memberItem.Glyph, navigableEntries);
-        }
-
-        private static TargetPresentEntry CreatePresentEntryForTarget(
-            InheritanceTargetItem targetItem)
-            => new TargetPresentEntry(
-                targetItem.DefinitionItem,
-                targetItem.TargetDescription.Text);
-    }
-
-    internal class MemberPresentEntry
-    {
-        public readonly string Name;
-        public readonly string DisplayContent;
-        public readonly Glyph Glyph;
-        public readonly ImmutableArray<TargetPresentEntry> Targets;
-
-        public MemberPresentEntry(
-            string displayContent,
-            Glyph glyph,
-            ImmutableArray<TargetPresentEntry> targets)
-        {
-            DisplayContent = displayContent;
-            Glyph = glyph;
-            Targets = targets;
-        }
-    }
-
-    internal class TargetPresentEntry
-    {
-        public readonly DefinitionItem DefinitionItem;
-        public readonly string Name;
-
-        public TargetPresentEntry(DefinitionItem definitionItem, string name)
-        {
-            DefinitionItem = definitionItem;
-            Name = name;
-        }
     }
 }

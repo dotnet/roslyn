@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -97,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                     var taggedSpan = new SnapshotSpan(snapshot, line.Start, length: line.Length);
                     context.AddTag(new TagSpan<InheritanceMarginTag>(
                         taggedSpan,
-                        InheritanceMarginTag.FromInheritanceInfo(membersOnTheLine)));
+                        new InheritanceMarginTag(membersOnTheLine)));
                 }
             }
         }
