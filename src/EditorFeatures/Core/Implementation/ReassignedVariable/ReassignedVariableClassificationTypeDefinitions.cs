@@ -12,8 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReassignedVariable
 {
     internal class ReassignedVariableClassificationTypeDefinitions
     {
+        public const string ReassignedVariable = "reassigned variable";
+
         [Export]
-        [Name(ClassificationTypeNames.ReassignedVariable)]
+        [Name(ReassignedVariable)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal readonly ClassificationTypeDefinition? ReassignedVariableTypeDefinition;
     }

@@ -7,7 +7,6 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -25,7 +24,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.UnderlineReassignment
+namespace Microsoft.CodeAnalysis.Editor.Implementation.ReassignedVariable
 {
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(ClassificationTag))]
@@ -117,7 +116,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.UnderlineReassignment
             var reassignedVariables = await service.GetReassignedVariablesAsync(
                 document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
 
-            var tag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeNames.ReassignedVariable));
+            var tag = new ClassificationTag(_typeMap.GetClassificationType(
+                ReassignedVariableClassificationTypeDefinitions.ReassignedVariable));
             foreach (var variable in reassignedVariables)
                 context.AddTag(new TagSpan<ClassificationTag>(variable.ToSnapshotSpan(snapshotSpan.Snapshot), tag));
         }
