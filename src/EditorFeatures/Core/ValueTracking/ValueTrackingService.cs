@@ -43,51 +43,27 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             }
 
             var assignments = await TrackAssignmentsAsync(solution, symbol, referneceFinder, cancellationToken).ConfigureAwait(false);
-            return assignments.Select(a => new ValueTrackedItem(a.Location.Location, symbol)).ToImmutableArray();
+            return assignments.Select(l => new ValueTrackedItem(l, symbol)).ToImmutableArray();
         }
 
-        public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
+        public Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
             Solution solution,
             ValueTrackedItem previousTrackedItem,
             CancellationToken cancellationToken)
         {
-            RoslynDebug.AssertNotNull(previousTrackedItem.Location.SourceTree);
-
-            if (previousTrackedItem.PreviousTrackedItem is null)
-            {
-                var symbol = previousTrackedItem.Symbol;
-                var referenceFinder = GetReferenceFinder(symbol);
-                if (referenceFinder is null)
-                {
-                    return ImmutableArray<ValueTrackedItem>.Empty;
-                }
-
-                var assignments = await TrackAssignmentsAsync(solution, symbol, referenceFinder, cancellationToken).ConfigureAwait(false);
-                return assignments.Select(a => new ValueTrackedItem(a.Location.Location, symbol, previousTrackedItem: previousTrackedItem)).ToImmutableArray();
-            }
-
-            // There's no interesting node 
-            if (previousTrackedItem.ExpressionNode is null)
-            {
-                return ImmutableArray<ValueTrackedItem>.Empty;
-            }
-
-            if (previousTrackedItem.Symbol is IPropertySymbol)
-            {
-                var document = solution.GetRequiredDocument(previousTrackedItem.Location.SourceTree);
-                return await TrackFromPropertyAssignmentAsync(solution, document, previousTrackedItem, cancellationToken).ConfigureAwait(false);
-            }
-
-            throw new Exception();
+            throw new NotImplementedException();
         }
 
-        private static async Task<ImmutableArray<FinderLocation>> TrackAssignmentsAsync(
+        private static async Task<ImmutableArray<Location>> TrackAssignmentsAsync(
             Solution solution,
             ISymbol symbol,
             IReferenceFinder referenceFinder,
             CancellationToken cancellationToken)
         {
-            using var _ = PooledObjects.ArrayBuilder<FinderLocation>.GetInstance(out var builder);
+            using var _ = PooledObjects.ArrayBuilder<Location>.GetInstance(out var builder);
+            
+            // Add all the references to the symbol
+            // that write to it 
             var projectsToSearch = await referenceFinder.DetermineProjectsToSearchAsync(symbol, solution, solution.Projects.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
             foreach (var project in projectsToSearch)
             {
@@ -109,34 +85,46 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         FindReferencesSearchOptions.Default,
                         cancellationToken).ConfigureAwait(false);
 
-                    builder.AddRange(referencesInDocument
-                        .Where(r => r.Location.IsWrittenTo));
+                    foreach (var reference in referencesInDocument.Where(r => r.Location.IsWrittenTo))
+                    {
+                        AddAssignment(reference.Node, syntaxFacts);
+                    }
+
+                    //builder.AddRange(
+                    //    referencesInDocument
+                    //    .Where(r => r.Location.IsWrittenTo)
+                    //    .Select(r => r.Location.Location));
                 }
             }
 
-            return builder.AsImmutableOrEmpty();
-        }
-
-        private static async Task<ImmutableArray<ValueTrackedItem>> TrackFromPropertyAssignmentAsync(Solution solution, Document document, ValueTrackedItem valueTrackedItem, CancellationToken cancellationToken)
-        {
-            RoslynDebug.AssertNotNull(valueTrackedItem.ExpressionNode);
-
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbolInfo = semanticModel.GetSymbolInfo(valueTrackedItem.ExpressionNode);
-
-            var referenceFinder = GetReferenceFinder(symbolInfo.Symbol);
-
-            if (referenceFinder is not null)
+            // Add all initializations of the symbol. Those are not caught in 
+            // the reference finder but should still show up in the tree
+            foreach (var location in symbol.Locations.Where(location => location.IsInSource))
             {
-                RoslynDebug.AssertNotNull(symbolInfo.Symbol);
+                var node = location.FindNode(cancellationToken);
+                var document = solution.GetRequiredDocument(location.SourceTree);
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-                var assignments = await TrackAssignmentsAsync(solution, symbolInfo.Symbol, referenceFinder, cancellationToken).ConfigureAwait(false);
-                return assignments
-                    .Select(a => new ValueTrackedItem(a.Location.Location, symbolInfo.Symbol, previousTrackedItem: valueTrackedItem))
-                    .ToImmutableArray();
+                AddAssignment(node, syntaxFacts);
             }
 
-            return ImmutableArray<ValueTrackedItem>.Empty;
+            return builder.AsImmutableOrEmpty();
+
+            void AddAssignment(SyntaxNode node, ISyntaxFactsService syntaxFacts)
+            {
+                if (syntaxFacts.IsDeclaration(node))
+                {
+                    builder.Add(node.GetLocation());
+                    return;
+                }
+
+                var assignment = node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsLeftSideOfAnyAssignment);
+                if (assignment is not null && assignment.Parent is not null)
+                {
+                    builder.Add(assignment.Parent.GetLocation());
+                    return;
+                }
+            }
         }
 
         private static IReferenceFinder? GetReferenceFinder(ISymbol? symbol)

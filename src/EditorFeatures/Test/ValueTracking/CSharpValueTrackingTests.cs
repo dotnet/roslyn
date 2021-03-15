@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -15,6 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Windows.Documents;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
@@ -50,6 +47,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
             return selectedSymbol!;
         }
 
+        private static string GetText(ValueTrackedItem item)
+        {
+            var sourceTree = item.Location.SourceTree;
+            var span = item.Location.SourceSpan;
+
+            Assert.NotNull(sourceTree);
+            if (sourceTree!.TryGetText(out var text))
+            {
+                return text!.GetSubText(span).ToString();
+            }
+
+            return sourceTree!.ToString();
+        }
+
         [Fact]
         public async Task TestPropertyAsync()
         {
@@ -71,6 +82,8 @@ class C
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             Assert.Equal(2, initialItems.Length);
+            Assert.Equal("S = s", GetText(initialItems[0]));
+            Assert.Equal(@"public string S { get; set; } = """"", GetText(initialItems[1]));
         }
 
         [Fact]
@@ -93,6 +106,8 @@ class C
             var initialItems = await GetTrackedItemsAsync(workspace);
 
             Assert.Equal(2, initialItems.Length);
+            Assert.Equal("_s = s", GetText(initialItems[0]));
+            Assert.Equal(@"private string $$_s = """"", GetText(initialItems[1]));
         }
     }
 }
