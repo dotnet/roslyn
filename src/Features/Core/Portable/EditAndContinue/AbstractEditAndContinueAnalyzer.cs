@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Returns true if the symbol in question is a known synthesized member of a record
         /// </summary>
-        internal abstract IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(INamedTypeSymbol record);
+        internal abstract IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(Compilation compilation, INamedTypeSymbol record);
 
         /// <summary>
         /// Return true if the declaration is a constructor declaration to which field/property initializers are emitted. 
@@ -2556,7 +2556,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                         processedSymbols.Remove(newSymbol);
                                         DeferConstructorEdit(oldContainingType, newSymbol.ContainingType, edit.NewNode, syntaxMap, newSymbol.IsStatic, ref instanceConstructorEdits, ref staticConstructorEdits);
 
-                                        ReportRecordSynthesizedMembersChanged(newContainingType, semanticEdits);
+                                        ReportRecordSynthesizedMembersChanged(newCompilation, newContainingType, semanticEdits);
                                     }
                                 }
                                 else
@@ -2802,9 +2802,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return semanticEdits.ToImmutable();
         }
 
-        private void ReportRecordSynthesizedMembersChanged(INamedTypeSymbol recordType, ArrayBuilder<SemanticEditInfo> semanticEdits)
+        private void ReportRecordSynthesizedMembersChanged(Compilation compilation, INamedTypeSymbol recordType, ArrayBuilder<SemanticEditInfo> semanticEdits)
         {
-            foreach (var member in GetRecordUpdatedSynthesizedMembers(recordType).WhereNotNull())
+            foreach (var member in GetRecordUpdatedSynthesizedMembers(compilation, recordType).WhereNotNull())
             {
                 var symbolKey = SymbolKey.Create(member);
                 semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, null, null, null));

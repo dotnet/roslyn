@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             && record.ParameterList is not null
             && record.ParameterList.Parameters.Any(p => p.Identifier.ValueText.Equals(name));
 
-        internal override IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(INamedTypeSymbol record)
+        internal override IEnumerable<ISymbol> GetRecordUpdatedSynthesizedMembers(Compilation compilation, INamedTypeSymbol record)
         {
             // All methods that are updated have well known names, and calling GetMembers(string) is
             // faster than enumerating.
@@ -1118,8 +1118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 .OfType<IMethodSymbol>()
                 .SingleOrDefault(m =>
                     m.Parameters.Length == 1 &&
-                    m.Parameters[0].Type.Name == "StringBuilder" &&
-                    m.ReturnType.Name == "Boolean" &&
+                    SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, compilation.GetTypeByMetadataName(typeof(StringBuilder).FullName)) &&
+                    SymbolEqualityComparer.Default.Equals(m.ReturnType, compilation.GetTypeByMetadataName(typeof(bool).FullName)) &&
                     m.IsImplicitlyDeclared);
 
             yield return record.GetMembers(WellKnownMemberNames.ObjectEquals)

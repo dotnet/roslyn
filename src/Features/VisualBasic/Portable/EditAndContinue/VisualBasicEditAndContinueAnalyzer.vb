@@ -1000,7 +1000,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return False
         End Function
 
-        Friend Overrides Function GetRecordUpdatedSynthesizedMembers(record As INamedTypeSymbol) As IEnumerable(Of ISymbol)
+        Friend Overrides Function GetRecordUpdatedSynthesizedMembers(compilation As Compilation, record As INamedTypeSymbol) As IEnumerable(Of ISymbol)
             Return SpecializedCollections.EmptyEnumerable(Of ISymbol)
         End Function
 
