@@ -2804,7 +2804,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private void ReportRecordSynthesizedMembersChanged(INamedTypeSymbol recordType, ArrayBuilder<SemanticEditInfo> semanticEdits)
         {
-            foreach (var member in GetRecordUpdatedSynthesizedMembers(recordType))
+            foreach (var member in GetRecordUpdatedSynthesizedMembers(recordType).WhereNotNull())
             {
                 var symbolKey = SymbolKey.Create(member);
                 semanticEdits.Add(new SemanticEditInfo(SemanticEditKind.Update, symbolKey, null, null, null));

@@ -1112,20 +1112,28 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // We don't need to worry about Deconstruct because it only changes when a new positional parameter
             // is added, and those are rude edits (due to adding a constructor parameter).
             // We don't need to worry about the constructors as they are reported elsewhere.
+            // We have to use SingleOrDefault and check IsImplicitlyDeclared because the user can provide their
+            // own implementation of these methods, and edits to them are handled by normal processing.
             yield return record.GetMembers(WellKnownMemberNames.PrintMembersMethodName)
                 .OfType<IMethodSymbol>()
-                .Single(m => m.Parameters.Length == 1 &&
+                .SingleOrDefault(m =>
+                    m.Parameters.Length == 1 &&
                     m.Parameters[0].Type.Name == "StringBuilder" &&
-                    m.ReturnType.Name == "Boolean");
+                    m.ReturnType.Name == "Boolean" &&
+                    m.IsImplicitlyDeclared);
 
             yield return record.GetMembers(WellKnownMemberNames.ObjectEquals)
                 .OfType<IMethodSymbol>()
-                .Single(m => m.Parameters.Length == 1 &&
-                    SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType));
+                .SingleOrDefault(m =>
+                    m.Parameters.Length == 1 &&
+                    SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType) &&
+                    m.IsImplicitlyDeclared);
 
             yield return record.GetMembers(WellKnownMemberNames.ObjectGetHashCode)
                .OfType<IMethodSymbol>()
-               .Single(m => m.Parameters.Length == 0);
+               .SingleOrDefault(m =>
+                    m.Parameters.Length == 0 &&
+                    m.IsImplicitlyDeclared);
         }
 
         internal override bool IsConstructorWithMemberInitializers(SyntaxNode constructorDeclaration)

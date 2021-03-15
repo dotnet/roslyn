@@ -1604,6 +1604,63 @@ public abstract record C<T>
         }
 
         [Fact]
+        public void Record_AddProperty_NotPrimary_WithExplicitMembers()
+        {
+            var src1 = @"record C(int X)
+{
+    protected virtual bool PrintMembers(System.Text.StringBuilder sb)
+    {
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return 0;
+    }
+
+    public virtual bool Equals(C other)
+    {
+        return false;
+    }
+
+    public C(C other)
+    {
+    }
+}";
+            var src2 = @"record C(int X)
+{
+    public int Y { get; set; }
+
+    protected virtual bool PrintMembers(System.Text.StringBuilder sb)
+    {
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return 0;
+    }
+
+    public virtual bool Equals(C other)
+    {
+        return false;
+    }
+
+    public C(C other)
+    {
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
         public void Record_AddProperty_NotPrimary_WithInitializer()
         {
             var src1 = "record C(int X);";
@@ -1641,6 +1698,36 @@ public abstract record C<T>
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_AddField_WithExplicitMembers()
+        {
+            var src1 = @"record C(int X)
+{
+    public C(C other)
+    {
+    }
+}";
+            var src2 = @"record C(int X)
+{
+    private int _y;
+    
+    public C(C other)
+    {
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true));
 
             edits.VerifyRudeDiagnostics();
         }
