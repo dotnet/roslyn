@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal static WithExternAndUsingAliasesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, bool fromUsingsUseOnlyGlobalAliases, WithUsingNamespacesAndTypesBinder next)
+        internal static WithExternAndUsingAliasesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, WithUsingNamespacesAndTypesBinder next)
         {
-            return new FromSyntax(declaringSymbol, declarationSyntax, fromUsingsUseOnlyGlobalAliases, next);
+            return new FromSyntax(declaringSymbol, declarationSyntax, next);
         }
 
         internal static WithExternAndUsingAliasesBinder Create(ImmutableArray<AliasAndExternAliasDirective> externAliases, ImmutableDictionary<string, AliasAndUsingDirective> usingAliases, WithUsingNamespacesAndTypesBinder next)
@@ -109,21 +109,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly SourceNamespaceSymbol _declaringSymbol;
             private readonly CSharpSyntaxNode _declarationSyntax;
-            private readonly bool _fromUsingsUseOnlyGlobalAliases;
             private ImmutableArray<AliasAndExternAliasDirective> _lazyExternAliases;
             private ImmutableArray<AliasAndUsingDirective> _lazyUsingAliases;
             private ImmutableDictionary<string, AliasAndUsingDirective>? _lazyUsingAliasesMap;
             private QuickAttributeChecker? _lazyQuickAttributeChecker;
 
-            internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, bool fromUsingsUseOnlyGlobalAliases, WithUsingNamespacesAndTypesBinder next)
+            internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, WithUsingNamespacesAndTypesBinder next)
                 : base(next)
             {
                 Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
-                Debug.Assert(!fromUsingsUseOnlyGlobalAliases || (declarationSyntax.IsKind(SyntaxKind.CompilationUnit) && declarationSyntax.SyntaxTree.Options.Kind == SourceCodeKind.Regular));
-
                 _declaringSymbol = declaringSymbol;
                 _declarationSyntax = declarationSyntax;
-                _fromUsingsUseOnlyGlobalAliases = fromUsingsUseOnlyGlobalAliases;
             }
 
             internal sealed override ImmutableArray<AliasAndExternAliasDirective> ExternAliases
@@ -145,18 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (_lazyUsingAliases.IsDefault)
                     {
-                        ImmutableArray<AliasAndUsingDirective> result;
-
-                        if (_fromUsingsUseOnlyGlobalAliases)
-                        {
-                            result = _declaringSymbol.GetGlobalUsingAliases(_declarationSyntax, basesBeingResolved: null);
-                        }
-                        else
-                        {
-                            result = _declaringSymbol.GetUsingAliases(_declarationSyntax, basesBeingResolved: null);
-                        }
-
-                        ImmutableInterlocked.InterlockedInitialize(ref _lazyUsingAliases, result);
+                        ImmutableInterlocked.InterlockedInitialize(ref _lazyUsingAliases, _declaringSymbol.GetUsingAliases(_declarationSyntax, basesBeingResolved: null));
                     }
 
                     return _lazyUsingAliases;
@@ -167,18 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyUsingAliasesMap is null)
                 {
-                    ImmutableDictionary<string, AliasAndUsingDirective> result;
-
-                    if (_fromUsingsUseOnlyGlobalAliases)
-                    {
-                        result = _declaringSymbol.GetGlobalUsingAliasesMap(basesBeingResolved);
-                    }
-                    else
-                    {
-                        result = _declaringSymbol.GetUsingAliasesMap(_declarationSyntax, basesBeingResolved);
-                    }
-
-                    Interlocked.CompareExchange(ref _lazyUsingAliasesMap, result, null);
+                    Interlocked.CompareExchange(ref _lazyUsingAliasesMap, _declaringSymbol.GetUsingAliasesMap(_declarationSyntax, basesBeingResolved), null);
                 }
 
                 return _lazyUsingAliasesMap;
@@ -209,7 +183,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                 }
 
-                                Debug.Assert(!_fromUsingsUseOnlyGlobalAliases);
                                 usingDirectives = compilationUnit.Usings;
                                 break;
 

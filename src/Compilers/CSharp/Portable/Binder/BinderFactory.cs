@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _syntaxTree.Options.Kind != SourceCodeKind.Regular;
+                return _syntaxTree.Options.Kind == SourceCodeKind.Script;
             }
         }
 
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);
-                        Binder result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, BinderFactoryVisitor.UsingContext.NotInUsing);
+                        Binder result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Initialize(0, null, null);
-                        Binder result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, BinderFactoryVisitor.UsingContext.NotInUsing, inScript: InScript);
+                        Binder result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: false, inScript: InScript);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }

@@ -269,14 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (directive.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword))
                 {
-                    if (isForScript)
-                    {
-                        hasUsings = true;
-                        // PROTOTYPE(GlobalUsingDirective): Confirm if we want to allow Global Using directives in a script and how is it supposed to work with `#load`, etc.
-                        diagnostics.Add(ErrorCode.ERR_GlobalUsingInScript, directive.GlobalKeyword.GetLocation());
-                        break;
-                    }
-
                     hasGlobalUsings = true;
 
                     if (hasUsings && !reportedGlobalUsingOutOfOrder)

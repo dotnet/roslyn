@@ -24,10 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamespaceBody = 1 << 0,
             NamespaceUsings = 1 << 1,
 
-            CompilationUnitGlobalUsings = 1 << 0,
-            CompilationUnitUsings = 1 << 1,
-            CompilationUnitScript = 1 << 2,
-            CompilationUnitScriptUsings = 1 << 3,
+            CompilationUnitUsings = 1 << 0,
+            CompilationUnitScript = 1 << 1,
+            CompilationUnitScriptUsings = 1 << 2,
 
             DocumentationCommentParameter = 1 << 0,
             DocumentationCommentTypeParameter = 1 << 1,

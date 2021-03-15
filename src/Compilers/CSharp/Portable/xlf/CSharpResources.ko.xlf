@@ -442,11 +442,6 @@
         <target state="new">A global using directive cannot be used in a namespace declaration.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_GlobalUsingInScript">
-        <source>A global using directive cannot be used in in script code.</source>
-        <target state="new">A global using directive cannot be used in in script code.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_GlobalUsingOutOfOrder">
         <source>A global using directive must precede all non-global using directives.</source>
         <target state="new">A global using directive must precede all non-global using directives.</target>

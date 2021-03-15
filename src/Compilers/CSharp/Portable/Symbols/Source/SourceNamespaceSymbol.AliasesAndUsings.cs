@@ -229,33 +229,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetMergedGlobalAliasesAndUsings(basesBeingResolved).Imports;
         }
 
-        public ImmutableArray<AliasAndUsingDirective> GetGlobalUsingAliases(CSharpSyntaxNode declarationSyntax, ConsList<TypeSymbol>? basesBeingResolved)
-        {
-            switch (declarationSyntax)
-            {
-                case CompilationUnitSyntax compilationUnit:
-                    if (!compilationUnit.Usings.Any())
-                    {
-#if DEBUG
-                        Debug.Assert(GetAliasesAndUsingsForAsserts(declarationSyntax).GetGlobalUsingAliases(this, declarationSyntax, basesBeingResolved).IsEmpty);
-#endif
-                        return ImmutableArray<AliasAndUsingDirective>.Empty;
-                    }
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(declarationSyntax);
-            }
-
-            return GetAliasesAndUsings(declarationSyntax).GetGlobalUsingAliases(this, declarationSyntax, basesBeingResolved);
-        }
-
-        public ImmutableDictionary<string, AliasAndUsingDirective> GetGlobalUsingAliasesMap(ConsList<TypeSymbol>? basesBeingResolved)
+        private ImmutableDictionary<string, AliasAndUsingDirective> GetGlobalUsingAliasesMap(ConsList<TypeSymbol>? basesBeingResolved)
         {
             return GetMergedGlobalAliasesAndUsings(basesBeingResolved).UsingAliasesMap!;
         }
 
-        public ImmutableArray<NamespaceOrTypeAndUsingDirective> GetGlobalUsingNamespacesOrTypes(ConsList<TypeSymbol>? basesBeingResolved)
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> GetGlobalUsingNamespacesOrTypes(ConsList<TypeSymbol>? basesBeingResolved)
         {
             return GetMergedGlobalAliasesAndUsings(basesBeingResolved).UsingNamespacesOrTypes;
         }
@@ -565,22 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (declarationSyntax)
                     {
                         case CompilationUnitSyntax compilationUnit:
-                            if (declarationSyntax.SyntaxTree.Options.Kind != SourceCodeKind.Regular)
-                            {
-                                applyIsGlobalFilter = null;
-
-                                if (onlyGlobal)
-                                {
-                                    // Do not support global imports in scripts for now, an error is reported elsewhere.
-                                    usingDirectives = default;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                applyIsGlobalFilter = onlyGlobal;
-                            }
-
+                            applyIsGlobalFilter = onlyGlobal;
                             usingDirectives = compilationUnit.Usings;
                             break;
 

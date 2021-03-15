@@ -198,8 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var globalNamespace = compilation.GlobalNamespace;
             var declaringSymbol = (SourceNamespaceSymbol)compilation.SourceModule.GlobalNamespace;
             var syntaxNode = SyntaxNode;
-            result = WithExternAndUsingAliasesBinder.Create(declaringSymbol, syntaxNode, fromUsingsUseOnlyGlobalAliases: false,
-                                                            WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, syntaxNode, useOnlyGlobalUsings: false, result));
+            result = WithExternAndUsingAliasesBinder.Create(declaringSymbol, syntaxNode, WithUsingNamespacesAndTypesBinder.Create(declaringSymbol, syntaxNode, result));
             result = new InContainerBinder(globalNamespace, result);
             result = new InContainerBinder(ContainingType, result);
             result = new InMethodBinder(this, result);

@@ -252,21 +252,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Imports GetImports();
 
-        internal static WithUsingNamespacesAndTypesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool withPreviousSubmissionImports)
+        internal static WithUsingNamespacesAndTypesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool withPreviousSubmissionImports = false, bool withImportChainEntry = false)
         {
-            Debug.Assert(declarationSyntax.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
-
             if (withPreviousSubmissionImports)
             {
-                return new FromSyntaxWithPreviousSubmissionImports(declaringSymbol, declarationSyntax, next, withImportChainEntry: true);
+                return new FromSyntaxWithPreviousSubmissionImports(declaringSymbol, declarationSyntax, next, withImportChainEntry);
             }
 
-            return new FromSyntax(declaringSymbol, declarationSyntax, next, withImportChainEntry: true, useOnlyGlobalUsings: false);
-        }
-
-        internal static WithUsingNamespacesAndTypesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, bool useOnlyGlobalUsings, Binder next)
-        {
-            return new FromSyntax(declaringSymbol, declarationSyntax, next, withImportChainEntry: false, useOnlyGlobalUsings: useOnlyGlobalUsings);
+            return new FromSyntax(declaringSymbol, declarationSyntax, next, withImportChainEntry);
         }
 
         internal static WithUsingNamespacesAndTypesBinder Create(ImmutableArray<NamespaceOrTypeAndUsingDirective> namespacesOrTypes, Binder next, bool withImportChainEntry = false)
@@ -278,35 +271,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly SourceNamespaceSymbol _declaringSymbol;
             private readonly CSharpSyntaxNode _declarationSyntax;
-            private readonly bool _useOnlyGlobalUsings;
             private ImmutableArray<NamespaceOrTypeAndUsingDirective> _lazyUsings;
 
-            internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool withImportChainEntry, bool useOnlyGlobalUsings)
+            internal FromSyntax(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next, bool withImportChainEntry)
                 : base(next, withImportChainEntry)
             {
                 Debug.Assert(declarationSyntax.IsKind(SyntaxKind.CompilationUnit) || declarationSyntax.IsKind(SyntaxKind.NamespaceDeclaration));
-                Debug.Assert(!useOnlyGlobalUsings || (declarationSyntax.IsKind(SyntaxKind.CompilationUnit) && declarationSyntax.SyntaxTree.Options.Kind == SourceCodeKind.Regular));
                 _declaringSymbol = declaringSymbol;
                 _declarationSyntax = declarationSyntax;
-                _useOnlyGlobalUsings = useOnlyGlobalUsings;
             }
 
             internal override ImmutableArray<NamespaceOrTypeAndUsingDirective> GetUsings(ConsList<TypeSymbol>? basesBeingResolved)
             {
                 if (_lazyUsings.IsDefault)
                 {
-                    ImmutableArray<NamespaceOrTypeAndUsingDirective> result;
-
-                    if (_useOnlyGlobalUsings)
-                    {
-                        result = _declaringSymbol.GetGlobalUsingNamespacesOrTypes(basesBeingResolved);
-                    }
-                    else
-                    {
-                        result = _declaringSymbol.GetUsingNamespacesOrTypes(_declarationSyntax, basesBeingResolved);
-                    }
-
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyUsings, result);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyUsings, _declaringSymbol.GetUsingNamespacesOrTypes(_declarationSyntax, basesBeingResolved));
                 }
 
                 return _lazyUsings;

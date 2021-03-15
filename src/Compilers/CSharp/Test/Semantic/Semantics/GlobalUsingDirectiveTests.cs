@@ -472,36 +472,6 @@ C1
 NS3.C4
 ");
 
-            var source3 = @"
-using C = A.C2;
-using D = B::NS7;
-using static B::C4;
-using B.NS7;
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.WriteLine(new A());
-        System.Console.WriteLine(new B.C4());
-
-        System.Console.WriteLine(new C());
-        System.Console.WriteLine(new C5());
-        System.Console.WriteLine(new D.C8());
-        System.Console.WriteLine(new C8());
-    }
-}
-";
-
-            test(source3, expectedOutput: @"
-C1
-NS3.C4
-C1+C2
-NS3.C4+C5
-NS3.NS7.C8
-NS3.NS7.C8
-");
-
             var source4 = @"
 namespace NS
 {
@@ -655,31 +625,29 @@ NS3.C4
 ");
 
             var source3 = @"
-using C = A.C2;
-using D = B::NS7;
-using static B::C4;
-using B.NS7;
-
-Program.Test();
+N.Program.Test();
 System.Console.WriteLine(new A());
 System.Console.WriteLine(new B.C4());
 
-System.Console.WriteLine(new C());
-System.Console.WriteLine(new C5());
-System.Console.WriteLine(new D.C8());
-System.Console.WriteLine(new C8());
-
-class Program
+namespace N
 {
-    public static void Test()
-    {
-        System.Console.WriteLine(new A());
-        System.Console.WriteLine(new B.C4());
+    using C = A.C2;
+    using D = B::NS7;
+    using static B::C4;
+    using B.NS7;
 
-        System.Console.WriteLine(new C());
-        System.Console.WriteLine(new C5());
-        System.Console.WriteLine(new D.C8());
-        System.Console.WriteLine(new C8());
+    class Program
+    {
+        public static void Test()
+        {
+            System.Console.WriteLine(new A());
+            System.Console.WriteLine(new B.C4());
+
+            System.Console.WriteLine(new C());
+            System.Console.WriteLine(new C5());
+            System.Console.WriteLine(new D.C8());
+            System.Console.WriteLine(new C8());
+        }
     }
 }
 ";
@@ -693,10 +661,6 @@ NS3.NS7.C8
 NS3.NS7.C8
 C1
 NS3.C4
-C1+C2
-NS3.C4+C5
-NS3.NS7.C8
-NS3.NS7.C8
 ");
 
             void test(string source, string expectedOutput)
@@ -790,29 +754,32 @@ NS3.C4
 ");
 
             var source3 = @"
-Program.Test();
+N.Program.Test();
 System.Console.WriteLine(new A());
 System.Console.WriteLine(new B.C4());
 ";
 
             test(source3,
                  @"
-using C = A.C2;
-using D = B.NS7;
-using static B.C4;
-using B::NS7;
-
-class Program
+namespace N
 {
-    public static void Test()
-    {
-        System.Console.WriteLine(new A());
-        System.Console.WriteLine(new B.C4());
+    using C = A.C2;
+    using D = B.NS7;
+    using static B.C4;
+    using B::NS7;
 
-        System.Console.WriteLine(new C());
-        System.Console.WriteLine(new C5());
-        System.Console.WriteLine(new D.C8());
-        System.Console.WriteLine(new C8());
+    class Program
+    {
+        public static void Test()
+        {
+            System.Console.WriteLine(new A());
+            System.Console.WriteLine(new B.C4());
+
+            System.Console.WriteLine(new C());
+            System.Console.WriteLine(new C5());
+            System.Console.WriteLine(new D.C8());
+            System.Console.WriteLine(new C8());
+        }
     }
 }
 ",
@@ -919,6 +886,74 @@ global using B.NS7;
 
         [Fact]
         public void GlobalUsingAliasScope_05()
+        {
+            var source1 = @"
+public class C1
+{
+    public class C2 {}
+}
+
+namespace NS3
+{
+    public class C4
+    {
+        public class C5
+        {
+        }
+    }
+
+    namespace NS7
+    {
+        public class C8 {}
+    }
+}
+";
+
+            var globalUsings1 = @"
+global using A = C1;
+global using B = NS3;
+";
+
+            var usings2 = @"
+#line 1000
+using C = A.C2;
+#line 2000
+using D = B.NS7;
+#line 3000
+using static B.C4;
+#line 4000
+using B.NS7;
+";
+
+            var comp = CreateCompilation(new[] { globalUsings1 + usings2, source1 }, parseOptions: TestOptions.RegularPreview);
+
+            var expected = new DiagnosticDescription[]
+            {
+                // (1000,11): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                // using C = A.C2;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(1000, 11),
+                // (2000,11): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // using D = B.NS7;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(2000, 11),
+                // (3000,14): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // using static B.C4;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(3000, 14),
+                // (4000,7): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // using B.NS7;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(4000, 7)
+            };
+
+            comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected);
+
+            comp = CreateCompilation(new[] { usings2, globalUsings1 + source1 }, parseOptions: TestOptions.RegularPreview);
+            comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected);
+
+            comp = CreateCompilation(new[] { globalUsings1 + source1, usings2 }, parseOptions: TestOptions.RegularPreview);
+            comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected);
+        }
+
+        [Fact]
+        public void GlobalUsingAliasScope_06()
         {
             var source1 = @"
 global using A = C1;
@@ -1137,30 +1172,6 @@ C1+C2
 NS3.C4
 ");
 
-            var source3 = @"
-using C = C2;
-using static C4;
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.WriteLine(new C2());
-        System.Console.WriteLine(new C4());
-
-        System.Console.WriteLine(new C());
-        System.Console.WriteLine(new C5());
-    }
-}
-";
-
-            test(source3, expectedOutput: @"
-C1+C2
-NS3.C4
-C1+C2
-NS3.C4+C5
-");
-
             var source4 = @"
 namespace NS
 {
@@ -1303,25 +1314,25 @@ NS3.C4
 ");
 
             var source3 = @"
-using C = C2;
-using static C4;
-
-Program.Test();
+N.Program.Test();
 System.Console.WriteLine(new C2());
 System.Console.WriteLine(new C4());
 
-System.Console.WriteLine(new C());
-System.Console.WriteLine(new C5());
-
-class Program
+namespace N
 {
-    public static void Test()
-    {
-        System.Console.WriteLine(new C2());
-        System.Console.WriteLine(new C4());
+    using C = C2;
+    using static C4;
 
-        System.Console.WriteLine(new C());
-        System.Console.WriteLine(new C5());
+    class Program
+    {
+        public static void Test()
+        {
+            System.Console.WriteLine(new C2());
+            System.Console.WriteLine(new C4());
+
+            System.Console.WriteLine(new C());
+            System.Console.WriteLine(new C5());
+        }
     }
 }
 ";
@@ -1333,8 +1344,6 @@ C1+C2
 NS3.C4+C5
 C1+C2
 NS3.C4
-C1+C2
-NS3.C4+C5
 ");
 
             void test(string source, string expectedOutput)
@@ -1423,25 +1432,28 @@ NS3.C4
 ");
 
             var source3 = @"
-Program.Test();
+N.Program.Test();
 System.Console.WriteLine(new C2());
 System.Console.WriteLine(new C4());
 ";
 
             test(source3,
                  @"
-using C = C2;
-using static C4;
-
-class Program
+namespace N
 {
-    public static void Test()
-    {
-        System.Console.WriteLine(new C2());
-        System.Console.WriteLine(new C4());
+    using C = C2;
+    using static C4;
 
-        System.Console.WriteLine(new C());
-        System.Console.WriteLine(new C5());
+    class Program
+    {
+        public static void Test()
+        {
+            System.Console.WriteLine(new C2());
+            System.Console.WriteLine(new C4());
+
+            System.Console.WriteLine(new C());
+            System.Console.WriteLine(new C5());
+        }
     }
 }
 ",
@@ -1537,6 +1549,63 @@ global using static C4;
         public void GlobalUsingNamespaceOrTypeScope_05()
         {
             var source1 = @"
+public class C1
+{
+    public class C2 {}
+}
+
+namespace NS3
+{
+    public class C4
+    {
+        public class C5
+        {
+        }
+    }
+}
+";
+
+            var globalUsings1 = @"
+global using static C1;
+global using NS3;
+";
+
+            var usings2 = @"
+using C = C2;
+using static C4;
+";
+
+            var comp = CreateCompilation(new[] { globalUsings1 + usings2, source1 }, parseOptions: TestOptions.RegularPreview);
+            comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(
+                // (5,11): error CS0246: The type or namespace name 'C2' could not be found (are you missing a using directive or an assembly reference?)
+                // using C = C2;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C2").WithArguments("C2").WithLocation(5, 11),
+                // (6,14): error CS0246: The type or namespace name 'C4' could not be found (are you missing a using directive or an assembly reference?)
+                // using static C4;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C4").WithArguments("C4").WithLocation(6, 14)
+                );
+
+            var expected = new DiagnosticDescription[]
+            {
+                // (2,11): error CS0246: The type or namespace name 'C2' could not be found (are you missing a using directive or an assembly reference?)
+                // using C = C2;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C2").WithArguments("C2").WithLocation(2, 11),
+                // (3,14): error CS0246: The type or namespace name 'C4' could not be found (are you missing a using directive or an assembly reference?)
+                // using static C4;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C4").WithArguments("C4").WithLocation(3, 14)
+            };
+
+            comp = CreateCompilation(new[] { usings2, globalUsings1 + source1 }, parseOptions: TestOptions.RegularPreview);
+            comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected);
+
+            comp = CreateCompilation(new[] { globalUsings1 + source1, usings2 }, parseOptions: TestOptions.RegularPreview);
+            comp.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected);
+        }
+
+        [Fact]
+        public void GlobalUsingNamespaceOrTypeScope_06()
+        {
+            var source1 = @"
 global using static C1;
 global using NS4;
 
@@ -1618,7 +1687,7 @@ NS2.NS3.A
         }
 
         [Fact]
-        public void GlobalUsingNamespaceOrTypeScope_06()
+        public void GlobalUsingNamespaceOrTypeScope_07()
         {
             var source1 = @"
 namespace NS0
@@ -1741,7 +1810,7 @@ NS3.C4.M5 2
         }
 
         [Fact]
-        public void GlobalUsingNamespaceOrTypeScope_07()
+        public void GlobalUsingNamespaceOrTypeScope_08()
         {
             var source1 = @"
 namespace NS0
@@ -2318,12 +2387,6 @@ class C4 {}
 
             var expected2 = new[]
             {
-                // (4000,11): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'C4'
-                // using C = C4;
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "C4").WithArguments("C4", "<global namespace>").WithLocation(4000, 11),
-                // (5000,14): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'C4'
-                // using static C4;
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "C4").WithArguments("C4", "<global namespace>").WithLocation(5000, 14),
                 // (6000,17): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'C2'
                 //         _ = new C2();
                 Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "C2").WithArguments("C2", "<global namespace>").WithLocation(6000, 17),
@@ -2420,12 +2483,6 @@ namespace NS4
 
             var expected2 = new[]
             {
-                // (4000,11): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'NS4'
-                // using C = NS4;
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "NS4").WithArguments("NS4", "<global namespace>").WithLocation(4000, 11),
-                // (5000,7): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'NS4'
-                // using NS4;
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "NS4").WithArguments("NS4", "<global namespace>").WithLocation(5000, 7),
                 // (6000,17): error CS0576: Namespace '<global namespace>' contains a definition conflicting with alias 'NS2'
                 //         _ = new NS2.C2();
                 Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "NS2").WithArguments("NS2", "<global namespace>").WithLocation(6000, 17),
@@ -3851,182 +3908,6 @@ namespace NS
         }
 
         [Fact]
-        public void LookupAmbiguityInAliases_02()
-        {
-            var externAlias1 = @"
-#line 1000
-extern alias alias1;
-";
-            var externAlias2 = @"
-#line 2000
-extern alias alias1;
-";
-            var globalUsings1 = @"
-#line 3000
-global using alias1 = C1;
-";
-            var globalUsings2 = @"
-#line 4000
-global using alias1 = C2;
-";
-
-            var source = @"
-global using NS;
-#line 5000
-using static alias1;
-
-class C1 {}
-class C2 {}
-
-namespace NS
-{
-    class alias1 {}
-}
-";
-
-            var comp = CreateCompilation(new[] { externAlias1 + globalUsings1 + source }, parseOptions: TestOptions.RegularPreview);
-
-            var expected1 = new[]
-            {
-                // (5000,14): error CS0104: 'alias1' is an ambiguous reference between 'C1' and '<global namespace>'
-                // using static alias1;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "alias1").WithArguments("alias1", "C1", "<global namespace>").WithLocation(5000, 14)
-            };
-
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.ERR_DuplicateAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected1);
-
-            comp = CreateCompilation(new[] { externAlias1 + source, globalUsings1 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.ERR_DuplicateAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected1);
-
-            comp = CreateCompilation(new[] { externAlias1 + externAlias2 + source }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.ERR_DuplicateAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(
-                // (5000,14): error CS0104: 'alias1' is an ambiguous reference between '<global namespace>' and '<global namespace>'
-                // using static alias1;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "alias1").WithArguments("alias1", "<global namespace>", "<global namespace>").WithLocation(5000, 14)
-                );
-
-            var expected3 = new[]
-            {
-                // (4000,14): error CS1537: The using alias 'alias1' appeared previously in this namespace
-                // global using alias1 = C2;
-                Diagnostic(ErrorCode.ERR_DuplicateAlias, "alias1").WithArguments("alias1").WithLocation(4000, 14)
-            };
-
-            comp = CreateCompilation(new[] { globalUsings1 + globalUsings2 + source }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected3);
-            var tree = comp.SyntaxTrees[0];
-            var node = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(d => d.ToString() == "using static alias1;").Single().Name;
-            var model = comp.GetSemanticModel(tree);
-            Assert.Equal("C1", model.GetTypeInfo(node).Type.ToTestDisplayString());
-
-            comp = CreateCompilation(new[] { globalUsings1 + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected3);
-            tree = comp.SyntaxTrees[0];
-            node = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(d => d.ToString() == "using static alias1;").Single().Name;
-            model = comp.GetSemanticModel(tree);
-            Assert.Equal("C1", model.GetTypeInfo(node).Type.ToTestDisplayString());
-
-            comp = CreateCompilation(new[] { source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected3);
-            tree = comp.SyntaxTrees[0];
-            node = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(d => d.ToString() == "using static alias1;").Single().Name;
-            model = comp.GetSemanticModel(tree);
-            Assert.Equal("C1", model.GetTypeInfo(node).Type.ToTestDisplayString());
-
-            comp = CreateCompilation(new[] { source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected3);
-            tree = comp.SyntaxTrees[0];
-            node = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(d => d.ToString() == "using static alias1;").Single().Name;
-            model = comp.GetSemanticModel(tree);
-            Assert.Equal("C1", model.GetTypeInfo(node).Type.ToTestDisplayString());
-        }
-
-        [Fact]
-        public void LookupAmbiguityInAliases_03()
-        {
-            var externAlias1 = @"
-#line 1000
-extern alias alias1;
-";
-            var externAlias2 = @"
-#line 2000
-extern alias alias1;
-";
-            var globalUsings1 = @"
-#line 3000
-global using alias1 = C1;
-";
-            var globalUsings2 = @"
-#line 4000
-global using alias1 = C2;
-";
-
-            var source = @"
-#line 5000
-using static alias1;
-
-class C1 {}
-class C2 {}
-";
-
-            var comp = CreateCompilation(new[] { externAlias1 + globalUsings1 + source }, parseOptions: TestOptions.RegularPreview);
-
-            var expected1 = new[]
-            {
-                // (5000,14): error CS0104: 'alias1' is an ambiguous reference between 'C1' and '<global namespace>'
-                // using static alias1;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "alias1").WithArguments("alias1", "C1", "<global namespace>").WithLocation(5000, 14)
-            };
-
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.ERR_DuplicateAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected1);
-
-            comp = CreateCompilation(new[] { externAlias1 + source, globalUsings1 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.ERR_DuplicateAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected1);
-
-            comp = CreateCompilation(new[] { externAlias1 + externAlias2 + source }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.ERR_DuplicateAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(
-                // (5000,14): error CS0104: 'alias1' is an ambiguous reference between '<global namespace>' and '<global namespace>'
-                // using static alias1;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "alias1").WithArguments("alias1", "<global namespace>", "<global namespace>").WithLocation(5000, 14)
-                );
-
-            var expected3 = new[]
-            {
-                // (4000,14): error CS1537: The using alias 'alias1' appeared previously in this namespace
-                // global using alias1 = C2;
-                Diagnostic(ErrorCode.ERR_DuplicateAlias, "alias1").WithArguments("alias1").WithLocation(4000, 14)
-            };
-
-            comp = CreateCompilation(new[] { globalUsings1 + globalUsings2 + source }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected3);
-            var tree = comp.SyntaxTrees[0];
-            var node = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(d => d.ToString() == "using static alias1;").Single().Name;
-            var model = comp.GetSemanticModel(tree);
-            Assert.Equal("C1", model.GetTypeInfo(node).Type.ToTestDisplayString());
-
-            comp = CreateCompilation(new[] { globalUsings1 + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected3);
-            tree = comp.SyntaxTrees[0];
-            node = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(d => d.ToString() == "using static alias1;").Single().Name;
-            model = comp.GetSemanticModel(tree);
-            Assert.Equal("C1", model.GetTypeInfo(node).Type.ToTestDisplayString());
-
-            comp = CreateCompilation(new[] { source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected3);
-            tree = comp.SyntaxTrees[0];
-            node = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(d => d.ToString() == "using static alias1;").Single().Name;
-            model = comp.GetSemanticModel(tree);
-            Assert.Equal("C1", model.GetTypeInfo(node).Type.ToTestDisplayString());
-
-            comp = CreateCompilation(new[] { source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_BadExternAlias or (int)ErrorCode.HDN_UnusedUsingDirective)).Verify(expected3);
-            tree = comp.SyntaxTrees[0];
-            node = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(d => d.ToString() == "using static alias1;").Single().Name;
-            model = comp.GetSemanticModel(tree);
-            Assert.Equal("C1", model.GetTypeInfo(node).Type.ToTestDisplayString());
-        }
-
-        [Fact]
         public void LookupAmbiguityInUsedNamespacesOrTypes_01()
         {
             var globalUsings1 = @"
@@ -4115,51 +3996,6 @@ namespace NS3
 
         [Fact]
         public void LookupAmbiguityInUsedNamespacesOrTypes_02()
-        {
-            var globalUsings1 = @"
-global using NS1;
-";
-            var globalUsings2 = @"
-global using static C2;
-";
-            var source = @"
-#line 7000
-using static C5;
-
-class C2
-{
-    public class C5 {}
-}
-
-namespace NS1
-{
-    public class C5 {}
-}
-";
-
-            var comp = CreateCompilation(new[] { globalUsings1 + globalUsings2 + source }, parseOptions: TestOptions.RegularPreview);
-
-            var expected1 = new[]
-            {
-                // (7000,14): error CS0104: 'C5' is an ambiguous reference between 'C2.C5' and 'NS1.C5'
-                // using static C5;
-                Diagnostic(ErrorCode.ERR_AmbigContext, "C5").WithArguments("C5", "C2.C5", "NS1.C5").WithLocation(7000, 14)
-            };
-
-            comp.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
-
-            comp = CreateCompilation(new[] { globalUsings1 + source, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
-
-            comp = CreateCompilation(new[] { source, globalUsings1 + globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
-
-            comp = CreateCompilation(new[] { source, globalUsings1, globalUsings2 }, parseOptions: TestOptions.RegularPreview);
-            comp.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.HDN_UnusedUsingDirective).Verify(expected1);
-        }
-
-        [Fact]
-        public void LookupAmbiguityInUsedNamespacesOrTypes_03()
         {
             var globalUsings1 = @"
 global using NS1;
@@ -4538,109 +4374,6 @@ namespace NS2
         }
 
         [Fact]
-        public void AliasHasPriority_03()
-        {
-            var globalAlias = @"
-global using A = NS2;
-";
-            var globalUsing1 = @"
-#line 1000
-global using NS;
-";
-            var globalUsing2 = @"
-#line 2000
-global using static C2;
-";
-
-            var source2 = @"
-using B = A.C1;
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.WriteLine(new B());
-    }
-}
-
-namespace NS
-{
-    public class A
-    {
-        public class C1 {}
-    }
-}
-
-class C2
-{
-    public class A
-    {
-        public class C1 {}
-    }
-}
-
-namespace NS2
-{
-    public class C1 {}
-}
-";
-            {
-                var comp2 = CreateCompilation(globalAlias + globalUsing1 + source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-
-                var expected1 = new[]
-                {
-                    // (1000,1): hidden CS8019: Unnecessary using directive.
-                    // global using NS;
-                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using NS;").WithLocation(1000, 1)
-                };
-
-                CompileAndVerify(comp2, expectedOutput: @"NS2.C1").VerifyDiagnostics(expected1);
-
-                comp2 = CreateCompilation(new[] { globalAlias + source2, globalUsing1 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-                CompileAndVerify(comp2, expectedOutput: @"NS2.C1").VerifyDiagnostics(expected1);
-
-                comp2 = CreateCompilation(new[] { source2, globalAlias + globalUsing1 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-                CompileAndVerify(comp2, expectedOutput: @"NS2.C1").VerifyDiagnostics(expected1);
-
-                comp2 = CreateCompilation(new[] { source2, globalAlias, globalUsing1 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-                CompileAndVerify(comp2, expectedOutput: @"NS2.C1").VerifyDiagnostics(expected1);
-
-                comp2 = CreateCompilation(new[] { source2, globalUsing1, globalAlias }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-                CompileAndVerify(comp2, expectedOutput: @"NS2.C1").VerifyDiagnostics(expected1);
-
-                comp2 = CreateCompilation(globalUsing1 + source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-                CompileAndVerify(comp2, expectedOutput: @"NS.A+C1").VerifyDiagnostics();
-            }
-            {
-                var comp2 = CreateCompilation(globalAlias + globalUsing2 + source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-
-                var expected1 = new[]
-                {
-                    // (2000,1): hidden CS8019: Unnecessary using directive.
-                    // global using static C2;
-                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using static C2;").WithLocation(2000, 1)
-                };
-
-                CompileAndVerify(comp2, expectedOutput: @"NS2.C1").VerifyDiagnostics(expected1);
-
-                comp2 = CreateCompilation(new[] { globalAlias + source2, globalUsing2 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-                CompileAndVerify(comp2, expectedOutput: @"NS2.C1").VerifyDiagnostics(expected1);
-
-                comp2 = CreateCompilation(new[] { source2, globalAlias + globalUsing2 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-                CompileAndVerify(comp2, expectedOutput: @"NS2.C1").VerifyDiagnostics(expected1);
-
-                comp2 = CreateCompilation(new[] { source2, globalAlias, globalUsing2 }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-                CompileAndVerify(comp2, expectedOutput: @"NS2.C1").VerifyDiagnostics(expected1);
-
-                comp2 = CreateCompilation(new[] { source2, globalUsing2, globalAlias }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-                CompileAndVerify(comp2, expectedOutput: @"NS2.C1").VerifyDiagnostics(expected1);
-
-                comp2 = CreateCompilation(globalUsing2 + source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
-                CompileAndVerify(comp2, expectedOutput: @"C2+A+C1").VerifyDiagnostics();
-            }
-        }
-
-        [Fact]
         public void ErrorRecoveryInNamespace_01()
         {
             var source = @"
@@ -4740,106 +4473,6 @@ class C5
                 // (2006,13): error CS0103: The name 'A2' does not exist in the current context
                 //             A2.M5();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "A2").WithArguments("A2").WithLocation(2006, 13)
-                );
-        }
-
-        [Fact]
-        public void ErrorRecoveryInScript_01()
-        {
-            var source1 = @"
-global using NS2;
-global using static C4;
-global using A2 = C5;
-
-using NS1;
-using static C2;
-using A1 = C3;
-
-class Test1
-{
-    void M()
-    {
-#line 1000
-        new NS1C1();
-        M2();
-        A1.M3();
-
-        new NS2C2();
-        M4();
-        A2.M5();
-    }
-}
-";
-            var source2 = @"
-class Test2
-{
-    void M()
-    {
-#line 2000
-        new NS1C1();
-        M2();
-        A1.M3();
-
-        new NS2C2();
-        M4();
-        A2.M5();
-    }
-}
-";
-            var source3 = @"
-namespace NS1
-{
-    public class NS1C1 {}
-}
-
-namespace NS2
-{
-    public class NS2C2 {}
-}
-
-public class C2
-{
-    public static void M2() {}
-}
-
-public class C3 
-{
-    public static void M3() {}
-}
-
-public class C4
-{
-    public static void M4() {}
-}
-
-public class C5
-{
-    public static void M5() {}
-}
-";
-            CreateCompilation(new[] { source1, source2 }, parseOptions: TestOptions.RegularPreview.WithKind(SourceCodeKind.Script),
-                references: new[] { CreateCompilation(source3).ToMetadataReference() }).VerifyDiagnostics(
-                // (2,1): error CS9003: A global using directive cannot be used in in script code.
-                // global using NS2;
-                Diagnostic(ErrorCode.ERR_GlobalUsingInScript, "global").WithLocation(2, 1),
-                // (2000,13): error CS0246: The type or namespace name 'NS1C1' could not be found (are you missing a using directive or an assembly reference?)
-                //         new NS1C1();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NS1C1").WithArguments("NS1C1").WithLocation(2000, 13),
-                // (2001,9): error CS0103: The name 'M2' does not exist in the current context
-                //         M2();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "M2").WithArguments("M2").WithLocation(2001, 9),
-                // (2002,9): error CS0103: The name 'A1' does not exist in the current context
-                //         A1.M3();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "A1").WithArguments("A1").WithLocation(2002, 9),
-                // (2004,13): error CS0246: The type or namespace name 'NS2C2' could not be found (are you missing a using directive or an assembly reference?)
-                //         new NS2C2();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NS2C2").WithArguments("NS2C2").WithLocation(2004, 13),
-                // (2005,9): error CS0103: The name 'M4' does not exist in the current context
-                //         M4();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "M4").WithArguments("M4").WithLocation(2005, 9),
-                // (2006,9): error CS0103: The name 'A2' does not exist in the current context
-                //         A2.M5();
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "A2").WithArguments("A2").WithLocation(2006, 9)
                 );
         }
 
