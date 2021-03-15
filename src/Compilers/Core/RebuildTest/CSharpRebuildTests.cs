@@ -2,24 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System;
 using System.Reflection.PortableExecutable;
 using BuildValidator;
-using Castle.Core.Logging;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging;
 using Xunit;
-using System.IO;
-using System.Threading;
-using Microsoft.CodeAnalysis.VisualBasic;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
