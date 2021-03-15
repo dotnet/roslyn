@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReassignedVariable;
@@ -34,21 +33,72 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
         protected override SyntaxToken GetIdentifierOfVariable(VariableDeclaratorSyntax variable)
             => variable.Identifier;
 
-        protected override DataFlowAnalysis? AnalyzeMethodBodyDataFlow(
-            SemanticModel semanticModel, SyntaxNode methodDeclaration, CancellationToken cancellationToken)
+        protected override void AnalyzeMemberBodyDataFlow(
+            SemanticModel semanticModel,
+            SyntaxNode member,
+            ref TemporaryArray<DataFlowAnalysis?> dataFlowAnalyses,
+            CancellationToken cancellationToken)
         {
-            var body = InitializeParameterHelpers.GetBody(methodDeclaration);
-            if (body is BlockSyntax or ExpressionSyntax)
+            using var bodies = TemporaryArray<SyntaxNode>.Empty;
+            AddBodies(member, ref bodies.AsRef());
+
+            foreach (var body in bodies)
             {
-                return semanticModel.AnalyzeDataFlow(body);
+                if (body is null)
+                    continue;
+
+                if (body is BlockSyntax or ExpressionSyntax)
+                {
+                    dataFlowAnalyses.Add(semanticModel.AnalyzeDataFlow(body));
+                }
+                else if (body is ArrowExpressionClauseSyntax arrow)
+                {
+                    dataFlowAnalyses.Add(semanticModel.AnalyzeDataFlow(arrow.Expression));
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(body);
+                }
             }
-            else if (body is ArrowExpressionClauseSyntax arrow)
+        }
+
+        private static void AddBodies(SyntaxNode declaration, ref TemporaryArray<SyntaxNode> bodies)
+        {
+            switch (declaration)
             {
-                return semanticModel.AnalyzeDataFlow(arrow.Expression);
-            }
-            else
-            {
-                throw ExceptionUtilities.UnexpectedValue(body);
+                case BaseMethodDeclarationSyntax methodDeclaration:
+                    bodies.AddIfNotNull(methodDeclaration.Body);
+                    bodies.AddIfNotNull(methodDeclaration.ExpressionBody?.Expression);
+                    break;
+
+                case LocalFunctionStatementSyntax localFunction:
+                    bodies.AddIfNotNull(localFunction.Body);
+                    bodies.AddIfNotNull(localFunction.ExpressionBody?.Expression);
+                    break;
+
+                case AnonymousFunctionExpressionSyntax anonymousFunction:
+                    bodies.AddIfNotNull(anonymousFunction.Block);
+                    bodies.AddIfNotNull(anonymousFunction.ExpressionBody);
+                    break;
+
+                case ArrowExpressionClauseSyntax arrowExpression:
+                    bodies.AddIfNotNull(arrowExpression.Expression);
+                    break;
+
+                case IndexerDeclarationSyntax indexer:
+                    bodies.AddIfNotNull(indexer.ExpressionBody?.Expression);
+                    if (indexer.AccessorList != null)
+                    {
+                        foreach (var accessor in indexer.AccessorList.Accessors)
+                        {
+                            bodies.AddIfNotNull(accessor.Body);
+                            bodies.AddIfNotNull(accessor.ExpressionBody?.Expression);
+                        }
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(declaration);
             }
         }
 

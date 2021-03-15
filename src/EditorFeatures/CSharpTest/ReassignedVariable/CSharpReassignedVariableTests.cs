@@ -127,7 +127,7 @@ class C
         }
 
         [Fact]
-        public async Task TestIndexerWithWriteInGetter()
+        public async Task TestIndexerWithWriteInGetter1()
         {
             await TestAsync(
 @"
@@ -139,7 +139,19 @@ class C
         }
 
         [Fact]
-        public async Task TestIndexerWithWriteInSetter()
+        public async Task TestIndexerWithWriteInGetter2()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int this[int [|p|]] { get { [|p|]++; } }
+}");
+        }
+
+        [Fact]
+        public async Task TestIndexerWithWriteInSetter1()
         {
             await TestAsync(
 @"
@@ -151,7 +163,19 @@ class C
         }
 
         [Fact]
-        public async Task TestPropertyWithAssignmentToValue()
+        public async Task TestIndexerWithWriteInSetter2()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int this[int [|p|]] { set { [|p|]++; } }
+}");
+        }
+
+        [Fact]
+        public async Task TestPropertyWithAssignmentToValue1()
         {
             await TestAsync(
 @"
@@ -159,6 +183,18 @@ using System;
 class C
 {
     int Goo { set => value = value + 1; }
+}");
+        }
+
+        [Fact]
+        public async Task TestPropertyWithAssignmentToValue2()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    int Goo { set { value = value + 1; } }
 }");
         }
 

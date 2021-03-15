@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
         protected abstract void AddVariables(TVariableDeclaratorSyntax declarator, ref TemporaryArray<TVariableSyntax> temporaryArray);
         protected abstract SyntaxNode GetParentScope(SyntaxNode localDeclaration);
         protected abstract SyntaxToken GetIdentifierOfVariable(TVariableSyntax variable);
-        protected abstract DataFlowAnalysis? AnalyzeMethodBodyDataFlow(SemanticModel semanticModel, SyntaxNode methodBlock, CancellationToken cancellationToken);
+        protected abstract void AnalyzeMemberBodyDataFlow(SemanticModel semanticModel, SyntaxNode memberBlock, ref TemporaryArray<DataFlowAnalysis?> dataFlowAnalyses, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<TextSpan>> GetReassignedVariablesAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
@@ -150,25 +151,44 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
             {
                 // Parameters are an easy case.  We just need to get the method they're defined for, and see if they are
                 // even written to inside that method.
-
-                if (parameter.ContainingSymbol is not IMethodSymbol method)
+                var methodOrProperty = parameter.ContainingSymbol;
+                if (methodOrProperty is not IMethodSymbol and not IPropertySymbol)
                     return false;
 
-                if (method.DeclaringSyntaxReferences.Length == 0)
+                if (methodOrProperty.DeclaringSyntaxReferences.Length == 0)
                     return false;
 
-                var methodDeclaration = method.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
+                var methodOrPropertyDeclaration = methodOrProperty.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
 
                 // Potentially a reference to a parameter in another file.
-                if (methodDeclaration.SyntaxTree != semanticModel.SyntaxTree)
+                if (methodOrPropertyDeclaration.SyntaxTree != semanticModel.SyntaxTree)
                     return false;
 
-                var dataFlow = AnalyzeMethodBodyDataFlow(semanticModel, methodDeclaration, cancellationToken);
-                if (dataFlow == null)
-                    return false;
+                using var dataFlowAnalyses = TemporaryArray<DataFlowAnalysis?>.Empty;
+                AnalyzeMemberBodyDataFlow(semanticModel, methodOrPropertyDeclaration, ref dataFlowAnalyses.AsRef(), cancellationToken);
 
-                foreach (var methodParam in method.Parameters)
-                    symbolToIsReassigned[methodParam] = dataFlow.WrittenInside.Contains(methodParam);
+                if (methodOrProperty is IMethodSymbol method)
+                {
+                    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), method);
+                }
+                else if (methodOrProperty is IPropertySymbol property)
+                {
+                    // See what reassignments happen in the getter/setter of the property.
+                    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), property.GetMethod);
+                    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), property.SetMethod);
+
+                    // Then, consider the property parameter itself 
+                    foreach (var propParameter in property.Parameters)
+                    {
+                        var ordinal = propParameter.Ordinal;
+                        var getParam = property.GetMethod?.Parameters[ordinal];
+                        var setParam = property.SetMethod?.Parameters[ordinal];
+
+                        symbolToIsReassigned[propParameter] =
+                            (getParam != null && symbolToIsReassigned.TryGetValue(getParam, out var getReassigns) && getReassigns) ||
+                            (setParam != null && symbolToIsReassigned.TryGetValue(setParam, out var setReassigns) && setReassigns);
+                    }
+                }
 
                 return symbolToIsReassigned.TryGetValue(parameter, out var result) && result;
             }
@@ -240,6 +260,21 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 }
 
                 return false;
+            }
+        }
+
+        private static void ProcessMethodParameters(
+            Dictionary<ISymbol, bool> symbolToIsReassigned,
+            ref TemporaryArray<DataFlowAnalysis?> dataFlowAnalyses,
+            IMethodSymbol? method)
+        {
+            if (method == null)
+                return;
+
+            foreach (var methodParam in method.Parameters)
+            {
+                foreach (var dataFlow in dataFlowAnalyses)
+                    symbolToIsReassigned[methodParam] = dataFlow != null && dataFlow.WrittenInside.Contains(methodParam);
             }
         }
     }

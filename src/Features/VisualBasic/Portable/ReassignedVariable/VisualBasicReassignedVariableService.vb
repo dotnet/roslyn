@@ -50,31 +50,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReassignedVariable
             Return current
         End Function
 
-        Protected Overrides Function AnalyzeMethodBodyDataFlow(
+        Protected Overrides Sub AnalyzeMemberBodyDataFlow(
                 semanticModel As SemanticModel,
-                methodDeclaration As SyntaxNode,
-                cancellationToken As CancellationToken) As DataFlowAnalysis
-            Dim methodBlock = methodDeclaration.GetBlockFromBegin()
+                memberBlock As SyntaxNode,
+                ByRef dataFlowAnalyses As TemporaryArray(Of DataFlowAnalysis),
+                cancellationToken As CancellationToken)
+            Dim methodBlock = memberBlock.GetBlockFromBegin()
 
             If TypeOf methodBlock Is SingleLineLambdaExpressionSyntax Then
-                Return semanticModel.AnalyzeDataFlow(DirectCast(methodBlock, SingleLineLambdaExpressionSyntax).Body)
+                dataFlowAnalyses.Add(semanticModel.AnalyzeDataFlow(DirectCast(methodBlock, SingleLineLambdaExpressionSyntax).Body))
+                Return
             End If
 
             If TypeOf methodBlock Is MultiLineLambdaExpressionSyntax Then
                 Dim lambda = DirectCast(methodBlock, MultiLineLambdaExpressionSyntax)
                 If lambda.Statements.Count > 0 Then
-                    Return semanticModel.AnalyzeDataFlow(lambda.Statements.First(), lambda.Statements.Last())
+                    dataFlowAnalyses.Add(semanticModel.AnalyzeDataFlow(lambda.Statements.First(), lambda.Statements.Last()))
                 End If
             End If
 
             If TypeOf methodBlock Is MethodBlockBaseSyntax Then
                 Dim base = DirectCast(methodBlock, MethodBlockBaseSyntax)
                 If base.Statements.Count > 0 Then
-                    Return semanticModel.AnalyzeDataFlow(base.Statements.First(), base.Statements.Last())
+                    dataFlowAnalyses.Add(semanticModel.AnalyzeDataFlow(base.Statements.First(), base.Statements.Last()))
                 End If
             End If
-
-            Return Nothing
-        End Function
+        End Sub
     End Class
 End Namespace
