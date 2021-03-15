@@ -42,18 +42,18 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly TaggedText TargetDescription;
         public readonly Glyph Glyph;
         public readonly InheritanceRelationship RelationToMember;
-        public readonly ImmutableArray<DefinitionItem> TargetDefinitionItems;
+        public readonly DefinitionItem DefinitionItem;
 
         public InheritanceTargetItem(
             TaggedText targetDescription,
             Glyph glyph,
             InheritanceRelationship relationToMember,
-            ImmutableArray<DefinitionItem> targetDefinitionItems)
+            DefinitionItem definitionItem)
         {
             TargetDescription = targetDescription;
             Glyph = glyph;
             RelationToMember = relationToMember;
-            TargetDefinitionItems = targetDefinitionItems;
+            DefinitionItem = definitionItem;
         }
     }
 }

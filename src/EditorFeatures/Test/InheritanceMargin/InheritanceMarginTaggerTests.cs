@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,8 +23,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 {
-    [Trait(Traits.Feature, Traits.Features.InheritanceChainMargin)]
-    public abstract class InheritanceMarginTaggerTests
+    [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.InheritanceMargin)]
+    public class InheritanceMarginTaggerTests
     {
         private readonly string Overriding = KnownMonikers.Overriding.ToString();
         private readonly string Overriden = KnownMonikers.Overridden.ToString();
@@ -32,22 +34,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private readonly string ImplementingOverriden = KnownMonikers.ImplementingOverridden.ToString();
         private readonly string ImplementingAndOverriding = KnownMonikers.ImplementingOverriding.ToString();
 
-        [Fact]
+        [WpfFact]
         public Task Test1()
         {
             var markup = @"
-interface {|target1 IBar|} { }
-{|margin, implemented, A target1=IBar, |}class A : IBar { } ";
+interface {|target1: IBar|} { }
+{|margin, implemented, A target1=IBar: class A : IBar { }|}";
             return VerifyInSameFileAsync(markup, LanguageNames.CSharp);
         }
 
         private async Task VerifyInSameFileAsync(string markup, string languageName)
         {
-            TestFileMarkupParser.GetPositionsAndSpans(
-                markup,
-                out var cleanMarkup,
-                out var carets,
-                out var selectedSpans);
             var workspaceFile = $@"
 <Workspace>
    <Project Language=""{languageName}"" CommonReferences=""true"">
@@ -61,20 +58,27 @@ interface {|target1 IBar|} { }
                 workspaceFile,
                 composition: EditorTestCompositions.EditorFeaturesWpf);
 
-            var taggerProvider = testWorkspace.ExportProvider.GetExportedValue<InheritanceChainMarginTaggerProvider>();
-            var testAccessor = taggerProvider.GetTestAccessor();
+            var contentType = languageName switch
+            {
+                LanguageNames.CSharp => ContentTypeNames.CSharpContentType,
+                LanguageNames.VisualBasic => ContentTypeNames.VisualBasicContentType,
+                _ => throw ExceptionUtilities.UnexpectedValue(languageName),
+            };
+
+            var taggerProvider = testWorkspace.GetService<IViewTaggerProvider>(contentType, nameof(InheritanceChainMarginTaggerProvider));
+            var testAccessor = ((InheritanceChainMarginTaggerProvider)taggerProvider).GetTestAccessor();
             var testHostDocument = testWorkspace.Documents.Single();
             var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
 
             var context = new TaggerContext<InheritanceMarginTag>(document, testHostDocument.GetTextView().TextSnapshot);
-            await testAccessor.ProduceTagsAsync(context).ConfigureAwait(false);
+            await testAccessor.ProduceTagsAsync(context);
             var tagSpans = context.tagSpans.ToImmutableArray();
-            await VerifyTagAsync(document, selectedSpans, tagSpans);
+            await VerifyTagAsync(document, testHostDocument.AnnotatedSpans, tagSpans);
         }
 
-        private async Task VerifyTagAsync(
+        private static async Task VerifyTagAsync(
             Document document,
-            ImmutableDictionary<string, ImmutableArray<TextSpan>> selectedSpan,
+            IDictionary<string, ImmutableArray<TextSpan>> selectedSpan,
             ImmutableArray<ITagSpan<InheritanceMarginTag>> tagSpans)
         {
             var sourceText = await document.GetTextAsync().ConfigureAwait(false);
@@ -98,7 +102,7 @@ interface {|target1 IBar|} { }
                 .OrderBy(tagSpan => tagSpan.Span.Start)
                 .ToImmutableArray();
             Assert.Equal(testLineMargins.Length, sortedTagSpans.Length);
-            for (int i = 0; i < testLineMargins.Length; i++)
+            for (var i = 0; i < testLineMargins.Length; i++)
             {
                 VerifyTestLineMargin(testLineMargins[i], sortedTagSpans[i]);
             }
@@ -117,18 +121,18 @@ interface {|target1 IBar|} { }
             var tag = actualTaggedSpan.Tag;
             Assert.Equal(expectedMargin.Moniker, tag.Moniker.ToString());
             Assert.Equal(expectedMargin.Members.Length, tag.Members.Length);
-            for (int i = 0; i < expectedMargin.Members.Length; i++)
+            for (var i = 0; i < expectedMargin.Members.Length; i++)
             {
                 var expectedMember = expectedMargin.Members[i];
                 var actualMember = tag.Members[i];
                 Assert.Equal(expectedMember.MemberName, actualMember.DisplayContent);
                 Assert.Equal(expectedMember.Targets.Length, actualMember.Targets.Length);
-                for (int j = 0; j < expectedMember.Targets.Length; j++)
+                for (var j = 0; j < expectedMember.Targets.Length; j++)
                 {
                     var expectedTarget = expectedMember.Targets[j];
                     var actualTarget = actualMember.Targets[j];
                     Assert.Equal(expectedTarget.TargetName, actualTarget.Name);
-                    Assert.Equal(expectedTarget.Definitions, actualTarget.DefinitionItems.SelectMany(d => d.SourceSpans));
+                    Assert.Equal(expectedTarget.DocumentSpans, actualTarget.DefinitionItem.SourceSpans);
                 }
             }
         }
@@ -192,12 +196,12 @@ interface {|target1 IBar|} { }
         private class TestTargetTag
         {
             public readonly string TargetName;
-            public readonly ImmutableArray<DocumentSpan> Definitions;
+            public readonly ImmutableArray<DocumentSpan> DocumentSpans;
 
-            public TestTargetTag(string targetName, ImmutableArray<DocumentSpan> definitions)
+            public TestTargetTag(string targetName, ImmutableArray<DocumentSpan> documentSpans)
             {
                 TargetName = targetName;
-                Definitions = definitions;
+                DocumentSpans = documentSpans;
             }
         }
     }

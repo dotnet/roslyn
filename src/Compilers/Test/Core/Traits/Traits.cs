@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string GoToBase = nameof(GoToBase);
             public const string GoToDefinition = nameof(GoToDefinition);
             public const string GoToImplementation = nameof(GoToImplementation);
-            public const string InheritanceChainMargin = nameof(InheritanceChainMargin);
+            public const string InheritanceMargin = nameof(InheritanceMargin);
             public const string InlineHints = nameof(InlineHints);
             public const string Interactive = nameof(Interactive);
             public const string InteractiveHost = nameof(InteractiveHost);

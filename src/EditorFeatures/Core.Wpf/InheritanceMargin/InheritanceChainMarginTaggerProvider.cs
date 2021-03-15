@@ -26,23 +26,21 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
     [Export(typeof(IViewTaggerProvider))]
     [Name(nameof(InheritanceChainMarginTaggerProvider))]
     [TagType(typeof(InheritanceMarginTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
     internal class InheritanceChainMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
     {
-        private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceChainMarginTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
-            IForegroundNotificationService notificationService,
-            IStreamingFindUsagesPresenter streamingFindUsagesPresenter) : base(
+            IForegroundNotificationService notificationService) : base(
                 threadingContext,
                 listenerProvider.GetListener(FeatureAttribute.InheritanceChainMargin),
                 notificationService)
         {
-            _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)

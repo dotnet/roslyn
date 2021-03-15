@@ -105,9 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         private static TargetPresentEntry CreatePresentEntryForTarget(
             InheritanceTargetItem targetItem)
             => new TargetPresentEntry(
-                glyph: targetItem.Glyph,
-                title: targetItem.TargetDescription.Text,
-                definitionItems: targetItem.TargetDefinitionItems);
+                targetItem.DefinitionItem,
+                targetItem.TargetDescription.Text);
     }
 
     internal class MemberPresentEntry
@@ -130,15 +129,13 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 
     internal class TargetPresentEntry
     {
-        public readonly string Title;
-        public readonly ImmutableArray<DefinitionItem> DefinitionItems;
+        public readonly DefinitionItem DefinitionItem;
         public readonly string Name;
 
-        public TargetPresentEntry(
-            Glyph glyph,
-            string title,
-            ImmutableArray<DefinitionItem> definitionItems)
+        public TargetPresentEntry(DefinitionItem definitionItem, string name)
         {
+            DefinitionItem = definitionItem;
+            Name = name;
         }
     }
 }
