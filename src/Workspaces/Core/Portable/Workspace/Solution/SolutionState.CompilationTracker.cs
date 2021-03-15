@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         /// compilation for that project.  As the compilation is being built, the partial results are
         /// stored as well so that they can be used in the 'in progress' workspace snapshot.
         /// </summary>
-        private partial class CompilationTracker
+        private partial class CompilationTracker : ICompilationTracker
         {
             private static readonly Func<ProjectState, string> s_logBuildCompilationAsync =
                 state => string.Join(",", state.AssemblyName, state.DocumentStates.Count);
@@ -80,19 +80,6 @@ namespace Microsoft.CodeAnalysis
                 Volatile.Write(ref _stateDoNotAccessDirectly, state);
             }
 
-            /// <summary>
-            /// Returns true if this tracker currently either points to a compilation, has an in-progress
-            /// compilation being computed, or has a skeleton reference.  Note: this is simply a weak
-            /// statement about the tracker at this exact moment in time.  Immediately after this returns
-            /// the tracker might change and may no longer have a final compilation (for example, if the
-            /// retainer let go of it) or might not have an in-progress compilation (for example, if the
-            /// background compiler finished with it).
-            /// 
-            /// Because of the above limitations, this should only be used by clients as a weak form of
-            /// information about the tracker.  For example, a client may see that a tracker has no
-            /// compilation and may choose to throw it away knowing that it could be reconstructed at a
-            /// later point if necessary.
-            /// </summary>
             public bool HasCompilation
             {
                 get
@@ -102,20 +89,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            /// <summary>
-            /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the
-            /// given <paramref name="symbol"/>.  The symbol must be a <see cref="IAssemblySymbol"/>, <see
-            /// cref="IModuleSymbol"/> or <see cref="IDynamicTypeSymbol"/>.
-            /// </summary>
-            /// <remarks>
-            /// If <paramref name="primary"/> is true, then <see cref="Compilation.References"/> will not be considered
-            /// when answering this question.  In other words, if <paramref name="symbol"/>  is an <see
-            /// cref="IAssemblySymbol"/> and <paramref name="primary"/> is <see langword="true"/> then this will only
-            /// return true if the symbol is <see cref="Compilation.Assembly"/>.  If <paramref name="primary"/> is
-            /// false, then it can return true if <paramref name="symbol"/> is <see cref="Compilation.Assembly"/> or any
-            /// of the symbols returned by <see cref="Compilation.GetAssemblyOrModuleSymbol(MetadataReference)"/> for
-            /// any of the references of the <see cref="Compilation.References"/>.
-            /// </remarks>
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
                 Debug.Assert(symbol.Kind == SymbolKind.Assembly ||
@@ -183,7 +156,7 @@ namespace Microsoft.CodeAnalysis
             /// Creates a new instance of the compilation info, retaining any already built
             /// compilation state as the now 'old' state
             /// </summary>
-            public CompilationTracker Fork(
+            public ICompilationTracker Fork(
                 ProjectState newProject,
                 CompilationAndGeneratorDriverTranslationAction? translate = null,
                 bool clone = false,
@@ -232,10 +205,10 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Creates a fork with the same final project.
             /// </summary>
-            public CompilationTracker Clone()
+            public ICompilationTracker Clone()
                 => this.Fork(this.ProjectState, clone: true);
 
-            public CompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
+            public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
             {
                 GetPartialCompilationState(
                     solution, docState.Id,
@@ -990,12 +963,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            /// <summary>
-            /// Get a metadata reference to this compilation info's compilation with respect to
-            /// another project. For cross language references produce a skeletal assembly. If the
-            /// compilation is not available, it is built. If a skeletal assembly reference is
-            /// needed and does not exist, it is also built.
-            /// </summary>
             public async Task<MetadataReference> GetMetadataReferenceAsync(
                 SolutionState solution,
                 ProjectState fromProject,
@@ -1035,7 +1002,7 @@ namespace Microsoft.CodeAnalysis
             /// compilation. Only actual compilation references are returned. Could potentially 
             /// return null if nothing can be provided.
             /// </summary>
-            public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
+            public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
                 var state = ReadState();
 

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
         public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
 
         // Values for all these are created on demand.
-        private ImmutableDictionary<ProjectId, CompilationTracker> _projectIdToTrackerMap;
+        private ImmutableDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
         // Checksums for this solution state
         private readonly ValueSource<SolutionStateChecksums> _lazyChecksums;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             SerializableOptionSet options,
             IReadOnlyList<AnalyzerReference> analyzerReferences,
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap,
-            ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap,
+            ImmutableDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> filePathToDocumentIdsMap,
             ProjectDependencyGraph dependencyGraph,
             Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis
                 options,
                 analyzerReferences,
                 idToProjectStateMap: ImmutableDictionary<ProjectId, ProjectState>.Empty,
-                projectIdToTrackerMap: ImmutableDictionary<ProjectId, CompilationTracker>.Empty,
+                projectIdToTrackerMap: ImmutableDictionary<ProjectId, ICompilationTracker>.Empty,
                 filePathToDocumentIdsMap: ImmutableDictionary.Create<string, ImmutableArray<DocumentId>>(StringComparer.OrdinalIgnoreCase),
                 dependencyGraph: ProjectDependencyGraph.Empty,
                 lazyAnalyzers: null)
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis
             SerializableOptionSet? options = null,
             IReadOnlyList<AnalyzerReference>? analyzerReferences = null,
             ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
-            ImmutableDictionary<ProjectId, CompilationTracker>? projectIdToTrackerMap = null,
+            ImmutableDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>>? filePathToDocumentIdsMap = null,
             ProjectDependencyGraph? dependencyGraph = null)
         {
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis
             return id == null ? null : this.GetProjectState(id);
         }
 
-        private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out CompilationTracker? tracker)
+        private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
             => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
         private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis
             return new CompilationTracker(projectState);
         }
 
-        private CompilationTracker GetCompilationTracker(ProjectId projectId)
+        private ICompilationTracker GetCompilationTracker(ProjectId projectId)
         {
             if (!_projectIdToTrackerMap.TryGetValue(projectId, out var tracker))
             {
@@ -1504,9 +1504,9 @@ namespace Microsoft.CodeAnalysis
             return new ProjectDependencyGraph(projectIds.ToImmutableHashSet(), map);
         }
 
-        private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
+        private ImmutableDictionary<ProjectId, ICompilationTracker> CreateCompilationTrackerMap(ProjectId changedProjectId, ProjectDependencyGraph dependencyGraph)
         {
-            var builder = ImmutableDictionary.CreateBuilder<ProjectId, CompilationTracker>();
+            var builder = ImmutableDictionary.CreateBuilder<ProjectId, ICompilationTracker>();
             IEnumerable<ProjectId>? dependencies = null;
 
             foreach (var (id, tracker) in _projectIdToTrackerMap)
@@ -1554,9 +1554,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SolutionState GetIsolatedSolution()
         {
-            var forkedMap = ImmutableDictionary.CreateRange<ProjectId, CompilationTracker>(
+            var forkedMap = ImmutableDictionary.CreateRange(
                 _projectIdToTrackerMap.Where(kvp => kvp.Value.HasCompilation)
-                                     .Select(kvp => new KeyValuePair<ProjectId, CompilationTracker>(kvp.Key, kvp.Value.Clone())));
+                                     .Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.Clone())));
 
             return this.Branch(projectIdToTrackerMap: forkedMap);
         }
