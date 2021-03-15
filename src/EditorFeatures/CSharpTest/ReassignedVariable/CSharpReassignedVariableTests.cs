@@ -182,7 +182,7 @@ class C
 using System;
 class C
 {
-    int Goo { set => value = value + 1; }
+    int Goo { set => [|value|] = [|value|] + 1; }
 }");
         }
 
@@ -194,7 +194,7 @@ class C
 using System;
 class C
 {
-    int Goo { set { value = value + 1; } }
+    int Goo { set { [|value|] = [|value|] + 1; } }
 }");
         }
 
