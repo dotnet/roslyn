@@ -194,13 +194,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     continue;
                 }
 
-                // Do not load project if we have a project filter and the project path isn't present.
-                if (projectfilter?.Contains(project.RelativePath) == false)
+                // Load project if we have an empty project filter and the project path is present.
+                if (projectfilter.IsEmpty ||
+                    projectfilter.Contains(project.RelativePath))
                 {
-                    continue;
+                    projectPaths.Add(project.RelativePath);
                 }
-
-                projectPaths.Add(project.RelativePath);
             }
 
             var buildManager = new ProjectBuildManager(_properties, msbuildLogger);
