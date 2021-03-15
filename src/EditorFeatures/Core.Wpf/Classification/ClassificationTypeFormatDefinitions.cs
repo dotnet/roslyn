@@ -128,7 +128,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         #endregion
 
         #region Symbol - Static
-
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
         [Name(ClassificationTypeNames.StaticSymbol)]
@@ -157,7 +156,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 this.ForegroundCustomizable = false;
             }
         }
-
         #endregion
 
         // User Types - * and User Members - * are ordered after Keyword
