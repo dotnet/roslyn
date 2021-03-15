@@ -413,6 +413,22 @@ namespace N
         }
 
         [Fact]
+        public void TypeKindUpdate2()
+        {
+            // TODO: Allow this conversion: https://github.com/dotnet/roslyn/issues/51874
+            var src1 = "class C { }";
+            var src2 = "record C { }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [class C { }]@0 -> [record C { }]@0");
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.TypeKindUpdate, "record C", CSharpFeaturesResources.record_));
+        }
+
+        [Fact]
         public void Class_Modifiers_Update()
         {
             var src1 = "public static class C { }";
