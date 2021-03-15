@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -43,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.UnderlineReassignment
             _typeMap = typeMap;
         }
 
+        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(ReassignedVariableOptions.Underline);
+
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             this.AssertIsForeground();
@@ -63,8 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.UnderlineReassignment
                 AsyncListener,
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView, textChangeDelay: Delay, scrollChangeDelay: TaggerDelay.NearImmediate),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, Delay, this.AsyncListener),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, );
+                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, Delay));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
