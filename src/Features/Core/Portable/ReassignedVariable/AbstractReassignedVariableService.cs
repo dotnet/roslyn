@@ -86,7 +86,11 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
             void ProcessIdentifier(TIdentifierNameSyntax identifier)
             {
-                if (IsIdentifierReassigned(identifier))
+                var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
+                if (symbol == null)
+                    return;
+
+                if (IsSymbolReassigned(symbol))
                     result.Add(identifier.Span);
             }
 
@@ -104,27 +108,11 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     result.Add(syntaxFacts.GetIdentifierOfVariableDeclarator(variable).Span);
             }
 
-            bool IsIdentifierReassigned(TIdentifierNameSyntax identifier)
-            {
-                var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
-                if (symbol == null)
-                    return false;
-
-                return IsSymbolReassigned(symbol);
-            }
-
             bool IsSymbolReassigned([NotNullWhen(true)] ISymbol? symbol)
             {
                 // Note: we don't need to test range variables, and they are never reassignable.
                 if (symbol is not IParameterSymbol and not ILocalSymbol)
                     return false;
-
-                // reference to a symbol not even in this document.  ignore this.
-                if (symbol.Locations.Length <= 0 ||
-                    symbol.Locations[0].SourceTree != semanticModel.SyntaxTree)
-                {
-                    return false;
-                }
 
                 if (!symbolToIsReassigned.TryGetValue(symbol, out var reassignedResult))
                 {
