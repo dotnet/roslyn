@@ -136,9 +136,6 @@ namespace BuildValidator
             ? OutputKind.ConsoleApplication
             : OutputKind.DynamicallyLinkedLibrary;
 
-        // Here we only want to give the caller the main type name if the main method is named "Main" per convention.
-        // If the main method has another name, we have to assume that specifying a main type name won't work.
-        // For example, if the compilation uses top-level statements.
         public string? GetMainTypeName() => GetMainMethodInfo()?.MainTypeName;
 
         public (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
@@ -152,6 +149,10 @@ namespace BuildValidator
             var mdReader = PeReader.GetMetadataReader();
             var methodDefinition = mdReader.GetMethodDefinition(header.EntryPoint);
             var methodName = mdReader.GetString(methodDefinition.Name);
+
+            // Here we only want to give the caller the main method name and containing type name if the method is named "Main" per convention.
+            // If the main method has another name, we have to assume that specifying a main type name won't work.
+            // For example, if the compilation uses top-level statements.
             if (methodName != WellKnownMemberNames.EntryPointMethodName)
             {
                 return null;
