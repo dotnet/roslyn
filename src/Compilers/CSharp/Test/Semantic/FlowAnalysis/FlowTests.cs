@@ -2391,7 +2391,6 @@ class C
             var source = @"
 class C
 {
-
     void M1(C c1, bool b)
     {
         int x, y;
@@ -2400,17 +2399,142 @@ class C
             : y.ToString(); // 2
     }
 
+    void M2(C c1, bool b)
+    {
+        int x, y;
+        _ = (bool?)c1.M(x = y = 0) ?? false
+            ? x.ToString()
+            : y.ToString();
+    }
+
+    void M3(C c1, bool b)
+    {
+        int x, y;
+        _ = (bool?)((y = 0) is 0 && c1.M(x = 0)) ?? false
+            ? x.ToString() // 3
+            : y.ToString();
+    }
+
     bool M(object obj) { return true; }
 }
 ";
             // Note that in definite assignment we unsplit any conditional state after visiting the left side of `??`.
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,15): error CS0165: Use of unassigned local variable 'x'
+                // (8,15): error CS0165: Use of unassigned local variable 'x'
                 //             ? x.ToString() // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(9, 15),
-                // (10,15): error CS0165: Use of unassigned local variable 'y'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(8, 15),
+                // (9,15): error CS0165: Use of unassigned local variable 'y'
                 //             : y.ToString(); // 2
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(10, 15));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(9, 15),
+                // (24,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(24, 15));
+        }
+
+        [Fact]
+        public void NullCoalescing_CondAccess_Throw()
+        {
+            var source = @"
+class C
+{
+    void M1(C c1, bool b)
+    {
+        int x;
+        _ = c1?.M(x = 0) ?? throw new System.Exception();
+        x.ToString();
+    }
+
+    bool M(object obj) { return true; }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCoalescing_CondAccess_Cast()
+        {
+            var source = @"
+class C
+{
+    void M1(C c1, bool b)
+    {
+        int x;
+        _ = (object)c1?.M(x = 0) ?? throw new System.Exception();
+        x.ToString(); // 1
+    }
+
+    C M(object obj) { return this; }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,9): error CS0165: Use of unassigned local variable 'x'
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void NullCoalescing_CondAccess_ImplicitReferenceConv()
+        {
+            var source = @"
+class C
+{
+    void M1(C c1, bool b)
+    {
+        int x;
+        object obj = c1?.M(x = 0) ?? (object)(x = 0);
+        x.ToString();
+    }
+
+    C M(object obj) { return this; }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCoalescing_CondAccess_BoxingConv()
+        {
+            var source = @"
+class C
+{
+    void M1(C c1)
+    {
+        int x;
+        object obj = c1?.M(x = 0) ?? c1.M(x = 0);
+        x.ToString();
+    }
+
+    bool? M(object obj) { return null; }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCoalescing_CondAccess_UserDefinedConv()
+        {
+            var source = @"
+struct S { }
+
+struct C
+{
+    public static implicit operator S(C? c)
+    {
+        return default(S);
+    }
+
+    void M1(C? c1)
+    {
+        int x;
+        S s = c1?.M2(x = 0) ?? c1.Value.M3(x = 0);
+        x.ToString();
+    }
+
+    C M2(object obj) { return this; }
+    S M3(object obj) { return this; }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]

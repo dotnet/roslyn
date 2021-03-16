@@ -2464,7 +2464,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        /// <summary>Visits a node unconditionally, returning the StateWhenNotNull if the node represents a conditional access.</summary>
         protected bool VisitPossibleConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
         {
             EnterRegionIfNeeded(node);
@@ -2477,12 +2476,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var access = node switch
                 {
                     BoundConditionalAccess ca => ca,
-                    BoundConversion
-                    {
-                        Operand: BoundConditionalAccess innerCA,
-                        ExplicitCastInCode: false,
-                        ConversionKind: not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined)
-                    } => innerCA,
+                    // PROTOTYPE(improved-definite-assignment): consider when to handle conversion nodes which contain conditional accesses
+                    BoundConversion { ExplicitCastInCode: false, HasErrors: false } => throw ExceptionUtilities.Unreachable,
                     _ => null
                 };
                 if (access is not null)
@@ -2516,21 +2511,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SetUnreachable();
                 }
 
-                // We want to preserve StateWhenNotNull from accesses in the same "chain":
-                // a?.b(out x)?.c(out y); // expected to preserve StateWhenNotNull from both ?.b(out x) and ?.c(out y)
+                // We want to preserve stateWhenNotNull from accesses in the same "chain":
+                // a?.b(out x)?.c(out y); // expected to preserve stateWhenNotNull from both ?.b(out x) and ?.c(out y)
                 // but not accesses in nested expressions:
-                // a?.b(out x, c?.d(out y)); // expected to preserve StateWhenNotNull from a?.b(out x, ...) but not from c?.d(out y)
-                BoundExpression cursor = node.AccessExpression;
-                while (cursor is BoundConditionalAccess innerCondAccess)
+                // a?.b(out x, c?.d(out y)); // expected to preserve stateWhenNotNull from a?.b(out x, ...) but not from c?.d(out y)
+                BoundExpression expr = node.AccessExpression;
+                while (expr is BoundConditionalAccess innerCondAccess)
                 {
                     // we assume that non-conditional accesses can never contain conditional accesses from the same "chain".
                     // that is, we never have to dig through non-conditional accesses to find and handle conditional accesses.
                     VisitRvalue(innerCondAccess.Receiver);
-                    cursor = innerCondAccess.AccessExpression;
+                    expr = innerCondAccess.AccessExpression;
                 }
 
-                Debug.Assert(cursor is BoundExpression);
-                VisitRvalue(cursor);
+                Debug.Assert(expr is BoundExpression);
+                VisitRvalue(expr);
 
                 stateWhenNotNull = State;
                 State = savedState;
