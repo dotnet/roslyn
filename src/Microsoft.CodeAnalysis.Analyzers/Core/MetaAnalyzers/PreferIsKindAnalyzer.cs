@@ -72,7 +72,13 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return;
             }
 
-            if (operation.LeftOperand.WalkDownConversion() is IInvocationOperation { TargetMethod: { Name: "Kind", ContainingType: var containingType } }
+            var possibleInvocation = operation.LeftOperand.WalkDownConversion();
+            if (possibleInvocation is IConditionalAccessOperation conditionalAccess)
+            {
+                possibleInvocation = conditionalAccess.WhenNotNull;
+            }
+
+            if (possibleInvocation is IInvocationOperation { TargetMethod: { Name: "Kind", ContainingType: var containingType } }
                 && containingTypeMap.TryGetValue(containingType, out _))
             {
                 context.ReportDiagnostic(operation.LeftOperand.CreateDiagnostic(Rule));

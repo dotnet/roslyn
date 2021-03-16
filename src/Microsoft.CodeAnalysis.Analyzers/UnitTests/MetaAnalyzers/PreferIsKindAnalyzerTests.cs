@@ -419,5 +419,63 @@ End Class
 
             await VerifyVB.VerifyCodeFixAsync(source, source);
         }
+
+        [Fact]
+        public async Task TestSingleNullConditionalAccess_CS()
+        {
+            var source =
+@"using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+class C
+{
+    bool Method(SyntaxNode node)
+    {
+        return [|node?.Kind()|] == SyntaxKind.None;
+    }
+}
+";
+
+            var fixedSource =
+@"using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+class C
+{
+    bool Method(SyntaxNode node)
+    {
+        return node.IsKind(SyntaxKind.None);
+    }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, fixedSource);
+        }
+
+        [Fact]
+        public async Task TestSingleNullConditionalAccess_VB()
+        {
+            var source =
+@"Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
+
+Class C
+    Function Method(node As SyntaxNode) As Boolean
+        Return [|node?.Kind()|] = SyntaxKind.None
+    End Function
+End Class
+";
+            var fixedSource =
+@"Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
+
+Class C
+    Function Method(node As SyntaxNode) As Boolean
+        Return node.IsKind(SyntaxKind.None)
+    End Function
+End Class
+";
+            await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+        }
     }
 }

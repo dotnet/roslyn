@@ -15,13 +15,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes
 
         Protected Overrides Function TryGetNodeToFix(root As SyntaxNode, span As TextSpan) As SyntaxNode
             Dim binaryExpression = root.FindNode(span, getInnermostNodeForTie:=True).FirstAncestorOrSelf(Of BinaryExpressionSyntax)()
-            Dim invocation = TryCast(binaryExpression.Left, InvocationExpressionSyntax)
-            invocation = If(invocation, TryConvertMemberAccessToInvocation(binaryExpression.Left))
-            If invocation Is Nothing Then
-                Return Nothing
+            If binaryExpression.Left.IsKind(SyntaxKind.InvocationExpression) OrElse
+                binaryExpression.Left.IsKind(SyntaxKind.SimpleMemberAccessExpression) OrElse
+                binaryExpression.Left.IsKind(SyntaxKind.ConditionalAccessExpression) Then
+                Return binaryExpression
             End If
 
-            Return binaryExpression
+            Return Nothing
         End Function
 
         Protected Overrides Sub FixDiagnostic(editor As DocumentEditor, nodeToFix As SyntaxNode)
@@ -31,7 +31,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes
                     Dim binaryExpression = DirectCast(nodeToFix2, BinaryExpressionSyntax)
                     Dim invocation = TryCast(binaryExpression.Left, InvocationExpressionSyntax)
                     invocation = If(invocation, TryConvertMemberAccessToInvocation(binaryExpression.Left))
-
+                    invocation = If(invocation, TryConvertConditionalAccessToInvocation(binaryExpression.Left))
+                    If invocation Is Nothing Then
+                        Return binaryExpression
+                    End If
                     Dim newInvocation = invocation _
                         .WithExpression(ConvertKindNameToIsKind(invocation.Expression)) _
                         .AddArgumentListArguments(SyntaxFactory.SimpleArgument(binaryExpression.Right.WithoutTrailingTrivia())) _
@@ -50,6 +53,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes
             If memberAccessExpression IsNot Nothing Then
                 Return SyntaxFactory.InvocationExpression(memberAccessExpression.WithoutTrailingTrivia()) _
                     .WithTrailingTrivia(memberAccessExpression.GetTrailingTrivia())
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        Private Shared Function TryConvertConditionalAccessToInvocation(expression As ExpressionSyntax) As InvocationExpressionSyntax
+            Dim conditionalAccessExpression = TryCast(expression, ConditionalAccessExpressionSyntax)
+            If conditionalAccessExpression IsNot Nothing Then
+                Dim simpleMemberAccess = SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    conditionalAccessExpression.Expression.WithoutTrailingTrivia(),
+                    SyntaxFactory.Token(SyntaxKind.DotToken), SyntaxFactory.IdentifierName("Kind"))
+                Return SyntaxFactory.InvocationExpression(simpleMemberAccess.WithTrailingTrivia(conditionalAccessExpression.GetTrailingTrivia()))
             Else
                 Return Nothing
             End If
