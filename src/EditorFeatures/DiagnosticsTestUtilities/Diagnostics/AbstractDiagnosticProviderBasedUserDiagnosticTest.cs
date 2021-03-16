@@ -122,14 +122,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
                 {
-                    if (descriptor.Id is "IDE0043" or "IDE1007" or "IDE1008" or "RemoveUnnecessaryImportsFixable" or "RE0001")
+                    // These doesn't come up in UI.
+                    if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden && descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
                     {
-                        Assert.True(descriptor.HelpLinkUri == string.Empty, $"Expected empty help link for {descriptor.Id}");
+                        continue;
                     }
-                    else
+
+                    if (descriptor.Id is "RE0001") // Currently not documented. https://github.com/dotnet/roslyn/issues/48530
                     {
-                        Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
+                        continue;
                     }
+
+                    if (descriptor.Id == "IDE0043") // Intentionally undocumented. It will be removed in favor of CA2241
+                    {
+                        continue;
+                    }
+
+                    if (descriptor.Id is "IDE1007" or "IDE1008")
+                    {
+                        continue;
+                    }
+
+                    Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
                 }
             }
         }
