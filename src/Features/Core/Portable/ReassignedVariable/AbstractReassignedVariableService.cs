@@ -19,24 +19,21 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 {
     internal abstract class AbstractReassignedVariableService<
         TParameterSyntax,
-        TVariableDeclaratorSyntax,
         TVariableSyntax,
-        TSingleVariableDesignation,
+        TSingleVariableDesignationSyntax,
         TIdentifierNameSyntax>
         : IReassignedVariableService
         where TParameterSyntax : SyntaxNode
-        where TVariableDeclaratorSyntax : SyntaxNode
         where TVariableSyntax : SyntaxNode
-        where TSingleVariableDesignation : SyntaxNode
+        where TSingleVariableDesignationSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
-        protected abstract void AddVariables(TVariableDeclaratorSyntax declarator, ref TemporaryArray<TVariableSyntax> temporaryArray);
         protected abstract SyntaxNode GetParentScope(SyntaxNode localDeclaration);
         protected abstract SyntaxNode GetMemberBlock(SyntaxNode methodOrPropertyDeclaration);
 
         protected abstract bool HasInitializer(SyntaxNode variable);
         protected abstract SyntaxToken GetIdentifierOfVariable(TVariableSyntax variable);
-        protected abstract SyntaxToken GetIdentifierOfSingleVariableDesignation(TSingleVariableDesignation variable);
+        protected abstract SyntaxToken GetIdentifierOfSingleVariableDesignation(TSingleVariableDesignationSyntax variable);
 
         public async Task<ImmutableArray<TextSpan>> GetReassignedVariablesAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
@@ -86,10 +83,10 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     case TParameterSyntax parameter:
                         ProcessParameter(parameter);
                         break;
-                    case TVariableDeclaratorSyntax variable:
+                    case TVariableSyntax variable:
                         ProcessVariable(variable);
                         break;
-                    case TSingleVariableDesignation designation:
+                    case TSingleVariableDesignationSyntax designation:
                         ProcessSingleVariableDesignation(designation);
                         break;
                 }
@@ -114,20 +111,14 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     result.Add(syntaxFacts.GetIdentifierOfParameter(parameterSyntax).Span);
             }
 
-            void ProcessVariable(TVariableDeclaratorSyntax declarator)
+            void ProcessVariable(TVariableSyntax variable)
             {
-                using var variables = TemporaryArray<TVariableSyntax>.Empty;
-                AddVariables(declarator, ref variables.AsRef());
-
-                foreach (var variable in variables)
-                {
-                    var local = semanticModel.GetDeclaredSymbol(variable, cancellationToken) as ILocalSymbol;
-                    if (IsSymbolReassigned(local))
-                        result.Add(GetIdentifierOfVariable(variable).Span);
-                }
+                var local = semanticModel.GetDeclaredSymbol(variable, cancellationToken) as ILocalSymbol;
+                if (IsSymbolReassigned(local))
+                    result.Add(GetIdentifierOfVariable(variable).Span);
             }
 
-            void ProcessSingleVariableDesignation(TSingleVariableDesignation designation)
+            void ProcessSingleVariableDesignation(TSingleVariableDesignationSyntax designation)
             {
                 var local = semanticModel.GetDeclaredSymbol(designation, cancellationToken) as ILocalSymbol;
                 if (IsSymbolReassigned(local))

@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
     internal class CSharpReassignedVariableService : AbstractReassignedVariableService<
         ParameterSyntax,
         VariableDeclaratorSyntax,
-        VariableDeclaratorSyntax,
         SingleVariableDesignationSyntax,
         IdentifierNameSyntax>
     {
@@ -25,9 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
         public CSharpReassignedVariableService()
         {
         }
-
-        protected override void AddVariables(VariableDeclaratorSyntax declarator, ref TemporaryArray<VariableDeclaratorSyntax> variables)
-            => variables.Add(declarator);
 
         protected override SyntaxToken GetIdentifierOfVariable(VariableDeclaratorSyntax variable)
             => variable.Identifier;
