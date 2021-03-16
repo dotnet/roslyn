@@ -1028,7 +1028,6 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-
                     // if we already have the compilation and its right kind then use it.
                     if (this.ProjectState.LanguageServices == fromProject.LanguageServices
                         && this.TryGetCompilation(out var compilation))
