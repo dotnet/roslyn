@@ -3384,7 +3384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
-        protected override IEnumerable<SyntaxTree> CommonSyntaxTrees
+        protected override ImmutableArray<SyntaxTree> CommonSyntaxTrees
         {
             get
             {
