@@ -2471,7 +2471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundConditionalAccess ca => ca,
                     // PROTOTYPE(improved-definite-assignment): consider when to handle conversion nodes which contain conditional accesses
-                    BoundConversion { ExplicitCastInCode: false, HasErrors: false } => throw ExceptionUtilities.Unreachable,
+                    BoundConversion { ExplicitCastInCode: false, HasErrors: false, Operand: BoundConditionalAccess } => throw ExceptionUtilities.Unreachable,
                     _ => null
                 };
                 if (access is not null)
