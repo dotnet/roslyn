@@ -360,18 +360,18 @@ class C
         }
 
         [Fact]
-        public async Task AssignmentThroughOutParameterIsNotAssignmentOfTheVariableItself()
+        public async Task AssignmentThroughOutParameter()
         {
             await TestAsync(
 @"
 using System;
 class C
 {
-    void M(out int p)
+    void M(out int [|p|])
     {
-        p = 0;
-        p = 1;
-        Console.WriteLine(p);
+        [|p|] = 0;
+        [|p|] = 1;
+        Console.WriteLine([|p|]);
     }
 }");
         }
@@ -393,18 +393,18 @@ class C
         }
 
         [Fact]
-        public async Task AssignmentThroughRefParameterIsNotAssignmentOfTheVariableItself()
+        public async Task AssignmentThroughRefParameter()
         {
             await TestAsync(
 @"
 using System;
 class C
 {
-    void M(ref int p)
+    void M(ref int [|p|])
     {
-        p = 0;
-        p = 1;
-        Console.WriteLine(p);
+        [|p|] = 0;
+        [|p|] = 1;
+        Console.WriteLine([|p|]);
     }
 }");
         }
@@ -426,19 +426,19 @@ class C
         }
 
         [Fact]
-        public async Task AssignmentThroughRefLocalIsNotAssignmentOfTheVariableItself()
+        public async Task AssignmentThroughRefLocal()
         {
             await TestAsync(
 @"
 using System;
 class C
 {
-    void M(ref int p)
+    void M(ref int [|p|])
     {
-        ref var local = ref p;
-        local = 0;
-        local = 1;
-        Console.WriteLine(local);
+        ref var [|local|] = ref [|p|];
+        [|local|] = 0;
+        [|local|] = 1;
+        Console.WriteLine([|local|]);
     }
 }");
         }
@@ -451,10 +451,10 @@ class C
 using System;
 class C
 {
-    void M(ref int p)
+    void M(ref int [|p|])
     {
-        ref var [|local|] = ref p;
-        [|local|] = ref p;
+        ref var [|local|] = ref [|p|];
+        [|local|] = ref [|p|];
         Console.WriteLine([|local|]);
     }
 }");
