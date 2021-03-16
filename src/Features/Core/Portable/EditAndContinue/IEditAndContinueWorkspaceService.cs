@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         void CommitSolutionUpdate();
         void DiscardSolutionUpdate();
 
-        void OnSourceFileUpdated(Document document);
-        Task OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken);
+        ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken);
 
         void StartDebuggingSession(Solution solution);
         void StartEditSession(IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze);
