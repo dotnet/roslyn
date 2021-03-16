@@ -643,5 +643,43 @@ int [|p|] = 1;
 Console.WriteLine([|p|]);
 ");
         }
+
+        [Fact]
+        public async Task TestUsedInThisBase1()
+        {
+            await TestAsync(
+@"
+class C
+{
+    public C(int [|x|])
+        : this([|x|]++, true)
+    {
+    }
+
+    public C(int x, bool b)
+    {
+    }
+}
+");
+        }
+
+        [Fact]
+        public async Task TestUsedInThisBase2()
+        {
+            await TestAsync(
+@"
+class C
+{
+    public C(string s)
+        : this(int.TryParse(s, out var [|x|]) ? [|x|]++ : 0, true)
+    {
+    }
+
+    public C(int x, bool b)
+    {
+    }
+}
+");
+        }
     }
 }
