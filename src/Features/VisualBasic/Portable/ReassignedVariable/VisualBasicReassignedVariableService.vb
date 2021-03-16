@@ -42,6 +42,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReassignedVariable
             Return methodOrPropertyDeclaration.GetBlockFromBegin()
         End Function
 
+        Protected Overrides Function HasInitializer(variable As SyntaxNode) As Boolean
+            Return TryCast(variable.Parent, VariableDeclaratorSyntax)?.Initializer IsNot Nothing
+        End Function
+
         Protected Overrides Function GetParentScope(localDeclaration As SyntaxNode) As SyntaxNode
             Dim current = localDeclaration
             While current IsNot Nothing

@@ -4,12 +4,10 @@
 
 using System;
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReassignedVariable;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
@@ -36,6 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
 
         protected override SyntaxToken GetIdentifierOfSingleVariableDesignation(SingleVariableDesignationSyntax variable)
             => variable.Identifier;
+
+        protected override bool HasInitializer(SyntaxNode variable)
+            => (variable as VariableDeclaratorSyntax)?.Initializer != null;
 
         protected override SyntaxNode GetMemberBlock(SyntaxNode methodOrPropertyDeclaration)
             => methodOrPropertyDeclaration;

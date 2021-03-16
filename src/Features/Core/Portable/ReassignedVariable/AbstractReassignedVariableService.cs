@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
         protected abstract SyntaxNode GetParentScope(SyntaxNode localDeclaration);
         protected abstract SyntaxNode GetMemberBlock(SyntaxNode methodOrPropertyDeclaration);
 
+        protected abstract bool HasInitializer(SyntaxNode variable);
         protected abstract SyntaxToken GetIdentifierOfVariable(TVariableSyntax variable);
         protected abstract SyntaxToken GetIdentifierOfSingleVariableDesignation(TSingleVariableDesignation variable);
 
@@ -184,7 +185,12 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 if (methodOrPropertyDeclaration.SyntaxTree != semanticModel.SyntaxTree)
                     return false;
 
-                return AnalyzePotentialMatches(parameter, parameterLocation.SourceSpan, GetMemberBlock(methodOrPropertyDeclaration));
+                // All parameters (except for 'out' parameters), come in definitely assigned.
+                return AnalyzePotentialMatches(
+                    parameter,
+                    parameterLocation.SourceSpan,
+                    symbolIsDefinitelyAssigned: parameter.RefKind != RefKind.Out,
+                    GetMemberBlock(methodOrPropertyDeclaration));
             }
 
             bool ComputeLocalIsAssigned(ILocalSymbol local)
@@ -199,12 +205,18 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     return false;
                 }
 
-                // Get the scope the local is declared in.
-                var parentScope = GetParentScope(localDeclaration);
-                return AnalyzePotentialMatches(local, localDeclaration.Span, parentScope);
+                return AnalyzePotentialMatches(
+                    local,
+                    localDeclaration.Span,
+                    symbolIsDefinitelyAssigned: HasInitializer(localDeclaration),
+                    GetParentScope(localDeclaration));
             }
 
-            bool AnalyzePotentialMatches(ISymbol localOrParameter, TextSpan localOrParameterDeclarationSpan, SyntaxNode parentScope)
+            bool AnalyzePotentialMatches(
+                ISymbol localOrParameter,
+                TextSpan localOrParameterDeclarationSpan,
+                bool symbolIsDefinitelyAssigned,
+                SyntaxNode parentScope)
             {
                 // Now, walk the scope, looking for all usages of the local.  See if any are a reassignment.
                 using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
@@ -239,11 +251,16 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     if (!AreEquivalent(localOrParameter, symbol))
                         continue;
 
-                    // Ok, we have a reference to the local.  See if it was assigned on entry.  If not, we don't care about
-                    // this reference. As an assignment here doesn't mean it was reassigned.
-                    var dataFlow = semanticModel.AnalyzeDataFlow(id);
-                    if (!DefinitelyAssignedOnEntry(dataFlow, localOrParameter))
-                        continue;
+                    // Ok, we have a reference to the local.  See if it was assigned on entry.  If not, we don't care
+                    // about this reference. As an assignment here doesn't mean it was reassigned.
+                    //
+                    // If we can statically tell it was definitely assigned, skip the more expensive dataflow check.
+                    if (!symbolIsDefinitelyAssigned)
+                    {
+                        var dataFlow = semanticModel.AnalyzeDataFlow(id);
+                        if (!DefinitelyAssignedOnEntry(dataFlow, localOrParameter))
+                            continue;
+                    }
 
                     // This was a variable that was already assigned prior to this location.  See if this location is
                     // considered a write.
