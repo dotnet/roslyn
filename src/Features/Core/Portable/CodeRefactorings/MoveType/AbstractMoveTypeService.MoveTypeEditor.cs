@@ -244,14 +244,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // IsTypeDeclaration handles ClassBlock but not ClassStatement for VB.
                 // IsNamespaceMemberDeclaration does the opposite.
-                if (syntaxFacts.IsTypeDeclaration(node))
+                if (syntaxFacts.IsTypeDeclaration(node) ||
+                    syntaxFacts.IsNamespaceMemberDeclaration(node))
                 {
                     return true;
-                }
-
-                if (syntaxFacts.IsNamespaceMemberDeclaration(node))
-                {
-                    return false;
                 }
 
                 // Filter nodes outside typeNode.
