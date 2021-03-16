@@ -5,11 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
@@ -49,14 +49,13 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {
                     var location = Location.Create(syntaxRef.SyntaxTree, syntaxRef.Span);
-                    progressCollector.Add(new ValueTrackedItem(location, symbol));
+                    progressCollector.Push(new ValueTrackedItem(location, symbol));
                 }
 
-                var references = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-                foreach (var refLocation in references.SelectMany(reference => reference.Locations.Where(l => l.IsWrittenTo)))
-                {
-                    progressCollector.Add(new ValueTrackedItem(refLocation.Location, symbol));
-                }
+                var findReferenceProgressCollector = new FindReferencesProgress(progressCollector);
+                await SymbolFinder.FindReferencesAsync(
+                    symbol, solution, findReferenceProgressCollector,
+                    documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -78,5 +77,41 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         {
             throw new NotImplementedException();
         }
+
+        private class FindReferencesProgress : IStreamingFindReferencesProgress, IStreamingProgressTracker
+        {
+            private readonly ValueTrackingProgressCollector _valueTrackingProgressCollector;
+            public FindReferencesProgress(ValueTrackingProgressCollector valueTrackingProgressCollector)
+            {
+                _valueTrackingProgressCollector = valueTrackingProgressCollector;
+            }
+
+            public IStreamingProgressTracker ProgressTracker => this;
+
+            public ValueTask AddItemsAsync(int count) => new();
+
+            public ValueTask ItemCompletedAsync() => new();
+
+            public ValueTask OnCompletedAsync() => new();
+
+            public ValueTask OnDefinitionFoundAsync(ISymbol symbol) => new();
+
+            public ValueTask OnFindInDocumentCompletedAsync(Document document) => new();
+
+            public ValueTask OnFindInDocumentStartedAsync(Document document) => new();
+
+            public ValueTask OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
+            {
+                if (location.IsWrittenTo)
+                {
+                    _valueTrackingProgressCollector.Push(new ValueTrackedItem(location.Location, symbol));
+                }
+
+                return new();
+            }
+
+            public ValueTask OnStartedAsync() => new();
+        }
+
     }
 }

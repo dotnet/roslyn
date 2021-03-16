@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.ValueTracking
     internal class ValueTrackingProgressCollector
     {
         private readonly object _lock = new();
-        private readonly Queue<ValueTrackedItem> _items = new();
+        private readonly Stack<ValueTrackedItem> _items = new();
 
         public event EventHandler<ValueTrackedItem>? OnNewItem;
 
-        public void Add(ValueTrackedItem item)
+        public void Push(ValueTrackedItem item)
         {
             lock (_lock)
             {
-                _items.Enqueue(item);
+                _items.Push(item);
             }
 
             OnNewItem?.Invoke(null, item);
