@@ -48,11 +48,13 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
             using var _2 = ArrayBuilder<TextSpan>.GetInstance(out var result);
             using var _3 = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
 
-            // First, walk through all identifiers in the provided span.  If they refer to a local/param, then determine
-            // if that's a local/param that's reassigned or not.  Note that the local/param they refer to may not be in the
-            // span being asked about.
+            // Walk through all the nodes in the provided span.  Directly analyze local or parameter declaration.  And
+            // also analyze any identifiers which might be reference to locals or parameters.  Note that we might hit
+            // locals/parameters without any references in the span, or references that don't have the declarations in 
+            // the span
             stack.Add(root.FindNode(span));
 
+            // Use a stack so we don't blow out the stack with recursion.
             while (stack.Count > 0)
             {
                 var current = stack.Last();
@@ -127,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
             bool IsSymbolReassigned([NotNullWhen(true)] ISymbol? symbol)
             {
-                // Note: we don't need to test range variables, and they are never reassignable.
+                // Note: we don't need to test range variables, as they are never reassignable.
                 if (symbol is not IParameterSymbol and not ILocalSymbol)
                     return false;
 
