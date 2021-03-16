@@ -648,6 +648,11 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             public IEnumerable<ITemporaryStreamStorage>? GetStorages()
                 => _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>?)null : _storagesOpt;
+
+            public override string ToString()
+            {
+                return Display ?? "";
+            }
         }
     }
 }
