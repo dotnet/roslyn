@@ -121,71 +121,17 @@
       "version": "2.10.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "dev15.9" ],
+      "channels": [ ],
       "vsBranch": "rel/d15.9",
       "vsMajorVersion": 15
-    },
-    "dev16.0-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.0.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.0" ],
-      "vsBranch": "rel/d16.0",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.1-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.1.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.1" ],
-      "vsBranch": "rel/d16.1",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.2-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.2.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.2" ],
-      "vsBranch": "rel/d16.2",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.3-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.3.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.3" ],
-      "vsBranch": "rel/d16.3",
-      "vsMajorVersion": 16
     },
     "release/dev16.4-vs-deps": {
       "nugetKind": ["Shipping"],
       "version": "3.4.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "dev16.4" ],
+      "channels": [ ],
       "vsBranch": "rel/d16.4",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.5-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.5.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.5", "dev16.5p4" ],
-      "vsBranch": "rel/d16.5",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.6-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.6.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.6", "dev16.6p3" ],
-      "vsBranch": "rel/d16.6",
       "vsMajorVersion": 16
     },
     "release/dev16.7-vs-deps": {
@@ -193,24 +139,15 @@
       "version": "3.7.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "dev16.7", "dev16.7p4" ],
+      "channels": [ ],
       "vsBranch": "rel/d16.7",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.8-vs-deps": {
-      "nugetKind": [ "Shipping", "NonShipping" ],
-      "version": "3.8.*",
-      "vsix": null,
-      "packageFeeds": "default",
-      "channels": [ "dev16.8p5" ],
-      "vsBranch": "rel/d16.8",
       "vsMajorVersion": 16
     },
     "release/dev16.9-vs-deps": {
       "nugetKind": [ "Shipping", "NonShipping" ],
       "version": "3.9.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.9", "dev16.9p4" ],
+      "channels": [ ],
       "vsBranch": "rel/d16.9",
       "vsMajorVersion": 16
     },
@@ -218,7 +155,7 @@
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.10.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.10p1" ],
+      "channels": [ ],
       "vsBranch": "rel/d16.10",
       "vsMajorVersion": 16
     },
@@ -226,7 +163,7 @@
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.10.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.10", "dev16.10p2" ],
+      "channels": [ ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
@@ -234,7 +171,7 @@
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.10.*",
       "packageFeeds": "arcade",
-      "channels": [ "validation" ],
+      "channels": [ ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
@@ -261,7 +198,7 @@
       "version": "3.1.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "razorSupport2" ],
+      "channels": [ ],
       "vsBranch": "lab/d16.1stg",
       "vsMajorVersion": 16
     },
@@ -270,16 +207,7 @@
       "version": "3.4.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "compilerNext" ],
-      "vsBranch": "main",
-      "vsMajorVersion": 16
-    },
-    "features/UsedAssemblyReferences": {
-      "nugetKind": [ "Shipping", "NonShipping" ],
-      "version": "3.8.*",
-      "packageFeeds": "arcade",
-      "channels": [ "UsedAssemblyReferences" ],
-      "vsix": null,
+      "channels": [ ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
@@ -288,7 +216,7 @@
       "version": "3.3.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "unitTesting" ],
+      "channels": [ ],
       "vsBranch": "rel/d16.5",
       "vsMajorVersion": 16
     }
@@ -298,13 +226,13 @@
       "nugetKind": "Release",
       "version": "2.3.*",
       "nuget": [ "https://api.nuget.org/v3/index.json" ],
-      "channels": [ "dev15.3" ]
+      "channels": [ ]
     },
     "dev15.6": {
       "nugetKind": "Release",
       "version": "2.7.*",
       "nuget": [ "https://api.nuget.org/v3/index.json" ],
-      "channels": [ "dev15.6" ]
+      "channels": [ ]
     }
   }
 }
