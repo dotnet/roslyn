@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static bool IsWrittenTo(this ExpressionSyntax expression, SemanticModel semanticModel)
+        public static bool IsWrittenTo(this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             expression = GetExpressionToAnalyzeForWrites(expression);
 
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (expression.Parent is MemberAccessExpressionSyntax memberAccess &&
                 expression == memberAccess.Expression)
             {
-                var symbol = semanticModel.GetSymbolInfo(memberAccess).Symbol;
+                var symbol = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
                 if (symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension, ReducedFrom: var reducedFrom } &&
                     reducedFrom.Parameters.Length > 0 &&
                     reducedFrom.Parameters.First().RefKind == RefKind.Ref)
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // i.e. you can't replace "a" in "a = b" with "Goo() = b".
             return
                 expression != null &&
-                !expression.IsWrittenTo(semanticModel) &&
+                !expression.IsWrittenTo(semanticModel, cancellationToken) &&
                 CanReplaceWithLValue(expression, semanticModel, cancellationToken);
         }
 

@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If TypeOf expression.Parent Is MemberAccessExpressionSyntax Then
                     Dim memberAccess = DirectCast(expression.Parent, MemberAccessExpressionSyntax)
                     If memberAccess.Expression Is expression Then
-                        Dim method = TryCast(semanticModel.GetSymbolInfo(memberAccess).Symbol, IMethodSymbol)
+                        Dim method = TryCast(semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol, IMethodSymbol)
                         If method.MethodKind = MethodKind.ReducedExtension AndAlso
                            method.ReducedFrom.Parameters.Length > 0 AndAlso
                            method.ReducedFrom.Parameters.First().RefKind = RefKind.Ref Then
