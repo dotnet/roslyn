@@ -755,7 +755,7 @@ public record struct S2 : I
 
             CompileAndVerify(comp, expectedOutput: "45");
 
-            AssertEx.Equal(new[] { "System.Int32 S.M(System.String s)", "S..ctor()" },
+            AssertEx.Equal(new[] { "System.Int32 S.M(System.String s)", "System.Boolean S.Equals(S other)", "S..ctor()" },
                 comp.GetMember<NamedTypeSymbol>("S").GetMembers().ToTestDisplayStrings());
         }
 
@@ -1047,6 +1047,7 @@ public partial record struct C
                 "X",
                 "M",
                 "M",
+                "Equals",
                 "Deconstruct",
                 ".ctor",
             };
@@ -1672,6 +1673,7 @@ record struct C(int X, int X)
                 "get_X",
                 "set_X",
                 "X",
+                "Equals",
                 "Deconstruct",
                 ".ctor"
             };
@@ -1715,6 +1717,7 @@ record struct C(int X, int Y)
                 "void C.set_X()",
                 "System.Int32 C.get_Y(System.Int32 value)",
                 "System.Int32 C.set_Y(System.Int32 value)",
+                "System.Boolean C.Equals(C other)",
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 "C..ctor()",
             };
@@ -1867,6 +1870,7 @@ namespace System
     public class Attribute { }
     public struct Void { }
     public struct Boolean { }
+    public interface IEquatable<T> { }
 }
 ";
             var corlibRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
@@ -1909,6 +1913,7 @@ namespace System
     public struct Void { }
     public struct Boolean { }
     public class Exception { }
+    public interface IEquatable<T> { }
 }
 ";
             var corlibRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
@@ -1947,6 +1952,7 @@ namespace System
     public class Attribute { }
     public struct Void { }
     public struct Boolean { }
+    public interface IEquatable<T> { }
 }
 ";
             var corlibRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
@@ -3340,6 +3346,453 @@ record struct Pos2(int X)
                 //     public int X { get { return x; } set { x = value; } } = X;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithArguments("Pos.X").WithLocation(5, 16)
                 );
+        }
+
+        [Fact]
+        public void IEquatableT_01()
+        {
+            var source =
+@"record struct A<T>;
+class Program
+{
+    static void F<T>(System.IEquatable<T> t)
+    {
+    }
+    static void M<T>()
+    {
+        F(new A<T>());
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void IEquatableT_02()
+        {
+            var source =
+@"using System;
+record struct A;
+record struct B<T>;
+
+class Program
+{
+    static bool F<T>(IEquatable<T> t, T t2)
+    {
+        return t.Equals(t2);
+    }
+    static void Main()
+    {
+        Console.Write(F(new A(), new A()));
+        Console.Write(F(new B<int>(), new B<int>()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IEquatableT_02_ImplicitImplementation()
+        {
+            var source =
+@"using System;
+record struct A
+{
+    public bool Equals(A other)
+    {
+        System.Console.Write(""A.Equals(A) "");
+        return false;
+    }
+}
+record struct B<T>
+{
+    public bool Equals(B<T> other)
+    {
+        System.Console.Write(""B.Equals(B) "");
+        return true;
+    }
+}
+
+class Program
+{
+    static bool F<T>(IEquatable<T> t, T t2)
+    {
+        return t.Equals(t2);
+    }
+    static void Main()
+    {
+        Console.Write(F(new A(), new A()));
+        Console.Write("" "");
+        Console.Write(F(new B<int>(), new B<int>()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "A.Equals(A) False B.Equals(B) True").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IEquatableT_02_ExplicitImplementation()
+        {
+            var source =
+@"using System;
+record struct A
+{
+    bool IEquatable<A>.Equals(A other)
+    {
+        System.Console.Write(""A.Equals(A) "");
+        return false;
+    }
+}
+record struct B<T>
+{
+    bool IEquatable<B<T>>.Equals(B<T> other)
+    {
+        System.Console.Write(""B.Equals(B) "");
+        return true;
+    }
+}
+
+class Program
+{
+    static bool F<T>(IEquatable<T> t, T t2)
+    {
+        return t.Equals(t2);
+    }
+    static void Main()
+    {
+        Console.Write(F(new A(), new A()));
+        Console.Write("" "");
+        Console.Write(F(new B<int>(), new B<int>()));
+    }
+}";
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "A.Equals(A) False B.Equals(B) True").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IEquatableT_03()
+        {
+            var source = @"
+record struct A<T> : System.IEquatable<A<T>>;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void IEquatableT_MissingIEquatable()
+        {
+            var source = @"
+record struct A<T>;
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_IEquatable_T);
+            comp.VerifyEmitDiagnostics(
+                    // (2,15): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                    // record struct A<T>;
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 15),
+                    // (2,15): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
+                    // record struct A<T>;
+                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 15)
+                    );
+
+            var type = comp.GetMember<NamedTypeSymbol>("A");
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.InterfacesNoUseSiteDiagnostics().ToTestDisplayStrings());
+            AssertEx.Equal(new[] { "System.IEquatable<A<T>>[missing]" }, type.AllInterfacesNoUseSiteDiagnostics.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void RecordEquals_01()
+        {
+            // PROTOTYPE(record-structs): ported
+            var source = @"
+var a1 = new B();
+var a2 = new B();
+System.Console.WriteLine(a1.Equals(a2));
+
+record struct B
+{
+    public bool Equals(B other)
+    {
+        System.Console.WriteLine(""B.Equals(B)"");
+        return false;
+    }
+}
+";
+            // TODO2 missing warnings
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                //// (5,26): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                ////     public abstract bool Equals(A x);
+                //Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(5, 26),
+                //// (9,25): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
+                ////     public virtual bool Equals(B other) => Report("B.Equals(B)");
+                //Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(9, 25)
+                );
+
+            CompileAndVerify(comp, expectedOutput:
+@"
+B.Equals(B)
+False
+");
+        }
+
+        [Theory]
+        [InlineData("protected")]
+        [InlineData("private protected")]
+        [InlineData("internal protected")]
+        public void RecordEquals_10(string accessibility)
+        {
+            var source =
+$@"
+record struct A
+{{
+    { accessibility } bool Equals(A x)
+        => throw null;
+
+    bool System.IEquatable<A>.Equals(A x) => throw null;
+}}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,29): error CS0666: 'A.Equals(A)': new protected member declared in struct
+                //     internal protected bool Equals(A x)
+                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 11 + accessibility.Length),
+                // (4,29): error CS8873: Record member 'A.Equals(A)' must be public.
+                //     internal protected bool Equals(A x)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 11 + accessibility.Length)
+                );
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("private")]
+        [InlineData("internal")]
+        public void RecordEquals_11(string accessibility)
+        {
+            var source =
+$@"
+record struct A
+{{
+    { accessibility } bool Equals(A x)
+        => throw null;
+
+    bool System.IEquatable<A>.Equals(A x) => throw null;
+}}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,...): error CS8873: Record member 'A.Equals(A)' must be public.
+                //      { accessibility } bool Equals(A x)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 11 + accessibility.Length)
+                );
+        }
+
+        [Fact]
+        public void RecordEquals_12()
+        {
+            var source = @"
+A a1 = new A();
+A a2 = new A();
+
+System.Console.Write(a1.Equals(a2));
+System.Console.Write(a1.Equals((object)a2));
+
+record struct A
+{
+    public bool Equals(B other) => throw null;
+}
+class B
+{
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrue");
+            verifier.VerifyIL("A.Equals(A)", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  ret
+}");
+
+            var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
+            Assert.Equal("System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
+            Assert.False(recordEquals.IsAbstract);
+            Assert.False(recordEquals.IsVirtual);
+            Assert.False(recordEquals.IsOverride);
+            Assert.False(recordEquals.IsSealed);
+            Assert.True(recordEquals.IsImplicitlyDeclared);
+        }
+
+        [Fact]
+        public void RecordEquals_13()
+        {
+            var source = @"
+record struct A
+{
+    public int Equals(A other)
+        => throw null;
+
+    bool System.IEquatable<A>.Equals(A x) => throw null;
+}
+";
+            // TODO2 missing diagnostic
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,16): error CS8874: Record member 'A.Equals(A)' must return 'bool'.
+                //     public int Equals(A other)
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        public void RecordEquals_14()
+        {
+            var source = @"
+record struct A
+{
+    public bool Equals(A other)
+        => throw null;
+
+    System.Boolean System.IEquatable<A>.Equals(A x) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Boolean);
+            comp.VerifyEmitDiagnostics(
+                // (4,12): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     public bool Equals(A other)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(4, 12)
+                );
+        }
+
+        [Fact]
+        public void RecordEquals_19()
+        {
+            var source = @"
+record struct A
+{
+    public static bool Equals(A x) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0736: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is static.
+                // record struct A
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 15),
+                // (4,24): error CS8877: Record member 'A.Equals(A)' may not be static.
+                //     public static bool Equals(A x) => throw null;
+                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void RecordEquals_RecordEqualsInValueTuple()
+        {
+            var src = @"
+namespace System
+{
+    public class Object { }
+    public class Exception { }
+    public class ValueType
+    {
+        public bool Equals(A x) => throw null;
+    }
+    public class Attribute { }
+    public struct Void { }
+    public struct Boolean { }
+    public interface IEquatable<T> { }
+}
+public record struct A;
+";
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
+                );
+
+            var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
+            Assert.Equal("System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void RecordEquals_FourFields()
+        {
+            var source = @"
+A a1 = new A(1, ""hello"");
+
+System.Console.Write(a1.Equals(a1));
+System.Console.Write(a1.Equals((object)a1));
+System.Console.Write("" - "");
+
+A a2 = new A(1, ""hello"") { fieldI = 100 };
+
+System.Console.Write(a1.Equals(a2));
+System.Console.Write(a1.Equals((object)a2));
+System.Console.Write(a2.Equals(a1));
+System.Console.Write(a2.Equals((object)a1));
+System.Console.Write("" - "");
+
+A a3 = new A(1, ""world"");
+
+System.Console.Write(a1.Equals(a3));
+System.Console.Write(a1.Equals((object)a3));
+System.Console.Write(a3.Equals(a1));
+System.Console.Write(a3.Equals((object)a1));
+
+record struct A(int I, string S)
+{
+    public int fieldI = 42;
+    public string fieldS = ""hello"";
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrue - FalseFalseFalseFalse - FalseFalseFalseFalse");
+            verifier.VerifyIL("A.Equals(A)", @"
+{
+  // Code size       97 (0x61)
+  .maxstack  3
+  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0005:  ldarg.0
+  IL_0006:  ldfld      ""int A.<I>k__BackingField""
+  IL_000b:  ldarg.1
+  IL_000c:  ldfld      ""int A.<I>k__BackingField""
+  IL_0011:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0016:  brfalse.s  IL_005f
+  IL_0018:  call       ""System.Collections.Generic.EqualityComparer<string> System.Collections.Generic.EqualityComparer<string>.Default.get""
+  IL_001d:  ldarg.0
+  IL_001e:  ldfld      ""string A.<S>k__BackingField""
+  IL_0023:  ldarg.1
+  IL_0024:  ldfld      ""string A.<S>k__BackingField""
+  IL_0029:  callvirt   ""bool System.Collections.Generic.EqualityComparer<string>.Equals(string, string)""
+  IL_002e:  brfalse.s  IL_005f
+  IL_0030:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0035:  ldarg.0
+  IL_0036:  ldfld      ""int A.fieldI""
+  IL_003b:  ldarg.1
+  IL_003c:  ldfld      ""int A.fieldI""
+  IL_0041:  callvirt   ""bool System.Collections.Generic.EqualityComparer<int>.Equals(int, int)""
+  IL_0046:  brfalse.s  IL_005f
+  IL_0048:  call       ""System.Collections.Generic.EqualityComparer<string> System.Collections.Generic.EqualityComparer<string>.Default.get""
+  IL_004d:  ldarg.0
+  IL_004e:  ldfld      ""string A.fieldS""
+  IL_0053:  ldarg.1
+  IL_0054:  ldfld      ""string A.fieldS""
+  IL_0059:  callvirt   ""bool System.Collections.Generic.EqualityComparer<string>.Equals(string, string)""
+  IL_005e:  ret
+  IL_005f:  ldc.i4.0
+  IL_0060:  ret
+}");
         }
     }
 }

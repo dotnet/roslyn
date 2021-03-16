@@ -3485,6 +3485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CSharpCompilation compilation = this.DeclaringCompilation;
+            bool isRecordClass = declaration.Kind == DeclarationKind.Record;
 
             // Positional record
             bool primaryAndCopyCtorAmbiguity = false;
@@ -3504,22 +3505,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     addDeconstruct(ctor, existingOrAddedMembers);
                 }
 
-                if (declaration.Kind == DeclarationKind.Record)
+                if (isRecordClass)
                 {
                     primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
                 }
             }
 
-            // PROTOTYPE(record-structs): update for record structs
-            if (declaration.Kind == DeclarationKind.Record)
+
+            if (isRecordClass)
             {
                 addCopyCtor(primaryAndCopyCtorAmbiguity);
                 addCloneMethod();
+            }
 
-                PropertySymbol equalityContract = addEqualityContract();
+            PropertySymbol? equalityContract = isRecordClass ? addEqualityContract() : null;
 
-                var thisEquals = addThisEquals(equalityContract);
+            var thisEquals = addThisEquals(equalityContract);
+
+            if (isRecordClass)
+            {
                 addOtherEquals();
+            }
+
+            // PROTOTYPE(record-structs): update for record structs
+            if (isRecordClass)
+            {
                 addObjectEquals(thisEquals);
                 var getHashCode = addGetHashCode(equalityContract);
                 addEqualityOperators();
@@ -3589,6 +3599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addCopyCtor(bool primaryAndCopyCtorAmbiguity)
             {
+                Debug.Assert(isRecordClass);
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.InstanceConstructorName,
                     this,
@@ -3630,6 +3641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addCloneMethod()
             {
+                Debug.Assert(isRecordClass);
                 members.Add(new SynthesizedRecordClone(this, memberOffset: members.Count, diagnostics));
             }
 
@@ -3829,6 +3841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PropertySymbol addEqualityContract()
             {
+                Debug.Assert(isRecordClass);
                 var targetProperty = new SignatureOnlyPropertySymbol(SynthesizedRecordEqualityContractProperty.PropertyName,
                                                                      this,
                                                                      ImmutableArray<ParameterSymbol>.Empty,
@@ -3885,7 +3898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return equalityContract;
             }
 
-            MethodSymbol addThisEquals(PropertySymbol equalityContract)
+            MethodSymbol addThisEquals(PropertySymbol? equalityContract)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.ObjectEquals,
@@ -3934,7 +3947,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void reportStaticOrNotOverridableAPIInRecord(Symbol symbol, BindingDiagnosticBag diagnostics)
             {
-                if (!IsSealed &&
+                if (symbol.ContainingType.IsReferenceType &&
+                    !IsSealed &&
                     ((!symbol.IsAbstract && !symbol.IsVirtual && !symbol.IsOverride) || symbol.IsSealed))
                 {
                     diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, symbol.Locations[0], symbol);
@@ -3947,6 +3961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addOtherEquals()
             {
+                Debug.Assert(isRecordClass);
                 if (!BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
                     members.Add(new SynthesizedRecordBaseEquals(this, memberOffset: members.Count, diagnostics));
