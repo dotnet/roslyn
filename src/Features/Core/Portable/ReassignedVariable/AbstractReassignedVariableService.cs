@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -135,21 +134,13 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
                 if (!symbolToIsReassigned.TryGetValue(symbol, out var reassignedResult))
                 {
-                    reassignedResult = ComputeIsAssigned(symbol);
+                    reassignedResult = symbol is IParameterSymbol parameter
+                        ? ComputeParameterIsAssigned(parameter)
+                        : ComputeLocalIsAssigned((ILocalSymbol)symbol);
                     symbolToIsReassigned[symbol] = reassignedResult;
                 }
 
                 return reassignedResult;
-            }
-
-            bool ComputeIsAssigned(ISymbol symbol)
-            {
-                return symbol switch
-                {
-                    IParameterSymbol parameter => ComputeParameterIsAssigned(parameter),
-                    ILocalSymbol local => ComputeLocalIsAssigned(local),
-                    _ => throw ExceptionUtilities.UnexpectedValue(symbol.Kind),
-                };
             }
 
             bool ComputeParameterIsAssigned(IParameterSymbol parameter)
@@ -163,6 +154,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
                 var methodOrProperty = parameter.ContainingSymbol;
 
+                // If we're on an accessor parameter. Map up to the matching parameter for the property/indexer.
                 if (methodOrProperty is IMethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet } method)
                     methodOrProperty = method.AssociatedSymbol as IPropertySymbol;
 
@@ -172,9 +164,8 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 if (methodOrProperty.DeclaringSyntaxReferences.Length == 0)
                     return false;
 
-                var methodOrPropertyDeclaration = methodOrProperty.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
-
                 // Potentially a reference to a parameter in another file.
+                var methodOrPropertyDeclaration = methodOrProperty.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
                 if (methodOrPropertyDeclaration.SyntaxTree != semanticModel.SyntaxTree)
                     return false;
 
@@ -198,6 +189,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     return false;
                 }
 
+                // A local is definitely assigned during analysis if it had an initializer.
                 return AnalyzePotentialMatches(
                     local,
                     localDeclaration.Span,

@@ -621,5 +621,27 @@ class C
     (int x, int y) Goo() => default;
 }");
         }
+
+        [Fact]
+        public async Task TestTopLevelNotReassigned()
+        {
+            await TestAsync(
+@"
+int p;
+p = 0;
+Console.WriteLine(p);
+");
+        }
+
+        [Fact]
+        public async Task TestTopLevelReassigned()
+        {
+            await TestAsync(
+@"
+int [|p|] = 1;
+[|p|] = 0;
+Console.WriteLine([|p|]);
+");
+        }
     }
 }

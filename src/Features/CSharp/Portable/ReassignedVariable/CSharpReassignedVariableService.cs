@@ -7,7 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReassignedVariable;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
@@ -49,7 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
             }
 
             Contract.ThrowIfNull(current, "Couldn't find a suitable parent of this local declaration");
-            return current;
+            return current is GlobalStatementSyntax
+                ? current.GetRequiredParent()
+                : current;
         }
     }
 }
