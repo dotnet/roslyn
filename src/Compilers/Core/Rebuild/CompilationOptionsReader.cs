@@ -18,6 +18,7 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Roslyn.Utilities;
 
 namespace BuildValidator
 {
@@ -95,8 +96,8 @@ namespace BuildValidator
             using var scope = _logger.BeginScope("Encoding");
 
             var optionsReader = GetMetadataCompilationOptions();
-            optionsReader.TryGetUniqueOption(_logger, "default-encoding", out var defaultEncoding);
-            optionsReader.TryGetUniqueOption(_logger, "fallback-encoding", out var fallbackEncoding);
+            optionsReader.TryGetUniqueOption(_logger, CompilationOptionNames.DefaultEncoding, out var defaultEncoding);
+            optionsReader.TryGetUniqueOption(_logger, CompilationOptionNames.FallbackEncoding, out var fallbackEncoding);
 
             var encodingString = defaultEncoding ?? fallbackEncoding;
             var encoding = encodingString is null
