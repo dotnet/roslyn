@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             Assert.Equal(originalBytes.ToArray(), rebuildStream.ToArray());
         }
 
+#pragma warning disable 612
         private static void VerifyCompilationOptions(CompilationOptions originalOptions, CompilationOptions rebuildOptions)
         {
             var type = originalOptions.GetType();
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 }
             }
         }
+#pragma warning restore 612
 
         private static void VerifyParseOptions(ParseOptions originalOptions, ParseOptions rebuildOptions)
         {
