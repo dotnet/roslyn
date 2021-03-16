@@ -20,6 +20,7 @@
     <PackageReleaseNotes>Summary of changes made in this release of the package.</PackageReleaseNotes>
     <Copyright>Copyright</Copyright>
     <PackageTags>$saferootprojectname$, analyzers</PackageTags>
+    <DevelopmentDependency>true</DevelopmentDependency>
     <NoPackageAnalysis>true</NoPackageAnalysis>
 
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
