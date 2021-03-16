@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -306,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static bool IsWrittenTo(this ExpressionSyntax expression)
+        public static bool IsWrittenTo(this ExpressionSyntax expression, SemanticModel semanticModel)
         {
             expression = GetExpressionToAnalyzeForWrites(expression);
 
@@ -327,6 +328,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (expression.IsLeftSideOfAnyAssignExpression())
                 return true;
+
+            // An extension method invocation with a ref-this parameter can write to an expression.
+            if (expression.Parent is MemberAccessExpressionSyntax memberAccess &&
+                expression == memberAccess.Expression)
+            {
+                var symbol = semanticModel.GetSymbolInfo(memberAccess).Symbol;
+                if (symbol is IMethodSymbol { MethodKind: MethodKind.ReducedExtension, ReducedFrom: var reducedFrom } &&
+                    reducedFrom.Parameters.Length > 0 &&
+                    reducedFrom.Parameters.First().RefKind == RefKind.Ref)
+                {
+                    return true;
+                }
+            }
 
             return false;
         }
@@ -394,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // i.e. you can't replace "a" in "a = b" with "Goo() = b".
             return
                 expression != null &&
-                !expression.IsWrittenTo() &&
+                !expression.IsWrittenTo(semanticModel) &&
                 CanReplaceWithLValue(expression, semanticModel, cancellationToken);
         }
 

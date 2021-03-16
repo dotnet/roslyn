@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool ExposesAnonymousFunctionParameterNames => false;
 
         public bool IsWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-            => (node as ExpressionSyntax).IsWrittenTo();
+            => (node as ExpressionSyntax).IsWrittenTo(semanticModel);
 
         public bool IsOnlyWrittenTo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => (node as ExpressionSyntax).IsOnlyWrittenTo();

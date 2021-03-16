@@ -150,6 +150,19 @@ Imports System
 Class C
     Sub M()
         Dim a As Action(Of Integer) =
+            Sub([|x|]) [|x|] += 1
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestLambdaParameterWithReassignment3() As Task
+            Await TestAsync(
+"
+Imports System
+Class C
+    Sub M()
+        Dim a As Action(Of Integer) =
             Sub([|x|] As Integer)
                 [|x|] += 1
                 Console.WriteLine([|x|])

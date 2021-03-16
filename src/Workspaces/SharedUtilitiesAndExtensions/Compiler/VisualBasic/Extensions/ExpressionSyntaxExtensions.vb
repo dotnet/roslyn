@@ -339,6 +339,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return True
                 End If
 
+                ' Extension method with a 'ref' parameter can write to the value it is called on.
+                If TypeOf expression.Parent Is MemberAccessExpressionSyntax Then
+                    Dim memberAccess = DirectCast(expression.Parent, MemberAccessExpressionSyntax)
+                    If memberAccess.Expression Is expression Then
+                        Dim method = TryCast(semanticModel.GetSymbolInfo(memberAccess).Symbol, IMethodSymbol)
+                        If method.MethodKind = MethodKind.ReducedExtension AndAlso
+                           method.ReducedFrom.Parameters.Length > 0 AndAlso
+                           method.ReducedFrom.Parameters.First().RefKind = RefKind.Ref Then
+
+                            Return True
+                        End If
+                    End If
+                End If
+
                 Return False
             End If
 
