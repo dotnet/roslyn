@@ -602,5 +602,24 @@ struct S
     void MutatingMethod() => this = default;
 }");
         }
+
+        [Fact]
+        public async Task TestDeconstructionReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        var ([|x|], y) = Goo();
+        [|x|] = 0;
+        Console.WriteLine([|x|]);
+    }
+
+    (int x, int y) Goo() => default;
+}");
+        }
     }
 }
