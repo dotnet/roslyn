@@ -105,8 +105,6 @@ namespace BuildValidator
                 {
                     filePath = Path.Combine(Path.GetDirectoryName(filePath)!, reference.Name);
                 }
-
-
                 builder.Add(MetadataReference.CreateFromStream(
                     fileStream,
                     filePath: filePath,
