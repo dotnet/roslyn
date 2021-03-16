@@ -38,6 +38,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReassignedVariable
             Return variable.Identifier
         End Function
 
+        Protected Overrides Function GetMemberBlock(methodOrPropertyDeclaration As SyntaxNode) As SyntaxNode
+            Return methodOrPropertyDeclaration.GetBlockFromBegin()
+        End Function
+
         Protected Overrides Function GetParentScope(localDeclaration As SyntaxNode) As SyntaxNode
             Dim current = localDeclaration
             While current IsNot Nothing

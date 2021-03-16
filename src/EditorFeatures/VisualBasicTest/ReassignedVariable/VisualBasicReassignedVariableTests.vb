@@ -201,8 +201,8 @@ Class C
         Console.WriteLine([|p|])
     End Sub
 
-    Sub M2(<System.Runtime.InteropServices.Out> ByRef p As Integer)
-        p = 0
+    Sub M2(<System.Runtime.InteropServices.Out> ByRef [|p|] As Integer)
+        [|p|] = 0
     End Sub
 End Class")
         End Function
@@ -219,8 +219,8 @@ Class C
         Console.WriteLine(p)
     End Sub
 
-    Sub M2(<System.Runtime.InteropServices.Out> ByRef p As Integer)
-        p = 0
+    Sub M2(<System.Runtime.InteropServices.Out> ByRef [|p|] As Integer)
+        [|p|] = 0
     End Sub
 End Class")
         End Function
@@ -231,24 +231,24 @@ End Class")
 "
 Imports System
 Class C
-    Sub M(<System.Runtime.InteropServices.Out> ByRef p As Integer)
-        p = 0
-        p = 1
-        Console.WriteLine(p)
+    Sub M(<System.Runtime.InteropServices.Out> ByRef [|p|] As Integer)
+        [|p|] = 0
+        [|p|] = 1
+        Console.WriteLine([|p|])
     End Sub
 End Class")
         End Function
 
         <Fact>
-        Public Async Function AssignmentThroughRefParameterIsNotAssignmentOfTheVariableItself() As Task
+        Public Async Function AssignmentThroughRefParameter() As Task
             Await TestAsync(
 "
 Imports System
 Class C
-    Sub M(ByRef p As Integer)
-        p = 0
-        p = 1
-        Console.WriteLine(p)
+    Sub M(ByRef [|p|] As Integer)
+        [|p|] = 0
+        [|p|] = 1
+        Console.WriteLine([|p|])
     End Sub
 End Class")
         End Function

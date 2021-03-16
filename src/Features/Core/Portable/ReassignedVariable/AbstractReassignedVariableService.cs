@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
     {
         protected abstract void AddVariables(TVariableDeclaratorSyntax declarator, ref TemporaryArray<TVariableSyntax> temporaryArray);
         protected abstract SyntaxNode GetParentScope(SyntaxNode localDeclaration);
+        protected abstract SyntaxNode GetMemberBlock(SyntaxNode methodOrPropertyDeclaration);
+
         protected abstract SyntaxToken GetIdentifierOfVariable(TVariableSyntax variable);
         protected abstract SyntaxToken GetIdentifierOfSingleVariableDesignation(TSingleVariableDesignation variable);
 
@@ -70,6 +72,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 }
             }
 
+            result.RemoveDuplicates();
             return result.ToImmutable();
 
             void ProcessNode(SyntaxNode node)
@@ -164,9 +167,11 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 if (parameterLocation.SourceTree != semanticModel.SyntaxTree)
                     return false;
 
-                // Parameters are an easy case.  We just need to get the method they're defined for, and see if they are
-                // even written to inside that method.
                 var methodOrProperty = parameter.ContainingSymbol;
+
+                if (methodOrProperty is IMethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet } method)
+                    methodOrProperty = method.AssociatedSymbol as IPropertySymbol;
+
                 if (methodOrProperty is not IMethodSymbol and not IPropertySymbol)
                     return false;
 
@@ -179,16 +184,11 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 if (methodOrPropertyDeclaration.SyntaxTree != semanticModel.SyntaxTree)
                     return false;
 
-                return AnalyzePotentialMatches(parameter, parameterLocation.SourceSpan, methodOrPropertyDeclaration);
+                return AnalyzePotentialMatches(parameter, parameterLocation.SourceSpan, GetMemberBlock(methodOrPropertyDeclaration));
             }
 
             bool ComputeLocalIsAssigned(ILocalSymbol local)
             {
-                // Locals are harder to determine than parameters.  Because a parameter always comes in assigned, we only
-                // have to see if there is a later assignment.  For locals though, they may start unassigned, and then only
-                // get assigned once later.  That would not count as a reassignment.  So we only want to consider something
-                // a reassignment, if it is *already* assigned, and then written again.
-
                 if (local.DeclaringSyntaxReferences.Length == 0)
                     return false;
 
@@ -201,7 +201,6 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
                 // Get the scope the local is declared in.
                 var parentScope = GetParentScope(localDeclaration);
-
                 return AnalyzePotentialMatches(local, localDeclaration.Span, parentScope);
             }
 

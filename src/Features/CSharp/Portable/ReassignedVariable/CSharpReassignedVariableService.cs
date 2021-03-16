@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
         protected override SyntaxToken GetIdentifierOfSingleVariableDesignation(SingleVariableDesignationSyntax variable)
             => variable.Identifier;
 
+        protected override SyntaxNode GetMemberBlock(SyntaxNode methodOrPropertyDeclaration)
+            => methodOrPropertyDeclaration;
+
         protected override SyntaxNode GetParentScope(SyntaxNode localDeclaration)
         {
             var current = localDeclaration;
