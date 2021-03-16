@@ -766,7 +766,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #Region "Syntax And Semantic Utils"
 
         Protected Overrides Function GetSyntaxSequenceEdits(oldNodes As ImmutableArray(Of SyntaxNode), newNodes As ImmutableArray(Of SyntaxNode)) As IEnumerable(Of SequenceEdit)
-            Return AbstractSyntaxComparer.GetSequenceEdits(oldNodes, newNodes)
+            Return SyntaxComparer.GetSequenceEdits(oldNodes, newNodes)
         End Function
 
         Friend Overrides ReadOnly Property EmptyCompilationUnit As SyntaxNode
