@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation)
+            MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -62,6 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 bool isRecordStruct = ContainingType.IsStructType();
                 if (isRecordStruct)
                 {
+                    // We'll produce:
+                    // virtual bool Equals(T other) =>
+                    //     field1 == other.field1 && ... && fieldN == other.fieldN;
                     retExpr = F.Literal(true);
                 }
                 else if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())

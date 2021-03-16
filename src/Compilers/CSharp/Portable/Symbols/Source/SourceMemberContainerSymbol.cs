@@ -1342,8 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
-            // PROTOTYPE(record-structs): update for record structs
-            if (_lazyMembersDictionary != null || declaration.MemberNames.Contains(name) || declaration.Kind == DeclarationKind.Record)
+            if (_lazyMembersDictionary != null || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
             {
                 return GetMembers(name);
             }
@@ -2263,8 +2262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // PROTOTYPE(record-structs): update for record structs
-            if (IsRecord)
+            if (IsRecord || IsRecordStruct)
             {
                 // For records the warnings reported below are simply going to echo record specific errors,
                 // producing more noise.
@@ -3524,21 +3522,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isRecordClass)
             {
-                addOtherEquals();
+                addBaseEquals();
+            }
+
+            addObjectEquals(thisEquals);
+            var getHashCode = addGetHashCode(equalityContract);
+            addEqualityOperators();
+
+            if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
+            {
+                diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
             }
 
             // PROTOTYPE(record-structs): update for record structs
             if (isRecordClass)
             {
-                addObjectEquals(thisEquals);
-                var getHashCode = addGetHashCode(equalityContract);
-                addEqualityOperators();
-
-                if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
-                {
-                    diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
-                }
-
                 var printMembers = addPrintMembersMethod();
                 addToStringMethod(printMembers);
             }
@@ -3806,7 +3804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 members.Add(new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count, diagnostics));
             }
 
-            MethodSymbol addGetHashCode(PropertySymbol equalityContract)
+            MethodSymbol addGetHashCode(PropertySymbol? equalityContract)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.ObjectGetHashCode,
@@ -3959,7 +3957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addOtherEquals()
+            void addBaseEquals()
             {
                 Debug.Assert(isRecordClass);
                 if (!BaseTypeNoUseSiteDiagnostics.IsObjectType())

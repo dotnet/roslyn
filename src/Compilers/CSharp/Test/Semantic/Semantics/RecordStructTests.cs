@@ -755,7 +755,14 @@ public record struct S2 : I
 
             CompileAndVerify(comp, expectedOutput: "45");
 
-            AssertEx.Equal(new[] { "System.Int32 S.M(System.String s)", "System.Boolean S.Equals(S other)", "S..ctor()" },
+            AssertEx.Equal(new[] {
+                "System.Int32 S.M(System.String s)",
+                "System.Boolean S.op_Inequality(S r1, S r2)",
+                "System.Boolean S.op_Equality(S r1, S r2)",
+                "System.Int32 S.GetHashCode()",
+                "System.Boolean S.Equals(System.Object obj)",
+                "System.Boolean S.Equals(S other)",
+                "S..ctor()" },
                 comp.GetMember<NamedTypeSymbol>("S").GetMembers().ToTestDisplayStrings());
         }
 
@@ -1047,6 +1054,10 @@ public partial record struct C
                 "X",
                 "M",
                 "M",
+                "op_Inequality",
+                "op_Equality",
+                "GetHashCode",
+                "Equals",
                 "Equals",
                 "Deconstruct",
                 ".ctor",
@@ -1203,12 +1214,20 @@ unsafe record struct C( // 1
     RefLike P9); // 10
 ";
 
-            // PROTOTYPE(record-structs): missing diagnostics (checked by synthesized equals)
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
                 // (6,22): error CS0721: 'C2': static types cannot be used as parameters
                 // unsafe record struct C( // 1
                 Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "C").WithArguments("C2").WithLocation(6, 22),
+                // (7,10): error CS8908: The type 'int*' may not be used for a field of a record.
+                //     int* P1, // 2
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P1").WithArguments("int*").WithLocation(7, 10),
+                // (8,12): error CS8908: The type 'int*[]' may not be used for a field of a record.
+                //     int*[] P2, // 3
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P2").WithArguments("int*[]").WithLocation(8, 12),
+                // (10,25): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                //     delegate*<int, int> P4, // 4
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "P4").WithArguments("delegate*<int, int>").WithLocation(10, 25),
                 // (11,5): error CS1536: Invalid parameter type 'void'
                 //     void P5, // 5
                 Diagnostic(ErrorCode.ERR_NoVoidParameter, "void").WithLocation(11, 5),
@@ -1253,9 +1272,17 @@ public unsafe record struct C
 }
 ";
 
-            // PROTOTYPE(record-structs): missing diagnostics (checked by synthesized equals)
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
+                // (8,17): error CS8908: The type 'int*' may not be used for a field of a record.
+                //     public int* f1; // 1
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(8, 17),
+                // (9,19): error CS8908: The type 'int*[]' may not be used for a field of a record.
+                //     public int*[] f2; // 2
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f2").WithArguments("int*[]").WithLocation(9, 19),
+                // (11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                //     public delegate*<int, int> f4; // 3
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(11, 32),
                 // (12,12): error CS0670: Field cannot have void type
                 //     public void f5; // 4
                 Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(12, 12),
@@ -1297,9 +1324,17 @@ public unsafe record struct C
 }
 ";
 
-            // PROTOTYPE(record-structs): missing diagnostics (checked by synthesized equals)
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeDebugDll);
             comp.VerifyEmitDiagnostics(
+                // (8,17): error CS8908: The type 'int*' may not be used for a field of a record.
+                //     public int* f1 { get; set; } // 1
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f1").WithArguments("int*").WithLocation(8, 17),
+                // (9,19): error CS8908: The type 'int*[]' may not be used for a field of a record.
+                //     public int*[] f2 { get; set; } // 2
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f2").WithArguments("int*[]").WithLocation(9, 19),
+                // (11,32): error CS8908: The type 'delegate*<int, int>' may not be used for a field of a record.
+                //     public delegate*<int, int> f4 { get; set; } // 3
+                Diagnostic(ErrorCode.ERR_BadFieldTypeInRecord, "f4").WithArguments("delegate*<int, int>").WithLocation(11, 32),
                 // (12,17): error CS0547: 'C.f5': property or indexer cannot have void type
                 //     public void f5 { get; set; } // 4
                 Diagnostic(ErrorCode.ERR_PropertyCantHaveVoidType, "f5").WithArguments("C.f5").WithLocation(12, 17),
@@ -1673,6 +1708,10 @@ record struct C(int X, int X)
                 "get_X",
                 "set_X",
                 "X",
+                "op_Inequality",
+                "op_Equality",
+                "GetHashCode",
+                "Equals",
                 "Equals",
                 "Deconstruct",
                 ".ctor"
@@ -1717,6 +1756,10 @@ record struct C(int X, int Y)
                 "void C.set_X()",
                 "System.Int32 C.get_Y(System.Int32 value)",
                 "System.Int32 C.set_Y(System.Int32 value)",
+                "System.Boolean C.op_Inequality(C r1, C r2)",
+                "System.Boolean C.op_Equality(C r1, C r2)",
+                "System.Int32 C.GetHashCode()",
+                "System.Boolean C.Equals(System.Object obj)",
                 "System.Boolean C.Equals(C other)",
                 "void C.Deconstruct(out System.Int32 X, out System.Int32 Y)",
                 "C..ctor()",
@@ -1857,12 +1900,17 @@ record struct C(C c);
         }
 
         [Fact]
-        public void RecordProperties_PropertyInValueTuple()
+        public void RecordProperties_PropertyInValueType()
         {
             var corlib_cs = @"
 namespace System
 {
-    public class Object { }
+    public class Object
+    {
+        public virtual bool Equals(object x) => throw null;
+        public virtual int GetHashCode() => throw null;
+    }
+    public class Exception { }
     public class ValueType
     {
         public bool X { get; set; }
@@ -1870,12 +1918,22 @@ namespace System
     public class Attribute { }
     public struct Void { }
     public struct Boolean { }
+    public struct Int32 { }
     public interface IEquatable<T> { }
+}
+namespace System.Collections.Generic
+{
+    public abstract class EqualityComparer<T>
+    {
+        public static EqualityComparer<T> Default => throw null;
+        public abstract int GetHashCode(T t);
+    }
 }
 ";
             var corlibRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
 
-            var src = @"
+            {
+                var src = @"
 record struct C(bool X)
 {
     bool M()
@@ -1884,27 +1942,57 @@ record struct C(bool X)
     }
 }
 ";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview, references: new[] { corlibRef });
-            comp.VerifyEmitDiagnostics(
-                // (2,22): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
-                // record struct C(bool X)
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 22)
-                );
+                var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview, references: new[] { corlibRef });
+                comp.VerifyEmitDiagnostics(
+                    // (2,22): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                    // record struct C(bool X)
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 22)
+                    );
 
-            Assert.Null(comp.GlobalNamespace.GetTypeMember("C").GetMember("X"));
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var x = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
-            Assert.Equal("System.Boolean System.ValueType.X { get; set; }", model.GetSymbolInfo(x!).Symbol.ToTestDisplayString());
+                Assert.Null(comp.GlobalNamespace.GetTypeMember("C").GetMember("X"));
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+                var x = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+                Assert.Equal("System.Boolean System.ValueType.X { get; set; }", model.GetSymbolInfo(x!).Symbol.ToTestDisplayString());
+            }
+
+            {
+                var src = @"
+readonly record struct C(bool X)
+{
+    bool M()
+    {
+        return X;
+    }
+}
+";
+                var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview, references: new[] { corlibRef });
+                comp.VerifyEmitDiagnostics(
+                    // (2,31): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
+                    // readonly record struct C(bool X)
+                    Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 31)
+                    );
+
+                Assert.Null(comp.GlobalNamespace.GetTypeMember("C").GetMember("X"));
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+                var x = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
+                Assert.Equal("System.Boolean System.ValueType.X { get; set; }", model.GetSymbolInfo(x!).Symbol.ToTestDisplayString());
+            }
         }
 
         [Fact]
-        public void RecordProperties_PropertyInValueTuple_Static()
+        public void RecordProperties_PropertyInValueType_Static()
         {
             var corlib_cs = @"
 namespace System
 {
-    public class Object { }
+    public class Object
+    {
+        public virtual bool Equals(object x) => throw null;
+        public virtual int GetHashCode() => throw null;
+    }
+    public class Exception { }
     public class ValueType
     {
         public static bool X { get; set; }
@@ -1912,12 +2000,19 @@ namespace System
     public class Attribute { }
     public struct Void { }
     public struct Boolean { }
-    public class Exception { }
+    public struct Int32 { }
     public interface IEquatable<T> { }
+}
+namespace System.Collections.Generic
+{
+    public abstract class EqualityComparer<T>
+    {
+        public static EqualityComparer<T> Default => throw null;
+        public abstract int GetHashCode(T t);
+    }
 }
 ";
             var corlibRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
-
             var src = @"
 record struct C(bool X)
 {
@@ -1936,48 +2031,6 @@ record struct C(bool X)
                 // record struct C(bool X)
                 Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 22)
                 );
-        }
-
-        [Fact]
-        public void RecordProperties_PropertyInValueTuple_Readonly()
-        {
-            var corlib_cs = @"
-namespace System
-{
-    public class Object { }
-    public class ValueType
-    {
-        public bool X { get; set; }
-    }
-    public class Attribute { }
-    public struct Void { }
-    public struct Boolean { }
-    public interface IEquatable<T> { }
-}
-";
-            var corlibRef = CreateEmptyCompilation(corlib_cs).EmitToImageReference();
-
-            var src = @"
-readonly record struct C(bool X)
-{
-    bool M()
-    {
-        return X;
-    }
-}
-";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview, references: new[] { corlibRef });
-            comp.VerifyEmitDiagnostics(
-                // (2,31): warning CS8907: Parameter 'X' is unread. Did you forget to use it to initialize the property with that name?
-                // readonly record struct C(bool X);
-                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "X").WithArguments("X").WithLocation(2, 31)
-                );
-
-            Assert.Null(comp.GlobalNamespace.GetTypeMember("C").GetMember("X"));
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var x = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single().Expression;
-            Assert.Equal("System.Boolean System.ValueType.X { get; set; }", model.GetSymbolInfo(x!).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -3428,7 +3481,14 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "A.Equals(A) False B.Equals(B) True").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "A.Equals(A) False B.Equals(B) True").VerifyDiagnostics(
+                // (4,17): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public bool Equals(A other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 17),
+                // (12,17): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
+                //     public bool Equals(B<T> other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(12, 17)
+                );
         }
 
         [Fact]
@@ -3524,15 +3584,11 @@ record struct B
     }
 }
 ";
-            // TODO2 missing warnings
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                //// (5,26): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
-                ////     public abstract bool Equals(A x);
-                //Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(5, 26),
-                //// (9,25): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
-                ////     public virtual bool Equals(B other) => Report("B.Equals(B)");
-                //Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(9, 25)
+                // (8,17): warning CS8851: 'B' defines 'Equals' but not 'GetHashCode'
+                //     public bool Equals(B other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("B").WithLocation(8, 17)
                 );
 
             CompileAndVerify(comp, expectedOutput:
@@ -3565,7 +3621,10 @@ record struct A
                 Diagnostic(ErrorCode.ERR_ProtectedInStruct, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 11 + accessibility.Length),
                 // (4,29): error CS8873: Record member 'A.Equals(A)' must be public.
                 //     internal protected bool Equals(A x)
-                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 11 + accessibility.Length)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 11 + accessibility.Length),
+                // (4,29): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     internal protected bool Equals(A x)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 11 + accessibility.Length)
                 );
         }
 
@@ -3589,7 +3648,10 @@ record struct A
             comp.VerifyEmitDiagnostics(
                 // (4,...): error CS8873: Record member 'A.Equals(A)' must be public.
                 //      { accessibility } bool Equals(A x)
-                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 11 + accessibility.Length)
+                Diagnostic(ErrorCode.ERR_NonPublicAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 11 + accessibility.Length),
+                // (4,11): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //      bool Equals(A x)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 11 + accessibility.Length)
                 );
         }
 
@@ -3622,6 +3684,30 @@ class B
   IL_0001:  ret
 }");
 
+            verifier.VerifyIL("A.Equals(object)", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  isinst     ""A""
+  IL_0006:  brfalse.s  IL_0015
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.1
+  IL_000a:  unbox.any  ""A""
+  IL_000f:  call       ""bool A.Equals(A)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
+}");
+
+            verifier.VerifyIL("A.GetHashCode()", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  ret
+}");
+
             var recordEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordEquals>().Single();
             Assert.Equal("System.Boolean A.Equals(A other)", recordEquals.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, recordEquals.DeclaredAccessibility);
@@ -3644,12 +3730,14 @@ record struct A
     bool System.IEquatable<A>.Equals(A x) => throw null;
 }
 ";
-            // TODO2 missing diagnostic
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (4,16): error CS8874: Record member 'A.Equals(A)' must return 'bool'.
                 //     public int Equals(A other)
-                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 16)
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "Equals").WithArguments("A.Equals(A)", "bool").WithLocation(4, 16),
+                // (4,16): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public int Equals(A other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 16)
                 );
         }
 
@@ -3668,9 +3756,39 @@ record struct A
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(SpecialType.System_Boolean);
             comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record struct A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"record struct A
+{
+    public bool Equals(A other)
+        => throw null;
+
+    System.Boolean System.IEquatable<A>.Equals(A x) => throw null;
+}").WithArguments("System.Boolean").WithLocation(2, 1),
+                // (2,1): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record struct A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"record struct A
+{
+    public bool Equals(A other)
+        => throw null;
+
+    System.Boolean System.IEquatable<A>.Equals(A x) => throw null;
+}").WithArguments("System.Boolean").WithLocation(2, 1),
+                // (2,15): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record struct A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 15),
+                // (2,15): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record struct A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 15),
+                // (2,15): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record struct A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 15),
                 // (4,12): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     public bool Equals(A other)
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(4, 12)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(4, 12),
+                // (4,17): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public bool Equals(A other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 17)
                 );
         }
 
@@ -3690,17 +3808,24 @@ record struct A
                 Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 15),
                 // (4,24): error CS8877: Record member 'A.Equals(A)' may not be static.
                 //     public static bool Equals(A x) => throw null;
-                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24),
+                // (4,24): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public static bool Equals(A x) => throw null;
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 24)
                 );
         }
 
         [Fact]
-        public void RecordEquals_RecordEqualsInValueTuple()
+        public void RecordEquals_RecordEqualsInValueType()
         {
             var src = @"
 namespace System
 {
-    public class Object { }
+    public class Object
+    {
+        public virtual bool Equals(object x) => throw null;
+        public virtual int GetHashCode() => throw null;
+    }
     public class Exception { }
     public class ValueType
     {
@@ -3709,7 +3834,16 @@ namespace System
     public class Attribute { }
     public struct Void { }
     public struct Boolean { }
+    public struct Int32 { }
     public interface IEquatable<T> { }
+}
+namespace System.Collections.Generic
+{
+    public abstract class EqualityComparer<T>
+    {
+        public static EqualityComparer<T> Default => throw null;
+        public abstract int GetHashCode(T t);
+    }
 }
 public record struct A;
 ";
@@ -3793,6 +3927,503 @@ record struct A(int I, string S)
   IL_005f:  ldc.i4.0
   IL_0060:  ret
 }");
+
+            verifier.VerifyIL("A.Equals(object)", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  isinst     ""A""
+  IL_0006:  brfalse.s  IL_0015
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.1
+  IL_000a:  unbox.any  ""A""
+  IL_000f:  call       ""bool A.Equals(A)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
+}");
+
+            verifier.VerifyIL("A.GetHashCode()", @"
+{
+  // Code size       86 (0x56)
+  .maxstack  3
+  IL_0000:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0005:  ldarg.0
+  IL_0006:  ldfld      ""int A.<I>k__BackingField""
+  IL_000b:  callvirt   ""int System.Collections.Generic.EqualityComparer<int>.GetHashCode(int)""
+  IL_0010:  ldc.i4     0xa5555529
+  IL_0015:  mul
+  IL_0016:  call       ""System.Collections.Generic.EqualityComparer<string> System.Collections.Generic.EqualityComparer<string>.Default.get""
+  IL_001b:  ldarg.0
+  IL_001c:  ldfld      ""string A.<S>k__BackingField""
+  IL_0021:  callvirt   ""int System.Collections.Generic.EqualityComparer<string>.GetHashCode(string)""
+  IL_0026:  add
+  IL_0027:  ldc.i4     0xa5555529
+  IL_002c:  mul
+  IL_002d:  call       ""System.Collections.Generic.EqualityComparer<int> System.Collections.Generic.EqualityComparer<int>.Default.get""
+  IL_0032:  ldarg.0
+  IL_0033:  ldfld      ""int A.fieldI""
+  IL_0038:  callvirt   ""int System.Collections.Generic.EqualityComparer<int>.GetHashCode(int)""
+  IL_003d:  add
+  IL_003e:  ldc.i4     0xa5555529
+  IL_0043:  mul
+  IL_0044:  call       ""System.Collections.Generic.EqualityComparer<string> System.Collections.Generic.EqualityComparer<string>.Default.get""
+  IL_0049:  ldarg.0
+  IL_004a:  ldfld      ""string A.fieldS""
+  IL_004f:  callvirt   ""int System.Collections.Generic.EqualityComparer<string>.GetHashCode(string)""
+  IL_0054:  add
+  IL_0055:  ret
+}");
+        }
+
+        [Fact]
+        public void RecordEquals_StaticField()
+        {
+            var source = @"
+record struct A
+{
+    public static int field = 42;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("A.Equals(A)", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  ret
+}");
+
+            verifier.VerifyIL("A.GetHashCode()", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void ObjectEquals_06()
+        {
+            var source = @"
+record struct A
+{
+    public static new bool Equals(object obj) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,28): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
+                //     public static new bool Equals(object obj) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(4, 28)
+                );
+        }
+
+        [Fact]
+        public void ObjectEquals_UserDefined()
+        {
+            var source = @"
+record struct A
+{
+    public override bool Equals(object obj) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,26): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
+                //     public override bool Equals(object obj) => throw null;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(4, 26)
+                );
+        }
+
+        [Fact]
+        public void GetHashCode_UserDefined()
+        {
+            var source = @"
+System.Console.Write(new A().GetHashCode());
+
+record struct A
+{
+    public override int GetHashCode() => 42;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [Fact]
+        public void GetHashCode_GetHashCodeInValueType()
+        {
+            var src = @"
+namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object x) => throw null;
+    }
+    public class Exception { }
+    public class ValueType
+    {
+        public virtual int GetHashCode() => throw null;
+    }
+    public class Attribute { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T> { }
+}
+namespace System.Collections.Generic
+{
+    public abstract class EqualityComparer<T>
+    {
+        public static EqualityComparer<T> Default => throw null;
+        public abstract int GetHashCode(T t);
+    }
+}
+public record struct A;
+";
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (27,22): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
+                // public record struct A;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "A").WithArguments("A.GetHashCode()").WithLocation(27, 22)
+                );
+        }
+
+        [Fact]
+        public void GetHashCode_MissingEqualityComparer_EmptyRecord()
+        {
+            var src = @"
+namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object x) => throw null;
+        public virtual int GetHashCode() => throw null;
+    }
+    public class Exception { }
+    public class ValueType { }
+    public class Attribute { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T> { }
+}
+public record struct A;
+";
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
+                );
+        }
+
+        [Fact]
+        public void GetHashCode_MissingEqualityComparer_NonEmptyRecord()
+        {
+            var src = @"
+namespace System
+{
+    public class Object
+    {
+        public virtual bool Equals(object x) => throw null;
+        public virtual int GetHashCode() => throw null;
+    }
+    public class Exception { }
+    public class ValueType { }
+    public class Attribute { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public interface IEquatable<T> { }
+}
+public record struct A(int I);
+";
+            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (17,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.GetHashCode'
+                // public record struct A(int I);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "public record struct A(int I);").WithArguments("System.Collections.Generic.EqualityComparer`1", "GetHashCode").WithLocation(17, 1),
+                // (17,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.get_Default'
+                // public record struct A(int I);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "public record struct A(int I);").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(17, 1)
+                );
+        }
+
+        [Fact]
+        public void GetHashCodeIsDefinedButEqualsIsNot()
+        {
+            var src = @"
+public record struct C
+{
+    public object Data;
+    public override int GetHashCode() { return 0; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EqualsIsDefinedButGetHashCodeIsNot()
+        {
+            var src = @"
+public record struct C
+{
+    public object Data;
+    public bool Equals(C c) { return false; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (5,17): warning CS8851: 'C' defines 'Equals' but not 'GetHashCode'
+                //     public bool Equals(C c) { return false; }
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("C").WithLocation(5, 17));
+        }
+
+        [Fact]
+        public void EqualityOperators_01()
+        {
+            var source = @"
+record struct A(int X) 
+{
+    public bool Equals(ref A other)
+        => throw null;
+
+    static void Main()
+    {
+        Test(default, default);
+        Test(default, new A(0));
+        Test(new A(1), new A(1));
+        Test(new A(2), new A(3));
+        var a = new A(11);
+        Test(a, a);
+    }
+
+    static void Test(A a1, A a2)
+    {
+        System.Console.WriteLine(""{0} {1} {2} {3}"", a1 == a2, a2 == a1, a1 != a2, a2 != a1);
+    }
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"
+True True False False
+True True False False
+True True False False
+False False True True
+True True False False
+").VerifyDiagnostics();
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            MethodSymbol op = comp.GetMembers("A." + WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single();
+            Assert.Equal("System.Boolean A.op_Equality(A r1, A r2)", op.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
+            Assert.True(op.IsStatic);
+            Assert.False(op.IsAbstract);
+            Assert.False(op.IsVirtual);
+            Assert.False(op.IsOverride);
+            Assert.False(op.IsSealed);
+            Assert.True(op.IsImplicitlyDeclared);
+
+            op = comp.GetMembers("A." + WellKnownMemberNames.InequalityOperatorName).OfType<SynthesizedRecordInequalityOperator>().Single();
+            Assert.Equal("System.Boolean A.op_Inequality(A r1, A r2)", op.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
+            Assert.True(op.IsStatic);
+            Assert.False(op.IsAbstract);
+            Assert.False(op.IsVirtual);
+            Assert.False(op.IsOverride);
+            Assert.False(op.IsSealed);
+            Assert.True(op.IsImplicitlyDeclared);
+
+            verifier.VerifyIL("bool A.op_Equality(A, A)", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  call       ""bool A.Equals(A)""
+  IL_0008:  ret
+}
+");
+
+            verifier.VerifyIL("bool A.op_Inequality(A, A)", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""bool A.op_Equality(A, A)""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void EqualityOperators_03()
+        {
+            var source =
+@"
+record struct A
+{
+    public static bool operator==(A r1, A r2)
+        => throw null;
+    public static bool operator==(A r1, string r2)
+        => throw null;
+    public static bool operator!=(A r1, string r2)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,32): error CS0111: Type 'A' already defines a member called 'op_Equality' with the same parameter types
+                //     public static bool operator==(A r1, A r2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "==").WithArguments("op_Equality", "A").WithLocation(4, 32)
+                );
+        }
+
+        [Fact]
+        public void EqualityOperators_04()
+        {
+            var source = @"
+record struct A
+{
+    public static bool operator!=(A r1, A r2)
+        => throw null;
+    public static bool operator!=(string r1, A r2)
+        => throw null;
+    public static bool operator==(string r1, A r2)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,32): error CS0111: Type 'A' already defines a member called 'op_Inequality' with the same parameter types
+                //     public static bool operator!=(A r1, A r2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "!=").WithArguments("op_Inequality", "A").WithLocation(4, 32)
+                );
+        }
+
+        [Fact]
+        public void EqualityOperators_05()
+        {
+            var source = @"
+record struct A
+{
+    public static bool op_Equality(A r1, A r2)
+        => throw null;
+    public static bool op_Equality(string r1, A r2)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS0111: Type 'A' already defines a member called 'op_Equality' with the same parameter types
+                //     public static bool op_Equality(A r1, A r2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_Equality").WithArguments("op_Equality", "A").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void EqualityOperators_06()
+        {
+            var source = @"
+record struct A
+{
+    public static bool op_Inequality(A r1, A r2)
+        => throw null;
+    public static bool op_Inequality(A r1, string r2)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,24): error CS0111: Type 'A' already defines a member called 'op_Inequality' with the same parameter types
+                //     public static bool op_Inequality(A r1, A r2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "op_Inequality").WithArguments("op_Inequality", "A").WithLocation(4, 24)
+                );
+        }
+
+        [Fact]
+        public void EqualityOperators_07()
+        {
+            var source = @"
+record struct A
+{
+    public static bool Equals(A other)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS0736: 'A' does not implement interface member 'IEquatable<A>.Equals(A)'. 'A.Equals(A)' cannot implement an interface member because it is static.
+                // record struct A
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, "A").WithArguments("A", "System.IEquatable<A>.Equals(A)", "A.Equals(A)").WithLocation(2, 15),
+                // (4,24): error CS8877: Record member 'A.Equals(A)' may not be static.
+                //     public static bool Equals(A other)
+                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "Equals").WithArguments("A.Equals(A)").WithLocation(4, 24),
+                // (4,24): warning CS8851: 'A' defines 'Equals' but not 'GetHashCode'
+                //     public static bool Equals(A other)
+                Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("A").WithLocation(4, 24)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void EqualityOperators_09(bool useImageReference)
+        {
+            var source1 = @"
+public record struct A(int X);
+";
+            var comp1 = CreateCompilation(source1);
+
+            var source2 =
+@"
+class Program
+{
+    static void Main()
+    {
+        Test(default, default);
+        Test(default, new A(0));
+        Test(new A(1), new A(1));
+        Test(new A(2), new A(3));
+    }
+
+    static void Test(A a1, A a2)
+    {
+        System.Console.WriteLine(""{0} {1} {2} {3}"", a1 == a2, a2 == a1, a1 != a2, a2 != a1);
+    }
+}
+";
+            CompileAndVerify(source2, references: new[] { useImageReference ? comp1.EmitToImageReference() : comp1.ToMetadataReference() }, expectedOutput: @"
+True True False False
+True True False False
+True True False False
+False False True True
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void GetSimpleNonTypeMembers_DirectApiCheck()
+        {
+            var src = @"
+public record struct RecordB();
+";
+            var comp = CreateCompilation(src);
+            var b = comp.GlobalNamespace.GetTypeMember("RecordB");
+            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB r1, RecordB r2)" },
+                b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
         }
     }
 }

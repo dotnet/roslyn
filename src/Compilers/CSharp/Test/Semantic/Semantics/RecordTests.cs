@@ -2803,6 +2803,7 @@ public sealed record C
         [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
         public void GetHashCodeIsDefinedButEqualsIsNot()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 public sealed record C
 {
@@ -2816,6 +2817,7 @@ public sealed record C
         [Fact, WorkItem(47513, "https://github.com/dotnet/roslyn/issues/47513")]
         public void EqualsIsDefinedButGetHashCodeIsNot()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 public sealed record C
 {
@@ -16006,6 +16008,7 @@ public record A {
         [Fact]
         public void ObjectEquals_06()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"record A
 {
@@ -19956,6 +19959,7 @@ record R2 : R
         [Fact]
         public void EqualityOperators_01()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A(int X) 
@@ -20174,6 +20178,7 @@ False False True True
         [Fact]
         public void EqualityOperators_03()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20197,6 +20202,7 @@ record A
         [Fact]
         public void EqualityOperators_04()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20220,6 +20226,7 @@ record A
         [Fact]
         public void EqualityOperators_05()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20241,6 +20248,7 @@ record A
         [Fact]
         public void EqualityOperators_06()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20262,6 +20270,7 @@ record A
         [Fact]
         public void EqualityOperators_07()
         {
+            // PROTOTYPE(record-structs): ported
             var source =
 @"
 record A
@@ -20313,6 +20322,7 @@ record A
         [CombinatorialData]
         public void EqualityOperators_09(bool useImageReference)
         {
+            // PROTOTYPE(record-structs): ported
             var source1 =
 @"
 public record A(int X) 
