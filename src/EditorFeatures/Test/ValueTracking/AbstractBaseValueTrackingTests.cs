@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
             var location = Location.Create(syntaxTree, textSpan);
             var symbol = await GetSelectedSymbolAsync(textSpan, document, cancellationToken);
             var service = testWorkspace.Services.GetRequiredService<IValueTrackingService>();
-            return await service.TrackValueSourceAsync(testWorkspace.CurrentSolution, location, symbol, cancellationToken);
+            return await service.TrackValueSourceAsync(testWorkspace.CurrentSolution, symbol, cancellationToken);
 
         }
 
@@ -45,18 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
             return selectedSymbol!;
         }
 
-        internal static string GetText(ValueTrackedItem item)
+        internal static void ValidateItem(ValueTrackedItem item, int line)
         {
-            var sourceTree = item.Location.SourceTree;
-            var span = item.Location.SourceSpan;
-
-            Assert.NotNull(sourceTree);
-            if (sourceTree!.TryGetText(out var text))
-            {
-                return text!.GetSubText(span).ToString();
-            }
-
-            return sourceTree!.ToString();
+            var lineSpan = item.Location.GetLineSpan();
+            Assert.Equal(line, lineSpan.StartLinePosition.Line);
         }
     }
 }

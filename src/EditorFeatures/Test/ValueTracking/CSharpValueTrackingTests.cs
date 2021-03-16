@@ -34,12 +34,12 @@ class C
 
             //
             // property S 
-            //  |> S = s [Code.cs:8]
-            //  |> public string S { get; set; } [Code.cs:4]
+            //  |> S = s [Code.cs:7]
+            //  |> public string S { get; set; } [Code.cs:3]
             //
             Assert.Equal(2, initialItems.Length);
-            Assert.Equal("S = s", GetText(initialItems[0]));
-            Assert.Equal(@"public string S { get; set; } = """"", GetText(initialItems[1]));
+            ValidateItem(initialItems[0], 7);
+            ValidateItem(initialItems[1], 3);
         }
 
         [Fact]
@@ -63,12 +63,12 @@ class C
 
             //
             // field _s 
-            //  |> _s = s [Code.cs:8]
-            //  |> string _s = "" [Code.cs:4]
+            //  |> _s = s [Code.cs:7]
+            //  |> string _s = "" [Code.cs:3]
             //
             Assert.Equal(2, initialItems.Length);
-            Assert.Equal("_s = s", GetText(initialItems[0]));
-            Assert.Equal(@"string _s = """"", GetText(initialItems[1]));
+            ValidateItem(initialItems[0], 7);
+            ValidateItem(initialItems[1], 3);
         }
 
         [Fact]
@@ -90,12 +90,12 @@ class C
 
             //
             // local variable z
-            //  |> z += y [Code.cs:7]
-            //  |> var z = x [Code.cs:6]
+            //  |> z += y [Code.cs:6]
+            //  |> var z = x [Code.cs:5]
             //
             Assert.Equal(2, initialItems.Length);
-            Assert.Equal(@"z += y", GetText(initialItems[0]));
-            Assert.Equal("var z = x", GetText(initialItems[1]));
+            ValidateItem(initialItems[0], 6);
+            ValidateItem(initialItems[1], 5);
         }
 
         [Fact]
@@ -116,16 +116,12 @@ class C
 
             //
             // parameter x 
-            //  |> x += y [Code.cs:6]
-            //  |> Add(int x, int y) [Code.cs:4]
+            //  |> x += y [Code.cs:5]
+            //  |> Add(int x, int y) [Code.cs:3]
             //
             Assert.Equal(2, initialItems.Length);
-            Assert.Equal(@"x += y", GetText(initialItems[0]));
-
-            // This is not whole line, but shows the full variable definition.
-            // Display may need to adjust for this, but the service is providing
-            // the correct information here
-            Assert.Equal("int x", GetText(initialItems[1]));
+            ValidateItem(initialItems[0], 5);
+            ValidateItem(initialItems[1], 3);
         }
 
         [Fact]

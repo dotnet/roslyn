@@ -45,11 +45,11 @@ End Class
             //
             // property S 
             //  |> Me.S = s [Code.vb:14]
-            //  |> Public Property S() As String [Code.vb:4]
+            //  |> Public Property S() As String [Code.vb:3]
             //
             Assert.Equal(2, initialItems.Length);
-            Assert.Equal("Me.S = s", GetText(initialItems[0]));
-            Assert.Equal(@"Public Property S() As String", GetText(initialItems[1]));
+            ValidateItem(initialItems[0], 14);
+            ValidateItem(initialItems[1], 3);
         }
 
         [Fact]
@@ -75,12 +75,12 @@ End Class
 
             //
             // field _s 
-            //  |> Me._s = s [Code.vb:6]
-            //  |> Private _s As String = "" [Code.vb:3]
+            //  |> Me._s = s [Code.vb:4]
+            //  |> Private _s As String = "" [Code.vb:2]
             //
             Assert.Equal(2, initialItems.Length);
-            Assert.Equal("Me._s = s", GetText(initialItems[0]));
-            Assert.Equal(@"Private $$_s As String = """"", GetText(initialItems[1]));
+            ValidateItem(initialItems[0], 5);
+            ValidateItem(initialItems[1], 2);
         }
 
         [Fact]
@@ -102,12 +102,12 @@ End Class
 
             //
             // local variable z 
-            //  |> z += y [Code.vb:5]
-            //  |> Dim z = x [Code.vb:4]
+            //  |> z += y [Code.vb:4]
+            //  |> Dim z = x [Code.vb:3]
             //
             Assert.Equal(2, initialItems.Length);
-            Assert.Equal("z += y", GetText(initialItems[0]));
-            Assert.Equal(@"Dim z = x", GetText(initialItems[1]));
+            ValidateItem(initialItems[0], 4);
+            ValidateItem(initialItems[1], 3);
         }
 
         [Fact]
@@ -128,12 +128,12 @@ End Class
 
             //
             // parameter x
-            //  |> x += y [Code.vb:4]
-            //  |> Public Function Add(x As integer, y As Integer) As Integer [Code.vb:3]
+            //  |> x += y [Code.vb:3]
+            //  |> Public Function Add(x As integer, y As Integer) As Integer [Code.vb:2]
             //
             Assert.Equal(2, initialItems.Length);
-            Assert.Equal("x += y", GetText(initialItems[0]));
-            Assert.Equal(@"Public Function Add(x As Integer, y As Integer) As Integer", GetText(initialItems[1]));
+            ValidateItem(initialItems[0], 3);
+            ValidateItem(initialItems[1], 2);
         }
     }
 }

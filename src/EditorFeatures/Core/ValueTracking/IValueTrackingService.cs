@@ -11,7 +11,10 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 {
     internal interface IValueTrackingService : IWorkspaceService
     {
-        Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(Solution solution, Location location, ISymbol symbol, CancellationToken cancellationToken);
+        Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken);
+        Task TrackValueSourceAsync(Solution solution, ISymbol symbol, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken);
+
         Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(Solution solution, ValueTrackedItem previousTrackedItem, CancellationToken cancellationToken);
+        Task TrackValueSourceAsync(Solution solution, ValueTrackedItem previousTrackedItem, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken);
     }
 }

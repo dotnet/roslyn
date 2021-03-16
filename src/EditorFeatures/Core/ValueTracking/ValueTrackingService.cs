@@ -3,21 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
@@ -32,84 +24,59 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
         public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
             Solution solution,
-            Location location,
             ISymbol symbol,
             CancellationToken cancellationToken)
         {
-            var referneceFinder = GetReferenceFinder(symbol);
-            if (referneceFinder is null)
-            {
-                return ImmutableArray<ValueTrackedItem>.Empty;
-            }
-
-            var assignments = await TrackAssignmentsAsync(solution, symbol, referneceFinder, cancellationToken).ConfigureAwait(false);
-            return assignments.Select(l => new ValueTrackedItem(l, symbol)).ToImmutableArray();
+            var progressTracker = new ValueTrackingProgressCollector();
+            await TrackValueSourceAsync(solution, symbol, progressTracker, cancellationToken).ConfigureAwait(false);
+            return progressTracker.GetItems();
         }
 
-        public Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
+        public async Task TrackValueSourceAsync(
+            Solution solution,
+            ISymbol symbol,
+            ValueTrackingProgressCollector progressCollector,
+            CancellationToken cancellationToken)
+        {
+            if (symbol
+                is IPropertySymbol
+                or IFieldSymbol
+                or ILocalSymbol
+                or IParameterSymbol)
+            {
+                // Add all initializations of the symbol. Those are not caught in 
+                // the reference finder but should still show up in the tree
+                foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
+                {
+                    var location = Location.Create(syntaxRef.SyntaxTree, syntaxRef.Span);
+                    progressCollector.Add(new ValueTrackedItem(location, symbol));
+                }
+
+                var references = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                foreach (var refLocation in references.SelectMany(reference => reference.Locations.Where(l => l.IsWrittenTo)))
+                {
+                    progressCollector.Add(new ValueTrackedItem(refLocation.Location, symbol));
+                }
+            }
+        }
+
+        public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
             Solution solution,
             ValueTrackedItem previousTrackedItem,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var progressTracker = new ValueTrackingProgressCollector();
+            await TrackValueSourceAsync(solution, previousTrackedItem, progressTracker, cancellationToken).ConfigureAwait(false);
+            return progressTracker.GetItems();
         }
 
-        private static async Task<ImmutableArray<Location>> TrackAssignmentsAsync(
+        public Task TrackValueSourceAsync(
             Solution solution,
-            ISymbol symbol,
-            IReferenceFinder referenceFinder,
+            ValueTrackedItem previousTrackedItem,
+            ValueTrackingProgressCollector progressCollector,
             CancellationToken cancellationToken)
         {
-            using var _ = PooledObjects.ArrayBuilder<Location>.GetInstance(out var builder);
-
-            // Add all the references to the symbol
-            // that write to it 
-            var projectsToSearch = await referenceFinder.DetermineProjectsToSearchAsync(symbol, solution, solution.Projects.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
-            foreach (var project in projectsToSearch)
-            {
-                var documentsToSearch = await referenceFinder.DetermineDocumentsToSearchAsync(
-                    symbol,
-                    project,
-                    project.Documents.ToImmutableHashSet(),
-                    FindReferencesSearchOptions.Default,
-                    cancellationToken).ConfigureAwait(false);
-
-                foreach (var document in documentsToSearch)
-                {
-                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var referencesInDocument = await referenceFinder.FindReferencesInDocumentAsync(
-                        symbol,
-                        document,
-                        semanticModel,
-                        FindReferencesSearchOptions.Default,
-                        cancellationToken).ConfigureAwait(false);
-
-                    foreach (var reference in referencesInDocument.Where(r => r.Location.IsWrittenTo))
-                    {
-                        var assignment = reference.Node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsLeftSideOfAnyAssignment);
-                        if (assignment is not null && assignment.Parent is not null)
-                        {
-                            builder.Add(assignment.Parent.GetLocation());
-                        }
-                    }
-                }
-            }
-
-            // Add all initializations of the symbol. Those are not caught in 
-            // the reference finder but should still show up in the tree
-            builder.AddRange(symbol.Locations.Where(location => location.IsInSource));
-            return builder.AsImmutableOrEmpty();
+            throw new NotImplementedException();
         }
-
-        private static IReferenceFinder? GetReferenceFinder(ISymbol? symbol)
-            => symbol switch
-            {
-                IPropertySymbol => ReferenceFinders.Property,
-                IFieldSymbol => ReferenceFinders.Field,
-                ILocalSymbol => ReferenceFinders.Local,
-                IParameterSymbol => ReferenceFinders.Parameter,
-                _ => null
-            };
     }
 }
