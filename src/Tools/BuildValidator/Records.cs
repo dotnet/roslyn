@@ -36,5 +36,4 @@ namespace BuildValidator
         public string DisplayPath => OnDiskPath ?? ("[embedded]" + SourceFileInfo.SourceFilePath);
         public SyntaxTreeInfo SyntaxTreeInfo => new SyntaxTreeInfo(SourceFileInfo.SourceFilePath, SourceText);
     }
-
 }
