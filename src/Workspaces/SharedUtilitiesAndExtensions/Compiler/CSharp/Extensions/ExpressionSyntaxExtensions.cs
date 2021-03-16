@@ -311,25 +311,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             expression = GetExpressionToAnalyzeForWrites(expression);
 
             if (expression.IsOnlyWrittenTo())
-            {
                 return true;
-            }
 
             if (expression.IsInRefContext())
-            {
                 return true;
-            }
+
+            // Similar to `ref x`, `&x` allows reads and write of the value, meaning `x` may be (but is not definitely)
+            // written to.
+            if (expression.Parent.IsKind(SyntaxKind.AddressOfExpression))
+                return true;
 
             // We're written if we're used in a ++, or -- expression.
             if (expression.IsOperandOfIncrementOrDecrementExpression())
-            {
                 return true;
-            }
 
             if (expression.IsLeftSideOfAnyAssignExpression())
-            {
                 return true;
-            }
 
             return false;
         }
