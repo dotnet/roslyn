@@ -14,9 +14,9 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
-    internal abstract class AbstractBaseValueTrackingTests
+    public abstract class AbstractBaseValueTrackingTests
     {
-        protected static async Task<ImmutableArray<ValueTrackedItem>> GetTrackedItemsAsync(TestWorkspace testWorkspace, CancellationToken cancellationToken = default)
+        internal static async Task<ImmutableArray<ValueTrackedItem>> GetTrackedItemsAsync(TestWorkspace testWorkspace, CancellationToken cancellationToken = default)
         {
             var cursorDocument = testWorkspace.DocumentWithCursor;
             var document = testWorkspace.CurrentSolution.GetRequiredDocument(cursorDocument.Id);
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 
         }
 
-        protected static async Task<ISymbol> GetSelectedSymbolAsync(TextSpan textSpan, Document document, CancellationToken cancellationToken)
+        internal static async Task<ISymbol> GetSelectedSymbolAsync(TextSpan textSpan, Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var selectedNode = root.FindNode(textSpan);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
             return selectedSymbol!;
         }
 
-        protected static string GetText(ValueTrackedItem item)
+        internal static string GetText(ValueTrackedItem item)
         {
             var sourceTree = item.Location.SourceTree;
             var span = item.Location.SourceSpan;

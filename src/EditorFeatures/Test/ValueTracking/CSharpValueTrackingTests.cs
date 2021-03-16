@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
     [UseExportProvider]
-    internal class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
+    public class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
     {
         [Fact]
         public async Task TestProperty()
