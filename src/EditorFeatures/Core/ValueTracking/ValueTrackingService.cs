@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             CancellationToken cancellationToken)
         {
             using var _ = PooledObjects.ArrayBuilder<Location>.GetInstance(out var builder);
-            
+
             // Add all the references to the symbol
             // that write to it 
             var projectsToSearch = await referenceFinder.DetermineProjectsToSearchAsync(symbol, solution, solution.Projects.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
@@ -89,11 +89,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     {
                         AddAssignment(reference.Node, syntaxFacts);
                     }
-
-                    //builder.AddRange(
-                    //    referencesInDocument
-                    //    .Where(r => r.Location.IsWrittenTo)
-                    //    .Select(r => r.Location.Location));
                 }
             }
 
@@ -101,6 +96,8 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             // the reference finder but should still show up in the tree
             foreach (var location in symbol.Locations.Where(location => location.IsInSource))
             {
+                RoslynDebug.AssertNotNull(location.SourceTree);
+
                 var node = location.FindNode(cancellationToken);
                 var document = solution.GetRequiredDocument(location.SourceTree);
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -112,9 +109,16 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             void AddAssignment(SyntaxNode node, ISyntaxFactsService syntaxFacts)
             {
-                if (syntaxFacts.IsDeclaration(node))
+                if (syntaxFacts.IsDeclaration(node)
+                    || syntaxFacts.IsParameter(node))
                 {
                     builder.Add(node.GetLocation());
+                    return;
+                }
+
+                if (syntaxFacts.IsVariableDeclarator(node) && node.Parent is not null)
+                {
+                    builder.Add(node.Parent.GetLocation());
                     return;
                 }
 
@@ -133,6 +137,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 IPropertySymbol => ReferenceFinders.Property,
                 IFieldSymbol => ReferenceFinders.Field,
                 ILocalSymbol => ReferenceFinders.Local,
+                IParameterSymbol => ReferenceFinders.Parameter,
                 _ => null
             };
     }

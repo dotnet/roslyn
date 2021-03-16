@@ -11,7 +11,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using System.Windows.Documents;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
         }
 
         [Fact]
-        public async Task TestPropertyAsync()
+        public async Task TestProperty()
         {
             var code =
 @"
@@ -87,7 +86,7 @@ class C
         }
 
         [Fact]
-        public async Task TestFieldAsync()
+        public async Task TestField()
         {
             var code =
 @"
@@ -107,7 +106,114 @@ class C
 
             Assert.Equal(2, initialItems.Length);
             Assert.Equal("_s = s", GetText(initialItems[0]));
-            Assert.Equal(@"private string $$_s = """"", GetText(initialItems[1]));
+
+            // This is displaying the initializer but not the full line
+            // TODO: Fix this to be the whole line?
+            Assert.Equal(@"_s = """"", GetText(initialItems[1]));
+        }
+
+        [Fact]
+        public async Task TestLocal()
+        {
+            var code =
+@"
+class C
+{
+    public int Add(int x, int y)
+    {
+        var $$z = x;
+        z += y;
+        return z;
+    }
+}";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var initialItems = await GetTrackedItemsAsync(workspace);
+
+            Assert.Equal(2, initialItems.Length);
+            Assert.Equal(@"z += y", GetText(initialItems[0]));
+            Assert.Equal("var z = x", GetText(initialItems[1]));
+        }
+
+        [Fact]
+        public async Task TestParameter()
+        {
+            var code =
+@"
+class C
+{
+    public int Add(int $$x, int y)
+    {
+        x += y;
+        return x;
+    }
+}";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var initialItems = await GetTrackedItemsAsync(workspace);
+
+            Assert.Equal(2, initialItems.Length);
+            Assert.Equal(@"x += y", GetText(initialItems[0]));
+
+            // This is not whole line, but shows the full variable definition.
+            // Display may need to adjust for this, but the service is providing
+            // the correct information here
+            Assert.Equal("int x", GetText(initialItems[1]));
+        }
+
+        [Fact]
+        public async Task TestMissingOnMethod()
+        {
+            var code =
+@"
+class C
+{
+    public int $$Add(int x, int y)
+    {
+        x += y;
+        return x;
+    }
+}";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var initialItems = await GetTrackedItemsAsync(workspace);
+            Assert.Empty(initialItems);
+        }
+
+        [Fact]
+        public async Task TestMissingOnClass()
+        {
+            var code =
+@"
+class $$C
+{
+    public int Add(int x, int y)
+    {
+        x += y;
+        return x;
+    }
+}";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var initialItems = await GetTrackedItemsAsync(workspace);
+            Assert.Empty(initialItems);
+        }
+
+        [Fact]
+        public async Task TestMissingOnNamespace()
+        {
+            var code =
+@"
+namespace $$N
+{
+    class C
+    {
+        public int Add(int x, int y)
+        {
+            x += y;
+            return x;
+        }
+    }
+}";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var initialItems = await GetTrackedItemsAsync(workspace);
+            Assert.Empty(initialItems);
         }
     }
 }
