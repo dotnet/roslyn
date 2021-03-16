@@ -19,9 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
-#pragma warning disable IDE0060 // Remove unused parameter 'documentIdentifier' - Unsure whether it can break any code relying on IVTs.
-        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(LSP.TextDocumentIdentifier documentIdentifier, LSP.FormattingOptions formattingOptions, RequestContext context, CancellationToken cancellationToken, LSP.Range? range = null)
-#pragma warning restore IDE0060
+        protected async Task<LSP.TextEdit[]> GetTextEditsAsync(LSP.FormattingOptions formattingOptions, RequestContext context, CancellationToken cancellationToken, LSP.Range? range = null)
         {
             using var _ = ArrayBuilder<LSP.TextEdit>.GetInstance(out var edits);
 
