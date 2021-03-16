@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal abstract partial class AbstractInheritanceMarginService : IInheritanceMarginService
     {
-        public async Task<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoForLineAsync(
+        public async Task<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoAsync(
             Document document,
             CancellationToken cancellationToken)
         {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             foreach (var memberDeclarationNode in allDeclarationNodes)
             {
                 var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
-                if (member != null)
+                if (member != null && !member.IsErrorType())
                 {
                     var mappingSymbolAndProject = await GetMappingSymbolAsync(
                         document,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                     if (mappingSymbolAndProject != null)
                     {
-                        if (member is INamedTypeSymbol { TypeKind: not TypeKind.Error } namedTypeSymbol)
+                        if (member is INamedTypeSymbol namedTypeSymbol)
                         {
                             var baseTypes = GetImplementingSymbols(namedTypeSymbol);
                             var derivedTypes = await GetImplementedSymbolsAsync(
@@ -100,6 +100,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             return builder.ToImmutable();
         }
 
+        /// <summary>
+        /// Get all the method, event, property and type declaration syntax nodes under root.
+        /// </summary>
         protected abstract ImmutableArray<SyntaxNode> GetMembers(SyntaxNode root);
     }
 }

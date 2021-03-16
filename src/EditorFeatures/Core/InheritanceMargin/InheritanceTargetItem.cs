@@ -8,12 +8,34 @@ using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
+    /// <summary>
+    /// Indicate the relationship between the member and its inheritance target
+    /// </summary>
     [Flags]
     internal enum InheritanceRelationship
     {
+        /// <summary>
+        /// Indicate the target is implementing the member.
+        /// e.g.
+        /// 1. interface
+        /// </summary>
         Implementing = 0x1,
+
+        /// <summary>
+        /// Indicate the target is implemented by the member. Also include class inherits interface and class inherit class
+        /// </summary>
         Implemented = 0x2,
+
+        /// <summary>
+        /// Indicate the target is overriding by the member.
+        /// e.g.
+        ///
+        /// </summary>
         Overriding = 0x4,
+
+        /// <summary>
+        ///
+        /// </summary>
         Overriden = 0x8,
     }
 

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal interface IInheritanceMarginService : ILanguageService
     {
-        Task<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoForLineAsync(
+        Task<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoAsync(
             Document document,
             CancellationToken cancellationToken);
     }

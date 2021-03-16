@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -23,13 +24,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 {
     [Export(typeof(IViewTaggerProvider))]
-    [Name(nameof(InheritanceChainMarginTaggerProvider))]
     [TagType(typeof(InheritanceMarginTag))]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal class InheritanceChainMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
+    [Name(nameof(InheritanceChainMarginTaggerProvider))]
+    internal sealed class InheritanceChainMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
     {
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceChainMarginTaggerProvider(
@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 listenerProvider.GetListener(FeatureAttribute.InheritanceChainMargin),
                 notificationService)
         {
+            if (!Debugger.IsAttached)
+                Debugger.Launch();
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
             }
 
             var inheritanceMemberItems = await inheritanceMarginInfoService
-                .GetInheritanceInfoForLineAsync(
+                .GetInheritanceInfoAsync(
                     document,
                     cancellationToken).ConfigureAwait(false);
 

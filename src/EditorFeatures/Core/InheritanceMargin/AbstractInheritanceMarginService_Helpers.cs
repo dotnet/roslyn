@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
@@ -99,7 +100,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     .Concat(overridingMemberItems));
         }
 
-
         private static async Task<(ISymbol, Project project)?> GetMappingSymbolAsync(
             Document document,
             ISymbol symbol,
@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     .AllInterfaces
                     .Concat(namedTypeSymbol.GetBaseTypes().ToImmutableArray())
                     .OfType<ISymbol>()
+                    .Where(symbol => !symbol.IsErrorType())
                     .ToImmutableArray();
             }
             else
@@ -185,7 +186,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     overridenMember != null;
                     overridenMember = overridenMember.GetOverriddenMember())
                 {
-                    builder.Add(overridenMember);
+                    if (!overridenMember.IsErrorType())
+                    {
+                        builder.Add(overridenMember);
+                    }
                 }
 
                 return builder.ToImmutableArray();
@@ -209,15 +213,15 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     document.Project.Solution,
                     transitive: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
-                return allDerivedInterfaces.Concat(allImplementations);
+                return allDerivedInterfaces.Concat(allImplementations).WhereAsArray(symbol => !symbol.IsErrorType());
             }
             else
             {
-                return await SymbolFinder.FindDerivedClassesArrayAsync(
+                return (await SymbolFinder.FindDerivedClassesArrayAsync(
                     typeSymbol,
                     document.Project.Solution,
                     transitive: true,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                    cancellationToken: cancellationToken).ConfigureAwait(false)).WhereAsArray(symbol => !symbol.IsErrorType());
             }
         }
 

@@ -33,16 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private readonly string ImplementingOverriden = KnownMonikers.ImplementingOverridden.ToString();
         private readonly string ImplementingAndOverriding = KnownMonikers.ImplementingOverriding.ToString();
 
-        [WpfFact]
-        public Task Test1()
-        {
-            var markup = @"
-interface {|target1: IBar|} { }
-{|margin, implemented, A target1=IBar: class A : IBar { }|}";
-            return VerifyInSameFileAsync(markup, LanguageNames.CSharp);
-        }
-
-        private async Task VerifyInSameFileAsync(string markup, string languageName)
+        private static async Task VerifyInSameFileAsync(string markup, string languageName)
         {
             var workspaceFile = $@"
 <Workspace>
