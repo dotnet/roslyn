@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ReassignedVariable;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -327,6 +328,22 @@ class C
         }
 
         [Fact]
+        public async Task TestLocalDeclaredByPositionalPattern()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        if ((0, 1) is var ([|p|], _)) [|p|] = 0;
+        Console.WriteLine([|p|]);
+    }
+}");
+        }
+
+        [Fact]
         public async Task TestLocalDeclaredByOutVar()
         {
             await TestAsync(
@@ -628,7 +645,7 @@ struct S
         }
 
         [Fact]
-        public async Task TestDeconstructionReassignment()
+        public async Task TestReassignmentWhenDeclaredWithDeconstruction()
         {
             await TestAsync(
 @"
@@ -639,6 +656,25 @@ class C
     {
         var ([|x|], y) = Goo();
         [|x|] = 0;
+        Console.WriteLine([|x|]);
+    }
+
+    (int x, int y) Goo() => default;
+}");
+        }
+
+        [Fact]
+        public async Task TestReassignmentThroughDeconstruction()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        var [|x|] = 0;
+        ([|x|], _) = Goo();
         Console.WriteLine([|x|]);
     }
 
@@ -665,6 +701,25 @@ Console.WriteLine(p);
 int [|p|] = 1;
 [|p|] = 0;
 Console.WriteLine([|p|]);
+");
+        }
+
+        [Fact]
+        public async Task TestTopLevelArgsParameterNotReassigned()
+        {
+            await TestAsync(
+@"
+Console.WriteLine(args);
+");
+        }
+
+        [Fact]
+        public async Task TestTopLevelArgsParameterReassigned()
+        {
+            await TestAsync(
+@"
+[|args|] = null
+Console.WriteLine([|args|]);
 ");
         }
 
@@ -719,6 +774,76 @@ record Y(int x)
 {
 }
 ");
+        }
+
+        [Fact]
+        public async Task TestExceptionVariableReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        try { }
+        catch (Exception [|ex|])
+        {
+            [|ex|] = null;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestLocalReassignedInExceptionFilter()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        try { }
+        catch (Exception [|ex|]) when (([|ex|] = null) == null) { }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestLocalReassignedInCaseGuard()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        switch (1)
+        {
+            case var [|x|] when [|x|]++ == 2: break;
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestLocalWithMultipleDeclarators()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int a, [|b|] = 1, c;
+        [|b|] = 2;
+        Console.WriteLine([|b|]);
+    }
+}");
         }
     }
 }
