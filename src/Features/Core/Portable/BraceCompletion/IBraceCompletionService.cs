@@ -50,11 +50,6 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         /// <summary>
         /// Get any text changes that should be applied after the enter key is typed inside a brace completion context.
         /// </summary>
-        Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Get any text changes that should be applied after the enter key is typed inside a brace completion context using custom document options.
-        /// </summary>
         Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, DocumentOptionSet documentOptions, CancellationToken cancellationToken);
 
         /// <summary>

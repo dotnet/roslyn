@@ -83,19 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         public override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(
             BraceCompletionContext context,
-            CancellationToken cancellationToken)
-            => await GetTextChangeAfterReturnAsync(context, documentOptions: null, cancellationToken).ConfigureAwait(false);
-
-        public override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(
-            BraceCompletionContext context,
-            DocumentOptionSet? documentOptions,
+            DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
         {
             var document = context.Document;
             var closingPoint = context.ClosingPoint;
             var openingPoint = context.OpeningPoint;
             var originalDocumentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            documentOptions ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // check whether shape of the braces are what we support
             // shape must be either "{|}" or "{ }". | is where caret is. otherwise, we don't do any special behavior

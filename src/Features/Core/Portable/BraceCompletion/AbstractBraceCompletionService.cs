@@ -66,10 +66,7 @@ namespace Microsoft.CodeAnalysis.BraceCompletion
         public virtual Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
             => SpecializedTasks.Default<BraceCompletionResult?>();
 
-        public virtual Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<BraceCompletionResult?>();
-
-        public virtual Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, DocumentOptionSet? documentOptions, CancellationToken cancellationToken)
+        public virtual Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(BraceCompletionContext braceCompletionContext, DocumentOptionSet documentOptions, CancellationToken cancellationToken)
             => SpecializedTasks.Default<BraceCompletionResult?>();
 
         public virtual async Task<bool> CanProvideBraceCompletionAsync(char brace, int openingPosition, Document document, CancellationToken cancellationToken)
