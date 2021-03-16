@@ -23,7 +23,7 @@
     </MajorVersion>
     <MinorVersion>
     </MinorVersion>
-    <MicrosoftNetCompilersToolsetVersion>3.10.0-2.21156.4</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.10.0-2.21165.4</MicrosoftNetCompilersToolsetVersion>
   </PropertyGroup>
   <PropertyGroup>
     <!-- Versions used by several individual references below -->
@@ -109,7 +109,7 @@
     <jnm2ReferenceAssembliesnet35Version>1.0.1</jnm2ReferenceAssembliesnet35Version>
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>
     <MicrosoftNetFX20Version>1.0.3</MicrosoftNetFX20Version>
-    <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.0-preview.1</MicrosoftNetFrameworkReferenceAssembliesVersion>
+    <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.0</MicrosoftNetFrameworkReferenceAssembliesVersion>
     <MicrosoftNetSdkVersion>2.0.0-alpha-20170405-2</MicrosoftNetSdkVersion>
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>

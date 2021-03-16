@@ -44,9 +44,12 @@ namespace BuildValidator
         public PEReader PeReader { get; }
         private readonly ILogger _logger;
 
+        public bool HasMetadataCompilationOptions => TryGetMetadataCompilationOptions(out _);
+
         private MetadataCompilationOptions? _metadataCompilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
         private byte[]? _sourceLinkUTF8;
+
 
         public CompilationOptionsReader(ILogger logger, MetadataReader pdbReader, PEReader peReader)
         {

@@ -57,10 +57,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 return new ResolvedSource(OnDiskPath: null, text, new SourceFileInfo(path, text.ChecksumAlgorithm, text.GetChecksum().ToArray(), text, embeddedCompressedHash: null));
             }).ToImmutableArray();
             var references = original.References.ToImmutableArray();
-            var (compilation, isError) = bc.CreateCompilation(optionsReader, path, sources, references);
+            var compilation = bc.CreateCompilation(optionsReader, path, sources, references);
 
-            Assert.False(isError);
-            Assert.Equal(platform, compilation!.Options.Platform);
+            Assert.Equal(platform, compilation.Options.Platform);
 
             // TODO: we should be able to get byte-for-byte equality here.
             // it will probably be necessary to expose some diagnostic facility in the Rebuild API to figure out what's wrong here.
@@ -108,10 +107,9 @@ End Class");
                 return new ResolvedSource(OnDiskPath: null, text, new SourceFileInfo(path, text.ChecksumAlgorithm, text.GetChecksum().ToArray(), text, embeddedCompressedHash: null));
             }).ToImmutableArray();
             var references = original.References.ToImmutableArray();
-            var (compilation, isError) = bc.CreateCompilation(optionsReader, path, sources, references);
+            var compilation = bc.CreateCompilation(optionsReader, path, sources, references);
 
-            Assert.False(isError);
-            Assert.Equal(platform, compilation!.Options.Platform);
+            Assert.Equal(platform, compilation.Options.Platform);
 
             // TODO: we should be able to get byte-for-byte equality here.
             // it will probably be necessary to expose some diagnostic facility in the Rebuild API to figure out what's wrong here.
