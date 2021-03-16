@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis
                     return ClassificationTypeNames.Text;
 
                 case TextTags.Record:
-                    return ClassificationTypeNames.RecordName;
+                    return ClassificationTypeNames.RecordClassName;
 
                 case TextTags.ContainerStart:
                 case TextTags.ContainerEnd:

@@ -3159,7 +3159,7 @@ class B : A
         }
     }
 }";
-            var compilation0 = CreateCompilation(source, options: WithNonNullTypesTrue(TestOptions.DebugDll));
+            var compilation0 = CreateCompilation(source, options: WithNullableEnable(TestOptions.DebugDll));
 
             WithRuntimeInstance(compilation0, runtime =>
             {

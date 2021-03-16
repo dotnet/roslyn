@@ -244,15 +244,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public async ValueTask<DefinitionItem> RehydrateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var sourceSpansTasks = SourceSpans.SelectAsArray(ss => ss.RehydrateAsync(solution, cancellationToken).AsTask());
-            var sourceSpans = await Task.WhenAll(sourceSpansTasks).ConfigureAwait(false);
+            var sourceSpans = await SourceSpans.SelectAsArrayAsync(ss => ss.RehydrateAsync(solution, cancellationToken)).ConfigureAwait(false);
 
             return new DefinitionItem.DefaultDefinitionItem(
                 Tags,
                 DisplayParts,
                 NameDisplayParts,
                 OriginationParts,
-                sourceSpans.ToImmutableArray(),
+                sourceSpans,
                 Properties,
                 DisplayableProperties,
                 DisplayIfNoReferences);

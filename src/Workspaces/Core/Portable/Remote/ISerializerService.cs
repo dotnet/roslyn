@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         void SerializeCompilationOptions(CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken);
 
-        void SerializeParseOptions(ParseOptions options, ObjectWriter writer, CancellationToken cancellationToken);
+        void SerializeParseOptions(ParseOptions options, ObjectWriter writer);
 
         void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken);
 
@@ -33,5 +33,6 @@ namespace Microsoft.CodeAnalysis.Serialization
         T? Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken);
 
         Checksum CreateChecksum(object value, CancellationToken cancellationToken);
+        Checksum CreateParseOptionsChecksum(ParseOptions value);
     }
 }

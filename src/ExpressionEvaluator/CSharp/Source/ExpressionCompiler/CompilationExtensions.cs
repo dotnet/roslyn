@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var builder = ArrayBuilder<bool>.GetInstance();
             CSharpCompilation.DynamicTransformsEncoder.Encode(type, customModifiersCount, refKind, builder, addCustomModifierFlags: true);
-            var bytes = builder.Count > 0 && compilation.HasDynamicEmitAttributes() ?
+            var bytes = builder.Count > 0 && compilation.HasDynamicEmitAttributes(BindingDiagnosticBag.Discarded, Location.None) ?
                 DynamicFlagsCustomTypeInfo.ToBytes(builder) :
                 null;
             builder.Free();
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             TypeSymbol type)
         {
             var builder = ArrayBuilder<string?>.GetInstance();
-            var names = CSharpCompilation.TupleNamesEncoder.TryGetNames(type, builder) && compilation.HasTupleNamesAttributes ?
+            var names = CSharpCompilation.TupleNamesEncoder.TryGetNames(type, builder) && compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None) ?
                 new ReadOnlyCollection<string?>(builder.ToArray()) :
                 null;
             builder.Free();

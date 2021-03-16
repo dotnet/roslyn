@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
@@ -28,8 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 IFindAllReferencesWindow findReferencesWindow,
                 ImmutableArray<ITableColumnDefinition> customColumns,
                 bool includeContainingTypeAndMemberColumns,
-                bool includeKindColumn)
-                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
+                bool includeKindColumn,
+                CancellationToken cancellationToken)
+                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn, cancellationToken)
             {
             }
 
@@ -43,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition)
             {
-                var definitionBucket = GetOrCreateDefinitionBucket(definition);
+                var definitionBucket = GetOrCreateDefinitionBucket(definition, expandedByDefault: true);
 
                 using var _ = ArrayBuilder<Entry>.GetInstance(out var entries);
 

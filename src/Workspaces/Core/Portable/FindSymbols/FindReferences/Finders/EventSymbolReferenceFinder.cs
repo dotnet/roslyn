@@ -14,15 +14,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override bool CanFind(IEventSymbol symbol)
             => true;
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IEventSymbol symbol,
             Solution solution,
             IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             var baseSymbols = await base.DetermineCascadedSymbolsAsync(
-                symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
+                symbol, solution, projects, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
 
             var backingFields = symbol.ContainingType.GetMembers()
                                                      .OfType<IFieldSymbol>()
@@ -32,8 +33,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var associatedNamedTypes = symbol.ContainingType.GetTypeMembers()
                                                             .WhereAsArray(n => symbol.Equals(n.AssociatedSymbol));
 
-            return baseSymbols.Concat(ImmutableArray<ISymbol>.CastUp(backingFields))
-                              .Concat(ImmutableArray<ISymbol>.CastUp(associatedNamedTypes));
+            return baseSymbols.Concat(backingFields.SelectAsArray(f => ((ISymbol)f, cascadeDirection)))
+                              .Concat(associatedNamedTypes.SelectAsArray(n => ((ISymbol)n, cascadeDirection)));
         }
 
         protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken);
         }
 
-        private void FlushWritesOnClose()
+        private Task FlushWritesOnCloseAsync()
         {
             // Issue a write task to write this all out to disk.
             //
             // Note: this only happens on close, so we don't try to avoid allocations here.
 
-            var writeTask = PerformWriteAsync(
+            return PerformWriteAsync(
                 () =>
                 {
                     // Perform the actual write while having exclusive access to the scheduler.
@@ -59,9 +59,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     // read/write after releasing us.
                     _shutdownTokenSource.Cancel();
                 }, CancellationToken.None);
-
-            // Wait for that task to finish.
-            writeTask.Wait();
         }
 
         private void FlushInMemoryDataToDisk()

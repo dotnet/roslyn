@@ -397,7 +397,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         isSubmission: false,
                         hostObjectType: null)
                         .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
-                        .WithAnalyzerConfigDocuments(analyzerConfigDocuments);
+                        .WithAnalyzerConfigDocuments(analyzerConfigDocuments)
+                        .WithCompilationOutputInfo(new CompilationOutputInfo(projectFileInfo.OutputFilePath));
                 });
             }
 

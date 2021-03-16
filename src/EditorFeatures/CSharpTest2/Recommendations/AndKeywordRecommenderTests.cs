@@ -534,5 +534,24 @@ x = e switch
 {
     global::$$"));
         }
+
+        [WorkItem(51431, "https://github.com/dotnet/roslyn/issues/51431")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAtIncompleteSwitchPattern()
+        {
+            await VerifyAbsenceAsync(
+@"
+var goo = Goo.First;
+switch (goo)
+{
+    case Goo.$$
+}
+
+public enum Goo
+{
+    First,
+    Second
+}");
+        }
     }
 }

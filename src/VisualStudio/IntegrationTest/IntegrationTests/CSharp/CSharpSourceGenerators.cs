@@ -50,8 +50,7 @@ internal static class Program
 }");
 
             VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
-            VisualStudio.Editor.GoToDefinition();
-            Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
+            VisualStudio.Editor.GoToDefinition($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}");
             Assert.Equal(HelloWorldGenerator.GeneratedEnglishClassName, VisualStudio.Editor.GetSelectedText());
         }
 
@@ -121,6 +120,14 @@ internal static class Program
             // Assert we are in the right file now
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
             Assert.Equal(isPreview, VisualStudio.Shell.IsActiveTabProvisional());
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SourceGenerators)]
+        public void InvokeNavigateToForGeneratedFile()
+        {
+            VisualStudio.Editor.InvokeNavigateTo(HelloWorldGenerator.GeneratedEnglishClassName, VirtualKey.Enter);
+            VisualStudio.Editor.WaitForActiveView(HelloWorldGenerator.GeneratedEnglishClassName + ".cs");
+            Assert.Equal("HelloWorld", VisualStudio.Editor.GetSelectedText());
         }
     }
 }

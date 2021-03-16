@@ -505,7 +505,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var uri = _tracker.SelectedDiagnosticItems[0].GetHelpLink();
             if (uri != null)
             {
-                BrowserHelper.StartBrowser(uri);
+                VisualStudioNavigateToLinkService.StartBrowser(uri);
             }
         }
 

@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             return result.ToString();
         }
 
-        internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null)
+        internal static SourceWithMarkedNodes MarkedSource(string markedSource, string fileName = "", CSharpParseOptions options = null, bool removeTags = false)
         {
-            return new SourceWithMarkedNodes(markedSource, s => Parse(s, fileName, options), s => (int)(SyntaxKind)typeof(SyntaxKind).GetField(s).GetValue(null));
+            return new SourceWithMarkedNodes(markedSource, s => Parse(s, fileName, options), s => (int)(SyntaxKind)typeof(SyntaxKind).GetField(s).GetValue(null), removeTags);
         }
 
         internal static Func<SyntaxNode, SyntaxNode> GetSyntaxMapFromMarkers(SourceWithMarkedNodes source0, SourceWithMarkedNodes source1)

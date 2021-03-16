@@ -12,13 +12,13 @@ This document is restricted to the following assumptions:
 3. Any storage capacity used for PDBs and source should not impact this feature, such as compression algorithm.
 4. Only Portable PDB files will be included for this spec. This feature can be expanded past these once it is implemented and proven needed elsewhere.
 
-This document will provide the expanded specification to the Portable PDB format. Any additions to that format will be ported to expand documentation provided in [dotnet-runtime](https://github.com/dotnet/runtime/blob/master/docs/design/specs/PortablePdb-Metadata.md).
+This document will provide the expanded specification to the Portable PDB format. Any additions to that format will be ported to expand documentation provided in [dotnet-runtime](https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md).
 
 ## PDB Format Additions
 
 #### Compilation Metadata References custom debug information
 
-Symbol server uses a [key](https://github.com/dotnet/symstore/blob/master/docs/specs/SSQP_Key_Conventions.md#pe-timestamp-filesize) computed from the COFF header in the PE image:
+Symbol server uses a [key](https://github.com/dotnet/symstore/blob/main/docs/specs/SSQP_Key_Conventions.md#pe-timestamp-filesize) computed from the COFF header in the PE image:
 
 Timestamp: 4 byte integer
 Size of image: 4 byte integer

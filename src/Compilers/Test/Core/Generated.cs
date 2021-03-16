@@ -176,8 +176,6 @@ namespace Roslyn.Test.Utilities
             public static byte[] SystemRuntime => ResourceLoader.GetOrCreateResource(ref _SystemRuntime, "netcoreapp.System.Runtime.dll");
             private static byte[] _SystemRuntimeInteropServices;
             public static byte[] SystemRuntimeInteropServices => ResourceLoader.GetOrCreateResource(ref _SystemRuntimeInteropServices, "netcoreapp.System.Runtime.InteropServices.dll");
-            private static byte[] _SystemRuntimeInteropServicesWindowsRuntime;
-            public static byte[] SystemRuntimeInteropServicesWindowsRuntime => ResourceLoader.GetOrCreateResource(ref _SystemRuntimeInteropServicesWindowsRuntime, "netcoreapp.System.Runtime.InteropServices.WindowsRuntime.dll");
             private static byte[] _SystemThreadingTasks;
             public static byte[] SystemThreadingTasks => ResourceLoader.GetOrCreateResource(ref _SystemThreadingTasks, "netcoreapp.System.Threading.Tasks.dll");
             private static byte[] _netstandard;
@@ -198,7 +196,6 @@ namespace Roslyn.Test.Utilities
             public static PortableExecutableReference SystemLinqExpressions { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemLinqExpressions).GetReference(display: "System.Linq.Expressions.dll (netcoreapp)");
             public static PortableExecutableReference SystemRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemRuntime).GetReference(display: "System.Runtime.dll (netcoreapp)");
             public static PortableExecutableReference SystemRuntimeInteropServices { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemRuntimeInteropServices).GetReference(display: "System.Runtime.InteropServices.dll (netcoreapp)");
-            public static PortableExecutableReference SystemRuntimeInteropServicesWindowsRuntime { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemRuntimeInteropServicesWindowsRuntime).GetReference(display: "System.Runtime.InteropServices.WindowsRuntime.dll (netcoreapp)");
             public static PortableExecutableReference SystemThreadingTasks { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.SystemThreadingTasks).GetReference(display: "System.Threading.Tasks.dll (netcoreapp)");
             public static PortableExecutableReference netstandard { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.netstandard).GetReference(display: "netstandard.dll (netcoreapp)");
             public static PortableExecutableReference MicrosoftCSharp { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.dll (netcoreapp)");

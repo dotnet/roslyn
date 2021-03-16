@@ -289,14 +289,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public class Service : IPersistentStorageService
             {
-                private readonly Storage _instance = new Storage();
+                private readonly Storage _instance = new();
 
                 IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
                     => _instance;
 
+                ValueTask<IPersistentStorage> IPersistentStorageService.GetStorageAsync(Solution solution, CancellationToken cancellationToken)
+                    => new(_instance);
+
                 internal class Storage : IPersistentStorage
                 {
-                    private readonly Dictionary<object, Stream> _map = new Dictionary<object, Stream>();
+                    private readonly Dictionary<object, Stream> _map = new();
 
                     public Task<Stream> ReadStreamAsync(string name, CancellationToken cancellationToken = default)
                     {
@@ -346,8 +349,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         return SpecializedTasks.True;
                     }
 
-                    public virtual void Dispose()
+                    public void Dispose()
                     {
+                    }
+
+                    public ValueTask DisposeAsync()
+                    {
+                        return ValueTaskFactory.CompletedTask;
                     }
                 }
             }

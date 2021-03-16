@@ -19,8 +19,8 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders;
@@ -40,12 +40,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         internal CSharpCodeModelService(
             HostLanguageServices languageServiceProvider,
             IEditorOptionsFactoryService editorOptionsFactoryService,
-            IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+            IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+            IThreadingContext threadingContext)
             : base(languageServiceProvider,
                    editorOptionsFactoryService,
                    refactorNotifyServices,
                    BlankLineInGeneratedMethodFormattingRule.Instance,
-                   EndRegionFormattingRule.Instance)
+                   EndRegionFormattingRule.Instance,
+                   threadingContext)
         {
         }
 
