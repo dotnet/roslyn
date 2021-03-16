@@ -8,19 +8,13 @@ namespace Microsoft.CodeAnalysis.ValueTracking
     {
         public Location Location { get; }
         public ISymbol Symbol { get; }
-        public SyntaxNode? ExpressionNode { get; }
-        public ValueTrackedItem? PreviousTrackedItem { get; }
 
         public ValueTrackedItem(
             Location location,
-            ISymbol symbol,
-            SyntaxNode? expressionNode = null,
-            ValueTrackedItem? previousTrackedItem = null)
+            ISymbol symbol)
         {
             Location = location;
             Symbol = symbol;
-            ExpressionNode = expressionNode;
-            PreviousTrackedItem = previousTrackedItem;
         }
     }
 }

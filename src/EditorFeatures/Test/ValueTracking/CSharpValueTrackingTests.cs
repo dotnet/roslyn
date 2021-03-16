@@ -15,51 +15,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
     [UseExportProvider]
-    public class CSharpValueTrackingTests
+    internal class CSharpValueTrackingTests : AbstractBaseValueTrackingTests
     {
-        private static async Task<ImmutableArray<ValueTrackedItem>> GetTrackedItemsAsync(TestWorkspace testWorkspace, CancellationToken cancellationToken = default)
-        {
-            var cursorDocument = testWorkspace.DocumentWithCursor;
-            var document = testWorkspace.CurrentSolution.GetRequiredDocument(cursorDocument.Id);
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken);
-            var textSpan = new TextSpan(cursorDocument.CursorPosition!.Value, 0);
-            var location = Location.Create(syntaxTree, textSpan);
-            var symbol = await GetSelectedSymbolAsync(textSpan, document, cancellationToken);
-            var service = testWorkspace.Services.GetRequiredService<IValueTrackingService>();
-            return await service.TrackValueSourceAsync(testWorkspace.CurrentSolution, location, symbol, cancellationToken);
-
-        }
-
-        private static async Task<ISymbol> GetSelectedSymbolAsync(TextSpan textSpan, Document document, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedNode = root.FindNode(textSpan);
-
-            Assert.NotNull(selectedNode);
-
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedSymbol =
-                semanticModel.GetSymbolInfo(selectedNode, cancellationToken).Symbol
-                ?? semanticModel.GetDeclaredSymbol(selectedNode, cancellationToken);
-
-            Assert.NotNull(selectedSymbol);
-            return selectedSymbol!;
-        }
-
-        private static string GetText(ValueTrackedItem item)
-        {
-            var sourceTree = item.Location.SourceTree;
-            var span = item.Location.SourceSpan;
-
-            Assert.NotNull(sourceTree);
-            if (sourceTree!.TryGetText(out var text))
-            {
-                return text!.GetSubText(span).ToString();
-            }
-
-            return sourceTree!.ToString();
-        }
-
         [Fact]
         public async Task TestProperty()
         {
@@ -80,6 +37,11 @@ class C
             using var workspace = TestWorkspace.CreateCSharp(code);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
+            //
+            // property S 
+            //  |> S = s [Code.cs:8]
+            //  |> public string S { get; set; } [Code.cs:4]
+            //
             Assert.Equal(2, initialItems.Length);
             Assert.Equal("S = s", GetText(initialItems[0]));
             Assert.Equal(@"public string S { get; set; } = """"", GetText(initialItems[1]));
@@ -104,6 +66,11 @@ class C
             using var workspace = TestWorkspace.CreateCSharp(code);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
+            //
+            // field _s 
+            //  |> _s = s [Code.cs:8]
+            //  |> _s = "" [Code.cs:4]
+            //
             Assert.Equal(2, initialItems.Length);
             Assert.Equal("_s = s", GetText(initialItems[0]));
 
@@ -129,6 +96,11 @@ class C
             using var workspace = TestWorkspace.CreateCSharp(code);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
+            //
+            // local variable z
+            //  |> z += y [Code.cs:7]
+            //  |> var z = x [Code.cs:6]
+            //
             Assert.Equal(2, initialItems.Length);
             Assert.Equal(@"z += y", GetText(initialItems[0]));
             Assert.Equal("var z = x", GetText(initialItems[1]));
@@ -150,6 +122,11 @@ class C
             using var workspace = TestWorkspace.CreateCSharp(code);
             var initialItems = await GetTrackedItemsAsync(workspace);
 
+            //
+            // parameter x 
+            //  |> x += y [Code.cs:6]
+            //  |> Add(int x, int y) [Code.cs:4]
+            //
             Assert.Equal(2, initialItems.Length);
             Assert.Equal(@"x += y", GetText(initialItems[0]));
 
