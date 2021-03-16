@@ -377,17 +377,17 @@ class C
         }
 
         [Fact]
-        public async Task TestOutParameterReassignment()
+        public async Task TestOutParameterReassignmentOneWrites()
         {
             await TestAsync(
 @"
 using System;
 class C
 {
-    void M(out int [|p|])
+    void M(out int p)
     {
-        [|p|] = ref [|p|];
-        Console.WriteLine([|p|]);
+        p = ref p;
+        Console.WriteLine(p);
     }
 }");
         }

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
         ParameterSyntax,
         VariableDeclaratorSyntax,
         VariableDeclaratorSyntax,
+        SingleVariableDesignationSyntax,
         IdentifierNameSyntax>
     {
         [ImportingConstructor]
@@ -33,95 +34,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ReassignedVariable
         protected override SyntaxToken GetIdentifierOfVariable(VariableDeclaratorSyntax variable)
             => variable.Identifier;
 
-        protected override void AnalyzeMemberBodyDataFlow(
-            SemanticModel semanticModel,
-            SyntaxNode member,
-            ref TemporaryArray<DataFlowAnalysis?> dataFlowAnalyses,
-            CancellationToken cancellationToken)
-        {
-            using var bodies = TemporaryArray<SyntaxNode>.Empty;
-            AddBodies(member, ref bodies.AsRef());
-
-            foreach (var body in bodies)
-            {
-                if (body is null)
-                    continue;
-
-                if (body is BlockSyntax or ExpressionSyntax)
-                {
-                    dataFlowAnalyses.Add(semanticModel.AnalyzeDataFlow(body));
-                }
-                else if (body is ArrowExpressionClauseSyntax arrow)
-                {
-                    dataFlowAnalyses.Add(semanticModel.AnalyzeDataFlow(arrow.Expression));
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(body);
-                }
-            }
-        }
-
-        private static void AddBodies(SyntaxNode? declaration, ref TemporaryArray<SyntaxNode> bodies)
-        {
-            switch (declaration)
-            {
-                case null:
-                    return;
-
-                case AccessorDeclarationSyntax accessor:
-                    bodies.AddIfNotNull(accessor.Body);
-                    AddBodies(accessor.ExpressionBody, ref bodies);
-                    break;
-
-                case ArrowExpressionClauseSyntax arrowExpressionClause:
-                    bodies.Add(arrowExpressionClause.Expression);
-                    break;
-
-                case BaseMethodDeclarationSyntax methodDeclaration:
-                    bodies.AddIfNotNull(methodDeclaration.Body);
-                    AddBodies(methodDeclaration.ExpressionBody, ref bodies);
-                    break;
-
-                case LocalFunctionStatementSyntax localFunction:
-                    bodies.AddIfNotNull(localFunction.Body);
-                    AddBodies(localFunction.ExpressionBody, ref bodies);
-                    break;
-
-                case AnonymousFunctionExpressionSyntax anonymousFunction:
-                    bodies.AddIfNotNull(anonymousFunction.Block);
-                    bodies.AddIfNotNull(anonymousFunction.ExpressionBody);
-                    break;
-
-                case IndexerDeclarationSyntax indexer:
-                    bodies.AddIfNotNull(indexer.ExpressionBody?.Expression);
-                    if (indexer.AccessorList != null)
-                    {
-                        foreach (var accessor in indexer.AccessorList.Accessors)
-                            AddBodies(accessor, ref bodies);
-                    }
-                    break;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(declaration);
-            }
-        }
+        protected override SyntaxToken GetIdentifierOfSingleVariableDesignation(SingleVariableDesignationSyntax variable)
+            => variable.Identifier;
 
         protected override SyntaxNode GetParentScope(SyntaxNode localDeclaration)
         {
             var current = localDeclaration;
             while (current != null)
             {
-                if (current is StatementSyntax or SwitchSectionSyntax or ArrowExpressionClauseSyntax or MemberDeclarationSyntax)
+                if (current is BlockSyntax or SwitchSectionSyntax or ArrowExpressionClauseSyntax or AnonymousMethodExpressionSyntax or MemberDeclarationSyntax)
                     break;
 
                 current = current.Parent;
             }
 
             Contract.ThrowIfNull(current, "Couldn't find a suitable parent of this local declaration");
-            if (current is LocalDeclarationStatementSyntax)
-                return current.GetRequiredParent();
-
             return current;
         }
     }

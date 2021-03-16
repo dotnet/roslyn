@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -22,17 +21,19 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
         TParameterSyntax,
         TVariableDeclaratorSyntax,
         TVariableSyntax,
+        TSingleVariableDesignation,
         TIdentifierNameSyntax>
         : IReassignedVariableService
         where TParameterSyntax : SyntaxNode
         where TVariableDeclaratorSyntax : SyntaxNode
         where TVariableSyntax : SyntaxNode
+        where TSingleVariableDesignation : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
         protected abstract void AddVariables(TVariableDeclaratorSyntax declarator, ref TemporaryArray<TVariableSyntax> temporaryArray);
         protected abstract SyntaxNode GetParentScope(SyntaxNode localDeclaration);
         protected abstract SyntaxToken GetIdentifierOfVariable(TVariableSyntax variable);
-        protected abstract void AnalyzeMemberBodyDataFlow(SemanticModel semanticModel, SyntaxNode memberBlock, ref TemporaryArray<DataFlowAnalysis?> dataFlowAnalyses, CancellationToken cancellationToken);
+        protected abstract SyntaxToken GetIdentifierOfSingleVariableDesignation(TSingleVariableDesignation variable);
 
         public async Task<ImmutableArray<TextSpan>> GetReassignedVariablesAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
@@ -84,6 +85,9 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     case TVariableDeclaratorSyntax variable:
                         ProcessVariable(variable);
                         break;
+                    case TSingleVariableDesignation designation:
+                        ProcessSingleVariableDesignation(designation);
+                        break;
                 }
             }
 
@@ -95,16 +99,13 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     return;
 
                 var symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol;
-                if (symbol == null)
-                    return;
-
                 if (IsSymbolReassigned(symbol))
                     result.Add(identifier.Span);
             }
 
             void ProcessParameter(TParameterSyntax parameterSyntax)
             {
-                var parameter = semanticModel.GetDeclaredSymbol(parameterSyntax, cancellationToken);
+                var parameter = semanticModel.GetDeclaredSymbol(parameterSyntax, cancellationToken) as IParameterSymbol;
                 if (IsSymbolReassigned(parameter))
                     result.Add(syntaxFacts.GetIdentifierOfParameter(parameterSyntax).Span);
             }
@@ -116,10 +117,17 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
                 foreach (var variable in variables)
                 {
-                    var local = semanticModel.GetDeclaredSymbol(variable, cancellationToken);
+                    var local = semanticModel.GetDeclaredSymbol(variable, cancellationToken) as ILocalSymbol;
                     if (IsSymbolReassigned(local))
                         result.Add(GetIdentifierOfVariable(variable).Span);
                 }
+            }
+
+            void ProcessSingleVariableDesignation(TSingleVariableDesignation designation)
+            {
+                var local = semanticModel.GetDeclaredSymbol(designation, cancellationToken) as ILocalSymbol;
+                if (IsSymbolReassigned(local))
+                    result.Add(GetIdentifierOfSingleVariableDesignation(designation).Span);
             }
 
             bool IsSymbolReassigned([NotNullWhen(true)] ISymbol? symbol)
@@ -172,33 +180,6 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     return false;
 
                 return AnalyzePotentialMatches(parameter, parameterLocation.SourceSpan, methodOrPropertyDeclaration);
-                //using var dataFlowAnalyses = TemporaryArray<DataFlowAnalysis?>.Empty;
-                //AnalyzeMemberBodyDataFlow(semanticModel, methodOrPropertyDeclaration, ref dataFlowAnalyses.AsRef(), cancellationToken);
-
-                //if (methodOrProperty is IMethodSymbol method)
-                //{
-                //    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), method);
-                //}
-                //else if (methodOrProperty is IPropertySymbol property)
-                //{
-                //    // See what reassignments happen in the getter/setter of the property.
-                //    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), property.GetMethod);
-                //    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), property.SetMethod);
-
-                //    // Then, consider the property parameter itself 
-                //    foreach (var propParameter in property.Parameters)
-                //    {
-                //        var ordinal = propParameter.Ordinal;
-                //        var getParam = property.GetMethod?.Parameters[ordinal];
-                //        var setParam = property.SetMethod?.Parameters[ordinal];
-
-                //        symbolToIsReassigned[propParameter] =
-                //            (getParam != null && symbolToIsReassigned.TryGetValue(getParam, out var getReassigns) && getReassigns) ||
-                //            (setParam != null && symbolToIsReassigned.TryGetValue(setParam, out var setReassigns) && setReassigns);
-                //    }
-                //}
-
-                //return symbolToIsReassigned.TryGetValue(parameter, out var result) && result;
             }
 
             bool ComputeLocalIsAssigned(ILocalSymbol local)
@@ -319,21 +300,6 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 }
 
                 return false;
-            }
-        }
-
-        private static void ProcessMethodParameters(
-            Dictionary<ISymbol, bool> symbolToIsReassigned,
-            ref TemporaryArray<DataFlowAnalysis?> dataFlowAnalyses,
-            IMethodSymbol? method)
-        {
-            if (method == null)
-                return;
-
-            foreach (var methodParam in method.Parameters)
-            {
-                foreach (var dataFlow in dataFlowAnalyses)
-                    symbolToIsReassigned[methodParam] = dataFlow != null && dataFlow.WrittenInside.Contains(methodParam);
             }
         }
     }

@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReassignedVariable
             ParameterSyntax,
             VariableDeclaratorSyntax,
             ModifiedIdentifierSyntax,
+            ModifiedIdentifierSyntax,
             IdentifierNameSyntax)
 
         <ImportingConstructor>
@@ -30,6 +31,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReassignedVariable
         End Sub
 
         Protected Overrides Function GetIdentifierOfVariable(variable As ModifiedIdentifierSyntax) As SyntaxToken
+            Return variable.Identifier
+        End Function
+
+        Protected Overrides Function GetIdentifierOfSingleVariableDesignation(variable As ModifiedIdentifierSyntax) As SyntaxToken
             Return variable.Identifier
         End Function
 
@@ -49,32 +54,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReassignedVariable
 
             Return current
         End Function
-
-        Protected Overrides Sub AnalyzeMemberBodyDataFlow(
-                semanticModel As SemanticModel,
-                memberBlock As SyntaxNode,
-                ByRef dataFlowAnalyses As TemporaryArray(Of DataFlowAnalysis),
-                cancellationToken As CancellationToken)
-            Dim methodBlock = memberBlock.GetBlockFromBegin()
-
-            If TypeOf methodBlock Is SingleLineLambdaExpressionSyntax Then
-                dataFlowAnalyses.Add(semanticModel.AnalyzeDataFlow(DirectCast(methodBlock, SingleLineLambdaExpressionSyntax).Body))
-                Return
-            End If
-
-            If TypeOf methodBlock Is MultiLineLambdaExpressionSyntax Then
-                Dim lambda = DirectCast(methodBlock, MultiLineLambdaExpressionSyntax)
-                If lambda.Statements.Count > 0 Then
-                    dataFlowAnalyses.Add(semanticModel.AnalyzeDataFlow(lambda.Statements.First(), lambda.Statements.Last()))
-                End If
-            End If
-
-            If TypeOf methodBlock Is MethodBlockBaseSyntax Then
-                Dim base = DirectCast(methodBlock, MethodBlockBaseSyntax)
-                If base.Statements.Count > 0 Then
-                    dataFlowAnalyses.Add(semanticModel.AnalyzeDataFlow(base.Statements.First(), base.Statements.Last()))
-                End If
-            End If
-        End Sub
     End Class
 End Namespace
+
