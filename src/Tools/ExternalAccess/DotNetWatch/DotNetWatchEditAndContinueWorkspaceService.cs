@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
             _workspaceService = workspaceService;
         }
 
-        public Task OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
+        public ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
             => _workspaceService.OnSourceFileUpdatedAsync(document, cancellationToken);
 
         public void CommitSolutionUpdate() => _workspaceService.CommitSolutionUpdate();

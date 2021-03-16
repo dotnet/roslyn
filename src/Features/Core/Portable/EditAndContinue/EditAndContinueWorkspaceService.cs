@@ -87,21 +87,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputInfo.AssemblyPath);
         }
 
-        public void OnSourceFileUpdated(Document document)
+        public async ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
         {
             var debuggingSession = _debuggingSession;
             if (debuggingSession != null)
             {
-                // fire and forget
-                _ = Task.Run(() => debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, debuggingSession.CancellationToken));
+                using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(debuggingSession.CancellationToken, cancellationToken);
+                await debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, linkedTokenSource.Token).ConfigureAwait(false);
             }
-        }
-
-        public async Task OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
-        {
-            var debuggingSession = _debuggingSession;
-            Contract.ThrowIfNull(debuggingSession, $"{nameof(OnSourceFileUpdatedAsync)} should only be invoked during a debugging session.");
-            await debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
         public void StartDebuggingSession(Solution solution)
