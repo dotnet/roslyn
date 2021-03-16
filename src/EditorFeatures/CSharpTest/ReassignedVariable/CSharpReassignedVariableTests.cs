@@ -199,6 +199,30 @@ class C
         }
 
         [Fact]
+        public async Task TestEventAddWithAssignmentToValue()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    event Action Goo { add { [|value|] = null; } remove { } }
+}");
+        }
+
+        [Fact]
+        public async Task TestEventRemoveWithAssignmentToValue()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    event Action Goo { add { } remove { [|value|] = null; } }
+}");
+        }
+
+        [Fact]
         public async Task TestLambdaParameterWithoutReassignment()
         {
             await TestAsync(
