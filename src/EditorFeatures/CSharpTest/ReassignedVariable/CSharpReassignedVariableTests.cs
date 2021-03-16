@@ -681,5 +681,20 @@ class C
 }
 ");
         }
+
+        [Fact]
+        public async Task TestRecord1()
+        {
+            await TestAsync(
+@"
+record X(int [|x|]) : Y([|x|]++)
+{
+}
+
+record Y(int x)
+{
+}
+");
+        }
     }
 }
