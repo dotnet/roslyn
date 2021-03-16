@@ -487,7 +487,7 @@ class C
     unsafe void M(int* [|p|])
     {
         [|p|] = null;
-        Console.WriteLine((IntPtr)p);
+        Console.WriteLine((IntPtr)[|p|]);
     }
 }");
         }
