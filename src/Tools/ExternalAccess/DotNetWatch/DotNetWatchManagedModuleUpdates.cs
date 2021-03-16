@@ -3,19 +3,34 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
 {
-    internal readonly struct DotNetWatchManagedModuleUpdates
+    internal struct DotNetWatchManagedModuleUpdatesWrapper
     {
-        public readonly DotNetWatchManagedModuleUpdateStatus Status;
+        private readonly ManagedModuleUpdates _instance;
+        private ImmutableArray<DotNetWatchManagedModuleUpdateWrapper> _lazyUpdates;
 
-        public readonly ImmutableArray<DotNetWatchManagedModuleUpdate> Updates;
-
-        public DotNetWatchManagedModuleUpdates(DotNetWatchManagedModuleUpdateStatus status, ImmutableArray<DotNetWatchManagedModuleUpdate> updates)
+        internal DotNetWatchManagedModuleUpdatesWrapper(in ManagedModuleUpdates instance)
         {
-            Status = status;
-            Updates = updates;
+            _instance = instance;
+            _lazyUpdates = default;
+        }
+
+        public readonly DotNetWatchManagedModuleUpdateStatus Status => (DotNetWatchManagedModuleUpdateStatus)_instance.Status;
+
+        public ImmutableArray<DotNetWatchManagedModuleUpdateWrapper> Updates
+        {
+            get
+            {
+                if (_lazyUpdates is { IsDefault: false } updates)
+                    return updates;
+
+                updates = _instance.Updates.SelectAsArray(update => new DotNetWatchManagedModuleUpdateWrapper(in update));
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyUpdates, updates);
+                return _lazyUpdates;
+            }
         }
     }
 }

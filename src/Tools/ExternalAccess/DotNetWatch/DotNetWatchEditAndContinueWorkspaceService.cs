@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
 {
-    [Shared]
     internal sealed class DotNetWatchEditAndContinueWorkspaceService : IWorkspaceService
     {
         [ExportWorkspaceServiceFactory(typeof(DotNetWatchEditAndContinueWorkspaceService)), Shared]
@@ -56,15 +55,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
 
         public void EndEditSession() => _workspaceService.EndEditSession(out _);
 
-        public async ValueTask<DotNetWatchManagedModuleUpdates> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+        public async ValueTask<DotNetWatchManagedModuleUpdatesWrapper> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
             var (updates, _) = await _workspaceService.EmitSolutionUpdateAsync(solution, _nullSolutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-            var forwardingUpdates = new DotNetWatchManagedModuleUpdates(
-                (DotNetWatchManagedModuleUpdateStatus)updates.Status,
-                ImmutableArray.CreateRange(updates.Updates, u => new DotNetWatchManagedModuleUpdate(u.Module, u.ILDelta, u.MetadataDelta, u.PdbDelta, u.UpdatedMethods)));
-
-            return (forwardingUpdates);
+            return new DotNetWatchManagedModuleUpdatesWrapper(in updates);
         }
     }
 }

@@ -4,24 +4,23 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
 {
-    internal sealed class DotNetWatchManagedModuleUpdate
+    internal readonly struct DotNetWatchManagedModuleUpdateWrapper
     {
-        public readonly Guid Module;
-        public readonly ImmutableArray<byte> ILDelta;
-        public readonly ImmutableArray<byte> MetadataDelta;
-        public readonly ImmutableArray<byte> PdbDelta;
-        public readonly ImmutableArray<int> UpdatedMethods;
+        private readonly ManagedModuleUpdate _instance;
 
-        public DotNetWatchManagedModuleUpdate(Guid module, ImmutableArray<byte> ilDelta, ImmutableArray<byte> metadataDelta, ImmutableArray<byte> pdbDelta, ImmutableArray<int> updatedMethods)
+        internal DotNetWatchManagedModuleUpdateWrapper(in ManagedModuleUpdate instance)
         {
-            Module = module;
-            ILDelta = ilDelta;
-            MetadataDelta = metadataDelta;
-            PdbDelta = pdbDelta;
-            UpdatedMethods = updatedMethods;
+            _instance = instance;
         }
+
+        public Guid Module => _instance.Module;
+        public ImmutableArray<byte> ILDelta => _instance.ILDelta;
+        public ImmutableArray<byte> MetadataDelta => _instance.MetadataDelta;
+        public ImmutableArray<byte> PdbDelta => _instance.PdbDelta;
+        public ImmutableArray<int> UpdatedMethods => _instance.UpdatedMethods;
     }
 }
