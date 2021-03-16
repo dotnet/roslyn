@@ -16,11 +16,17 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Compares two <see cref="ISymbol"/> instances based on the default comparison rules, equivalent to calling <see cref="IEquatable{ISymbol}.Equals(ISymbol)"/>.
         /// </summary>
+        /// <remarks>
+        /// Comparing <code>string</code> and <code>string?</code> will be equal. Use <see cref="IncludeNullability"/> if you don't want them to be considered equal.
+        /// </remarks>
         public static readonly SymbolEqualityComparer Default = new SymbolEqualityComparer(TypeCompareKind.AllNullableIgnoreOptions);
 
         /// <summary>
         /// Compares  two <see cref="ISymbol"/> instances, considering that a reference type and the same nullable reference type are not equal.
         /// </summary>
+        /// <remarks>
+        /// Comparing <code>string</code> and <code>string?</code> will not be equal. Use <see cref="Default"/> if you want them to be considered equal.
+        /// </remarks>
         public static readonly SymbolEqualityComparer IncludeNullability = new SymbolEqualityComparer(TypeCompareKind.ConsiderEverything2); //TODO: should this be explicitly *not* compare everything
 
         // Internal only comparisons:
