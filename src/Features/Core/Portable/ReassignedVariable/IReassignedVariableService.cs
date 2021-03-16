@@ -10,6 +10,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ReassignedVariable
 {
+    /// <summary>
+    /// Service which can analyze a span of a document and identify all locations of parameters or locals that are ever
+    /// reassigned.  Note that the locations provided are not the reassignment points.  Rather if a local or parameter
+    /// is ever reassigned, these are all the locations of those locals or parameters within that span.
+    /// </summary>
     internal interface IReassignedVariableService : ILanguageService
     {
         Task<ImmutableArray<TextSpan>> GetReassignedVariablesAsync(Document document, TextSpan span, CancellationToken cancellationToken);
