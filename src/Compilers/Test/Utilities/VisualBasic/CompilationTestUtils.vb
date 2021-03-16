@@ -1214,11 +1214,11 @@ Friend Module CompilationUtils
         Array.Sort(strings)
         Dim builder = PooledStringBuilderPool.Allocate()
         With builder.Builder
-            For Each str In strings
+            For Each item In strings
                 If .Length > 0 Then
                     .AppendLine()
                 End If
-                .Append(str)
+                .Append(item)
             Next
         End With
         Return builder.ToStringAndFree()

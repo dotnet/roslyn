@@ -35,7 +35,7 @@ namespace BuildValidator
             _logger = logger;
         }
 
-        public (Compilation? compilation, bool isError) CreateCompilation(
+        public Compilation CreateCompilation(
             CompilationOptionsReader compilationOptionsReader,
             string fileName,
             ImmutableArray<ResolvedSource> sources,
@@ -47,8 +47,7 @@ namespace BuildValidator
             if (!compilationOptionsReader.TryGetMetadataCompilationOptions(out var pdbCompilationOptions)
                 || pdbCompilationOptions.Length == 0)
             {
-                _logger.LogInformation($"{fileName} did not contain compilation options in its PDB");
-                return (compilation: null, isError: false);
+                throw new Exception($"{fileName} did not contain compilation options in its PDB");
             }
 
             if (pdbCompilationOptions.TryGetUniqueOption("language", out var language))
@@ -76,8 +75,12 @@ namespace BuildValidator
                     }
                 }
 
-                compilation = hadError ? null : compilation;
-                return (compilation, isError: compilation is null);
+                if (hadError)
+                {
+                    throw new Exception("Diagnostics creating the compilation");
+                }
+
+                return compilation;
             }
 
             throw new InvalidDataException("Did not find language in compilation options");
@@ -280,10 +283,8 @@ namespace BuildValidator
 
         public static unsafe EmitResult Emit(
             Stream rebuildPeStream,
-            FileInfo originalBinaryPath,
             CompilationOptionsReader optionsReader,
             Compilation producedCompilation,
-            ILogger logger,
             CancellationToken cancellationToken)
         {
             var peHeader = optionsReader.PeReader.PEHeaders.PEHeader!;

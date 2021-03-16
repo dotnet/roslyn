@@ -12,6 +12,7 @@ namespace BuildValidator
     internal sealed record AssemblyInfo(string FilePath, Guid Mvid)
     {
         internal string FileName => Path.GetFileName(FilePath);
+        internal string TargetFramework => Path.GetFileName(Path.GetDirectoryName(FilePath))!;
     }
 
     internal sealed record PortableExecutableInfo(string FilePath, Guid Mvid, bool IsReadyToRun);

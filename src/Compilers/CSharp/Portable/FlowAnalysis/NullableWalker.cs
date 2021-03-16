@@ -406,6 +406,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For purpose of nullability analysis, awaits create pending branches, so async usings and foreachs do too
         public sealed override bool AwaitUsingAndForeachAddsPendingBranch => true;
 
+        protected override void EnsureSufficientExecutionStack(int recursionDepth)
+        {
+            if (recursionDepth > StackGuard.MaxUncheckedRecursionDepth &&
+                compilation.NullableAnalysisData is { MaxRecursionDepth: var depth } &&
+                depth > 0 &&
+                recursionDepth > depth)
+            {
+                throw new InsufficientExecutionStackException();
+            }
+
+            base.EnsureSufficientExecutionStack(recursionDepth);
+        }
+
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return true;
@@ -1389,12 +1402,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool requiresAnalysis = true)
         {
             Debug.Assert(snapshotBuilderOpt is null || symbol is object);
+            var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol!) ?? -1;
             try
             {
                 bool badRegion = false;
-                var previousSlot = snapshotBuilderOpt?.EnterNewWalker(symbol!) ?? -1;
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialState);
-                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
                 diagnostics?.AddRange(walker.Diagnostics);
                 Debug.Assert(!badRegion);
             }
@@ -1402,13 +1414,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ex.AddAnError(diagnostics);
             }
+            finally
+            {
+                snapshotBuilderOpt?.ExitWalker(walker.SaveSharedState(), previousSlot);
+            }
 
             walker.RecordNullableAnalysisData(symbol, requiresAnalysis);
         }
 
         private void RecordNullableAnalysisData(Symbol? symbol, bool requiredAnalysis)
         {
-            if (compilation.NullableAnalysisData is { } state)
+            if (compilation.NullableAnalysisData?.Data is { } state)
             {
                 var key = (object?)symbol ?? methodMainNode.Syntax;
                 if (state.TryGetValue(key, out var result))
@@ -2665,25 +2681,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.State = state.CreateNestedMethodState(_variables);
             var previousSlot = _snapshotBuilderOpt?.EnterNewWalker(lambdaOrFunctionSymbol) ?? -1;
 
-            var oldPending = SavePending();
-
-            EnterParameters();
-
-            var oldPending2 = SavePending();
-
-            // If this is an iterator, there's an implicit branch before the first statement
-            // of the function where the enumerable is returned.
-            if (lambdaOrFunctionSymbol.IsIterator)
+            try
             {
-                PendingBranches.Add(new PendingBranch(null, this.State, null));
+                var oldPending = SavePending();
+
+                EnterParameters();
+
+                var oldPending2 = SavePending();
+
+                // If this is an iterator, there's an implicit branch before the first statement
+                // of the function where the enumerable is returned.
+                if (lambdaOrFunctionSymbol.IsIterator)
+                {
+                    PendingBranches.Add(new PendingBranch(null, this.State, null));
+                }
+
+                VisitAlways(lambdaOrFunction.Body);
+                RestorePending(oldPending2); // process any forward branches within the lambda body
+                ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
+                RestorePending(oldPending);
+            }
+            finally
+            {
+                _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
             }
 
-            VisitAlways(lambdaOrFunction.Body);
-            RestorePending(oldPending2); // process any forward branches within the lambda body
-            ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();
-            RestorePending(oldPending);
-
-            _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
             _variables = _variables.Container!;
             this.State = oldState;
             _returnTypesOpt = oldReturnTypes;
