@@ -1063,6 +1063,33 @@ class Foo : IFoo1, IFoo2
 
             Test(workspace)
         End Sub
+
+        <WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionInVarPatterns()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class [|C|] { }
+
+class D
+{
+    C M() => new C();
+
+    void M2()
+    {
+      if (M() is var$$ x)
+      {
+      }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
 #End Region
 
 #Region "CSharp TupleTests"

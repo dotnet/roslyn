@@ -21,6 +21,7 @@ namespace Microsoft.Cci
         public const string DefaultEncoding = "default-encoding";
         public const string PortabilityPolicy = "portability-policy";
         public const string RuntimeVersion = "runtime-version";
+        public const string Platform = "platform";
         public const string Optimization = "optimization";
         public const string Checked = "checked";
         public const string Language = "language";
