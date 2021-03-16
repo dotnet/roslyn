@@ -149,6 +149,13 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
             bool ComputeParameterIsAssigned(IParameterSymbol parameter)
             {
+                if (parameter.Locations.Length == 0)
+                    return false;
+
+                var parameterLocation = parameter.Locations[0];
+                if (parameterLocation.SourceTree != semanticModel.SyntaxTree)
+                    return false;
+
                 // Parameters are an easy case.  We just need to get the method they're defined for, and see if they are
                 // even written to inside that method.
                 var methodOrProperty = parameter.ContainingSymbol;
@@ -164,33 +171,34 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 if (methodOrPropertyDeclaration.SyntaxTree != semanticModel.SyntaxTree)
                     return false;
 
-                using var dataFlowAnalyses = TemporaryArray<DataFlowAnalysis?>.Empty;
-                AnalyzeMemberBodyDataFlow(semanticModel, methodOrPropertyDeclaration, ref dataFlowAnalyses.AsRef(), cancellationToken);
+                return AnalyzePotentialMatches(parameter, parameterLocation.SourceSpan, methodOrPropertyDeclaration);
+                //using var dataFlowAnalyses = TemporaryArray<DataFlowAnalysis?>.Empty;
+                //AnalyzeMemberBodyDataFlow(semanticModel, methodOrPropertyDeclaration, ref dataFlowAnalyses.AsRef(), cancellationToken);
 
-                if (methodOrProperty is IMethodSymbol method)
-                {
-                    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), method);
-                }
-                else if (methodOrProperty is IPropertySymbol property)
-                {
-                    // See what reassignments happen in the getter/setter of the property.
-                    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), property.GetMethod);
-                    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), property.SetMethod);
+                //if (methodOrProperty is IMethodSymbol method)
+                //{
+                //    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), method);
+                //}
+                //else if (methodOrProperty is IPropertySymbol property)
+                //{
+                //    // See what reassignments happen in the getter/setter of the property.
+                //    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), property.GetMethod);
+                //    ProcessMethodParameters(symbolToIsReassigned, ref dataFlowAnalyses.AsRef(), property.SetMethod);
 
-                    // Then, consider the property parameter itself 
-                    foreach (var propParameter in property.Parameters)
-                    {
-                        var ordinal = propParameter.Ordinal;
-                        var getParam = property.GetMethod?.Parameters[ordinal];
-                        var setParam = property.SetMethod?.Parameters[ordinal];
+                //    // Then, consider the property parameter itself 
+                //    foreach (var propParameter in property.Parameters)
+                //    {
+                //        var ordinal = propParameter.Ordinal;
+                //        var getParam = property.GetMethod?.Parameters[ordinal];
+                //        var setParam = property.SetMethod?.Parameters[ordinal];
 
-                        symbolToIsReassigned[propParameter] =
-                            (getParam != null && symbolToIsReassigned.TryGetValue(getParam, out var getReassigns) && getReassigns) ||
-                            (setParam != null && symbolToIsReassigned.TryGetValue(setParam, out var setReassigns) && setReassigns);
-                    }
-                }
+                //        symbolToIsReassigned[propParameter] =
+                //            (getParam != null && symbolToIsReassigned.TryGetValue(getParam, out var getReassigns) && getReassigns) ||
+                //            (setParam != null && symbolToIsReassigned.TryGetValue(setParam, out var setReassigns) && setReassigns);
+                //    }
+                //}
 
-                return symbolToIsReassigned.TryGetValue(parameter, out var result) && result;
+                //return symbolToIsReassigned.TryGetValue(parameter, out var result) && result;
             }
 
             bool ComputeLocalIsAssigned(ILocalSymbol local)
@@ -204,7 +212,6 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                     return false;
 
                 var localDeclaration = local.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
-
                 if (localDeclaration.SyntaxTree != semanticModel.SyntaxTree)
                 {
                     Contract.Fail("Local did not come from same file that we were analyzing?");
@@ -214,6 +221,11 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 // Get the scope the local is declared in.
                 var parentScope = GetParentScope(localDeclaration);
 
+                return AnalyzePotentialMatches(local, localDeclaration.Span, parentScope);
+            }
+
+            bool AnalyzePotentialMatches(ISymbol localOrParameter, TextSpan localOrParameterDeclarationSpan, SyntaxNode parentScope)
+            {
                 // Now, walk the scope, looking for all usages of the local.  See if any are a reassignment.
                 using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
                 stack.Push(parentScope);
@@ -229,8 +241,8 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                             stack.Add(child.AsNode()!);
                     }
 
-                    // Ignore any nodes before the local decl.
-                    if (current.SpanStart <= localDeclaration.SpanStart)
+                    // Ignore any nodes before the decl.
+                    if (current.SpanStart <= localOrParameterDeclarationSpan.Start)
                         continue;
 
                     // Only examine identifiers.
@@ -239,24 +251,71 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
                     // Ignore identifiers that don't match the local name.
                     var idToken = syntaxFacts.GetIdentifierOfSimpleName(id);
-                    if (!syntaxFacts.StringComparer.Equals(idToken.ValueText, local.Name))
+                    if (!syntaxFacts.StringComparer.Equals(idToken.ValueText, localOrParameter.Name))
                         continue;
 
                     // Ignore identifiers that bind to another symbol.
                     var symbol = semanticModel.GetSymbolInfo(id, cancellationToken).Symbol;
-                    if (!local.Equals(symbol))
+                    if (!AreEquivalent(localOrParameter, symbol))
                         continue;
 
                     // Ok, we have a reference to the local.  See if it was assigned on entry.  If not, we don't care about
                     // this reference. As an assignment here doesn't mean it was reassigned.
                     var dataFlow = semanticModel.AnalyzeDataFlow(id);
-                    if (!dataFlow.DefinitelyAssignedOnEntry.Contains(local))
+                    if (!DefinitelyAssignedOnEntry(dataFlow, localOrParameter))
                         continue;
 
                     // This was a variable that was already assigned prior to this location.  See if this location is
                     // considered a write.
                     if (semanticFacts.IsWrittenTo(semanticModel, id, cancellationToken))
                         return true;
+                }
+
+                return false;
+            }
+
+            bool AreEquivalent(ISymbol localOrParameter, ISymbol? symbol)
+            {
+                if (symbol == null)
+                    return false;
+
+                if (localOrParameter.Equals(symbol))
+                    return true;
+
+                if (localOrParameter.Kind != symbol.Kind)
+                    return false;
+
+                // Special case for property parameters.  When we bind to references, we'll bind to the parameters on
+                // the accessor methods.  We need to map these back to the property parameter to see if we have a hit.
+                if (localOrParameter is IParameterSymbol { ContainingSymbol: IPropertySymbol property } parameter)
+                {
+                    var getParameter = property.GetMethod?.Parameters[parameter.Ordinal];
+                    var setParameter = property.SetMethod?.Parameters[parameter.Ordinal];
+                    return Equals(getParameter, symbol) || Equals(setParameter, symbol);
+                }
+
+                return false;
+            }
+
+            bool DefinitelyAssignedOnEntry(DataFlowAnalysis? analysis, ISymbol? localOrParameter)
+            {
+                if (analysis == null)
+                    return false;
+
+                if (localOrParameter == null)
+                    return false;
+
+                if (analysis.DefinitelyAssignedOnEntry.Contains(localOrParameter))
+                    return true;
+
+                // Special case for property parameters.  When we bind to references, we'll bind to the parameters on
+                // the accessor methods.  We need to map these back to the property parameter to see if we have a hit.
+                if (localOrParameter is IParameterSymbol { ContainingSymbol: IPropertySymbol property } parameter)
+                {
+                    var getParameter = property.GetMethod?.Parameters[parameter.Ordinal];
+                    var setParameter = property.SetMethod?.Parameters[parameter.Ordinal];
+                    return DefinitelyAssignedOnEntry(analysis, getParameter) ||
+                           DefinitelyAssignedOnEntry(analysis, setParameter);
                 }
 
                 return false;
