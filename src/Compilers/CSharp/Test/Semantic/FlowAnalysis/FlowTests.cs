@@ -2467,9 +2467,9 @@ class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,9): error CS0165: Use of unassigned local variable 'x'
+                // (8,9): error CS0165: Use of unassigned local variable 'x'
                 //         x.ToString(); // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(8, 9));
         }
 
         [Fact]

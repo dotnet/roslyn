@@ -2435,16 +2435,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                TLocalState savedState;
-                if (VisitPossibleConditionalAccess(node.LeftOperand, out var stateWhenNotNull))
-                {
-                    savedState = stateWhenNotNull;
-                }
-                else
-                {
-                    Unsplit();
-                    savedState = State.Clone();
-                }
+                TLocalState savedState = VisitPossibleConditionalAccess(node.LeftOperand, out var stateWhenNotNull)
+                    ? stateWhenNotNull
+                    : State.Clone();
 
                 if (node.LeftOperand.ConstantValue != null)
                 {
@@ -2468,6 +2461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             EnterRegionIfNeeded(node);
             var hasStateWhenNotNull = visit(out stateWhenNotNull);
+            Debug.Assert(!IsConditionalState);
             LeaveRegionIfNeeded(node);
             return hasStateWhenNotNull;
 
@@ -2488,6 +2482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     stateWhenNotNull = default;
                     VisitWithStackGuard(node);
+                    Unsplit();
                     return false;
                 }
             }
