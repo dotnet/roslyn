@@ -45,7 +45,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReassignedVariable
             _typeMap = typeMap;
         }
 
-        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions => SpecializedCollections.SingletonEnumerable(ReassignedVariableOptions.Underline);
+        /// <summary>
+        /// Rerun the tagger whenever our option changes.
+        /// </summary>
+        protected override IEnumerable<PerLanguageOption2<bool>> PerLanguageOptions
+            => SpecializedCollections.SingletonEnumerable(ReassignedVariableOptions.Underline);
 
         protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
