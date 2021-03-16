@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 return new ResolvedSource(OnDiskPath: null, text, new SourceFileInfo(path, text.ChecksumAlgorithm, text.GetChecksum().ToArray(), text, embeddedCompressedHash: null));
             }).ToImmutableArray();
             var references = original.References.ToImmutableArray();
-            var (compilation, isError) = bc.CreateCompilation(optionsReader, path, sources, references);
-
-            Assert.False(isError);
+            var compilation = bc.CreateCompilation(optionsReader, path, sources, references);
             compilation.VerifyEmitDiagnostics();
         }
     }
