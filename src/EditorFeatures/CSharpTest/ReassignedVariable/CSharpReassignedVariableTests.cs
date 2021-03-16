@@ -285,5 +285,322 @@ class C
     }
 }");
         }
+
+        [Fact]
+        public async Task TestLocalDeclaredByPattern()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        if (0 is var [|p|]) [|p|] = 0;
+        Console.WriteLine([|p|]);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestLocalDeclaredByOutVar()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        M2(out var [|p|]);
+        [|p|] = 0;
+        Console.WriteLine([|p|]);
+    }
+
+    void M2(out int p) => p = 0;
+}");
+        }
+
+        [Fact]
+        public async Task TestOutParameterCausingReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int [|p|] = 0;
+        M2(out [|p|]);
+        Console.WriteLine([|p|]);
+    }
+
+    void M2(out int p) => p = 0;
+}");
+        }
+
+        [Fact]
+        public async Task TestOutParameterWithoutReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int p;
+        M2(out p);
+        Console.WriteLine(p);
+    }
+
+    void M2(out int p) => p = 0;
+}");
+        }
+
+        [Fact]
+        public async Task AssignmentThroughOutParameterIsNotAssignmentOfTheVariableItself()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(out int p)
+    {
+        p = 0;
+        p = 1;
+        Console.WriteLine(p);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestOutParameterReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(out int [|p|])
+    {
+        [|p|] = ref [|p|];
+        Console.WriteLine([|p|]);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task AssignmentThroughRefParameterIsNotAssignmentOfTheVariableItself()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(ref int p)
+    {
+        p = 0;
+        p = 1;
+        Console.WriteLine(p);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestRefParameterReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(ref int [|p|])
+    {
+        [|p|] = ref [|p|];
+        Console.WriteLine([|p|]);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task AssignmentThroughRefLocalIsNotAssignmentOfTheVariableItself()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(ref int p)
+    {
+        ref var local = ref p;
+        local = 0;
+        local = 1;
+        Console.WriteLine(local);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestRefLocalReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M(ref int p)
+    {
+        ref var [|local|] = ref p;
+        [|local|] = ref p;
+        Console.WriteLine([|local|]);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task AssignmentThroughPointerIsNotAssignmentOfTheVariableItself()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    unsafe void M(int* p)
+    {
+        *p = 4;
+        Console.WriteLine((IntPtr)p);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestPointerVariableReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    unsafe void M(int* [|p|])
+    {
+        [|p|] = null;
+        Console.WriteLine((IntPtr)p);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestRefParameterCausingPossibleReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int [|p|] = 0;
+        M2(ref [|p|]);
+        Console.WriteLine([|p|]);
+    }
+
+    void M2(ref int p) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestRefParameterWithoutReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int p;
+        M2(ref p);
+        Console.WriteLine(p);
+    }
+
+    void M2(ref int p) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestRefLocalCausingPossibleReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    void M()
+    {
+        int [|p|] = 0;
+        ref int refP = ref [|p|];
+        Console.WriteLine([|p|]);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestPointerCausingPossibleReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+class C
+{
+    unsafe void M()
+    {
+        int [|p|] = 0;
+        int* pointer = &[|p|];
+        Console.WriteLine([|p|]);
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestRefExtensionMethodCausingPossibleReassignment()
+        {
+            await TestAsync(
+@"
+using System;
+static class C
+{
+    void M()
+    {
+        int [|p|] = 0;
+        [|p|].M2();
+        Console.WriteLine([|p|]);
+    }
+
+    static void M2(this ref int p) { }
+}");
+        }
+
+        [Fact]
+        public async Task TestMutatingStructMethod()
+        {
+            await TestAsync(
+@"
+using System;
+struct S
+{
+    int f;
+
+    void M(S p)
+    {
+        p.MutatingMethod();
+        Console.WriteLine(p);
+    }
+
+    void MutatingMethod() => this = default;
+}");
+        }
     }
 }
