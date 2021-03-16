@@ -2,13 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -69,14 +64,11 @@ class C
             //
             // field _s 
             //  |> _s = s [Code.cs:8]
-            //  |> _s = "" [Code.cs:4]
+            //  |> string _s = "" [Code.cs:4]
             //
             Assert.Equal(2, initialItems.Length);
             Assert.Equal("_s = s", GetText(initialItems[0]));
-
-            // This is displaying the initializer but not the full line
-            // TODO: Fix this to be the whole line?
-            Assert.Equal(@"_s = """"", GetText(initialItems[1]));
+            Assert.Equal(@"string _s = """"", GetText(initialItems[1]));
         }
 
         [Fact]

@@ -87,48 +87,19 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                     foreach (var reference in referencesInDocument.Where(r => r.Location.IsWrittenTo))
                     {
-                        AddAssignment(reference.Node, syntaxFacts);
+                        var assignment = reference.Node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsLeftSideOfAnyAssignment);
+                        if (assignment is not null && assignment.Parent is not null)
+                        {
+                            builder.Add(assignment.Parent.GetLocation());
+                        }
                     }
                 }
             }
 
             // Add all initializations of the symbol. Those are not caught in 
             // the reference finder but should still show up in the tree
-            foreach (var location in symbol.Locations.Where(location => location.IsInSource))
-            {
-                RoslynDebug.AssertNotNull(location.SourceTree);
-
-                var node = location.FindNode(cancellationToken);
-                var document = solution.GetRequiredDocument(location.SourceTree);
-                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-                AddAssignment(node, syntaxFacts);
-            }
-
+            builder.AddRange(symbol.Locations.Where(location => location.IsInSource));
             return builder.AsImmutableOrEmpty();
-
-            void AddAssignment(SyntaxNode node, ISyntaxFactsService syntaxFacts)
-            {
-                if (syntaxFacts.IsDeclaration(node)
-                    || syntaxFacts.IsParameter(node))
-                {
-                    builder.Add(node.GetLocation());
-                    return;
-                }
-
-                if (syntaxFacts.IsVariableDeclarator(node) && node.Parent is not null)
-                {
-                    builder.Add(node.Parent.GetLocation());
-                    return;
-                }
-
-                var assignment = node.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsLeftSideOfAnyAssignment);
-                if (assignment is not null && assignment.Parent is not null)
-                {
-                    builder.Add(assignment.Parent.GetLocation());
-                    return;
-                }
-            }
         }
 
         private static IReferenceFinder? GetReferenceFinder(ISymbol? symbol)
