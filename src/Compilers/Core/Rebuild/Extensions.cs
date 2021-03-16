@@ -12,7 +12,7 @@ namespace BuildValidator
 {
     public static class Extensions
     {
-        public static void SkipNullTerminator(ref this BlobReader blobReader)
+        internal static void SkipNullTerminator(ref this BlobReader blobReader)
         {
             var b = blobReader.ReadByte();
             if (b != '\0')

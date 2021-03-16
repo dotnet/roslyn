@@ -47,7 +47,7 @@ namespace BuildValidator
             {
                 LanguageNames.CSharp => CreateCSharpCompilation(assemblyFileName, compilationOptionsReader, syntaxTreeInfos, metadataReferences),
                 LanguageNames.VisualBasic => CreateVisualBasicCompilation(assemblyFileName, compilationOptionsReader, syntaxTreeInfos, metadataReferences, diagnosticBag),
-                _ => throw new InvalidDataException($"{assemblyFileName} is not a known language")
+                var language => throw new InvalidDataException($"{assemblyFileName} has unsupported language {language}")
             };
 
             var diagnostics = diagnosticBag.ToReadOnlyAndFree();
@@ -268,7 +268,7 @@ namespace BuildValidator
             static T? ToEnum<T>(string value) where T : struct => Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
         }
 
-        public static unsafe EmitResult Emit(
+        public static EmitResult Emit(
             Stream rebuildPeStream,
             CompilationOptionsReader optionsReader,
             Compilation producedCompilation,

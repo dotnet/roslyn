@@ -2,33 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Reflection.PortableExecutable;
+using System.Text;
+using System.Threading;
 using BuildValidator;
-using Castle.Core.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
 using Xunit;
-using System.IO;
-using System.Threading;
-using Microsoft.CodeAnalysis.VisualBasic;
-using System.Text;
-using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
     public class OptionRoundTripTests : CSharpTestBase
     {
-        public static readonly CSharpCompilationOptions BaseCSharpCompliationOptions = TestOptions.DebugExe.WithDeterministic(true);
+        public static readonly CSharpCompilationOptions BaseCSharpCompilationOptions = TestOptions.DebugExe.WithDeterministic(true);
 
-        public static readonly VisualBasicCompilationOptions BaseVisualBasicCompliationOptions = new VisualBasicCompilationOptions(
+        public static readonly VisualBasicCompilationOptions BaseVisualBasicCompilationOptions = new VisualBasicCompilationOptions(
             outputKind: OutputKind.ConsoleApplication,
             deterministic: true);
 
@@ -139,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             var original = CreateCompilation(
                 "class C { static void Main() { } }",
-                options: BaseCSharpCompliationOptions.WithPlatform(platform),
+                options: BaseCSharpCompilationOptions.WithPlatform(platform),
                 sourceFileName: "test.cs");
 
             VerifyRoundTrip(original);
@@ -150,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void Platform_RoundTrip_VB(Platform platform)
         {
             var original = CreateVisualBasicCompilation(
-                compilationOptions: BaseVisualBasicCompliationOptions.WithPlatform(platform).WithModuleName("test"),
+                compilationOptions: BaseVisualBasicCompilationOptions.WithPlatform(platform).WithModuleName("test"),
                 encoding: Encoding.UTF8,
                 code: @"
 Class C
