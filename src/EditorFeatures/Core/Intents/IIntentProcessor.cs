@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Intents
 {
-    internal interface IIntentsEditsSource
+    internal interface IIntentProcessor
     {
         /// <summary>
         /// For an input intent, computes the edits required to apply that intent and returns them.
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Intents
     /// <summary>
     /// Defines the data needed to compute the code action edits from an intent.
     /// </summary>
-    internal class IntentRequestContext
+    internal struct IntentRequestContext
     {
         /// <summary>
         /// The intent name.  <see cref="WellKnownIntents"/> contains all intents roslyn knows how to handle.
@@ -38,32 +38,26 @@ namespace Microsoft.CodeAnalysis.Editor.Intents
         public string? IntentData { get; }
 
         /// <summary>
-        /// The text in the document before changes were made triggering an intent.
+        /// The text and selection in the document before changes were made triggering an intent.
         /// <remarks>
         /// For example, if the text typed was 'public Class(' which led to a generate ctor intent,
         /// we expect a snapshot before any of the ctor was typed.
         /// </remarks>
         /// </summary>
-        public ITextSnapshot SnapshotBeforeIntent { get; }
+        public SnapshotSpan PriorSnapshotSpan { get; }
 
         /// <summary>
-        /// The original caret position / selection in the <see cref="SnapshotBeforeIntent"/>
-        /// </summary>
-        public Span Selection { get; }
-
-        /// <summary>
-        /// The text snapshot when <see cref="IIntentsEditsSource.ComputeEditsAsync"/>
+        /// The text snapshot and selection when <see cref="IIntentProcessor.ComputeEditsAsync"/>
         /// was called to compute the text edits and against which the resulting text edits will be calculated.
         /// </summary>
-        public ITextSnapshot CurrentSnapshot { get; }
+        public SnapshotSpan CurrentSnapshotSpan { get; }
 
-        public IntentRequestContext(string intent, ITextSnapshot snapshotBeforeIntent, Span selection, ITextSnapshot currentSnapshot, string? intentData)
+        public IntentRequestContext(string intentName, SnapshotSpan priorSnapshotSpan, SnapshotSpan currentSnapshotSpan, string? intentData)
         {
-            IntentName = intent ?? throw new ArgumentNullException(nameof(intent));
+            IntentName = intentName ?? throw new ArgumentNullException(nameof(intentName));
             IntentData = intentData;
-            SnapshotBeforeIntent = snapshotBeforeIntent ?? throw new ArgumentNullException(nameof(snapshotBeforeIntent));
-            Selection = selection;
-            CurrentSnapshot = currentSnapshot ?? throw new ArgumentNullException(nameof(currentSnapshot));
+            PriorSnapshotSpan = priorSnapshotSpan;
+            CurrentSnapshotSpan = currentSnapshotSpan;
         }
     }
 
@@ -73,13 +67,19 @@ namespace Microsoft.CodeAnalysis.Editor.Intents
     internal struct IntentResult
     {
         /// <summary>
-        /// The text changes that should be applied to the <see cref="IntentRequestContext.CurrentSnapshot"/>
+        /// The text changes that should be applied to the <see cref="IntentRequestContext.CurrentSnapshotSpan"/>
         /// </summary>
         public readonly ImmutableArray<TextChange> TextChanges;
 
-        public IntentResult(ImmutableArray<TextChange> textChanges)
+        /// <summary>
+        /// The title associated with this intent result.
+        /// </summary>
+        public readonly string Title;
+
+        public IntentResult(ImmutableArray<TextChange> textChanges, string title)
         {
             TextChanges = textChanges;
+            Title = title;
         }
     }
 }

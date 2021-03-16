@@ -63,10 +63,20 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 (actions) => context.RegisterRefactorings(actions), context.CancellationToken);
         }
 
-        public async Task<Solution?> ComputeActionForIntentAsync(Document documentBeforeIntent, TextSpan selection, Document currentDocument, string? serializedIntentData, CancellationToken cancellationToken)
+        public async Task<(string Title, Solution Solution)?> ComputeIntentAsync(
+            Document priorDocument,
+            TextSpan priorSelection,
+            Document currentDocument,
+            string? serializedIntentData,
+            CancellationToken cancellationToken)
         {
-            using var builder = ArrayBuilder<CodeAction>.GetInstance(out var actions);
-            await ComputeRefactoringsAsync(documentBeforeIntent, selection, (singleAction, applicableToSpan) => actions.Add(singleAction), (multipleActions) => actions.AddRange(multipleActions), cancellationToken).ConfigureAwait(false);
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+            await ComputeRefactoringsAsync(
+                priorDocument,
+                priorSelection,
+                (singleAction, applicableToSpan) => actions.Add(singleAction),
+                (multipleActions) => actions.AddRange(multipleActions),
+                cancellationToken).ConfigureAwait(false);
 
             if (actions.IsEmpty())
             {
@@ -77,19 +87,22 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             // FieldDelegatingCodeAction, ConstructorDelegatingCodeAction, GenerateConstructorWithDialogCodeAction
             // For now since we don't have an idea of which one to pick, we'll take the action that appears first in the group.
             var codeAction = actions.First();
+            var title = codeAction.Title;
             var operations = await GetCodeActionOperationsAsync(codeAction, cancellationToken).ConfigureAwait(false);
 
             // Generate ctor will only return an ApplyChangesOperation or potentially document navigation actions.
             // We can only return edits, so we only care about the ApplyChangesOperation.
-            var applyChangesOperation = operations.SingleOrDefault(operation => operation is ApplyChangesOperation) as ApplyChangesOperation;
+            var applyChangesOperation = operations.OfType<ApplyChangesOperation>().SingleOrDefault();
             if (applyChangesOperation == null)
             {
                 return null;
             }
 
-            return applyChangesOperation.ChangedSolution;
+            return (title, applyChangesOperation.ChangedSolution);
 
-            static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(CodeAction action, CancellationToken cancellationToken)
+            static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(
+                CodeAction action,
+                CancellationToken cancellationToken)
             {
                 if (action is CodeActionWithOptions)
                 {
@@ -109,7 +122,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
         }
 
-        private async Task ComputeRefactoringsAsync(Document document, TextSpan textSpan, Action<CodeAction, TextSpan> registerSingleAction, Action<ImmutableArray<CodeAction>> registerMultipleActions, CancellationToken cancellationToken)
+        private async Task ComputeRefactoringsAsync(
+            Document document,
+            TextSpan textSpan,
+            Action<CodeAction, TextSpan> registerSingleAction,
+            Action<ImmutableArray<CodeAction>> registerMultipleActions,
+            CancellationToken cancellationToken)
         {
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
             {
@@ -133,7 +151,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
         }
 
-        private async Task<(CodeAction CodeAction, TextSpan ApplicableToSpan)?> HandleNonSelectionAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        private async Task<(CodeAction CodeAction, TextSpan ApplicableToSpan)?> HandleNonSelectionAsync(
+            Document document,
+            TextSpan textSpan,
+            CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

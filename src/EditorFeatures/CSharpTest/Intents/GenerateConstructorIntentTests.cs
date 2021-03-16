@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
         }
 
         [Fact]
-        public async Task GenerateConstructorWithReferenceTypeWithExpressionBodyOption()
+        public async Task GenerateConstructorWithExpressionBodyOption()
         {
             var initialText =
 @"class C
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
                 workspace.ApplyOptions(options!);
             }
 
-            var intentSource = workspace.ExportProvider.GetExportedValue<IIntentsEditsSource>();
+            var intentSource = workspace.ExportProvider.GetExportedValue<IIntentProcessor>();
 
             // The first document will be the active document.
             var document = workspace.Documents.Single(d => d.Name == "test1.cs");
@@ -181,10 +182,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             }
 
             var textBuffer = document.GetTextBuffer();
-            var initialSnapshot = textBuffer.CurrentSnapshot;
-            var snapshotAfterTyping = textBuffer.Replace(selectedSpan.ToSpan(), typedText);
+            var initialSnapshotSpan = new SnapshotSpan(textBuffer.CurrentSnapshot, selectedSpan.ToSpan());
+            var snapshotSpanAfterTyping = new SnapshotSpan(textBuffer.Replace(selectedSpan.ToSpan(), typedText), new Span(selectedSpan.Start, typedText.Length));
 
-            var intentContext = new IntentRequestContext(WellKnownIntents.GenerateConstructor, initialSnapshot, selectedSpan.ToSpan(), snapshotAfterTyping, intentData: null);
+            var intentContext = new IntentRequestContext(WellKnownIntents.GenerateConstructor, initialSnapshotSpan, snapshotSpanAfterTyping, intentData: null);
             var result = await intentSource.ComputeEditsAsync(intentContext, CancellationToken.None).ConfigureAwait(false);
 
             using var edit = textBuffer.CreateEdit();

@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Features.Intents
 {
     internal interface IIntentProvider
     {
-        Task<Solution?> ComputeActionForIntentAsync(Document documentBeforeIntent, TextSpan selection, Document currentDocument, string? serializedIntentData, CancellationToken cancellationToken);
+        Task<(string Title, Solution Solution)?> ComputeIntentAsync(
+            Document priorDocument,
+            TextSpan priorSelection,
+            Document currentDocument,
+            string? serializedIntentData,
+            CancellationToken cancellationToken);
     }
 }
