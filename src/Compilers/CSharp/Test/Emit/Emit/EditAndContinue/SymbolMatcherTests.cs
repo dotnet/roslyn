@@ -1456,9 +1456,10 @@ public record R
                 default,
                 null);
 
-            var member = compilation1.GetMember<SourceOrdinaryMethodSymbol>("R.PrintMembers");
-            var other = matcher.MapDefinition(member.GetCciAdapter());
-            Assert.NotNull(other);
+            var member0 = compilation0.GetMember<SynthesizedRecordPrintMembers>("R.PrintMembers");
+            var member1 = compilation1.GetMember<SourceOrdinaryMethodSymbol>("R.PrintMembers");
+
+            Assert.Equal(member0, (MethodSymbol)matcher.MapDefinition(member1.GetCciAdapter()).GetInternalSymbol());
         }
 
         [Fact]
@@ -1484,11 +1485,11 @@ public record R
                 default,
                 null);
 
-            var member = compilation1.GetMember<SynthesizedRecordPrintMembers>("R.PrintMembers");
-            var other = matcher.MapDefinition(member.GetCciAdapter());
-            Assert.NotNull(other);
-        }
+            var member0 = compilation0.GetMember<SourceOrdinaryMethodSymbol>("R.PrintMembers");
+            var member1 = compilation1.GetMember<SynthesizedRecordPrintMembers>("R.PrintMembers");
 
+            Assert.Equal(member0, (MethodSymbol)matcher.MapDefinition(member1.GetCciAdapter()).GetInternalSymbol());
+        }
 
         [Fact]
         public void Record_ImplementSynthesizedMember_Property()
@@ -1511,9 +1512,10 @@ public record R(int X)
                 default,
                 null);
 
-            var member = compilation1.GetMember<SourcePropertySymbol>("R.X");
-            var other = matcher.MapDefinition(member.GetCciAdapter());
-            Assert.NotNull(other);
+            var member0 = compilation0.GetMember<SynthesizedRecordPropertySymbol>("R.X");
+            var member1 = compilation1.GetMember<SourcePropertySymbol>("R.X");
+
+            Assert.Equal(member0, (PropertySymbol)matcher.MapDefinition(member1.GetCciAdapter()).GetInternalSymbol());
         }
 
         [Fact]
