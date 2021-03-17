@@ -234,7 +234,7 @@
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "4.0.*",
       "packageFeeds": "default",
-      "channels": [ "dev17.0", "dev17.0p1" ],
+      "channels": [ ],
       "vsBranch": "feature/d17initial",
       "vsMajorVersion": 17
     },
