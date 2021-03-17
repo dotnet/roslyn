@@ -10504,7 +10504,7 @@ public class Program
         }
 
         [Fact]
-        public void Records_AddAndRemoveWellKnownMembers()
+        public void Records_AddWellKnownMember()
         {
             var source0 =
 @"
@@ -10512,10 +10512,6 @@ namespace N
 {
     record R(int X)
     {
-        public override string ToString()
-        {
-            return ""R"";
-        }
     }
 }
 ";
@@ -10523,8 +10519,12 @@ namespace N
 @"
 namespace N
 {
-    record R(int X, int Y)
+    record R(int X)
     {
+        protected virtual bool PrintMembers(System.Text.StringBuilder sb)
+        {
+            return true;
+        }
     }
 }
 ";
@@ -10532,8 +10532,8 @@ namespace N
             var compilation0 = CreateCompilation(new[] { source0, IsExternalInitTypeDefinition }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(new[] { source1, IsExternalInitTypeDefinition });
 
-            var toString0 = compilation0.GetMember<MethodSymbol>("N.R.ToString");
-            var toString1 = compilation1.GetMember<MethodSymbol>("N.R.ToString");
+            var printMembers0 = compilation0.GetMember<MethodSymbol>("N.R.PrintMembers");
+            var printMembers1 = compilation1.GetMember<MethodSymbol>("N.R.PrintMembers");
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -10544,7 +10544,57 @@ namespace N
             var diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, toString0, toString1)));
+                    SemanticEdit.Create(SemanticEditKind.Update, printMembers0, printMembers1)));
+
+            diff1.VerifySynthesizedMembers(
+                "<global namespace>: {Microsoft}",
+                "Microsoft: {CodeAnalysis}",
+                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
+                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}");
+        }
+
+        [Fact]
+        public void Records_RemoveWellKnownMember()
+        {
+            var source0 =
+@"
+namespace N
+{
+    record R(int X)
+    {
+        protected virtual bool PrintMembers(System.Text.StringBuilder sb)
+        {
+            return true;
+        }
+    }
+}
+";
+            var source1 =
+@"
+namespace N
+{
+    record R(int X)
+    {
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(new[] { source0, IsExternalInitTypeDefinition }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(new[] { source1, IsExternalInitTypeDefinition });
+
+            var method0 = compilation0.GetMember<MethodSymbol>("N.R.PrintMembers");
+            var method1 = compilation1.GetMember<MethodSymbol>("N.R.PrintMembers");
+
+            var v0 = CompileAndVerify(compilation0);
+
+            using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
 
             diff1.VerifySynthesizedMembers(
                 "<global namespace>: {Microsoft}",
