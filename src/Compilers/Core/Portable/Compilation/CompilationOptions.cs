@@ -243,6 +243,12 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public abstract NullableContextOptions NullableContextOptions { get; protected set; }
 
+        /// <summary>
+        /// Gets the output directory set for source generated files via /generatedfilesout command line switch.
+        /// </summary>
+        /// <remarks>
+        /// The value is null when source generated files are not written to disk.
+        /// </remarks>
         internal string? GeneratedFilesOutputDirectory { get; }
 
         /// <summary>

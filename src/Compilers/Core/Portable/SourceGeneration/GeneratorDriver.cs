@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis
                             ex = e;
                         }
 
-                        var path = GetDirectoryForGenerator(compilation, generator);
+                        var path = GetDirectoryForGenerator(compilation.Options.GeneratedFilesOutputDirectory, generator);
                         generatorState = ex is null
                                          ? new GeneratorState(generatorState.Info, ParseAdditionalSources(path, sourcesCollection.ToImmutableAndFree(), cancellationToken))
                                          : SetGeneratorException(MessageProvider, generatorState, generator, ex, diagnosticsBag, isInit: true);
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis
 
                 (var sources, var diagnostics) = context.ToImmutableAndFree();
 
-                var path = GetDirectoryForGenerator(compilation, generator);
+                var path = GetDirectoryForGenerator(compilation.Options.GeneratedFilesOutputDirectory, generator);
 
                 stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, ParseAdditionalSources(path, sources, cancellationToken), diagnostics);
                 diagnosticsBag?.AddRange(diagnostics);
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis
 
                     // update the state with the new edits
                     var additionalSources = previousSources.ToImmutableAndFree();
-                    var path = GetDirectoryForGenerator(compilation, generator);
+                    var path = GetDirectoryForGenerator(compilation.Options.GeneratedFilesOutputDirectory, generator);
                     state = state.With(generatorStates: state.GeneratorStates.SetItem(i, new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatedTrees: ParseAdditionalSources(path, additionalSources, cancellationToken), diagnostics: ImmutableArray<Diagnostic>.Empty)));
                 }
             }
@@ -441,9 +441,9 @@ namespace Microsoft.CodeAnalysis
             return new GeneratorState(generatorState.Info, e, diagnostic);
         }
 
-        private static string GetDirectoryForGenerator(Compilation compilation, ISourceGenerator generator)
+        private static string GetDirectoryForGenerator(string? outputDirectory, ISourceGenerator generator)
         {
-            var outputDirectory = compilation.Options.GeneratedFilesOutputDirectory;
+            Debug.Assert(outputDirectory is not null);
             var prefix = GetFilePathPrefixForGenerator(generator);
             return outputDirectory is null
                     ? prefix
