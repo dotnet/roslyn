@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Version toolAssemblyVersion,
             CultureInfo culture)
         {
-            return new SarifV2ErrorLogger(stream, toolName, toolFileVersion, toolAssemblyVersion, culture);
+            return new SarifV2ErrorLogger(stream, toolName, toolFileVersion, toolAssemblyVersion, culture, generatedFilesOutputDirectory: null);
         }
 
         protected override string ExpectedOutputForAdditionalLocationsAsRelatedLocations =>
