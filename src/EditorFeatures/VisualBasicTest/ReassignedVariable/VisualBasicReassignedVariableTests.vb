@@ -115,6 +115,60 @@ End Class")
         End Function
 
         <Fact>
+        Public Async Function TestEventAddWithAssignmentToValue() As Task
+            Await TestAsync(
+"
+Imports System
+Class C
+    Custom Event Goo As Action
+        AddHandler([|value|] As Action)
+            [|value|] = Nothing
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent
+        End RaiseEvent
+    End Event
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestEventRemoveWithAssignmentToValue() As Task
+            Await TestAsync(
+"
+Imports System
+Class C
+    Custom Event Goo As Action
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler([|value|] As Action)
+            [|value|] = Nothing
+        End RemoveHandler
+        RaiseEvent
+        End RaiseEvent
+    End Event
+End Class")
+        End Function
+
+        <Fact>
+        Public Async Function TestEventRaiseWithAssignmentToValue() As Task
+            Await TestAsync(
+"
+Imports System
+Class C
+    Custom Event Goo As EventHandler
+        AddHandler(value As EventHandler)
+        End AddHandler
+        RemoveHandler(value As EventHandler)
+        End RemoveHandler
+        RaiseEvent([|sender|] As Object, e As EventArgs)
+            [|sender|] = Nothing
+        End RaiseEvent
+    End Event
+End Class")
+        End Function
+
+        <Fact>
         Public Async Function TestLambdaParameterWithoutReassignment() As Task
             Await TestAsync(
 "
