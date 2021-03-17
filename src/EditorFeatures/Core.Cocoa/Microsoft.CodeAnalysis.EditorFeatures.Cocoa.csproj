@@ -13,6 +13,7 @@
   <ItemGroup>
     <Compile Include="..\Core.Wpf\ExternalAccess\VSTypeScript\**\*.cs" LinkBase="ExternalAccess\VSTypeScript" />
     <Compile Include="..\Core.Wpf\InlineRename\**\*.cs" Exclude="..\Core.Wpf\InlineRename\Dashboard\**\*.cs" LinkBase="InlineRename" />
+    <Compile Include="..\Core.Wpf\NavigableSymbols\**\*.cs" LinkBase="NavigableSymbols" />
     <Compile Include="..\Core.Wpf\SignatureHelp\**\*.cs" LinkBase="SignatureHelp" />
     <Compile Include="..\Core.Wpf\Suggestions\**\*.cs" LinkBase="Suggestions" />
     <Compile Include="..\Core.Wpf\IDebuggerTextView2.cs" Link="IDebuggerTextView2.cs" />
@@ -38,6 +39,14 @@
 
     <PackageReference Include="XamarinMac" Version="$(XamarinMacVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+      Mono doesn't support embedded interop types, and this package has a targets file that turns it on for all VS SDK librarys, and
+      the package ends up being transitively brought in. To combat this for Mac, we can explictly include the package and exclude
+      its assets so its targets file is not used.
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" ExcludeAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

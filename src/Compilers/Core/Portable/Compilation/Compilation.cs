@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the syntax trees (parsed from source code) that this compilation was created with.
         /// </summary>
         public IEnumerable<SyntaxTree> SyntaxTrees { get { return CommonSyntaxTrees; } }
-        protected abstract IEnumerable<SyntaxTree> CommonSyntaxTrees { get; }
+        protected abstract ImmutableArray<SyntaxTree> CommonSyntaxTrees { get; }
 
         /// <summary>
         /// Creates a new compilation with additional syntax trees.
@@ -934,7 +934,7 @@ namespace Microsoft.CodeAnalysis
         [Conditional("DEBUG")]
         private void AssertNoScriptTrees()
         {
-            foreach (var tree in this.SyntaxTrees)
+            foreach (var tree in this.CommonSyntaxTrees)
             {
                 Debug.Assert(tree.Options.Kind != SourceCodeKind.Script);
             }
@@ -2167,7 +2167,7 @@ namespace Microsoft.CodeAnalysis
         {
             // Check that all syntax trees are debuggable:
             bool allTreesDebuggable = true;
-            foreach (var tree in SyntaxTrees)
+            foreach (var tree in CommonSyntaxTrees)
             {
                 if (!string.IsNullOrEmpty(tree.FilePath) && tree.GetText().Encoding == null)
                 {
@@ -2203,7 +2203,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // Add debug documents for all trees with distinct paths.
-            foreach (var tree in SyntaxTrees)
+            foreach (var tree in CommonSyntaxTrees)
             {
                 if (!string.IsNullOrEmpty(tree.FilePath))
                 {
@@ -2225,7 +2225,7 @@ namespace Microsoft.CodeAnalysis
             // If there are clashes with already processed directives, report warnings.
             // If there are clashes with debug documents that came from actual trees, ignore the pragma.
             // Therefore we need to add these in a separate pass after documents for syntax trees were added.
-            foreach (var tree in SyntaxTrees)
+            foreach (var tree in CommonSyntaxTrees)
             {
                 AddDebugSourceDocumentsForChecksumDirectives(documentsBuilder, tree, diagnostics);
             }
@@ -3076,17 +3076,17 @@ namespace Microsoft.CodeAnalysis
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethods,
             DiagnosticBag diagnostics,
-            Func<ISymWriterMetadataProvider, SymUnmanagedWriter> testSymWriterFactory,
-            string pdbFilePath,
+            Func<ISymWriterMetadataProvider, SymUnmanagedWriter>? testSymWriterFactory,
+            string? pdbFilePath,
             CancellationToken cancellationToken)
         {
-            var nativePdbWriterOpt = (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
+            var nativePdbWriter = (moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.Pdb) ? null :
                 new Cci.PdbWriter(
                     pdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"),
                     testSymWriterFactory,
                     hashAlgorithmNameOpt: default);
 
-            using (nativePdbWriterOpt)
+            using (nativePdbWriter)
             {
                 var context = new EmitContext(moduleBeingBuilt, null, diagnostics, metadataOnly: false, includePrivateMembers: true);
                 var encId = Guid.NewGuid();
@@ -3103,16 +3103,16 @@ namespace Microsoft.CodeAnalysis
                         cancellationToken);
 
                     writer.WriteMetadataAndIL(
-                        nativePdbWriterOpt,
+                        nativePdbWriter,
                         metadataStream,
                         ilStream,
-                        (nativePdbWriterOpt == null) ? pdbStream : null,
+                        (nativePdbWriter == null) ? pdbStream : null,
                         pdbOptionsBlobReader: null,
                         out MetadataSizes metadataSizes);
 
                     writer.GetMethodTokens(updatedMethods);
 
-                    nativePdbWriterOpt?.WriteTo(pdbStream);
+                    nativePdbWriter?.WriteTo(pdbStream);
 
                     return diagnostics.HasAnyErrors() ? null : writer.GetDelta(baseline, this, encId, metadataSizes);
                 }

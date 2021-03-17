@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -36,9 +35,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         {
             var document = spanToTag.Document;
             if (document == null)
-            {
                 return;
-            }
+
+            // Don't block getting classifications on building the full compilation.  This may take a significant amount
+            // of time and can cause a very latency sensitive operation (copying) to block the user while we wait on this
+            // work to happen.  
+            //
+            // It's also a better experience to get classifications to the user faster versus waiting a potentially
+            // large amount of time waiting for all the compilation information to be built.  For example, we can
+            // classify types that we've parsed in other files, or partially loaded from metadata, even if we're still
+            // parsing/loading.  For cross language projects, this also produces semantic classifications more quickly
+            // as we do not have to wait on skeletons to be built.
+
+            document = document.WithFrozenPartialSemantics(context.CancellationToken);
+            spanToTag = new DocumentSnapshotSpan(document, spanToTag.SnapshotSpan);
 
             var classified = await TryClassifyContainingMemberSpanAsync(
                     context, spanToTag, classificationService, typeMap).ConfigureAwait(false);

@@ -137,7 +137,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The key is a symbol for methods or parameters, and syntax for attributes.
         /// The data is collected during testing only.
         /// </summary>
-        internal ConcurrentDictionary<object, NullableWalker.Data>? NullableAnalysisData;
+        internal NullableData? NullableAnalysisData;
+
+        internal sealed class NullableData
+        {
+            internal readonly int MaxRecursionDepth;
+            internal readonly ConcurrentDictionary<object, NullableWalker.Data> Data;
+
+            internal NullableData(int maxRecursionDepth = -1)
+            {
+                MaxRecursionDepth = maxRecursionDepth;
+                Data = new ConcurrentDictionary<object, NullableWalker.Data>();
+            }
+        }
 
         public override string Language
         {
@@ -757,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Is there a trailing expression?
-            var lastGlobalStatement = (GlobalStatementSyntax)root.Members.LastOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement));
+            var lastGlobalStatement = (GlobalStatementSyntax?)root.Members.LastOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement));
             if (lastGlobalStatement != null)
             {
                 var statement = lastGlobalStatement.Statement;
@@ -3384,7 +3396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
-        protected override IEnumerable<SyntaxTree> CommonSyntaxTrees
+        protected override ImmutableArray<SyntaxTree> CommonSyntaxTrees
         {
             get
             {

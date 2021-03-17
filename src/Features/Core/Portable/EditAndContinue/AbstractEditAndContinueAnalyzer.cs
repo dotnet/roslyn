@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 SyntaxNode oldRoot;
                 SourceText oldText;
 
-                var oldDocument = oldProject.GetDocument(newDocument.Id);
+                var oldDocument = await oldProject.GetDocumentAsync(newDocument.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 if (oldDocument != null)
                 {
                     oldTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

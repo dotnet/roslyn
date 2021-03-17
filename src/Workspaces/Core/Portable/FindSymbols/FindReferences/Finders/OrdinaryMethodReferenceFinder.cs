@@ -20,31 +20,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol.MethodKind == MethodKind.LocalFunction;
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IMethodSymbol symbol,
             Solution solution,
             IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             // If it's a delegate method, then cascade to the type as well.  These guys are
             // practically equivalent for users.
             if (symbol.ContainingType.TypeKind == TypeKind.Delegate)
             {
-                return ImmutableArray.Create<ISymbol>(symbol.ContainingType);
+                return ImmutableArray.Create(((ISymbol)symbol.ContainingType, cascadeDirection));
             }
             else
             {
                 var otherPartsOfPartial = GetOtherPartsOfPartial(symbol);
                 var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(
-                    symbol, solution, projects, options, cancellationToken).ConfigureAwait(false);
+                    symbol, solution, projects, options, cascadeDirection, cancellationToken).ConfigureAwait(false);
 
                 if (otherPartsOfPartial == null && baseCascadedSymbols == null)
-                {
-                    return ImmutableArray<ISymbol>.Empty;
-                }
+                    return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
 
-                return otherPartsOfPartial.Concat(baseCascadedSymbols);
+                return otherPartsOfPartial.SelectAsArray(m => (m, cascadeDirection)).Concat(baseCascadedSymbols);
             }
         }
 
