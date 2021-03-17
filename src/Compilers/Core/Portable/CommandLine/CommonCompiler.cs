@@ -659,11 +659,11 @@ namespace Microsoft.CodeAnalysis
 
                 if (Arguments.ErrorLogOptions.SarifVersion == SarifVersion.Sarif1)
                 {
-                    logger = new SarifV1ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture);
+                    logger = new SarifV1ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture, Arguments.GeneratedFilesOutputDirectory);
                 }
                 else
                 {
-                    logger = new SarifV2ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture);
+                    logger = new SarifV2ErrorLogger(errorLog, toolName, compilerVersion, assemblyVersion, Culture, Arguments.GeneratedFilesOutputDirectory);
                 }
             }
 

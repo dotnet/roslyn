@@ -336,8 +336,7 @@ public struct StructWithValue
                 referencesSupersedeLowerVersions: false,
                 publicSign: false,
                 topLevelBinderFlags: BinderFlags.None,
-                nullableContextOptions: NullableContextOptions.Enable,
-                generatedFilesOutputDirectory: null);
+                nullableContextOptions: NullableContextOptions.Enable);
 
             yield return defaultOptions;
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);

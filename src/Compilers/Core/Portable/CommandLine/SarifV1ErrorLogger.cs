@@ -27,10 +27,13 @@ namespace Microsoft.CodeAnalysis
     internal sealed class SarifV1ErrorLogger : SarifErrorLogger, IDisposable
     {
         private readonly DiagnosticDescriptorSet _descriptors;
-        public SarifV1ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
+        private readonly string? _generatedFilesOutputDirectory;
+
+        public SarifV1ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture, string? generatedFilesOutputDirectory)
             : base(stream, culture)
         {
             _descriptors = new DiagnosticDescriptorSet();
+            _generatedFilesOutputDirectory = generatedFilesOutputDirectory;
 
             _writer.WriteObjectStart(); // root
             _writer.Write("$schema", "http://json.schemastore.org/sarif-1.0.0");

@@ -244,14 +244,6 @@ namespace Microsoft.CodeAnalysis
         public abstract NullableContextOptions NullableContextOptions { get; protected set; }
 
         /// <summary>
-        /// Gets the output directory set for source generated files via /generatedfilesout command line switch.
-        /// </summary>
-        /// <remarks>
-        /// The value is null when source generated files are not written to disk.
-        /// </remarks>
-        internal string? GeneratedFilesOutputDirectory { get; }
-
-        /// <summary>
         /// A set of strings designating experimental compiler features that are to be enabled.
         /// </summary>
         [Obsolete]
@@ -298,8 +290,7 @@ namespace Microsoft.CodeAnalysis
             AssemblyIdentityComparer? assemblyIdentityComparer,
             StrongNameProvider? strongNameProvider,
             MetadataImportOptions metadataImportOptions,
-            bool referencesSupersedeLowerVersions,
-            string? generatedFilesOutputDirectory)
+            bool referencesSupersedeLowerVersions)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -329,7 +320,6 @@ namespace Microsoft.CodeAnalysis
             this.MetadataImportOptions = metadataImportOptions;
             this.ReferencesSupersedeLowerVersions = referencesSupersedeLowerVersions;
             this.PublicSign = publicSign;
-            this.GeneratedFilesOutputDirectory = generatedFilesOutputDirectory;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {

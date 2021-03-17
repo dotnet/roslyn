@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis
             _toolName = toolName;
             _toolFileVersion = toolFileVersion;
             _toolAssemblyVersion = toolAssemblyVersion;
+            _generatedFilesOutputDirectory = generatedFilesOutputDirectory;
 
             _writer.WriteObjectStart(); // root
             _writer.Write("$schema", "http://json.schemastore.org/sarif-2.1.0");
