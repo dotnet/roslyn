@@ -1118,8 +1118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 .OfType<IMethodSymbol>()
                 .SingleOrDefault(m =>
                     m.Parameters.Length == 1 &&
-                    SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, compilation.GetTypeByMetadataName(typeof(StringBuilder).FullName)) &&
-                    SymbolEqualityComparer.Default.Equals(m.ReturnType, compilation.GetTypeByMetadataName(typeof(bool).FullName)) &&
+                    SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, compilation.GetTypeByMetadataName(typeof(StringBuilder).FullName!)) &&
+                    SymbolEqualityComparer.Default.Equals(m.ReturnType, compilation.GetTypeByMetadataName(typeof(bool).FullName!)) &&
                     m.IsImplicitlyDeclared);
 
             yield return record.GetMembers(WellKnownMemberNames.ObjectEquals)
