@@ -1620,6 +1620,37 @@ public abstract record C<T>
         }
 
         [Fact]
+        public void Record_AddProperty_NotPrimary_WithConstructor()
+        {
+            var src1 = @"record C(int X)
+{
+    public C(string fromAString)
+    {
+    }
+}";
+            var src2 = @"record C(int X)
+{
+    public int Y { get; set; }
+
+    public C(string fromAString)
+    {
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
         public void Record_AddProperty_NotPrimary_WithExplicitMembers()
         {
             var src1 = @"record C(int X)
