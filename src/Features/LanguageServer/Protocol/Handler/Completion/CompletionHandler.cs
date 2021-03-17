@@ -218,8 +218,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var completionItem = new TCompletionItem
                 {
                     Label = completeDisplayText,
-                    SortText = item.SortText,
-                    FilterText = item.FilterText,
+                    SortText = (item.SortText != completeDisplayText) ? item.SortText : null,
+                    FilterText = (item.FilterText != completeDisplayText) ? item.FilterText : null,
                     Kind = GetCompletionKind(item.Tags),
                     Data = new CompletionResolveData
                     {
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // If the feature flag is off, return an InsertText.
                 else
                 {
-                    completionItem.InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText;
+                    completionItem.InsertText = GetInsertText(item, completeDisplayText);
                 }
 
                 var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache);
@@ -293,6 +293,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
+            static string? GetInsertText(CompletionItem item, string label)
+            {
+                return (item.Properties.TryGetValue("InsertionText", out var insertText) && insertText != label)
+                    ? insertText
+                    : null;
+            }
+
             static string[]? GetCommitCharacters(CompletionItem item, Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>> currentRuleCache)
             {
                 var commitCharacterRules = item.Rules.CommitCharacterRules;
@@ -305,6 +312,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                 if (currentRuleCache.TryGetValue(commitCharacterRules, out var currentRules))
                 {
+                    // The item only had default characters, so we don't need to send them.
+                    if (currentRules.IsEmpty)
+                    {
+                        return null;
+                    }
+
                     return currentRules.ToArray();
                 }
 
@@ -325,6 +338,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                             commitCharacters.AddRange(rule.Characters);
                             break;
                     }
+                }
+
+                if (commitCharacters.SetEquals(CompletionRules.Default.DefaultCommitCharacters))
+                {
+                    // Cache that we only had the default characters to avoid checking again.
+                    currentRuleCache.Add(item.Rules.CommitCharacterRules, ImmutableArray<string>.Empty);
+                    return null;
                 }
 
                 var commitCharacterSet = commitCharacters.Select(c => c.ToString()).ToImmutableArray();

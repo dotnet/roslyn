@@ -258,9 +258,9 @@ namespace Roslyn.Test.Utilities
             {
                 TextEdit = textEdit,
                 InsertText = insertText,
-                FilterText = filterText ?? label,
+                FilterText = filterText,
                 Label = label,
-                SortText = sortText ?? label,
+                SortText = sortText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
                 Data = JObject.FromObject(new CompletionResolveData()
