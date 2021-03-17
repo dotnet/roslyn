@@ -5,8 +5,13 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.GoToBase;
+using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolMapping;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
@@ -32,72 +37,109 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var lines = sourceText.Lines;
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
             using var _ = ArrayBuilder<InheritanceMemberItem>.GetInstance(out var builder);
 
             foreach (var memberDeclarationNode in allDeclarationNodes)
             {
                 var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
-                if (member != null && !member.IsErrorType())
+                if (member != null && !member.IsStatic && !member.IsErrorType())
                 {
-                    var mappingSymbolAndProject = await GetMappingSymbolAsync(
-                        document,
-                        member,
-                        cancellationToken).ConfigureAwait(false);
-
-                    if (mappingSymbolAndProject != null)
+                    var mappingResult = await mappingService.MapSymbolAsync(document, member, cancellationToken).ConfigureAwait(false);
+                    if (mappingResult != null)
                     {
-                        if (member is INamedTypeSymbol namedTypeSymbol)
+                        if (mappingResult.Symbol is INamedTypeSymbol namedTypeSymbol)
                         {
-                            var baseTypes = GetImplementingSymbols(namedTypeSymbol);
-                            var derivedTypes = await GetImplementedSymbolsAsync(
-                                document,
-                                namedTypeSymbol,
-                                cancellationToken).ConfigureAwait(false);
-                            if (!(baseTypes.IsEmpty && derivedTypes.IsEmpty))
-                            {
-                                var lineNumber = lines.GetLineFromPosition(memberDeclarationNode.SpanStart).LineNumber;
-                                var item = await CreateInheritanceMemberInfoAsync(
-                                    document,
-                                    namedTypeSymbol,
-                                    lineNumber,
-                                    baseSymbols: baseTypes,
-                                    derivedTypesSymbols: derivedTypes,
-                                    cancellationToken).ConfigureAwait(false);
-                                builder.Add(item);
-                            }
+                            await AddInheritanceMemberItemsForNamedTypeAsync(
+                                mappingResult.Project.Solution,
+                                sourceText,
+                                memberDeclarationNode,
+                                namedTypeSymbol, builder, cancellationToken).ConfigureAwait(false);
                         }
 
-                        if (member is IMethodSymbol or IEventSymbol or IPropertySymbol)
+                        if (mappingResult.Symbol is IEventSymbol or IPropertySymbol || mappingResult.Symbol.IsOrdinaryMethod())
                         {
-                            var overridenSymbols = await GetOverridenSymbolsAsync(document, member, cancellationToken).ConfigureAwait(false);
-                            var overridingMembers = GetOverridingSymbols(member);
-                            var implementedMembers = await GetImplementedSymbolsAsync(document, member, cancellationToken).ConfigureAwait(false);
-                            var implementingMembers = GetImplementingSymbols(member);
-                            if (!(overridenSymbols.IsEmpty
-                                && !overridingMembers.IsEmpty
-                                && !implementingMembers.IsEmpty
-                                && !implementedMembers.IsEmpty))
-                            {
-                                var lineNumber = lines.GetLineFromPosition(memberDeclarationNode.SpanStart).LineNumber;
-                                var item = await CreateInheritanceMemberInfoForMemberAsync(
-                                    document,
-                                    member,
-                                    lineNumber,
-                                    implementingMembers: implementingMembers,
-                                    implementedMembers: implementedMembers,
-                                    overridenMembers: overridenSymbols,
-                                    overridingMembers: overridingMembers,
-                                    cancellationToken).ConfigureAwait(false);
-                                builder.Add(item);
-                            }
+                            await AddInheritanceMemberItemsForTypeMembersAsync(
+                                mappingResult.Project.Solution,
+                                sourceText,
+                                memberDeclarationNode,
+                                mappingResult.Symbol,
+                                builder,
+                                cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
             }
 
             return builder.ToImmutable();
+        }
+
+        private static async Task AddInheritanceMemberItemsForNamedTypeAsync(
+            Solution solution,
+            SourceText sourceText,
+            SyntaxNode declarationNode,
+            INamedTypeSymbol memberSymbol,
+            ArrayBuilder<InheritanceMemberItem> builder,
+            CancellationToken cancellationToken)
+        {
+            var allBaseTypes = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
+
+            // Filter out System.Object. (otherwise margin would be shown for all classes)
+            var baseTypes = allBaseTypes
+                .WhereAsArray(type =>
+                    !(type is ITypeSymbol { SpecialType: SpecialType.System_Object }));
+
+            var derivedTypes = await GetDerivedTypesAndImplementationsAsync(
+                solution,
+                memberSymbol,
+                cancellationToken).ConfigureAwait(false);
+
+            if (!(baseTypes.IsEmpty && derivedTypes.IsEmpty))
+            {
+                var lineNumber = sourceText.Lines.GetLineFromPosition(declarationNode.SpanStart).LineNumber;
+                var item = await CreateInheritanceMemberInfoAsync(
+                    solution,
+                    memberSymbol,
+                    lineNumber,
+                    baseSymbols: baseTypes,
+                    derivedTypesSymbols: derivedTypes.OfType<ISymbol>().ToImmutableArray(),
+                    cancellationToken).ConfigureAwait(false);
+                builder.Add(item);
+            }
+        }
+
+        private static async Task AddInheritanceMemberItemsForTypeMembersAsync(
+            Solution solution,
+            SourceText sourceText,
+            SyntaxNode declarationNode,
+            ISymbol memberSymbol,
+            ArrayBuilder<InheritanceMemberItem> builder,
+            CancellationToken cancellationToken)
+        {
+            var overridenMembers = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var implementingMembers = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
+
+            var overridingMembers = GetOverridingSymbols(memberSymbol);
+            var implementedMembers = await GetImplementedSymbolsAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
+
+            if (!(overridenMembers.IsEmpty
+                && !overridingMembers.IsEmpty
+                && !implementingMembers.IsEmpty
+                && !implementedMembers.IsEmpty))
+            {
+                var lineNumber = sourceText.Lines.GetLineFromPosition(declarationNode.SpanStart).LineNumber;
+                var item = await CreateInheritanceMemberInfoForMemberAsync(
+                    solution,
+                    memberSymbol,
+                    lineNumber,
+                    implementingMembers: implementingMembers,
+                    implementedMembers: implementedMembers,
+                    overridenMembers: overridenMembers,
+                    overridingMembers: overridingMembers,
+                    cancellationToken).ConfigureAwait(false);
+                builder.Add(item);
+            }
         }
 
         /// <summary>

@@ -3,14 +3,22 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InheritanceMargin
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
 
+    <ExportLanguageService(GetType(IInheritanceMarginService), LanguageNames.VisualBasic), [Shared]>
     Friend Class InheritanceMarginService
         Inherits AbstractInheritanceMarginService
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function GetMembers(root As SyntaxNode) As ImmutableArray(Of SyntaxNode)
             Dim typeStatementNodes = root.DescendantNodes().OfType(Of TypeBlockSyntax)

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
@@ -19,12 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
     [UseExportProvider]
     public class InheritanceMarginTests
     {
-        private const string Interface = TextTags.Interface;
-        private const string Class = TextTags.Class;
-        private const string Method = TextTags.Method;
-        private const string Property = TextTags.Property;
-        private const string Event = TextTags.Event;
-
         #region Helpers
         private static async Task VerifyInSingleDocumentAsync(
             string markup,
@@ -70,8 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private static void VerifyInheritanceMember(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMemberItem actualItem)
         {
             Assert.Equal(expectedItem.LineNumber, actualItem.LineNumber);
-            Assert.Equal(expectedItem.MemberName, actualItem.MemberDescription.Text);
-            Assert.Equal(expectedItem.MemberSymbolKind, actualItem.MemberDescription.Tag);
+            Assert.Equal(expectedItem.MemberName, actualItem.MemberDisplayName);
             Assert.Equal(expectedItem.Targets.Length, actualItem.TargetItems.Length);
             var expectedTargets = expectedItem.Targets
                 .SelectAsArray(info => TestInheritanceTargetItem.Create(info, testWorkspace));
@@ -83,8 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 
         private static void VerifyInheritanceTarget(TestInheritanceTargetItem expectedTarget, InheritanceTargetItem actualTarget)
         {
-            Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.TargetDescription.Text);
-            Assert.Equal(expectedTarget.TargetSymbolKind, actualTarget.TargetDescription.Tag);
+            Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.DefinitionItem.DisplayParts.JoinText());
             Assert.Equal(expectedTarget.RelationshipToMember, actualTarget.RelationToMember);
 
             var actualDocumentSpans = actualTarget.DefinitionItem.SourceSpans.OrderBy(documentSpan => documentSpan.SourceSpan.Start).ToImmutableArray();
@@ -100,18 +91,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private readonly struct TestInheritanceMemberItem
         {
             public readonly int LineNumber;
-            public readonly string MemberSymbolKind;
             public readonly string MemberName;
             public readonly ImmutableArray<TargetInfo> Targets;
 
             public TestInheritanceMemberItem(
                 int lineNumber,
-                string memberSymbolKind,
                 string memberName,
                 ImmutableArray<TargetInfo> targets)
             {
                 LineNumber = lineNumber;
-                MemberSymbolKind = memberSymbolKind;
                 MemberName = memberName;
                 Targets = targets;
             }
@@ -119,19 +107,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 
         private readonly struct TargetInfo
         {
-            public readonly string TargetSymbolName;
-            public readonly string TargetSymbolKind;
+            public readonly string TargetSymbolDisplayName;
             public readonly string LocationTag;
             public readonly InheritanceRelationship Relationship;
 
             public TargetInfo(
-                string targetSymbolName,
-                string targetSymbolKind,
+                string targetSymbolDisplayName,
                 string locationTag,
                 InheritanceRelationship relationship)
             {
-                TargetSymbolName = targetSymbolName;
-                TargetSymbolKind = targetSymbolKind;
+                TargetSymbolDisplayName = targetSymbolDisplayName;
                 LocationTag = locationTag;
                 Relationship = relationship;
             }
@@ -140,18 +125,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private readonly struct TestInheritanceTargetItem
         {
             public readonly string TargetSymbolName;
-            public readonly string TargetSymbolKind;
             public readonly InheritanceRelationship RelationshipToMember;
             public readonly ImmutableArray<DocumentSpan> DocumentSpans;
 
             private TestInheritanceTargetItem(
                 string targetSymbolName,
-                string targetSymbolKind,
                 InheritanceRelationship relationshipToMember,
                 ImmutableArray<DocumentSpan> documentSpans)
             {
                 TargetSymbolName = targetSymbolName;
-                TargetSymbolKind = targetSymbolKind;
                 RelationshipToMember = relationshipToMember;
                 DocumentSpans = documentSpans;
             }
@@ -172,18 +154,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 }
 
                 return new TestInheritanceTargetItem(
-                    targetInfo.TargetSymbolName,
-                    targetInfo.TargetSymbolKind,
+                    targetInfo.TargetSymbolDisplayName,
                     targetInfo.Relationship,
                     builder.ToImmutable());
             }
         }
+
         #endregion
 
         #region TestsForCSharp
 
         [Fact]
-        public async Task TestClassImplementingInterface()
+        public Task TestClassImplementingInterface()
         {
             var markup = @"
 interface {|target1:IBar|} { }
@@ -194,36 +176,33 @@ public class {|target2:Bar|} : IBar
 
             var itemOnLine2 = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberSymbolKind: Interface,
                 memberName: "IBar",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: "Bar",
-                        targetSymbolKind: Class,
+                        targetSymbolDisplayName: "class Bar",
                         locationTag: "target2",
                         relationship: InheritanceRelationship.Implemented))
                 );
+
             var itemOnLine3 = new TestInheritanceMemberItem(
                 lineNumber: 3,
-                memberSymbolKind: Class,
                 memberName: "Bar",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: "IBar",
-                        targetSymbolKind: Interface,
+                        targetSymbolDisplayName: "interface IBar",
                         locationTag: "target1",
                         relationship: InheritanceRelationship.Implementing))
                 );
 
-            await VerifyInSingleDocumentAsync(
+            return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
                 itemOnLine2,
-                itemOnLine3).ConfigureAwait(false);
+                itemOnLine3);
         }
 
         [Fact]
-        public async Task TestInterfaceImplemetingInterface()
+        public Task TestInterfaceImplemetingInterface()
         {
             var markup = @"
 interface {|target1:IBar|} { }
@@ -232,373 +211,278 @@ interface {|target2:IBar2|} : IBar { }
 
             var itemOnLine2 = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberSymbolKind: Interface,
                 memberName: "IBar",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: "Bar",
-                        targetSymbolKind: Class,
+                        targetSymbolDisplayName: "interface IBar2",
                         locationTag: "target2",
                         relationship: InheritanceRelationship.Implemented))
                 );
             var itemOnLine3 = new TestInheritanceMemberItem(
                 lineNumber: 3,
-                memberSymbolKind: Class,
-                memberName: "Bar",
+                memberName: "IBar2",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: "IBar",
-                        targetSymbolKind: Interface,
+                        targetSymbolDisplayName: "interface IBar",
                         locationTag: "target1",
                         relationship: InheritanceRelationship.Implementing))
                 );
 
-            await VerifyInSingleDocumentAsync(
+            return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
                 itemOnLine2,
-                itemOnLine3).ConfigureAwait(false);
+                itemOnLine3);
         }
 
         [Fact]
-        public async Task TestClassInheritsClass()
+        public Task TestClassInheritsClass()
         {
             var markup = @"
-class {target2:A} { }
-class {target1:B} : A { }
+class {|target2:A|} { }
+class {|target1:B|} : A { }
             ";
 
             var itemOnLine2 = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberSymbolKind: Class,
                 memberName: "A",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: "Bar",
-                        targetSymbolKind: Class,
-                        locationTag: "target2",
+                        targetSymbolDisplayName: "class B",
+                        locationTag: "target1",
                         relationship: InheritanceRelationship.Implemented))
             );
             var itemOnLine3 = new TestInheritanceMemberItem(
                 lineNumber: 3,
-                memberSymbolKind: Class,
                 memberName: "B",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: "A",
-                        targetSymbolKind: Class,
-                        locationTag: "target1",
+                        targetSymbolDisplayName: "class A",
+                        locationTag: "target2",
                         relationship: InheritanceRelationship.Implementing))
             );
 
-            await VerifyInSingleDocumentAsync(
+            return VerifyInSingleDocumentAsync(
                 markup,
                 LanguageNames.CSharp,
                 itemOnLine2,
-                itemOnLine3).ConfigureAwait(false);
+                itemOnLine3);
         }
 
-        [Theory]
-        [InlineData("void {|target4:Foo|}();", "public void {|target3:Foo|}() { }", "Foo", Method)]
-        [InlineData("int {|target4:Property|} { get; set; }", "public int {|target3:Property|} { get; set; }", "Property", Property)]
-        [InlineData("int {|target4:Property|} { get; }", "public int {|target3:Property|} { get; set; }", "Property", Property)]
-        [InlineData("int {|target4:Property|} { set; }", "public int {|target3:Property|} { get; set; }", "Property", Property)]
-        [InlineData("event EventHandler {target4:|e|};", "event EventHandler {target3:|e|}", "e", Event)]
-        public async Task TestSingleInterfaceMember(string interfaceDeclaration, string classDeclaration, string name, string memberKind)
+        [Fact]
+        public Task TestInterfaceMembers()
         {
-            var markupTemplate = @"using System;
+            var markup = @"using System;
 interface {|target1:IBar|}
 {
-    {0}
+    void {|target4:Foo|}();
+    int {|target6:Poo|} { get; set; }
+    event EventHandler {|target8:Eoo|};
 }
 public class {|target2:Bar|} : IBar
 {
-    {1}
-}
-            ";
+    public void {|target3:Foo|}() { }
+    public int {|target5:Poo|} { get; set; }
+    public event EventHandler {|target7:Eoo|};
+}";
 
-            var itemOnLine2 = new TestInheritanceMemberItem(
-                lineNumber: 2,
-                memberSymbolKind: Interface,
-                memberName: "IBar",
+            var itemForEooInClass = new TestInheritanceMemberItem(
+                lineNumber: 12,
+                memberName: "event EventHandler Bar.Eoo",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: "Bar",
-                        targetSymbolKind: Class,
-                        locationTag: "target2",
-                        relationship: InheritanceRelationship.Implemented))
+                        targetSymbolDisplayName: "event EventHandler IBar.Eoo",
+                        locationTag: "target8",
+                        relationship: InheritanceRelationship.Implementing))
                 );
 
-            var itemOnLine6 = new TestInheritanceMemberItem(
+            var itemForEooInInterface = new TestInheritanceMemberItem(
                 lineNumber: 6,
-                memberSymbolKind: Class,
-                memberName: "Bar",
+                memberName: "event EventHandler IBar.Eoo",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: "IBar",
-                        targetSymbolKind: Interface,
-                        locationTag: "target1",
-                        relationship: InheritanceRelationship.Implementing))
-                );
-
-            var itemOnLine4 = new TestInheritanceMemberItem(
-                lineNumber: 4,
-                memberSymbolKind: memberKind,
-                memberName: name,
-                targets: ImmutableArray<TargetInfo>.Empty
-                    .Add(new TargetInfo(
-                        targetSymbolName: name,
-                        targetSymbolKind: memberKind,
-                        locationTag: "target3",
+                        targetSymbolDisplayName: "event EventHandler Bar.Eoo",
+                        locationTag: "target7",
                         relationship: InheritanceRelationship.Implemented))
                 );
 
-            var itemOnLine8 = new TestInheritanceMemberItem(
-                lineNumber: 8,
-                memberSymbolKind: memberKind,
-                memberName: name,
+            var itemForPooInInterface = new TestInheritanceMemberItem(
+                lineNumber: 5,
+                memberName: "int IBar.Poo",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: name,
-                        targetSymbolKind: memberKind,
-                        locationTag: "target4",
-                        relationship: InheritanceRelationship.Implementing))
-                );
-
-            await VerifyInSingleDocumentAsync(
-                string.Format(markupTemplate, interfaceDeclaration, classDeclaration),
-                LanguageNames.CSharp,
-                itemOnLine2,
-                itemOnLine6,
-                itemOnLine4,
-                itemOnLine8).ConfigureAwait(false);
-        }
-
-        [Theory]
-        [InlineData("public abstract void {|target4:Foo|}();", "public override void {|target3:Foo|}() { }", "Foo", Method)]
-        [InlineData("public abstract int {|target4:Property|} { get; set; }", "public override int {|target3:Property|} { get; set; }", "Property", Property)]
-        [InlineData("public abstract int {|target4:Property|} { get; }", "public override int |target3:Property|} { get; set; }", "Property", Property)]
-        [InlineData("public abstract int {|target4:Property|} { set; }", "public override int {|target3:Property|} { get; set; }", "Property", Property)]
-        [InlineData("public abstract event EventHandler {target4:|e|};", "public override event EventHandler {target3:|e|}", "e", Event)]
-        [InlineData("public virtual void {|target4:Foo|}();", "public override void {|target3:Foo|}() { }", "Foo", Method)]
-        [InlineData("public virtual int {|target4:Property|} { get; set; }", "public override int {|target3:Property|} { get; set; }", "Property", Property)]
-        [InlineData("public virtual int {|target4:Property|} { get; }", "public override int |target3:Property|} { get; set; }", "Property", Property)]
-        [InlineData("public virtual int {|target4:Property|} { set; }", "public override int {|target3:Property|} { get; set; }", "Property", Property)]
-        [InlineData("public virtual event EventHandler {target4:|e|};", "public override event EventHandler {target3:|e|}", "e", Event)]
-        public async Task TestAbstractClass(string interfaceDeclaration, string classDeclaration, string name, string memberKind)
-        {
-            var markupTemplate = @"using System;
-public abstract class {|target2:Bar|}
-{
-    {0}
-}
-public class {|target1:Bar2|} : Bar
-{
-    {1}
-}
-            ";
-
-            var itemOnLine2 = new TestInheritanceMemberItem(
-                lineNumber: 2,
-                memberSymbolKind: Class,
-                memberName: "Bar",
-                targets: ImmutableArray<TargetInfo>.Empty
-                    .Add(new TargetInfo(
-                        targetSymbolName: "Bar2",
-                        targetSymbolKind: Class,
-                        locationTag: "target1",
-                        relationship: InheritanceRelationship.Overriden))
-                );
-
-            var itemOnLine6 = new TestInheritanceMemberItem(
-                lineNumber: 6,
-                memberSymbolKind: Class,
-                memberName: "Bar2",
-                targets: ImmutableArray<TargetInfo>.Empty
-                    .Add(new TargetInfo(
-                        targetSymbolName: "Bar",
-                        targetSymbolKind: Class,
-                        locationTag: "target2",
-                        relationship: InheritanceRelationship.Overriding))
-                );
-
-            var itemOnLine4 = new TestInheritanceMemberItem(
-                lineNumber: 4,
-                memberSymbolKind: memberKind,
-                memberName: name,
-                targets: ImmutableArray<TargetInfo>.Empty
-                    .Add(new TargetInfo(
-                        targetSymbolName: name,
-                        targetSymbolKind: memberKind,
-                        locationTag: "target3",
-                        relationship: InheritanceRelationship.Implemented))
-                );
-
-            var itemOnLine8 = new TestInheritanceMemberItem(
-                lineNumber: 8,
-                memberSymbolKind: memberKind,
-                memberName: name,
-                targets: ImmutableArray<TargetInfo>.Empty
-                    .Add(new TargetInfo(
-                        targetSymbolName: name,
-                        targetSymbolKind: memberKind,
-                        locationTag: "target4",
-                        relationship: InheritanceRelationship.Implementing))
-                );
-
-            await VerifyInSingleDocumentAsync(
-                string.Format(markupTemplate, interfaceDeclaration, classDeclaration),
-                LanguageNames.CSharp,
-                itemOnLine2,
-                itemOnLine6,
-                itemOnLine4,
-                itemOnLine8).ConfigureAwait(false);
-        }
-
-        [Theory]
-        [InlineData("void {|target4:Foo|}();", "public virtual void {|target5:Foo|}() { }", "public override void {|target6:Foo|}() { }", "Foo", Method)]
-        [InlineData("int {|target4:Property|} { get; set; }",
-            "public virtual int {|target5:Property|} { get; set; }",
-            "public override int {|target6:Property|} { get; set; }",
-            "Property", Property)]
-        [InlineData("event EventHandler {|target4:e|};",
-            "public virtual event EventHandler {|target5:e|};",
-            "public override event EventHandler {|target6:e|};",
-            "e", Event)]
-        public async Task TestAbstractClassAndInterface(
-            string interfaceDeclaration,
-            string abstractClassDeclaration,
-            string derivedClassDeclaration,
-            string name,
-            string memberKind)
-        {
-            var markupTemplate = @"using System;
-public interface {|target3:IBar|}
-{
-    {0}
-}
-public abstract class {|target2:Bar|}
-{
-    {1}
-}
-public class {|target1:Bar2|} : Bar
-{
-    {2}
-}
-            ";
-
-            var itemOnLine2 = new TestInheritanceMemberItem(
-                lineNumber: 2,
-                memberSymbolKind: Interface,
-                memberName: "IBar",
-                targets: ImmutableArray<TargetInfo>.Empty
-                    .Add(new TargetInfo(
-                        targetSymbolName: "Bar",
-                        targetSymbolKind: Class,
-                        locationTag: "target2",
-                        relationship: InheritanceRelationship.Implemented))
-                    .Add(new TargetInfo(
-                        targetSymbolName: "Bar2",
-                        targetSymbolKind: Class,
-                        locationTag: "target1",
-                        relationship: InheritanceRelationship.Implemented))
-                );
-
-            var itemOnLine4 = new TestInheritanceMemberItem(
-                lineNumber: 4,
-                memberSymbolKind: memberKind,
-                memberName: name,
-                targets: ImmutableArray<TargetInfo>.Empty
-                    .Add(new TargetInfo(
-                        targetSymbolName: name,
-                        targetSymbolKind: memberKind,
+                        targetSymbolDisplayName: "int Bar.Poo { get; set; }",
                         locationTag: "target5",
                         relationship: InheritanceRelationship.Implemented))
+                );
+
+            var itemForPooInClass = new TestInheritanceMemberItem(
+                lineNumber: 11,
+                memberName: "int Bar.Poo",
+                targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: name,
-                        targetSymbolKind: memberKind,
+                        targetSymbolDisplayName: "int IBar.Poo { get; set; }",
                         locationTag: "target6",
+                        relationship: InheritanceRelationship.Implementing))
+                );
+
+            var itemForFooInInterface = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "void IBar.Foo()",
+                targets: ImmutableArray<TargetInfo>.Empty
+                    .Add(new TargetInfo(
+                        targetSymbolDisplayName: "void Bar.Foo()",
+                        locationTag: "target3",
+                        relationship: InheritanceRelationship.Implemented))
+                );
+
+            var itemForFooInClass = new TestInheritanceMemberItem(
+                lineNumber: 10,
+                memberName: "void Bar.Foo()",
+                targets: ImmutableArray<TargetInfo>.Empty
+                    .Add(new TargetInfo(
+                        targetSymbolDisplayName: "void IBar.Foo()",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Implementing))
+                );
+
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "IBar",
+                targets: ImmutableArray<TargetInfo>.Empty
+                    .Add(new TargetInfo(
+                        targetSymbolDisplayName: "class Bar",
+                        locationTag: "target2",
+                        relationship: InheritanceRelationship.Implemented))
+                );
+
+            var itemForBar = new TestInheritanceMemberItem(
+                lineNumber: 8,
+                memberName: "Bar",
+                targets: ImmutableArray<TargetInfo>.Empty
+                    .Add(new TargetInfo(
+                        targetSymbolDisplayName: "interface IBar",
+                        locationTag: "target1",
+                        relationship: InheritanceRelationship.Implementing))
+                );
+
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.CSharp,
+                itemForEooInClass,
+                itemForEooInInterface,
+                itemForPooInInterface,
+                itemForPooInClass,
+                itemForFooInInterface,
+                itemForFooInClass,
+                itemForIBar,
+                itemForBar);
+        }
+
+        [Theory]
+        [InlineData("abstract")]
+        [InlineData("virtual")]
+        public Task TestAbstractClassMembers(string modifier)
+        {
+            var markup = $@"using System;
+public abstract class {{|target2:Bar|}}
+{{
+    public {modifier} void {{|target4:Foo|}}();
+    public {modifier} int {{|target6:Poo|}} {{ get; set; }}
+    public {modifier} event EventHandler {{|target8:Eoo|}};
+}}
+public class {{|target1:Bar2|}} : Bar
+{{
+    public override void {{|target3:Foo|}}() {{ }}
+    public override int {{|target5:Poo|}} {{ get; set; }}
+    public override event EventHandler {{|target7:Eoo|}};
+}}
+            ";
+
+            var itemForEooInClass = new TestInheritanceMemberItem(
+                lineNumber: 12,
+                memberName: "event EventHandler Bar2.Eoo",
+                targets: ImmutableArray<TargetInfo>.Empty
+                    .Add(new TargetInfo(
+                        targetSymbolDisplayName: $"{modifier} event EventHandler Bar.Eoo",
+                        locationTag: "target8",
+                        relationship: InheritanceRelationship.Overriding)));
+
+            var itemForEooInAbstractClass = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "event EventHandler Bar.Eoo",
+                targets: ImmutableArray<TargetInfo>.Empty
+                    .Add(new TargetInfo(
+                        targetSymbolDisplayName: "override event EventHandler Bar2.Eoo",
+                        locationTag: "target7",
+                        relationship: InheritanceRelationship.Overriden)));
+
+            var itemForPooInClass = new TestInheritanceMemberItem(
+                    lineNumber: 11,
+                    memberName: "int Bar2.Poo",
+                    targets: ImmutableArray<TargetInfo>.Empty
+                        .Add(new TargetInfo(
+                            targetSymbolDisplayName: $"{modifier} int Bar.Poo {{ get; set; }}",
+                            locationTag: "target6",
+                            relationship: InheritanceRelationship.Overriding)));
+
+            var itemForPooInAbstractClass = new TestInheritanceMemberItem(
+                    lineNumber: 5,
+                    memberName: "int Bar.Poo",
+                    targets: ImmutableArray<TargetInfo>.Empty
+                        .Add(new TargetInfo(
+                            targetSymbolDisplayName: "override int Bar2.Poo { get; set; }",
+                            locationTag: "target5",
+                            relationship: InheritanceRelationship.Overriden)));
+
+            var itemForFooInAbstractClass = new TestInheritanceMemberItem(
+                    lineNumber: 4,
+                    memberName: "void Bar.Foo()",
+                    targets: ImmutableArray<TargetInfo>.Empty
+                        .Add(new TargetInfo(
+                            targetSymbolDisplayName: "override void Bar2.Foo()",
+                            locationTag: "target3",
+                            relationship: InheritanceRelationship.Overriden)));
+
+            var itemForFooInClass = new TestInheritanceMemberItem(
+                lineNumber: 10,
+                memberName: "void Bar2.Foo()",
+                targets: ImmutableArray<TargetInfo>.Empty
+                    .Add(new TargetInfo(
+                        targetSymbolDisplayName: $"{modifier} void Bar.Foo()",
+                        locationTag: "target4",
+                        relationship: InheritanceRelationship.Overriding)));
+
+            var itemForBar = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "Bar",
+                targets: ImmutableArray<TargetInfo>.Empty
+                    .Add(new TargetInfo(
+                        targetSymbolDisplayName: "class Bar2",
+                        locationTag: "target1",
                         relationship: InheritanceRelationship.Implemented)));
 
-            var itemOnLine6 = new TestInheritanceMemberItem(
-                lineNumber: 6,
-                memberSymbolKind: Class,
-                memberName: "Bar",
-                targets: ImmutableArray<TargetInfo>.Empty
-                    .Add(new TargetInfo(
-                        targetSymbolName: "Bar2",
-                        targetSymbolKind: Class,
-                        locationTag: "target1",
-                        relationship: InheritanceRelationship.Implemented))
-                    .Add(new TargetInfo(
-                        targetSymbolName: "IBar",
-                        targetSymbolKind: Interface,
-                        locationTag: "target3",
-                        relationship: InheritanceRelationship.Implementing))
-                );
-
-            var itemOnLine8 = new TestInheritanceMemberItem(
+            var itemForBar2 = new TestInheritanceMemberItem(
                 lineNumber: 8,
-                memberSymbolKind: Class,
                 memberName: "Bar2",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
-                        targetSymbolName: "Bar",
-                        targetSymbolKind: memberKind,
-                        locationTag: "target4",
-                        relationship: InheritanceRelationship.Implemented))
-                    .Add(new TargetInfo(
-                        targetSymbolName: name,
-                        targetSymbolKind: memberKind,
-                        locationTag: "target6",
-                        relationship: InheritanceRelationship.Overriden))
-                );
-
-            var itemOnLine10 = new TestInheritanceMemberItem(
-                lineNumber: 10,
-                memberSymbolKind: Class,
-                memberName: "Bar2",
-                targets: ImmutableArray<TargetInfo>.Empty
-                    .Add(new TargetInfo(
-                        targetSymbolName: "Bar",
-                        targetSymbolKind: Class,
+                        targetSymbolDisplayName: "class Bar",
                         locationTag: "target2",
-                        relationship: InheritanceRelationship.Implemented))
-                    .Add(new TargetInfo(
-                        targetSymbolName: "IBar",
-                        targetSymbolKind: Interface,
-                        locationTag: "target3",
-                        relationship: InheritanceRelationship.Implemented))
-                );
+                        relationship: InheritanceRelationship.Implementing)));
 
-            var itemOnLine12 = new TestInheritanceMemberItem(
-                lineNumber: 12,
-                memberSymbolKind: memberKind,
-                memberName: name,
-                targets: ImmutableArray<TargetInfo>.Empty
-                    .Add(new TargetInfo(
-                        targetSymbolName: name,
-                        targetSymbolKind: memberKind,
-                        locationTag: "target5",
-                        relationship: InheritanceRelationship.Overriding))
-                    .Add(new TargetInfo(
-                        targetSymbolName: "IBar",
-                        targetSymbolKind: memberKind,
-                        locationTag: "target4",
-                        relationship: InheritanceRelationship.Implementing))
-                );
-
-            await VerifyInSingleDocumentAsync(
-                string.Format(markupTemplate, interfaceDeclaration, abstractClassDeclaration, derivedClassDeclaration),
+            return VerifyInSingleDocumentAsync(
+                markup,
                 LanguageNames.CSharp,
-                itemOnLine2,
-                itemOnLine6,
-                itemOnLine4,
-                itemOnLine8,
-                itemOnLine10,
-                itemOnLine12).ConfigureAwait(false);
+                itemForBar,
+                itemForBar2,
+                itemForFooInAbstractClass,
+                itemForFooInClass,
+                itemForPooInClass,
+                itemForPooInAbstractClass,
+                itemForEooInClass,
+                itemForEooInAbstractClass);
         }
-
         #endregion
     }
 }

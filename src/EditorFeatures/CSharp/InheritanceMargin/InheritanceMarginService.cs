@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
             foreach (var typeDeclarationNode in typeDeclarationNodes)
             {
                 var members = typeDeclarationNode.Members;
-                foreach(var member in members)
+                foreach (var member in members)
                 {
                     if (member.IsKind(SyntaxKind.MethodDeclaration)
                         || member.IsKind(SyntaxKind.PropertyDeclaration)

@@ -42,18 +42,18 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
     internal readonly struct InheritanceMemberItem
     {
         public readonly int LineNumber;
-        public readonly TaggedText MemberDescription;
+        public readonly string MemberDisplayName;
         public readonly Glyph Glyph;
         public readonly ImmutableArray<InheritanceTargetItem> TargetItems;
 
         public InheritanceMemberItem(
             int lineNumber,
-            TaggedText memberDescription,
+            string memberDisplayName,
             Glyph glyph,
             ImmutableArray<InheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
-            MemberDescription = memberDescription;
+            MemberDisplayName = memberDisplayName;
             Glyph = glyph;
             TargetItems = targetItems;
         }
@@ -61,19 +61,13 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
     internal readonly struct InheritanceTargetItem
     {
-        public readonly TaggedText TargetDescription;
-        public readonly Glyph Glyph;
         public readonly InheritanceRelationship RelationToMember;
         public readonly DefinitionItem DefinitionItem;
 
         public InheritanceTargetItem(
-            TaggedText targetDescription,
-            Glyph glyph,
             InheritanceRelationship relationToMember,
             DefinitionItem definitionItem)
         {
-            TargetDescription = targetDescription;
-            Glyph = glyph;
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
         }

@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.SymbolMapping;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
@@ -18,58 +16,48 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
     internal partial class AbstractInheritanceMarginService
     {
         private static async Task<InheritanceMemberItem> CreateInheritanceMemberInfoAsync(
-            Document document,
+            Solution solution,
             INamedTypeSymbol memberSymbol,
             int lineNumber,
             ImmutableArray<ISymbol> baseSymbols,
             ImmutableArray<ISymbol> derivedTypesSymbols,
             CancellationToken cancellationToken)
         {
-            var memberDescription = new TaggedText(
-                tag: GetTextTag(memberSymbol),
-                text: memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
-
             var baseSymbolItems = await baseSymbols
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(document, symbol, InheritanceRelationship.Implementing, cancellationToken))
+                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implementing, cancellationToken))
                 .ConfigureAwait(false);
 
             var derivedTypeItems = await derivedTypesSymbols
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(document, symbol, InheritanceRelationship.Implemented, cancellationToken))
+                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken))
                 .ConfigureAwait(false);
 
             return new InheritanceMemberItem(
                 lineNumber,
-                memberDescription,
+                memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                 memberSymbol.GetGlyph(),
                 baseSymbolItems.Concat(derivedTypeItems));
         }
 
         private static async Task<InheritanceTargetItem> CreateInheritanceItemAsync(
-            Document document,
+            Solution solution,
             ISymbol targetSymbol,
             InheritanceRelationship inheritanceRelationshipWithOriginalMember,
             CancellationToken cancellationToken)
         {
-            var targetDescription = new TaggedText(
-                tag: GetTextTag(targetSymbol),
-                text: targetSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
-
             var definition = await targetSymbol.ToClassifiedDefinitionItemAsync(
-                document.Project.Solution,
+                solution,
                 isPrimary: true,
                 includeHiddenLocations: false,
                 FindReferencesSearchOptions.Default,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return new InheritanceTargetItem(
-                targetDescription,
-                targetSymbol.GetGlyph(),
                 inheritanceRelationshipWithOriginalMember,
                 definition);
         }
 
         private static async Task<InheritanceMemberItem> CreateInheritanceMemberInfoForMemberAsync(
-            Document document,
+            Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
             ImmutableArray<ISymbol> implementingMembers,
@@ -78,99 +66,45 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ImmutableArray<ISymbol> overridingMembers,
             CancellationToken cancellationToken)
         {
-            var memberDescription = new TaggedText(
-                tag: GetTextTag(memberSymbol),
-                text: memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
-
             var implementingMemberItems = await implementingMembers
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(document, symbol, InheritanceRelationship.Implementing, cancellationToken)).ConfigureAwait(false);
+                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implementing, cancellationToken)).ConfigureAwait(false);
             var implementedMemberItems = await implementedMembers
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(document, symbol, InheritanceRelationship.Implemented, cancellationToken)).ConfigureAwait(false);
+                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken)).ConfigureAwait(false);
             var overridenMemberItems = await overridenMembers
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(document, symbol, InheritanceRelationship.Overriden, cancellationToken)).ConfigureAwait(false);
+                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriden, cancellationToken)).ConfigureAwait(false);
             var overridingMemberItems = await overridingMembers
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(document, symbol, InheritanceRelationship.Overriding, cancellationToken)).ConfigureAwait(false);
+                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriding, cancellationToken)).ConfigureAwait(false);
 
             return new InheritanceMemberItem(
                 lineNumber,
-                memberDescription,
+                memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                 memberSymbol.GetGlyph(),
                 implementingMemberItems.Concat(implementedMemberItems)
                     .Concat(overridenMemberItems)
                     .Concat(overridingMemberItems));
         }
 
-        private static async Task<(ISymbol, Project project)?> GetMappingSymbolAsync(
-            Document document,
-            ISymbol symbol,
-            CancellationToken cancellationToken)
-        {
-            var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
-            var result = await mappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
-            if (result == null)
-            {
-                return null;
-            }
-
-            return (result.Symbol, result.Project);
-        }
-
         private static async Task<ImmutableArray<ISymbol>> GetImplementedSymbolsAsync(
-            Document document,
+            Solution solution,
             ISymbol memberSymbol,
             CancellationToken cancellationToken)
         {
             if (memberSymbol is INamedTypeSymbol { IsSealed: false } namedTypeSymbol)
             {
-                var derivedTypes = await GetDerivedTypesAndImplementationsAsync(document, namedTypeSymbol, cancellationToken).ConfigureAwait(false);
+                var derivedTypes = await GetDerivedTypesAndImplementationsAsync(solution, namedTypeSymbol, cancellationToken).ConfigureAwait(false);
                 return derivedTypes.OfType<ISymbol>().ToImmutableArray();
             }
 
-            if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol)
+            if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol
+                 && memberSymbol.ContainingSymbol.IsInterfaceType())
             {
-                if (memberSymbol.ContainingSymbol.IsInterfaceType())
-                {
-                    return await SymbolFinder.FindImplementedInterfaceMembersArrayAsync(
-                        memberSymbol,
-                        document.Project.Solution,
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
-                }
+                return await SymbolFinder.FindMemberImplementationsArrayAsync(
+                    memberSymbol,
+                    solution,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             return ImmutableArray<ISymbol>.Empty;
-        }
-
-        private static async Task<ImmutableArray<ISymbol>> GetOverridenSymbolsAsync(
-            Document document,
-            ISymbol memberSymbol,
-            CancellationToken cancellationToken)
-        {
-            if (!memberSymbol.IsOverridable())
-            {
-                return ImmutableArray<ISymbol>.Empty;
-            }
-
-            return await SymbolFinder.FindOverridesArrayAsync(
-                memberSymbol,
-                document.Project.Solution,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        private static ImmutableArray<ISymbol> GetImplementingSymbols(ISymbol memberSymbol)
-        {
-            if (memberSymbol is INamedTypeSymbol namedTypeSymbol)
-            {
-                return namedTypeSymbol
-                    .AllInterfaces
-                    .Concat(namedTypeSymbol.GetBaseTypes().ToImmutableArray())
-                    .OfType<ISymbol>()
-                    .Where(symbol => !symbol.IsErrorType())
-                    .ToImmutableArray();
-            }
-            else
-            {
-                return memberSymbol.ExplicitOrImplicitInterfaceImplementations();
-            }
         }
 
         private static ImmutableArray<ISymbol> GetOverridingSymbols(ISymbol memberSymbol)
@@ -188,7 +122,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 {
                     if (!overridenMember.IsErrorType())
                     {
-                        builder.Add(overridenMember);
+                        builder.Add(overridenMember.OriginalDefinition);
                     }
                 }
 
@@ -197,7 +131,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         }
 
         private static async Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
-            Document document,
+            Solution solution,
             INamedTypeSymbol typeSymbol,
             CancellationToken cancellationToken)
         {
@@ -205,12 +139,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             {
                 var allDerivedInterfaces = await SymbolFinder.FindDerivedInterfacesArrayAsync(
                     typeSymbol,
-                    document.Project.Solution,
+                    solution,
                     transitive: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
                 var allImplementations = await SymbolFinder.FindImplementationsArrayAsync(
                     typeSymbol,
-                    document.Project.Solution,
+                    solution,
                     transitive: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
                 return allDerivedInterfaces.Concat(allImplementations).WhereAsArray(symbol => !symbol.IsErrorType());
@@ -219,7 +153,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             {
                 return (await SymbolFinder.FindDerivedClassesArrayAsync(
                     typeSymbol,
-                    document.Project.Solution,
+                    solution,
                     transitive: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false)).WhereAsArray(symbol => !symbol.IsErrorType());
             }
