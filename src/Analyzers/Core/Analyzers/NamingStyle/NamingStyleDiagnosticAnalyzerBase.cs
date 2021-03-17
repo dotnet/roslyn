@@ -108,7 +108,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>> idToCachedResult,
             CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(symbol.Name))
+            if (string.IsNullOrEmpty(symbol.Name) ||
+                // Heuristic for recognizing entry points.
+                symbol.IsStatic && symbol.Name == WellKnownMemberNames.EntryPointMethodName)
             {
                 return null;
             }
