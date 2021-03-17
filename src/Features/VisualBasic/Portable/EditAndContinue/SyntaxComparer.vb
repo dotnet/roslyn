@@ -320,13 +320,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         ' internal for testing
         Friend Overloads Function Classify(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean, ignoreVariableDeclarations As Boolean) As Label
             If _compareStatementSyntax Then
-                Return ClassifyStatementSytnax(kind, nodeOpt, isLeaf)
+                Return ClassifyStatementSyntax(kind, nodeOpt, isLeaf)
             End If
 
             Return ClassifyTopSytnax(kind, isLeaf, ignoreVariableDeclarations)
         End Function
 
-        Friend Shared Function ClassifyStatementSytnax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean) As Label
+        Friend Shared Function ClassifyStatementSyntax(kind As SyntaxKind, nodeOpt As SyntaxNode, ByRef isLeaf As Boolean) As Label
             isLeaf = False
 
             Select Case kind
