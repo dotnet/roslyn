@@ -309,6 +309,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsWrittenTo(this ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
+            if (expression == null)
+                return false;
+
             expression = GetExpressionToAnalyzeForWrites(expression);
 
             if (expression.IsOnlyWrittenTo())

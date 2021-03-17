@@ -315,6 +315,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsWrittenTo(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+            If expression Is Nothing Then
+                Return False
+            End If
+
             If IsOnlyWrittenTo(expression) Then
                 Return True
             End If
