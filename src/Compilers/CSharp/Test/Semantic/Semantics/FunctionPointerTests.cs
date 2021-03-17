@@ -2629,9 +2629,9 @@ unsafe
                 // (8,5): error CS0411: The type arguments for method 'Test1<T1, T2>(delegate*<T1, T2>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //     Test1(ptr2);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test1").WithArguments("Test1<T1, T2>(delegate*<T1, T2>[])").WithLocation(8, 5),
-                // (9,27): error CS1503: Argument 1: cannot convert from 'delegate*<string, string>[]' to 'delegate*<string, string>[]'
+                // (9,27): error CS1503: Argument 1: cannot convert from 'delegate*<string, ref string>[]' to 'delegate*<string, string>[]'
                 //     Test1<string, string>(ptr2);
-                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, string>[]", "delegate*<string, string>[]").WithLocation(9, 27)
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, ref string>[]", "delegate*<string, string>[]").WithLocation(9, 27)
             );
         }
 
@@ -2720,9 +2720,9 @@ unsafe
                 // (8,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<T1, T2>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //     Test(ptr2);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<T1, T2>)").WithLocation(8, 5),
-                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<string, string>' to 'delegate*<string, string>'
+                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<string, ref string>' to 'delegate*<string, string>'
                 //     Test<string, string>(ptr2);
-                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, string>", "delegate*<string, string>").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<string, ref string>", "delegate*<string, string>").WithLocation(9, 26)
             );
         }
 
@@ -2777,9 +2777,9 @@ unsafe
                 // (8,5): error CS0411: The type arguments for method 'Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //     Test(ptr2);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Test").WithArguments("Test<T1, T2>(delegate*<delegate*<T1, T2>, void>)").WithLocation(8, 5),
-                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<delegate*<string, string>, void>' to 'delegate*<delegate*<string, string>, void>'
+                // (9,26): error CS1503: Argument 1: cannot convert from 'delegate*<delegate*<string, ref string>, void>' to 'delegate*<delegate*<string, string>, void>'
                 //     Test<string, string>(ptr2);
-                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<delegate*<string, string>, void>", "delegate*<delegate*<string, string>, void>").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_BadArgType, "ptr2").WithArguments("1", "delegate*<delegate*<string, ref string>, void>", "delegate*<delegate*<string, string>, void>").WithLocation(9, 26)
             );
         }
 
