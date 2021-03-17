@@ -9801,15 +9801,6 @@ public class Program
             var exitCode = csc.Run(outWriter);
             var output = outWriter.ToString();
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(generators, parseOptions: (CSharpParseOptions)csc.Compilation.SyntaxTrees.First().Options);
-            driver.RunGeneratorsAndUpdateCompilation(csc.Compilation, out var outputCompilation, out _);
-            foreach (var tree in outputCompilation.SyntaxTrees)
-            {
-                // Make sure the tree path is a full path, not relative one.
-                Assert.Equal(tree.FilePath, Path.GetFullPath(tree.FilePath));
-                Assert.True(File.Exists(tree.FilePath), $"Tree file path '{tree.FilePath}' does not exist.");
-            }
-
             expectedExitCode ??= expectedErrorCount > 0 ? 1 : 0;
             Assert.True(
                 expectedExitCode == exitCode,

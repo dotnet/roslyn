@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
             var state = _state;
             foreach (var edit in _state.Edits)
             {
-                state = ApplyPartialEdit(state, edit, compilation, cancellationToken);
+                state = ApplyPartialEdit(state, edit, cancellationToken);
                 if (state.EditsFailed)
                 {
                     outputCompilation = compilation;
@@ -204,9 +204,8 @@ namespace Microsoft.CodeAnalysis
                             ex = e;
                         }
 
-                        var path = GetDirectoryForGenerator(compilation.Options.GeneratedFilesOutputDirectory, generator);
                         generatorState = ex is null
-                                         ? new GeneratorState(generatorState.Info, ParseAdditionalSources(path, sourcesCollection.ToImmutableAndFree(), cancellationToken))
+                                         ? new GeneratorState(generatorState.Info, ParseAdditionalSources(generator, sourcesCollection.ToImmutableAndFree(), cancellationToken))
                                          : SetGeneratorException(MessageProvider, generatorState, generator, ex, diagnosticsBag, isInit: true);
                     }
                 }
@@ -303,10 +302,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 (var sources, var diagnostics) = context.ToImmutableAndFree();
-
-                var path = GetDirectoryForGenerator(compilation.Options.GeneratedFilesOutputDirectory, generator);
-
-                stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, ParseAdditionalSources(path, sources, cancellationToken), diagnostics);
+                stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics);
                 diagnosticsBag?.AddRange(diagnostics);
             }
             state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());
@@ -320,7 +316,7 @@ namespace Microsoft.CodeAnalysis
             return FromState(newState);
         }
 
-        private GeneratorDriverState ApplyPartialEdit(GeneratorDriverState state, PendingEdit edit, Compilation compilation, CancellationToken cancellationToken = default)
+        private GeneratorDriverState ApplyPartialEdit(GeneratorDriverState state, PendingEdit edit, CancellationToken cancellationToken = default)
         {
             var initialState = state;
 
@@ -346,8 +342,7 @@ namespace Microsoft.CodeAnalysis
 
                     // update the state with the new edits
                     var additionalSources = previousSources.ToImmutableAndFree();
-                    var path = GetDirectoryForGenerator(compilation.Options.GeneratedFilesOutputDirectory, generator);
-                    state = state.With(generatorStates: state.GeneratorStates.SetItem(i, new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatedTrees: ParseAdditionalSources(path, additionalSources, cancellationToken), diagnostics: ImmutableArray<Diagnostic>.Empty)));
+                    state = state.With(generatorStates: state.GeneratorStates.SetItem(i, new GeneratorState(generatorState.Info, generatorState.PostInitTrees, generatedTrees: ParseAdditionalSources(generator, additionalSources, cancellationToken), diagnostics: ImmutableArray<Diagnostic>.Empty)));
                 }
             }
             state = edit.Commit(state);
@@ -387,13 +382,14 @@ namespace Microsoft.CodeAnalysis
             return comp;
         }
 
-        private ImmutableArray<GeneratedSyntaxTree> ParseAdditionalSources(string path, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
+        private ImmutableArray<GeneratedSyntaxTree> ParseAdditionalSources(ISourceGenerator generator, ImmutableArray<GeneratedSourceText> generatedSources, CancellationToken cancellationToken)
         {
             var trees = ArrayBuilder<GeneratedSyntaxTree>.GetInstance(generatedSources.Length);
-
+            var type = generator.GetType();
+            var prefix = GetFilePathPrefixForGenerator(generator);
             foreach (var source in generatedSources)
             {
-                var tree = ParseGeneratedSourceText(source, Path.Combine(path, source.HintName), cancellationToken);
+                var tree = ParseGeneratedSourceText(source, Path.Combine(prefix, source.HintName), cancellationToken);
                 trees.Add(new GeneratedSyntaxTree(source.HintName, source.Text, tree));
             }
             return trees.ToImmutableAndFree();
@@ -439,15 +435,6 @@ namespace Microsoft.CodeAnalysis
 
             diagnosticBag?.Add(diagnostic);
             return new GeneratorState(generatorState.Info, e, diagnostic);
-        }
-
-        private static string GetDirectoryForGenerator(string? outputDirectory, ISourceGenerator generator)
-        {
-            Debug.Assert(outputDirectory is not null);
-            var prefix = GetFilePathPrefixForGenerator(generator);
-            return outputDirectory is null
-                    ? prefix
-                    : Path.Combine(outputDirectory, prefix);
         }
 
         internal static string GetFilePathPrefixForGenerator(ISourceGenerator generator)

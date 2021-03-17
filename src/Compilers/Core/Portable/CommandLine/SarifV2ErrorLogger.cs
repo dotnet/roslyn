@@ -25,8 +25,9 @@ namespace Microsoft.CodeAnalysis
         private readonly string _toolName;
         private readonly string _toolFileVersion;
         private readonly Version _toolAssemblyVersion;
+        private readonly string? _generatedFilesOutputDirectory;
 
-        public SarifV2ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
+        public SarifV2ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture, string? generatedFilesOutputDirectory)
             : base(stream, culture)
         {
             _descriptors = new DiagnosticDescriptorSet();
@@ -130,11 +131,17 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(HasPath(diagnosticLocation));
 
             FileLinePositionSpan span = diagnosticLocation.GetLineSpan();
+            var path = span.Path;
+            if (_generatedFilesOutputDirectory is not null &&
+                path != Path.GetFullPath(path))
+            {
+                path = Path.Combine(_generatedFilesOutputDirectory, path);
+            }
 
             _writer.WriteObjectStart(); // physicalLocation
 
             _writer.WriteObjectStart("artifactLocation");
-            _writer.Write("uri", GetUri(span.Path));
+            _writer.Write("uri", GetUri(path));
             _writer.WriteObjectEnd(); // artifactLocation
 
             WriteRegion(span);

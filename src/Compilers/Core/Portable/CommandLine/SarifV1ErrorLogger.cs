@@ -126,11 +126,16 @@ namespace Microsoft.CodeAnalysis
         protected override void WritePhysicalLocation(Location location)
         {
             Debug.Assert(HasPath(location));
-
             FileLinePositionSpan span = location.GetLineSpan();
+            var path = span.Path;
+            if (_generatedFilesOutputDirectory is not null &&
+                path != Path.GetFullPath(path))
+            {
+                path = Path.Combine(_generatedFilesOutputDirectory, path);
+            }
 
             _writer.WriteObjectStart();
-            _writer.Write("uri", GetUri(span.Path));
+            _writer.Write("uri", GetUri(path));
 
             WriteRegion(span);
 
