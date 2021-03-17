@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -43,28 +44,34 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             return Task.CompletedTask;
         }
 
-        protected sealed override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+        // Intended for use by AbstractEditorFactory to add accessibility when creating a new file.
+        internal static async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
         {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var diagnostic in diagnostics)
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
+            var editor = new SyntaxEditor(root, SyntaxGenerator.GetGenerator(document));
+            foreach (var declaration in typeDeclarations)
             {
-                var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-                var declarator = MapToDeclarator(declaration);
-
-                var symbol = semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
-                Contract.ThrowIfNull(symbol);
-
-                var preferredAccessibility = GetPreferredAccessibility(symbol);
-
-                // Check to see if we need to add or remove
-                // If there's a modifier, then we need to remove it, otherwise no modifier, add it.
-                editor.ReplaceNode(
-                    declaration,
-                    (currentDeclaration, _) => UpdateAccessibility(currentDeclaration, preferredAccessibility));
+                UpdateDeclaration(declaration, editor, semanticModel, cancellationToken);
             }
+
+            return editor.GetChangedRoot();
+        }
+
+        private static void UpdateDeclaration(SyntaxNode declaration, SyntaxEditor editor, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+            Contract.ThrowIfNull(symbol);
+
+            var preferredAccessibility = GetPreferredAccessibility(symbol);
+
+            // Check to see if we need to add or remove
+            // If there's a modifier, then we need to remove it, otherwise no modifier, add it.
+            editor.ReplaceNode(
+                declaration,
+                (currentDeclaration, _) => UpdateAccessibility(currentDeclaration, preferredAccessibility));
 
             return;
 
@@ -77,6 +84,20 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
                 return generator.GetAccessibility(declaration) == Accessibility.NotApplicable
                     ? generator.WithAccessibility(declaration, preferredAccessibility)
                     : generator.WithAccessibility(declaration, Accessibility.NotApplicable);
+            }
+        }
+
+        protected sealed override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var diagnostic in diagnostics)
+            {
+                var declaration = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+                var declarator = MapToDeclarator(declaration);
+                UpdateDeclaration(declarator, editor, semanticModel, cancellationToken);
             }
         }
 

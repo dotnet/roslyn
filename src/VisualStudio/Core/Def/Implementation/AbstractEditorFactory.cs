@@ -9,6 +9,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -331,11 +332,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             Contract.ThrowIfNull(rootToFormat);
             var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
 
+            // Add access modifier
+            var rootWithAccessModifier = ThreadHelper.JoinableTaskFactory.Run(() =>
+            {
+                return AbstractAddAccessibilityModifiersCodeFixProvider.GetTransformedSyntaxRootAsync(addedDocument, cancellationToken);
+            });
+
+            addedDocument = addedDocument.WithSyntaxRoot(rootWithAccessModifier);
+            rootToFormat = rootWithAccessModifier;
+
             // Apply file header preferences
             var fileHeaderTemplate = documentOptions.GetOption(CodeStyleOptions2.FileHeaderTemplate);
             if (!string.IsNullOrEmpty(fileHeaderTemplate))
             {
-                var documentWithFileHeader = ThreadHelper.JoinableTaskFactory.Run(() =>
+                var rootWithFileHeader = ThreadHelper.JoinableTaskFactory.Run(() =>
                 {
                     var newLineText = documentOptions.GetOption(FormattingOptions.NewLine, rootToFormat.Language);
                     var newLineTrivia = SyntaxGeneratorInternal.EndOfLine(newLineText);
@@ -347,8 +357,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                         cancellationToken);
                 });
 
-                addedDocument = addedDocument.WithSyntaxRoot(documentWithFileHeader);
-                rootToFormat = documentWithFileHeader;
+                addedDocument = addedDocument.WithSyntaxRoot(rootWithFileHeader);
+                rootToFormat = rootWithFileHeader;
             }
 
             // Organize using directives
