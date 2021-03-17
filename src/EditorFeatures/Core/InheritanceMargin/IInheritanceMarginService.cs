@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal interface IInheritanceMarginService : ILanguageService
     {
+        /// <summary>
+        /// Get the lines need to be have a margin and the member's information on that line.
+        /// </summary>
         Task<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoAsync(
             Document document,
             CancellationToken cancellationToken);

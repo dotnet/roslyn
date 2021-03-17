@@ -84,6 +84,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     .Concat(overridingMemberItems));
         }
 
+        /// <summary>
+        /// For the <param name="memberSymbol"/>, get all the symbols implementing it.
+        /// </summary>
         private static async Task<ImmutableArray<ISymbol>> GetImplementedSymbolsAsync(
             Solution solution,
             ISymbol memberSymbol,
@@ -107,6 +110,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             return ImmutableArray<ISymbol>.Empty;
         }
 
+        /// <summary>
+        /// Get members overriding the <param name="memberSymbol"/>
+        /// </summary>
         private static ImmutableArray<ISymbol> GetOverridingSymbols(ISymbol memberSymbol)
         {
             if (memberSymbol is INamedTypeSymbol)
@@ -130,6 +136,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
+        /// <summary>
+        /// Get the derived interfaces and derived classes for <param name="typeSymbol"/>.
+        /// </summary>
         private static async Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
             Solution solution,
             INamedTypeSymbol typeSymbol,
@@ -156,30 +165,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     solution,
                     transitive: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false)).WhereAsArray(symbol => !symbol.IsErrorType());
-            }
-        }
-
-        private static string GetTextTag(ISymbol symbol)
-        {
-            if (symbol is INamedTypeSymbol namedTypeSymbol)
-            {
-                return namedTypeSymbol.TypeKind switch
-                {
-                    TypeKind.Class => TextTags.Class,
-                    TypeKind.Struct => TextTags.Struct,
-                    TypeKind.Interface => TextTags.Interface,
-                    _ => throw ExceptionUtilities.UnexpectedValue(namedTypeSymbol.TypeKind),
-                };
-            }
-            else
-            {
-                return symbol.Kind switch
-                {
-                    SymbolKind.Method => TextTags.Method,
-                    SymbolKind.Property => TextTags.Property,
-                    SymbolKind.Event => TextTags.Event,
-                    _ => throw ExceptionUtilities.UnexpectedValue(symbol.Kind),
-                };
             }
         }
     }

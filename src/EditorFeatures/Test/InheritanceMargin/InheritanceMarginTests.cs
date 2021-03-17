@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.InheritanceMargin;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 TargetInfo targetInfo,
                 TestWorkspace testWorkspace)
             {
-                using var _ = PooledObjects.ArrayBuilder<DocumentSpan>.GetInstance(out var builder);
+                using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var builder);
                 foreach (var testHostDocument in testWorkspace.Documents)
                 {
                     var annotatedSpans = testHostDocument.AnnotatedSpans;

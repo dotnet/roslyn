@@ -15,7 +15,17 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 {
     internal class InheritanceMarginTag : IGlyphTag
     {
+        /// <summary>
+        /// Margin moniker.
+        /// </summary>
         public readonly ImageMoniker Moniker;
+
+        /// <summary>
+        /// Members needs to be shown on this line. There might be multiple members.
+        /// For example:
+        /// interface IBar { void Foo1(); void Foo2() }
+        /// class Bar : IBar { void Foo1() { } void Foo2() { } }
+        /// </summary>
         public readonly ImmutableArray<InheritanceMemberItem> MembersOnLine;
 
         public InheritanceMarginTag(ImmutableArray<InheritanceMemberItem> membersOnLine)
@@ -29,6 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
             Moniker = GetMonikers(aggregateRelationship);
         }
 
+        /// <summary>
+        /// Decide which moniker should be shown.
+        /// </summary>
         private static ImageMoniker GetMonikers(InheritanceRelationship inheritanceRelationship)
             => inheritanceRelationship switch
             {

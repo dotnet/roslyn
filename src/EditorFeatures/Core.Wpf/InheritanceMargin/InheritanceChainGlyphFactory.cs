@@ -12,12 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
     {
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
         {
-            if (tag is InheritanceMarginTag)
-            {
-                // Let's create UI
-                return new MarginGlyph();
-            }
-
+            // TODO: Add UI
             return null;
         }
     }

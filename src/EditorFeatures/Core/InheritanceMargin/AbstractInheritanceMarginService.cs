@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.GoToBase;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -30,7 +29,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var allDeclarationNodes = GetMembers(root);
-
             if (allDeclarationNodes.IsEmpty)
             {
                 return ImmutableArray<InheritanceMemberItem>.Empty;
@@ -41,6 +39,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var mappingService = document.Project.Solution.Workspace.Services.GetRequiredService<ISymbolMappingService>();
             using var _ = ArrayBuilder<InheritanceMemberItem>.GetInstance(out var builder);
 
+            // Iterate all the members symbol to find each their inheritance chain information
             foreach (var memberDeclarationNode in allDeclarationNodes)
             {
                 var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
@@ -51,6 +50,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     {
                         if (mappingResult.Symbol is INamedTypeSymbol namedTypeSymbol)
                         {
+                            // Find its baseTypes and subTypes.
                             await AddInheritanceMemberItemsForNamedTypeAsync(
                                 mappingResult.Project.Solution,
                                 sourceText,
@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
                         if (mappingResult.Symbol is IEventSymbol or IPropertySymbol || mappingResult.Symbol.IsOrdinaryMethod())
                         {
+                            // Find the implementing/implemented/overriden/overriding members
                             await AddInheritanceMemberItemsForTypeMembersAsync(
                                 mappingResult.Project.Solution,
                                 sourceText,
@@ -83,6 +84,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ArrayBuilder<InheritanceMemberItem> builder,
             CancellationToken cancellationToken)
         {
+            // Get all base types
             var allBaseTypes = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
 
             // Filter out System.Object. (otherwise margin would be shown for all classes)
@@ -90,6 +92,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 .WhereAsArray(type =>
                     !(type is ITypeSymbol { SpecialType: SpecialType.System_Object }));
 
+            // Get all derived types
             var derivedTypes = await GetDerivedTypesAndImplementationsAsync(
                 solution,
                 memberSymbol,
@@ -117,10 +120,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ArrayBuilder<InheritanceMemberItem> builder,
             CancellationToken cancellationToken)
         {
+            // Go up the inheritance chain to find all the overrides targets.
             var overridenMembers = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // Go up the inheritance chain to find all the implementing targets.
             var implementingMembers = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
 
+            // Go down the inheritance chain to find all overrides targets
             var overridingMembers = GetOverridingSymbols(memberSymbol);
+
+            // Go down the inheritance chain to find all the implmeneing targets.
             var implementedMembers = await GetImplementedSymbolsAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
 
             if (!(overridenMembers.IsEmpty

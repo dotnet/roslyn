@@ -15,35 +15,46 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
     internal enum InheritanceRelationship
     {
         /// <summary>
-        /// Indicate the target is implementing the member.
-        /// e.g.
-        /// 1. interface
+        /// Indicate the target is implementing the member. It would be shown as I↑.
         /// </summary>
         Implementing = 0x1,
 
         /// <summary>
-        /// Indicate the target is implemented by the member. Also include class inherits interface and class inherit class
+        /// Indicate the target is implemented by the member. It would be shown as I↓.
         /// </summary>
         Implemented = 0x2,
 
         /// <summary>
-        /// Indicate the target is overriding by the member.
-        /// e.g.
-        ///
+        /// Indicate the target is overriding the member. It would be shown as O↑.
         /// </summary>
         Overriding = 0x4,
 
         /// <summary>
-        ///
+        /// Indicate the target is overriden by the member. It would be shown as O↓.
         /// </summary>
         Overriden = 0x8,
     }
 
     internal readonly struct InheritanceMemberItem
     {
+        /// <summary>
+        /// Line number used to show the margin for the member.
+        /// </summary>
         public readonly int LineNumber;
+
+        /// <summary>
+        /// Member's display name.
+        /// </summary>
         public readonly string MemberDisplayName;
+
+        /// <summary>
+        /// Member's glyph
+        /// </summary>
         public readonly Glyph Glyph;
+
+        /// <summary>
+        /// An array of the implementing/implemented/overriding/overriden targets for this member
+        /// </summary>
         public readonly ImmutableArray<InheritanceTargetItem> TargetItems;
 
         public InheritanceMemberItem(
@@ -59,9 +70,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         }
     }
 
+    /// <summary>
+    /// Information used to decided the margin image and responsible for performing navigations
+    /// </summary>
     internal readonly struct InheritanceTargetItem
     {
+        /// <summary>
+        /// Indicate the inheritance relationship between the target and member.
+        /// </summary>
         public readonly InheritanceRelationship RelationToMember;
+
+        /// <summary>
+        /// DefinitionItem used to display the additional information and perform navigation.
+        /// </summary>
         public readonly DefinitionItem DefinitionItem;
 
         public InheritanceTargetItem(
