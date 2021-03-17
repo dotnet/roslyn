@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -651,7 +652,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             public override string ToString()
             {
-                return Display ?? "";
+                return $@"{Display} {{""{nameof(Properties.Kind)}"":{Properties.Kind},""{nameof(Properties.Aliases)}"":[{string.Join(",", Properties.Aliases.Select(alias => $@"""{alias}"""))}],""{nameof(Properties.EmbedInteropTypes)}"":{Properties.EmbedInteropTypes},""HasRecursiveAliases"":{Properties.GetType().GetProperty("HasRecursiveAliases", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(Properties)}}}";
             }
         }
     }
