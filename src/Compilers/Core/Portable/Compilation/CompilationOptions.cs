@@ -243,6 +243,8 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public abstract NullableContextOptions NullableContextOptions { get; protected set; }
 
+        internal string? GeneratedFilesOutputDirectory { get; }
+
         /// <summary>
         /// A set of strings designating experimental compiler features that are to be enabled.
         /// </summary>
@@ -290,7 +292,8 @@ namespace Microsoft.CodeAnalysis
             AssemblyIdentityComparer? assemblyIdentityComparer,
             StrongNameProvider? strongNameProvider,
             MetadataImportOptions metadataImportOptions,
-            bool referencesSupersedeLowerVersions)
+            bool referencesSupersedeLowerVersions,
+            string? generatedFilesOutputDirectory)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -320,6 +323,7 @@ namespace Microsoft.CodeAnalysis
             this.MetadataImportOptions = metadataImportOptions;
             this.ReferencesSupersedeLowerVersions = referencesSupersedeLowerVersions;
             this.PublicSign = publicSign;
+            this.GeneratedFilesOutputDirectory = generatedFilesOutputDirectory;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {

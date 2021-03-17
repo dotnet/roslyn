@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugPlusMode:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
-                syntaxTreeOptionsProvider:=Nothing,
+                SyntaxTreeOptionsProvider:=Nothing,
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
@@ -271,12 +271,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugPlusMode:=debugPlusMode,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
-                syntaxTreeOptionsProvider:=syntaxTreeOptionsProvider,
+                syntaxTreeOptionsProvider:=SyntaxTreeOptionsProvider,
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=metadataImportOptions,
-                referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions)
+                referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions,
+                generatedFilesOutputDirectory:=Nothing)
 
             _globalImports = globalImports.AsImmutableOrEmpty()
             _rootNamespace = If(rootNamespace, String.Empty)
@@ -324,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugPlusMode:=other.DebugPlusMode,
                 xmlReferenceResolver:=other.XmlReferenceResolver,
                 sourceReferenceResolver:=other.SourceReferenceResolver,
-                syntaxTreeOptionsProvider:=other.SyntaxTreeOptionsProvider,
+                SyntaxTreeOptionsProvider:=other.SyntaxTreeOptionsProvider,
                 metadataReferenceResolver:=other.MetadataReferenceResolver,
                 assemblyIdentityComparer:=other.AssemblyIdentityComparer,
                 strongNameProvider:=other.StrongNameProvider,
@@ -1330,7 +1331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 debugPlusMode:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
-                syntaxTreeOptionsProvider:=Nothing,
+                SyntaxTreeOptionsProvider:=Nothing,
                 metadataReferenceResolver:=metadataReferenceResolver,
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,

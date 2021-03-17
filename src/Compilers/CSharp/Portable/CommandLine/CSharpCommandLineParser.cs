@@ -1446,7 +1446,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 warningLevel: warningLevel,
                 specificDiagnosticOptions: diagnosticOptions,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
-                publicSign: publicSign
+                publicSign: publicSign,
+                generatedFilesOutputDirectory: generatedFilesOutputDirectory
             );
 
             if (debugPlus)
