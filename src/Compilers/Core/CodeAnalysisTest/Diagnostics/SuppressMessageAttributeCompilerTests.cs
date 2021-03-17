@@ -6,6 +6,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -30,17 +32,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         protected override bool ConsiderArgumentsForComparingDiagnostics => true;
 
-        private static Compilation CreateCompilation(string source, string language, string rootNamespace)
+        private readonly static Lazy<ImmutableArray<MetadataReference>> s_references = new(() =>
         {
-            string fileName = language == LanguageNames.CSharp ? "Test.cs" : "Test.vb";
-            string projectName = "TestProject";
-
             const string unconditionalSuppressMessageDef = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple=true, Inherited=false)]
     public sealed class UnconditionalSuppressMessageAttribute : System.Attribute
-    { 
+    {
         public UnconditionalSuppressMessageAttribute(string category, string checkId)
         {
             Category = category;
@@ -54,12 +53,20 @@ namespace System.Diagnostics.CodeAnalysis
         public string Justification { get; set; }
     }
 }";
-            var mscorlibRef = new[] { TestBase.MscorlibRef };
-
-            var refComp = CSharpCompilation.Create("unconditionalsuppress",
+            var compRef = CSharpCompilation.Create("unconditionalsuppress",
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 syntaxTrees: new[] { CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef) },
-                references: mscorlibRef).EmitToImageReference();
+                references: new[] { TestBase.MscorlibRef }).EmitToImageReference();
+
+            return ImmutableArray.Create(TestBase.MscorlibRef, compRef, TestBase.ValueTupleRef);
+
+        }, System.Threading.LazyThreadSafetyMode.PublicationOnly);
+
+        private static Compilation CreateCompilation(string source, string language, string rootNamespace)
+        {
+            string fileName = language == LanguageNames.CSharp ? "Test.cs" : "Test.vb";
+            string projectName = "TestProject";
+            var references = s_references.Value;
 
             var syntaxTree = language == LanguageNames.CSharp ?
                 CSharpSyntaxTree.ParseText(source, path: fileName) :
@@ -70,14 +77,14 @@ namespace System.Diagnostics.CodeAnalysis
                 return CSharpCompilation.Create(
                     projectName,
                     syntaxTrees: new[] { syntaxTree, },
-                    references: new[] { refComp, TestBase.MscorlibRef, TestBase.ValueTupleRef });
+                    references: references);
             }
             else
             {
                 return VisualBasicCompilation.Create(
                     projectName,
                     syntaxTrees: new[] { syntaxTree },
-                    references: new[] { refComp, TestBase.MscorlibRef },
+                    references: references,
                     options: new VisualBasicCompilationOptions(
                         OutputKind.DynamicallyLinkedLibrary,
                         rootNamespace: rootNamespace));

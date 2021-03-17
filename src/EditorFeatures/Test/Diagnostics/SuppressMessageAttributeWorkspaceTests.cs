@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,10 +28,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
             .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
 
-        protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, string rootNamespace = null)
+        private static readonly Lazy<MetadataReference> _unconditionalSuppressMessageRef = new(() =>
         {
-            using var workspace = CreateWorkspaceFromFile(source, language, rootNamespace);
-
             const string unconditionalSuppressMessageDef = @"
 namespace System.Diagnostics.CodeAnalysis
 {
@@ -50,19 +49,22 @@ namespace System.Diagnostics.CodeAnalysis
         public string Justification { get; set; }
     }
 }";
-            var mscorlibRef = new[] { TestBase.MscorlibRef };
-
-            var refComp = CSharpCompilation.Create("unconditionalsuppress",
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            return CSharpCompilation.Create("unconditionalsuppress",
+                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 syntaxTrees: new[] { CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef) },
-                references: mscorlibRef).EmitToImageReference();
+                references: new[] { TestBase.MscorlibRef }).EmitToImageReference();
+        }, LazyThreadSafetyMode.PublicationOnly);
+
+        protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, string rootNamespace = null)
+        {
+            using var workspace = CreateWorkspaceFromFile(source, language, rootNamespace);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
             {
                 new AnalyzerImageReference(analyzers.ToImmutableArray())
             }).WithProjectMetadataReferences(
                 workspace.Projects.Single().Id,
-                workspace.Projects.Single().MetadataReferences.Append(refComp)));
+                workspace.Projects.Single().MetadataReferences.Append(_unconditionalSuppressMessageRef.Value)));
 
             var documentId = workspace.Documents[0].Id;
             var document = workspace.CurrentSolution.GetDocument(documentId);

@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation _compilation;
         private GlobalSuppressions? _lazyGlobalSuppressions;
         private readonly ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>> _localSuppressionsBySymbol;
-        private ISymbol? _lazySuppressMessageAttribute;
-        private ISymbol? _lazyUnconditionalSuppressMessageAttribute;
+        private Optional<ISymbol?> _lazySuppressMessageAttribute;
+        private Optional<ISymbol?> _lazyUnconditionalSuppressMessageAttribute;
 
         private class GlobalSuppressions
         {
@@ -221,12 +221,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                if (_lazySuppressMessageAttribute == null)
+                if (!_lazySuppressMessageAttribute.HasValue)
                 {
-                    _lazySuppressMessageAttribute = _compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute");
+                    _lazySuppressMessageAttribute = new(_compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"));
                 }
 
-                return _lazySuppressMessageAttribute;
+                return _lazySuppressMessageAttribute.Value;
             }
         }
 
@@ -234,12 +234,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                if (_lazyUnconditionalSuppressMessageAttribute == null)
+                if (!_lazyUnconditionalSuppressMessageAttribute.HasValue)
                 {
-                    _lazyUnconditionalSuppressMessageAttribute = _compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute");
+                    _lazyUnconditionalSuppressMessageAttribute = new(_compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute"));
                 }
 
-                return _lazyUnconditionalSuppressMessageAttribute;
+                return _lazyUnconditionalSuppressMessageAttribute.Value;
             }
         }
 
@@ -260,11 +260,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _lazyGlobalSuppressions;
         }
 
+        private bool IsSuppressionAttribute(AttributeData a)
+            => a.AttributeClass == SuppressMessageAttribute || a.AttributeClass == UnconditionalSuppressMessageAttribute;
+
         private ImmutableDictionary<string, SuppressMessageInfo> DecodeLocalSuppressMessageAttributes(ISymbol symbol)
         {
-            var attributes = symbol.GetAttributes().Where(a =>
-                a.AttributeClass == this.SuppressMessageAttribute
-                || a.AttributeClass == UnconditionalSuppressMessageAttribute);
+            var attributes = symbol.GetAttributes().Where(a => IsSuppressionAttribute(a));
             return DecodeLocalSuppressMessageAttributes(symbol, attributes);
         }
 
@@ -300,9 +301,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(symbol is IAssemblySymbol || symbol is IModuleSymbol);
 
-            var attributes = symbol.GetAttributes().Where(a =>
-                a.AttributeClass == this.SuppressMessageAttribute
-                || a.AttributeClass == this.UnconditionalSuppressMessageAttribute);
+            var attributes = symbol.GetAttributes().Where(a => IsSuppressionAttribute(a));
             DecodeGlobalSuppressMessageAttributes(compilation, symbol, globalSuppressions, attributes);
         }
 
