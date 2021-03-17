@@ -271,58 +271,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                if (mergedAliases is null)
+                                if (!aliases.IsEmpty)
                                 {
-                                    mergedAliases = aliases;
-                                }
-                                else
-                                {
-                                    var builder = mergedAliases.ToBuilder();
-                                    bool added = false;
-
-                                    foreach (var pair in aliases)
+                                    if (mergedAliases is null)
                                     {
-                                        if (builder.ContainsKey(pair.Key))
-                                        {
-                                            // PROTOTYPE(GlobalUsingDirective): Report more specific error?
-
-                                            // The using alias '{0}' appeared previously in this namespace
-                                            diagnostics.Add(ErrorCode.ERR_DuplicateAlias, pair.Value.Alias.Locations[0], pair.Key);
-                                        }
-                                        else
-                                        {
-                                            builder.Add(pair.Key, pair.Value);
-                                            added = true;
-                                        }
+                                        mergedAliases = aliases;
                                     }
-
-                                    if (added)
+                                    else
                                     {
-                                        mergedAliases = builder.ToImmutable();
-                                    }
+                                        var builder = mergedAliases.ToBuilder();
+                                        bool added = false;
 
-                                    cancellationToken.ThrowIfCancellationRequested();
+                                        foreach (var pair in aliases)
+                                        {
+                                            if (builder.ContainsKey(pair.Key))
+                                            {
+                                                // PROTOTYPE(GlobalUsingDirective): Report more specific error?
+
+                                                // The using alias '{0}' appeared previously in this namespace
+                                                diagnostics.Add(ErrorCode.ERR_DuplicateAlias, pair.Value.Alias.Locations[0], pair.Key);
+                                            }
+                                            else
+                                            {
+                                                builder.Add(pair);
+                                                added = true;
+                                            }
+                                        }
+
+                                        if (added)
+                                        {
+                                            mergedAliases = builder.ToImmutable();
+                                        }
+
+                                        cancellationToken.ThrowIfCancellationRequested();
+                                    }
                                 }
 
                                 var namespacesOrTypes = _aliasesAndUsings[singleDeclaration].GetGlobalUsingNamespacesOrTypes(this, singleDeclaration.SyntaxReference, basesBeingResolved);
 
-                                if (mergedNamespacesOrTypes.Count == 0)
+                                if (!namespacesOrTypes.IsEmpty)
                                 {
-                                    mergedNamespacesOrTypes.AddRange(namespacesOrTypes);
-                                    uniqueUsings.AddAll(namespacesOrTypes.Select(n => n.NamespaceOrType));
-                                }
-                                else
-                                {
-                                    foreach (var namespaceOrType in namespacesOrTypes)
+                                    if (mergedNamespacesOrTypes.Count == 0)
                                     {
-                                        if (!uniqueUsings.Add(namespaceOrType.NamespaceOrType))
+                                        mergedNamespacesOrTypes.AddRange(namespacesOrTypes);
+                                        uniqueUsings.AddAll(namespacesOrTypes.Select(n => n.NamespaceOrType));
+                                    }
+                                    else
+                                    {
+                                        foreach (var namespaceOrType in namespacesOrTypes)
                                         {
-                                            // PROTOTYPE(GlobalUsingDirective): Report more specific error?
-                                            diagnostics.Add(ErrorCode.WRN_DuplicateUsing, namespaceOrType.UsingDirective!.Name.Location, namespaceOrType.NamespaceOrType);
-                                        }
-                                        else
-                                        {
-                                            mergedNamespacesOrTypes.Add(namespaceOrType);
+                                            if (!uniqueUsings.Add(namespaceOrType.NamespaceOrType))
+                                            {
+                                                // PROTOTYPE(GlobalUsingDirective): Report more specific error?
+                                                diagnostics.Add(ErrorCode.WRN_DuplicateUsing, namespaceOrType.UsingDirective!.Name.Location, namespaceOrType.NamespaceOrType);
+                                            }
+                                            else
+                                            {
+                                                mergedNamespacesOrTypes.Add(namespaceOrType);
+                                            }
                                         }
                                     }
                                 }

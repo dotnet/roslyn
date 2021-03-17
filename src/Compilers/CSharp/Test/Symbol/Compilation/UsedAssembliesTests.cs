@@ -216,16 +216,10 @@ public class C2
 
                     if (old.Code is (int)ErrorCode.HDN_UnusedUsingDirective)
                     {
-
                         allocateOutput(input, ref output)[i] = old.WithSquiggledText("global " + old.SquiggledText);
                     }
                     else if (old.LocationLine is > 1000 and < 2000)
                     {
-                        if (output is null)
-                        {
-                            System.Array.Copy(input, output = new DiagnosticDescription[input.Length], input.Length);
-                        }
-
                         allocateOutput(input, ref output)[i] = old.WithLocation(old.LocationLine, old.LocationCharacter + 7);
                     }
                 }
