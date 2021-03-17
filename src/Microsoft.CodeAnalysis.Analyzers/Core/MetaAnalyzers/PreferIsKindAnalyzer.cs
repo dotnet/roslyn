@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(context =>
             {
+                var nullableOfT = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNullable1);
+
                 // Kind() methods
                 //  Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Kind
                 //  Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Kind
@@ -59,12 +61,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 if (containingTypeMap.Count > 0)
                 {
-                    context.RegisterOperationAction(context => HandleBinaryOperation(context, containingTypeMap), OperationKind.Binary);
+                    context.RegisterOperationAction(context => HandleBinaryOperation(context, containingTypeMap, nullableOfT), OperationKind.Binary);
                 }
             });
         }
 
-        private static void HandleBinaryOperation(OperationAnalysisContext context, Dictionary<INamedTypeSymbol, INamedTypeSymbol> containingTypeMap)
+        private static void HandleBinaryOperation(OperationAnalysisContext context, Dictionary<INamedTypeSymbol, INamedTypeSymbol> containingTypeMap, INamedTypeSymbol? nullableOfT)
         {
             var operation = (IBinaryOperation)context.Operation;
             if (operation.OperatorKind is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals))
@@ -75,6 +77,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             var possibleInvocation = operation.LeftOperand.WalkDownConversion();
             if (possibleInvocation is IConditionalAccessOperation conditionalAccess)
             {
+                // We don't currently report on Nullable<SyntaxToken>. If we'll report that in the future, the codefix must behave correctly.
+                if (SymbolEqualityComparer.Default.Equals(conditionalAccess.Operation.Type.OriginalDefinition, nullableOfT))
+                {
+                    return;
+                }
+
                 possibleInvocation = conditionalAccess.WhenNotNull;
             }
 

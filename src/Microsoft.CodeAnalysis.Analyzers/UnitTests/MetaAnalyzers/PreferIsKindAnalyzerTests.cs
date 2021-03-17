@@ -3,6 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
+using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.PreferIsKindAnalyzer,
@@ -421,6 +422,7 @@ End Class
         }
 
         [Fact]
+        [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
         public async Task TestSingleNullConditionalAccess_CS()
         {
             var source =
@@ -453,6 +455,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
         public async Task TestSingleNullConditionalAccess_VB()
         {
             var source =
@@ -476,6 +479,43 @@ Class C
 End Class
 ";
             await VerifyVB.VerifyCodeFixAsync(source, fixedSource);
+        }
+
+        [Fact]
+        [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
+        public async Task TestSingleNullConditionalAccess_SyntaxToken_CS()
+        {
+            var source =
+@"using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+class C
+{
+    bool Method(SyntaxToken? token)
+    {
+        return token?.Kind() == SyntaxKind.None;
+    }
+}
+";
+
+            await VerifyCS.VerifyCodeFixAsync(source, source);
+        }
+
+        [Fact]
+        [WorkItem(4946, "https://github.com/dotnet/roslyn-analyzers/issues/4946")]
+        public async Task TestSingleNullConditionalAccess_SyntaxToken_VB()
+        {
+            var source =
+@"Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.VisualBasic
+
+Class C
+    Function Method(token As SyntaxToken?) As Boolean
+        Return token?.Kind() = SyntaxKind.None
+    End Function
+End Class
+";
+            await VerifyVB.VerifyCodeFixAsync(source, source);
         }
     }
 }
