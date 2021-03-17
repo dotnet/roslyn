@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
-            var editor = new SyntaxEditor(root, SyntaxGenerator.GetGenerator(document));
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
             foreach (var declaration in typeDeclarations)
             {
                 UpdateDeclaration(declaration, editor, semanticModel, cancellationToken);
