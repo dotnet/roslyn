@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         protected override bool ConsiderArgumentsForComparingDiagnostics => true;
 
-        private readonly static Lazy<ImmutableArray<MetadataReference>> s_references = new(() =>
+        private static readonly Lazy<ImmutableArray<MetadataReference>> s_references = new(() =>
         {
             const string unconditionalSuppressMessageDef = @"
 namespace System.Diagnostics.CodeAnalysis
