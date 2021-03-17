@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -20,5 +22,14 @@ namespace Microsoft.CodeAnalysis
         internal ISourceGenerator SourceGenerator => State.SourceGenerator;
         public string HintName => State.HintName;
         internal SourceGeneratedDocumentIdentity Identity => State.Identity;
+
+        internal override Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
+        {
+            // For us to implement frozen partial semantics here with a source generated document,
+            // we'd need to potentially deal with the combination where that happens on a snapshot that was already
+            // forked; rather than trying to deal with that combo we'll just fall back to not doing anything special
+            // which is allowed.
+            return this;
+        }
     }
 }

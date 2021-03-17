@@ -45,9 +45,14 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 var solution = workspace.CurrentSolution;
                 var id = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (id == null || !solution.ContainsDocument(id))
+                if (id == null)
                 {
                     return null;
+                }
+
+                if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var documentIdentity))
+                {
+                    return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);
                 }
 
                 // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from

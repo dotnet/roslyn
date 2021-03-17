@@ -1778,6 +1778,56 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns a new SolutionState that will always produce a specific output for a generated file. This is used only in the
+        /// implementation of <see cref="TextExtensions.GetOpenDocumentInCurrentContextWithChanges"/> where if a user has a source
+        /// generated file open, we need to make sure everything lines up.
+        /// </summary>
+        public SolutionState WithFrozenSourceGeneratedDocument(SourceGeneratedDocumentIdentity documentIdentity, SourceText sourceText)
+        {
+            var existingGeneratedState = TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
+            SourceGeneratedDocumentState newGeneratedState;
+
+            if (existingGeneratedState != null)
+            {
+                newGeneratedState = existingGeneratedState.WithUpdatedGeneratedContent(sourceText, existingGeneratedState.ParseOptions);
+
+                // If the content already matched, we can just reuse the existing state
+                if (newGeneratedState == existingGeneratedState)
+                {
+                    return this;
+                }
+            }
+            else
+            {
+                var projectState = GetRequiredProjectState(documentIdentity.DocumentId.ProjectId);
+                newGeneratedState = SourceGeneratedDocumentState.Create(
+                    documentIdentity,
+                    sourceText,
+                    projectState.ParseOptions!,
+                    projectState.LanguageServices,
+                    _solutionServices);
+            }
+
+            var projectId = documentIdentity.DocumentId.ProjectId;
+            var newTrackerMap = CreateCompilationTrackerMap(projectId, _dependencyGraph);
+
+            // We want to create a new snapshot with a new compilation tracker that will do this replacement.
+            // If we already have an existing tracker we'll just wrap that (so we also are reusing any underlying
+            // computations). If we don't have one, we'll create one and then wrap it.
+            if (!newTrackerMap.TryGetValue(projectId, out var existingTracker))
+            {
+                existingTracker = CreateCompilationTracker(projectId, this);
+            }
+
+            newTrackerMap = newTrackerMap.SetItem(
+                projectId,
+                new GeneratedFileReplacingCompilationTracker(existingTracker, newGeneratedState));
+
+            return this.Branch(
+                projectIdToTrackerMap: newTrackerMap);
+        }
+
+        /// <summary>
         /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
         /// </summary>
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();

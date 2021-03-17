@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly Dictionary<DocumentId, TextTracker> _textTrackers = new();
         private readonly Dictionary<DocumentId, SourceTextContainer> _documentToAssociatedBufferMap = new();
+        private readonly Dictionary<DocumentId, SourceGeneratedDocumentIdentity> _openSourceGeneratedDocumentIdentities = new();
 
         /// <summary>
         /// True if this workspace supports manually opening and closing documents.
@@ -285,6 +286,14 @@ namespace Microsoft.CodeAnalysis
             return _bufferToAssociatedDocumentsMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
         }
 
+        internal bool TryGetOpenSourceGeneratedDocumentIdentity(DocumentId id, out SourceGeneratedDocumentIdentity documentIdentity)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                return _openSourceGeneratedDocumentIdentities.TryGetValue(id, out documentIdentity);
+            }
+        }
+
         /// <summary>
         /// Call this method to tell the host environment to change the current active context to this document. Only supported if
         /// <see cref="CanChangeActiveContextDocument"/> returns true.
@@ -416,6 +425,7 @@ namespace Microsoft.CodeAnalysis
                 AddToOpenDocumentMap(documentId);
 
                 _documentToAssociatedBufferMap.Add(documentId, textContainer);
+                _openSourceGeneratedDocumentIdentities.Add(documentId, documentIdentity);
 
                 UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
             }
@@ -428,6 +438,8 @@ namespace Microsoft.CodeAnalysis
             using (_serializationLock.DisposableWait())
             {
                 CheckDocumentIsOpen(documentId);
+
+                Contract.ThrowIfFalse(_openSourceGeneratedDocumentIdentities.Remove(documentId));
                 ClearOpenDocument(documentId);
             }
         }
