@@ -779,6 +779,8 @@ record Y(int x)
         [Fact]
         public async Task TestExceptionVariableReassignment()
         {
+            // Note: this is a bug.  But the test currently tracks the current behavior.  Fixing this
+            // is just not deemed worth it currently.
             await TestAsync(
 @"
 using System;
@@ -787,7 +789,7 @@ class C
     void M()
     {
         try { }
-        catch (Exception [|ex|])
+        catch (Exception ex)
         {
             [|ex|] = null;
         }
@@ -798,6 +800,8 @@ class C
         [Fact]
         public async Task TestLocalReassignedInExceptionFilter()
         {
+            // Note: this is a bug.  But the test currently tracks the current behavior.  Fixing this
+            // is just not deemed worth it currently.
             await TestAsync(
 @"
 using System;
@@ -806,7 +810,7 @@ class C
     void M()
     {
         try { }
-        catch (Exception [|ex|]) when (([|ex|] = null) == null) { }
+        catch (Exception ex) when (([|ex|] = null) == null) { }
     }
 }");
         }

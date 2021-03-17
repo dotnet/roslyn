@@ -145,11 +145,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
 
             bool ComputeParameterIsAssigned(IParameterSymbol parameter)
             {
-                if (parameter.Locations.Length == 0)
-                    return false;
-
-                var parameterLocation = parameter.Locations[0];
-                if (parameterLocation.SourceTree != semanticModel.SyntaxTree)
+                if (!TryGetParameterLocation(parameter, out var parameterLocation))
                     return false;
 
                 var methodOrProperty = parameter.ContainingSymbol;
@@ -172,9 +168,32 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
                 // All parameters (except for 'out' parameters), come in definitely assigned.
                 return AnalyzePotentialMatches(
                     parameter,
-                    parameterLocation.SourceSpan,
+                    parameterLocation,
                     symbolIsDefinitelyAssigned: parameter.RefKind != RefKind.Out,
                     GetMemberBlock(methodOrPropertyDeclaration));
+            }
+
+            bool TryGetParameterLocation(IParameterSymbol parameter, out TextSpan location)
+            {
+                if (parameter.Locations.Length > 0)
+                {
+                    var parameterLocation = parameter.Locations[0];
+                    if (parameterLocation.SourceTree == semanticModel.SyntaxTree)
+                    {
+                        location = parameterLocation.SourceSpan;
+                        return true;
+                    }
+                }
+                else if (parameter.ContainingSymbol.Name == WellKnownMemberNames.TopLevelStatementsEntryPointMethodName)
+                {
+                    // If this is a parameter of the top-level-main function, then the entire span of the compilation
+                    // unit is what we need to examine.
+                    location = default;
+                    return true;
+                }
+
+                location = default;
+                return false;
             }
 
             bool ComputeLocalIsAssigned(ILocalSymbol local)
