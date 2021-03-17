@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
+#nullable enable
         /// <summary>
         /// Helper method to create a synthesized method invocation expression.
         /// </summary>
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             SeparatedSyntaxList<TypeSyntax> typeArgsSyntax = default(SeparatedSyntaxList<TypeSyntax>),
             ImmutableArray<TypeWithAnnotations> typeArgs = default(ImmutableArray<TypeWithAnnotations>),
-            CSharpSyntaxNode queryClause = null,
+            CSharpSyntaxNode? queryClause = null,
             bool allowFieldsAndProperties = false,
             bool allowUnexpandedForm = true)
         {
@@ -141,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             analyzedArguments.Free();
             return result;
         }
+#nullable disable
 
         /// <summary>
         /// Bind an expression as a method invocation.
@@ -1409,7 +1411,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         GenerateImplicitConversionError(diagnostics, syntax, conversion, defaultValue, parameterType);
                     }
-                    defaultValue = CreateConversion(defaultValue, conversion, parameterType, diagnostics);
+                    var isCast = conversion.IsExplicit;
+                    defaultValue = CreateConversion(
+                        defaultValue.Syntax,
+                        defaultValue,
+                        conversion,
+                        isCast,
+                        isCast ? new ConversionGroup(conversion, parameter.TypeWithAnnotations) : null,
+                        parameterType,
+                        diagnostics);
                 }
 
                 return defaultValue;

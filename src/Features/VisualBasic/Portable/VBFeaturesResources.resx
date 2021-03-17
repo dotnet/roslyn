@@ -1252,4 +1252,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="_0_Events" xml:space="preserve">
     <value>({0} Events)</value>
   </data>
+  <data name="Shared_constructor" xml:space="preserve">
+    <value>Shared constructor</value>
+  </data>
 </root>

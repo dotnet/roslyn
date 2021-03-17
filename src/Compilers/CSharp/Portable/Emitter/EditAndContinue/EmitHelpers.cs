@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -27,13 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Stream ilStream,
             Stream pdbStream,
             ICollection<MethodDefinitionHandle> updatedMethods,
-            CompilationTestData testData,
+            CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
             var diagnostics = DiagnosticBag.GetInstance();
 
             var emitOptions = EmitOptions.Default.WithDebugInformationFormat(baseline.HasPortablePdb ? DebugInformationFormat.PortablePdb : DebugInformationFormat.Pdb);
-            string runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
+            var runtimeMDVersion = compilation.GetRuntimeMetadataVersion(emitOptions, diagnostics);
             var serializationProperties = compilation.ConstructModuleSerializationProperties(emitOptions, runtimeMDVersion, baseline.ModuleVersionId);
             var manifestResources = SpecializedCollections.EmptyEnumerable<ResourceDescription>();
 
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var definitionMap = moduleBeingBuilt.PreviousDefinitions;
             var changes = moduleBeingBuilt.Changes;
 
-            EmitBaseline newBaseline = null;
+            EmitBaseline? newBaseline = null;
 
             if (compilation.Compile(
                 moduleBeingBuilt,
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             PEDeltaAssemblyBuilder moduleBeingBuilt)
         {
             var previousGeneration = moduleBeingBuilt.PreviousGeneration;
-            Debug.Assert(previousGeneration.Compilation != compilation);
+            RoslynDebug.Assert(previousGeneration.Compilation != compilation);
 
             if (previousGeneration.Ordinal == 0)
             {
@@ -122,6 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // compilation, there's no separate mapping step.)
                 return previousGeneration;
             }
+
+            RoslynDebug.AssertNotNull(previousGeneration.Compilation);
+            RoslynDebug.AssertNotNull(previousGeneration.PEModuleBuilder);
 
             var currentSynthesizedMembers = moduleBeingBuilt.GetAllSynthesizedMembers();
 

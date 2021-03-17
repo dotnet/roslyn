@@ -30,10 +30,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return builder.ToImmutableAndFree()
         End Function
 
-        Public Shared Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
+        Public Shared Async Function CreateContextAsync(document As Document, position As Integer, usePartialSemantic As Boolean, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
             ' Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
             ' reach outside of the span And ended up with "node not within syntax tree" error from the speculative model.
-            Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+            ' Also we use partial model unless full model is explictly request (e.g. in tests) so that we don't have to wait for all semantics to be computed.
+            Dim semanticModel = If(usePartialSemantic,
+                Await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(False),
+                Await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(False))
+            Contract.ThrowIfNull(semanticModel)
             Return VisualBasicSyntaxContext.CreateContext(document.Project.Solution.Workspace, semanticModel, position, cancellationToken)
         End Function
     End Class

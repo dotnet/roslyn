@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis
 
                 public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
                 {
-                    var syntaxTrees = new List<SyntaxTree>(capacity: _state.DocumentIds.Count);
+                    var syntaxTrees = new List<SyntaxTree>(capacity: _state.DocumentStates.Count);
 
-                    foreach (var documentState in _state.OrderedDocumentStates)
+                    foreach (var documentState in _state.DocumentStates.GetStatesInCompilationOrder())
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         syntaxTrees.Add(await documentState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));

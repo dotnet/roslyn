@@ -35,5 +35,4 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             return ValueTaskFactory.FromResult(ImmutableArray<ISymbol>.Empty);
         }
     }
-
 }

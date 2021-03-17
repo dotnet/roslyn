@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public abstract int Arity { get; }
+        public abstract System.Reflection.MethodImplAttributes MethodImplementationFlags { get; }
         public abstract bool ReturnsVoid { get; }
         public abstract bool ReturnsByRef { get; }
         public abstract bool ReturnsByRefReadonly { get; }
