@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -36,8 +37,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
             context.RegisterCompilationStartAction(context =>
             {
-                var nullableOfT = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemNullable1);
-
                 // Kind() methods
                 //  Microsoft.CodeAnalysis.CSharp.CSharpExtensions.Kind
                 //  Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.Kind
@@ -61,12 +60,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                 if (containingTypeMap.Count > 0)
                 {
-                    context.RegisterOperationAction(context => HandleBinaryOperation(context, containingTypeMap, nullableOfT), OperationKind.Binary);
+                    context.RegisterOperationAction(context => HandleBinaryOperation(context, containingTypeMap), OperationKind.Binary);
                 }
             });
         }
 
-        private static void HandleBinaryOperation(OperationAnalysisContext context, Dictionary<INamedTypeSymbol, INamedTypeSymbol> containingTypeMap, INamedTypeSymbol? nullableOfT)
+        private static void HandleBinaryOperation(OperationAnalysisContext context, Dictionary<INamedTypeSymbol, INamedTypeSymbol> containingTypeMap)
         {
             var operation = (IBinaryOperation)context.Operation;
             if (operation.OperatorKind is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals))
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             if (possibleInvocation is IConditionalAccessOperation conditionalAccess)
             {
                 // We don't currently report on Nullable<SyntaxToken>. If we'll report that in the future, the codefix must behave correctly.
-                if (SymbolEqualityComparer.Default.Equals(conditionalAccess.Operation.Type.OriginalDefinition, nullableOfT))
+                if (conditionalAccess.Operation.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     return;
                 }
