@@ -130,7 +130,7 @@
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.36</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioGraphModelVersion>
-    <MicrosoftVisualStudioImageCatalogVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImageCatalogVersion>
+    <!--🔼--><MicrosoftVisualStudioImageCatalogVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImagingVersion>
     <!--❌--><MicrosoftVisualStudioImagingInterop140DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.8.0</MicrosoftVisualStudioInteractiveWindowVersion>
