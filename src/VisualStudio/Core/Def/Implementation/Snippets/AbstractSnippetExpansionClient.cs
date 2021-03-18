@@ -52,6 +52,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// </summary>
         private const string PlaceholderSnippetField = "placeholder";
 
+        /// <summary>
+        /// A generated random string which is used to identify argument completion snippets from other snippets.
+        /// </summary>
         private static readonly string s_fullMethodCallDescriptionSentinel = Guid.NewGuid().ToString("N");
 
         private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider;
