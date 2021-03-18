@@ -18,34 +18,11 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using Roslyn.Utilities;
 
 namespace BuildValidator
 {
-    internal readonly struct SourceFileInfo
-    {
-        internal string SourceFilePath { get; }
-        internal SourceHashAlgorithm HashAlgorithm { get; }
-        internal byte[] Hash { get; }
-        internal SourceText? EmbeddedText { get; }
-        internal byte[]? EmbeddedCompressedHash { get; }
-
-        internal SourceFileInfo(
-            string sourceFilePath,
-            SourceHashAlgorithm hashAlgorithm,
-            byte[] hash,
-            SourceText? embeddedText,
-            byte[]? embeddedCompressedHash)
-        {
-            SourceFilePath = sourceFilePath;
-            HashAlgorithm = hashAlgorithm;
-            Hash = hash;
-            EmbeddedText = embeddedText;
-            EmbeddedCompressedHash = embeddedCompressedHash;
-        }
-    }
-
-    internal class CompilationOptionsReader
+    public class CompilationOptionsReader
     {
         // GUIDs specified in https://github.com/dotnet/runtime/blob/main/docs/design/specs/PortablePdb-Metadata.md#document-table-0x30
         public static readonly Guid HashAlgorithmSha1 = unchecked(new Guid((int)0xff1816ec, (short)0xaa5e, 0x4d10, 0x87, 0xf7, 0x6f, 0x49, 0x63, 0x83, 0x34, 0x60));
@@ -67,6 +44,8 @@ namespace BuildValidator
         public PEReader PeReader { get; }
         private readonly ILogger _logger;
 
+        public bool HasMetadataCompilationOptions => TryGetMetadataCompilationOptions(out _);
+
         private MetadataCompilationOptions? _metadataCompilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
         private byte[]? _sourceLinkUTF8;
@@ -87,12 +66,12 @@ namespace BuildValidator
         {
             if (!TryGetMetadataCompilationOptionsBlobReader(out var reader))
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("Does not contain metadata compilation options");
             }
             return reader;
         }
 
-        public bool TryGetMetadataCompilationOptions([NotNullWhen(true)] out MetadataCompilationOptions? options)
+        internal bool TryGetMetadataCompilationOptions([NotNullWhen(true)] out MetadataCompilationOptions? options)
         {
             if (_metadataCompilationOptions is null && TryGetMetadataCompilationOptionsBlobReader(out var optionsBlob))
             {
@@ -103,7 +82,7 @@ namespace BuildValidator
             return options != null;
         }
 
-        public MetadataCompilationOptions GetMetadataCompilationOptions()
+        internal MetadataCompilationOptions GetMetadataCompilationOptions()
         {
             if (_metadataCompilationOptions is null)
             {
@@ -114,13 +93,27 @@ namespace BuildValidator
             return _metadataCompilationOptions;
         }
 
+        /// <summary>
+        /// Get the specified <see cref="LanguageNames"/> for this compilation.
+        /// </summary>
+        public string GetLanguageName()
+        {
+            var pdbCompilationOptions = GetMetadataCompilationOptions();
+            if (!pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Language, out var language))
+            {
+                throw new Exception("Invalid language name");
+            }
+
+            return language;
+        }
+
         public Encoding GetEncoding()
         {
             using var scope = _logger.BeginScope("Encoding");
 
             var optionsReader = GetMetadataCompilationOptions();
-            optionsReader.TryGetUniqueOption(_logger, "default-encoding", out var defaultEncoding);
-            optionsReader.TryGetUniqueOption(_logger, "fallback-encoding", out var fallbackEncoding);
+            optionsReader.TryGetUniqueOption(_logger, CompilationOptionNames.DefaultEncoding, out var defaultEncoding);
+            optionsReader.TryGetUniqueOption(_logger, CompilationOptionNames.FallbackEncoding, out var fallbackEncoding);
 
             var encodingString = defaultEncoding ?? fallbackEncoding;
             var encoding = encodingString is null
@@ -128,27 +121,6 @@ namespace BuildValidator
                 : Encoding.GetEncoding(encodingString);
 
             return encoding;
-        }
-
-        public ImmutableArray<SourceLink> GetSourceLinksOpt()
-        {
-            var sourceLinkUTF8 = GetSourceLinkUTF8();
-            if (sourceLinkUTF8 is null)
-            {
-                return default;
-            }
-
-            var parseResult = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null });
-            return parseResult.documents.Select(makeSourceLink).ToImmutableArray();
-
-            static SourceLink makeSourceLink(KeyValuePair<string, string> entry)
-            {
-                // TODO: determine if this subsitution is correct
-                var (key, value) = (entry.Key, entry.Value); // TODO: use Deconstruct in .NET Core
-                var prefix = key.Remove(key.LastIndexOf("*"));
-                var replace = value.Remove(value.LastIndexOf("*"));
-                return new SourceLink(prefix, replace);
-            }
         }
 
         public byte[]? GetSourceLinkUTF8()
@@ -180,15 +152,9 @@ namespace BuildValidator
             ? OutputKind.ConsoleApplication
             : OutputKind.DynamicallyLinkedLibrary;
 
-        public string? GetMainTypeName() => GetMainMethodInfo() is { } tuple
-            ? tuple.MainTypeName
-            : null;
+        public string? GetMainTypeName() => GetMainMethodInfo()?.MainTypeName;
 
-        public string? GetMainMethodName() => GetMainMethodInfo() is { } tuple
-            ? tuple.MainMethodName
-            : null;
-
-        private (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
+        public (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
         {
             if (!(PdbReader.DebugMetadataHeader is { } header) ||
                 header.EntryPoint.IsNil)
@@ -199,6 +165,15 @@ namespace BuildValidator
             var mdReader = PeReader.GetMetadataReader();
             var methodDefinition = mdReader.GetMethodDefinition(header.EntryPoint);
             var methodName = mdReader.GetString(methodDefinition.Name);
+
+            // Here we only want to give the caller the main method name and containing type name if the method is named "Main" per convention.
+            // If the main method has another name, we have to assume that specifying a main type name won't work.
+            // For example, if the compilation uses top-level statements.
+            if (methodName != WellKnownMemberNames.EntryPointMethodName)
+            {
+                return null;
+            }
+
             var typeHandle = methodDefinition.GetDeclaringType();
             var typeDefinition = mdReader.GetTypeDefinition(typeHandle);
             var typeName = mdReader.GetString(typeDefinition.Name);

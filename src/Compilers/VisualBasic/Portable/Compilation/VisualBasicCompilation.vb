@@ -2719,7 +2719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
         End Function
 
-        Protected Overrides ReadOnly Property CommonSyntaxTrees As IEnumerable(Of SyntaxTree)
+        Protected Overrides ReadOnly Property CommonSyntaxTrees As ImmutableArray(Of SyntaxTree)
             Get
                 Return Me.SyntaxTrees
             End Get
