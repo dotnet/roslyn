@@ -23,18 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = @"
 using System;
 using System.Runtime.CompilerServices;
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-    public sealed class CallerArgumentExpressionAttribute : Attribute
-    {
-        public CallerArgumentExpressionAttribute(string parameterName)
-        {
-            ParameterName = parameterName;
-        }
-        public string ParameterName { get; }
-    }
-}
+
 class Program
 {
     public static void Main()
@@ -44,12 +33,13 @@ class Program
     const string p = nameof(p);
     static void Log(int p, [CallerArgumentExpression(p)] string arg = null)
     {
-        System.Console.WriteLine(arg);
+        Console.WriteLine(arg);
     }
 }
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "123");
         }
 
@@ -59,18 +49,7 @@ class Program
             string source = @"
 using System;
 using System.Runtime.CompilerServices;
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-    public sealed class CallerArgumentExpressionAttribute : Attribute
-    {
-        public CallerArgumentExpressionAttribute(string parameterName)
-        {
-            ParameterName = parameterName;
-        }
-        public string ParameterName { get; }
-    }
-}
+
 class Program
 {
     public static void Main()
@@ -80,12 +59,13 @@ class Program
     const string p = nameof(p);
     static void Log(int p, int q, [CallerArgumentExpression(p)] string arg = null)
     {
-        System.Console.WriteLine(arg);
+        Console.WriteLine(arg);
     }
 }
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "124");
         }
 
@@ -95,28 +75,18 @@ class Program
             string source = @"
 using System;
 using System.Runtime.CompilerServices;
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-    public sealed class CallerArgumentExpressionAttribute : Attribute
-    {
-        public CallerArgumentExpressionAttribute(string parameterName)
-        {
-            ParameterName = parameterName;
-        }
-        public string ParameterName { get; }
-    }
-}
+
 public static class FromFirstAssembly
 {
     const string p = nameof(p);
     public static void Log(int p, int q, [CallerArgumentExpression(p)] string arg = null)
     {
-        System.Console.WriteLine(arg);
+        Console.WriteLine(arg);
     }
 }
 ";
             var comp1 = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            comp1.VerifyDiagnostics();
             var ref1 = comp1.EmitToImageReference();
 
             var source2 = @"
@@ -127,7 +97,36 @@ public static class Program
 ";
 
             var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "2 + 2");
+        }
+
+        [Fact]
+        public void TestIncorrectParameterNameInCallerArgumentExpressionAttribute()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log();
+    }
+    const string pp = nameof(pp);
+    static void Log([CallerArgumentExpression(pp)] string arg = ""<default>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // TODO:
+                );
+            CompileAndVerify(compilation, expectedOutput: "<default>");
         }
 
         [Fact(Skip = "PROTOTYPE")]
