@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <summary>
         /// CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties
         /// of the type.  We accomplish this by placing a character known to be greater than all other normal identifier
-        /// characters as the start of our item's name. this doesn't affect what we insert though as all derived
+        /// characters as the start of our item's name. This doesn't affect what we insert though as all derived
         /// providers have specialized logic for what they need to do.
         /// </summary> 
         private const string SortingPrefix = "\uFFFD";
