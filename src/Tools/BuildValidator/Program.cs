@@ -119,7 +119,6 @@ namespace BuildValidator
 
                 var sourceResolver = new LocalSourceResolver(options, loggerFactory);
                 var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
-                var buildConstructor = new BuildConstructor(logger);
                 var assemblyInfos = GetAssemblyInfos(
                     options.AssembliesPaths,
                     options.Excludes,
@@ -206,12 +205,10 @@ namespace BuildValidator
             var sourceResolver = new LocalSourceResolver(options, loggerFactory);
             var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
 
-            var buildConstructor = new BuildConstructor(logger);
-
             var assembliesCompiled = new List<CompilationDiff>();
             foreach (var assemblyInfo in assemblyInfos)
             {
-                var compilationDiff = ValidateFile(assemblyInfo, buildConstructor, logger, options, sourceResolver, referenceResolver);
+                var compilationDiff = ValidateFile(assemblyInfo, logger, sourceResolver, referenceResolver);
                 assembliesCompiled.Add(compilationDiff);
 
                 if (!compilationDiff.Succeeded)
@@ -278,9 +275,7 @@ namespace BuildValidator
 
         private static CompilationDiff ValidateFile(
             AssemblyInfo assemblyInfo,
-            BuildConstructor buildConstructor,
             ILogger logger,
-            Options options,
             LocalSourceResolver sourceResolver,
             LocalReferenceResolver referenceResolver)
         {
@@ -334,21 +329,24 @@ namespace BuildValidator
                 }
                 logResolvedSources();
 
-                Compilation compilation;
+                CompilationFactory compilationFactory;
                 try
                 {
-                    compilation = buildConstructor.CreateCompilation(
+                    compilationFactory = CompilationFactory.Create(
                         originalBinary.Name,
-                        optionsReader,
-                        sources.Select(x => new SyntaxTreeInfo(x.SourceFileInfo.SourceFilePath, x.SourceText)).ToImmutableArray(),
-                        metadataReferences);
+                        optionsReader);
                 }
                 catch (Exception ex)
                 {
                     return CompilationDiff.CreateMiscError(assemblyInfo, ex.Message);
                 }
 
-                return CompilationDiff.Create(assemblyInfo, optionsReader, compilation, logger);
+                return CompilationDiff.Create(
+                    assemblyInfo,
+                    compilationFactory,
+                    sources.SelectAsArray(x => compilationFactory.CreateSyntaxTree(x.SourceFileInfo.SourceFilePath, x.SourceText)),
+                    metadataReferences,
+                    logger);
 
                 void logResolvedMetadataReferences()
                 {
