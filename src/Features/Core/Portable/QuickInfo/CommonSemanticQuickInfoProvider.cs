@@ -162,13 +162,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, tokenInformation.Symbols, cancellationToken).ConfigureAwait(false);
 
-            bool TryGetGroupText(SymbolDescriptionGroups group, out ImmutableArray<TaggedText> taggedParts)
-                => groups.TryGetValue(group, out taggedParts) && !taggedParts.IsDefaultOrEmpty;
-
             var sections = ImmutableArray.CreateBuilder<QuickInfoSection>(initialCapacity: groups.Count);
-
-            void AddSection(string kind, ImmutableArray<TaggedText> taggedParts)
-                => sections.Add(QuickInfoSection.Create(kind, taggedParts));
 
             if (tokenInformation.ShowAwaitReturn)
             {
@@ -214,49 +208,35 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 symbol = symbol.ContainingType;
             }
 
-            var documentationContent = GetDocumentationContent(symbol, groups, semanticModel, token, formatter, cancellationToken);
+            if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty)
+                AddSection(QuickInfoSectionKinds.DocumentationComments, docParts);
 
-            if (!documentationContent.IsDefaultOrEmpty)
-            {
-                AddSection(QuickInfoSectionKinds.DocumentationComments, documentationContent);
-            }
-
-            var remarksDocumentationContent = GetRemarksDocumentationContent(workspace, symbol, groups, semanticModel, token, formatter, cancellationToken);
-            if (!remarksDocumentationContent.IsDefaultOrEmpty)
+            var remarksDocumentation = GetRemarksDocumentationContent(workspace, groups, semanticModel);
+            if (!remarksDocumentation.IsDefaultOrEmpty)
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
-                if (!documentationContent.IsDefaultOrEmpty)
-                {
+                if (!docParts.IsDefaultOrEmpty)
                     builder.AddLineBreak();
-                }
 
-                builder.AddRange(remarksDocumentationContent);
+                builder.AddRange(remarksDocumentation);
                 AddSection(QuickInfoSectionKinds.RemarksDocumentationComments, builder.ToImmutable());
             }
 
-            var returnsDocumentationContent = GetReturnsDocumentationContent(symbol, groups, semanticModel, token, formatter, cancellationToken);
-            if (!returnsDocumentationContent.IsDefaultOrEmpty)
+            if (groups.TryGetValue(SymbolDescriptionGroups.ReturnsDocumentation, out var returnsDocumentation) &&
+                !returnsDocumentation.IsDefaultOrEmpty)
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
                 builder.AddLineBreak();
-                builder.AddText(FeaturesResources.Returns_colon);
-                builder.AddLineBreak();
-                builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
-                builder.AddRange(returnsDocumentationContent);
-                builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                builder.AddRange(returnsDocumentation);
                 AddSection(QuickInfoSectionKinds.ReturnsDocumentationComments, builder.ToImmutable());
             }
 
-            var valueDocumentationContent = GetValueDocumentationContent(symbol, groups, semanticModel, token, formatter, cancellationToken);
-            if (!valueDocumentationContent.IsDefaultOrEmpty)
+            if (groups.TryGetValue(SymbolDescriptionGroups.ValueDocumentation, out var valueDocumentation) &&
+                !valueDocumentation.IsDefaultOrEmpty)
             {
                 var builder = ImmutableArray.CreateBuilder<TaggedText>();
                 builder.AddLineBreak();
-                builder.AddText(FeaturesResources.Value_colon);
-                builder.AddLineBreak();
-                builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
-                builder.AddRange(valueDocumentationContent);
-                builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                builder.AddRange(valueDocumentation);
                 AddSection(QuickInfoSectionKinds.ValueDocumentationComments, builder.ToImmutable());
             }
 
@@ -322,101 +302,25 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             return QuickInfoItem.Create(token.Span, tags, sections.ToImmutable());
-        }
 
-        private static ImmutableArray<TaggedText> GetDocumentationContent(
-            ISymbol documentedSymbol,
-            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
-            SemanticModel semanticModel,
-            SyntaxToken token,
-            IDocumentationCommentFormattingService formatter,
-            CancellationToken cancellationToken)
-        {
-            if (sections.TryGetValue(SymbolDescriptionGroups.Documentation, out var parts))
-            {
-                return parts;
-            }
+            bool TryGetGroupText(SymbolDescriptionGroups group, out ImmutableArray<TaggedText> taggedParts)
+                => groups.TryGetValue(group, out taggedParts) && !taggedParts.IsDefaultOrEmpty;
 
-            var documentation = documentedSymbol.GetDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
-            if (documentation != null)
-            {
-                return documentation.ToImmutableArray();
-            }
-
-            return default;
+            void AddSection(string kind, ImmutableArray<TaggedText> taggedParts)
+                => sections.Add(QuickInfoSection.Create(kind, taggedParts));
         }
 
         private static ImmutableArray<TaggedText> GetRemarksDocumentationContent(
             Workspace workspace,
-            ISymbol documentedSymbol,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
-            SemanticModel semanticModel,
-            SyntaxToken token,
-            IDocumentationCommentFormattingService formatter,
-            CancellationToken cancellationToken)
+            SemanticModel semanticModel)
         {
             if (!workspace.Options.GetOption(QuickInfoOptions.ShowRemarksInQuickInfo, semanticModel.Language))
-            {
-                // <remarks> is disabled in Quick Info
                 return default;
-            }
 
-            if (sections.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out var parts))
-            {
-                return parts;
-            }
-
-            var documentation = documentedSymbol.GetRemarksDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
-            if (documentation != null)
-            {
-                return documentation.ToImmutableArray();
-            }
-
-            return default;
-        }
-
-        private static ImmutableArray<TaggedText> GetReturnsDocumentationContent(
-            ISymbol documentedSymbol,
-            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
-            SemanticModel semanticModel,
-            SyntaxToken token,
-            IDocumentationCommentFormattingService formatter,
-            CancellationToken cancellationToken)
-        {
-            if (sections.TryGetValue(SymbolDescriptionGroups.ReturnsDocumentation, out var parts))
-            {
-                return parts;
-            }
-
-            var documentation = documentedSymbol.GetReturnsDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
-            if (documentation != null)
-            {
-                return documentation.ToImmutableArray();
-            }
-
-            return default;
-        }
-
-        private static ImmutableArray<TaggedText> GetValueDocumentationContent(
-            ISymbol documentedSymbol,
-            IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
-            SemanticModel semanticModel,
-            SyntaxToken token,
-            IDocumentationCommentFormattingService formatter,
-            CancellationToken cancellationToken)
-        {
-            if (sections.TryGetValue(SymbolDescriptionGroups.ValueDocumentation, out var parts))
-            {
-                return parts;
-            }
-
-            var documentation = documentedSymbol.GetValueDocumentationParts(semanticModel, token.SpanStart, formatter, cancellationToken);
-            if (documentation != null)
-            {
-                return documentation.ToImmutableArray();
-            }
-
-            return default;
+            return sections.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out var parts)
+                ? parts
+                : default;
         }
 
         protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);

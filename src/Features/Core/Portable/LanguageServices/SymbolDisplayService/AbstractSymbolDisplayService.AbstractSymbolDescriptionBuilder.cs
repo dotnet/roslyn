@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private readonly SemanticModel _semanticModel;
             private readonly int _position;
             private readonly IAnonymousTypeDisplayService _anonymousTypeDisplayService;
-            private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap =
-                new();
+            private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = new();
+            private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = new();
             protected readonly Workspace Workspace;
             protected readonly CancellationToken CancellationToken;
 
@@ -145,12 +145,60 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private async Task AddPartsAsync(ImmutableArray<ISymbol> symbols)
             {
-                await AddDescriptionPartAsync(symbols[0]).ConfigureAwait(false);
+                var firstSymbol = symbols[0];
+                await AddDescriptionPartAsync(firstSymbol).ConfigureAwait(false);
 
                 AddOverloadCountPart(symbols);
-                FixAllAnonymousTypes(symbols[0]);
-                AddExceptions(symbols[0]);
-                AddCaptures(symbols[0]);
+                FixAllAnonymousTypes(firstSymbol);
+                AddExceptions(firstSymbol);
+                AddCaptures(firstSymbol);
+
+                AddDocumentationContent(firstSymbol);
+            }
+
+            private void AddDocumentationContent(ISymbol symbol)
+            {
+                var formatter = Workspace.Services.GetLanguageServices(_semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
+
+                if (!_documentationMap.TryGetValue(SymbolDescriptionGroups.Documentation, out _))
+                {
+                    var parts = symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
+                    _documentationMap.Add(SymbolDescriptionGroups.Documentation, parts.ToImmutableArray());
+                }
+
+                if (!_documentationMap.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out _))
+                {
+                    var parts = symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
+                    _documentationMap.Add(SymbolDescriptionGroups.RemarksDocumentation, parts.ToImmutableArray());
+                }
+
+                if (!_documentationMap.TryGetValue(SymbolDescriptionGroups.ReturnsDocumentation, out _))
+                {
+                    var parts = symbol.GetReturnsDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
+
+                    using var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
+                    builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Returns_colon));
+                    builder.AddRange(LineBreak().ToTaggedText());
+                    builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
+                    builder.AddRange(parts);
+                    builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+
+                    _documentationMap.Add(SymbolDescriptionGroups.ReturnsDocumentation, builder.ToImmutableArray());
+                }
+
+                if (!_documentationMap.TryGetValue(SymbolDescriptionGroups.ValueDocumentation, out _))
+                {
+                    var parts = symbol.GetValueDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
+
+                    using var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
+                    builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Value_colon));
+                    builder.AddRange(LineBreak().ToTaggedText());
+                    builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
+                    builder.AddRange(parts);
+                    builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+
+                    _documentationMap.Add(SymbolDescriptionGroups.ValueDocumentation, builder.ToImmutableArray());
+                }
             }
 
             private void AddExceptions(ISymbol symbol)
@@ -372,14 +420,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
-                => _groupMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToTaggedText());
+            {
+                var result = new Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>(_documentationMap);
+                foreach (var (group, parts) in _groupMap)
+                    result[group] = parts.ToTaggedText();
+
+                return result;
+            }
 
             private void AddDescriptionForDynamicType()
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Keyword("dynamic"));
-                AddToGroup(SymbolDescriptionGroups.Documentation,
-                    PlainText(FeaturesResources.Represents_an_object_whose_operations_will_be_resolved_at_runtime));
+                _documentationMap[SymbolDescriptionGroups.Documentation] =
+                    PlainText(FeaturesResources.Represents_an_object_whose_operations_will_be_resolved_at_runtime).ToTaggedText();
             }
 
             private void AddDescriptionForNamedType(INamedTypeSymbol symbol)
