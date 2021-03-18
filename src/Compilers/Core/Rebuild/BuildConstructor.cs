@@ -323,8 +323,7 @@ namespace BuildValidator
 
             IMethodSymbol? getDebugEntryPoint()
             {
-                if (optionsReader.GetMainTypeName() is { } mainTypeName &&
-                    optionsReader.GetMainMethodName() is { } mainMethodName)
+                if (optionsReader.GetMainMethodInfo() is (string mainTypeName, string mainMethodName))
                 {
                     var typeSymbol = producedCompilation.GetTypeByMetadataName(mainTypeName);
                     if (typeSymbol is object)
