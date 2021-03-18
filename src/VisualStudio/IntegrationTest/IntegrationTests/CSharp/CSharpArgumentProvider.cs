@@ -108,6 +108,83 @@ public class Test
         }
 
         [WpfFact]
+        public void FullCycle()
+        {
+            SetUpEditor(@"
+using System;
+public class TestClass
+{
+    public void Method()
+    {$$
+    }
+
+    void Test() { }
+    void Test(int x) { }
+    void Test(int x, int y) { }
+}
+");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("Test");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("Test$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("Test($$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Down);
+            VisualStudio.Editor.Verify.CurrentLineText("Test(0$$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Down);
+            VisualStudio.Editor.Verify.CurrentLineText("Test(0$$, 0)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Down);
+            VisualStudio.Editor.Verify.CurrentLineText("Test($$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Down);
+            VisualStudio.Editor.Verify.CurrentLineText("Test(0$$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Down);
+            VisualStudio.Editor.Verify.CurrentLineText("Test(0$$, 0)", assertCaretPosition: true);
+        }
+
+        [WpfFact]
+        public void ImplicitArgumentSwitching()
+        {
+            SetUpEditor(@"
+using System;
+public class TestClass
+{
+    public void Method()
+    {$$
+    }
+
+    void Test() { }
+    void Test(int x) { }
+    void Test(int x, int y) { }
+}
+");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.SendKeys("Tes");
+
+            // Trigger the session and type '0' without waiting for the session to finish initializing
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab, VirtualKey.Tab, '0');
+            VisualStudio.Editor.Verify.CurrentLineText("Test(0$$)", assertCaretPosition: true);
+
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("Test(0$$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Down);
+            VisualStudio.Editor.Verify.CurrentLineText("Test(0$$, 0)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Up);
+            VisualStudio.Editor.Verify.CurrentLineText("Test(0$$)", assertCaretPosition: true);
+        }
+
+        [WpfFact]
         public void SemicolonWithTabTabCompletion()
         {
             SetUpEditor(@"

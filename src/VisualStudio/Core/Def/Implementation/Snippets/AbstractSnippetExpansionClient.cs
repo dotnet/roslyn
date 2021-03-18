@@ -52,6 +52,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// </summary>
         private const string PlaceholderSnippetField = "placeholder";
 
+        /// <summary>
+        /// A generated random string which is used to identify argument completion snippets from other snippets.
+        /// </summary>
+        private static readonly string s_fullMethodCallDescriptionSentinel = Guid.NewGuid().ToString("N");
+
         private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider;
         private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory;
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
@@ -134,8 +139,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // If this is a manually-constructed snippet for a full method call, avoid formatting the snippet since
-            // doing so will disrupt signature help.
-            if (_state.IsFullMethodCallSnippet)
+            // doing so will disrupt signature help. Check ExpansionSession instead of '_state.IsFullMethodCallSnippet'
+            // because '_state._methodNameForInsertFullMethodCall' is not initialized at this point.
+            if (ExpansionSession.TryGetHeaderNode("Description", out var descriptionNode)
+                && descriptionNode?.text == s_fullMethodCallDescriptionSentinel)
             {
                 return VSConstants.S_OK;
             }
@@ -652,7 +659,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         new XAttribute(snippetNamespace + "Format", "1.0.0"),
                         new XElement(
                             snippetNamespace + "Header",
-                            new XElement(snippetNamespace + "Title", new XText(methodName))),
+                            new XElement(snippetNamespace + "Title", new XText(methodName)),
+                            new XElement(snippetNamespace + "Description", new XText(s_fullMethodCallDescriptionSentinel))),
                         new XElement(
                             snippetNamespace + "Snippet",
                             new XElement(snippetNamespace + "Declarations", declarations.ToArray()),
@@ -678,6 +686,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 // Signature Help is showing an updated signature, but either there is no active snippet, or the active
                 // snippet is not performing argument value completion, so we just ignore it.
+                return;
+            }
+
+            if (!e.NewModel.UserSelected && _state._method is not null)
+            {
+                // This was an implicit signature change which was not triggered by user pressing up/down, and we are
+                // already showing an initialized argument completion snippet session, so avoid switching sessions.
                 return;
             }
 
@@ -731,7 +746,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            if (_state._methodNameForInsertFullMethodCall is null || _state._methodNameForInsertFullMethodCall != method.Name)
+            if (_state._methodNameForInsertFullMethodCall != method.Name)
             {
                 // Signature Help is showing a signature that wasn't part of the set this argument value completion
                 // session was created from. It's unclear how this state should be handled, so we stop processing
