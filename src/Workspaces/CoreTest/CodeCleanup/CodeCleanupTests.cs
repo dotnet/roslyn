@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
             Assert.Equal(document, cleanDocument);
         }
 
-       [Fact]
+        [Fact]
         public async Task CodeCleanersCSharp_Span()
         {
             var document = CreateDocument("class C { }", LanguageNames.CSharp);
@@ -94,7 +94,7 @@ End Class", LanguageNames.VisualBasic);
             Assert.Equal(document, cleanDocument);
         }
 
-         [Fact]
+        [Fact]
         public async Task CodeCleanersVisualBasic_Document()
         {
             var document = CreateDocument(@"Class C
