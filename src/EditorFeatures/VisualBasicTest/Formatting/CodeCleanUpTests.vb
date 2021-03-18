@@ -7,9 +7,12 @@ Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -26,14 +29,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
             Dim code = "Imports System.Collections.Generic
 Imports System
 Friend Class Program
-    Shared Sub Main(args() As String)
+    Public Shared Sub Main(args() As String)
         Console.WriteLine(list.Count)
     End Sub
 End Class
 "
 
             Dim expected = "Friend Class Program
-    Shared Sub Main(args() As String)
+    Public Shared Sub Main(args() As String)
         Console.WriteLine(list.Count)
     End Sub
 End Class
@@ -47,7 +50,7 @@ End Class
             Dim code = "Imports System.Reflection
 Imports System.IO
 Friend Class Program
-    Shared Sub Main(args() As String)
+    Public Shared Sub Main(args() As String)
         Dim location As ImmutableArray(Of String) = Assembly.Load(""System.Windows.Forms"").Location
         Dim SourceText As String
         Using myFileStream As FileStream = File.OpenRead(location)
@@ -60,7 +63,7 @@ End Class
             Dim expected = "Imports System.IO
 Imports System.Reflection
 Friend Class Program
-    Shared Sub Main(args() As String)
+    Public Shared Sub Main(args() As String)
         Dim location As ImmutableArray(Of String) = Assembly.Load(""System.Windows.Forms"").Location
         Dim SourceText As String
         Using myFileStream As FileStream = File.OpenRead(location)
@@ -167,7 +170,7 @@ End Namespace
             Return AssertCodeCleanupResultAsync(expected, code, systemImportsFirst:=True, separateImportsGroups:=True)
         End Function
 
-        <Fact(Skip:="IFixAllGetFixesService is missing")>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicRemoveUnusedVariable() As Task
             'Remove unused variables
@@ -199,7 +202,7 @@ End Class
             Return AssertCodeCleanupResultAsync(expected, code)
         End Function
 
-        <Fact(Skip:="Not implemented")>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicAddAccessibilityModifiers() As Task
             Dim code As String = "Class Program
@@ -209,21 +212,21 @@ End Class
 End Class
 "
             Dim expected As String = "Friend Class Program
-        Public Shared Sub Method()
-            Console.WriteLine(""Hello"")
-        End Sub
-    End Class
+    Public Shared Sub Method()
+        Console.WriteLine(""Hello"")
+    End Sub
+End Class
 "
             Return AssertCodeCleanupResultAsync(expected, code)
         End Function
 
-        <Fact(Skip:="Not implemented")>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicRemoveUnnecessaryCast() As Task
             Dim code As String = "Public Class Program
     Public Shared Sub Method()
         Dim s as string = CStr(""Hello"")
-        Console.WriteLine(sX)
+        Console.WriteLine(s)
     End Sub
 End Class
 "
@@ -231,13 +234,13 @@ End Class
     Public Shared Sub Method()
         Dim s as string = ""Hello""
         Console.WriteLine(s)
-        End Sub
-    End Class
+    End Sub
+End Class
 "
             Return AssertCodeCleanupResultAsync(expected, code)
         End Function
 
-        <Fact(Skip:="Not implemented")>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Shared Function VisualBasicSortAccessibilityModifiers() As Task
             Dim code As String = "Public Class Program
@@ -247,15 +250,15 @@ End Class
 End Class
 "
             Dim expected As String = "Public Class Program
-        Public Shared Sub Method()
-            Console.WriteLine(""Hello"")
-        End Sub
-    End Class
+    Public Shared Sub Method()
+        Console.WriteLine(""Hello"")
+    End Sub
+End Class
 "
             Return AssertCodeCleanupResultAsync(expected, code)
         End Function
 
-        <Fact(Skip:="Not implemented")>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Function VisualBasicMakePrivateFieldReadOnly() As Task
             Dim code = "Friend Class Program
@@ -278,7 +281,6 @@ End Class"
             Return AssertCodeCleanupResultAsync(expected, code)
         End Function
 
-        ' TODO This test needs a way to set preference it currently does nothing
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
         Public Shared Function VisualBasicApplyMeQualification() As Task
@@ -301,7 +303,7 @@ End Class
 
     Public Sub Method()
         _value = ""Hello""
-        Me.PrintHello()
+        PrintHello()
         PrintHello()
     End Sub
 
@@ -325,41 +327,43 @@ End Class
                                                                              code As String,
                                                                              Optional systemImportsFirst As Boolean = True,
                                                                              Optional separateImportsGroups As Boolean = False) As Task
-            Dim workspace = TestWorkspace.CreateVisualBasic(code)
+            Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
+                Dim solution = workspace.CurrentSolution _
+                    .WithOptions(workspace.Options _
+                    .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst,
+                                       LanguageNames.VisualBasic,
+                                       systemImportsFirst) _
+                    .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups,
+                                       LanguageNames.VisualBasic,
+                                       separateImportsGroups)) _
+                    .WithAnalyzerReferences({
+                        New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                        New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                        New AnalyzerFileReference(GetType(VisualBasicPreferFrameworkTypeDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
+                                            })
 
-            Dim solution = workspace.CurrentSolution _
-                .WithOptions(workspace.Options _
-                .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst,
-                                   LanguageNames.VisualBasic,
-                                   systemImportsFirst) _
-                .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups,
-                                   LanguageNames.VisualBasic,
-                                   separateImportsGroups)) _
-                .WithAnalyzerReferences({
-                    New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-                                        })
+                workspace.TryApplyChanges(solution)
 
-            workspace.TryApplyChanges(solution)
+                ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
+                Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
+                incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace)
 
-            ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
-            Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
-            incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace)
+                Dim hostdoc = workspace.Documents.[Single]()
+                Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
 
-            Dim hostdoc = workspace.Documents.[Single]()
-            Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
+                Dim codeCleanupService = document.GetLanguageService(Of ICodeCleanupService)()
 
-            Dim codeCleanupService = document.GetLanguageService(Of ICodeCleanupService)()
+                Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
 
-            Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
-
-            Dim newDoc = Await codeCleanupService.CleanupAsync(document,
+                Dim newDoc = Await codeCleanupService.CleanupAsync(document,
                                                                enabledDiagnostics,
                                                                New ProgressTracker,
                                                                CancellationToken.None)
 
-            Dim actual = Await newDoc.GetTextAsync()
+                Dim actual = Await newDoc.GetTextAsync()
 
-            Assert.Equal(expected, actual.ToString())
+                AssertEx.EqualOrDiff(expected, actual.ToString())
+            End Using
         End Function
 
     End Class
