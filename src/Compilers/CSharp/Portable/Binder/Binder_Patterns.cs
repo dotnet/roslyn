@@ -1192,9 +1192,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Symbol? symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
 
-            memberType = (symbol is null) ?
-                CreateErrorType() :
-                symbol.GetTypeOrReturnType().Type;
+            memberType = symbol switch
+            {
+                FieldSymbol field => field.Type,
+                PropertySymbol property => property.Type,
+                _ => CreateErrorType()
+            };
 
             return symbol;
         }
