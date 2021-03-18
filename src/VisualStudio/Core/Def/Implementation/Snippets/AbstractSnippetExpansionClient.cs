@@ -743,7 +743,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            if (_state._methodNameForInsertFullMethodCall is null || _state._methodNameForInsertFullMethodCall != method.Name)
+            if (_state._methodNameForInsertFullMethodCall != method.Name)
             {
                 // Signature Help is showing a signature that wasn't part of the set this argument value completion
                 // session was created from. It's unclear how this state should be handled, so we stop processing
