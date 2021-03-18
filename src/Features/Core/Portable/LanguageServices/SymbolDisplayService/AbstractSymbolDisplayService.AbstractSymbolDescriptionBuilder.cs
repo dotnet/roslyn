@@ -160,19 +160,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 var formatter = Workspace.Services.GetLanguageServices(_semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
 
-                if (!_documentationMap.TryGetValue(SymbolDescriptionGroups.Documentation, out _))
-                {
-                    var parts = symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
-                    _documentationMap.Add(SymbolDescriptionGroups.Documentation, parts.ToImmutableArray());
-                }
+                _documentationMap.Add(
+                    SymbolDescriptionGroups.Documentation,
+                    symbol.GetDocumentationParts(_semanticModel, _position, formatter, CancellationToken).ToImmutableArray());
 
-                if (!_documentationMap.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out _))
-                {
-                    var parts = symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
-                    _documentationMap.Add(SymbolDescriptionGroups.RemarksDocumentation, parts.ToImmutableArray());
-                }
+                _documentationMap.Add(
+                    SymbolDescriptionGroups.RemarksDocumentation,
+                    symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken).ToImmutableArray());
 
-                if (!_documentationMap.TryGetValue(SymbolDescriptionGroups.ReturnsDocumentation, out _))
                 {
                     var parts = symbol.GetReturnsDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
 
@@ -186,7 +181,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     _documentationMap.Add(SymbolDescriptionGroups.ReturnsDocumentation, builder.ToImmutableArray());
                 }
 
-                if (!_documentationMap.TryGetValue(SymbolDescriptionGroups.ValueDocumentation, out _))
                 {
                     var parts = symbol.GetValueDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
 
