@@ -35,7 +35,7 @@
       <trans-unit id="Apply_Me_qualification_preferences">
         <source>Apply Me qualification preferences</source>
         <target state="new">Apply Me qualification preferences</target>
-        <note>{Locked="Me"} "Met" is a VB keyword and should not be localized.</note>
+        <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Change_to_DirectCast">
         <source>Change to 'DirectCast'</source>

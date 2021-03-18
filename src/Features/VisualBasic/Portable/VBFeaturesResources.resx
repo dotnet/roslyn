@@ -1242,7 +1242,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Apply_Me_qualification_preferences" xml:space="preserve">
     <value>Apply Me qualification preferences</value>
-    <comment>{Locked="Me"} "Met" is a VB keyword and should not be localized.</comment>
+    <comment>{Locked="Me"} "Me" is a VB keyword and should not be localized.</comment>
   </data>
   <data name="Apply_Imports_directive_placement_preferences" xml:space="preserve">
     <value>Apply Imports directive placement preferences</value>
@@ -1266,7 +1266,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
     <value>Remove 'Shared' keyword from Module member</value>
     <comment>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</comment>
   </data>
-
   <data name="_0_Events" xml:space="preserve">
     <value>({0} Events)</value>
   </data>

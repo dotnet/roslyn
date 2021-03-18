@@ -2797,7 +2797,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>Apply file header preferences</value>
   </data>
   <data name="Apply_object_collection_initialization_preferences" xml:space="preserve">
-    <value>Apply object collection initialization preferences</value>
+    <value>Apply object/collection initialization preferences</value>
   </data>
   <data name="Remove_unnecessary_casts" xml:space="preserve">
     <value>Remove unnecessary casts</value>

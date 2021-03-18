@@ -1588,6 +1588,7 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Format_document" xml:space="preserve">
     <value>Format document</value>
+  </data>
   <data name="New_line_preferences_experimental_colon" xml:space="preserve">
     <value>New line preferences (experimental):</value>
   </data>

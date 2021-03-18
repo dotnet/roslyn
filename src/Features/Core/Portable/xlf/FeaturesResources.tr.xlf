@@ -136,8 +136,10 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_collection_initialization_preferences">
-        <source>Apply object collection initialization preferences</source>
-        <target state="new">Apply object collection initialization preferences</target>
+        <source>Apply object/collection initialization preferences</source>
+        <target state="new">Apply object/collection initialization preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
         <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
         <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
