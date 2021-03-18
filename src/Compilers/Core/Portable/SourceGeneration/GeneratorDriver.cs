@@ -137,6 +137,10 @@ namespace Microsoft.CodeAnalysis
             var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, fillWithValue: null); // we know there is at max 1 per generator
             int receiverCount = 0;
 
+            // pipeline stuff
+            var pipelineSource = ValueSources.Create(compilation);
+            var producers = ArrayBuilder<IOutputNode>.GetInstance();
+
             for (int i = 0; i < state.Generators.Length; i++)
             {
                 var generator = state.Generators[i];
@@ -181,7 +185,7 @@ namespace Microsoft.CodeAnalysis
                     // create the pipeline if requested
                     if (generatorState.Info.PipelineCallback is object)
                     {
-                        var pipelineContext = new GeneratorPipelineRegistrationContext(cancellationToken);
+                        var pipelineContext = new GeneratorPipelineRegistrationContext(pipelineSource, producers, cancellationToken);
                         try
                         {
                             generatorState.Info.PipelineCallback(pipelineContext);
@@ -262,6 +266,17 @@ namespace Microsoft.CodeAnalysis
                 }
             }
             walkerBuilder.Free();
+
+            //TODO: use the above syntax walk to update the pipeline bits
+
+            //TODO: we need to cache the output state table and re-create it from the previous version
+            GraphStateTable.Builder runningStateTable = new GraphStateTable.Builder(GraphStateTable.Empty);
+            foreach (var producer in producers)
+            {
+                //TODO: we update the state table, but need to work out what to do with it 
+                producer.GetStateTable(runningStateTable);
+            }
+            var endStateTable = runningStateTable.ToImmutable();
 
             // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
             for (int i = 0; i < state.Generators.Length; i++)

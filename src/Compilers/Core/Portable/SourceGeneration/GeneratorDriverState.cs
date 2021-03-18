@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal readonly ParseOptions ParseOptions;
 
+        //internal readonly ValueSources ValueSources;
+
+
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? generators = null,
             ImmutableArray<GeneratorState>? generatorStates = null,

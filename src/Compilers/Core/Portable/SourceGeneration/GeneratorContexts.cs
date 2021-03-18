@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
@@ -260,14 +261,28 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorPipelineRegistrationContext
     {
-        internal GeneratorPipelineRegistrationContext(CancellationToken cancellationToken)
+        private readonly ArrayBuilder<IOutputNode> _producers;
+
+        internal GeneratorPipelineRegistrationContext(ValueSources sources, ArrayBuilder<IOutputNode> producers, CancellationToken cancellationToken)
         {
+            Sources = sources;
+            _producers = producers;
             CancellationToken = cancellationToken;
         }
+
+        public ValueSources Sources { get; }
 
         /// <summary>
         /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the PostInitialization should be cancelled.
         /// </summary>
         public CancellationToken CancellationToken { get; }
+
+        public void AddProducer(GeneratorOutput producer)
+        {
+            _producers.Add(producer.node);
+        }
+
+
     }
+
 }
