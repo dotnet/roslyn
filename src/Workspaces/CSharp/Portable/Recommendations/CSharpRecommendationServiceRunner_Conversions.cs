@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             SpecialType.System_Int16);
 
         private static readonly ImmutableArray<SpecialType> s_charConversions = ImmutableArray.Create(
-             SpecialType.System_Byte,
+            SpecialType.System_Byte,
             SpecialType.System_SByte,
             SpecialType.System_Int16);
 
