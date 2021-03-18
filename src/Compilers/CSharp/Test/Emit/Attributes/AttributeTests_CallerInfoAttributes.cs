@@ -89,6 +89,47 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "124");
         }
 
+        [Fact]
+        public void TestGoodCallerArgumentExpressionAttribute_DifferentAssembly()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    public sealed class CallerArgumentExpressionAttribute : Attribute
+    {
+        public CallerArgumentExpressionAttribute(string parameterName)
+        {
+            ParameterName = parameterName;
+        }
+        public string ParameterName { get; }
+    }
+}
+public static class FromFirstAssembly
+{
+    const string p = nameof(p);
+    public static void Log(int p, int q, [CallerArgumentExpression(p)] string arg = null)
+    {
+        System.Console.WriteLine(arg);
+    }
+}
+";
+            var comp1 = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            var ref1 = comp1.EmitToImageReference();
+
+            var source2 = @"
+public static class Program
+{
+    public static void Main() => FromFirstAssembly.Log(2 + 2, 3 + 1);
+}
+";
+
+            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "2 + 2");
+        }
+
         [Fact(Skip = "PROTOTYPE")]
         public void TestPROTOTYPE()
         {

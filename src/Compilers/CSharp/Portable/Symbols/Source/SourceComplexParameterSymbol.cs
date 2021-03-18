@@ -621,7 +621,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute))
                 {
-                    // PROTOTYPE: set the index as well.
                     arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasCallerArgumentExpressionAttribute = true;
 
                     var index = -1;

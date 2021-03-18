@@ -685,20 +685,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out bool value))
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    bool isCallerMemberName = !HasCallerLineNumberAttribute
+                    bool isCallerArgumentExpression = !HasCallerLineNumberAttribute
                         && !HasCallerFilePathAttribute
                         && !HasCallerMemberNameAttribute
                         && HasCallerArgumentExpressionAttribute
                         && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
 
-                    value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
+                    value = _packedFlags.SetWellKnownAttribute(flag, isCallerArgumentExpression);
                 }
 
                 if (value)
                 {
-                    // PROTOTYPE:
-                    // 1. Find the parameter name.
-                    // 2. Find the index and return it.
+                    foreach (var attribute in GetAttributes())
+                    {
+                        if (attribute.IsTargetAttribute(this, AttributeDescription.CallerArgumentExpressionAttribute))
+                        {
+                            // TODO: Extract this to a helper and share between SourceComplexParameterSymbol
+                            if (attribute.CommonConstructorArguments.Length == 1) // PROTOTYPE: else?? Should produce a diagnostic?
+                            {
+                                if (attribute.CommonConstructorArguments[0].TryDecodeValue(SpecialType.System_String, out string parameterName))
+                                {
+                                    var parameters = ContainingSymbol.GetParameters();
+                                    for (int i = 0; i < parameters.Length; i++)
+                                    {
+                                        if (parameters[i].Name == parameterName)
+                                        {
+                                            return i;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 return -1;
