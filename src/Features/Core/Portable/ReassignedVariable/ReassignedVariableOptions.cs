@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ReassignedVariable
     internal class ReassignedVariableOptions
     {
         public static PerLanguageOption2<bool> Underline =
-           new PerLanguageOption2<bool>(nameof(ReassignedVariableOptions), nameof(Underline), defaultValue: true,
+           new PerLanguageOption2<bool>(nameof(ReassignedVariableOptions), nameof(Underline), defaultValue: false,
                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ReassignedVariable.Underline"));
     }
 
