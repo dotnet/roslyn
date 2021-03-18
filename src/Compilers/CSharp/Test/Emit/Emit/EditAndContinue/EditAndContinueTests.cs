@@ -10518,7 +10518,7 @@ namespace N
 {
     record R(int X)
     {
-        protected virtual bool PrintMembers(System.Text.StringBuilder sb)
+        protected virtual bool PrintMembers(System.Text.StringBuilder builder)
         {
             return true;
         }
@@ -10559,7 +10559,7 @@ namespace N
 {
     record R(int X)
     {
-        protected virtual bool PrintMembers(System.Text.StringBuilder sb)
+        protected virtual bool PrintMembers(System.Text.StringBuilder builder)
         {
             return true;
         }
