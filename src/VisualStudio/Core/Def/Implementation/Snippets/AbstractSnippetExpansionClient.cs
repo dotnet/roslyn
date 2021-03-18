@@ -681,6 +681,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
+            if (!e.NewModel.UserSelected && _state._method is not null)
+            {
+                // This was an implicit signature change which was not triggered by user pressing up/down, and we are
+                // already showing an initialized argument completion snippet session, so avoid switching sessions.
+                return;
+            }
+
             var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document is null)
             {
