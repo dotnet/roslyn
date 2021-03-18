@@ -2435,7 +2435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                TLocalState savedState = VisitPossibleConditionalAccess(node.LeftOperand, out var stateWhenNotNull)
+                TLocalState savedState = VisitPossibleConditionalAccess(node.LeftOperand, node.LeftConversion, out var stateWhenNotNull)
                     ? stateWhenNotNull
                     : State.Clone();
 
@@ -2457,7 +2457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected bool VisitPossibleConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
+        protected bool VisitPossibleConditionalAccess(BoundExpression node, Conversion conversion, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
         {
             EnterRegionIfNeeded(node);
             var hasStateWhenNotNull = visit(out stateWhenNotNull);
@@ -2474,7 +2474,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundConversion { ExplicitCastInCode: false, HasErrors: false, Operand: BoundConditionalAccess } => throw ExceptionUtilities.Unreachable,
                     _ => null
                 };
-                if (access is not null)
+
+                if (access is not null && conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
                 {
                     return VisitConditionalAccess(access, out stateWhenNotNull);
                 }
