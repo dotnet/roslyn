@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CallerArgumentExpressionAttribute))
             {
-                ValidateCallerArgumentExpressionAttribute(arguments.AttributeSyntaxOpt, diagnostics);
+                ValidateCallerArgumentExpressionAttribute(arguments.AttributeSyntaxOpt, attribute, diagnostics);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
                 ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(node.Name.Location, useSiteInfo);
         }
 
-        private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, BindingDiagnosticBag diagnostics)
+        private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, CSharpAttributeData attribute, BindingDiagnosticBag diagnostics)
         {
             CSharpCompilation compilation = this.DeclaringCompilation;
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
@@ -1110,6 +1110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // CS8917: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the MemberNameAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
+            }
+            else if (attribute.CommonConstructorArguments.Length == 1 &&
+                attribute.CommonConstructorArguments[0].TryDecodeValue(SpecialType.System_String, out string parameterName) &&
+                !ContainingSymbol.GetParameters().Any(p => p.Name == parameterName))
+            {
+                // CS8918: The CallerArgumentExpressionAttribute is applied with an invalid parameter name.
+                diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location);
             }
 
             diagnostics.Add(node.Name.Location, useSiteInfo);

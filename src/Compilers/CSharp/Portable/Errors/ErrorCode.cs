@@ -1939,6 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CallerLineNumberPreferredOverCallerArgumentExpression = 8915,
         WRN_CallerFilePathPreferredOverCallerArgumentExpression = 8916,
         WRN_CallerMemberNamePreferredOverCallerArgumentExpression = 8917,
+        WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 8918,
 
         #endregion
 

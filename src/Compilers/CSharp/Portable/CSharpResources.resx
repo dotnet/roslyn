@@ -6618,4 +6618,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_CallerMemberNamePreferredOverCallerArgumentExpression" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the MemberNameAttribute.</value>
   </data>
+  <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName" xml:space="preserve">
+    <value>The CallerArgumentExpressionAttribute is applied with an invalid parameter name.</value>
+  </data>
 </root>

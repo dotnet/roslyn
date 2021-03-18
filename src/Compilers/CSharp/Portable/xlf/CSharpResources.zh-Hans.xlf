@@ -987,6 +987,11 @@
         <target state="translated">加载的程序集引用了 .NET Framework，而此操作不受支持。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute is applied with an invalid parameter name.</source>
+        <target state="new">The CallerArgumentExpressionAttribute is applied with an invalid parameter name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionParamForUnconsumedLocation">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</source>
         <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</target>
