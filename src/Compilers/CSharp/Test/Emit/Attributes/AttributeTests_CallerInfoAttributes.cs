@@ -18,6 +18,114 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AttributeTests_CallerInfoAttributes : WellKnownAttributesTestBase
     {
         [Fact]
+        public void TestGoodCallerArgumentExpressionAttribute()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    public sealed class CallerArgumentExpressionAttribute : Attribute
+    {
+        public CallerArgumentExpressionAttribute(string parameterName)
+        {
+            ParameterName = parameterName;
+        }
+        public string ParameterName { get; }
+    }
+}
+class Program
+{
+    public static void Main()
+    {
+        Log(123);
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] string arg = null)
+    {
+        System.Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "123");
+        }
+
+        [Fact]
+        public void TestGoodCallerArgumentExpressionAttribute_SwapArguments()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    public sealed class CallerArgumentExpressionAttribute : Attribute
+    {
+        public CallerArgumentExpressionAttribute(string parameterName)
+        {
+            ParameterName = parameterName;
+        }
+        public string ParameterName { get; }
+    }
+}
+class Program
+{
+    public static void Main()
+    {
+        Log(q: 123, p: 124);
+    }
+    const string p = nameof(p);
+    static void Log(int p, int q, [CallerArgumentExpression(p)] string arg = null)
+    {
+        System.Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "124");
+        }
+
+        [Fact(Skip = "PROTOTYPE")]
+        public void TestPROTOTYPE()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+C.M();
+public static class C
+{
+    // PROTOTYPE: What the behavior should be?
+    public static void M(
+        [CallerMemberName] string callerName = """",
+        [CallerArgumentExpression(""callerName"")] string argumentExp = """")
+    {
+        Console.WriteLine(callerName);
+        Console.WriteLine(argumentExp);
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
+    public sealed class CallerArgumentExpressionAttribute : Attribute
+    {
+        public CallerArgumentExpressionAttribute(string parameterName)
+        {
+            ParameterName = parameterName;
+        }
+        public string ParameterName { get; }
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "");
+        }
+
+        [Fact]
         public void TestCallerInfoAttributesWithSaneDefaultValues()
         {
             string source = @"
