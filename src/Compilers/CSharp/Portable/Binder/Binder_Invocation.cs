@@ -1308,6 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Params array is filled in the local rewriter
             var lastIndex = expanded ? ^1 : ^0;
 
+            var arguments = argumentsBuilder.ToImmutableAndFree();
             // Go over missing parameters, inserting default values for optional parameters
             foreach (var parameter in parameters.AsSpan()[..lastIndex])
             {
@@ -1316,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
 
                     defaultArguments[argumentsBuilder.Count] = true;
-                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, argumentsBuilder.ToImmutableAndFree()));
+                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, arguments, argsToParamsOpt));
 
                     if (argumentRefKindsBuilder is { Count: > 0 })
                     {
@@ -1335,7 +1336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsBuilder.Free();
             }
 
-            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics, ImmutableArray<BoundExpression> arguments)
+            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics, ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argsToParamsOpt)
             {
                 TypeSymbol parameterType = parameter.Type;
                 if (Flags.Includes(BinderFlags.ParameterDefaultValue))
@@ -1370,13 +1371,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var memberName = containingMember.GetMemberCallerName();
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
-                else if (callerSourceLocation is object && parameter.CallerArgumentExpressionParameterIndex != -1)
+                else if (callerSourceLocation is object && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex &&
+                    argumentIndex != -1)
                 {
                     // - Test extension methods.
                     // - Test combining different attributes (e.g, both CallerArgumentExpression and MemberCallerName).
                     // - Test having the CallerArgumentExpression tied to an optional parameter that doesn't exist in callsite.
                     // - Test having a non-existent expression.
-                    var argument = arguments[parameter.CallerArgumentExpressionParameterIndex];
+                    var argument = arguments[argumentIndex];
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (defaultConstantValue == ConstantValue.NotAvailable)
@@ -1432,6 +1434,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return defaultValue;
+
+                static int getArgumentIndex(int parameterIndex, ImmutableArray<int> argsToParamsOpt)
+                    => argsToParamsOpt.IsDefault
+                        ? parameterIndex
+                        : argsToParamsOpt.IndexOf(parameterIndex);
             }
 
         }

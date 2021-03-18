@@ -623,6 +623,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // PROTOTYPE: set the index as well.
                     arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasCallerArgumentExpressionAttribute = true;
+
+                    var index = -1;
+                    var attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out bool generatedDiagnostics);
+                    if (!generatedDiagnostics && !attribute.HasErrors)
+                    {
+                        if (attribute.CommonConstructorArguments.Length == 1) // PROTOTYPE: else?? Should produce a diagnostic?
+                        {
+                            if (attribute.CommonConstructorArguments[0].TryDecodeValue(SpecialType.System_String, out string parameterName))
+                            {
+                                var parameters = ContainingSymbol.GetParameters();
+                                for (int i = 0; i < parameters.Length; i++)
+                                {
+                                    if (parameters[i].Name == parameterName)
+                                    {
+                                        index = i;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().CallerArgumentExpressionParameterIndex = index;
                 }
             }
 
