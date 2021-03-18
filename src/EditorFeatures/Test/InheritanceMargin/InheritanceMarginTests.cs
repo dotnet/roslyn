@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
     [UseExportProvider]
     public class InheritanceMarginTests
     {
+        private const string SearchAreaTag = "SeachTag";
+
         #region Helpers
         private static async Task VerifyInSingleDocumentAsync(
             string markup,
@@ -49,7 +52,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             var testDocumentHost = testWorkspace.Documents[0];
             var document = testWorkspace.CurrentSolution.GetRequiredDocument(testDocumentHost.Id);
             var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
-            var actualItems = await service.GetInheritanceInfoAsync(document, cancellationToken).ConfigureAwait(false);
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var searchingSpan = root.Span;
+            // Look for the search span, if not found, then pass the whole document span to the service.
+            if (testDocumentHost.AnnotatedSpans.TryGetValue(SearchAreaTag, out var spans) && spans.IsSingle())
+            {
+                searchingSpan = spans[0];
+            }
+
+            var actualItems = await service.GetInheritanceInfoAsync(
+                document,
+                searchingSpan,
+                cancellationToken).ConfigureAwait(false);
 
             var sortedActualItems = actualItems.OrderBy(item => item.LineNumber).ToImmutableArray();
             var sortedExpectedItems = memberItems.OrderBy(item => item.LineNumber).ToImmutableArray();

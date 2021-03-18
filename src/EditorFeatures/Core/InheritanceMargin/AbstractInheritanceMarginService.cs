@@ -16,8 +16,20 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal abstract partial class AbstractInheritanceMarginService : IInheritanceMarginService
     {
+        /// <summary>
+        /// Given the root and the searching span,
+        /// get all the method, event, property and type declaration syntax nodes.
+        /// </summary>
+        protected abstract ImmutableArray<SyntaxNode> GetMembers(SyntaxNode root, TextSpan spanToSearch);
+
+        /// <summary>
+        /// Get the line number for the identifier of declaration node is declared.
+        /// </summary>
+        protected abstract int GetIdentifierLineNumber(SourceText sourceText, SyntaxNode declarationNode);
+
         public async Task<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoAsync(
             Document document,
+            TextSpan spanToSearch,
             CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -28,7 +40,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var allDeclarationNodes = GetMembers(root);
+            var allDeclarationNodes = GetMembers(root, spanToSearch);
             if (allDeclarationNodes.IsEmpty)
             {
                 return ImmutableArray<InheritanceMemberItem>.Empty;
@@ -43,7 +55,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             foreach (var memberDeclarationNode in allDeclarationNodes)
             {
                 var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
-                if (member != null && !member.IsStatic && !member.IsErrorType())
+                if (member != null && !member.IsStatic)
                 {
                     var mappingResult = await mappingService.MapSymbolAsync(document, member, cancellationToken).ConfigureAwait(false);
                     if (mappingResult != null)
@@ -76,7 +88,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             return builder.ToImmutable();
         }
 
-        private static async Task AddInheritanceMemberItemsForNamedTypeAsync(
+        private async Task AddInheritanceMemberItemsForNamedTypeAsync(
             Solution solution,
             SourceText sourceText,
             SyntaxNode declarationNode,
@@ -100,7 +112,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             if (!(baseTypes.IsEmpty && derivedTypes.IsEmpty))
             {
-                var lineNumber = sourceText.Lines.GetLineFromPosition(declarationNode.SpanStart).LineNumber;
+                var lineNumber = GetIdentifierLineNumber(sourceText, declarationNode);
                 var item = await CreateInheritanceMemberInfoAsync(
                     solution,
                     memberSymbol,
@@ -112,7 +124,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private static async Task AddInheritanceMemberItemsForTypeMembersAsync(
+        private async Task AddInheritanceMemberItemsForTypeMembersAsync(
             Solution solution,
             SourceText sourceText,
             SyntaxNode declarationNode,
@@ -137,7 +149,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 && !implementingMembers.IsEmpty
                 && !implementedMembers.IsEmpty))
             {
-                var lineNumber = sourceText.Lines.GetLineFromPosition(declarationNode.SpanStart).LineNumber;
+                var lineNumber = GetIdentifierLineNumber(sourceText, declarationNode);
                 var item = await CreateInheritanceMemberInfoForMemberAsync(
                     solution,
                     memberSymbol,
@@ -150,10 +162,5 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 builder.Add(item);
             }
         }
-
-        /// <summary>
-        /// Get all the method, event, property and type declaration syntax nodes under root.
-        /// </summary>
-        protected abstract ImmutableArray<SyntaxNode> GetMembers(SyntaxNode root);
     }
 }

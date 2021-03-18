@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener),
                 TaggerEventSources.OnTextChanged(subjectBuffer, TaggerDelay.OnIdle),
+                TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt, TaggerDelay.OnIdle, TaggerDelay.OnIdle),
                 TaggerEventSources.OnOptionChanged(subjectBuffer, InheritanceMarginOptions.ShowInheritanceMargin, TaggerDelay.OnIdle));
         }
 
@@ -70,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
             var inheritanceMemberItems = await inheritanceMarginInfoService
                 .GetInheritanceInfoAsync(
                     document,
+                    spanToTag.SnapshotSpan.Span.ToTextSpan(),
                     cancellationToken).ConfigureAwait(false);
 
             if (inheritanceMemberItems.IsEmpty)

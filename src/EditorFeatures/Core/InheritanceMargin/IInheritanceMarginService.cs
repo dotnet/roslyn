@@ -6,6 +6,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
@@ -16,6 +18,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         Task<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoAsync(
             Document document,
+            TextSpan spanToSearch,
             CancellationToken cancellationToken);
     }
 }
