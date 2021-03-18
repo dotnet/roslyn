@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             if (expression == null)
                 return default;
 
-            // If we're after a ?. find teh root of that conditional to find the start position of the expression.
+            // If we're after a ?. find the root of that conditional to find the start position of the expression.
             expression = expression.GetRootConditionalAccessExpression() ?? expression;
             return (dotToken, expression.SpanStart);
         }
