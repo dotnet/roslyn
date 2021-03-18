@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
 
     }
 
-    class SingleItemValueProvider<T> : AbstractNode<T>
+    class SingleItemValueProvider<T> : INode<T>
     {
         private T _value;
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
             _state = EntryState.Added;
         }
 
-        internal override StateTable<T> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<T> previousTable)
+        public StateTable<T> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<T> previousTable)
         {
             var tableBuilder = new StateTable<T>.Builder();
             tableBuilder.AddEntries(ImmutableArray.Create(_value), _state);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    class MultiItemValueProvider<T> : AbstractNode<T>
+    class MultiItemValueProvider<T> : INode<T>
     {
         StateTable<T>.Builder _currentBuilder = new StateTable<T>.Builder();
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
 
         //TODO: is there a way we can add a 'dummy' entry to the state table that will hold our own state?
 
-        internal override StateTable<T> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<T> previousTable)
+        public StateTable<T> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<T> previousTable)
         {
             if (!hasChanged)
                 return previousTable;

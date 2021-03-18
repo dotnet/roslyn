@@ -8,18 +8,19 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-
     internal interface IOutputNode
     {
         object GetStateTable(GraphStateTable.Builder stateTable);
+
+        IStateTable GetEmptyStateTable();
     }
 
     internal class OutputNode<T, U> : IOutputNode
     {
-        private readonly AbstractNode<T> _source;
+        private readonly INode<T> _source;
         private readonly Action<U, T> _action;
 
-        public OutputNode(AbstractNode<T> source, Action<U, T> action)
+        public OutputNode(INode<T> source, Action<U, T> action)
         {
             _source = source;
             _action = action;
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis
             return stateTable.GetLatestStateTableForNode(_source);
 
         }
+
+        public IStateTable GetEmptyStateTable() => StateTable<T>.Empty;
 
         //internal void GetStateTable(); //?
 

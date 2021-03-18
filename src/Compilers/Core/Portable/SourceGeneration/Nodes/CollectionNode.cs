@@ -8,16 +8,16 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class CollectionNode<T> : AbstractNode<IEnumerable<T>>
+    internal class CollectionNode<T> : INode<IEnumerable<T>>
     {
-        private readonly AbstractNode<T> _input;
+        private readonly INode<T> _input;
 
-        public CollectionNode(AbstractNode<T> input)
+        public CollectionNode(INode<T> input)
         {
             _input = input;
         }
 
-        internal override StateTable<IEnumerable<T>> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<IEnumerable<T>> previousTable)
+        public StateTable<IEnumerable<T>> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<IEnumerable<T>> previousTable)
         {
             var inputTable = stateTable.GetLatestStateTableForNode(_input);
             foreach (var entry in inputTable)
@@ -29,16 +29,16 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal class UnrollNode<T> : AbstractNode<T>
+    internal class UnrollNode<T> : INode<T>
     {
-        private readonly AbstractNode<IEnumerable<T>> _input;
+        private readonly INode<IEnumerable<T>> _input;
 
-        public UnrollNode(AbstractNode<IEnumerable<T>> input)
+        public UnrollNode(INode<IEnumerable<T>> input)
         {
             _input = input;
         }
 
-        internal override StateTable<T> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<T> previousTable)
+        public StateTable<T> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<T> previousTable)
         {
             var inputTable = stateTable.GetLatestStateTableForNode(_input);
 

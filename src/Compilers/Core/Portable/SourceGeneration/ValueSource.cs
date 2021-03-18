@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis
 {
     public struct MultiValueSource<T>
     {
-        internal readonly AbstractNode<T> node;
+        internal readonly INode<T> node;
 
-        internal MultiValueSource(AbstractNode<T> node)
+        internal MultiValueSource(INode<T> node)
         {
             this.node = node;
         }
@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis
 
     public struct SingleValueSource<T>
     {
-        internal readonly AbstractNode<T> node;
+        internal readonly INode<T> node;
 
-        internal SingleValueSource(AbstractNode<T> node)
+        internal SingleValueSource(INode<T> node)
         {
             this.node = node;
         }

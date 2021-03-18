@@ -11,27 +11,27 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class TransformNode<TInput, TOutput> : AbstractNode<TOutput>
+    internal class TransformNode<TInput, TOutput> : INode<TOutput>
     {
-        private readonly AbstractNode<TInput> _sourceNode;
+        private readonly INode<TInput> _sourceNode;
         private readonly Func<TInput, TOutput>? _singleFunc;
         private readonly Func<TInput, IEnumerable<TOutput>>? _multiFunc;
 
-        public TransformNode(AbstractNode<TInput> sourceNode, Func<TInput, TOutput> func)
+        public TransformNode(INode<TInput> sourceNode, Func<TInput, TOutput> func)
         {
             _sourceNode = sourceNode;
             _singleFunc = func;
             _multiFunc = null;
         }
 
-        public TransformNode(AbstractNode<TInput> sourceNode, Func<TInput, IEnumerable<TOutput>> func)
+        public TransformNode(INode<TInput> sourceNode, Func<TInput, IEnumerable<TOutput>> func)
         {
             _sourceNode = sourceNode;
             _singleFunc = null;
             _multiFunc = func;
         }
 
-        internal override StateTable<TOutput> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<TOutput> previousTable)
+        public StateTable<TOutput> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<TOutput> previousTable)
         {
             // get the parent state table
             var sourceTable = stateTable.GetLatestStateTableForNode(_sourceNode);

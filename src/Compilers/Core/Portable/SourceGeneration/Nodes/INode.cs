@@ -8,11 +8,8 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-
-    //TODO: if we make this an interface, we can make the underlying nodes structs
-    internal abstract class AbstractNode<T>
+    internal interface INode<T>
     {
-        // this is the 'pull' from the child node.
-        internal abstract StateTable<T> UpdateStateTable(GraphStateTable.Builder stateTableBuilder, StateTable<T> previousTable);
+        StateTable<T> UpdateStateTable(GraphStateTable.Builder stateTableBuilder, StateTable<T> previousTable);
     }
 }

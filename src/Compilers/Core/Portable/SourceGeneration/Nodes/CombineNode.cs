@@ -8,18 +8,18 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class CombineNode<TInput1, TInput2> : AbstractNode<(TInput1, TInput2)>
+    internal class CombineNode<TInput1, TInput2> : INode<(TInput1, TInput2)>
     {
-        private readonly AbstractNode<TInput1> _source1;
-        private readonly AbstractNode<TInput2> _source2;
+        private readonly INode<TInput1> _source1;
+        private readonly INode<TInput2> _source2;
 
-        public CombineNode(AbstractNode<TInput1> source1, AbstractNode<TInput2> source2)
+        public CombineNode(INode<TInput1> source1, INode<TInput2> source2)
         {
             _source1 = source1;
             _source2 = source2;
         }
 
-        internal override StateTable<(TInput1, TInput2)> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<(TInput1, TInput2)> previousTable)
+        public StateTable<(TInput1, TInput2)> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<(TInput1, TInput2)> previousTable)
         {
             // get *both* state table
             stateTable.GetLatestStateTableForNode(_source1);
