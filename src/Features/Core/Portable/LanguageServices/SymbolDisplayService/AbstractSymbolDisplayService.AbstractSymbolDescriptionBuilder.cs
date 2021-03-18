@@ -432,8 +432,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             {
                 AddToGroup(SymbolDescriptionGroups.MainDescription,
                     Keyword("dynamic"));
-                _documentationMap[SymbolDescriptionGroups.Documentation] =
-                    PlainText(FeaturesResources.Represents_an_object_whose_operations_will_be_resolved_at_runtime).ToTaggedText();
+                AddToGroup(SymbolDescriptionGroups.Documentation,
+                    PlainText(FeaturesResources.Represents_an_object_whose_operations_will_be_resolved_at_runtime));
             }
 
             private void AddDescriptionForNamedType(INamedTypeSymbol symbol)
