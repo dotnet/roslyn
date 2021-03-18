@@ -350,6 +350,22 @@ public class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task IndexerIsSuggestedOnString()
+        {
+            await VerifyItemExistsAsync(@"
+public class Program
+{
+    public static void Main()
+    {
+        var s = ""Test"";
+        s.$$
+    }
+}
+", "this", displayTextSuffix: "[]");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever()
         {
             var markup = @"
