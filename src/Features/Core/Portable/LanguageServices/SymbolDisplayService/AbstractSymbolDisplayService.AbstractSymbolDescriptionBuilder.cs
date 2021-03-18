@@ -168,10 +168,16 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     SymbolDescriptionGroups.RemarksDocumentation,
                     symbol.GetRemarksDocumentationParts(_semanticModel, _position, formatter, CancellationToken).ToImmutableArray());
 
+                AddReturnsDocumentationParts(symbol, formatter);
+                AddValueDocumentationParts(symbol, formatter);
+
+                return;
+
+                void AddReturnsDocumentationParts(ISymbol symbol, IDocumentationCommentFormattingService formatter)
                 {
                     var parts = symbol.GetReturnsDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
+                    var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
 
-                    using var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
                     builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Returns_colon));
                     builder.AddRange(LineBreak().ToTaggedText());
                     builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
@@ -181,10 +187,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     _documentationMap.Add(SymbolDescriptionGroups.ReturnsDocumentation, builder.ToImmutableArray());
                 }
 
+                void AddValueDocumentationParts(ISymbol symbol, IDocumentationCommentFormattingService formatter)
                 {
                     var parts = symbol.GetValueDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
-
-                    using var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
+                    var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
                     builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Value_colon));
                     builder.AddRange(LineBreak().ToTaggedText());
                     builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
