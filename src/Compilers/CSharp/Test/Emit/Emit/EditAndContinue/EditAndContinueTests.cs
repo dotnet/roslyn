@@ -10532,7 +10532,7 @@ namespace N
             var printMembers0 = compilation0.GetMember<MethodSymbol>("N.R.PrintMembers");
             var printMembers1 = compilation1.GetMember<MethodSymbol>("N.R.PrintMembers");
 
-            var v0 = CompileAndVerify(compilation0);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
 
             using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -10582,7 +10582,7 @@ namespace N
             var method0 = compilation0.GetMember<MethodSymbol>("N.R.PrintMembers");
             var method1 = compilation1.GetMember<MethodSymbol>("N.R.PrintMembers");
 
-            var v0 = CompileAndVerify(compilation0);
+            var v0 = CompileAndVerify(compilation0, verify: Verification.Skipped);
 
             using var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
