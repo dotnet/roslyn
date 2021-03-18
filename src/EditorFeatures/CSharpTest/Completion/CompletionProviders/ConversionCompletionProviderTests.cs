@@ -1389,5 +1389,178 @@ public class Program
 }}
 ", expected, displayTextPrefix: "(", displayTextSuffix: ")", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateNever()
+        {
+            var markup = @"
+namespace N
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}
+";
+            var referencedCode = @"
+using System.ComponentModel;
+
+namespace N
+{
+    public class C
+    {
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static explicit operator int(C _) => 0;
+    }
+}
+";
+
+            await VerifyItemInEditorBrowsableContextsAsync(
+                markup: markup,
+                referencedCode: referencedCode,
+                item: "int",
+                expectedSymbolsSameSolution: 1,
+                expectedSymbolsMetadataReference: 0,
+                sourceLanguage: LanguageNames.CSharp,
+                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateNever_InheritedConversion_1()
+        {
+            var markup = @"
+namespace N
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            var d = new Derived();
+            d.$$
+        }
+    }
+}
+";
+            var referencedCode = @"
+using System.ComponentModel;
+
+namespace N
+{
+    public class Base {
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static explicit operator int(Base b) => 0;
+    }
+    public class Derived: Base
+    {
+    }
+}
+";
+
+            await VerifyItemInEditorBrowsableContextsAsync(
+                markup: markup,
+                referencedCode: referencedCode,
+                item: "int",
+                expectedSymbolsSameSolution: 1,
+                expectedSymbolsMetadataReference: 0,
+                sourceLanguage: LanguageNames.CSharp,
+                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateNever_InheritedConversion_2()
+        {
+            var markup = @"
+namespace N
+{
+    public class Derived: Base
+    {
+    }
+    public class Program
+    {
+        public static void Main()
+        {
+            var d = new Derived();
+            d.$$
+        }
+    }
+}
+";
+            var referencedCode = @"
+using System.ComponentModel;
+
+namespace N
+{
+    public class Base {
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static explicit operator int(Base b) => 0;
+    }
+}
+";
+
+            await VerifyItemInEditorBrowsableContextsAsync(
+                markup: markup,
+                referencedCode: referencedCode,
+                item: "int",
+                expectedSymbolsSameSolution: 1,
+                expectedSymbolsMetadataReference: 0,
+                sourceLanguage: LanguageNames.CSharp,
+                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateAdvanced()
+        {
+            var markup = @"
+namespace N
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}
+";
+            var referencedCode = @"
+using System.ComponentModel;
+
+namespace N
+{
+    public class C
+    {
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static explicit operator int(C _) => 0;
+    }
+}
+";
+
+            await VerifyItemInEditorBrowsableContextsAsync(
+                markup: markup,
+                referencedCode: referencedCode,
+                item: "int",
+                expectedSymbolsSameSolution: 1,
+                expectedSymbolsMetadataReference: 1,
+                sourceLanguage: LanguageNames.CSharp,
+                referencedLanguage: LanguageNames.CSharp,
+                hideAdvancedMembers: false);
+
+            await VerifyItemInEditorBrowsableContextsAsync(
+                markup: markup,
+                referencedCode: referencedCode,
+                item: "int",
+                expectedSymbolsSameSolution: 1,
+                expectedSymbolsMetadataReference: 0,
+                sourceLanguage: LanguageNames.CSharp,
+                referencedLanguage: LanguageNames.CSharp,
+                hideAdvancedMembers: true);
+        }
     }
 }
