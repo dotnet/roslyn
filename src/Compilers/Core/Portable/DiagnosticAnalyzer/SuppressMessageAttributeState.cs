@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -33,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Compilation _compilation;
         private GlobalSuppressions? _lazyGlobalSuppressions;
         private readonly ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>> _localSuppressionsBySymbol;
-        private Optional<ISymbol?> _lazySuppressMessageAttribute;
-        private Optional<ISymbol?> _lazyUnconditionalSuppressMessageAttribute;
+        private StrongBox<ISymbol?>? _lazySuppressMessageAttribute;
+        private StrongBox<ISymbol?>? _lazyUnconditionalSuppressMessageAttribute;
 
         private class GlobalSuppressions
         {
@@ -221,9 +222,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                if (!_lazySuppressMessageAttribute.HasValue)
+                if (_lazySuppressMessageAttribute is null)
                 {
-                    _lazySuppressMessageAttribute = new(_compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"));
+                    Interlocked.CompareExchange(
+                        ref _lazySuppressMessageAttribute,
+                        new StrongBox<ISymbol?>(_compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute")),
+                        null);
                 }
 
                 return _lazySuppressMessageAttribute.Value;
@@ -234,9 +238,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             get
             {
-                if (!_lazyUnconditionalSuppressMessageAttribute.HasValue)
+                if (_lazyUnconditionalSuppressMessageAttribute is null)
                 {
-                    _lazyUnconditionalSuppressMessageAttribute = new(_compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute"));
+                    Interlocked.CompareExchange(
+                        ref _lazyUnconditionalSuppressMessageAttribute,
+                        new StrongBox<ISymbol?>(_compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute")),
+                        null);
                 }
 
                 return _lazyUnconditionalSuppressMessageAttribute.Value;
