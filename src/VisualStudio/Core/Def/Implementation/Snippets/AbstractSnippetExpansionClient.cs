@@ -52,6 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// </summary>
         private const string PlaceholderSnippetField = "placeholder";
 
+        private static readonly string s_fullMethodCallDescriptionSentinel = Guid.NewGuid().ToString("N");
+
         private readonly SignatureHelpControllerProvider _signatureHelpControllerProvider;
         private readonly IEditorCommandHandlerServiceFactory _editorCommandHandlerServiceFactory;
         protected readonly IVsEditorAdaptersFactoryService EditorAdaptersFactoryService;
@@ -134,8 +136,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // If this is a manually-constructed snippet for a full method call, avoid formatting the snippet since
-            // doing so will disrupt signature help.
-            if (_state.IsFullMethodCallSnippet)
+            // doing so will disrupt signature help. Check ExpansionSession instead of '_state.IsFullMethodCallSnippet'
+            // because '_state._methodNameForInsertFullMethodCall' is not initialized at this point.
+            if (ErrorHandler.Succeeded(ExpansionSession.GetHeaderNode(@"node()[local-name()=""Description""]", out var descriptionNode))
+                && descriptionNode?.text == s_fullMethodCallDescriptionSentinel)
             {
                 return VSConstants.S_OK;
             }
@@ -652,7 +656,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                         new XAttribute(snippetNamespace + "Format", "1.0.0"),
                         new XElement(
                             snippetNamespace + "Header",
-                            new XElement(snippetNamespace + "Title", new XText(methodName))),
+                            new XElement(snippetNamespace + "Title", new XText(methodName)),
+                            new XElement(snippetNamespace + "Description", new XText(s_fullMethodCallDescriptionSentinel))),
                         new XElement(
                             snippetNamespace + "Snippet",
                             new XElement(snippetNamespace + "Declarations", declarations.ToArray()),
