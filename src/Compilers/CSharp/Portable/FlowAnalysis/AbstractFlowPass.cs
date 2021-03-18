@@ -2470,12 +2470,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var access = node switch
                 {
                     BoundConditionalAccess ca => ca,
-                    // PROTOTYPE(improved-definite-assignment): consider when to handle conversion nodes which contain conditional accesses
-                    BoundConversion { ExplicitCastInCode: false, HasErrors: false, Operand: BoundConditionalAccess } => throw ExceptionUtilities.Unreachable,
+                    BoundConversion { Conversion: Conversion innerConversion, Operand: BoundConditionalAccess ca } when isAcceptableConversion(ca, innerConversion) => ca,
                     _ => null
                 };
 
-                if (access is not null && conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
+                if (access is not null && isAcceptableConversion(access, conversion))
                 {
                     return VisitConditionalAccess(access, out stateWhenNotNull);
                 }
@@ -2486,6 +2485,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Unsplit();
                     return false;
                 }
+            }
+
+            // "State when not nulL" can only propagate out of a conditional access if
+            // it is not subject to a user-defined conversion whose parameter is not of a non-nullable value type.
+            static bool isAcceptableConversion(BoundConditionalAccess operand, Conversion conversion)
+            {
+                if (conversion.Kind is not (ConversionKind.ImplicitUserDefined or ConversionKind.ExplicitUserDefined))
+                {
+                    return true;
+                }
+
+                var method = conversion.Method;
+                Debug.Assert(method is not null);
+                Debug.Assert(method.ParameterCount is 1);
+                var param = method.Parameters[0];
+                if (operand.Type.IsNullableType() && param.Type.IsNonNullableValueType())
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -2518,6 +2538,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // that is, we never have to dig through non-conditional accesses to find and handle conditional accesses.
                     VisitRvalue(innerCondAccess.Receiver);
                     expr = innerCondAccess.AccessExpression;
+
+                    // PROTOTYPE(improved-definite-assignment): Add NullableWalker implementation and tests which exercises this.
+                    // The savedState here represents the scenario where 0 or more of the access expressions could have been evaluated.
+                    // e.g. after visiting `a?.b(x = null)?.c(x = new object())`, the "state when not null" of `x` is NotNull, but the "state when maybe null" of `x` is MaybeNull.
+                    Join(ref savedState, ref State);
                 }
 
                 Debug.Assert(expr is BoundExpression);
