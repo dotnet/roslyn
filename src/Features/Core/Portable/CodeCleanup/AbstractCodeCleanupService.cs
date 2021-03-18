@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal abstract class AbstractCodeCleanupService : ICodeCleanupService
     {
-        private readonly ICodeFixService? _codeFixService;
+        private readonly ICodeFixService _codeFixService;
 
-        protected AbstractCodeCleanupService(ICodeFixService? codeFixService)
+        protected AbstractCodeCleanupService(ICodeFixService codeFixService)
         {
             _codeFixService = codeFixService;
         }
@@ -47,11 +47,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 progressTracker.AddItems(1);
             }
 
-            if (_codeFixService != null)
-            {
-                document = await ApplyCodeFixesAsync(
-                    document, enabledDiagnostics.Diagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
-            }
+            document = await ApplyCodeFixesAsync(
+                document, enabledDiagnostics.Diagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             if (organizeUsings)
@@ -126,7 +123,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
             Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(_codeFixService);
             foreach (var diagnosticId in diagnosticIds)
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))

@@ -40,8 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(
-            <Import(AllowDefault:=True)> codeFixService As ICodeFixService)
+        Public Sub New(codeFixService As ICodeFixService)
             MyBase.New(codeFixService)
         End Sub
 
