@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis
         internal const string CloneMethodName = "<Clone>$";
 
         /// <summary>
-        /// The required name for the <c>PrintMembers</c> method that is synthesized in a record
+        /// The required name for the <c>PrintMembers</c> method that is synthesized in a record.
         /// </summary>
         public const string PrintMembersMethodName = "PrintMembers";
 
