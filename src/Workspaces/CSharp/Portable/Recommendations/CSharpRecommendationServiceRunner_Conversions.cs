@@ -189,14 +189,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         private void AddBuiltInNumericConversions(
             ITypeSymbol container, INamedTypeSymbol containerWithoutNullable, ArrayBuilder<ISymbol> symbols)
         {
-            var conversions = GetPredefinedInNumericConversions(containerWithoutNullable);
+            var conversions = GetPredefinedNumericConversions(containerWithoutNullable);
             if (!conversions.HasValue)
                 return;
 
             AddCompletionItemsForSpecialTypes(container, containerWithoutNullable, symbols, conversions.Value);
         }
 
-        public static ImmutableArray<SpecialType>? GetPredefinedInNumericConversions(ITypeSymbol container)
+        public static ImmutableArray<SpecialType>? GetPredefinedNumericConversions(ITypeSymbol container)
             => container.SpecialType switch
             {
                 SpecialType.System_SByte => s_sbyteConversions,

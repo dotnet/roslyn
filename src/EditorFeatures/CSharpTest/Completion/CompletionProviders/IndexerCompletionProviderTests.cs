@@ -42,6 +42,21 @@ public class Program
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task IndexerIsSuggestedAfterDotForString()
+        {
+            await VerifyItemExistsAsync(@"
+public class Program
+{
+    public static void Main(string s)
+    {
+        s.$$
+    }
+}
+", "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task IndexerIsNotSuggestedOnStaticAccess()
         {
             await VerifyNoItemsExistAsync(@"
