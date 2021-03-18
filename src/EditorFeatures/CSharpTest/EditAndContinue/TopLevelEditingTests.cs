@@ -1546,6 +1546,55 @@ public abstract record C<T>
         }
 
         [Fact]
+        public void Record_ImplementSynthesized_PrintMembers()
+        {
+            var src1 = "record C { }";
+            var src2 = @"record C
+{
+    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
+    {
+        return true;
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")));
+
+            edits.VerifyRudeDiagnostics();
+        }
+
+        [Fact]
+        public void Record_ImplementSynthesized_WrongParameterName()
+        {
+            var src1 = "record C { }";
+            var src2 = @"record C
+{
+    protected virtual bool PrintMembers(System.Text.StringBuilder sb)
+    {
+        return false;
+    }
+
+    public virtual bool Equals(C rhs)
+    {
+        return false;
+    }
+
+    protected C(C other)
+    {
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, "protected virtual bool PrintMembers(System.Text.StringBuilder sb)", "PrintMembers(System.Text.StringBuilder builder)"),
+                Diagnostic(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, "public virtual bool Equals(C rhs)", "Equals(C other)"),
+                Diagnostic(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, "protected C(C other)", "C(C original)"));
+        }
+
+        [Fact]
         public void Record_ImplementSynthesized_ToString()
         {
             var src1 = "record C { }";
@@ -1655,7 +1704,7 @@ public abstract record C<T>
         {
             var src1 = @"record C(int X)
 {
-    protected virtual bool PrintMembers(System.Text.StringBuilder sb)
+    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
     {
         return false;
     }
@@ -1670,7 +1719,7 @@ public abstract record C<T>
         return false;
     }
 
-    public C(C other)
+    public C(C original)
     {
     }
 }";
@@ -1678,7 +1727,7 @@ public abstract record C<T>
 {
     public int Y { get; set; }
 
-    protected virtual bool PrintMembers(System.Text.StringBuilder sb)
+    protected virtual bool PrintMembers(System.Text.StringBuilder builder)
     {
         return false;
     }
@@ -1693,7 +1742,7 @@ public abstract record C<T>
         return false;
     }
 
-    public C(C other)
+    public C(C original)
     {
     }
 }";

@@ -122,5 +122,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ImplementRecordParameterWithSet = 93,
         AddRecordPositionalParameter = 94,
         DeleteRecordPositionalParameter = 95,
+        ExplicitRecordMethodParameterNamesMustMatch = 96
     }
 }

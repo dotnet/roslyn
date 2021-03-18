@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <see cref="EditKind.Move"/> or <see cref="EditKind.Reorder"/>.
         /// The scenarios include moving a type declaration from one file to another and moving a member of a partial type from one partial declaration to another.
         /// </summary>
-        internal virtual void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
+        internal virtual void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol)
         {
             // Consider replacing following syntax analysis with semantic analysis of the corresponding symbols,
             // or a combination of semantic and syntax analysis (e.g. primarily analyze symbols but fall back
@@ -2458,7 +2458,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                                         // Compare the old declaration syntax of the symbol with its new declaration and report rude edits
                                         // if it changed in any way that's not allowed.
-                                        ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode);
+                                        ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol);
 
                                         // If a node has been inserted but neither old nor new has a body, we can stop processing
                                         // unless its explicitly implenenting a positional property of a record, in which case we
@@ -3129,7 +3129,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         // Report an error if the updated constructor's declaration is in the current document 
                         // and its body edit is disallowed (e.g. contains stackalloc).
-                        if (oldCtor != null && newDeclaration?.SyntaxTree == newSyntaxTree && anyInitializerUpdatesInCurrentDocument)
+                        if (oldCtor != null && newDeclaration.SyntaxTree == newSyntaxTree && anyInitializerUpdatesInCurrentDocument)
                         {
                             // attribute rude edit to one of the modified members
                             var firstSpan = updatesInCurrentDocument.ChangedDeclarations.Keys.Where(IsDeclarationWithInitializer).Aggregate(
@@ -3138,6 +3138,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                             Contract.ThrowIfTrue(firstSpan.IsEmpty);
                             ReportMemberUpdateRudeEdits(diagnostics, newDeclaration, firstSpan);
+                        }
+
+                        // When explicitly implementing the copy constructor of a record the parameter name must match for symbol matching to work
+                        if (oldCtor != null &&
+                            !IsRecordDeclaration(newDeclaration) &&
+                            oldCtor.DeclaringSyntaxReferences.Length == 0 &&
+                            newCtor.Parameters.Length == 1 &&
+                            newType.IsRecord &&
+                            oldCtor.GetParameters().First().Name != newCtor.GetParameters().First().Name)
+                        {
+                            diagnostics.Add(new RudeEditDiagnostic(
+                                RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch,
+                                GetDiagnosticSpan(newDeclaration, EditKind.Update),
+                                arguments: new[] {
+                                        oldCtor.ToDisplayString(SymbolDisplayFormats.NameFormat)
+                                }));
+                            continue;
                         }
                     }
                     else

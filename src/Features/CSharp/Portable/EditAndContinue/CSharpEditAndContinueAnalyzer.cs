@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
-        internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode)
+        internal override void ReportDeclarationInsertDeleteRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, ISymbol oldSymbol, ISymbol newSymbol)
         {
             // Compiler generated methods of records have a declaring syntax reference to the record declaration itself
             // but their explicitly implement counterparts reference the actual member. Compiler generated properties
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // declaration kind has changed. If it hasn't changed, then our standard code will handle it.
             if (oldNode.RawKind == newNode.RawKind)
             {
-                base.ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode);
+                base.ReportDeclarationInsertDeleteRudeEdits(diagnostics, oldNode, newNode, oldSymbol, newSymbol);
             }
 
             // When explicitly implementing a property that is represented by a positional parameter
@@ -696,6 +696,25 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                             property.Identifier.ToString()
                         }));
                 }
+            }
+            else if (oldNode is RecordDeclarationSyntax &&
+                newNode is MethodDeclarationSyntax &&
+                !oldSymbol.GetParameters().Select(p => p.Name).SequenceEqual(newSymbol.GetParameters().Select(p => p.Name)))
+            {
+                // Explicitly implemented methods must have parameter names that match the compiler generated versions
+                // exactly otherwise symbol matching won't work for them.
+                // We don't need to worry about parameter types, because if they were different then we wouldn't get here
+                // as this wouldn't be the explicit implementation of a known method.
+                // We don't need to worry about access modifiers because the symbol matching still works, and most of the
+                // time changing access modifiers for these known methods is a compile error anyway.
+
+                diagnostics.Add(new RudeEditDiagnostic(
+                    RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch,
+                    GetDiagnosticSpan(newNode, EditKind.Update),
+                    oldNode,
+                    new[] {
+                            oldSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat)
+                    }));
             }
         }
 
