@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // If this is a manually-constructed snippet for a full method call, avoid formatting the snippet since
             // doing so will disrupt signature help. Check ExpansionSession instead of '_state.IsFullMethodCallSnippet'
             // because '_state._methodNameForInsertFullMethodCall' is not initialized at this point.
-            if (ErrorHandler.Succeeded(ExpansionSession.GetHeaderNode(@"node()[local-name()=""Description""]", out var descriptionNode))
+            if (ExpansionSession.TryGetHeaderNode("Description", out var descriptionNode)
                 && descriptionNode?.text == s_fullMethodCallDescriptionSentinel)
             {
                 return VSConstants.S_OK;
