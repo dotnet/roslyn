@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]));
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]), GraphStateTable.Empty);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            var newState = _state.With(generators: _state.Generators.AddRange(generators), generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[generators.Length]), editsFailed: true);
+            var newState = _state.With(generators: _state.Generators.AddRange(generators), generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[generators.Length]));
             return FromState(newState);
         }
 
@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis
                     i--;
                 }
             }
+            //TODO: remove the states from the graphstate
 
             return FromState(_state.With(generators: newGenerators, generatorStates: newStates));
         }
@@ -139,6 +140,9 @@ namespace Microsoft.CodeAnalysis
 
             // pipeline stuff
             var pipelineSource = ValueSources.Create(compilation);
+
+            //todo: need a way to save these between iterations (or at least get them out of the GraphStateTable?)
+            //      and need to be able to modify the graph state table when we remove a generator
             var producers = ArrayBuilder<IOutputNode>.GetInstance();
 
             for (int i = 0; i < state.Generators.Length; i++)
@@ -270,13 +274,14 @@ namespace Microsoft.CodeAnalysis
             //TODO: use the above syntax walk to update the pipeline bits
 
             //TODO: we need to cache the output state table and re-create it from the previous version
-            GraphStateTable.Builder runningStateTable = new GraphStateTable.Builder(GraphStateTable.Empty);
+            GraphStateTable.Builder tableBuilder = new GraphStateTable.Builder(_state.GraphState);
             foreach (var producer in producers)
             {
                 //TODO: we update the state table, but need to work out what to do with it 
-                producer.GetStateTable(runningStateTable);
+                producer.GetStateTable(tableBuilder);
             }
-            var endStateTable = runningStateTable.ToImmutable();
+            var endStateTable = tableBuilder.ToImmutable();
+            producers.Free();
 
             // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
             for (int i = 0; i < state.Generators.Length; i++)

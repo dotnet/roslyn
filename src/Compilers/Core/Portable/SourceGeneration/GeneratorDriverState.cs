@@ -16,10 +16,12 @@ namespace Microsoft.CodeAnalysis
                                       AnalyzerConfigOptionsProvider optionsProvider,
                                       ImmutableArray<ISourceGenerator> generators,
                                       ImmutableArray<AdditionalText> additionalTexts,
-                                      ImmutableArray<GeneratorState> generatorStates)
+                                      ImmutableArray<GeneratorState> generatorStates,
+                                      GraphStateTable graphState)
         {
             Generators = generators;
             GeneratorStates = generatorStates;
+            GraphState = graphState;
             AdditionalTexts = additionalTexts;
             ParseOptions = parseOptions;
             OptionsProvider = optionsProvider;
@@ -60,6 +62,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal readonly ParseOptions ParseOptions;
 
+        internal readonly GraphStateTable GraphState;
+
         //internal readonly ValueSources ValueSources;
 
 
@@ -67,14 +71,16 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ISourceGenerator>? generators = null,
             ImmutableArray<GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
-            bool? editsFailed = null)
+            GraphStateTable? graphState = null
+            )
         {
             return new GeneratorDriverState(
                 this.ParseOptions,
                 this.OptionsProvider,
                 generators ?? this.Generators,
                 additionalTexts ?? this.AdditionalTexts,
-                generatorStates ?? this.GeneratorStates
+                generatorStates ?? this.GeneratorStates,
+                graphState ?? this.GraphState
                 );
         }
     }
