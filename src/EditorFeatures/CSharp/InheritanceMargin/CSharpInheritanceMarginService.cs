@@ -27,19 +27,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
         protected override ImmutableArray<SyntaxNode> GetMembers(SyntaxNode root, TextSpan spanToSearch)
         {
             var typeDeclarationNodes = root
-                .DescendantNodes(node => node is TypeDeclarationSyntax && node.Span.IntersectsWith(spanToSearch))
-                .SelectAsArray(node => (TypeDeclarationSyntax)node);
+                .DescendantNodes(node => node is TypeDeclarationSyntax && node.Span.IntersectsWith(spanToSearch));
 
             using var _ = PooledObjects.ArrayBuilder<SyntaxNode>.GetInstance(out var builder);
-
-            // 1. Add the type declaration node.(e.g. class, struct etc..)
-            // Use its identifier's position as the line number, since we want the margin to be placed with the identifier
-            builder.AddRange(typeDeclarationNodes);
-
-            // 2. Add type members inside this type declaration.
             foreach (var typeDeclarationNode in typeDeclarationNodes)
             {
-                foreach (var member in typeDeclarationNode.Members)
+                // 1. Add the type declaration node.(e.g. class, struct etc..)
+                // Use its identifier's position as the line number, since we want the margin to be placed with the identifier
+                builder.Add(typeDeclarationNode);
+
+                // 2. Add type members inside this type declaration.
+                foreach (var member in ((TypeDeclarationSyntax)typeDeclarationNode).Members)
                 {
                     if (member.Span.IntersectsWith(spanToSearch))
                     {

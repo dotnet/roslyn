@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var implementedMemberItems = await implementedMembers
                 .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken)).ConfigureAwait(false);
             var overridenMemberItems = await overridenMembers
-                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriden, cancellationToken)).ConfigureAwait(false);
+                .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overridden, cancellationToken)).ConfigureAwait(false);
             var overridingMemberItems = await overridingMembers
                 .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriding, cancellationToken)).ConfigureAwait(false);
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         }
 
         /// <summary>
-        /// For the <param name="memberSymbol"/>, get all the symbols implementing it.
+        /// For the <param name="memberSymbol"/>, get all the implemented symbols.
         /// </summary>
         private static async Task<ImmutableArray<ISymbol>> GetImplementedSymbolsAsync(
             Solution solution,
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             if (memberSymbol is INamedTypeSymbol { IsSealed: false } namedTypeSymbol)
             {
                 var derivedTypes = await GetDerivedTypesAndImplementationsAsync(solution, namedTypeSymbol, cancellationToken).ConfigureAwait(false);
-                return derivedTypes.OfType<ISymbol>().ToImmutableArray();
+                return derivedTypes.CastArray<ISymbol>().ToImmutableArray();
             }
 
             if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol
@@ -126,10 +126,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     overridenMember != null;
                     overridenMember = overridenMember.GetOverriddenMember())
                 {
-                    if (!overridenMember.IsErrorType())
-                    {
-                        builder.Add(overridenMember.OriginalDefinition);
-                    }
+                    builder.Add(overridenMember.OriginalDefinition);
                 }
 
                 return builder.ToImmutableArray();
@@ -156,15 +153,15 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     solution,
                     transitive: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
-                return allDerivedInterfaces.Concat(allImplementations).WhereAsArray(symbol => !symbol.IsErrorType());
+                return allDerivedInterfaces.Concat(allImplementations);
             }
             else
             {
-                return (await SymbolFinder.FindDerivedClassesArrayAsync(
+                return await SymbolFinder.FindDerivedClassesArrayAsync(
                     typeSymbol,
                     solution,
                     transitive: true,
-                    cancellationToken: cancellationToken).ConfigureAwait(false)).WhereAsArray(symbol => !symbol.IsErrorType());
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
     }

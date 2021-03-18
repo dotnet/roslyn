@@ -23,35 +23,79 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         /// <summary>
         /// Members needs to be shown on this line. There might be multiple members.
         /// For example:
-        /// interface IBar { void Foo1(); void Foo2() }
+        /// interface IBar { void Foo1(); void Foo2(); }
         /// class Bar : IBar { void Foo1() { } void Foo2() { } }
         /// </summary>
         public readonly ImmutableArray<InheritanceMemberItem> MembersOnLine;
+
+        private const InheritanceRelationship ImplementingOverriding =
+            InheritanceRelationship.Implementing | InheritanceRelationship.Overriding;
+
+        private const InheritanceRelationship ImplementingOverridden =
+            InheritanceRelationship.Implementing | InheritanceRelationship.Overridden;
 
         public InheritanceMarginTag(ImmutableArray<InheritanceMemberItem> membersOnLine)
         {
             Debug.Assert(!membersOnLine.IsEmpty);
 
             MembersOnLine = membersOnLine;
-            var aggregateRelationship = membersOnLine
-                .SelectMany(member => member.TargetItems.Select(target => target.RelationToMember))
-                .Aggregate((r1, r2) => r1 | r2);
-            Moniker = GetMonikers(aggregateRelationship);
+            // The common case, one line has one member
+            if (membersOnLine.Length == 1)
+            {
+                var relationship = membersOnLine[0].TargetItems
+                    .Select(target => target.RelationToMember)
+                    .Aggregate((r1, r2) => r1 | r2);
+                Moniker = GetMonikers(relationship);
+            }
+            else
+            {
+                // Multiple members on same line.
+                var aggregateRelationship = membersOnLine
+                    .SelectMany(member => member.TargetItems.Select(target => target.RelationToMember))
+                    .Aggregate((r1, r2) => r1 | r2);
+                Moniker = GetMonikers(aggregateRelationship);
+            }
         }
 
         /// <summary>
         /// Decide which moniker should be shown.
         /// </summary>
         private static ImageMoniker GetMonikers(InheritanceRelationship inheritanceRelationship)
-            => inheritanceRelationship switch
+        {
+            //  If there are multiple targets and we have the corresponding compound image, use it
+            if (inheritanceRelationship.HasFlag(ImplementingOverriding))
             {
-                InheritanceRelationship.Implementing | InheritanceRelationship.Overriding => KnownMonikers.ImplementingOverriding,
-                InheritanceRelationship.Implementing | InheritanceRelationship.Overriden => KnownMonikers.ImplementingOverridden,
-                _ when inheritanceRelationship.HasFlag(InheritanceRelationship.Implemented) => KnownMonikers.Implemented,
-                _ when inheritanceRelationship.HasFlag(InheritanceRelationship.Implementing) => KnownMonikers.Implementing,
-                _ when inheritanceRelationship.HasFlag(InheritanceRelationship.Overriden) => KnownMonikers.Overridden,
-                _ when inheritanceRelationship.HasFlag(InheritanceRelationship.Overriding) => KnownMonikers.Overriding,
-                _ => throw ExceptionUtilities.Unreachable,
-            };
+                return KnownMonikers.ImplementingOverriding;
+            }
+
+            if (inheritanceRelationship.HasFlag(ImplementingOverridden))
+            {
+                return KnownMonikers.ImplementingOverridden;
+            }
+
+            // Otherwise, show the image based on this preference
+            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Implemented))
+            {
+                return KnownMonikers.Implemented;
+            }
+
+            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Implementing))
+            {
+                return KnownMonikers.Implementing;
+            }
+
+            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Overridden))
+            {
+                return KnownMonikers.Overridden;
+            }
+
+            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Overriding))
+            {
+                return KnownMonikers.Overriding;
+            }
+
+            // The relationship is None. Don't know what image should be shown, throws
+            throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
+        }
     }
 }

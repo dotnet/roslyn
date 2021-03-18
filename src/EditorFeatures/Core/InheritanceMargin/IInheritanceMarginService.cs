@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// Get the lines need to be have a margin and the member's information on that line.
         /// </summary>
-        Task<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoAsync(
+        ValueTask<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoAsync(
             Document document,
             TextSpan spanToSearch,
             CancellationToken cancellationToken);

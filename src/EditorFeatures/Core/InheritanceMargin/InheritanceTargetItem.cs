@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
     internal enum InheritanceRelationship
     {
         /// <summary>
+        /// A default case that should not be used.
+        /// </summary>
+        None = 0x0,
+
+        /// <summary>
         /// Indicate the target is implementing the member. It would be shown as I↑.
         /// </summary>
         Implementing = 0x1,
@@ -30,9 +35,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         Overriding = 0x4,
 
         /// <summary>
-        /// Indicate the target is overriden by the member. It would be shown as O↓.
+        /// Indicate the target is overridden by the member. It would be shown as O↓.
         /// </summary>
-        Overriden = 0x8,
+        Overridden = 0x8,
     }
 
     internal readonly struct InheritanceMemberItem
@@ -81,7 +86,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly InheritanceRelationship RelationToMember;
 
         /// <summary>
-        /// DefinitionItem used to display the additional information and perform navigation.
+        /// DefinitionItem used to display the additional information and performs navigation.
         /// </summary>
         public readonly DefinitionItem DefinitionItem;
 

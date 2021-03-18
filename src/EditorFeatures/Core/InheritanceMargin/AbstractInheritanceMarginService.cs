@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -27,18 +28,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         protected abstract int GetIdentifierLineNumber(SourceText sourceText, SyntaxNode declarationNode);
 
-        public async Task<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoAsync(
+        public async ValueTask<ImmutableArray<InheritanceMemberItem>> GetInheritanceInfoAsync(
             Document document,
             TextSpan spanToSearch,
             CancellationToken cancellationToken)
         {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var featureEnabled = options.GetOption(InheritanceMarginOptions.ShowInheritanceMargin);
-            if (!featureEnabled)
-            {
-                return ImmutableArray<InheritanceMemberItem>.Empty;
-            }
-
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var allDeclarationNodes = GetMembers(root, spanToSearch);
             if (allDeclarationNodes.IsEmpty)
@@ -70,9 +64,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                                 namedTypeSymbol, builder, cancellationToken).ConfigureAwait(false);
                         }
 
-                        if (mappingResult.Symbol is IEventSymbol or IPropertySymbol || mappingResult.Symbol.IsOrdinaryMethod())
+                        if (mappingResult.Symbol.IsOrdinaryMethod() || mappingResult.Symbol is IEventSymbol or IPropertySymbol)
                         {
-                            // Find the implementing/implemented/overriden/overriding members
+                            // Find the implementing/implemented/overridden/overriding members
                             await AddInheritanceMemberItemsForTypeMembersAsync(
                                 mappingResult.Project.Solution,
                                 sourceText,
@@ -99,10 +93,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // Get all base types
             var allBaseTypes = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
 
-            // Filter out System.Object. (otherwise margin would be shown for all classes)
+            // Filter out
+            // 1. System.Object. (otherwise margin would be shown for all classes)
+            // 2. System.ValueType. (otherwise margin would be shown for all structs)
+            // 3. System.Enum. (otherwise margin would be shown for all enum)
             var baseTypes = allBaseTypes
-                .WhereAsArray(type =>
-                    !(type is ITypeSymbol { SpecialType: SpecialType.System_Object }));
+                .WhereAsArray(symbol => !IsUnwantedBaseType((ITypeSymbol)symbol));
 
             // Get all derived types
             var derivedTypes = await GetDerivedTypesAndImplementationsAsync(
@@ -110,7 +106,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 memberSymbol,
                 cancellationToken).ConfigureAwait(false);
 
-            if (!(baseTypes.IsEmpty && derivedTypes.IsEmpty))
+            if (baseTypes.Any() || derivedTypes.Any())
             {
                 var lineNumber = GetIdentifierLineNumber(sourceText, declarationNode);
                 var item = await CreateInheritanceMemberInfoAsync(
@@ -118,7 +114,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     memberSymbol,
                     lineNumber,
                     baseSymbols: baseTypes,
-                    derivedTypesSymbols: derivedTypes.OfType<ISymbol>().ToImmutableArray(),
+                    derivedTypesSymbols: derivedTypes.CastArray<ISymbol>(),
                     cancellationToken).ConfigureAwait(false);
                 builder.Add(item);
             }
@@ -132,22 +128,30 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ArrayBuilder<InheritanceMemberItem> builder,
             CancellationToken cancellationToken)
         {
-            // Go up the inheritance chain to find all the overrides targets.
-            var overridenMembers = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+            /* For a given member symbol (method, property and event), its base and derived symbols are classified into 4 cases
+             * 1. overriding
+             * Only applies to an override/virtual member, its based symbols are 'overriding'
+             * 2. overridden
+             * Only applies to an override/virtual/abstract member, its override symbols in subclasses are 'overridden'
+             * 3. implementing
+             * Applies to member implements a member in interface.
+             * 4. implemented
+             * Applies to member in interface, its implementation in subclasses are 'implemented'
+             */
 
-            // Go up the inheritance chain to find all the implementing targets.
+            // Go down the inheritance chain to find all the overrides targets.
+            var overriddenMembers = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // Go up the inheritance chain to find all the implemented targets.
             var implementingMembers = memberSymbol.ExplicitOrImplicitInterfaceImplementations();
 
-            // Go down the inheritance chain to find all overrides targets
+            // Go up the inheritance chain to find all overriding targets
             var overridingMembers = GetOverridingSymbols(memberSymbol);
 
-            // Go down the inheritance chain to find all the implmeneing targets.
+            // Go down the inheritance chain to find all the implementing targets.
             var implementedMembers = await GetImplementedSymbolsAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
 
-            if (!(overridenMembers.IsEmpty
-                && !overridingMembers.IsEmpty
-                && !implementingMembers.IsEmpty
-                && !implementedMembers.IsEmpty))
+            if (overriddenMembers.Any() || overridingMembers.Any() ||implementingMembers.Any() ||implementedMembers.Any())
             {
                 var lineNumber = GetIdentifierLineNumber(sourceText, declarationNode);
                 var item = await CreateInheritanceMemberInfoForMemberAsync(
@@ -156,11 +160,22 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     lineNumber,
                     implementingMembers: implementingMembers,
                     implementedMembers: implementedMembers,
-                    overridenMembers: overridenMembers,
+                    overridenMembers: overriddenMembers,
                     overridingMembers: overridingMembers,
                     cancellationToken).ConfigureAwait(false);
                 builder.Add(item);
             }
+        }
+
+        /// <summary>
+        /// A sets of widely used TypeSymbol that we don't want to show in margin
+        /// </summary>
+        private static bool IsUnwantedBaseType(ITypeSymbol symbol)
+        {
+            var specialType = symbol.SpecialType;
+            return specialType == SpecialType.System_Object
+                || specialType == SpecialType.System_ValueType
+                || specialType == SpecialType.System_Enum;
         }
     }
 }

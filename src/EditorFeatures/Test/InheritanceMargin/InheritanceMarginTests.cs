@@ -431,7 +431,7 @@ public class {{|target1:Bar2|}} : Bar
                     .Add(new TargetInfo(
                         targetSymbolDisplayName: "override event EventHandler Bar2.Eoo",
                         locationTag: "target7",
-                        relationship: InheritanceRelationship.Overriden)));
+                        relationship: InheritanceRelationship.Overridden)));
 
             var itemForPooInClass = new TestInheritanceMemberItem(
                     lineNumber: 11,
@@ -449,7 +449,7 @@ public class {{|target1:Bar2|}} : Bar
                         .Add(new TargetInfo(
                             targetSymbolDisplayName: "override int Bar2.Poo { get; set; }",
                             locationTag: "target5",
-                            relationship: InheritanceRelationship.Overriden)));
+                            relationship: InheritanceRelationship.Overridden)));
 
             var itemForFooInAbstractClass = new TestInheritanceMemberItem(
                     lineNumber: 4,
@@ -458,7 +458,7 @@ public class {{|target1:Bar2|}} : Bar
                         .Add(new TargetInfo(
                             targetSymbolDisplayName: "override void Bar2.Foo()",
                             locationTag: "target3",
-                            relationship: InheritanceRelationship.Overriden)));
+                            relationship: InheritanceRelationship.Overridden)));
 
             var itemForFooInClass = new TestInheritanceMemberItem(
                 lineNumber: 10,
