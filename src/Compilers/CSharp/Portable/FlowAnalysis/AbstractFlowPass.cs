@@ -2457,6 +2457,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        /// <summary>
+        /// Unconditionally visits an expression.
+        /// If the expression has "state when not null" after visiting,
+        /// the method returns 'true' and writes the state to <paramref name="stateWhenNotNull" />.
+        /// </summary>
         protected bool VisitPossibleConditionalAccess(BoundExpression node, Conversion conversion, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
         {
             EnterRegionIfNeeded(node);
@@ -2557,7 +2562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitConditionalAccess(BoundConditionalAccess node)
         {
-            VisitConditionalAccess(node, out _);
+            VisitConditionalAccess(node, stateWhenNotNull: out _);
             return null;
         }
 
