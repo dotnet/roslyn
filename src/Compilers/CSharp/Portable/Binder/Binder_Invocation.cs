@@ -1316,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
 
                     defaultArguments[argumentsBuilder.Count] = true;
-                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics));
+                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, argumentsBuilder.ToImmutableAndFree()));
 
                     if (argumentRefKindsBuilder is { Count: > 0 })
                     {
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsBuilder.Free();
             }
 
-            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics)
+            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics, ImmutableArray<BoundExpression> arguments)
             {
                 TypeSymbol parameterType = parameter.Type;
                 if (Flags.Includes(BinderFlags.ParameterDefaultValue))
@@ -1369,6 +1369,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var memberName = containingMember.GetMemberCallerName();
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                }
+                else if (callerSourceLocation is object && parameter.CallerArgumentExpressionParameterIndex != -1)
+                {
+                    // - Test extension methods.
+                    // - Test combining different attributes (e.g, both CallerArgumentExpression and MemberCallerName).
+                    // - Test having the CallerArgumentExpression tied to an optional parameter that doesn't exist in callsite.
+                    // - Test having a non-existent expression.
+                    var argument = arguments[parameter.CallerArgumentExpressionParameterIndex];
+                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (defaultConstantValue == ConstantValue.NotAvailable)
                 {

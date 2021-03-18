@@ -80,6 +80,38 @@ namespace Microsoft.CodeAnalysis
                 SetDataStored();
             }
         }
+
+        private bool _hasCallerArgumentExpressionAttribute;
+        public bool HasCallerArgumentExpressionAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasCallerArgumentExpressionAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasCallerArgumentExpressionAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private int _argumentExpressionParameterIndex = -1;
+        public int CallerArgumentExpressionParameterIndex
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _argumentExpressionParameterIndex;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _argumentExpressionParameterIndex = value;
+                SetDataStored();
+            }
+        }
         #endregion
     }
 }

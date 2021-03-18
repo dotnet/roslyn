@@ -154,6 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.IsCallerMemberName; }
         }
 
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return _originalParam.CallerArgumentExpressionParameterIndex; }
+        }
+
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get { return FlowAnalysisAnnotations.None; }

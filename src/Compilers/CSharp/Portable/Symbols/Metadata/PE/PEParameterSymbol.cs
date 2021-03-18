@@ -31,34 +31,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             HasCallerFilePathAttribute = 0x1 << 2,
             HasCallerLineNumberAttribute = 0x1 << 3,
             HasCallerMemberNameAttribute = 0x1 << 4,
-            IsCallerFilePath = 0x1 << 5,
-            IsCallerLineNumber = 0x1 << 6,
-            IsCallerMemberName = 0x1 << 7,
+            HasCallerArgumentExpressionAttribute = 0x1 << 5,
+            IsCallerFilePath = 0x1 << 6,
+            IsCallerLineNumber = 0x1 << 7,
+            IsCallerMemberName = 0x1 << 8,
+            IsCallerArgumentExpression = 0x1 << 9,
         }
 
         private struct PackedFlags
         {
             // Layout:
-            // |...|fffffffff|n|rr|cccccccc|vvvvvvvv|
+            // |fffffffff|n|rr|cccccccccc|vvvvvvvvvv|
             // 
-            // v = decoded well known attribute values. 8 bits.
-            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
+            // v = decoded well known attribute values. 10 bits.
+            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 10 bits.
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
             // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
+            // Current total = 32 bits. CAN'T ADD MORE FLAGS WITHOUT UPDATING TO LONG.
 
             private const int WellKnownAttributeDataOffset = 0;
-            private const int WellKnownAttributeCompletionFlagOffset = 8;
-            private const int RefKindOffset = 16;
-            private const int FlowAnalysisAnnotationsOffset = 20;
+            private const int WellKnownAttributeCompletionFlagOffset = 10;
+            private const int RefKindOffset = 20;
+            private const int FlowAnalysisAnnotationsOffset = 24;
 
             private const int RefKindMask = 0x3;
-            private const int WellKnownAttributeDataMask = 0xFF;
-            private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
-            private const int FlowAnalysisAnnotationsMask = 0xFF;
 
-            private const int HasNameInMetadataBit = 0x1 << 18;
-            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 19;
+            private const int WellKnownAttributeDataMask = (0x1 << 10) - 1;
+            private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
+            private const int FlowAnalysisAnnotationsMask = 0xFF; // "f" is only 10 bits, why the mask is 12 bits? I'm afraid this can cause problems, especially since we're using the all 32bits now.
+
+            private const int HasNameInMetadataBit = 0x1 << 22;
+            private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 23;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -596,6 +600,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        private bool HasCallerArgumentExpressionAttribute
+        {
+            get
+            {
+                const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasCallerArgumentExpressionAttribute;
+
+                bool value;
+                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
+                {
+                    value = _packedFlags.SetWellKnownAttribute(flag, _moduleSymbol.Module.HasAttribute(_handle,
+                        AttributeDescription.CallerArgumentExpressionAttribute));
+                }
+                return value;
+            }
+        }
+
         internal override bool IsCallerLineNumber
         {
             get
@@ -653,6 +673,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }
                 return value;
+            }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get
+            {
+                const WellKnownAttributeFlags flag = WellKnownAttributeFlags.IsCallerArgumentExpression;
+
+                if (!_packedFlags.TryGetWellKnownAttribute(flag, out bool value))
+                {
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    bool isCallerMemberName = !HasCallerLineNumberAttribute
+                        && !HasCallerFilePathAttribute
+                        && !HasCallerMemberNameAttribute
+                        && HasCallerArgumentExpressionAttribute
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref discardedUseSiteInfo);
+
+                    value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
+                }
+
+                if (value)
+                {
+                    // PROTOTYPE:
+                    // 1. Find the parameter name.
+                    // 2. Find the index and return it.
+                }
+
+                return -1;
             }
         }
 

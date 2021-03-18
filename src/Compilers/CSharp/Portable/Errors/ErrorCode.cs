@@ -1932,6 +1932,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 9.0
 
+        #region diagnostics introduced in C# 10.0
+        WRN_CallerArgumentExpressionParamForUnconsumedLocation = 8912,
+        ERR_NoConversionForCallerArgumentExpressionParam = 8913,
+        ERR_BadCallerArgumentExpressionParamWithoutDefaultValue = 8914,
+        WRN_CallerLineNumberPreferredOverCallerArgumentExpression = 8915,
+        WRN_CallerFilePathPreferredOverCallerArgumentExpression = 8916,
+        WRN_CallerMemberNamePreferredOverCallerArgumentExpression = 8917,
+
+        #endregion
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }
