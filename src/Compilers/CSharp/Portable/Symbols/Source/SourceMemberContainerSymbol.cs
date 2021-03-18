@@ -3382,6 +3382,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             MessageID.IDS_FeatureParameterlessStructConstructors.CheckFeatureAvailability(diagnostics, m.DeclaringCompilation, location);
+                            if (m.DeclaredAccessibility != Accessibility.Public)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_NonPublicParameterlessStructConstructor, location);
+                            }
                         }
                     }
                 }

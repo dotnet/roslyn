@@ -1846,9 +1846,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var module = moduleSymbol.Module;
             var map = PooledDictionary<MethodDefinitionHandle, PEMethodSymbol>.GetInstance();
 
-            // For ordinary struct types we import private members so that we can report appropriate
-            // errors if a private parameterless constructor or an embeddable structure is used.
-            var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None);
+            // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used 
+            var isOrdinaryEmbeddableStruct = (this.TypeKind == TypeKind.Struct) && (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.None) && this.ContainingAssembly.IsLinked;
 
             try
             {

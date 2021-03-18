@@ -6597,4 +6597,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FunctionPointerTypesInAttributeNotSupported" xml:space="preserve">
     <value>Using a function pointer type in a 'typeof' in an attribute is not supported.</value>
   </data>
+  <data name="ERR_NonPublicParameterlessStructConstructor" xml:space="preserve">
+    <value>The parameterless struct constructor must be 'public'.</value>
+  </data>
 </root>

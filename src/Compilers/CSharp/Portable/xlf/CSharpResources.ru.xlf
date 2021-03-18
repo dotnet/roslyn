@@ -657,6 +657,11 @@
         <target state="translated">Элемент записи "{0}" должен быть открытым.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">"{0}" должен допускать переопределение, поскольку содержащая его запись не является запечатанной.</target>

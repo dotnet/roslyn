@@ -657,6 +657,11 @@
         <target state="translated">레코드 멤버 '{0}'은(는) 퍼블릭이어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">포함된 레코드가 봉인되지 않았으므로 '{0}'은(는) 재정의를 허용해야 합니다.</target>

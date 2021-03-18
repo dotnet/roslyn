@@ -657,6 +657,11 @@
         <target state="translated">记录成员“{0}”必须是公共的。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">“{0}”必须允许替代，因为包含的记录未密封。</target>

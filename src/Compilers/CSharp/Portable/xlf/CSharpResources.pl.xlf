@@ -657,6 +657,11 @@
         <target state="translated">Składowa rekordu „{0}” musi być publiczna.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">Element „{0}” musi zezwalać na przesłanianie, ponieważ zawierający go rekord nie jest zapieczętowany.</target>

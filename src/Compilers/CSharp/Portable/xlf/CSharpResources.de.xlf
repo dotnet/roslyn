@@ -657,6 +657,11 @@
         <target state="translated">Der Datensatzmember "{0}" muss öffentlich sein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">"{0}" muss Überschreibungen zulassen, weil der enthaltende Datensatz nicht versiegelt ist.</target>

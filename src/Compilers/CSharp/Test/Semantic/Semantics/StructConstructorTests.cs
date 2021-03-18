@@ -52,79 +52,113 @@ True
 {ExecutionConditionUtil.IsCoreClr}"); // Desktop framework ignores constructor in Activator.CreateInstance<T>() where T : struct.
         }
 
-        [InlineData("public")]
-        [InlineData("internal")]
-        [InlineData("private")]
-        [Theory]
-        public void PrivateConstructor_UseFromStruct(string accessibility)
+        [Fact]
+        public void NonPublicParameterlessConstructor_01()
         {
-            var sourceA =
-$@"public struct S
-{{
-    public readonly bool Initialized;
-    {accessibility}
-    S() {{ Initialized = true; }}
-    public static S Create() => new S();
-}}";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (5,5): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     S() { Initialized = true; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S").WithArguments("parameterless struct constructors").WithLocation(5, 5));
+            var source =
+@"public struct A0 { public A0() { } }
+public struct A1 { internal A1() { } }
+public struct A2 { private A2() { } }
+public struct A3 { A3() { } }
 
-            comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
-            var refA = comp.EmitToImageReference();
+internal struct B0 { public B0() { } }
+internal struct B1 { internal B1() { } }
+internal struct B2 { private B2() { } }
+internal struct B3 { B3() { } }
 
-            var sourceB =
-@"using System;
-class Program
+public class C
 {
-    static void Main()
-    {
-        Console.WriteLine(S.Create().Initialized);
-    }
+    internal protected struct C0 { public C0() { } }
+    internal protected struct C1 { internal C1() { } }
+    internal protected struct C2 { private C2() { } }
+    internal protected struct C3 { C3() { } }
+
+    protected struct D0 { public D0() { } }
+    protected struct D1 { internal D1() { } }
+    protected struct D2 { private D2() { } }
+    protected struct D3 { D3() { } }
+
+    private protected struct E0 { public E0() { } }
+    private protected struct E1 { internal E1() { } }
+    private protected struct E2 { private E2() { } }
+    private protected struct E3 { E3() { } }
+
+    private struct F0 { public F0() { } }
+    private struct F1 { internal F1() { } }
+    private struct F2 { private F2() { } }
+    private struct F3 { F3() { } }
 }";
-            CompileAndVerify(sourceB, references: new[] { refA }, expectedOutput: "True");
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (2,29): error CS8912: The parameterless struct constructor must be 'public'.
+                // public struct A1 { internal A1() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A1").WithLocation(2, 29),
+                // (3,28): error CS8912: The parameterless struct constructor must be 'public'.
+                // public struct A2 { private A2() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A2").WithLocation(3, 28),
+                // (4,20): error CS8912: The parameterless struct constructor must be 'public'.
+                // public struct A3 { A3() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A3").WithLocation(4, 20),
+                // (7,31): error CS8912: The parameterless struct constructor must be 'public'.
+                // internal struct B1 { internal B1() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "B1").WithLocation(7, 31),
+                // (8,30): error CS8912: The parameterless struct constructor must be 'public'.
+                // internal struct B2 { private B2() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "B2").WithLocation(8, 30),
+                // (9,22): error CS8912: The parameterless struct constructor must be 'public'.
+                // internal struct B3 { B3() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "B3").WithLocation(9, 22),
+                // (14,45): error CS8912: The parameterless struct constructor must be 'public'.
+                //     internal protected struct C1 { internal C1() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "C1").WithLocation(14, 45),
+                // (15,44): error CS8912: The parameterless struct constructor must be 'public'.
+                //     internal protected struct C2 { private C2() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "C2").WithLocation(15, 44),
+                // (16,36): error CS8912: The parameterless struct constructor must be 'public'.
+                //     internal protected struct C3 { C3() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "C3").WithLocation(16, 36),
+                // (19,36): error CS8912: The parameterless struct constructor must be 'public'.
+                //     protected struct D1 { internal D1() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "D1").WithLocation(19, 36),
+                // (20,35): error CS8912: The parameterless struct constructor must be 'public'.
+                //     protected struct D2 { private D2() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "D2").WithLocation(20, 35),
+                // (21,27): error CS8912: The parameterless struct constructor must be 'public'.
+                //     protected struct D3 { D3() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "D3").WithLocation(21, 27),
+                // (24,44): error CS8912: The parameterless struct constructor must be 'public'.
+                //     private protected struct E1 { internal E1() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "E1").WithLocation(24, 44),
+                // (25,43): error CS8912: The parameterless struct constructor must be 'public'.
+                //     private protected struct E2 { private E2() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "E2").WithLocation(25, 43),
+                // (26,35): error CS8912: The parameterless struct constructor must be 'public'.
+                //     private protected struct E3 { E3() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "E3").WithLocation(26, 35),
+                // (29,34): error CS8912: The parameterless struct constructor must be 'public'.
+                //     private struct F1 { internal F1() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "F1").WithLocation(29, 34),
+                // (30,33): error CS8912: The parameterless struct constructor must be 'public'.
+                //     private struct F2 { private F2() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "F2").WithLocation(30, 33),
+                // (31,25): error CS8912: The parameterless struct constructor must be 'public'.
+                //     private struct F3 { F3() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "F3").WithLocation(31, 25));
         }
 
-        [InlineData("internal", false)]
-        [InlineData("internal", true)]
-        [InlineData("private", false)]
-        [InlineData("private", true)]
+        [InlineData("assembly")]
+        [InlineData("private")]
         [Theory]
-        public void PrivateConstructor_NewConstraint(string accessibility, bool useCompilationReference)
+        public void NonPublicParameterlessConstructor_02(string accessibility)
         {
             var sourceA =
-$@"public struct S
+$@".class public sealed S extends [mscorlib]System.ValueType
 {{
-    {accessibility} S() {{ }}
+    .method {accessibility} hidebysig specialname rtspecialname instance void .ctor() cil managed {{ ret }}
 }}";
-            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
-            var refA = AsReference(comp, useCompilationReference);
+            var refA = CompileIL(sourceA);
 
             var sourceB =
-@"using System;
-class Program
-{
-    static T CreateNew<T>() where T : new() => new T();
-    static void Main()
-    {
-        Console.WriteLine(new S());
-        Console.WriteLine(CreateNew<S>());
-    }
-}";
-            comp = CreateCompilation(sourceB, references: new[] { refA });
-            comp.VerifyDiagnostics(
-                // (7,31): error CS0122: 'S.S()' is inaccessible due to its protection level
-                //         Console.WriteLine(new S());
-                Diagnostic(ErrorCode.ERR_BadAccess, "S").WithArguments("S.S()").WithLocation(7, 31),
-                // (8,27): error CS0310: 'S' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'Program.CreateNew<T>()'
-                //         Console.WriteLine(CreateNew<S>());
-                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CreateNew<S>").WithArguments("Program.CreateNew<T>()", "T", "S").WithLocation(8, 27));
-
-            var sourceC =
 @"using System;
 class Program
 {
@@ -146,12 +180,59 @@ class Program
     }
     static void Main()
     {
-        Console.WriteLine(""{0}, {1}"",
-            Invoke(() => CreateStruct1<S>()),
-            Invoke(() => CreateStruct2<S>()));
+        Console.WriteLine(Invoke(() => new S()));
+        Console.WriteLine(Invoke(() => CreateNew<S>()));
+        Console.WriteLine(Invoke(() => CreateStruct1<S>()));
+        Console.WriteLine(Invoke(() => CreateStruct2<S>()));
     }
 }";
-            CompileAndVerify(sourceC, references: new[] { refA }, expectedOutput: "System.MissingMethodException, System.MissingMethodException");
+            CompileAndVerify(sourceB, references: new[] { refA }, expectedOutput:
+@"S
+System.MissingMethodException
+System.MissingMethodException
+System.MissingMethodException");
+        }
+
+        [InlineData("internal")]
+        [InlineData("private")]
+        [Theory]
+        public void NonPublicParameterlessConstructor_03(string accessibility)
+        {
+            var sourceA =
+$@"public struct S
+{{
+    {accessibility} S() {{ }}
+}}";
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.RegularPreview);
+            var refA = comp.ToMetadataReference();
+
+            var sourceB =
+@"class Program
+{
+    static T CreateNew<T>() where T : new() => new T();
+    static T CreateStruct<T>() where T : struct => new T();
+    static void Main()
+    {
+        _ = new S();
+        _ = CreateNew<S>();
+        _ = CreateStruct<S>();
+    }
+}";
+            var expectedDiagnostics = new[]
+            {
+                // (7,17): error CS0122: 'S.S()' is inaccessible due to its protection level
+                //         _ = new S();
+                Diagnostic(ErrorCode.ERR_BadAccess, "S").WithArguments("S.S()").WithLocation(7, 17),
+                // (8,13): error CS0310: 'S' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'Program.CreateNew<T>()'
+                //         _ = CreateNew<S>();
+                Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CreateNew<S>").WithArguments("Program.CreateNew<T>()", "T", "S").WithLocation(8, 13),
+            };
+
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [InlineData("internal")]
@@ -195,13 +276,13 @@ partial class Program
 struct S1
 {
     internal bool Initialized;
-    S1() { Initialized = true; }
+    public S1() { Initialized = true; }
     internal S1(object obj) : this() { }
 }
 struct S2
 {
     internal bool Initialized;
-    internal S2() : this(null) { }
+    public S2() : this(null) { }
     S2(object obj) { Initialized = true; }
 }
 class Program
@@ -258,13 +339,13 @@ class Program
 struct S1
 {
     internal bool Initialized;
-    S1() { Initialized = false; }
+    public S1() { Initialized = false; }
     internal S1(object obj) : this() { Initialized = true; }
 }
 struct S2
 {
     internal bool Initialized;
-    internal S2() : this(null) { Initialized = true; }
+    public S2() : this(null) { Initialized = true; }
     S2(object obj) { Initialized = false; }
 }
 class Program
@@ -332,13 +413,13 @@ struct S0
 struct S1
 {
     internal bool Initialized = true;
-    S1() { }
+    public S1() { }
     internal S1(object obj) : this() { }
 }
 struct S2
 {
     internal bool Initialized = true;
-    internal S2() : this(null) { }
+    public S2() : this(null) { }
     S2(object obj) { }
 }
 class Program
@@ -417,13 +498,13 @@ struct S0
 struct S1
 {
     internal bool Initialized = false;
-    S1() { }
+    public S1() { }
     internal S1(object obj) : this() { Initialized = true; }
 }
 struct S2
 {
     internal bool Initialized = false;
-    internal S2() : this(null) { Initialized = true; }
+    public S2() : this(null) { Initialized = true; }
     S2(object obj) { }
 }
 class Program
@@ -809,34 +890,34 @@ struct S0
 struct S1
 {
     object F1;
-    S1() { }
+    public S1() { }
 }
 struct S2
 {
     object F2;
-    S2() : this(null) { }
+    public S2() : this(null) { }
     S2(object? obj) { }
 }
 struct S3
 {
     object F3;
-    S3() { F3 = GetValue(); }
+    public S3() { F3 = GetValue(); }
     static object? GetValue() => null;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,5): error CS0171: Field 'S1.F1' must be fully assigned before control is returned to the caller
-                //     S1() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.F1").WithLocation(10, 5),
+                // (10,12): error CS0171: Field 'S1.F1' must be fully assigned before control is returned to the caller
+                //     public S1() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.F1").WithLocation(10, 12),
                 // (16,5): error CS0171: Field 'S2.F2' must be fully assigned before control is returned to the caller
                 //     S2(object? obj) { }
                 Diagnostic(ErrorCode.ERR_UnassignedThis, "S2").WithArguments("S2.F2").WithLocation(16, 5),
-                // (21,5): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-                //     S3() { F3 = GetValue(); }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S3").WithArguments("field", "F3").WithLocation(21, 5),
-                // (21,17): warning CS8601: Possible null reference assignment.
-                //     S3() { F3 = GetValue(); }
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "GetValue()").WithLocation(21, 17));
+                // (21,12): warning CS8618: Non-nullable field 'F3' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S3() { F3 = GetValue(); }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S3").WithArguments("field", "F3").WithLocation(21, 12),
+                // (21,24): warning CS8601: Possible null reference assignment.
+                //     public S3() { F3 = GetValue(); }
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "GetValue()").WithLocation(21, 24));
         }
 
         [Fact]
@@ -851,12 +932,12 @@ struct S0
 struct S1
 {
     object F1 = Utils.GetValue();
-    S1() { }
+    public S1() { }
 }
 struct S2
 {
     object F2 = Utils.GetValue();
-    S2() : this(null) { }
+    public S2() : this(null) { }
     S2(object obj) { }
 }
 static class Utils
@@ -874,9 +955,9 @@ static class Utils
                 // (13,17): warning CS8601: Possible null reference assignment.
                 //     object F2 = Utils.GetValue();
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "Utils.GetValue()").WithLocation(13, 17),
-                // (14,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //     S2() : this(null) { }
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 17));
+                // (14,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     public S2() : this(null) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 24));
         }
 
         [Fact]
@@ -891,7 +972,7 @@ unsafe struct S0
 unsafe struct S1
 {
     fixed int Y[1];
-    internal S1() { }
+    public S1() { }
 }
 unsafe struct S2
 {
@@ -902,7 +983,7 @@ unsafe struct S3
 {
     int X;
     fixed int Y[1];
-    internal S3() { }
+    public S3() { }
 }
 unsafe struct S4
 {
@@ -913,14 +994,14 @@ unsafe struct S5
 {
     int X;
     fixed int Y[1];
-    internal S5() { X = 5; }
+    public S5() { X = 5; }
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
-                // (20,14): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller
-                //     internal S3() { }
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.X").WithLocation(20, 14),
+                // (20,12): error CS0171: Field 'S3.X' must be fully assigned before control is returned to the caller
+                //     public S3() { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S3").WithArguments("S3.X").WithLocation(20, 12),
                 // (24,9): warning CS0414: The field 'S4.X' is assigned but its value is never used
                 //     int X = 4;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "X").WithArguments("S4.X").WithLocation(24, 9),
@@ -949,7 +1030,13 @@ struct S4 { private S4() { } }
     static void F4(S4 s = default) { }
 }";
             var comp = CreateCompilation(new[] { sourceA, sourceB1 }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (4,22): error CS8912: The parameterless struct constructor must be 'public'.
+                // struct S3 { internal S3() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S3").WithLocation(4, 22),
+                // (5,21): error CS8912: The parameterless struct constructor must be 'public'.
+                // struct S4 { private S4() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S4").WithLocation(5, 21));
 
             var sourceB2 =
 @"class Program
@@ -962,9 +1049,15 @@ struct S4 { private S4() { } }
 }";
             comp = CreateCompilation(new[] { sourceA, sourceB2 }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
+                // (4,22): error CS8912: The parameterless struct constructor must be 'public'.
+                // struct S3 { internal S3() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S3").WithLocation(4, 22),
                 // (4,27): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     static void F1(S1 s = new()) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(4, 27),
+                // (5,21): error CS8912: The parameterless struct constructor must be 'public'.
+                // struct S4 { private S4() { } }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S4").WithLocation(5, 21),
                 // (5,27): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //     static void F2(S2 s = new()) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new()").WithArguments("s").WithLocation(5, 27),

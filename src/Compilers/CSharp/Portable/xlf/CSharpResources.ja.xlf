@@ -657,6 +657,11 @@
         <target state="translated">レコード メンバー '{0}' は public でなければなりません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NonPublicParameterlessStructConstructor">
+        <source>The parameterless struct constructor must be 'public'.</source>
+        <target state="new">The parameterless struct constructor must be 'public'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">'{0}' ではオーバーライドを許可する必要があります。これが含まれているレコードが sealed ではないためです。</target>
