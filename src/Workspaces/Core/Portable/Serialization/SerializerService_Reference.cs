@@ -17,6 +17,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
+#if DEBUG
+using Microsoft.CodeAnalysis.ErrorReporting;
+#endif
+
 namespace Microsoft.CodeAnalysis.Serialization
 {
     internal partial class SerializerService
@@ -546,7 +550,11 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 return reference.GetMetadata();
             }
+#if DEBUG
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+#else
             catch
+#endif
             {
                 // we have a reference but the file the reference is pointing to
                 // might not actually exist on disk.
