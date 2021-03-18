@@ -239,21 +239,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Maps an immutable array through a function that returns Tasks, returning the new ImmutableArray.
-        /// </summary>
-        public static async Task<ImmutableArray<TResult>> SelectAsArrayAsync<TItem, TResult>(this ImmutableArray<TItem> array, Func<TItem, Task<TResult>> selector)
-        {
-            var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
-
-            foreach (var item in array)
-            {
-                builder.Add(await selector(item).ConfigureAwait(false));
-            }
-
-            return builder.ToImmutableAndFree();
-        }
-
-        /// <summary>
         /// Zips two immutable arrays together through a mapping function, producing another immutable array.
         /// </summary>
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>

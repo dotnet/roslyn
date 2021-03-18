@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 baseSymbolItems.Concat(derivedTypeItems));
         }
 
-        private static async Task<InheritanceTargetItem> CreateInheritanceItemAsync(
+        private static async ValueTask<InheritanceTargetItem> CreateInheritanceItemAsync(
             Solution solution,
             ISymbol targetSymbol,
             InheritanceRelationship inheritanceRelationshipWithOriginalMember,
