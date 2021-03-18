@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using System.Linq;
-
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -64,16 +64,16 @@ namespace Microsoft.CodeAnalysis
 
         bool hasChanged = false;
 
-        bool isAllCached = false;
-
         internal MultiItemValueProvider(IEnumerable<T> initialValue)
         {
             FillBuilder(initialValue, EntryState.Added);
         }
 
+        //TODO: is there a way we can add a 'dummy' entry to the state table that will hold our own state?
+
         internal override StateTable<T> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<T> previousTable)
         {
-            if (isAllCached && !hasChanged)
+            if (!hasChanged)
                 return previousTable;
 
             //PROTOYPE: threading. This can race. need to atomically free and replace
@@ -81,10 +81,11 @@ namespace Microsoft.CodeAnalysis
             _currentBuilder = new StateTable<T>.Builder();
             foreach (var entry in newTable)
             {
-                var state = entry.state == EntryState.Removed ? EntryState.Removed : EntryState.Cached;
-               _currentBuilder.AddEntries(ImmutableArray.Create(entry.item), state);
+                if (entry.state != EntryState.Removed)
+                {
+                    _currentBuilder.AddEntries(ImmutableArray.Create(entry.item), EntryState.Cached);
+                }
             }
-            isAllCached = true;
             hasChanged = false;
             return newTable;
         }

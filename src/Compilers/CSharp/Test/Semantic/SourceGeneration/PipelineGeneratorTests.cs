@@ -156,7 +156,7 @@ class C { }
             gst = new GraphStateTable.Builder(previous);
 
             // we need to compact the sources too.
-            // 
+            // presumably the sources need special treatment in terms of 'update' and 'compact' that happens *outside* the graph table
 
             // remove some things
             ((MultiItemValueProvider<string>)sources.Strings.node).RemoveValue(0);
