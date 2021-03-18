@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var solution = project.Solution;
             var workspace = solution.Workspace;
             var solutionKey = SolutionKey.ToSolutionKey(solution);
+            var projectFilePath = project.FilePath;
 
             var result = TryLoadOrCreateAsync(
                 workspace,
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly,
                 createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
                 keySuffix: "_Source_" + project.FilePath,
-                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(workspace, solutionKey, checksum, project.FilePath, nodes)),
+                tryReadObject: reader => TryReadSymbolTreeInfo(reader, checksum, nodes => GetSpellCheckerAsync(workspace, solutionKey, checksum, projectFilePath, nodes)),
                 cancellationToken: cancellationToken);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;
