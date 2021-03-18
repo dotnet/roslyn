@@ -421,6 +421,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
             private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
             {
+                // Merge the two maps into one final result.
                 var result = new Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>(_documentationMap);
                 foreach (var (group, parts) in _groupMap)
                     result[group] = parts.ToTaggedText();
