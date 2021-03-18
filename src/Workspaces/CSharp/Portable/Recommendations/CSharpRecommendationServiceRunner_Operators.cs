@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                     if (containerIsNullable && !IsLiftableOperator(method))
                         continue;
 
-                    // We don't need to bother lifting operators.  We'll just show the basic operator in the list as the
+                    // We don't need to bother lifting operators. We'll just show the basic operator in the list as the
                     // information for it is sufficient for completion (i.e. we only insert the operator itself, not any
                     // of the parameter or return types).
                     symbols.Add(method);
