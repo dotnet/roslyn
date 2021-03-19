@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 && CaptureId.GetHashCodeOrDefault() == other.CaptureId.GetHashCodeOrDefault()
                 && Type.GetHashCodeOrDefault() == other.Type.GetHashCodeOrDefault()
                 && Parent.GetHashCodeOrDefault() == other.Parent.GetHashCodeOrDefault()
-                && IsThisOrMeInstance.GetHashCodeOrDefault() == other.IsThisOrMeInstance.GetHashCodeOrDefault();
+                && IsThisOrMeInstance.GetHashCode() == other.IsThisOrMeInstance.GetHashCode();
         }
 
         public int EqualsIgnoringInstanceLocationId { get; private set; }
