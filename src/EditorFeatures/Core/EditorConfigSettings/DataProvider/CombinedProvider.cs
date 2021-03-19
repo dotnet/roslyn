@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 {
@@ -24,14 +25,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         {
             var changes = await Task.WhenAll(_providers.Select(x => x.GetChangedEditorConfigAsync())).ConfigureAwait(false);
 
-            changes = changes.Where(x => x is not null).ToArray();
+            changes = changes.WhereNotNull().ToArray();
             if (!changes.Any())
                 return null;
 
             var result = new List<TextChange>();
             foreach (var change in changes)
             {
-                result.AddRange(change!); // compiler does not see through linq in nullable yet
+                result.AddRange(change);
             }
 
             return result;
