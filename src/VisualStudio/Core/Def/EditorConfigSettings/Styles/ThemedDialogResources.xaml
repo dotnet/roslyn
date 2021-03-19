@@ -37,7 +37,7 @@
         </Setter>
     </Style>
     <Style TargetType="TabItem">
-        <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUIBackgroundKey}}" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}" />
         <Setter Property="FontSize" Value="{Binding FontSize, RelativeSource={RelativeSource AncestorType=UserControl},Converter={StaticResource Font122PercentSizeConverter}}"/>
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.BrandedUITextKey}}" />
         <Setter Property="Padding" Value="20,0,20,0" />
