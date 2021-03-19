@@ -76,8 +76,9 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             // Great.  The list has parameters that need null checks. Offer to add null checks for all.
             return ImmutableArray.Create<CodeAction>(new MyCodeAction(
-                 FeaturesResources.Add_null_checks_for_all_parameters,
-                     c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, c)));
+                FeaturesResources.Add_null_checks_for_all_parameters,
+                c => UpdateDocumentForRefactoringAsync(document, blockStatementOpt, listOfParametersOrdinals, parameterSpan, c),
+                nameof(FeaturesResources.Add_null_checks_for_all_parameters)));
         }
 
         protected override async Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -96,7 +97,8 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
             result.Add(new MyCodeAction(
                 FeaturesResources.Add_null_check,
-                c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c)));
+                c => AddNullCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, c),
+                nameof(FeaturesResources.Add_null_check)));
 
             // Also, if this was a string, offer to add the special checks to 
             // string.IsNullOrEmpty and string.IsNullOrWhitespace.
@@ -104,11 +106,13 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             {
                 result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrEmpty_check,
-                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), c)));
+                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrEmpty), c),
+                    nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)));
 
                 result.Add(new MyCodeAction(
                     FeaturesResources.Add_string_IsNullOrWhiteSpace_check,
-                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c)));
+                    c => AddStringCheckAsync(document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, nameof(string.IsNullOrWhiteSpace), c),
+                    nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)));
             }
 
             return result.ToImmutable();

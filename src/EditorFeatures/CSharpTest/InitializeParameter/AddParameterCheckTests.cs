@@ -485,7 +485,7 @@ class C
     }}
 }}",
                 CodeActionIndex = 3,
-                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
             }.RunAsync();
         }
 
@@ -537,7 +537,7 @@ class C
     }}
 }}",
                 CodeActionIndex = 0,
-                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
             }.RunAsync();
         }
 
@@ -574,7 +574,7 @@ class C
     }}
 }}",
                 CodeActionIndex = 3,
-                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
             }.RunAsync();
         }
 
@@ -616,7 +616,7 @@ class C
     }}
 }}",
                 CodeActionIndex = 3,
-                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
             }.RunAsync();
         }
 
@@ -658,7 +658,7 @@ class C
     }
 }",
                 CodeActionIndex = 1,
-                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
             }.RunAsync();
         }
 
@@ -700,7 +700,7 @@ class C
     }
 }",
                 CodeActionIndex = 1,
-                CodeActionEquivalenceKey = FeaturesResources.Add_null_checks_for_all_parameters
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_null_checks_for_all_parameters)
             }.RunAsync();
         }
 
@@ -808,7 +808,7 @@ class C
 }",
                 Options =
                 {
-                    {  CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOptions2.FalseWithSilentEnforcement }
+                    { CSharpCodeStyleOptions.PreferThrowExpression, false, NotificationOption2.Silent }
                 }
             }.RunAsync();
         }
@@ -1606,7 +1606,7 @@ class C
     }}
 }}",
                 CodeActionIndex = 1,
-                CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrEmpty_check
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
             }.RunAsync();
         }
 
@@ -1638,7 +1638,7 @@ class C
     }}
 }}",
                 CodeActionIndex = 2,
-                CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrWhiteSpace_check
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrWhiteSpace_check)
             }.RunAsync();
         }
 
@@ -1672,7 +1672,7 @@ class C
     }}
 }}",
                 CodeActionIndex = 1,
-                CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrEmpty_check
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check)
             }.RunAsync();
         }
 
@@ -1723,7 +1723,7 @@ class Program
     }}
 }}",
                 CodeActionIndex = 1,
-                CodeActionEquivalenceKey = FeaturesResources.Add_string_IsNullOrEmpty_check,
+                CodeActionEquivalenceKey = nameof(FeaturesResources.Add_string_IsNullOrEmpty_check),
                 Options =
                 {
                     { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CodeStyleOptions2.FalseWithSuggestionEnforcement }
