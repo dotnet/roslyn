@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -13,7 +11,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
-using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 
@@ -261,6 +258,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var generatedTreeAfterChange = await Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).GetSyntaxTreeAsync();
 
             Assert.Same(generatedTreeBeforeChange, generatedTreeAfterChange);
+        }
+
+        [Fact]
+        public async Task TreeNotReusedIfParseOptionsChangeChangeBetweenRuns()
+        {
+            using var workspace = CreateWorkspace();
+            var analyzerReference = new TestGeneratorReference(new SingleFileTestGenerator("// StaticContent"));
+            var project = AddEmptyProject(workspace.CurrentSolution)
+                .AddAnalyzerReference(analyzerReference)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project
+                .AddAdditionalDocument("Test.txt", "Hello, world!").Project;
+
+            var generatedTreeBeforeChange = await Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).GetSyntaxTreeAsync();
+
+            // Mutate the parse options to produce a new compilation
+            Assert.NotEqual(DocumentationMode.Diagnose, project.ParseOptions!.DocumentationMode);
+            project = project.WithParseOptions(project.ParseOptions.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            var generatedTreeAfterChange = await Assert.Single(await project.GetSourceGeneratedDocumentsAsync()).GetSyntaxTreeAsync();
+
+            Assert.NotSame(generatedTreeBeforeChange, generatedTreeAfterChange);
         }
     }
 }

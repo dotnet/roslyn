@@ -788,17 +788,28 @@ namespace Microsoft.CodeAnalysis
                                             generatorResult.Generator,
                                             generatedSource.HintName);
 
-                                        generatedDocumentsBuilder.Add(
-                                            SourceGeneratedDocumentState.Create(
-                                                existing,
-                                                generatedSource.HintName,
-                                                generatedSource.SourceText,
-                                                generatedSource.SyntaxTree,
-                                                CreateStableSourceGeneratedDocumentId(ProjectState.Id, generatorResult.Generator, generatedSource.HintName),
-                                                generatorResult.Generator,
-                                                this.ProjectState.LanguageServices,
-                                                solution.Services,
-                                                cancellationToken));
+                                        if (existing != null)
+                                        {
+                                            generatedDocumentsBuilder.Add(
+                                                existing.WithUpdatedGeneratedContent(
+                                                    generatedSource.SourceText,
+                                                    generatedSource.SyntaxTree,
+                                                    this.ProjectState.ParseOptions!,
+                                                    cancellationToken));
+                                        }
+                                        else
+                                        {
+                                            generatedDocumentsBuilder.Add(
+                                                SourceGeneratedDocumentState.Create(
+                                                    generatedSource.HintName,
+                                                    generatedSource.SourceText,
+                                                    generatedSource.SyntaxTree,
+                                                    CreateStableSourceGeneratedDocumentId(ProjectState.Id, generatorResult.Generator, generatedSource.HintName),
+                                                    generatorResult.Generator,
+                                                    this.ProjectState.LanguageServices,
+                                                    solution.Services,
+                                                    cancellationToken));
+                                        }
                                     }
                                 }
                             }

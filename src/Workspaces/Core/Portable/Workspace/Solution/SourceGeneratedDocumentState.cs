@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis
         public ISourceGenerator SourceGenerator { get; }
 
         public static SourceGeneratedDocumentState Create(
-            SourceGeneratedDocumentState? previousState,
             string hintName,
             SourceText generatedSourceText,
             SyntaxTree generatedSyntaxTree,
@@ -26,68 +25,33 @@ namespace Microsoft.CodeAnalysis
             SolutionServices solutionServices,
             CancellationToken cancellationToken)
         {
-            var tree = generatedSyntaxTree;
-            var options = tree.Options;
-            var filePath = tree.FilePath;
+            var options = generatedSyntaxTree.Options;
+            var filePath = generatedSyntaxTree.FilePath;
 
-            bool sourceChanged;
-            ValueSource<TextAndVersion> textSource;
+            var textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
+            ValueSource<TextAndVersion> textSource = new ConstantValueSource<TextAndVersion>(textAndVersion);
 
-            // We can reuse the previous TextAndVersion if the checksum from the text matches.
-            if (previousState is null
-                || !previousState.TryGetTextAndVersion(out var textAndVersion)
-                || Checksum.From(textAndVersion.Text.GetChecksum()) != Checksum.From(generatedSourceText.GetChecksum()))
-            {
-                sourceChanged = true;
-                textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
-                textSource = new ConstantValueSource<TextAndVersion>(textAndVersion);
-            }
-            else
-            {
-                sourceChanged = false;
-                textSource = previousState.TextAndVersionSource;
-            }
+            var root = generatedSyntaxTree.GetRoot(cancellationToken);
+            Contract.ThrowIfNull(languageServices.SyntaxTreeFactory, "We should not have a generated syntax tree for a language that doesn't support trees.");
 
-            // We can reuse the previous tree if the options haven't changed
-            bool treeChanged;
-            if (!sourceChanged && Equals(previousState!.ParseOptions, generatedSyntaxTree.Options))
+            if (languageServices.SyntaxTreeFactory.CanCreateRecoverableTree(root))
             {
-                treeChanged = false;
-                tree = previousState.SyntaxTree.WithFilePath(tree.FilePath);
-            }
-            else
-            {
-                treeChanged = true;
+                // We will only create recoverable text if we can create a recoverable tree; if we created a
+                // recoverable text but not a new tree, it would mean tree.GetText() could still potentially return
+                // the non-recoverable text, but asking the document directly for it's text would give a recoverable
+                // text with a different object identity.
+                textSource = CreateRecoverableText(textAndVersion, solutionServices);
+
+                generatedSyntaxTree = languageServices.SyntaxTreeFactory.CreateRecoverableTree(
+                    documentId.ProjectId,
+                    filePath: generatedSyntaxTree.FilePath,
+                    options,
+                    textSource,
+                    generatedSourceText.Encoding,
+                    root);
             }
 
-            if (treeChanged)
-            {
-                var root = tree.GetRoot(cancellationToken);
-                Contract.ThrowIfNull(languageServices.SyntaxTreeFactory, "We should not have a generated syntax tree for a language that doesn't support trees.");
-
-                if (languageServices.SyntaxTreeFactory.CanCreateRecoverableTree(root))
-                {
-                    // We will only create recoverable text if we can create a recoverable tree; if we created a
-                    // recoverable text but not a new tree, it would mean tree.GetText() could still potentially return
-                    // the non-recoverable text, but asking the document directly for it's text would give a recoverable
-                    // text with a different object identity. We only need to create a recoverable text if the source
-                    // changed; otherwise, the reused text source would be recoverable.
-                    if (sourceChanged)
-                    {
-                        textSource = CreateRecoverableText(textAndVersion, solutionServices);
-                    }
-
-                    tree = languageServices.SyntaxTreeFactory.CreateRecoverableTree(
-                        documentId.ProjectId,
-                        filePath: tree.FilePath,
-                        options,
-                        textSource,
-                        generatedSourceText.Encoding,
-                        root);
-                }
-            }
-
-            var treeAndVersion = TreeAndVersion.Create(tree, textAndVersion.Version);
+            var treeAndVersion = TreeAndVersion.Create(generatedSyntaxTree, textAndVersion.Version);
 
             return new SourceGeneratedDocumentState(
                 languageServices,
@@ -147,6 +111,27 @@ namespace Microsoft.CodeAnalysis
         protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
         {
             throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
+        }
+
+        public SourceGeneratedDocumentState WithUpdatedGeneratedContent(SourceText sourceText, SyntaxTree lazySyntaxTree, ParseOptions parseOptions, CancellationToken cancellationToken)
+        {
+            if (TryGetText(out var existingText) &&
+                Checksum.From(existingText.GetChecksum()) == Checksum.From(sourceText.GetChecksum()) &&
+                SyntaxTree.Options.Equals(parseOptions))
+            {
+                // We can reuse this instance directly
+                return this;
+            }
+
+            return SourceGeneratedDocumentState.Create(
+                this.HintName,
+                sourceText,
+                lazySyntaxTree,
+                this.Id,
+                this.SourceGenerator,
+                this.LanguageServices,
+                this.solutionServices,
+                cancellationToken);
         }
     }
 }
