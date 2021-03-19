@@ -706,16 +706,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var attributes = GetAttributes();
+                var attributeInfos = _moduleSymbol.Module.FindTargetAttributes(_handle, AttributeDescription.NotNullIfNotNullAttribute);
+
                 var result = ImmutableHashSet<string>.Empty;
-                foreach (var attribute in attributes)
+                foreach (var attributeInfo in attributeInfos)
                 {
-                    if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
+                    if (_moduleSymbol.Module.TryExtractStringValueFromAttribute(attributeInfo.Handle, out string parameterName)
                     {
-                        if (attribute.DecodeNotNullIfNotNullAttribute() is string parameterName)
-                        {
-                            result = result.Add(parameterName);
-                        }
+                        result = result.Add(parameterName);
                     }
                 }
 
