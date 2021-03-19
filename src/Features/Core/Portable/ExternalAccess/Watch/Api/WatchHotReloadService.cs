@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -64,25 +65,30 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
             => await _encService.StartDebuggingSessionAsync(solution, captureMatchingDocuments: true, cancellationToken).ConfigureAwait(false);
 
-        public async Task<(ImmutableArray<Update> updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
+        public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
             _encService.StartEditSession(DebuggerService.Instance, out _);
 
-            var (updates, diagnostics) = await _encService.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var results = await _encService.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-            if (updates.Status == ManagedModuleUpdateStatus.Ready)
+            if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
                 _encService.CommitSolutionUpdate();
             }
 
             _encService.EndEditSession(out _);
 
-            if (updates.Status == ManagedModuleUpdateStatus.Blocked)
+            if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Blocked)
             {
                 return default;
             }
 
-            return (updates.Updates.SelectAsArray(update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta)), diagnostics);
+            var updates = results.ModuleUpdates.Updates.SelectAsArray(
+                update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta));
+
+            var diagnostics = results.Diagnostics.SelectMany(d => d.Diagnostic).ToImmutableArray();
+
+            return (updates, diagnostics);
         }
 
         public void EndSession()

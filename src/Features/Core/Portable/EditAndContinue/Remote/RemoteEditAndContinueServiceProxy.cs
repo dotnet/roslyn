@@ -301,13 +301,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public async ValueTask<ManagedModuleUpdates> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, CancellationToken cancellationToken)
         {
-            ManagedModuleUpdates updates;
-            ImmutableArray<DiagnosticData> diagnosticsByProject;
+            ManagedModuleUpdates moduleUpdates;
+            ImmutableArray<DiagnosticData> diagnosticData;
 
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                (updates, diagnosticsByProject) = await GetLocalService().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                var results = await GetLocalService().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+                moduleUpdates = results.ModuleUpdates;
+                diagnosticData = results.GetDiagnosticData(solution);
             }
             else
             {
@@ -319,12 +321,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (result.HasValue)
                 {
-                    (updates, diagnosticsByProject) = result.Value;
+                    (moduleUpdates, diagnosticData) = result.Value;
                 }
                 else
                 {
-                    updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
-                    diagnosticsByProject = ImmutableArray<DiagnosticData>.Empty;
+                    moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
+                    diagnosticData = ImmutableArray<DiagnosticData>.Empty;
                 }
             }
 
@@ -332,9 +334,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticUpdateSource.ClearDiagnostics();
 
             // report emit/apply diagnostics:
-            diagnosticUpdateSource.ReportDiagnostics(Workspace, solution, diagnosticsByProject);
+            diagnosticUpdateSource.ReportDiagnostics(Workspace, solution, diagnosticData);
 
-            return updates;
+            return moduleUpdates;
         }
 
         public async ValueTask CommitSolutionUpdateAsync(CancellationToken cancellationToken)

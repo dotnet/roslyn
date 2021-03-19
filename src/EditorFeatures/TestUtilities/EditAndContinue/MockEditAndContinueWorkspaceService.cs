@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public EndSession? EndDebuggingSessionImpl;
         public EndSession? EndEditSessionImpl;
         public Func<Solution, SolutionActiveStatementSpanProvider, string?, bool>? HasChangesImpl;
-        public Func<Solution, SolutionActiveStatementSpanProvider, (ManagedModuleUpdates, ImmutableArray<DiagnosticData>)>? EmitSolutionUpdateImpl;
+        public Func<Solution, SolutionActiveStatementSpanProvider, EmitSolutionUpdateResults>? EmitSolutionUpdateImpl;
         public Func<Solution, ManagedInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
         public Action<Document>? OnSourceFileUpdatedImpl;
         public Action? CommitSolutionUpdateImpl;
@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public void DiscardSolutionUpdate()
             => DiscardSolutionUpdateImpl?.Invoke();
 
-        public ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics)>
-            EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
             => new((EmitSolutionUpdateImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider));
 
         public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)

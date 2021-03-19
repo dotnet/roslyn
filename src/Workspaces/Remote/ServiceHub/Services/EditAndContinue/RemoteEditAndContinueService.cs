@@ -155,7 +155,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 try
                 {
-                    return await service.EmitSolutionUpdateAsync(solution, CreateSolutionActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    var results = await service.EmitSolutionUpdateAsync(solution, CreateSolutionActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    return (results.ModuleUpdates, results.GetDiagnosticData(solution));
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {

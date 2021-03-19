@@ -384,13 +384,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return editSession.HasChangesAsync(solution, solutionActiveStatementSpanProvider, sourceFilePath, cancellationToken);
         }
 
-        public async ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics)>
-            EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
+            Solution solution,
+            SolutionActiveStatementSpanProvider activeStatementSpanProvider,
+            CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
             {
-                return (new(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty), ImmutableArray<DiagnosticData>.Empty);
+                return EmitSolutionUpdateResults.Empty;
             }
 
             var solutionUpdate = await editSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
@@ -401,26 +403,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
-            return (solutionUpdate.ModuleUpdates, ToDiagnosticData(solution, solutionUpdate.Diagnostics));
-        }
-
-        private static ImmutableArray<DiagnosticData> ToDiagnosticData(Solution solution, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnosticsByProject)
-        {
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
-
-            foreach (var (projectId, diagnostics) in diagnosticsByProject)
-            {
-                var project = solution.GetRequiredProject(projectId);
-
-                foreach (var diagnostic in diagnostics)
-                {
-                    var document = solution.GetDocument(diagnostic.Location.SourceTree);
-                    var data = (document != null) ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(diagnostic, project);
-                    result.Add(data);
-                }
-            }
-
-            return result.ToImmutable();
+            return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics);
         }
 
         public void CommitSolutionUpdate()

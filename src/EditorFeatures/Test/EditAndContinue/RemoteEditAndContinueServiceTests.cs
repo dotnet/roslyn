@@ -226,11 +226,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
                 var syntaxTree = project.Documents.Single().GetSyntaxTreeSynchronously(CancellationToken.None)!;
 
-                var documentDiagnostic = DiagnosticData.Create(Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "some error" }), document);
-                var projectDiagnostic = DiagnosticData.Create(Diagnostic.Create(diagnosticDescriptor1, Location.None, new[] { "proj", "some error" }), project);
-                var solutionDiagnostic = DiagnosticData.Create(Diagnostic.Create(diagnosticDescriptor1, Location.None, new[] { "sol", "some error" }), solution.Options);
+                var documentDiagnostic = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "some error" });
+                var projectDiagnostic = Diagnostic.Create(diagnosticDescriptor1, Location.None, new[] { "proj", "some error" });
 
-                return (new(ManagedModuleUpdateStatus.Ready, deltas), ImmutableArray.Create(documentDiagnostic, projectDiagnostic, solutionDiagnostic));
+                return new(new(ManagedModuleUpdateStatus.Ready, deltas), ImmutableArray.Create((project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic))));
             };
 
             var updates = await proxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, solutionActiveStatementSpanProvider, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
@@ -242,8 +241,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             AssertEx.Equal(new[]
             {
                 $"[{project.Id}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "some error")}",
-                $"[{project.Id}] Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "proj", "some error")}",
-                $"[] Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "sol", "some error")}",
+                $"[{project.Id}] Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "proj", "some error")}"
             },
             emitDiagnosticsUpdated.Select(update =>
             {
