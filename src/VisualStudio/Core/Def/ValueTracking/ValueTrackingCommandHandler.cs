@@ -86,16 +86,20 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 return false;
             }
 
-            var selectedSymbol = _threadingContext.JoinableTaskFactory.Run(() => GetSelectedSymbolAsync(textSpan, document, cancellationToken));
-            if (selectedSymbol is null)
+            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                return false;
-            }
+                var selectedSymbol = await  GetSelectedSymbolAsync(textSpan, document, cancellationToken).ConfigureAwait(false);
+                if (selectedSymbol is null)
+                {
+                    // TODO: Show error dialog
+                    return;
+                }
 
-            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
-            var location = Location.Create(syntaxTree, textSpan);
+                var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
+                var location = Location.Create(syntaxTree, textSpan);
 
-            _threadingContext.JoinableTaskFactory.Run(() => ShowToolWindowAsync(args.TextView, selectedSymbol, location, document.Project.Solution, cancellationToken));
+                await ShowToolWindowAsync(args.TextView, selectedSymbol, location, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+            });
 
             return true;
         }

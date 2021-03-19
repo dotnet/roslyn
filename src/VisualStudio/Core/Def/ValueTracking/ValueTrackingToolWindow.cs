@@ -3,15 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Controls;
-using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
@@ -22,9 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public static ValueTrackingToolWindow? Instance { get; set; }
         private readonly ValueTrackingTreeViewModel _viewModel;
 
-        // Needed for VSSDK003
-        // See https://github.com/Microsoft/VSSDK-Analyzers/blob/main/doc/VSSDK003.md
-        public ValueTrackingToolWindow(object o)
+        public ValueTrackingToolWindow(ValueTrackingTreeItemViewModel root)
             : base(null)
         {
             if (Instance is not null)
@@ -34,15 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
             this.Caption = "Value Tracking";
 
-            if (o is ValueTrackingTreeItemViewModel root)
-            {
-                _viewModel = new ValueTrackingTreeViewModel(root);
-                Content = new ValueTrackingTree(_viewModel);
-            }
-            else
-            {
-                throw new Exception("This shouldn't happen");
-            }
+            _viewModel = new ValueTrackingTreeViewModel(root);
+            Content = new ValueTrackingTree(_viewModel);
         }
 
         public ValueTrackingTreeItemViewModel Root
