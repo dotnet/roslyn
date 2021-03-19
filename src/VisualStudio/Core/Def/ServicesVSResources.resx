@@ -1604,6 +1604,9 @@ I agree to all of the foregoing:</value>
   <data name="Symbols_without_references" xml:space="preserve">
     <value>Symbols without references</value>
   </data>
+  <data name="Tab_twice_to_insert_arguments" xml:space="preserve">
+    <value>Tab twice to insert arguments (experimental)</value>
+  </data>
   <data name="Apply" xml:space="preserve">
     <value>Apply</value>
   </data>
