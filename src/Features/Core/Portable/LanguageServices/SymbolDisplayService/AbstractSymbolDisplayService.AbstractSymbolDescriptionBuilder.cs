@@ -176,28 +176,34 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 void AddReturnsDocumentationParts(ISymbol symbol, IDocumentationCommentFormattingService formatter)
                 {
                     var parts = symbol.GetReturnsDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
-                    var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
+                    if (!parts.IsDefaultOrEmpty)
+                    {
+                        var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
 
-                    builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Returns_colon));
-                    builder.AddRange(LineBreak().ToTaggedText());
-                    builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
-                    builder.AddRange(parts);
-                    builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                        builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Returns_colon));
+                        builder.AddRange(LineBreak().ToTaggedText());
+                        builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
+                        builder.AddRange(parts);
+                        builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
 
-                    _documentationMap.Add(SymbolDescriptionGroups.ReturnsDocumentation, builder.ToImmutableArray());
+                        _documentationMap.Add(SymbolDescriptionGroups.ReturnsDocumentation, builder.ToImmutableArray());
+                    }
                 }
 
                 void AddValueDocumentationParts(ISymbol symbol, IDocumentationCommentFormattingService formatter)
                 {
                     var parts = symbol.GetValueDocumentationParts(_semanticModel, _position, formatter, CancellationToken);
-                    var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
-                    builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Value_colon));
-                    builder.AddRange(LineBreak().ToTaggedText());
-                    builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
-                    builder.AddRange(parts);
-                    builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
+                    if (!parts.IsDefaultOrEmpty)
+                    {
+                        var _ = ArrayBuilder<TaggedText>.GetInstance(out var builder);
+                        builder.Add(new TaggedText(TextTags.Text, FeaturesResources.Value_colon));
+                        builder.AddRange(LineBreak().ToTaggedText());
+                        builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
+                        builder.AddRange(parts);
+                        builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
 
-                    _documentationMap.Add(SymbolDescriptionGroups.ValueDocumentation, builder.ToImmutableArray());
+                        _documentationMap.Add(SymbolDescriptionGroups.ValueDocumentation, builder.ToImmutableArray());
+                    }
                 }
             }
 
