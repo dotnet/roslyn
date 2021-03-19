@@ -741,5 +741,96 @@ public class Program
     }
 }", "==", inlineDescription: "x == y", glyph: (int)Glyph.Operator, matchingFilters: new List<CompletionFilter> { FilterSet.OperatorFilter });
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task TestEditorBrowsableOnOperatorIsRespected_EditorBrowsableStateNever()
+        {
+            var markup = @"
+namespace N
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}
+";
+            var referencedCode = @"
+using System.ComponentModel;
+
+namespace N
+{
+    public class C
+    {
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static C operator -(C a, C b) => default;
+    }
+}
+";
+
+            await VerifyItemInEditorBrowsableContextsAsync(
+                markup: markup,
+                referencedCode: referencedCode,
+                item: "-",
+                expectedSymbolsSameSolution: 1,
+                expectedSymbolsMetadataReference: 0,
+                sourceLanguage: LanguageNames.CSharp,
+                referencedLanguage: LanguageNames.CSharp);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task TestEditorBrowsableOnOperatorIsRespected_EditorBrowsableStateAdvanced()
+        {
+            var markup = @"
+namespace N
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}
+";
+            var referencedCode = @"
+using System.ComponentModel;
+
+namespace N
+{
+    public class C
+    {
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static C operator -(C a, C b) => default;
+    }
+}
+";
+
+            await VerifyItemInEditorBrowsableContextsAsync(
+                markup: markup,
+                referencedCode: referencedCode,
+                item: "-",
+                expectedSymbolsSameSolution: 1,
+                expectedSymbolsMetadataReference: 1,
+                sourceLanguage: LanguageNames.CSharp,
+                referencedLanguage: LanguageNames.CSharp,
+                hideAdvancedMembers: false);
+
+            await VerifyItemInEditorBrowsableContextsAsync(
+                markup: markup,
+                referencedCode: referencedCode,
+                item: "-",
+                expectedSymbolsSameSolution: 1,
+                expectedSymbolsMetadataReference: 0,
+                sourceLanguage: LanguageNames.CSharp,
+                referencedLanguage: LanguageNames.CSharp,
+                hideAdvancedMembers: true);
+        }
     }
 }
