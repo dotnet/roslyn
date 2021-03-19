@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
@@ -28,7 +29,7 @@ namespace Roslyn.Utilities
             return Empty.List<T>.Instance;
         }
 
-        public static IReadOnlyList<T> EmptyBoxedImmutableArray<T>()
+        public static IImmutableList<T> EmptyBoxedImmutableArray<T>()
         {
             return Empty.BoxedImmutableArray<T>.Instance;
         }

@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to contain
         /// the specified list of project references.
         /// </summary>
-        public SolutionState WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
+        public SolutionState WithProjectReferences(ProjectId projectId, IImmutableList<ProjectReference> projectReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithProjectReferences(projectReferences);
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis
         /// Create a new solution instance with the project specified updated to include only the
         /// specified metadata references.
         /// </summary>
-        public SolutionState WithProjectMetadataReferences(ProjectId projectId, IReadOnlyList<MetadataReference> metadataReferences)
+        public SolutionState WithProjectMetadataReferences(ProjectId projectId, IImmutableList<MetadataReference> metadataReferences)
         {
             var oldProject = GetRequiredProjectState(projectId);
             var newProject = oldProject.WithMetadataReferences(metadataReferences);

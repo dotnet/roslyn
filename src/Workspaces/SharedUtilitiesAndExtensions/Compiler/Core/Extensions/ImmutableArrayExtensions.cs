@@ -39,7 +39,7 @@ namespace Roslyn.Utilities
             return ImmutableArray.CreateRange<T>(items);
         }
 
-        public static IReadOnlyList<T> ToBoxedImmutableArray<T>(this IEnumerable<T>? items)
+        public static IImmutableList<T> ToBoxedImmutableArray<T>(this IEnumerable<T>? items)
         {
             if (items is null)
             {
@@ -48,7 +48,7 @@ namespace Roslyn.Utilities
 
             if (items is ImmutableArray<T> array)
             {
-                return array.IsDefaultOrEmpty ? SpecializedCollections.EmptyBoxedImmutableArray<T>() : (IReadOnlyList<T>)items;
+                return array.IsDefaultOrEmpty ? SpecializedCollections.EmptyBoxedImmutableArray<T>() : (IImmutableList<T>)items;
             }
 
             if (items is ICollection<T> collection && collection.Count == 0)

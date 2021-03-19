@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         /// whose items should be unique.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static IReadOnlyList<T> ToBoxedImmutableArrayWithDistinctNonNullItems<T>(IEnumerable<T>? sequence, string argumentName) where T : class
+        internal static IImmutableList<T> ToBoxedImmutableArrayWithDistinctNonNullItems<T>(IEnumerable<T>? sequence, string argumentName) where T : class
         {
             var list = sequence.ToBoxedImmutableArray();
 

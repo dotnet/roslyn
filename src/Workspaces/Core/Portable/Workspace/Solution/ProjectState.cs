@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public ProjectState WithProjectReferences(IReadOnlyList<ProjectReference> projectReferences)
+        public ProjectState WithProjectReferences(IImmutableList<ProjectReference> projectReferences)
         {
             if (projectReferences == ProjectReferences)
             {
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis
             return With(projectInfo: ProjectInfo.With(projectReferences: projectReferences).WithVersion(Version.GetNewerVersion()));
         }
 
-        public ProjectState WithMetadataReferences(IReadOnlyList<MetadataReference> metadataReferences)
+        public ProjectState WithMetadataReferences(IImmutableList<MetadataReference> metadataReferences)
         {
             if (metadataReferences == MetadataReferences)
             {
