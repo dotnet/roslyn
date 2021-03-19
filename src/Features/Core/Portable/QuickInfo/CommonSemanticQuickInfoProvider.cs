@@ -160,14 +160,26 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             var showWarningGlyph = supportedPlatforms != null && supportedPlatforms.HasValidAndInvalidProjects();
 
-            var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, tokenInformation.Symbols, cancellationToken).ConfigureAwait(false);
+            var symbols = tokenInformation.Symbols;
+
+            // if generating quick info for an attribute, prefer bind to the class instead of the constructor
+            if (syntaxFactsService.IsAttributeName(token.Parent!))
+            {
+                symbols = symbols.OrderBy((s1, s2) =>
+                    s1.Kind == s2.Kind ? 0 :
+                    s1.Kind == SymbolKind.NamedType ? -1 :
+                    s2.Kind == SymbolKind.NamedType ? 1 : 0).ToImmutableArray();
+            }
+
+            var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols, cancellationToken).ConfigureAwait(false);
 
             var sections = ImmutableArray.CreateBuilder<QuickInfoSection>(initialCapacity: groups.Count);
 
+            var symbol = tokenInformation.Symbols.First();
             if (tokenInformation.ShowAwaitReturn)
             {
                 // We show a special message if the Task being awaited has no return
-                if ((tokenInformation.Symbols.First() as INamedTypeSymbol)?.SpecialType == SpecialType.System_Void)
+                if (symbol is INamedTypeSymbol { SpecialType: SpecialType.System_Void })
                 {
                     var builder = ImmutableArray.CreateBuilder<TaggedText>();
                     builder.AddText(FeaturesResources.Awaited_task_returns_no_value);
@@ -197,15 +209,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 {
                     AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
                 }
-            }
-
-            var symbol = tokenInformation.Symbols.First();
-
-            // if generating quick info for an attribute, bind to the class instead of the constructor
-            if (syntaxFactsService.IsAttributeName(token.Parent!) &&
-                symbol.ContainingType?.IsAttribute() == true)
-            {
-                symbol = symbol.ContainingType;
             }
 
             if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty)
