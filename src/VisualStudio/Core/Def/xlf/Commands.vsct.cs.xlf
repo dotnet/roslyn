@@ -423,8 +423,8 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|ButtonText">
-        <source>Show Value Tracking</source>
-        <target state="new">Show Value Tracking</target>
+        <source>Track Value Source</source>
+        <target state="new">Track Value Source</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|CommandName">

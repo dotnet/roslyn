@@ -47,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 
         internal static void ValidateItem(ValueTrackedItem item, int line)
         {
-            var lineSpan = item.Location.GetLineSpan();
-            Assert.Equal(line, lineSpan.StartLinePosition.Line);
+            Assert.Equal(line, item.LineSpan.Start);
         }
     }
 }

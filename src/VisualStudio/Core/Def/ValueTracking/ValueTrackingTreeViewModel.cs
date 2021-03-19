@@ -11,10 +11,17 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
     internal class ValueTrackingTreeViewModel : INotifyPropertyChanged
     {
-        public ValueTrackingTreeViewModel(ValueTrackingTreeItemViewModel root)
+        public ValueTrackingTreeViewModel(params ValueTrackingTreeItemViewModel[] roots)
         {
-            Roots.Add(root);
+            foreach (var root in roots)
+            {
+                Roots.Add(root);
+            }
         }
+
+        public ValueTrackingTreeViewModel()
+            : this(GetSample())
+        { }
 
         public ObservableCollection<ValueTrackingTreeItemViewModel> Roots { get; } = new();
 
@@ -33,5 +40,10 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 
         private void NotifyPropertyChanged(string name)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        public static ValueTrackingTreeItemViewModel[] GetSample()
+        {
+            return new ValueTrackingTreeItemViewModel[0];
+        }
     }
 }

@@ -418,7 +418,7 @@
         <CommandFlag>DefaultInvisible</CommandFlag>
         <CommandFlag>CommandWellOnly</CommandFlag>
         <Strings>
-          <ButtonText>Show Value Tracking</ButtonText>
+          <ButtonText>Track Value Source</ButtonText>
           <CommandName>ShowValueTrackingCommandName</CommandName>
           <CanonicalName>ShowValueTracking</CanonicalName>
           <LocCanonicalName>ViewEditorConfigSettings</LocCanonicalName>

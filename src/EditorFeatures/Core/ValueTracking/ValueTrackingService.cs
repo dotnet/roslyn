@@ -49,7 +49,11 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {
                     var location = Location.Create(syntaxRef.SyntaxTree, syntaxRef.Span);
-                    progressCollector.Push(new ValueTrackedItem(location, symbol));
+                    var item = await ValueTrackedItem.TryCreateAsync(solution, location, symbol, parent: null, cancellationToken).ConfigureAwait(false);
+                    if (item is not null)
+                    {
+                        progressCollector.Push(item);
+                    }
                 }
 
                 var findReferenceProgressCollector = new FindReferencesProgress(progressCollector);
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             ValueTrackingProgressCollector progressCollector,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         private class FindReferencesProgress : IStreamingFindReferencesProgress, IStreamingProgressTracker
@@ -100,18 +104,20 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             public ValueTask OnFindInDocumentStartedAsync(Document document) => new();
 
-            public ValueTask OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
+            public async ValueTask OnReferenceFoundAsync(ISymbol symbol, ReferenceLocation location)
             {
                 if (location.IsWrittenTo)
                 {
-                    _valueTrackingProgressCollector.Push(new ValueTrackedItem(location.Location, symbol));
+                    var solution = location.Document.Project.Solution;
+                    var item = await ValueTrackedItem.TryCreateAsync(solution, location.Location, symbol, parent: null, CancellationToken.None).ConfigureAwait(false);
+                    if (item is not null)
+                    {
+                        _valueTrackingProgressCollector.Push(item);
+                    }
                 }
-
-                return new();
             }
 
             public ValueTask OnStartedAsync() => new();
         }
-
     }
 }
