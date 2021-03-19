@@ -128,10 +128,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return workspace.CurrentSolution.GetProject(document.Project.Id);
         }
 
-        private EditAndContinueWorkspaceService CreateEditAndContinueService(Workspace workspace)
+        private EditAndContinueWorkspaceService CreateEditAndContinueService()
         {
             return new EditAndContinueWorkspaceService(
-                workspace,
                 _mockCompilationOutputsProvider,
                 testReportTelemetry: data => EditAndContinueWorkspaceService.LogDebuggingSessionTelemetry(data, (id, message) => _telemetryLog.Add($"{id}: {message.GetMessage()}"), () => ++_telemetryId));
         }
@@ -163,11 +162,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
         }
 
-        private static DebuggingSession StartDebuggingSession(EditAndContinueWorkspaceService service, CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
+        private static async Task<DebuggingSession> StartDebuggingSessionAsync(EditAndContinueWorkspaceService service, Solution solution, CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
         {
-            var solution = service.Test_GetWorkspace().CurrentSolution;
+            await service.StartDebuggingSessionAsync(solution, captureMatchingDocuments: false, CancellationToken.None).ConfigureAwait(false);
 
-            service.StartDebuggingSession(solution);
             var session = service.Test_GetDebuggingSession();
             if (initialState != CommittedSolution.DocumentState.None)
             {
@@ -264,6 +262,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 compilation = outputCompilation;
             }
 
+            return EmitLibrary(compilation, pdbFormat);
+        }
+
+        private Guid EmitLibrary(Compilation compilation, DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb)
+        {
             var (peImage, pdbImage) = compilation.EmitToArrays(new EmitOptions(debugInformationFormat: pdbFormat));
             var symReader = SymReaderTestHelpers.OpenDummySymReader(pdbImage);
 
@@ -319,6 +322,149 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
         }
 
+        private static DocumentInfo CreateDesignTimeOnlyDocument(ProjectId projectId, string name = "design-time-only.cs", string path = "design-time-only.cs")
+            => DocumentInfo.Create(
+                DocumentId.CreateNewId(projectId, name),
+                name: name,
+                folders: Array.Empty<string>(),
+                sourceCodeKind: SourceCodeKind.Regular,
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class DTO {}"), VersionStamp.Create(), path)),
+                filePath: path,
+                isGenerated: false,
+                designTimeOnly: true,
+                documentServiceProvider: null);
+
+        internal sealed class FailingTextLoader : TextLoader
+        {
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                Assert.True(false, $"Content of document {documentId} should never be loaded");
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        [Fact]
+        public async Task StartDebuggingSession_CapturingDocuments()
+        {
+            var encodingA = Encoding.BigEndianUnicode;
+            var encodingB = Encoding.Unicode;
+            var encodingC = Encoding.GetEncoding("SJIS");
+            var encodingE = Encoding.UTF8;
+
+            var sourceA1 = "class A {}";
+            var sourceB1 = "class B { int F() => 1; }";
+            var sourceB2 = "class B { int F() => 2; }";
+            var sourceB3 = "class B { int F() => 3; }";
+            var sourceC1 = "class C { const char L = 'ワ'; }";
+            var sourceD1 = "dummy code";
+            var sourceE1 = "class E { }";
+            var sourceBytesA1 = encodingA.GetBytes(sourceA1);
+            var sourceBytesB1 = encodingB.GetBytes(sourceB1);
+            var sourceBytesC1 = encodingC.GetBytes(sourceC1);
+            var sourceBytesE1 = encodingE.GetBytes(sourceE1);
+
+            var dir = Temp.CreateDirectory();
+            var sourceFileA = dir.CreateFile("A.cs").WriteAllBytes(sourceBytesA1);
+            var sourceFileB = dir.CreateFile("B.cs").WriteAllBytes(sourceBytesB1);
+            var sourceFileC = dir.CreateFile("C.cs").WriteAllBytes(sourceBytesC1);
+            var sourceFileD = dir.CreateFile("dummy").WriteAllText(sourceD1);
+            var sourceFileE = dir.CreateFile("E.cs").WriteAllBytes(sourceBytesE1);
+            var sourceTreeA1 = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceBytesA1, sourceBytesA1.Length, encodingA, SourceHashAlgorithm.Sha256), TestOptions.Regular, sourceFileA.Path);
+            var sourceTreeB1 = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceBytesB1, sourceBytesB1.Length, encodingB, SourceHashAlgorithm.Sha256), TestOptions.Regular, sourceFileB.Path);
+            var sourceTreeC1 = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceBytesC1, sourceBytesC1.Length, encodingC, SourceHashAlgorithm.Sha1), TestOptions.Regular, sourceFileC.Path);
+
+            // E is not included in the compilation:
+            var compilation = CSharpTestBase.CreateCompilation(new[] { sourceTreeA1, sourceTreeB1, sourceTreeC1 }, options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: "P");
+            EmitLibrary(compilation);
+
+            // change content of B on disk:
+            sourceFileB.WriteAllText(sourceB2, encodingB);
+
+            // prepare workspace as if it was loaded from project files:
+            using var workspace = CreateWorkspace(new[] { typeof(DummyLanguageService) });
+
+            var solution = workspace.CurrentSolution;
+
+            var projectP = solution.AddProject("P", "P", LanguageNames.CSharp);
+            solution = projectP.Solution;
+
+            var documentIdA = DocumentId.CreateNewId(projectP.Id, debugName: "A");
+            solution = solution.AddDocument(DocumentInfo.Create(
+                id: documentIdA,
+                name: "A",
+                loader: new FileTextLoader(sourceFileA.Path, encodingA),
+                filePath: sourceFileA.Path));
+
+            var documentIdB = DocumentId.CreateNewId(projectP.Id, debugName: "B");
+            solution = solution.AddDocument(DocumentInfo.Create(
+                id: documentIdB,
+                name: "B",
+                loader: new FileTextLoader(sourceFileB.Path, encodingB),
+                filePath: sourceFileB.Path));
+
+            var documentIdC = DocumentId.CreateNewId(projectP.Id, debugName: "C");
+            solution = solution.AddDocument(DocumentInfo.Create(
+                id: documentIdC,
+                name: "C",
+                loader: new FileTextLoader(sourceFileC.Path, encodingC),
+                filePath: sourceFileC.Path));
+
+            var documentIdE = DocumentId.CreateNewId(projectP.Id, debugName: "E");
+            solution = solution.AddDocument(DocumentInfo.Create(
+                id: documentIdE,
+                name: "E",
+                loader: new FileTextLoader(sourceFileE.Path, encodingE),
+                filePath: sourceFileE.Path));
+
+            // check that are testing documents whose hash algorithm does not match the PDB (but the hash itself does):
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetDocument(documentIdA).GetTextSynchronously(default).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetDocument(documentIdB).GetTextSynchronously(default).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetDocument(documentIdC).GetTextSynchronously(default).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, solution.GetDocument(documentIdE).GetTextSynchronously(default).ChecksumAlgorithm);
+
+            // design-time-only document with and without absolute path:
+            solution = solution.
+                AddDocument(CreateDesignTimeOnlyDocument(projectP.Id, name: "dt1.cs", path: Path.Combine(dir.Path, "dt1.cs"))).
+                AddDocument(CreateDesignTimeOnlyDocument(projectP.Id, name: "dt2.cs", path: "dt2.cs"));
+
+            // project that does not support EnC - the contents of documents in this project shouldn't be loaded:
+            var projectQ = solution.AddProject("Q", "Q", DummyLanguageService.LanguageName);
+            solution = projectQ.Solution;
+
+            solution = solution.AddDocument(DocumentInfo.Create(
+                id: DocumentId.CreateNewId(projectQ.Id, debugName: "D"),
+                name: "D",
+                loader: new FailingTextLoader(),
+                filePath: sourceFileD.Path));
+
+            var service = CreateEditAndContinueService();
+
+            await service.StartDebuggingSessionAsync(solution, captureMatchingDocuments: true, CancellationToken.None).ConfigureAwait(false);
+
+            var debuggingSession = service.Test_GetDebuggingSession();
+
+            var matchingDocuments = debuggingSession.LastCommittedSolution.Test_GetDocumentStates();
+            AssertEx.Equal(new[]
+            {
+                "(A, MatchesBuildOutput)",
+                "(C, MatchesBuildOutput)"
+            }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+
+            // change content of B on disk again:
+            sourceFileB.WriteAllText(sourceB3, encodingB);
+            solution = solution.WithDocumentTextLoader(documentIdB, new FileTextLoader(sourceFileB.Path, encodingB), PreservationMode.PreserveValue);
+
+            StartEditSession(service);
+
+            var (updates, emitDiagnostics) = await service.EmitSolutionUpdateAsync(solution, s_noSolutionActiveSpans, CancellationToken.None).ConfigureAwait(false);
+            Assert.Equal(ManagedModuleUpdateStatus.None, updates.Status);
+            Assert.Empty(updates.Updates);
+            AssertEx.Equal(new[] { $"{projectP.Id} Warning ENC1005: {string.Format(FeaturesResources.DocumentIsOutOfSyncWithDebuggee, sourceFileB.Path)}" }, InspectDiagnostics(emitDiagnostics));
+
+            EndEditSession(service);
+            EndDebuggingSession(service);
+        }
+
         [Fact]
         public async Task RunMode_ProjectThatDoesNotSupportEnC()
         {
@@ -328,9 +474,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var document = project.AddDocument("test", SourceText.From("dummy1"));
             workspace.ChangeSolution(document.Project.Solution);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            StartDebuggingSession(service);
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             // no changes:
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -353,23 +499,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             using var workspace = CreateWorkspace();
             var project = AddDefaultTestProject(workspace, "class C1 { void M() { System.Console.WriteLine(1); } }");
 
-            var documentInfo = DocumentInfo.Create(
-                DocumentId.CreateNewId(project.Id),
-                name: "design-time-only.cs",
-                folders: Array.Empty<string>(),
-                sourceCodeKind: SourceCodeKind.Regular,
-                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class C2 {}"), VersionStamp.Create(), "design-time-only.cs")),
-                filePath: "design-time-only.cs",
-                isGenerated: false,
-                designTimeOnly: true,
-                documentServiceProvider: null);
+            var documentInfo = CreateDesignTimeOnlyDocument(project.Id);
 
             workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path).AddDocument(documentInfo));
             _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            StartDebuggingSession(service);
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             // update a design-time-only source file:
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single(d => d.Id == documentInfo.Id);
@@ -400,9 +537,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.Empty);
 
-                var service = CreateEditAndContinueService(workspace);
+                var service = CreateEditAndContinueService();
 
-                StartDebuggingSession(service);
+                await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
                 // no changes:
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -430,9 +567,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
-                var service = CreateEditAndContinueService(workspace);
+                var service = CreateEditAndContinueService();
 
-                StartDebuggingSession(service);
+                await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
                 // no changes:
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -465,14 +602,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             using var workspace = CreateWorkspace();
 
             var project = AddDefaultTestProject(workspace, "class C1 { void M() { System.Console.WriteLine(1); } }");
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
             workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path));
             _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
             var document1 = project.Documents.Single();
 
-            var debuggingSession = StartDebuggingSession(service);
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             debuggingSession.LastCommittedSolution.Test_SetDocumentState(document1.Id, CommittedSolution.DocumentState.OutOfSync);
 
             // no changes:
@@ -523,9 +660,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EmitAndLoadLibraryToDebuggee(sourceA, sourceFilePath: sourceFileA.Path);
 
             var project = documentA.Project;
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            StartDebuggingSession(service);
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             // add a source file:
             var documentB = project.AddDocument("file2.cs", SourceText.From(sourceB), filePath: sourceFileB.Path);
@@ -561,11 +698,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
-                var service = CreateEditAndContinueService(workspace);
+                var service = CreateEditAndContinueService();
 
                 Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, sourceFilePath: null, CancellationToken.None).ConfigureAwait(false));
 
-                StartDebuggingSession(service);
+                await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
                 // no changes:
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -610,9 +747,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             workspace.ChangeSolution(project.Solution.WithProjectOutputFilePath(project.Id, moduleFile.Path));
             _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            StartDebuggingSession(service);
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             // update the document
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -646,9 +783,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var document = project.AddDocument("test", SourceText.From("dummy1"));
                 workspace.ChangeSolution(document.Project.Solution);
 
-                var service = CreateEditAndContinueService(workspace);
+                var service = CreateEditAndContinueService();
 
-                StartDebuggingSession(service);
+                await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
                 StartEditSession(service);
 
                 // change the source:
@@ -687,9 +824,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var solution = workspace.CurrentSolution.AddDocument(documentInfo);
             workspace.ChangeSolution(solution);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            StartDebuggingSession(service);
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             StartEditSession(service);
 
             // change the source:
@@ -741,9 +878,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 LoadLibraryToDebuggee(moduleId);
             }
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            await service.StartDebuggingSessionAsync(workspace.CurrentSolution, captureMatchingDocuments: false, CancellationToken.None).ConfigureAwait(false);
 
             StartEditSession(service);
 
@@ -804,9 +941,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 _mockCompilationOutputsProvider = _ => new CompilationOutputFiles(moduleFile.Path);
 
-                var service = CreateEditAndContinueService(workspace);
+                var service = CreateEditAndContinueService();
 
-                StartDebuggingSession(service);
+                await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
                 StartEditSession(service);
 
                 // change the source:
@@ -865,8 +1002,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
             };
 
-            var service = CreateEditAndContinueService(workspace);
-            StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var service = CreateEditAndContinueService();
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None).ConfigureAwait(false);
             StartEditSession(service, loadedModules: _loadedModulesProvider);
 
             // change the source:
@@ -914,8 +1051,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
-            var service = CreateEditAndContinueService(workspace);
-            StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var service = CreateEditAndContinueService();
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None).ConfigureAwait(false);
             StartEditSession(service, loadedModules: _loadedModulesProvider);
 
             // change the source:
@@ -978,9 +1115,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var project = documentA.Project;
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            StartDebuggingSession(service);
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             StartEditSession(service);
 
             // add a source file:
@@ -1039,9 +1176,9 @@ class C1
 
                 LoadLibraryToDebuggee(moduleId, new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotAllowedForRuntime, "*message*"));
 
-                var service = CreateEditAndContinueService(workspace);
+                var service = CreateEditAndContinueService();
 
-                var debuggingSession = StartDebuggingSession(service);
+                var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
                 StartEditSession(service, loadedModules: _loadedModulesProvider);
 
@@ -1101,8 +1238,8 @@ class C1
 
             var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path, encoding: encoding);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None).ConfigureAwait(false);
 
             StartEditSession(service, loadedModules: _loadedModulesProvider);
 
@@ -1128,9 +1265,9 @@ class C1
             var project = AddDefaultTestProject(workspace, "class C1 { void M() { System.Console.WriteLine(1); } }");
             _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            var debuggingSession = StartDebuggingSession(service);
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             StartEditSession(service);
 
@@ -1183,9 +1320,9 @@ class C { int Y => 2; }
             using var workspace = CreateWorkspace();
             var project = AddDefaultTestProject(workspace, sourceV1, generator: generator);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            var debuggingSession = StartDebuggingSession(service);
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             StartEditSession(service);
 
             // change the source:
@@ -1234,8 +1371,8 @@ class C { int Y => 2; }
             var document1 = project.AddDocument("a.cs", SourceText.From(source1, Encoding.UTF8), filePath: sourceFile.Path);
             workspace.ChangeSolution(document1.Project.Solution);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None).ConfigureAwait(false);
 
             StartEditSession(service, loadedModules: _loadedModulesProvider);
 
@@ -1307,10 +1444,10 @@ class C { int Y => 2; }
 
             var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
             // do not initialize the document state - we will detect the state based on the PDB content.
-            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None).ConfigureAwait(false);
 
             StartEditSession(service, loadedModules: _loadedModulesProvider);
 
@@ -1356,10 +1493,10 @@ class C { int Y => 2; }
 
             var moduleId = EmitLibrary(source1, sourceFilePath: sourceFile.Path);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
             // do not initialize the document state - we will detect the state based on the PDB content.
-            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None).ConfigureAwait(false);
 
             StartEditSession(service);
 
@@ -1409,9 +1546,9 @@ class C { int Y => 2; }
             var project = AddDefaultTestProject(workspace, "class C1 { void M() { System.Console.WriteLine(1); } }");
             _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(moduleId);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            var debuggingSession = StartDebuggingSession(service);
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             StartEditSession(service);
 
@@ -1454,9 +1591,9 @@ class C { int Y => 2; }
 
             var moduleId = EmitAndLoadLibraryToDebuggee(sourceV1);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            var debuggingSession = StartDebuggingSession(service);
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             StartEditSession(service, loadedModules: _loadedModulesProvider);
 
@@ -1509,9 +1646,9 @@ class C { int Y => 2; }
                 AddDocument("Common.cs", "class Common {}", filePath: "Common.cs").Project.
                 AddDocument("C.cs", "class C {}", filePath: "C.cs").Project.Solution);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            StartDebuggingSession(service);
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             StartEditSession(service);
 
             // change C.cs to have a compilation error:
@@ -1542,9 +1679,9 @@ class C { int Y => 2; }
             var project = AddDefaultTestProject(workspace, sourceV1);
             EmitAndLoadLibraryToDebuggee(sourceV1);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            StartDebuggingSession(service);
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
@@ -1629,8 +1766,8 @@ class C { int Y => 2; }
 
             var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None).ConfigureAwait(false);
 
             StartEditSession(service, loadedModules: _loadedModulesProvider);
 
@@ -1712,8 +1849,8 @@ class C { int Y => 2; }
 
             var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None).ConfigureAwait(false);
 
             StartEditSession(service, loadedModules: _loadedModulesProvider);
 
@@ -1781,8 +1918,8 @@ class C { int Y => 2; }
 
             var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None).ConfigureAwait(false);
 
             // An active statement may be present in the added file since the file exists in the PDB:
             var activeInstruction1 = new ManagedInstructionId(new ManagedMethodId(moduleId, token: 0x06000001, version: 1), ilOffset: 1);
@@ -1859,9 +1996,9 @@ class C { int Y => 2; }
                 LoadLibraryToDebuggee(moduleId);
             }
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            var debuggingSession = StartDebuggingSession(service, initialState: CommittedSolution.DocumentState.None);
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None).ConfigureAwait(false);
 
             StartEditSession(service);
 
@@ -1905,8 +2042,8 @@ class C { int Y => 2; }
 
             var moduleId = EmitAndLoadLibraryToDebuggee(sourceV1);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
             // change the source (valid edit):
@@ -2026,9 +2163,9 @@ class C { int Y => 2; }
                 sourceSpan: new SourceSpan(0, 15, 0, 16),
                 ActiveStatementFlags.IsLeafFrame));
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            StartDebuggingSession(service);
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             // module is not loaded:
             var editSession = StartEditSession(service, activeStatements, loadedModules: _loadedModulesProvider);
@@ -2157,8 +2294,8 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
 
             LoadLibraryToDebuggee(EmitLibrary(new[] { (sourceA1, "test1.cs"), (sourceB1, "test2.cs") }));
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
             // change the source (valid edit):
@@ -2264,8 +2401,8 @@ class C { int Y => 2; }
             var moduleId = EmitLibrary(sourceV1, generator: generator);
             LoadLibraryToDebuggee(moduleId);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
             // change the source (valid edit):
@@ -2324,8 +2461,8 @@ class G
             var moduleId = EmitLibrary(sourceV1, generator: generator);
             LoadLibraryToDebuggee(moduleId);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
             // change the source (valid edit):
@@ -2372,8 +2509,8 @@ partial class C { int X = 1; }
             var moduleId = EmitLibrary(sourceV1, generator: generator);
             LoadLibraryToDebuggee(moduleId);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
             // change the source (valid edit):
@@ -2419,8 +2556,8 @@ class C { int Y => 1; }
             var moduleId = EmitLibrary(source, generator: generator, additionalFileText: additionalSourceV1);
             LoadLibraryToDebuggee(moduleId);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
             // change the additional source (valid edit):
@@ -2462,8 +2599,8 @@ class C { int Y => 1; }
             var moduleId = EmitLibrary(source, generator: generator, analyzerOptions: configV1);
             LoadLibraryToDebuggee(moduleId);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
             // change the additional source (valid edit):
@@ -2503,8 +2640,8 @@ class C { int Y => 1; }
             var moduleId = EmitLibrary(source1, generator: generator);
             LoadLibraryToDebuggee(moduleId);
 
-            var service = CreateEditAndContinueService(workspace);
-            var debuggingSession = StartDebuggingSession(service);
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
             // remove the source document (valid edit):
@@ -2569,9 +2706,9 @@ class C { int Y => 1; }
             // only module A is loaded
             LoadLibraryToDebuggee(moduleIdA);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            StartDebuggingSession(service);
+            await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
 
@@ -2761,9 +2898,9 @@ class C1
                     OpenAssemblyStreamImpl = () => null,
                 };
 
-                var service = CreateEditAndContinueService(workspace);
+                var service = CreateEditAndContinueService();
 
-                StartDebuggingSession(service);
+                await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
                 // module not loaded
                 StartEditSession(service, loadedModules: _loadedModulesProvider);
@@ -2798,9 +2935,9 @@ class C1
                     OpenAssemblyStreamImpl = () => throw new IOException("*message*"),
                 };
 
-                var service = CreateEditAndContinueService(workspace);
+                var service = CreateEditAndContinueService();
 
-                StartDebuggingSession(service);
+                await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
                 // module not loaded
                 StartEditSession(service, loadedModules: _loadedModulesProvider);
@@ -2855,12 +2992,12 @@ class C1
             var adjustedActiveLineSpan1 = sourceTextV2.Lines.GetLinePositionSpan(adjustedActiveSpan1);
             var adjustedActiveLineSpan2 = sourceTextV2.Lines.GetLinePositionSpan(adjustedActiveSpan2);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
             // default if called outside of edit session
             Assert.True((await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(document1.Id), CancellationToken.None).ConfigureAwait(false)).IsDefault);
 
-            var debuggingSession = StartDebuggingSession(service);
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             // default if called outside of edit session
             Assert.True((await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(document1.Id), CancellationToken.None).ConfigureAwait(false)).IsDefault);
@@ -2959,9 +3096,11 @@ class C1
 
             var activeLineSpan11 = sourceTextV1.Lines.GetLinePositionSpan(activeSpan11);
             var activeLineSpan12 = sourceTextV1.Lines.GetLinePositionSpan(activeSpan12);
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            var debuggingSession = StartDebuggingSession(service,
+            var debuggingSession = await StartDebuggingSessionAsync(
+                service,
+                workspace.CurrentSolution,
                 isOutOfSync ? CommittedSolution.DocumentState.OutOfSync : CommittedSolution.DocumentState.MatchesBuildOutput);
 
             var moduleId = Guid.NewGuid();
@@ -3020,9 +3159,9 @@ class C1
             var document = project.AddDocument("test", SourceText.From("dummy1"));
             workspace.ChangeSolution(document.Project.Solution);
 
-            var service = CreateEditAndContinueService(workspace);
+            var service = CreateEditAndContinueService();
 
-            var debuggingSession = StartDebuggingSession(service);
+            var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution).ConfigureAwait(false);
 
             var activeStatements = ImmutableArray.Create(
                 new ManagedActiveStatementDebugInfo(

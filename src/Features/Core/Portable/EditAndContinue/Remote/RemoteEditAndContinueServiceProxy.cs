@@ -149,18 +149,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private IEditAndContinueWorkspaceService GetLocalService()
             => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
-        public async ValueTask StartDebuggingSessionAsync(Solution solution, CancellationToken cancellationToken)
+        public async ValueTask StartDebuggingSessionAsync(Solution solution, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().StartDebuggingSession(solution);
+                await GetLocalService().StartDebuggingSessionAsync(solution, captureMatchingDocuments, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
             await client.TryInvokeAsync<IRemoteEditAndContinueService>(
                 solution,
-                (service, solutionInfo, cancellationToken) => service.StartDebuggingSessionAsync(solutionInfo, cancellationToken),
+                async (service, solutionInfo, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, captureMatchingDocuments, cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
         }
 

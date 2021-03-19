@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Solution, SolutionActiveStatementSpanProvider, ManagedInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionImpl;
 
         public Func<Document, DocumentActiveStatementSpanProvider, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetAdjustedActiveStatementSpansImpl;
-        public Action<Solution>? StartDebuggingSessionImpl;
+        public Action<Solution, bool>? StartDebuggingSessionImpl;
         public StartEditSession? StartEditSessionImpl;
         public EndSession? EndDebuggingSessionImpl;
         public EndSession? EndEditSessionImpl;
@@ -76,8 +76,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public void OnSourceFileUpdated(Document document)
             => OnSourceFileUpdatedImpl?.Invoke(document);
 
-        public void StartDebuggingSession(Solution solution)
-            => StartDebuggingSessionImpl?.Invoke(solution);
+        public ValueTask StartDebuggingSessionAsync(Solution solution, bool captureMatchingDocuments, CancellationToken cancellationToken)
+        {
+            StartDebuggingSessionImpl?.Invoke(solution, captureMatchingDocuments);
+            return default;
+        }
 
         public void StartEditSession(IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze)
         {

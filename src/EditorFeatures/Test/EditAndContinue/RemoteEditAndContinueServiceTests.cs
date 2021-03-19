@@ -132,13 +132,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             // StartDebuggingSession
 
             var called = false;
-            mockEncService.StartDebuggingSessionImpl = solution =>
+            mockEncService.StartDebuggingSessionImpl = (solution, captureMatchingDocuments) =>
             {
                 Assert.Equal("proj", solution.Projects.Single().Name);
                 called = true;
             };
 
-            await proxy.StartDebuggingSessionAsync(localWorkspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+            await proxy.StartDebuggingSessionAsync(localWorkspace.CurrentSolution, captureMatchingDocuments: false, CancellationToken.None).ConfigureAwait(false);
             Assert.True(called);
 
             // StartEditSession

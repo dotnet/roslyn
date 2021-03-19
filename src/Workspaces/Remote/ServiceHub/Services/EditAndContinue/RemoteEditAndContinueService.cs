@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        public ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                GetService().StartDebuggingSession(solution);
+                await GetService().StartDebuggingSessionAsync(solution, captureMatchingDocuments, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
