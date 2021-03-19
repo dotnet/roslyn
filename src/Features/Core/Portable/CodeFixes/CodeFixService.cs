@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _errorLoggers = loggers;
             _diagnosticService = diagnosticAnalyzerService;
 
-            _lazyFixerToMetadataMap = new(() => fixers.ToImmutableDictionary(service => service.Value, service => service.Metadata));
+            _lazyFixerToMetadataMap = new(() => fixers.Where(service => service.IsValueCreated).ToImmutableDictionary(service => service.Value, service => service.Metadata));
             var fixersPerLanguageMap = fixers.ToPerLanguageMapWithMultipleLanguages();
             var configurationProvidersPerLanguageMap = configurationProviders.ToPerLanguageMapWithMultipleLanguages();
 

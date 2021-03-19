@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             .Select(grp => new KeyValuePair<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>(
                                 grp.Key,
                                 new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value).ToImmutableArray())))));
-            _lazyRefactoringToMetadataMap = new(() => providers.ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));
+            _lazyRefactoringToMetadataMap = new(() => providers.Where(provider => provider.IsValueCreated).ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));
         }
 
         private static IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
