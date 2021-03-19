@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
         private void ViewCode()
         {
-            var sourceCodeTextEditorGuid = new Guid("8B382828-6202-11D1-8870-0000F87579D2");
+            var sourceCodeTextEditorGuid = VsEditorFactoryGuid.TextEditor_guid;
 
             // Open the referenced document using our editor.
             VsShellUtilities.OpenDocumentWithSpecificEditor(this, _fileName,
