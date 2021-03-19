@@ -1308,7 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Params array is filled in the local rewriter
             var lastIndex = expanded ? ^1 : ^0;
 
-            var arguments = argumentsBuilder.ToImmutableAndFree();
+            var arguments = argumentsBuilder.ToImmutable();
             // Go over missing parameters, inserting default values for optional parameters
             foreach (var parameter in parameters.AsSpan()[..lastIndex])
             {
