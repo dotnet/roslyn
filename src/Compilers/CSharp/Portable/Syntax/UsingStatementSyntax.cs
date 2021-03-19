@@ -8,10 +8,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     public partial class UsingStatementSyntax
     {
-        public UsingStatementSyntax Update(SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        public UsingStatementSyntax Update(SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax? declaration, ExpressionSyntax? expression, SyntaxToken closeParenToken, StatementSyntax statement)
             => Update(awaitKeyword: default, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
 
-        public UsingStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax declaration, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        public UsingStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxToken openParenToken, VariableDeclarationSyntax? declaration, ExpressionSyntax? expression, SyntaxToken closeParenToken, StatementSyntax statement)
             => Update(attributeLists: default, awaitKeyword, usingKeyword, openParenToken, declaration, expression, closeParenToken, statement);
     }
 }
