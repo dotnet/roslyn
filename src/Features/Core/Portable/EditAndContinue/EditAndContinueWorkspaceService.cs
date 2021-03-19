@@ -154,8 +154,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static bool SupportsEditAndContinue(Project project)
             => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
 
+        // Note: source generated files have relative paths: https://github.com/dotnet/roslyn/issues/51998
         internal static bool SupportsEditAndContinue(DocumentState documentState)
-            => !documentState.Attributes.DesignTimeOnly && documentState.SupportsSyntaxTree && PathUtilities.IsAbsolute(documentState.FilePath);
+            => !documentState.Attributes.DesignTimeOnly && documentState.SupportsSyntaxTree &&
+               (PathUtilities.IsAbsolute(documentState.FilePath) || documentState is SourceGeneratedDocumentState);
 
         public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
