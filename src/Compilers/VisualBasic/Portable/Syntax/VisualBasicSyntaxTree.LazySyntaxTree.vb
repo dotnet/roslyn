@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Class LazySyntaxTree
             Inherits VisualBasicSyntaxTree
 
+            Private ReadOnly _text As SourceText
             Private ReadOnly _options As VisualBasicParseOptions
             Private ReadOnly _path As String
-            Private ReadOnly _text As SourceText
             Private ReadOnly _diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)
             Private _lazyRoot As VisualBasicSyntaxNode
 
@@ -24,8 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Used to create new tree incrementally.
             ''' </summary>
             Friend Sub New(text As SourceText,
-                           path As String,
                            options As VisualBasicParseOptions,
+                           path As String,
                            diagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic))
 
                 Debug.Assert(options IsNot Nothing)
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         _diagnosticOptions,
                         cloneRoot:=True)
                 Else
-                    Return New LazySyntaxTree(_text, path, _options, _diagnosticOptions)
+                    Return New LazySyntaxTree(_text, _options, path, _diagnosticOptions)
                 End If
             End Function
 
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         options,
                         cloneRoot:=True)
                 Else
-                    Return New LazySyntaxTree(_text, _path, _options, options)
+                    Return New LazySyntaxTree(_text, _options, _path, options)
                 End If
             End Function
         End Class

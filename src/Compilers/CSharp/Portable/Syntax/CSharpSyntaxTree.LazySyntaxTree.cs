@@ -16,16 +16,16 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class LazySyntaxTree : CSharpSyntaxTree
         {
+            private readonly SourceText _text;
             private readonly CSharpParseOptions _options;
             private readonly string _path;
-            private readonly SourceText _text;
             private readonly ImmutableDictionary<string, ReportDiagnostic> _diagnosticOptions;
             private CSharpSyntaxNode? _lazyRoot;
 
             internal LazySyntaxTree(
                 SourceText text,
-                string path,
                 CSharpParseOptions options,
+                string path,
                 ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions)
             {
                 Debug.Assert(options != null);
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return new LazySyntaxTree(_text, path, _options, _diagnosticOptions);
+                    return new LazySyntaxTree(_text, _options, path, _diagnosticOptions);
                 }
             }
 
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return new LazySyntaxTree(_text, _path, _options, options);
+                    return new LazySyntaxTree(_text, _options, _path, options);
                 }
             }
         }

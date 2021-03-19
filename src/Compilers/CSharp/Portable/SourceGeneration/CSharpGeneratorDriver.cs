@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => new CSharpGeneratorDriver(parseOptions ?? CSharpParseOptions.Default, generators.ToImmutableArray(), optionsProvider ?? CompilerAnalyzerConfigOptionsProvider.Empty, additionalTexts.AsImmutableOrEmpty());
 
         internal override SyntaxTree ParseGeneratedSourceText(GeneratedSourceText input, string fileName, CancellationToken cancellationToken)
-            => CSharpSyntaxTree.ParseTextLazy(input.Text, (CSharpParseOptions)_state.ParseOptions, fileName, cancellationToken);
+            => CSharpSyntaxTree.ParseTextLazy(input.Text, (CSharpParseOptions)_state.ParseOptions, fileName);
 
         internal override GeneratorDriver FromState(GeneratorDriverState state) => new CSharpGeneratorDriver(state);
 

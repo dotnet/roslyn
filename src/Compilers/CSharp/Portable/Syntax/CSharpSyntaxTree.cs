@@ -399,10 +399,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static SyntaxTree ParseTextLazy(
             SourceText text,
             CSharpParseOptions? options = null,
-            string path = "",
-            CancellationToken cancellationToken = default)
+            string path = "")
         {
-            return new LazySyntaxTree(text, path, options ?? CSharpParseOptions.Default, diagnosticOptions: null);
+            return new LazySyntaxTree(text, options ?? CSharpParseOptions.Default, path, diagnosticOptions: null);
         }
 
         // The overload that has more parameters is itself obsolete, as an intentional break to allow future
