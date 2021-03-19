@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
             public override string ToString()
             {
-                var checksum = CreateChecksum(this, CancellationToken.None).ToString();
+                var checksum = Checksum.Create(WellKnownSynchronizationKind.MetadataReference, CreateChecksum(this, CancellationToken.None)).ToString();
                 return $@"{Display} {{""Checksum"":{checksum},""{nameof(Properties.Kind)}"":{Properties.Kind},""{nameof(Properties.Aliases)}"":[{string.Join(",", Properties.Aliases.Select(alias => $@"""{alias}"""))}],""{nameof(Properties.EmbedInteropTypes)}"":{Properties.EmbedInteropTypes},""HasRecursiveAliases"":{Properties.GetType().GetProperty("HasRecursiveAliases", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(Properties)}}}";
             }
         }

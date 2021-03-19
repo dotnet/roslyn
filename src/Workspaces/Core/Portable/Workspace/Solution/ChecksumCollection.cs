@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 {
                     if (value is MetadataReference reference)
                     {
-                        var actualChecksum = SerializerService.CreateChecksum(reference, cancellationToken);
+                        var actualChecksum = Checksum.Create(WellKnownSynchronizationKind.MetadataReference, SerializerService.CreateChecksum(reference, cancellationToken));
                         Contract.ThrowIfFalse(checksum == actualChecksum);
                     }
 
