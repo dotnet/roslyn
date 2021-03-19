@@ -461,7 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (token.IsKind(SyntaxKind.ColonToken))
             {
-                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause);
+                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause)
+                    && !token.Parent.IsKind(SyntaxKind.XmlPrefix);
             }
 
             if (next.IsKind(SyntaxKind.ColonToken))
@@ -490,9 +491,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
-            if (token.IsKind(SyntaxKind.EqualsToken) || next.IsKind(SyntaxKind.EqualsToken))
+            if (token.IsKind(SyntaxKind.EqualsToken))
             {
-                return true;
+                return !token.Parent.IsKind(SyntaxKind.XmlTextAttribute);
+            }
+
+            if (next.IsKind(SyntaxKind.EqualsToken))
+            {
+                return !next.Parent.IsKind(SyntaxKind.XmlTextAttribute);
             }
 
             // No space after asterisk in function pointer.

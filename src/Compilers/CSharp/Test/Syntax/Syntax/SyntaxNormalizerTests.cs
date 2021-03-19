@@ -656,6 +656,16 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeDeclaration("delegate * <string, int> M() => throw null;", "delegate*<string, int> M() => throw null;");
         }
 
+        [Fact]
+        [WorkItem(49732, "https://github.com/dotnet/roslyn/issues/49732")]
+        public void TestNormalizeXmlInDocComment()
+        {
+            var code = @"/// <returns>
+/// If this method succeeds, it returns <b xmlns:loc=""http://microsoft.com/wdcml/l10n"">S_OK</b>.
+/// </returns>";
+            TestNormalizeDeclaration(code, code);
+        }
+
         [Theory]
         [InlineData("_=()=>{};", "_ = () =>\r\n{\r\n};")]
         [InlineData("_=x=>{};", "_ = x =>\r\n{\r\n};")]
