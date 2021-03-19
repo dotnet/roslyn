@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var result = ImmutableHashSet<string>.Empty;
                 foreach (var attributeInfo in attributeInfos)
                 {
-                    if (_moduleSymbol.Module.TryExtractStringValueFromAttribute(attributeInfo.Handle, out string parameterName)
+                    if (_moduleSymbol.Module.TryExtractStringValueFromAttribute(attributeInfo.Handle, out string parameterName))
                     {
                         result = result.Add(parameterName);
                     }
