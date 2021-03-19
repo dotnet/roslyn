@@ -2435,7 +2435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                TLocalState savedState = VisitPossibleConditionalAccess(node.LeftOperand, node.LeftConversion, out var stateWhenNotNull)
+                TLocalState savedState = VisitPossibleConditionalAccess(node.LeftOperand, out var stateWhenNotNull)
                     ? stateWhenNotNull
                     : State.Clone();
 
@@ -2462,7 +2462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the expression has "state when not null" after visiting,
         /// the method returns 'true' and writes the state to <paramref name="stateWhenNotNull" />.
         /// </summary>
-        protected bool VisitPossibleConditionalAccess(BoundExpression node, Conversion conversion, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
+        protected bool VisitPossibleConditionalAccess(BoundExpression node, [NotNullWhen(true)] out TLocalState? stateWhenNotNull)
         {
             EnterRegionIfNeeded(node);
             var hasStateWhenNotNull = visit(out stateWhenNotNull);
@@ -2479,7 +2479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => null
                 };
 
-                if (access is not null && isAcceptableConversion(access, conversion))
+                if (access is not null)
                 {
                     return VisitConditionalAccess(access, out stateWhenNotNull);
                 }
@@ -2492,7 +2492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // "State when not nulL" can only propagate out of a conditional access if
+            // "State when not null" can only propagate out of a conditional access if
             // it is not subject to a user-defined conversion whose parameter is not of a non-nullable value type.
             static bool isAcceptableConversion(BoundConditionalAccess operand, Conversion conversion)
             {

@@ -2524,19 +2524,14 @@ struct C
     {
         int x;
         S s = c1?.M2(x = 0) ?? c1.Value.M3(x = 0);
-        x.ToString(); // 1
+        x.ToString();
     }
 
     C M2(object obj) { return this; }
     S M3(object obj) { return this; }
 }
 ";
-            // PROTOTYPE(improved-definite-assignment):
-            // Arguably, in this scenario, the RHS of the `??` should be visited in an unreachable state
-            CreateCompilation(source).VerifyDiagnostics(
-                // (15,9): error CS0165: Use of unassigned local variable 'x'
-                //         x.ToString(); // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(15, 9));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2552,20 +2547,14 @@ class C
     {
         int x;
         B b = c1?.M1(x = 0) ?? c1!.M2(x = 0);
-        x.ToString(); // 1
+        x.ToString();
     }
 
     C M1(object obj) { return this; }
     B M2(object obj) { return new B(); }
 }
 ";
-            // If the LHS of a `??` is subject to a user-defined conversion whose parameter is not a non-nullable value type
-            // we can't propagate out the "state when not null"
-            // because we can't know whether the conditional access itself was non-null.
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,9): error CS0165: Use of unassigned local variable 'x'
-                //         x.ToString(); // 1
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(11, 9));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2615,14 +2604,41 @@ struct C
         }
 
         [Fact]
-        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_01()
+        public void NullCoalescing_CondAccess_UserDefinedConv_05()
+        {
+            var source = @"
+struct B
+{
+    public static implicit operator B(C c) => default;
+}
+
+class C
+{
+    static void M1(C c1)
+    {
+        int x;
+        B b = c1?.M1(x = 0) ?? c1.M2(x = 0);
+        x.ToString();
+    }
+
+    C M1(object obj) { return this; }
+    B M2(object obj) { return this; }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("explicit")]
+        [InlineData("implicit")]
+        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_01(string conversionKind)
         {
             var source = @"
 struct S { }
 
 struct C
 {
-    public static explicit operator S(C? c)
+    public static " + conversionKind + @" operator S(C? c)
     {
         return default(S);
     }
@@ -2638,22 +2654,22 @@ struct C
     S M3(object obj) { return (S)this; }
 }
 ";
-            // PROTOTYPE(improved-definite-assignment):
-            // Arguably, in this scenario, the RHS of the `??` should be visited in an unreachable state
             CreateCompilation(source).VerifyDiagnostics(
                 // (15,9): error CS0165: Use of unassigned local variable 'x'
                 //         x.ToString(); // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(15, 9));
         }
 
-        [Fact]
-        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_02()
+        [Theory]
+        [InlineData("explicit")]
+        [InlineData("implicit")]
+        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_02(string conversionKind)
         {
             var source = @"
 class B { }
 class C
 {
-    public static explicit operator B(C c) => new B();
+    public static " + conversionKind + @" operator B(C c) => new B();
 
     void M1(C c1)
     {
@@ -2666,8 +2682,8 @@ class C
     B M2(object obj) { return new B(); }
 }
 ";
-            // If the LHS of a `??` is subject to a user-defined conversion whose parameter is not a non-nullable value type
-            // we can't propagate out the "state when not null"
+            // If the LHS of a `??` is cast using a user-defined conversion whose parameter
+            // is not a non-nullable value type, we can't propagate out the "state when not null"
             // because we can't know whether the conditional access itself was non-null.
             CreateCompilation(source).VerifyDiagnostics(
                 // (11,9): error CS0165: Use of unassigned local variable 'x'
@@ -2675,14 +2691,16 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(11, 9));
         }
 
-        [Fact]
-        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_03()
+        [Theory]
+        [InlineData("explicit")]
+        [InlineData("implicit")]
+        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_03(string conversionKind)
         {
             var source = @"
 struct B { }
 struct C
 {
-    public static explicit operator B(C c) => new B();
+    public static " + conversionKind + @" operator B(C c) => new B();
 
     void M1(C? c1)
     {
@@ -2698,14 +2716,16 @@ struct C
             CreateCompilation(source).VerifyDiagnostics();
         }
 
-        [Fact]
-        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_04()
+        [Theory]
+        [InlineData("explicit")]
+        [InlineData("implicit")]
+        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_04(string conversionKind)
         {
             var source = @"
 struct B { }
 struct C
 {
-    public static explicit operator B?(C c) => null;
+    public static " + conversionKind + @" operator B?(C c) => null;
 
     void M1(C? c1)
     {
@@ -2719,6 +2739,36 @@ struct C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("explicit")]
+        [InlineData("implicit")]
+        public void NullCoalescing_CondAccess_ExplicitUserDefinedConv_05(string conversionKind)
+        {
+            var source = @"
+struct B
+{
+    public static " + conversionKind + @" operator B(C c) => default;
+}
+
+class C
+{
+    static void M1(C c1)
+    {
+        int x;
+        B b = (B?)c1?.M1(x = 0) ?? c1.M2(x = 0);
+        x.ToString(); // 1
+    }
+
+    C M1(object obj) { return this; }
+    B M2(object obj) { return this; }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (13,9): error CS0165: Use of unassigned local variable 'x'
+                //         x.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(13, 9));
         }
 
         [WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
