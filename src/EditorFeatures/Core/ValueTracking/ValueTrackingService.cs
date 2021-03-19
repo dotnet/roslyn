@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {
                     var location = Location.Create(syntaxRef.SyntaxTree, syntaxRef.Span);
-                    progressCollector.Push(new ValueTrackedItem(location, symbol));
+                    progressCollector.Report(new ValueTrackedItem(location, symbol));
                 }
 
                 var findReferenceProgressCollector = new FindReferencesProgress(progressCollector);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             {
                 if (location.IsWrittenTo)
                 {
-                    _valueTrackingProgressCollector.Push(new ValueTrackedItem(location.Location, symbol));
+                    _valueTrackingProgressCollector.Report(new ValueTrackedItem(location.Location, symbol));
                 }
 
                 return new();

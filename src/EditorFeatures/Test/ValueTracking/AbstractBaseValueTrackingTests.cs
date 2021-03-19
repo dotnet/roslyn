@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
@@ -20,9 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
         {
             var cursorDocument = testWorkspace.DocumentWithCursor;
             var document = testWorkspace.CurrentSolution.GetRequiredDocument(cursorDocument.Id);
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken);
             var textSpan = new TextSpan(cursorDocument.CursorPosition!.Value, 0);
-            var location = Location.Create(syntaxTree, textSpan);
             var symbol = await GetSelectedSymbolAsync(textSpan, document, cancellationToken);
             var service = testWorkspace.Services.GetRequiredService<IValueTrackingService>();
             return await service.TrackValueSourceAsync(testWorkspace.CurrentSolution, symbol, cancellationToken);
