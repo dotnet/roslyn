@@ -419,6 +419,11 @@ class X
                     ErrorCode.WRN_AnalyzerReferencesFramework,
                     ErrorCode.WRN_UnreadRecordParameter,
                     ErrorCode.WRN_DoNotCompareFunctionPointers,
+                    ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation,
+                    ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression,
+                    ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression,
+                    ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression,
+                    ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName,
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
