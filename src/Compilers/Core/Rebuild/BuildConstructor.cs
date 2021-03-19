@@ -30,77 +30,64 @@ namespace BuildValidator
     {
         private readonly ILogger _logger;
 
+        // TODO: shouldn't need to pass a logger.
         public BuildConstructor(ILogger logger)
         {
             _logger = logger;
         }
 
         public Compilation CreateCompilation(
+            string assemblyFileName,
             CompilationOptionsReader compilationOptionsReader,
-            string fileName,
-            ImmutableArray<ResolvedSource> sources,
+            ImmutableArray<SyntaxTreeInfo> syntaxTreeInfos,
             ImmutableArray<MetadataReference> metadataReferences)
         {
-            // We try to handle assemblies missing compilation options gracefully by skipping them.
-            // However, if an assembly has some bad combination of data, for example if it contains
-            // compilation options but not metadata references, then we throw an exception.
-            if (!compilationOptionsReader.TryGetMetadataCompilationOptions(out var pdbCompilationOptions)
-                || pdbCompilationOptions.Length == 0)
+            var diagnosticBag = DiagnosticBag.GetInstance();
+            var compilation = compilationOptionsReader.GetLanguageName() switch
             {
-                throw new Exception($"{fileName} did not contain compilation options in its PDB");
+                LanguageNames.CSharp => CreateCSharpCompilation(assemblyFileName, compilationOptionsReader, syntaxTreeInfos, metadataReferences),
+                LanguageNames.VisualBasic => CreateVisualBasicCompilation(assemblyFileName, compilationOptionsReader, syntaxTreeInfos, metadataReferences, diagnosticBag),
+                var language => throw new InvalidDataException($"{assemblyFileName} has unsupported language {language}")
+            };
+
+            var diagnostics = diagnosticBag.ToReadOnlyAndFree();
+            var hadError = false;
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic.Severity == DiagnosticSeverity.Error)
+                {
+                    _logger.LogError(diagnostic.ToString());
+                    hadError = true;
+                }
+                else
+                {
+                    _logger.LogWarning(diagnostic.ToString());
+                }
             }
 
-            if (pdbCompilationOptions.TryGetUniqueOption("language", out var language))
+            if (hadError)
             {
-                var diagnosticBag = DiagnosticBag.GetInstance();
-                var compilation = language switch
-                {
-                    LanguageNames.CSharp => CreateCSharpCompilation(fileName, compilationOptionsReader, sources, metadataReferences),
-                    LanguageNames.VisualBasic => CreateVisualBasicCompilation(fileName, compilationOptionsReader, sources, metadataReferences, diagnosticBag),
-                    _ => throw new InvalidDataException($"{language} is not a known language")
-                };
-
-                var diagnostics = diagnosticBag.ToReadOnlyAndFree();
-                var hadError = false;
-                foreach (var diagnostic in diagnostics)
-                {
-                    if (diagnostic.Severity == DiagnosticSeverity.Error)
-                    {
-                        _logger.LogError(diagnostic.ToString());
-                        hadError = true;
-                    }
-                    else
-                    {
-                        _logger.LogWarning(diagnostic.ToString());
-                    }
-                }
-
-                if (hadError)
-                {
-                    throw new Exception("Diagnostics creating the compilation");
-                }
-
-                return compilation;
+                throw new Exception("Diagnostics creating the compilation");
             }
 
-            throw new InvalidDataException("Did not find language in compilation options");
+            return compilation;
         }
 
         private Compilation CreateCSharpCompilation(
-            string fileName,
+            string assemblyFileName,
             CompilationOptionsReader optionsReader,
-            ImmutableArray<ResolvedSource> sources,
+            ImmutableArray<SyntaxTreeInfo> syntaxTreeInfos,
             ImmutableArray<MetadataReference> metadataReferences)
         {
-            var (compilationOptions, parseOptions) = CreateCSharpCompilationOptions(optionsReader, fileName);
+            var (compilationOptions, parseOptions) = CreateCSharpCompilationOptions(optionsReader, assemblyFileName);
             return CSharpCompilation.Create(
-                Path.GetFileNameWithoutExtension(fileName),
-                syntaxTrees: sources.Select(s => CSharpSyntaxTree.ParseText(s.SourceText, options: parseOptions, path: s.SourceFileInfo.SourceFilePath)).ToImmutableArray(),
+                Path.GetFileNameWithoutExtension(assemblyFileName),
+                syntaxTrees: syntaxTreeInfos.SelectAsArray(s => CSharpSyntaxTree.ParseText(s.SourceText, options: parseOptions, path: s.FilePath)),
                 references: metadataReferences,
                 options: compilationOptions);
         }
 
-        private (CSharpCompilationOptions, CSharpParseOptions) CreateCSharpCompilationOptions(CompilationOptionsReader optionsReader, string fileName)
+        private (CSharpCompilationOptions, CSharpParseOptions) CreateCSharpCompilationOptions(CompilationOptionsReader optionsReader, string assemblyFileName)
         {
             using var scope = _logger.BeginScope("Options");
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
@@ -135,7 +122,7 @@ namespace BuildValidator
                 optionsReader.GetOutputKind(),
                 reportSuppressedDiagnostics: false,
 
-                moduleName: fileName,
+                moduleName: assemblyFileName,
                 mainTypeName: optionsReader.GetMainTypeName(),
                 scriptClassName: null,
                 usings: null,
@@ -186,21 +173,21 @@ namespace BuildValidator
                 : (Platform)Enum.Parse(typeof(Platform), platform);
 
         private Compilation CreateVisualBasicCompilation(
-            string fileName,
+            string assemblyFileName,
             CompilationOptionsReader optionsReader,
-            ImmutableArray<ResolvedSource> sources,
+            ImmutableArray<SyntaxTreeInfo> syntaxTreeInfos,
             ImmutableArray<MetadataReference> metadataReferences,
             DiagnosticBag diagnosticBag)
         {
-            var compilationOptions = CreateVisualBasicCompilationOptions(optionsReader, fileName, diagnosticBag);
+            var compilationOptions = CreateVisualBasicCompilationOptions(optionsReader, assemblyFileName, diagnosticBag);
             return VisualBasicCompilation.Create(
-                Path.GetFileNameWithoutExtension(fileName),
-                syntaxTrees: sources.Select(s => VisualBasicSyntaxTree.ParseText(s.SourceText, options: compilationOptions.ParseOptions, path: s.SourceFileInfo.SourceFilePath)).ToImmutableArray(),
+                Path.GetFileNameWithoutExtension(assemblyFileName),
+                syntaxTrees: syntaxTreeInfos.SelectAsArray(s => VisualBasicSyntaxTree.ParseText(s.SourceText, options: compilationOptions.ParseOptions, path: s.FilePath)),
                 references: metadataReferences,
                 options: compilationOptions);
         }
 
-        private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(CompilationOptionsReader optionsReader, string fileName, DiagnosticBag diagnosticBag)
+        private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(CompilationOptionsReader optionsReader, string assemblyFileName, DiagnosticBag diagnosticBag)
         {
             var pdbCompilationOptions = optionsReader.GetMetadataCompilationOptions();
 
@@ -240,7 +227,7 @@ namespace BuildValidator
 
             var compilationOptions = new VisualBasicCompilationOptions(
                 optionsReader.GetOutputKind(),
-                moduleName: fileName,
+                moduleName: assemblyFileName,
                 mainTypeName: optionsReader.GetMainTypeName(),
                 scriptClassName: "Script",
                 globalImports: globalImports,
@@ -281,23 +268,39 @@ namespace BuildValidator
             static T? ToEnum<T>(string value) where T : struct => Enum.TryParse<T>(value, out var enumValue) ? enumValue : null;
         }
 
-        public static unsafe EmitResult Emit(
+        public static EmitResult Emit(
             Stream rebuildPeStream,
             CompilationOptionsReader optionsReader,
             Compilation producedCompilation,
             CancellationToken cancellationToken)
         {
-            var peHeader = optionsReader.PeReader.PEHeaders.PEHeader!;
-            var win32Resources = optionsReader.PeReader.GetSectionData(peHeader.ResourceTableDirectory.RelativeVirtualAddress);
-            using var win32ResourceStream = new UnmanagedMemoryStream(win32Resources.Pointer, win32Resources.Length);
-
-            var sourceLink = optionsReader.GetSourceLinkUTF8();
-
             var embeddedTexts = producedCompilation.SyntaxTrees
                     .Select(st => (path: st.FilePath, text: st.GetText()))
                     .Where(pair => pair.text.CanBeEmbedded)
                     .Select(pair => EmbeddedText.FromSource(pair.path, pair.text))
                     .ToImmutableArray();
+            return Emit(
+                rebuildPeStream,
+                optionsReader,
+                producedCompilation,
+                embeddedTexts,
+                cancellationToken);
+        }
+
+        public static unsafe EmitResult Emit(
+            Stream rebuildPeStream,
+            CompilationOptionsReader optionsReader,
+            Compilation producedCompilation,
+            ImmutableArray<EmbeddedText> embeddedTexts,
+            CancellationToken cancellationToken)
+        {
+            var peHeader = optionsReader.PeReader.PEHeaders.PEHeader!;
+            var win32Resources = optionsReader.PeReader.GetSectionData(peHeader.ResourceTableDirectory.RelativeVirtualAddress);
+            using var win32ResourceStream = win32Resources.Pointer != null
+                ? new UnmanagedMemoryStream(win32Resources.Pointer, win32Resources.Length)
+                : null;
+
+            var sourceLink = optionsReader.GetSourceLinkUTF8();
 
             var debugEntryPoint = getDebugEntryPoint();
 
