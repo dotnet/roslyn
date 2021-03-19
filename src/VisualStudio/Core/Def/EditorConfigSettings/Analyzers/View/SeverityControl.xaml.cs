@@ -22,10 +22,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
         public SeverityControl(AnalyzerSetting setting)
         {
             InitializeComponent();
-            var refactoring = CreateGridElement(KnownMonikers.None, ServicesVSResources.Disabled);
-            var suggestion = CreateGridElement(KnownMonikers.StatusInformation, ServicesVSResources.Suggestion);
-            var warning = CreateGridElement(KnownMonikers.StatusWarning, ServicesVSResources.Warning);
-            var error = CreateGridElement(KnownMonikers.StatusError, ServicesVSResources.Error);
+            var refactoring = CreateItemElement(KnownMonikers.None, ServicesVSResources.Disabled);
+            var suggestion = CreateItemElement(KnownMonikers.StatusInformation, ServicesVSResources.Suggestion);
+            var warning = CreateItemElement(KnownMonikers.StatusWarning, ServicesVSResources.Warning);
+            var error = CreateItemElement(KnownMonikers.StatusError, ServicesVSResources.Error);
             _comboBox = new ComboBox()
             {
                 ItemsSource = new[]
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
             }
         }
 
-        private static FrameworkElement CreateGridElement(ImageMoniker imageMoniker, string text)
+        private static FrameworkElement CreateItemElement(ImageMoniker imageMoniker, string text)
         {
             var stackPanel = new StackPanel
             {
