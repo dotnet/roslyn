@@ -138,12 +138,10 @@ namespace Microsoft.CodeAnalysis
             var walkerBuilder = ArrayBuilder<GeneratorSyntaxWalker?>.GetInstance(state.Generators.Length, fillWithValue: null); // we know there is at max 1 per generator
             int receiverCount = 0;
 
-            // pipeline stuff
+            // TODO: we need a way of making the value sources be immutable, but able to receive changes
+            //       we probably need the actual generators to register it by 'ID' or something
+            //       and then we replace the actual source node with the immutable equivilent at execution time
             var pipelineSource = ValueSources.Create(compilation);
-
-            //todo: need a way to save these between iterations (or at least get them out of the GraphStateTable?)
-            //      and need to be able to modify the graph state table when we remove a generator
-            var producers = ArrayBuilder<IOutputNode>.GetInstance();
 
             for (int i = 0; i < state.Generators.Length; i++)
             {
@@ -189,6 +187,7 @@ namespace Microsoft.CodeAnalysis
                     // create the pipeline if requested
                     if (generatorState.Info.PipelineCallback is object)
                     {
+                        var producers = ArrayBuilder<IOutputNode>.GetInstance();
                         var pipelineContext = new GeneratorPipelineRegistrationContext(pipelineSource, producers, cancellationToken);
                         try
                         {
@@ -200,7 +199,7 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         generatorState = ex is null
-                                         ? generatorState //TODO: update the state with the pipeline
+                                         ? new GeneratorState(generatorState.Info, generatorState.PostInitTrees, producers.ToImmutableAndFree())
                                          : SetGeneratorException(MessageProvider, generatorState, generator, ex, diagnosticsBag, isInit: true);
                     }
                 }
@@ -271,17 +270,20 @@ namespace Microsoft.CodeAnalysis
             }
             walkerBuilder.Free();
 
-            //TODO: use the above syntax walk to update the pipeline bits
+            //TODO: use the above syntax walk to update the pipeline input bits
 
-            //TODO: we need to cache the output state table and re-create it from the previous version
+            //TODO: we should check the input nodes here, to determine if there is actually anything to update.
+
             GraphStateTable.Builder tableBuilder = new GraphStateTable.Builder(_state.GraphState);
-            foreach (var producer in producers)
+            foreach (var generatorState in stateBuilder)
             {
-                //TODO: we update the state table, but need to work out what to do with it 
-                producer.GetStateTable(tableBuilder);
+                foreach (var producer in generatorState.Producers)
+                {
+                    //TODO: we update the state table here, but we need to work out what to actually do with it 
+                    _ = producer.GetStateTable(tableBuilder);
+                }
             }
             var endStateTable = tableBuilder.ToImmutable();
-            producers.Free();
 
             // https://github.com/dotnet/roslyn/issues/42629: should be possible to parallelize this
             for (int i = 0; i < state.Generators.Length; i++)
@@ -309,7 +311,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 (var sources, var diagnostics) = context.ToImmutableAndFree();
-                stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics);
+                stateBuilder[i] = new GeneratorState(generatorState.Info, generatorState.PostInitTrees, ParseAdditionalSources(generator, sources, cancellationToken), diagnostics, generatorState.Producers);
                 diagnosticsBag?.AddRange(diagnostics);
             }
             state = state.With(generatorStates: stateBuilder.ToImmutableAndFree());

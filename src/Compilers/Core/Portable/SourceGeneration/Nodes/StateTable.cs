@@ -118,47 +118,11 @@ namespace Microsoft.CodeAnalysis
             return _tables.ContainsKey(source) ? (StateTable<T>)_tables[source] : StateTable<T>.Empty;
         }
 
-        //TODO: ok. What if we *dont* handle the producers here at all.
-        //      instead we store them on the generator state that added them
         //      then the driver just walks over each producer (with the same builder)
         //      and gets it's updated state.
         //      
         //      We can remove them by just removing the state. We should
         //      track which nodes are visited and not, and during compact, remove unused ones
-
-        public GraphStateTable WithProducer(IOutputNode producer)
-        {
-            //TODO: can we have a placeholder empty table (or just null?), that we just replace when GetlatestStateTableForNode<T> actually gets an empty one of the right type?
-            return new GraphStateTable(_tables.Add(producer, producer.GetEmptyStateTable()));
-        }
-
-        public GraphStateTable BringUpToDate()
-        {
-            Builder builder = new Builder(this);
-
-            // TODO: lets just track the output nodes as we add them?
-            foreach (var node in _tables)
-            {
-                if (node.Key is IOutputNode output)
-                {
-                    // TODO: we'll need to actually build a state (or whatever) here that we return to the driver.
-                    _ = output.GetStateTable(builder);
-                }
-            }
-            return builder.ToImmutable();
-        }
-
-        public void FillOutputs(ArrayBuilder<IOutputNode> builder)
-        {
-            // TODO: lets just track the output nodes as we add them?
-            foreach (var node in _tables)
-            {
-                if (node.Key is IOutputNode output)
-                {
-                    builder.Add(output);
-                }
-            }
-        }
 
         public class Builder
         {
