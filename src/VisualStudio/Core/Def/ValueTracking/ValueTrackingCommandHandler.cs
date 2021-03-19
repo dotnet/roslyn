@@ -87,19 +87,19 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
 
             _threadingContext.JoinableTaskFactory.RunAsync(async () =>
-            {
-                var selectedSymbol = await  GetSelectedSymbolAsync(textSpan, document, cancellationToken).ConfigureAwait(false);
-                if (selectedSymbol is null)
                 {
-                    // TODO: Show error dialog
-                    return;
-                }
+                    var selectedSymbol = await GetSelectedSymbolAsync(textSpan, document, cancellationToken).ConfigureAwait(false);
+                    if (selectedSymbol is null)
+                    {
+                        // TODO: Show error dialog
+                        return;
+                    }
 
-                var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
-                var location = Location.Create(syntaxTree, textSpan);
+                    var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(cancellationToken);
+                    var location = Location.Create(syntaxTree, textSpan);
 
-                await ShowToolWindowAsync(args.TextView, selectedSymbol, location, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-            });
+                    await ShowToolWindowAsync(args.TextView, selectedSymbol, location, document.Project.Solution, cancellationToken).ConfigureAwait(false);
+                });
 
             return true;
         }

@@ -27,7 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private readonly IValueTrackingService _valueTrackingService;
         private readonly ValueTrackedItem _trackedItem;
 
-
         public ValueTrackedTreeItemViewModel(
             ValueTrackedItem trackedItem,
             Solution solution,
