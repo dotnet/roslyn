@@ -696,21 +696,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (value)
                 {
-                    foreach (var attribute in GetAttributes())
+                    var info = _moduleSymbol.Module.FindTargetAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute);
+                    _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName);
+                    var parameters = ContainingSymbol.GetParameters();
+                    for (int i = 0; i < parameters.Length; i++)
                     {
-                        if (attribute.IsTargetAttribute(this, AttributeDescription.CallerArgumentExpressionAttribute))
+                        if (parameters[i].Name == parameterName)
                         {
-                            if (attribute.DecodeCallerArgumentExpressionAttribute() is string parameterName)
-                            {
-                                var parameters = ContainingSymbol.GetParameters();
-                                for (int i = 0; i < parameters.Length; i++)
-                                {
-                                    if (parameters[i].Name == parameterName)
-                                    {
-                                        return i;
-                                    }
-                                }
-                            }
+                            return i;
                         }
                     }
                 }
