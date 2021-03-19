@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis
     internal interface IOutputNode
     {
         object GetStateTable(GraphStateTable.Builder stateTable);
-
-        IStateTable GetEmptyStateTable();
     }
 
     internal class OutputNode<T, U> : IOutputNode
@@ -29,14 +27,6 @@ namespace Microsoft.CodeAnalysis
         public object GetStateTable(GraphStateTable.Builder stateTable)
         {
             return stateTable.GetLatestStateTableForNode(_source);
-
         }
-
-        public IStateTable GetEmptyStateTable() => StateTable<T>.Empty;
-
-        //internal void GetStateTable(); //?
-
-        // do we need an actual, like, apply method?
-        // or can the driver just get the updated state table, and work from there?
     }
 }

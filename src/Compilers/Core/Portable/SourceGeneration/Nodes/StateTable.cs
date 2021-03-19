@@ -118,12 +118,6 @@ namespace Microsoft.CodeAnalysis
             return _tables.ContainsKey(source) ? (StateTable<T>)_tables[source] : StateTable<T>.Empty;
         }
 
-        //      then the driver just walks over each producer (with the same builder)
-        //      and gets it's updated state.
-        //      
-        //      We can remove them by just removing the state. We should
-        //      track which nodes are visited and not, and during compact, remove unused ones
-
         public class Builder
         {
             private readonly ImmutableDictionary<object, IStateTable>.Builder _tableBuilder = ImmutableDictionary<object, IStateTable>.Empty.ToBuilder();
