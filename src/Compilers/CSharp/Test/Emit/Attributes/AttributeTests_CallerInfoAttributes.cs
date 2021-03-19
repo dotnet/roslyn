@@ -131,6 +131,111 @@ class Program
             CompileAndVerify(compilation, expectedOutput: "<default>");
         }
 
+        [Fact]
+        public void TestCallerArgumentWithMemberNameAttributes()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(default(int));
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = ""<default>"")
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (12,29): warning CS8917: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is overriden by the MemberNameAttribute.
+                //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
+                Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
+                );
+            CompileAndVerify(compilation, expectedOutput: "Main");
+        }
+
+        [Fact]
+        public void TestCallerArgumentExpressionWithOptionalTargetParameter()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        string callerTargetExp = ""caller target value"";
+        Log(0);
+        Log(0, callerTargetExp);
+    }
+    const string target = nameof(target);
+    static void Log(int p, string target = ""target default value"", [CallerArgumentExpression(target)] string arg = ""arg default value"")
+    {
+        Console.WriteLine(target);
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"target default value
+arg default value
+caller target value
+callerTargetExp");
+        }
+
+        [Fact]
+        public void TestCallerArgumentExpressionWithMultipleOptionalAttribute()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        string callerTargetExp = ""caller target value"";
+        Log(0);
+        Log(0, callerTargetExp);
+        Log(0, target: callerTargetExp);
+        Log(0, notTarget: ""Not target value"");
+        Log(0, notTarget: ""Not target value"", target: callerTargetExp);
+    }
+    const string target = nameof(target);
+    static void Log(int p, string target = ""target default value"", string notTarget = ""not target default value"", [CallerArgumentExpression(target)] string arg = ""arg default value"")
+    {
+        Console.WriteLine(target);
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"target default value
+arg default value
+caller target value
+callerTargetExp
+caller target value
+callerTargetExp
+target default value
+arg default value
+caller target value
+callerTargetExp");
+        }
+
         [Fact(Skip = "PROTOTYPE")]
         public void TestPROTOTYPE()
         {

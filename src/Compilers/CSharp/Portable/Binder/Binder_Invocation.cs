@@ -1372,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (callerSourceLocation is object && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex &&
-                    argumentIndex != -1)
+                    argumentIndex > -1 && argumentIndex < arguments.Length)
                 {
                     // - Test extension methods.
                     // - Test combining different attributes (e.g, both CallerArgumentExpression and MemberCallerName).
