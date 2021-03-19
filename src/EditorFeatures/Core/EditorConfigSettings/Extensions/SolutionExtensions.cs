@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions
     {
         public static ImmutableArray<Project> GetProjectsForPath(this Solution solution, string givenPath)
         {
-            var givenFolder = new DirectoryInfo(givenPath).Parent;
+            var givenFolder = new DirectoryInfo(Path.GetDirectoryName(givenPath));
             var solutionFolder = new DirectoryInfo(solution.FilePath).Parent;
             if (givenFolder.FullName == solutionFolder.FullName)
             {
