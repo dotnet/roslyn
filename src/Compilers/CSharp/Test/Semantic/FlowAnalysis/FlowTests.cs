@@ -2470,44 +2470,6 @@ class C
         }
 
         [Fact]
-        public void NullCoalescing_CondAccess_ImplicitReferenceConv()
-        {
-            var source = @"
-class C
-{
-    void M1(C c1, bool b)
-    {
-        int x;
-        object obj = c1?.M(x = 0) ?? (object)(x = 0);
-        x.ToString();
-    }
-
-    C M(object obj) { return this; }
-}
-";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NullCoalescing_CondAccess_BoxingConv()
-        {
-            var source = @"
-class C
-{
-    void M1(C c1)
-    {
-        int x;
-        object obj = c1?.M(x = 0) ?? c1.M(x = 0);
-        x.ToString();
-    }
-
-    bool? M(object obj) { return null; }
-}
-";
-            CreateCompilation(source).VerifyDiagnostics();
-        }
-
-        [Fact]
         public void NullCoalescing_CondAccess_UserDefinedConv_01()
         {
             var source = @"
@@ -2762,7 +2724,7 @@ class C
     }
 
     C M1(object obj) { return this; }
-    B M2(object obj) { return this; }
+    B M2(object obj) { return default; }
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
