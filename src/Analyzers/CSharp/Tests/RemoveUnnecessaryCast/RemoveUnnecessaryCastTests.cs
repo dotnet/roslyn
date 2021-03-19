@@ -142,17 +142,16 @@ class Program
         }
 
         [WorkItem(545138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545138")]
-        [WorkItem(44422, "https://github.com/dotnet/roslyn/issues/44422")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44422"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveTypeParameterCastToObject()
         {
             var source =
-@"class Ð¡
+@"class D
 {
     void Goo<T>(T obj)
-{
-    int x = (int)(object)obj;
-}
+    {
+        int x = (int)(object)obj;
+    }
 }";
 
             await VerifyCS.VerifyCodeFixAsync(
@@ -174,21 +173,19 @@ class Program
         }
 
         [WorkItem(545139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545139")]
-        [WorkItem(44422, "https://github.com/dotnet/roslyn/issues/44422")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/44422"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DoNotRemoveCastInIsTest()
         {
             var source =
 @"using System;
 
-class Ð¡
+class D
 {
     static void Main()
-{
-    DayOfWeek[] a = {
-    };
-    Console.WriteLine((object)a is int[]);
-}
+    {
+        DayOfWeek[] a = { };
+        Console.WriteLine((object)a is int[]);
+    }
 }";
 
             await VerifyCS.VerifyCodeFixAsync(
