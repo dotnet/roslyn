@@ -31,8 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     internal sealed class CrefCompletionProvider : AbstractCrefCompletionProvider
     {
         public static readonly SymbolDisplayFormat QualifiedCrefFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -40,8 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
         public static readonly SymbolDisplayFormat CrefFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -54,8 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         // that uses the intrinsic type keyword and an item that uses the
         // name of the special type 
         public static readonly SymbolDisplayFormat CrefFormatForSpecialTypes =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            new(globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -71,10 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
-        internal override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -432,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

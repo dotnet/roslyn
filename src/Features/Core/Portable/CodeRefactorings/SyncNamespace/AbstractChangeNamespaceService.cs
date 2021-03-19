@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     // we were syncing. 
                     continue;
                 }
+
                 syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 // Since the original namespaces were retrieved before the document was modified
@@ -743,7 +744,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var fixedDocument = editor.GetChangedDocument();
             root = await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var result = (fixedDocument, containers.SelectAsArray(c => root.GetCurrentNode(c)));
+            var result = (fixedDocument, containers.SelectAsArray(c => root.GetCurrentNode(c)
+                ?? throw new InvalidOperationException("Can't get SyntaxNode from GetCurrentNode.")));
 
             return result;
         }

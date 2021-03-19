@@ -307,6 +307,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 {
                     continue;
                 }
+
                 if (!(collectionType.FindImplementationForInterfaceMember(countSymbol) is IMethodSymbol countImpl) || !(collectionType.FindImplementationForInterfaceMember(indexerSymbol) is IMethodSymbol indexerImpl))
                 {
                     continue;

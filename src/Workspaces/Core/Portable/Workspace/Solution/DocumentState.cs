@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return info.FilePath;
             }
+
             return info.SourceCodeKind == SourceCodeKind.Regular
                 ? info.Name
                 : "";

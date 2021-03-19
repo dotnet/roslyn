@@ -96,8 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenReceiver,
                     getMethod,
-                    rewrittenArguments,
-                    binder: null);
+                    rewrittenArguments);
             }
         }
     }

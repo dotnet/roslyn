@@ -298,9 +298,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (setMethod is null)
             {
-                var autoProp = (SourcePropertySymbolBase)property;
+                var autoProp = (SourcePropertySymbolBase)property.OriginalDefinition;
                 Debug.Assert(autoProp.IsAutoPropertyWithGetAccessor,
                     "only autoproperties can be assignable without having setters");
+                Debug.Assert(property.Equals(autoProp, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
                 var backingField = autoProp.BackingField;
                 return _factory.AssignmentExpression(
@@ -344,8 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenReceiver,
                     setMethod,
-                    AppendToPossibleNull(rewrittenArguments, rhsAssignment),
-                    binder: null);
+                    AppendToPossibleNull(rewrittenArguments, rhsAssignment));
 
                 return new BoundSequence(
                     syntax,
@@ -360,8 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenReceiver,
                     setMethod,
-                    AppendToPossibleNull(rewrittenArguments, rewrittenRight),
-                    binder: null);
+                    AppendToPossibleNull(rewrittenArguments, rewrittenRight));
 
                 if (argTemps.IsDefaultOrEmpty)
                 {

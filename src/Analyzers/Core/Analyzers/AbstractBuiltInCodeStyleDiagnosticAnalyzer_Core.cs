@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             bool isUnnecessary = false,
             bool isConfigurable = true,
             LocalizableString? description = null)
+#pragma warning disable RS0030 // Do not used banned APIs
             => new(
                     id, title, messageFormat,
                     DiagnosticCategory.Style,
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     description: description,
                     helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
                     customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, enforceOnBuild));
+#pragma warning restore RS0030 // Do not used banned APIs
 
         public sealed override void Initialize(AnalysisContext context)
         {

@@ -836,7 +836,7 @@ interface i1
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
@@ -845,7 +845,7 @@ interface i1
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 43));
 
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (6,35): error CS0073: An add or remove accessor must have a body
                 //     event myDelegate myevent { add; remove; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(6, 35),
@@ -873,7 +873,7 @@ interface i1
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (5,32): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
@@ -895,7 +895,7 @@ interface i1
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7,
-                              targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+                              targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (5,32): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //     event myDelegate myevent { add {} }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
@@ -1759,7 +1759,7 @@ class C
     public extern object P6 { get; } // no error
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
@@ -8928,7 +8928,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
                 // (5,16): error CS0525: Interfaces cannot contain instance fields
@@ -9059,7 +9059,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (14,39): error CS1002: ; expected
                 //         T P { get { return default(T) } set { } }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(14, 39)
@@ -9547,7 +9547,7 @@ public class Clx
     }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (11,20): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
                 //         void IFace.F();   // CS0541
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F").WithArguments("default interface implementation", "8.0").WithLocation(11, 20),

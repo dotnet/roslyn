@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 ApplySnippet(snippet, subjectBuffer, textView);
                 return true;
             }
+
             return false;
         }
 
@@ -198,6 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             {
                 return CommandState.Unavailable;
             }
+
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
             var isValidTargetMember = false;

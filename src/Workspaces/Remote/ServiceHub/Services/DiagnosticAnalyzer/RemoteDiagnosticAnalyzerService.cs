@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(async cancellationToken =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
-                using (arguments.IsHighPriority ? UserOperationBooster.Boost() : default)
                 {
                     var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
 

@@ -285,6 +285,7 @@ namespace Microsoft.CodeAnalysis.Completion
                             triggeredProviders = providers.ToImmutableArray();
                         }
                     }
+
                     break;
                 default:
                     triggeredProviders = providers.ToImmutableArray();

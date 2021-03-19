@@ -4,12 +4,8 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -32,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
             bool isAdder,
-            bool isIterator)
+            bool isIterator,
+            bool isNullableAnalysisEnabled)
             : base(@event.containingType, syntaxReference, locations, isIterator)
         {
             _event = @event;
@@ -60,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
                 isExtensionMethod: false,
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation);
 
             _name = GetOverriddenAccessorName(@event, isAdder) ?? name;
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _event; }
         }
 
-        protected sealed override void MethodChecks(DiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(_lazyParameters.IsDefault != _lazyReturnType.HasType);
 
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_event.IsWindowsRuntimeEvent)
                 {
                     TypeSymbol eventTokenType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
-                    Binder.ReportUseSiteDiagnostics(eventTokenType, diagnostics, this.Location);
+                    Binder.ReportUseSite(eventTokenType, diagnostics, this.Location);
 
                     if (this.MethodKind == MethodKind.EventAdd)
                     {
@@ -131,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // void remove_E(EventRegistrationToken t);
 
                         TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
-                        Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
+                        Binder.ReportUseSite(voidType, diagnostics, this.Location);
                         _lazyReturnType = TypeWithAnnotations.Create(voidType);
                         this.SetReturnsVoid(returnsVoid: true);
 
@@ -145,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // void remove_E(EventDelegate d);
 
                     TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
-                    Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
+                    Binder.ReportUseSite(voidType, diagnostics, this.Location);
                     _lazyReturnType = TypeWithAnnotations.Create(voidType);
                     this.SetReturnsVoid(returnsVoid: true);
 

@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      node.Locals,
                                                      node.DeclarationsOpt.LocalDeclarations,
                                                      node.IDisposableConversion,
-                                                     node.DisposeMethodOpt,
+                                                     node.PatternDisposeInfoOpt,
                                                      node.AwaitOpt,
                                                      awaitKeyword);
             }
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                        ImmutableArray<LocalSymbol> locals,
                                                        ImmutableArray<BoundLocalDeclaration> declarations,
                                                        Conversion iDisposableConversion,
-                                                       MethodSymbol? disposeMethodOpt,
+                                                       MethodArgumentInfo? patternDisposeInfo,
                                                        BoundAwaitableInfo? awaitOpt,
                                                        SyntaxToken awaitKeyword)
         {
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock result = body;
             for (int i = declarations.Length - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
             {
-                result = RewriteDeclarationUsingStatement(syntax, declarations[i], result, iDisposableConversion, awaitKeyword, awaitOpt, disposeMethodOpt);
+                result = RewriteDeclarationUsingStatement(syntax, declarations[i], result, iDisposableConversion, awaitKeyword, awaitOpt, patternDisposeInfo);
             }
 
             // Declare all locals in a single, top-level block so that the scope is correct in the debugger
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                ImmutableArray<LocalSymbol>.Empty,
                                                                usingDeclarations.LocalDeclarations,
                                                                usingDeclarations.IDisposableConversion,
-                                                               usingDeclarations.DisposeMethodOpt,
+                                                               usingDeclarations.PatternDisposeInfoOpt,
                                                                awaitOpt: usingDeclarations.AwaitOpt,
                                                                awaitKeyword: syntax.AwaitKeyword);
 
@@ -163,6 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _compilation.GetSpecialType(SpecialType.System_IDisposable) :
                     _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
 
+                _diagnostics.ReportUseSite(iDisposableType, usingSyntax);
+
                 BoundExpression tempInit = MakeConversionNode(
                     expressionSyntax,
                     rewrittenExpression,
@@ -185,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionStatement = _instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
-            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, usingSyntax.AwaitKeyword, node.AwaitOpt, node.DisposeMethodOpt);
+            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, usingSyntax.AwaitKeyword, node.AwaitOpt, node.PatternDisposeInfoOpt);
 
             // { ResourceType temp = expr; try { ... } finally { ... } }
             return new BoundBlock(
@@ -208,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion iDisposableConversion,
             SyntaxToken awaitKeywordOpt,
             BoundAwaitableInfo? awaitOpt,
-            MethodSymbol? methodSymbol)
+            MethodArgumentInfo? patternDisposeInfo)
         {
             Debug.Assert(localDeclaration.InitializerOpt is { });
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
@@ -238,6 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _compilation.GetSpecialType(SpecialType.System_IDisposable) :
                     _compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable);
 
+                _diagnostics.ReportUseSite(iDisposableType, usingSyntax);
+
                 BoundExpression tempInit = MakeConversionNode(
                     declarationSyntax,
                     boundLocal,
@@ -248,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator tempAssignment;
                 BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
 
-                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, awaitKeywordOpt, awaitOpt, methodSymbol);
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, awaitKeywordOpt, awaitOpt, patternDisposeInfo);
 
                 return new BoundBlock(
                     syntax: usingSyntax,
@@ -260,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundLocal, awaitKeywordOpt, awaitOpt, methodSymbol);
+                BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundLocal, awaitKeywordOpt, awaitOpt, patternDisposeInfo);
 
                 // localSymbol will be declared by an enclosing block
                 return BoundBlock.SynthesizedNoLocals(usingSyntax, rewrittenDeclaration, tryFinally);
@@ -273,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal local,
             SyntaxToken awaitKeywordOpt,
             BoundAwaitableInfo? awaitOpt,
-            MethodSymbol? methodOpt)
+            MethodArgumentInfo? patternDisposeInfo)
         {
             // SPEC: When ResourceType is a non-nullable value type, the expansion is:
             // SPEC: 
@@ -352,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MethodSymbol getValueOrDefault = UnsafeGetNullableMethod(syntax, local.Type, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 // local.GetValueOrDefault()
-                disposedExpression = BoundCall.Synthesized(syntax, local, getValueOrDefault, binder: null);
+                disposedExpression = BoundCall.Synthesized(syntax, local, getValueOrDefault);
             }
             else
             {
@@ -360,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 disposedExpression = local;
             }
 
-            BoundExpression disposeCall = GenerateDisposeCall(syntax, disposedExpression, methodOpt, awaitOpt, awaitKeywordOpt);
+            BoundExpression disposeCall = GenerateDisposeCall(syntax, disposedExpression, patternDisposeInfo, awaitOpt, awaitKeywordOpt);
 
             // local.Dispose(); or await variant
             BoundStatement disposeStatement = new BoundExpressionStatement(syntax, disposeCall);
@@ -419,35 +424,42 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GenerateDisposeCall(
             SyntaxNode syntax,
             BoundExpression disposedExpression,
-            MethodSymbol? methodOpt,
+            MethodArgumentInfo? disposeInfo,
             BoundAwaitableInfo? awaitOpt,
             SyntaxToken awaitKeyword)
         {
             Debug.Assert(awaitOpt is null || awaitKeyword != default);
 
-            // If we don't have an explicit dispose method, try and get the special member for IDiposable/IAsyncDisposable
-            if (methodOpt is null)
+            // If we don't have an explicit dispose method, try and get the special member for IDisposable/IAsyncDisposable
+            MethodSymbol? disposeMethod = disposeInfo?.Method;
+            if (disposeMethod is null)
             {
                 if (awaitOpt is null)
                 {
                     // IDisposable.Dispose()
-                    Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out methodOpt);
+                    Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, syntax, _diagnostics, out disposeMethod);
                 }
                 else
                 {
                     // IAsyncDisposable.DisposeAsync()
-                    TryGetWellKnownTypeMember<MethodSymbol>(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out methodOpt, location: awaitKeyword.GetLocation());
+                    TryGetWellKnownTypeMember<MethodSymbol>(syntax: null, WellKnownMember.System_IAsyncDisposable__DisposeAsync, out disposeMethod, location: awaitKeyword.GetLocation());
                 }
             }
 
             BoundExpression disposeCall;
-            if (methodOpt is null)
+            if (disposeMethod is null)
             {
                 disposeCall = new BoundBadExpression(syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
             }
             else
             {
-                disposeCall = MakeCallWithNoExplicitArgument(_compilation.GetBinder((CSharpSyntaxNode)syntax), syntax, disposedExpression, methodOpt);
+                if (disposeInfo is null)
+                {
+                    // Generate the info for IDisposable.Dispose(). We know it has no arguments.
+                    disposeInfo = MethodArgumentInfo.CreateParameterlessMethod(disposeMethod);
+                }
+
+                disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, syntax, disposedExpression);
 
                 if (awaitOpt is object)
                 {
@@ -465,44 +477,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods, and to fill-in optional and params parameters.
         /// </summary>
-        private BoundExpression MakeCallWithNoExplicitArgument(Binder binder, SyntaxNode syntax, BoundExpression expression, MethodSymbol method)
+        private BoundExpression MakeCallWithNoExplicitArgument(MethodArgumentInfo methodArgumentInfo, SyntaxNode syntax, BoundExpression? expression, bool assertParametersAreOptional = true)
         {
-            var receiver = method.IsExtensionMethod ? null : expression;
+            MethodSymbol method = methodArgumentInfo.Method;
 
-            var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+#if DEBUG
             if (method.IsExtensionMethod)
             {
-                argsBuilder.Add(expression);
+                Debug.Assert(expression == null);
+                Debug.Assert(method.Parameters.AsSpan()[1..].All(assertParametersAreOptional, (p, assertOptional) => (p.IsOptional || p.IsParams || !assertOptional) && p.RefKind == RefKind.None));
+                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] is RefKind.In or RefKind.None);
             }
+            else
+            {
+                Debug.Assert(!assertParametersAreOptional || method.Parameters.All(p => p.IsOptional || p.IsParams));
+                Debug.Assert(method.ParameterRefKinds.IsDefaultOrEmpty);
+            }
+#endif
 
-            Debug.Assert(!method.IsExtensionMethod || method.ParameterRefKinds.IsDefaultOrEmpty || method.ParameterRefKinds[0] != RefKind.Ref);
-
-            var expanded = method.HasParamsParameter();
-
-            var argsToParams = default(ImmutableArray<int>);
-            binder.BindDefaultArguments(
+            return MakeCall(
                 syntax,
-                method.Parameters,
-                argsBuilder,
-                argumentRefKindsBuilder: null,
-                ref argsToParams,
-                out var defaultArguments,
-                expanded,
-                enableCallerInfo: false,
-                _diagnostics);
-
-            BoundExpression disposeCall = MakeCall(syntax: syntax,
-                rewrittenReceiver: receiver,
-                method: method,
-                rewrittenArguments: argsBuilder.ToImmutableAndFree(),
+                expression,
+                method,
+                methodArgumentInfo.Arguments,
                 argumentRefKindsOpt: default,
-                expanded,
+                expanded: methodArgumentInfo.Expanded,
                 invokedAsExtensionMethod: method.IsExtensionMethod,
-                argsToParamsOpt: argsToParams,
+                methodArgumentInfo.ArgsToParamsOpt,
                 resultKind: LookupResultKind.Viable,
                 type: method.ReturnType);
-
-            return disposeCall;
         }
     }
 }

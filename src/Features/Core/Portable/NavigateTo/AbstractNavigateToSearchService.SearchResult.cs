@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,6 +15,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     {
         private class SearchResult : INavigateToSearchResult
         {
+            private static readonly char[] s_dotArray = { '.' };
+
             public string AdditionalInformation { get; }
             public string Kind { get; }
             public NavigateToMatchKind MatchKind { get; }
@@ -44,29 +44,27 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 IsCaseSensitive = isCaseSensitive;
                 NavigableItem = navigableItem;
                 NameMatchSpans = nameMatchSpans;
-                AdditionalInformation = ComputeAdditionalInformation(document, declaredSymbolInfo, additionalMatchingProjects);
+                AdditionalInformation = ComputeAdditionalInfo(document, declaredSymbolInfo, additionalMatchingProjects);
                 SecondarySort = ConstructSecondarySortString(document, declaredSymbolInfo);
             }
 
-            private static string ComputeAdditionalInformation(Document document, DeclaredSymbolInfo declaredSymbolInfo, ImmutableArray<Project> additionalMatchingProjects)
+            private static string ComputeAdditionalInfo(Document document, DeclaredSymbolInfo info, ImmutableArray<Project> additionalMatchingProjects)
             {
                 var projectName = ComputeProjectName(document, additionalMatchingProjects);
-                switch (declaredSymbolInfo.Kind)
-                {
-                    case DeclaredSymbolInfoKind.Class:
-                    case DeclaredSymbolInfoKind.Record:
-                    case DeclaredSymbolInfoKind.Enum:
-                    case DeclaredSymbolInfoKind.Interface:
-                    case DeclaredSymbolInfoKind.Module:
-                    case DeclaredSymbolInfoKind.Struct:
-                        if (!declaredSymbolInfo.IsNestedType)
-                        {
-                            return string.Format(FeaturesResources.project_0, projectName);
-                        }
-                        break;
-                }
 
-                return string.Format(FeaturesResources.in_0_project_1, declaredSymbolInfo.ContainerDisplayName, projectName);
+                // For partial types, state what file they're in so the user can disambiguate the results.
+                if (info.IsPartial)
+                {
+                    return IsNonNestedNamedType(info)
+                        ? string.Format(FeaturesResources._0_dash_1, document.Name, projectName)
+                        : string.Format(FeaturesResources.in_0_1_2, info.ContainerDisplayName, document.Name, projectName);
+                }
+                else
+                {
+                    return IsNonNestedNamedType(info)
+                        ? string.Format(FeaturesResources.project_0, projectName)
+                        : string.Format(FeaturesResources.in_0_project_1, info.ContainerDisplayName, projectName);
+                }
             }
 
             private static string ComputeProjectName(Document document, ImmutableArray<Project> additionalMatchingProjects)
@@ -105,7 +103,24 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return document.Project.Name;
             }
 
-            private static readonly char[] s_dotArray = { '.' };
+            private static bool IsNonNestedNamedType(DeclaredSymbolInfo info)
+                => !info.IsNestedType && IsNamedType(info);
+
+            private static bool IsNamedType(DeclaredSymbolInfo info)
+            {
+                switch (info.Kind)
+                {
+                    case DeclaredSymbolInfoKind.Class:
+                    case DeclaredSymbolInfoKind.Record:
+                    case DeclaredSymbolInfoKind.Enum:
+                    case DeclaredSymbolInfoKind.Interface:
+                    case DeclaredSymbolInfoKind.Module:
+                    case DeclaredSymbolInfoKind.Struct:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
 
             private static string ConstructSecondarySortString(Document document, DeclaredSymbolInfo declaredSymbolInfo)
             {

@@ -272,5 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return false; }
         }
+
+        internal sealed override bool IsNullableAnalysisEnabled() => false;
     }
 }

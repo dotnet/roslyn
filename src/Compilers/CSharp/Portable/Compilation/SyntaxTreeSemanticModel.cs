@@ -13,7 +13,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -41,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
+#nullable enable
         internal SyntaxTreeSemanticModel(CSharpCompilation compilation, SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
             _compilation = compilation;
@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Compilation.GetDiagnosticsForSyntaxTree(
             CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: true, cancellationToken: cancellationToken);
         }
+#nullable disable
 
         /// <summary>
         /// Gets the enclosing binder associated with the node
@@ -229,9 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // will be one in the binder chain and one isn't necessarily required for the batch case.
                         binder = new LocalScopeBinder(binder);
 
-                        var diagnostics = DiagnosticBag.GetInstance();
-                        BoundExpression bound = binder.BindExpression((ExpressionSyntax)node, diagnostics);
-                        diagnostics.Free();
+                        BoundExpression bound = binder.BindExpression((ExpressionSyntax)node, BindingDiagnosticBag.Discarded);
 
                         SymbolInfo info = GetSymbolInfoForNode(options, bound, bound, boundNodeForSyntacticParent: null, binderOpt: null);
                         if ((object)info.Symbol != null)
@@ -252,8 +251,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var binder = this.GetEnclosingBinder(GetAdjustedNodePosition(node));
                 if (binder != null)
                 {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var symbols = binder.BindXmlNameAttribute(attrSyntax, ref useSiteDiagnostics);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    var symbols = binder.BindXmlNameAttribute(attrSyntax, ref discardedUseSiteInfo);
 
                     // NOTE: We don't need to call GetSymbolInfoForSymbol because the symbols
                     // can only be parameters or type parameters.
@@ -343,59 +342,51 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // determine if this type is part of a base declaration being resolved
                     var basesBeingResolved = GetBasesBeingResolved(type);
 
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    try
+                    if (SyntaxFacts.IsNamespaceAliasQualifier(type))
                     {
-                        if (SyntaxFacts.IsNamespaceAliasQualifier(type))
+                        return binder.BindNamespaceAliasSymbol(node as IdentifierNameSyntax, BindingDiagnosticBag.Discarded);
+                    }
+                    else if (SyntaxFacts.IsInTypeOnlyContext(type))
+                    {
+                        if (!type.IsVar)
                         {
-                            return binder.BindNamespaceAliasSymbol(node as IdentifierNameSyntax, diagnostics);
+                            return binder.BindTypeOrAlias(type, BindingDiagnosticBag.Discarded, basesBeingResolved).Symbol;
                         }
-                        else if (SyntaxFacts.IsInTypeOnlyContext(type))
+
+                        Symbol result = bindVarAsAliasFirst
+                            ? binder.BindTypeOrAlias(type, BindingDiagnosticBag.Discarded, basesBeingResolved).Symbol
+                            : null;
+
+                        // CONSIDER: we might bind "var" twice - once to see if it is an alias and again
+                        // as the type of a declared field.  This should only happen for GetAliasInfo
+                        // calls on implicitly-typed fields (rare?).  If it becomes a problem, then we
+                        // probably need to have the FieldSymbol retain alias info when it does its own
+                        // binding and expose it to us here.
+
+                        if ((object)result == null || result.Kind == SymbolKind.ErrorType)
                         {
-                            if (!type.IsVar)
+                            // We might be in a field declaration with "var" keyword as the type name.
+                            // Implicitly typed field symbols are not allowed in regular C#,
+                            // but they are allowed in interactive scenario.
+                            // However, we can return fieldSymbol.Type for implicitly typed field symbols in both cases.
+                            // Note that for regular C#, fieldSymbol.Type would be an error type.
+
+                            var variableDecl = type.Parent as VariableDeclarationSyntax;
+                            if (variableDecl != null && variableDecl.Variables.Any())
                             {
-                                return binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol;
-                            }
-
-                            Symbol result = bindVarAsAliasFirst
-                                ? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol
-                                : null;
-
-                            // CONSIDER: we might bind "var" twice - once to see if it is an alias and again
-                            // as the type of a declared field.  This should only happen for GetAliasInfo
-                            // calls on implicitly-typed fields (rare?).  If it becomes a problem, then we
-                            // probably need to have the FieldSymbol retain alias info when it does its own
-                            // binding and expose it to us here.
-
-                            if ((object)result == null || result.Kind == SymbolKind.ErrorType)
-                            {
-                                // We might be in a field declaration with "var" keyword as the type name.
-                                // Implicitly typed field symbols are not allowed in regular C#,
-                                // but they are allowed in interactive scenario.
-                                // However, we can return fieldSymbol.Type for implicitly typed field symbols in both cases.
-                                // Note that for regular C#, fieldSymbol.Type would be an error type.
-
-                                var variableDecl = type.Parent as VariableDeclarationSyntax;
-                                if (variableDecl != null && variableDecl.Variables.Any())
+                                var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());
+                                if ((object)fieldSymbol != null)
                                 {
-                                    var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());
-                                    if ((object)fieldSymbol != null)
-                                    {
-                                        result = fieldSymbol.Type;
-                                    }
+                                    result = fieldSymbol.Type;
                                 }
                             }
+                        }
 
-                            return result ?? binder.BindTypeOrAlias(type, diagnostics, basesBeingResolved).Symbol;
-                        }
-                        else
-                        {
-                            return binder.BindNamespaceOrTypeOrAliasSymbol(type, diagnostics, basesBeingResolved, basesBeingResolved != null).Symbol;
-                        }
+                        return result ?? binder.BindTypeOrAlias(type, BindingDiagnosticBag.Discarded, basesBeingResolved).Symbol;
                     }
-                    finally
+                    else
                     {
-                        diagnostics.Free();
+                        return binder.BindNamespaceOrTypeOrAliasSymbol(type, BindingDiagnosticBag.Discarded, basesBeingResolved, basesBeingResolved != null).Symbol;
                     }
                 }
             }
@@ -773,8 +764,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal AttributeSemanticModel CreateSpeculativeAttributeSemanticModel(int position, AttributeSyntax attribute, Binder binder, AliasSymbol aliasOpt, NamedTypeSymbol attributeType)
         {
-            var memberModel = Compilation.IsNullableAnalysisEnabled ? GetMemberModel(position) : null;
+            var memberModel = IsNullableAnalysisEnabledAtSpeculativePosition(position, attribute) ? GetMemberModel(position) : null;
             return AttributeSemanticModel.CreateSpeculative(this, attribute, attributeType, aliasOpt, binder, memberModel?.GetRemappedSymbols(), position);
+        }
+
+        internal bool IsNullableAnalysisEnabledAtSpeculativePosition(int position, SyntaxNode speculativeSyntax)
+        {
+            Debug.Assert(speculativeSyntax.SyntaxTree != SyntaxTree);
+
+            // https://github.com/dotnet/roslyn/issues/50234: CSharpSyntaxTree.IsNullableAnalysisEnabled() does not differentiate
+            // between no '#nullable' directives and '#nullable restore' - it returns null in both cases. Since we fallback to the
+            // directives in the original syntax tree, we're not handling '#nullable restore' correctly in the speculative text.
+            return ((CSharpSyntaxTree)speculativeSyntax.SyntaxTree).IsNullableAnalysisEnabled(speculativeSyntax.Span) ??
+                Compilation.IsNullableAnalysisEnabledIn((CSharpSyntaxTree)SyntaxTree, new TextSpan(position, 0));
         }
 
         private MemberSemanticModel GetMemberModel(int position)
@@ -1269,9 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private AttributeSemanticModel CreateModelForAttribute(Binder enclosingBinder, AttributeSyntax attribute, MemberSemanticModel containingModel)
         {
             AliasSymbol aliasOpt;
-            DiagnosticBag discarded = DiagnosticBag.GetInstance();
-            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt).Type;
-            discarded.Free();
+            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, BindingDiagnosticBag.Discarded, out aliasOpt).Type;
 
             return AttributeSemanticModel.Create(
                 this,
@@ -2347,13 +2347,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override Symbol RemapSymbolIfNecessaryCore(Symbol symbol)
         {
-            if (!(symbol is LocalSymbol || symbol is ParameterSymbol || symbol is MethodSymbol)
-                || symbol.Locations.IsDefaultOrEmpty)
+            Debug.Assert(symbol is LocalSymbol or ParameterSymbol or MethodSymbol { MethodKind: MethodKind.LambdaMethod });
+
+            if (symbol.Locations.IsDefaultOrEmpty)
             {
                 return symbol;
             }
 
-            var position = CheckAndAdjustPosition(symbol.Locations[0].SourceSpan.Start);
+            var location = symbol.Locations[0];
+            // The symbol may be from a distinct syntax tree - perhaps the
+            // symbol was returned from LookupSymbols() for instance.
+            if (location.SourceTree != this.SyntaxTree)
+            {
+                return symbol;
+            }
+
+            var position = CheckAndAdjustPosition(location.SourceSpan.Start);
             var memberModel = GetMemberModel(position);
             return memberModel?.RemapSymbolIfNecessaryCore(symbol) ?? symbol;
         }

@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             infoBarUIs.Add(new InfoBarUI(
                 ServicesVSResources.Learn_more,
                 InfoBarUI.UIKind.HyperLink,
-                () => BrowserHelper.StartBrowser(new Uri("https://go.microsoft.com/fwlink/?linkid=842308")),
+                () => VisualStudioNavigateToLinkService.StartBrowser(new Uri("https://go.microsoft.com/fwlink/?linkid=842308")),
                 closeAfterAction: false));
 
             if (exception != null)

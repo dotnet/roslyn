@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax.IsKind(SyntaxKind.RecordDeclaration));
         }
 
-        protected sealed override void MethodChecks(DiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             var syntax = (CSharpSyntaxNode)syntaxReferenceOpt.GetSyntax();
             var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntax.SyntaxTree);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract bool AllowRefOrOut { get; }
 #nullable disable
 
-        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
@@ -235,6 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we haven't found the constructor part that declares the variable:
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal abstract override bool IsNullableAnalysisEnabled();
 
         protected abstract CSharpSyntaxNode GetInitializer();
 

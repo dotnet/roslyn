@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
     {
         private static ExportProvider ExportProvider => EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
 
-        [ConditionalFact(typeof(x86))]
+        [Fact]
         public void TestNoCyclesInFixProviders()
         {
             // This test will fail if a cycle is detected in the ordering of our code fix providers.

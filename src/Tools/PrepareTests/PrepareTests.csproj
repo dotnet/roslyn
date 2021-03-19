@@ -8,4 +8,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Mono.Options" Version="$(MonoOptionsVersion)" />
+  </ItemGroup>
 </Project>

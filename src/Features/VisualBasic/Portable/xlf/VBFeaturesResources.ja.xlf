@@ -102,6 +102,11 @@
         <target state="translated">モジュール メンバーから 'Shared' キーワードを削除</target>
         <note>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Shared_constructor">
+        <source>Shared constructor</source>
+        <target state="new">Shared constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
         <source>Type a name here to declare a new field.</source>
         <target state="translated">新しいフィールドを宣言するには、ここに名前を入力します。</target>
@@ -110,6 +115,11 @@
       <trans-unit id="Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
         <source>Note: Space completion is disabled to avoid potential interference. To insert a name from the list, use tab.</source>
         <target state="translated">注: 潜在的な干渉を避けるため、スペースの補完は無効になっています。リストから名前を挿入するには、タブを使用します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="new">({0} Events)</target>
         <note />
       </trans-unit>
       <trans-unit id="new_field">

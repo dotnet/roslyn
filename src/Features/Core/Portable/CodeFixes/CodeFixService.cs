@@ -775,6 +775,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     logger.Value.LogException(fixer, e);
                 }
+
                 return ImmutableArray<DiagnosticId>.Empty;
             }
         }

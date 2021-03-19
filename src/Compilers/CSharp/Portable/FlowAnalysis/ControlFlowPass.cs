@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { }
         }
 
-        protected override LocalFunctionState CreateLocalFunctionState() => new LocalFunctionState(UnreachableState());
+        protected override LocalFunctionState CreateLocalFunctionState(LocalFunctionSymbol symbol) => new LocalFunctionState(UnreachableState());
 
         protected override bool Meet(ref LocalState self, ref LocalState other)
         {

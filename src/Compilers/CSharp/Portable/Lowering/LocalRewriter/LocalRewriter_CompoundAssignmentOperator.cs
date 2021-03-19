@@ -364,12 +364,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 transformedReceiver,
                 indexer,
                 rewrittenArguments,
-                default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string>),
                 argumentRefKinds,
-                false,
-                default(ImmutableArray<int>),
-                default(BitVector),
-                null,
+                expanded: false,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 indexerAccess.Type);
         }
 

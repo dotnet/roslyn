@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en" target-language="zh-HANS" original="../ScriptingResources.resx">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../ScriptingResources.resx">
     <body>
       <trans-unit id="CannotSetLanguageSpecificOption">
         <source>Cannot set {0} specific option {1} because the options were already configured for a different language.</source>

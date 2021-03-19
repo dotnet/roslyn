@@ -4687,5 +4687,59 @@ class Delta : A
     }
 }");
         }
+
+        [WorkItem(50765, "https://github.com/dotnet/roslyn/issues/50765")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestDelegateConstructorWithMissingType()
+        {
+            // CSharpProjectWithExtraType is added as a project reference to CSharpProjectGeneratingInto
+            // but not at the place we're actually invoking the fix.
+            await TestAsync(@"
+<Workspace>
+    <Project Language=""C#"" Name=""CSharpProjectWithExtraType"" CommonReferences=""true"">
+        <Document>
+public class ExtraType { }
+        </Document>
+    </Project>
+    <Project Language=""C#"" Name=""CSharpProjectGeneratingInto"" CommonReferences=""true"">
+        <ProjectReference>CSharpProjectWithExtraType</ProjectReference>
+        <Document>
+public class C
+{
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <ProjectReference>CSharpProjectGeneratingInto</ProjectReference>
+        <Document>
+public class InvokingConstructor
+{
+    public void M()
+    {
+        [|new C(42, 42)|];
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+public class C
+{
+    private int v1;
+    private int v2;
+
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+
+    public C(int v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+}
+        ", parseOptions: TestOptions.Regular);
+        }
     }
 }

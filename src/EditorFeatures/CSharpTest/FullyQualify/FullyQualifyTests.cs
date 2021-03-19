@@ -1418,5 +1418,83 @@ class C
     }
 }");
         }
+
+        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_Type()
+        {
+            await TestInRegularAndScriptAsync(
+@"using [|Math|];
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }",
+@"using static System.Math;
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }");
+        }
+
+        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_Namespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"using [|Collections|];
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }",
+@"using System.Collections;
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }");
+        }
+
+        [WorkItem(49986, "https://github.com/dotnet/roslyn/issues/49986")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_UsingStatic()
+        {
+            await TestInRegularAndScriptAsync(
+@"using static [|Math|];
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }",
+@"using static System.Math;
+
+class Class
+{
+    void Test()
+    {
+        Sqrt(1);
+    }");
+        }
+
+        [WorkItem(51274, "https://github.com/dotnet/roslyn/issues/51274")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestInUsingContext_UsingAlias()
+        {
+            await TestInRegularAndScriptAsync(
+@"using M = [|Math|]",
+@"using M = System.Math");
+        }
     }
 }

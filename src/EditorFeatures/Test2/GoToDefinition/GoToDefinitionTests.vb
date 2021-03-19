@@ -107,10 +107,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
         Private Shared Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
                 Function(document, cursorPosition, threadingContext, presenter)
-                    Dim lazyPresenter = New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(threadingContext, lazyPresenter), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(threadingContext, lazyPresenter))
+                        DirectCast(New CSharpGoToDefinitionService(threadingContext, presenter), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(threadingContext, presenter))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)
@@ -1056,6 +1055,33 @@ class Foo : IFoo1, IFoo2
     public void $$Bar()
     {
 
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
+        <WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToDefinitionInVarPatterns()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class [|C|] { }
+
+class D
+{
+    C M() => new C();
+
+    void M2()
+    {
+      if (M() is var$$ x)
+      {
+      }
     }
 }
         </Document>

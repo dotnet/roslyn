@@ -2210,7 +2210,8 @@ symbolValidator:=Sub([module])
                  End Sub)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40683: The test hook is blocked by this issue.
+        <WorkItem(40683, "https://github.com/dotnet/roslyn/issues/40683")>
         Public Sub VbCore_InvisibleViaInternalsVisibleTo()
             Dim other As VisualBasicCompilation = CompilationUtils.CreateEmptyCompilationWithReferences(
     <compilation name="HasIVTToCompilationVbCore">

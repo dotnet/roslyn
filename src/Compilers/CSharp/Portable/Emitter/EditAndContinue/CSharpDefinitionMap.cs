@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -32,12 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             IEnumerable<SemanticEdit> edits,
             MetadataDecoder metadataDecoder,
             CSharpSymbolMatcher mapToMetadata,
-            CSharpSymbolMatcher mapToPrevious)
+            CSharpSymbolMatcher? mapToPrevious)
             : base(edits)
         {
-            Debug.Assert(metadataDecoder != null);
-            Debug.Assert(mapToMetadata != null);
-
             _metadataDecoder = metadataDecoder;
             _mapToMetadata = mapToMetadata;
             _mapToPrevious = mapToPrevious ?? mapToMetadata;
@@ -46,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override SymbolMatcher MapToMetadataSymbolMatcher => _mapToMetadata;
         protected override SymbolMatcher MapToPreviousSymbolMatcher => _mapToPrevious;
 
-        protected override ISymbolInternal GetISymbolInternalOrNull(ISymbol symbol)
+        protected override ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol)
         {
             return (symbol as Symbols.PublicModel.Symbol)?.UnderlyingSymbol;
         }
@@ -57,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override LambdaSyntaxFacts GetLambdaSyntaxFacts()
             => CSharpLambdaSyntaxFacts.Instance;
 
-        internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, out string name, out int index)
+        internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
             => _mapToPrevious.TryGetAnonymousTypeName(template, out name, out index);
 
         internal override bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeDefinitionHandle handle)
@@ -196,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        protected override ITypeSymbolInternal TryGetStateMachineType(EntityHandle methodHandle)
+        protected override ITypeSymbolInternal? TryGetStateMachineType(EntityHandle methodHandle)
         {
             string typeName;
             if (_metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out typeName) ||

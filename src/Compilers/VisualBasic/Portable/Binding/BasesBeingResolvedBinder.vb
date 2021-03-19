@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Function CheckAccessibility(sym As Symbol,
-                                                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                     <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                      Optional accessThroughType As TypeSymbol = Nothing,
                                                      Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
             ' Accessibility checking may involve looking at base types. We need to pass this accessibility
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 currentBasesBeingResolved = currentBasesBeingResolved.PrependImplementsBeingResolved(implementsBeingResolved)
             Next
 
-            Return m_containingBinder.CheckAccessibility(sym, useSiteDiagnostics, accessThroughType, currentBasesBeingResolved)
+            Return m_containingBinder.CheckAccessibility(sym, useSiteInfo, accessThroughType, currentBasesBeingResolved)
         End Function
     End Class
 

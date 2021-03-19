@@ -6,148 +6,148 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
     Public Class AggregateKeywordRecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateNotInStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateNotInStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterReturnTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterReturnTest()
+            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterArgument1Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterArgument2Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterBinaryExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterNotTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterTypeOfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterTypeOfTest()
+            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterDoWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterDoWhileTest()
+            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterDoUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterDoUntilTest()
+            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterLoopWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub AggregateAfterLoopWhileTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "Aggregate")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterLoopUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub AggregateAfterLoopUntilTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "Aggregate")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterIfTest()
+            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterElseIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterElseIfTest()
+            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterElseSpaceIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterElseSpaceIfTest()
+            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterErrorTest()
+            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterThrowTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterThrowTest()
+            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterArrayInitializerSquiggleTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterArrayInitializerSquiggleTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterArrayInitializerCommaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterArrayInitializerCommaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "Aggregate")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SpecExample1Test() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub SpecExample1Test()
+            VerifyRecommendationsContain(
 <MethodBody>
 Dim orderTotals = _
     From cust In Customers _
     Where cust.State = "WA" _
     |
 </MethodBody>, "Aggregate")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function SpecExample2Test() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub SpecExample2Test()
+            VerifyRecommendationsContain(
 <MethodBody>
 Dim ordersTotal = _
     |
 </MethodBody>, "Aggregate")
-        End Function
+        End Sub
 
         <WorkItem(543173, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543173")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterMultiLineFunctionLambdaExprTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q2 = From i1 In arr Order By Function()
+        Public Sub AggregateAfterMultiLineFunctionLambdaExprTest()
+            VerifyRecommendationsContain(<MethodBody>Dim q2 = From i1 In arr Order By Function()
                                              Return 5
                                          End Function |</MethodBody>, "Aggregate")
-        End Function
+        End Sub
 
         <WorkItem(543174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543174")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterAnonymousObjectCreationExprTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q2 = From i1 In arr Order By New With {.Key = 10} |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterAnonymousObjectCreationExprTest()
+            VerifyRecommendationsContain(<MethodBody>Dim q2 = From i1 In arr Order By New With {.Key = 10} |</MethodBody>, "Aggregate")
+        End Sub
 
         <WorkItem(543219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543219")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterIntoClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q1 = From i1 In arr Group By i1 Into Count |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterIntoClauseTest()
+            VerifyRecommendationsContain(<MethodBody>Dim q1 = From i1 In arr Group By i1 Into Count |</MethodBody>, "Aggregate")
+        End Sub
 
         <WorkItem(543232, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543232")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AggregateAfterNestedAggregateFromClauseTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "Aggregate")
-        End Function
+        Public Sub AggregateAfterNestedAggregateFromClauseTest()
+            VerifyRecommendationsContain(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "Aggregate")
+        End Sub
 
         <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotInDelegateCreationTest() As Task
+        Public Sub NotInDelegateCreationTest()
             Dim code =
 <File>
 Module Program
@@ -163,7 +163,7 @@ Module Program
 End Module
 </File>
 
-            Await VerifyRecommendationsMissingAsync(code, "Aggregate")
-        End Function
+            VerifyRecommendationsMissing(code, "Aggregate")
+        End Sub
     End Class
 End Namespace

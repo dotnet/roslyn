@@ -139,7 +139,7 @@ Automatically format on return;
 Automatically format on paste;</source>
         <target state="translated">Yazarken otomatik biçimlendir;
 Noktalı virgül girildiğinde deyimi otomatik biçimlendir;
-Kapama küme ayracı girildiğinde otomatik biçimlendir
+Kapama küme ayracı girildiğinde otomatik biçimlendir;
 Return tuşuna basıldığında otomatik biçimlendir;
 Yapıştırma sonrasında otomatik biçimlendir;</target>
         <note>C# Formatting &gt; General options page keywords</note>

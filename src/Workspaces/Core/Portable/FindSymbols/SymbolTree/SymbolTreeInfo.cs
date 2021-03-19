@@ -525,13 +525,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var comparer = GetComparer(ignoreCase: false);
             var result = new OrderPreservingMultiDictionary<int, int>();
 
-            foreach (var kvp in inheritanceMap)
+            foreach (var (baseName, derivedNames) in inheritanceMap)
             {
-                var baseName = kvp.Key;
                 var baseNameIndex = BinarySearch(nodes, baseName);
                 Debug.Assert(baseNameIndex >= 0);
 
-                foreach (var derivedName in kvp.Value)
+                foreach (var derivedName in derivedNames)
                 {
                     foreach (var derivedNameIndex in FindNodeIndices(nodes, derivedName, comparer))
                     {

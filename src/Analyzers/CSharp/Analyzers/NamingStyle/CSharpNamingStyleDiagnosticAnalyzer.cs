@@ -24,19 +24,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
                 SyntaxKind.Parameter,
                 SyntaxKind.TypeParameter);
 
-        // Parameters of positional record declarations should be ignored because they also
-        // considered properties, and that naming style makes more sense
         protected override bool ShouldIgnore(ISymbol symbol)
-            => symbol.IsKind(SymbolKind.Parameter)
-            && IsParameterOfRecordDeclaration(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax());
-
-        private static bool IsParameterOfRecordDeclaration(SyntaxNode? node)
-            => node is ParameterSyntax
-            {
-                Parent: ParameterListSyntax
+        {
+            if (symbol.IsKind(SymbolKind.Parameter)
+                && symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is ParameterSyntax
                 {
-                    Parent: RecordDeclarationSyntax
-                }
-            };
+                    Parent: ParameterListSyntax
+                    {
+                        Parent: RecordDeclarationSyntax
+                    }
+                })
+            {
+                // Parameters of positional record declarations should be ignored because they also
+                // considered properties, and that naming style makes more sense
+                return true;
+            }
+
+            if (!symbol.CanBeReferencedByName)
+            {
+                // Explicit interface implementation falls into here, as they don't own their names
+                // Two symbols are involved here, and symbol.ExplicitInterfaceImplementations only applies for one
+                return true;
+            }
+
+            return false;
+        }
     }
 }

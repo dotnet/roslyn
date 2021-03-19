@@ -149,10 +149,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(ImmutableDictionary<DiagnosticDescriptor, IPerLanguageOption> supportedDiagnosticsWithOptions)
             : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
         {
-            foreach (var kvp in supportedDiagnosticsWithOptions)
-            {
-                AddDiagnosticIdToOptionMapping(kvp.Key.Id, kvp.Value);
-            }
+            foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
+                AddDiagnosticIdToOptionMapping(descriptor.Id, option);
         }
 
         /// <summary>
@@ -163,10 +161,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string language)
             : this(supportedDiagnosticsWithOptions.Keys.ToImmutableArray())
         {
-            foreach (var kvp in supportedDiagnosticsWithOptions)
-            {
-                AddDiagnosticIdToOptionMapping(kvp.Key.Id, kvp.Value, language);
-            }
+            foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
+                AddDiagnosticIdToOptionMapping(descriptor.Id, option, language);
         }
 
         /// <summary>
@@ -178,15 +174,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             string language)
             : this(supportedDiagnosticsWithLangaugeSpecificOptions.Keys.Concat(supportedDiagnosticsWithPerLanguageOptions.Keys).ToImmutableArray())
         {
-            foreach (var kvp in supportedDiagnosticsWithLangaugeSpecificOptions)
-            {
-                AddDiagnosticIdToOptionMapping(kvp.Key.Id, kvp.Value, language);
-            }
+            foreach (var (descriptor, option) in supportedDiagnosticsWithLangaugeSpecificOptions)
+                AddDiagnosticIdToOptionMapping(descriptor.Id, option, language);
 
-            foreach (var kvp in supportedDiagnosticsWithPerLanguageOptions)
-            {
-                AddDiagnosticIdToOptionMapping(kvp.Key.Id, kvp.Value);
-            }
+            foreach (var (descriptor, option) in supportedDiagnosticsWithPerLanguageOptions)
+                AddDiagnosticIdToOptionMapping(descriptor.Id, option);
         }
 
         private static void AddDiagnosticIdToOptionMapping(string diagnosticId, IPerLanguageOption? option)

@@ -453,6 +453,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 {
                     nullableFlowState = GetNullabilityAnalysis(document.Project.Solution.Workspace, semanticModel, firstSymbol, bindableParent, cancellationToken);
                 }
+
                 return (semanticModel, new TokenInformation(symbols, isAwait, nullableFlowState));
             }
 

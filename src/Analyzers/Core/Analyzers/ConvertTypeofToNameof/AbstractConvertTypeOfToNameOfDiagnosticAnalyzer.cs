@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             {
                 return;
             }
+
             var location = parent.GetLocation();
             var options = context.Compilation.Options;
             context.ReportDiagnostic(
@@ -82,6 +83,7 @@ namespace Microsoft.CodeAnalysis.ConvertTypeOfToNameOf
             {
                 return false;
             }
+
             return typeofOperation.TypeOperand is INamedTypeSymbol namedType && !namedType.IsGenericType;
         }
     }

@@ -85,15 +85,15 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new XAttribute(nameof(Value), GetValueForSerialization()),
                 new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
-        private object? GetValueForSerialization()
+        private object GetValueForSerialization()
         {
             if (typeof(T) == typeof(string))
             {
-                return Value;
+                return Value!;
             }
             else if (typeof(T) == typeof(bool))
             {
-                return Value;
+                return Value!;
             }
             else if (IsZeroOrOneValueOfEnum())
             {
@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 return nameof(String);
             }
+
             if (typeof(T) == typeof(bool) || IsZeroOrOneValueOfEnum())
             {
                 return nameof(Boolean);
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var typeAttribute = element.Attribute("Type");
             var valueAttribute = element.Attribute(nameof(Value));
             var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
-            var version = (int)element.Attribute(nameof(SerializationVersion));
+            var version = (int?)element.Attribute(nameof(SerializationVersion));
 
             if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
             {

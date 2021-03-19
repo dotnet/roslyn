@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BadExpression(node.Syntax, node.Type, node);
                     }
 
-                    return new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeCreation);
+                    return new BoundObjectCreationExpression(node.Syntax, nullableCtor, rangeCreation);
                 }
 
                 return rangeCreation;
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // new Nullable(makeRange(left.GetValueOrDefault(), right.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeExpr);
+            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, rangeExpr);
 
             // default
             BoundExpression alternative = new BoundDefaultExpression(node.Syntax, node.Type);
