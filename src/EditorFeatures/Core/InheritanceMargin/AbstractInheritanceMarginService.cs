@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // Go down the inheritance chain to find all the implementing targets.
             var implementedMembers = await GetImplementedSymbolsAsync(solution, memberSymbol, cancellationToken).ConfigureAwait(false);
 
-            if (overriddenMembers.Any() || overridingMembers.Any() ||implementingMembers.Any() ||implementedMembers.Any())
+            if (overriddenMembers.Any() || overridingMembers.Any() || implementingMembers.Any() || implementedMembers.Any())
             {
                 var lineNumber = GetIdentifierLineNumber(sourceText, declarationNode);
                 var item = await CreateInheritanceMemberInfoForMemberAsync(

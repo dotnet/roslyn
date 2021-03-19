@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
         protected override ImmutableArray<SyntaxNode> GetMembers(SyntaxNode root, TextSpan spanToSearch)
         {
             var typeDeclarationNodes = root
-                .DescendantNodes(node => node is TypeDeclarationSyntax && node.Span.IntersectsWith(spanToSearch));
+                .DescendantNodes(spanToSearch).OfType<TypeDeclarationSyntax>();
 
             using var _ = PooledObjects.ArrayBuilder<SyntaxNode>.GetInstance(out var builder);
             foreach (var typeDeclarationNode in typeDeclarationNodes)
@@ -37,24 +38,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
                 builder.Add(typeDeclarationNode);
 
                 // 2. Add type members inside this type declaration.
-                foreach (var member in ((TypeDeclarationSyntax)typeDeclarationNode).Members)
+                foreach (var member in typeDeclarationNode.Members)
                 {
-                    if (member.Span.IntersectsWith(spanToSearch))
+                    if (member.IsKind(
+                        SyntaxKind.MethodDeclaration,
+                        SyntaxKind.PropertyDeclaration,
+                        SyntaxKind.EventDeclaration))
                     {
-                        if (member.IsKind(
-                            SyntaxKind.MethodDeclaration,
-                            SyntaxKind.PropertyDeclaration,
-                            SyntaxKind.EventDeclaration))
-                        {
-                            builder.Add(member);
-                        }
+                        builder.Add(member);
+                    }
 
-                        // For multiple events that declared in the same EventFieldDeclaration,
-                        // add all VariableDeclarators
-                        if (member is EventFieldDeclarationSyntax eventFieldDeclarationNode)
-                        {
-                            builder.AddRange(eventFieldDeclarationNode.Declaration.Variables);
-                        }
+                    // For multiple events that declared in the same EventFieldDeclaration,
+                    // add all VariableDeclarators
+                    if (member is EventFieldDeclarationSyntax eventFieldDeclarationNode)
+                    {
+                        builder.AddRange(eventFieldDeclarationNode.Declaration.Variables);
                     }
                 }
             }
