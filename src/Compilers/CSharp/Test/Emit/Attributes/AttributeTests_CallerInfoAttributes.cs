@@ -236,16 +236,18 @@ caller target value
 callerTargetExp");
         }
 
-        [Fact(Skip = "PROTOTYPE")]
-        public void TestPROTOTYPE()
+        // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
+        [Fact]
+        public void TestArgumentExpressionIsCallerMember()
         {
             string source = @"
 using System;
 using System.Runtime.CompilerServices;
+
 C.M();
+
 public static class C
 {
-    // PROTOTYPE: What the behavior should be?
     public static void M(
         [CallerMemberName] string callerName = """",
         [CallerArgumentExpression(""callerName"")] string argumentExp = """")
@@ -254,22 +256,36 @@ public static class C
         Console.WriteLine(argumentExp);
     }
 }
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
-    public sealed class CallerArgumentExpressionAttribute : Attribute
-    {
-        public CallerArgumentExpressionAttribute(string parameterName)
-        {
-            ParameterName = parameterName;
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "<Main>$");
         }
-        public string ParameterName { get; }
+
+        // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
+        [Fact]
+        public void TestArgumentExpressionIsReferingToItself()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+C.M();
+C.M(""value"");
+
+public static class C
+{
+    public static void M(
+        [CallerArgumentExpression(""p"")] string p = """")
+    {
+        Console.WriteLine(p);
     }
 }
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: "");
+            CompileAndVerify(compilation, expectedOutput: @"
+value");
         }
 
         [Fact]

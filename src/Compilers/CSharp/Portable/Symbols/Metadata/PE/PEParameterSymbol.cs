@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             private const int WellKnownAttributeDataMask = (0x1 << 10) - 1;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
-            private const int FlowAnalysisAnnotationsMask = 0xFF; // "f" is only 10 bits, why the mask is 12 bits? I'm afraid this can cause problems, especially since we're using the all 32bits now.
+            private const int FlowAnalysisAnnotationsMask = 0xFF;
 
             private const int HasNameInMetadataBit = 0x1 << 22;
             private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 23;

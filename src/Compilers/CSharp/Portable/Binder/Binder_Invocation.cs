@@ -1378,6 +1378,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // - Test combining different attributes (e.g, both CallerArgumentExpression and MemberCallerName).
                     // - Test having the CallerArgumentExpression tied to an optional parameter that doesn't exist in callsite.
                     // - Test having a non-existent expression.
+
+                    // PROTOTYPE(caller-expr): Do we need to support VB?
+                    // PROTOTYPE(caller-expr): Do we need to add a warning/error for pre-C# 10 using this feature?
+
                     var argument = arguments[argumentIndex];
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
