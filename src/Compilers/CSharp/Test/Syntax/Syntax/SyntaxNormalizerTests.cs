@@ -649,6 +649,13 @@ $"  ///  </summary>{Environment.NewLine}" +
             TestNormalizeDeclaration("public (string prefix,string uri)Foo()", "public (string prefix, string uri) Foo()");
         }
 
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointer()
+        {
+            TestNormalizeDeclaration("delegate * <string, int> M() => throw null;", "delegate*<string, int> M() => throw null;");
+        }
+
         [Theory]
         [InlineData("_=()=>{};", "_ = () =>\r\n{\r\n};")]
         [InlineData("_=x=>{};", "_ = x =>\r\n{\r\n};")]

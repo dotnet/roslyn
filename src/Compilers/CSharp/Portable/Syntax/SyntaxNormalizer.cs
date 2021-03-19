@@ -434,6 +434,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
+            if (token.IsKind(SyntaxKind.GreaterThanToken) && token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
+            {
+                return true;
+            }
+
             if (token.IsKind(SyntaxKind.CommaToken) &&
                 !next.IsKind(SyntaxKind.CommaToken) &&
                 !token.Parent.IsKind(SyntaxKind.EnumDeclaration))
@@ -488,6 +493,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (token.IsKind(SyntaxKind.EqualsToken) || next.IsKind(SyntaxKind.EqualsToken))
             {
                 return true;
+            }
+
+            // No space after asterisk in function pointer.
+            if (token.IsKind(SyntaxKind.AsteriskToken) && token.Parent.IsKind(SyntaxKind.FunctionPointerType))
+            {
+                return false;
+            }
+
+            // No space before asterisk in function pointer.
+            if (next.IsKind(SyntaxKind.AsteriskToken) && next.Parent.IsKind(SyntaxKind.FunctionPointerType))
+            {
+                return false;
             }
 
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken) || next.IsKind(SyntaxKind.EqualsGreaterThanToken))
