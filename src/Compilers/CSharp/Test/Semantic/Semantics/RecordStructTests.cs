@@ -3569,7 +3569,6 @@ record struct A<T>;
         [Fact]
         public void RecordEquals_01()
         {
-            // PROTOTYPE(record-structs): ported
             var source = @"
 var a1 = new B();
 var a2 = new B();
@@ -3716,6 +3715,25 @@ class B
             Assert.False(recordEquals.IsOverride);
             Assert.False(recordEquals.IsSealed);
             Assert.True(recordEquals.IsImplicitlyDeclared);
+
+            var objectEquals = comp.GetMembers("A.Equals").OfType<SynthesizedRecordObjEquals>().Single();
+            Assert.Equal("System.Boolean A.Equals(System.Object obj)", objectEquals.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, objectEquals.DeclaredAccessibility);
+            Assert.False(objectEquals.IsAbstract);
+            Assert.False(objectEquals.IsVirtual);
+            Assert.True(objectEquals.IsOverride);
+            Assert.False(objectEquals.IsSealed);
+            Assert.True(objectEquals.IsImplicitlyDeclared);
+
+            MethodSymbol gethashCode = comp.GetMembers("A." + WellKnownMemberNames.ObjectGetHashCode).OfType<SynthesizedRecordGetHashCode>().Single();
+            Assert.Equal("System.Int32 A.GetHashCode()", gethashCode.ToTestDisplayString());
+            Assert.Equal(Accessibility.Public, gethashCode.DeclaredAccessibility);
+            Assert.False(gethashCode.IsStatic);
+            Assert.False(gethashCode.IsAbstract);
+            Assert.False(gethashCode.IsVirtual);
+            Assert.True(gethashCode.IsOverride);
+            Assert.False(gethashCode.IsSealed);
+            Assert.True(gethashCode.IsImplicitlyDeclared);
         }
 
         [Fact]

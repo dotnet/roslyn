@@ -3945,7 +3945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void reportStaticOrNotOverridableAPIInRecord(Symbol symbol, BindingDiagnosticBag diagnostics)
             {
-                if (symbol.ContainingType.IsReferenceType &&
+                if (isRecordClass &&
                     !IsSealed &&
                     ((!symbol.IsAbstract && !symbol.IsVirtual && !symbol.IsOverride) || symbol.IsSealed))
                 {

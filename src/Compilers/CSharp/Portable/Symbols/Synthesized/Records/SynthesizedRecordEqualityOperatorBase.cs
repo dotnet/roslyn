@@ -61,13 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
+            var annotation = ContainingType.IsRecordStruct ? NullableAnnotation.Oblivious : NullableAnnotation.Annotated;
             return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Boolean, location, diagnostics)),
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
-                                                                    TypeWithAnnotations.Create(ContainingType, ContainingType.IsReferenceType ? NullableAnnotation.Annotated : NullableAnnotation.Oblivious),
+                                                                    TypeWithAnnotations.Create(ContainingType, annotation),
                                                                     ordinal: 0, RefKind.None, "r1", isDiscard: false, Locations),
                                     new SourceSimpleParameterSymbol(owner: this,
-                                                                    TypeWithAnnotations.Create(ContainingType, ContainingType.IsReferenceType ? NullableAnnotation.Annotated : NullableAnnotation.Oblivious),
+                                                                    TypeWithAnnotations.Create(ContainingType, annotation),
                                                                     ordinal: 1, RefKind.None, "r2", isDiscard: false, Locations)));
         }
 

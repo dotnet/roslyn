@@ -62,16 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var r2 = F.Parameter(Parameters[1]);
 
                 BoundExpression expression;
-                if (ContainingType.IsReferenceType)
+                if (ContainingType.IsRecordStruct)
+                {
+                    expression = F.Call(r1, equals, r2);
+                }
+                else
                 {
                     BoundExpression objectEqual = F.ObjectEqual(r1, r2);
                     BoundExpression recordEquals = F.LogicalAnd(F.ObjectNotEqual(r1, F.Null(F.SpecialType(SpecialType.System_Object))),
                                                             F.Call(r1, equals, r2));
                     expression = F.LogicalOr(objectEqual, recordEquals);
-                }
-                else
-                {
-                    expression = F.Call(r1, equals, r2);
                 }
 
                 F.CloseMethod(F.Block(F.Return(expression)));

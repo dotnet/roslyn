@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
+            var annotation = ContainingType.IsRecordStruct ? NullableAnnotation.Oblivious : NullableAnnotation.Annotated;
             return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Boolean, location, diagnostics)),
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
-                                                                    TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Object, location, diagnostics),
-                                                                        ContainingType.IsReferenceType ? NullableAnnotation.Annotated : NullableAnnotation.Oblivious),
+                                                                    TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Object, location, diagnostics), annotation),
                                                                     ordinal: 0, RefKind.None, "obj", isDiscard: false, Locations)),
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var paramAccess = F.Parameter(Parameters[0]);
 
                 BoundExpression expression;
-                if (ContainingType.IsStructType())
+                if (ContainingType.IsRecordStruct)
                 {
                     // For record structs:
                     //      return other is R && Equals((R)other)

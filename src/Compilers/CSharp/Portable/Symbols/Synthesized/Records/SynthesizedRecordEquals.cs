@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordEquals(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectEquals, hasBody: true, memberOffset, diagnostics)
         {
-            Debug.Assert(equalityContract is null == containingType.IsStructType());
+            Debug.Assert(equalityContract is null == containingType.IsRecordStruct);
             _equalityContract = equalityContract;
         }
 
@@ -37,10 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
+            var annotation = ContainingType.IsRecordStruct ? NullableAnnotation.Oblivious : NullableAnnotation.Annotated;
             return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Boolean, location, diagnostics)),
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
-                                                                    TypeWithAnnotations.Create(ContainingType, ContainingType.IsReferenceType ? NullableAnnotation.Annotated : NullableAnnotation.Oblivious),
+                                                                    TypeWithAnnotations.Create(ContainingType, annotation),
                                                                     ordinal: 0, RefKind.None, "other", isDiscard: false, Locations)),
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
@@ -60,13 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // This method is the strongly-typed Equals method where the parameter type is
                 // the containing type.
 
-                bool isRecordStruct = ContainingType.IsStructType();
+                bool isRecordStruct = ContainingType.IsRecordStruct;
                 if (isRecordStruct)
                 {
                     // We'll produce:
-                    // virtual bool Equals(T other) =>
+                    // bool Equals(T other) =>
                     //     field1 == other.field1 && ... && fieldN == other.fieldN;
-                    retExpr = F.Literal(true);
+                    // or simply true if no fields.
+                    retExpr = null;
                 }
                 else if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
@@ -161,12 +163,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         fields,
                         F);
                 }
+                else if (retExpr is null)
+                {
+                    retExpr = F.Literal(true);
+                }
 
                 fields.Free();
+
                 if (!isRecordStruct)
                 {
                     retExpr = F.LogicalOr(F.ObjectEqual(F.This(), other), retExpr);
                 }
+
                 F.CloseMethod(F.Block(F.Return(retExpr)));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

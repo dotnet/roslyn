@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SynthesizedRecordGetHashCode(SourceMemberContainerTypeSymbol containingType, PropertySymbol? equalityContract, int memberOffset, BindingDiagnosticBag diagnostics)
             : base(containingType, WellKnownMemberNames.ObjectGetHashCode, memberOffset, diagnostics)
         {
-            Debug.Assert(containingType.IsReferenceType == equalityContract is not null);
+            Debug.Assert(containingType.IsRecordStruct == equalityContract is null);
             _equalityContract = equalityContract;
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol? equalityComparer_get_Default = null;
                 BoundExpression? currentHashValue;
 
-                if (ContainingType.IsStructType())
+                if (ContainingType.IsRecordStruct)
                 {
                     currentHashValue = null;
                 }
