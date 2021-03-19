@@ -707,8 +707,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 var attributeInfos = _moduleSymbol.Module.FindTargetAttributes(_handle, AttributeDescription.NotNullIfNotNullAttribute);
-
                 var result = ImmutableHashSet<string>.Empty;
+                if (attributeInfos is null)
+                {
+                    return result;
+                }
+                
                 foreach (var attributeInfo in attributeInfos)
                 {
                     if (_moduleSymbol.Module.TryExtractStringValueFromAttribute(attributeInfo.Handle, out string parameterName))
