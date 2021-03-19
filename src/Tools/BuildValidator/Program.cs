@@ -338,9 +338,9 @@ namespace BuildValidator
                 try
                 {
                     compilation = buildConstructor.CreateCompilation(
-                        optionsReader,
                         originalBinary.Name,
-                        sources,
+                        optionsReader,
+                        sources.Select(x => new SyntaxTreeInfo(x.SourceFileInfo.SourceFilePath, x.SourceText)).ToImmutableArray(),
                         metadataReferences);
                 }
                 catch (Exception ex)

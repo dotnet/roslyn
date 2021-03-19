@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var sources = original.SyntaxTrees.Select(st =>
             {
                 var text = st.GetText();
-                return new ResolvedSource(OnDiskPath: null, text, new SourceFileInfo(path, text.ChecksumAlgorithm, text.GetChecksum().ToArray(), text, embeddedCompressedHash: null));
+                return new SyntaxTreeInfo(path, text);
             }).ToImmutableArray();
             var references = original.References.ToImmutableArray();
-            var compilation = bc.CreateCompilation(optionsReader, path, sources, references);
+            var compilation = bc.CreateCompilation("test.exe", optionsReader, sources, references);
             compilation.VerifyEmitDiagnostics();
         }
     }
