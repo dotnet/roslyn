@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryByVal
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnnecessaryByVal), [Shared]>
     Friend Class VisualBasicRemoveUnnecessaryByValCodeFixProvider
         Inherits SyntaxEditorBasedCodeFixProvider
 

@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddAsync), [Shared]>
     Friend Class VisualBasicMakeMethodAsynchronousCodeFixProvider
         Inherits AbstractMakeMethodAsynchronousCodeFixProvider
 
