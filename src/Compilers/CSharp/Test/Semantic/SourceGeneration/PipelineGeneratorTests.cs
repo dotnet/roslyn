@@ -85,9 +85,12 @@ class C { }
 
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
-            driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+            driver = driver.RunGenerators(compilation);
+            driver = driver.RunGenerators(compilation);
+            driver = driver.RunGenerators(compilation);
+            driver = driver.RunGenerators(compilation);
+            driver = driver.RunGenerators(compilation);
 
-            outputCompilation.VerifyDiagnostics();
         }
 
 
@@ -170,9 +173,10 @@ class C { }
             previous = gst.ToImmutable();
             gst = new GraphStateTable.Builder(previous);
 
-            // ok. lets *edit* some values :/
+            // ok. lets *edit* some values
             ((MultiItemValueProvider<string>)sources.Strings.node).UpdateValue(7, "replaced_at_7");
             var updated = t5.node.GetStateTable(gst);
+
 
 
         }

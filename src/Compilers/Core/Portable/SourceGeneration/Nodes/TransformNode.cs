@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -36,7 +37,8 @@ namespace Microsoft.CodeAnalysis
             // get the parent state table
             var sourceTable = stateTable.GetLatestStateTableForNode(_sourceNode);
 
-            int addedOffset = 0;
+            // TODO: if the input node returns all cached values, then we can just
+            //       return the previous table.
 
             var newTable = new StateTable<TOutput>.Builder();
 
@@ -57,41 +59,41 @@ namespace Microsoft.CodeAnalysis
 
                     if (entry.state == EntryState.Added)
                     {
+                        //TODO: assert that this entry is at a greater index than the child table.
+                        //      added nodes should always come at the *end* of the parent table, never in between
+                        //      or it will alter the following indicies.
+
+                        //TODO: how does that affect arrays when we collect/join?
+                        //      I dont think that'll be true will it?
+
                         // insert the new entry. remember the new offset
                         newTable.AddEntries(newEntries, EntryState.Added);
-                        addedOffset++;
                     }
                     else
                     {
-                        // grab the old entries. (TODO: we need to consider the added offset here, no?) Need to figure this part out, but my brain hurts without an example to do so.
-
                         var oldEntries = previousTable.GetEntries(entry.index).ToImmutableArray();
 
                         IEqualityComparer<TOutput> comparer = EqualityComparer<TOutput>.Default;
 
+                        bool areEqualLength = oldEntries.Length == newEntries.Length;
+                        var updatedEntries = ArrayBuilder<(TOutput, EntryState)>.GetInstance(areEqualLength ? oldEntries.Length : oldEntries.Length + newEntries.Length);
+
                         // if the old entries are the same length as the new ones, we do an element x element check for modification.
-                        if (oldEntries.Length == newEntries.Length)
+                        if (areEqualLength)
                         {
-                            //TODO: use arraybuilder
-                            List<(TOutput, EntryState)> updatedEntries = new List<(TOutput, EntryState)>(newEntries.Length);
                             for (int i = 0; i < newEntries.Length; i++)
                             {
                                 var cacheState = comparer.Equals(oldEntries[i], newEntries[i]) ? EntryState.Cached : EntryState.Modified;
                                 updatedEntries.Add((newEntries[i], cacheState));
                             }
-
-                            //TODO: setEntries will never work now though? because we're *always* rebuilding the table from scratch?
-                            newTable.AddEntries(updatedEntries.ToImmutableArray());
                         }
                         // when they are different, we just set the old entries as removed, and add new ones.
                         else
                         {
-                            //TODO: use builder
-                            List<(TOutput, EntryState)> updatedEntries = new List<(TOutput, EntryState)>(oldEntries.Length + newEntries.Length);
                             updatedEntries.AddRange(oldEntries.SelectAsArray(o => (o, EntryState.Removed)));
                             updatedEntries.AddRange(newEntries.SelectAsArray(e => (e, EntryState.Added)));
-                            newTable.AddEntries(updatedEntries.ToImmutableArray());
                         }
+                        newTable.AddEntries(updatedEntries.ToImmutableArray());
                     }
                 }
             }
