@@ -154,22 +154,7 @@ class Program
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source,
-                new[]
-                {
-                    // /0/Test0.cs(1,8): error CS1056: Unexpected character '¡'
-                    DiagnosticResult.CompilerError("CS1056").WithSpan(1, 8, 1, 8).WithArguments("¡"),
-                    // /0/Test0.cs(1,8): error CS1513: } expected
-                    DiagnosticResult.CompilerError("CS1513").WithSpan(1, 8, 1, 9),
-                    // /0/Test0.cs(1,8): error CS1514: { expected
-                    DiagnosticResult.CompilerError("CS1514").WithSpan(1, 8, 1, 9),
-                    // /0/Test0.cs(2,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(2, 1, 2, 2),
-                    // /0/Test0.cs(7,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(7, 1, 7, 2),
-                },
-                source);
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [WorkItem(545139, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545139")]
@@ -188,22 +173,7 @@ class D
     }
 }";
 
-            await VerifyCS.VerifyCodeFixAsync(
-                source,
-                new[]
-                {
-                    // /0/Test0.cs(3,8): error CS1056: Unexpected character '¡'
-                    DiagnosticResult.CompilerError("CS1056").WithSpan(3, 8, 3, 8).WithArguments("¡"),
-                    // /0/Test0.cs(3,8): error CS1513: } expected
-                    DiagnosticResult.CompilerError("CS1513").WithSpan(3, 8, 3, 9),
-                    // /0/Test0.cs(3,8): error CS1514: { expected
-                    DiagnosticResult.CompilerError("CS1514").WithSpan(3, 8, 3, 9),
-                    // /0/Test0.cs(4,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(4, 1, 4, 2),
-                    // /0/Test0.cs(11,1): error CS1022: Type or namespace definition, or end-of-file expected
-                    DiagnosticResult.CompilerError("CS1022").WithSpan(11, 1, 11, 2),
-                },
-                source);
+            await VerifyCS.VerifyCodeFixAsync(source, source);
         }
 
         [WorkItem(545142, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545142")]
