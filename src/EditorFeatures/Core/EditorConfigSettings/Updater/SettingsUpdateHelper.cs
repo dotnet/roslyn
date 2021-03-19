@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 {
                     var severity = codeStyleOption.Notification switch
                     {
-                        { Severity: ReportDiagnostic.Hidden } => "refactoring",
+                        { Severity: ReportDiagnostic.Hidden } => "silent",
                         { Severity: ReportDiagnostic.Info } => "suggestion",
                         { Severity: ReportDiagnostic.Warn } => "warning",
                         { Severity: ReportDiagnostic.Error } => "error",
