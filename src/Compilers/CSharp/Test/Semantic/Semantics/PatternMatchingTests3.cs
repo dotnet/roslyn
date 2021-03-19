@@ -7470,5 +7470,34 @@ $@"class Circle
                 //         if (shape is Circle { Radius: >= 100 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
         }
+
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
+        [Fact]
+        public void MismatchedConstantType_03()
+        {
+            var sourceA =
+@"class Program
+{
+    static void Main()
+    {
+        if (shape is Circle { Radius: >= 100 })
+        {
+        }
+    }
+}";
+            var sourceB =
+@"class Circle
+{
+    public event System.Func<double> Radius;
+}";
+            var compilation = CreateCompilation(new[] { sourceA, sourceB });
+            compilation.VerifyDiagnostics(
+                // (3,38): warning CS0067: The event 'Circle.Radius' is never used
+                //     public event System.Func<double> Radius;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Radius").WithArguments("Circle.Radius").WithLocation(3, 38),
+                // (5,13): error CS0103: The name 'shape' does not exist in the current context
+                //         if (shape is Circle { Radius: >= 100 })
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
+        }
     }
 }
