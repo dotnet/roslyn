@@ -331,6 +331,51 @@ namespace N
             edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("N.Program.Main")));
         }
 
+        [Fact]
+        public void Using_Insert_CreatesAmbiguousCode()
+        {
+            // This test validates that we still issue edits for changed valid code, even when unchanged
+            // code has ambiguities after adding a using.
+            var src1 = @"
+using System.Threading;
+
+namespace N
+{
+    class C
+    {
+        void M()
+        {
+            // Timer exists in System.Threading and System.Timers
+            var t = new Timer(s => System.Console.WriteLine(s));
+        }
+    }
+}";
+            var src2 = @"
+using System.Threading;
+using System.Timers;
+
+namespace N
+{
+    class C
+    {
+        void M()
+        {
+            // Timer exists in System.Threading and System.Timers
+            var t = new Timer(s => System.Console.WriteLine(s));
+        }
+
+        void M2()
+        {
+             // TimersDescriptionAttribute only exists in System.Timers
+            System.Console.WriteLine(new TimersDescriptionAttribute(""""));
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.C.M2")));
+        }
+
         #endregion
 
         #region Extern Alias
