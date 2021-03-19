@@ -4,9 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -91,11 +88,5 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void InsertCode(string text)
             => _interactiveWindowInProc.InsertCode(text);
-
-        public void SetTimeout(int milliseconds)
-            => _interactiveWindowInProc.SetTimeout(milliseconds);
-
-        public int GetTimeoutInMilliseconds()
-            => _interactiveWindowInProc.GetTimeoutInMilliseconds();
     }
 }
