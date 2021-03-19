@@ -77,6 +77,12 @@ namespace Microsoft.CodeAnalysis.Serialization
 
                 if (searchingChecksumsLeft.Remove(checksum))
                 {
+                    if (value is MetadataReference reference)
+                    {
+                        var actualChecksum = SerializerService.CreateChecksum(reference, cancellationToken);
+                        Contract.ThrowIfFalse(checksum == actualChecksum);
+                    }
+
                     result[checksum] = value;
                 }
             }
