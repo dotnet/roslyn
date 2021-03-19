@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -15,9 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Debugging;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;

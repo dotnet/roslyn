@@ -18,7 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             MyBase.New(context, filterOutOfScopeLocals, cancellationToken)
         End Sub
 
-        Public Overrides Function GetSymbols() As ImmutableArray(Of ISymbol)
+        Public Overrides Function GetRecommendedSymbols() As RecommendedSymbols
+            Return New RecommendedSymbols(GetSymbols())
+        End Function
+
+        Private Overloads Function GetSymbols() As ImmutableArray(Of ISymbol)
             If _context.SyntaxTree.IsInNonUserCode(_context.Position, _cancellationToken) OrElse
                _context.SyntaxTree.IsInSkippedText(_context.Position, _cancellationToken) Then
                 Return ImmutableArray(Of ISymbol).Empty

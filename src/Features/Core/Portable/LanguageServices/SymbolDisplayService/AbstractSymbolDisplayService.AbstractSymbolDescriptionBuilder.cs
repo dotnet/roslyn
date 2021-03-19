@@ -82,8 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private readonly SemanticModel _semanticModel;
             private readonly int _position;
             private readonly IAnonymousTypeDisplayService _anonymousTypeDisplayService;
-            private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap =
-                new();
+            private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = new();
             protected readonly Workspace Workspace;
             protected readonly CancellationToken CancellationToken;
 
@@ -106,6 +105,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected abstract void AddAwaitableExtensionPrefix();
             protected abstract void AddDeprecatedPrefix();
             protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
+            protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
+            protected abstract string GetNavigationHint(ISymbol symbol);
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
@@ -372,7 +373,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             }
 
             private IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> BuildDescriptionSections()
-                => _groupMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToTaggedText());
+                => _groupMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToTaggedText(GetNavigationHint));
 
             private void AddDescriptionForDynamicType()
             {
@@ -716,7 +717,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
             {
                 format ??= MinimallyQualifiedFormat;
-                return symbol.ToMinimalDisplayParts(_semanticModel, _position, format);
+                return ToMinimalDisplayParts(symbol, _semanticModel, _position, format);
             }
 
             private static IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
