@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener),
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt, TaggerDelay.OnIdle, TaggerDelay.OnIdle),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, InheritanceMarginOptions.ShowInheritanceMargin, TaggerDelay.OnIdle));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin, TaggerDelay.OnIdle));
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
         {
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
             var cancellationToken = context.CancellationToken;
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var featureEnabled = options.GetOption(InheritanceMarginOptions.ShowInheritanceMargin);
+            var featureEnabled = options.GetOption(FeatureOnOffOptions.ShowInheritanceMargin);
             if (!featureEnabled)
             {
                 return;

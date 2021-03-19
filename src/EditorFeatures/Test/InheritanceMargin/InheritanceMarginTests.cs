@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
 
             testWorkspace.SetOptions(
                 testWorkspace.Options.WithChangedOption(
-                    InheritanceMarginOptions.ShowInheritanceMargin,
+                    FeatureOnOffOptions.ShowInheritanceMargin,
                     languageName,
                     true));
 

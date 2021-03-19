@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.ImplementType;
-using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Remote;
@@ -120,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForLambdaParameterTypes, InlineHintsOptions.ForLambdaParameterTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForImplicitObjectCreation, InlineHintsOptions.ForImplicitObjectCreation, LanguageNames.CSharp);
 
-            BindToOption(ShowInheritanceMargin, InheritanceMarginOptions.ShowInheritanceMargin, LanguageNames.CSharp);
+            BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -207,16 +206,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             this.OptionStore.SetOption(InlineHintsOptions.EnabledForTypes, LanguageNames.CSharp, false);
             UpdateInlineHintsOptions();
-        }
-
-        private void ShowInheritanceMargin_Checked(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InheritanceMarginOptions.ShowInheritanceMargin, LanguageNames.CSharp, true);
-        }
-
-        private void ShowInheritanceMargin_Unchecked(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InheritanceMarginOptions.ShowInheritanceMargin, LanguageNames.CSharp, false);
         }
     }
 }

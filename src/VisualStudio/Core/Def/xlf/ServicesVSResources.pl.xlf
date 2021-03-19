@@ -877,11 +877,6 @@
         <target state="translated">Wybierz składowe:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_Inheritance_Margin">
-        <source>Show Inheritance Margin</source>
-        <target state="new">Show Inheritance Margin</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
         <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
         <target state="new">Show "Remove Unused References" command in Solution Explorer (experimental)</target>
@@ -915,6 +910,11 @@
       <trans-unit id="Show_hints_for_variables_with_inferred_types">
         <source>Show hints for variables with inferred types</source>
         <target state="translated">Pokaż wskazówki dla zmiennych z wnioskowanymi typami</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_inheritance_margin">
+        <source>Show inheritance margin</source>
+        <target state="new">Show inheritance margin</target>
         <note />
       </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">

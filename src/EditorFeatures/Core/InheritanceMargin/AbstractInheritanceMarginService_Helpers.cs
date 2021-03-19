@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         /// <summary>
         /// For the <param name="memberSymbol"/>, get all the implemented symbols.
+        /// Table for the mapping between images and inheritanceRelationship
+        /// Implemented : I↓
+        /// Implementing : I↑
+        /// Overridden: O↓
+        /// Overriding: O↑
         /// </summary>
         private static async Task<ImmutableArray<ISymbol>> GetImplementedSymbolsAsync(
             Solution solution,
@@ -112,6 +117,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         /// <summary>
         /// Get members overriding the <param name="memberSymbol"/>
+        /// Table for the mapping between images and inheritanceRelationship
+        /// Implemented : I↓
+        /// Implementing : I↑
+        /// Overridden: O↓
+        /// Overriding: O↑
         /// </summary>
         private static ImmutableArray<ISymbol> GetOverridingSymbols(ISymbol memberSymbol)
         {

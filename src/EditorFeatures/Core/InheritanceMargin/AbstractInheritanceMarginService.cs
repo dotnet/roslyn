@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ArrayBuilder<InheritanceMemberItem> builder,
             CancellationToken cancellationToken)
         {
-            // Get all base types
+            // Get all base types.
             var allBaseTypes = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
 
             // Filter out
@@ -128,16 +128,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ArrayBuilder<InheritanceMemberItem> builder,
             CancellationToken cancellationToken)
         {
-            /* For a given member symbol (method, property and event), its base and derived symbols are classified into 4 cases
-             * 1. overriding
-             * Only applies to an override/virtual member, its based symbols are 'overriding'
-             * 2. overridden
-             * Only applies to an override/virtual/abstract member, its override symbols in subclasses are 'overridden'
-             * 3. implementing
-             * Applies to member implements a member in interface.
-             * 4. implemented
-             * Applies to member in interface, its implementation in subclasses are 'implemented'
-             */
+            // For a given member symbol (method, property and event), its base and derived symbols are classified into 4 cases.
+            // The mapping between images
+            // Implemented : I↓
+            // Implementing : I↑
+            // Overridden: O↓
+            // Overriding: O↑
 
             // Go down the inheritance chain to find all the overrides targets.
             var overriddenMembers = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -168,7 +164,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         }
 
         /// <summary>
-        /// A sets of widely used TypeSymbol that we don't want to show in margin
+        /// A set of widely used TypeSymbols that we don't want to show in margin
         /// </summary>
         private static bool IsUnwantedBaseType(ITypeSymbol symbol)
         {
