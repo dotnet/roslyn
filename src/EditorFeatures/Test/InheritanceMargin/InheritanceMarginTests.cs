@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private const string SearchAreaTag = "SeachTag";
 
         #region Helpers
+
+        private static Task VerifyNoItemForDocumentAsync(string markup, string languageName)
+            => VerifyInSingleDocumentAsync(markup, languageName);
+
         private static async Task VerifyInSingleDocumentAsync(
             string markup,
             string languageName,
@@ -95,13 +99,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             Assert.Equal(expectedTarget.TargetSymbolName, actualTarget.DefinitionItem.DisplayParts.JoinText());
             Assert.Equal(expectedTarget.RelationshipToMember, actualTarget.RelationToMember);
 
-            var actualDocumentSpans = actualTarget.DefinitionItem.SourceSpans.OrderBy(documentSpan => documentSpan.SourceSpan.Start).ToImmutableArray();
-            var expectedDocumentSpans = expectedTarget.DocumentSpans.OrderBy(documentSpan => documentSpan.SourceSpan.Start).ToImmutableArray();
-            Assert.Equal(expectedDocumentSpans.Length, actualDocumentSpans.Length);
-            for (var i = 0; i < actualDocumentSpans.Length; i++)
+            if (expectedTarget.IsInMetadata)
             {
-                Assert.Equal(expectedDocumentSpans[i].SourceSpan, actualDocumentSpans[i].SourceSpan);
-                Assert.Equal(expectedDocumentSpans[i].Document.FilePath, actualDocumentSpans[i].Document.FilePath);
+                Assert.True(actualTarget.DefinitionItem.Properties.ContainsKey("MetadataSymbolKey"));
+                Assert.True(actualTarget.DefinitionItem.SourceSpans.IsEmpty);
+            }
+            else
+            {
+                var actualDocumentSpans = actualTarget.DefinitionItem.SourceSpans.OrderBy(documentSpan => documentSpan.SourceSpan.Start).ToImmutableArray();
+                var expectedDocumentSpans = expectedTarget.DocumentSpans.OrderBy(documentSpan => documentSpan.SourceSpan.Start).ToImmutableArray();
+                Assert.Equal(expectedDocumentSpans.Length, actualDocumentSpans.Length);
+                for (var i = 0; i < actualDocumentSpans.Length; i++)
+                {
+                    Assert.Equal(expectedDocumentSpans[i].SourceSpan, actualDocumentSpans[i].SourceSpan);
+                    Assert.Equal(expectedDocumentSpans[i].Document.FilePath, actualDocumentSpans[i].Document.FilePath);
+                }
             }
         }
 
@@ -125,8 +137,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private readonly struct TargetInfo
         {
             public readonly string TargetSymbolDisplayName;
-            public readonly string LocationTag;
+            public readonly string? LocationTag;
             public readonly InheritanceRelationship Relationship;
+            public readonly bool InMetadata;
 
             public TargetInfo(
                 string targetSymbolDisplayName,
@@ -136,6 +149,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 TargetSymbolDisplayName = targetSymbolDisplayName;
                 LocationTag = locationTag;
                 Relationship = relationship;
+                InMetadata = false;
+            }
+
+            public TargetInfo(
+                string targetSymbolDisplayName,
+                InheritanceRelationship relationship,
+                bool inMetadata)
+            {
+                TargetSymbolDisplayName = targetSymbolDisplayName;
+                Relationship = relationship;
+                InMetadata = inMetadata;
+                LocationTag = null;
             }
         }
 
@@ -144,36 +169,56 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             public readonly string TargetSymbolName;
             public readonly InheritanceRelationship RelationshipToMember;
             public readonly ImmutableArray<DocumentSpan> DocumentSpans;
+            public readonly bool IsInMetadata;
 
-            private TestInheritanceTargetItem(
+            public TestInheritanceTargetItem(
                 string targetSymbolName,
                 InheritanceRelationship relationshipToMember,
-                ImmutableArray<DocumentSpan> documentSpans)
+                 ImmutableArray<DocumentSpan> documentSpans,
+                  bool isInMetadata)
             {
                 TargetSymbolName = targetSymbolName;
                 RelationshipToMember = relationshipToMember;
                 DocumentSpans = documentSpans;
+                IsInMetadata = isInMetadata;
             }
 
             public static TestInheritanceTargetItem Create(
                 TargetInfo targetInfo,
                 TestWorkspace testWorkspace)
             {
-                using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var builder);
-                foreach (var testHostDocument in testWorkspace.Documents)
+                if (targetInfo.InMetadata)
                 {
-                    var annotatedSpans = testHostDocument.AnnotatedSpans;
-                    if (annotatedSpans.TryGetValue(targetInfo.LocationTag, out var spans))
-                    {
-                        var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
-                        builder.AddRange(spans.Select(span => new DocumentSpan(document, span)));
-                    }
+                    return new TestInheritanceTargetItem(
+                        targetInfo.TargetSymbolDisplayName,
+                        targetInfo.Relationship,
+                        ImmutableArray<DocumentSpan>.Empty,
+                        isInMetadata: true);
                 }
+                else
+                {
+                    using var _ = ArrayBuilder<DocumentSpan>.GetInstance(out var builder);
+                    // If the target is not in metadata, there must be a location tag to give the span!
+                    Assert.True(targetInfo.LocationTag != null);
+                    foreach (var testHostDocument in testWorkspace.Documents)
+                    {
+                        if (targetInfo.LocationTag != null)
+                        {
+                            var annotatedSpans = testHostDocument.AnnotatedSpans;
+                            if (annotatedSpans.TryGetValue(targetInfo.LocationTag, out var spans))
+                            {
+                                var document = testWorkspace.CurrentSolution.GetRequiredDocument(testHostDocument.Id);
+                                builder.AddRange(spans.Select(span => new DocumentSpan(document, span)));
+                            }
+                        }
+                    }
 
-                return new TestInheritanceTargetItem(
-                    targetInfo.TargetSymbolDisplayName,
-                    targetInfo.Relationship,
-                    builder.ToImmutable());
+                    return new TestInheritanceTargetItem(
+                        targetInfo.TargetSymbolDisplayName,
+                        targetInfo.Relationship,
+                        builder.ToImmutable(),
+                        isInMetadata: false);
+                }
             }
         }
 
@@ -284,6 +329,139 @@ class {|target1:B|} : A { }
                 LanguageNames.CSharp,
                 itemOnLine2,
                 itemOnLine3);
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("enum")]
+        [InlineData("interface")]
+        public Task TestTypeWithoutBaseType(string typeName)
+        {
+            var markup = $@"
+public {typeName} Bar
+{{
+}}";
+            return VerifyNoItemForDocumentAsync(markup, LanguageNames.CSharp);
+        }
+
+        [Theory]
+        [InlineData("public Bar() { }")]
+        [InlineData("public static void Bar3() { }")]
+        [InlineData("public static void ~Bar() { }")]
+        [InlineData("public static Bar operator +(Bar a, Bar b) => new Bar();")]
+        public Task TestSpecialMember(string memberDeclartion)
+        {
+            var markup = $@"
+public abstract class {{|target1:Bar1|}}
+{{}}
+public class Bar : Bar1
+{{
+    {{|{SearchAreaTag}:{memberDeclartion}|}}
+}}";
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.CSharp,
+                new TestInheritanceMemberItem(
+                    lineNumber: 4,
+                    memberName: "Bar",
+                    targets: ImmutableArray.Create(
+                        new TargetInfo(
+                            targetSymbolDisplayName: "class Bar1",
+                            locationTag: "target1",
+                            relationship: InheritanceRelationship.Implementing))));
+        }
+
+        [Fact]
+        public Task TestMetadataInterface()
+        {
+            var markup = @"
+using System.Collections;
+public class Bar : IEnumerable
+{
+}";
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.CSharp,
+                new TestInheritanceMemberItem(
+                    lineNumber: 3,
+                    memberName: "Bar",
+                    targets: ImmutableArray.Create(
+                        new TargetInfo(
+                                targetSymbolDisplayName: "interface IEnumerable",
+                                relationship: InheritanceRelationship.Implementing,
+                                inMetadata: true))));
+        }
+
+        [Fact]
+        public Task TestEventFieldDeclarations()
+        {
+            var markup = @"using System;
+interface {|target2:IBar|}
+{
+    event EventHandler {|target5:e1|}, {|target6:e2|};
+}
+public class {|target1:Bar|} : IBar
+{
+    public event EventHandler {|target3:e1|}, {|target4:e2|};
+}";
+            var itemForIBar = new TestInheritanceMemberItem(
+                lineNumber: 2,
+                memberName: "IBar",
+                ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "class Bar",
+                    locationTag: "target1",
+                    relationship: InheritanceRelationship.Implemented)));
+
+            var itemForBar = new TestInheritanceMemberItem(
+                lineNumber: 6,
+                memberName: "Bar",
+                ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "interface IBar",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.Implementing)));
+
+            var itemForE1InInterface = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "event EventHandler IBar.e1",
+                ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "event EventHandler Bar.e1",
+                    locationTag: "target3",
+                    relationship: InheritanceRelationship.Implemented)));
+
+            var itemForE2InInterface = new TestInheritanceMemberItem(
+                lineNumber: 4,
+                memberName: "event EventHandler IBar.e2",
+                ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "event EventHandler Bar.e2",
+                    locationTag: "target4",
+                    relationship: InheritanceRelationship.Implemented)));
+
+            var itemForE1InClass = new TestInheritanceMemberItem(
+                lineNumber: 8,
+                memberName: "event EventHandler Bar.e1",
+                ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "event EventHandler IBar.e1",
+                    locationTag: "target5",
+                    relationship: InheritanceRelationship.Implementing)));
+
+            var itemForE2InClass = new TestInheritanceMemberItem(
+                lineNumber: 8,
+                memberName: "event EventHandler Bar.e2",
+                ImmutableArray.Create(new TargetInfo(
+                    targetSymbolDisplayName: "event EventHandler IBar.e2",
+                    locationTag: "target6",
+                    relationship: InheritanceRelationship.Implementing)));
+
+            return VerifyInSingleDocumentAsync(
+                markup,
+                LanguageNames.CSharp,
+                itemForIBar,
+                itemForBar,
+                itemForE1InInterface,
+                itemForE2InInterface,
+                itemForE1InClass,
+                itemForE2InClass);
         }
 
         [Fact]
@@ -500,6 +678,7 @@ public class {{|target1:Bar2|}} : Bar
                 itemForEooInClass,
                 itemForEooInAbstractClass);
         }
+
         #endregion
     }
 }

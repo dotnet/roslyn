@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
         End Sub
 
         Protected Overrides Function GetMembers(root As SyntaxNode, spanToSearch As TextSpan) As ImmutableArray(Of SyntaxNode)
-            Dim typeBlockNodes = root.DescendantNodes(spanToSearch).OfType(Of TypeBlockSyntax)
+            Dim typeBlockNodes = root.DescendantNodes(spanToSearch).OfType(Of TypeBlockSyntax).ToImmutableArray()
 
             Dim builder As ArrayBuilder(Of SyntaxNode) = Nothing
             Using ArrayBuilder(Of SyntaxNode).GetInstance(builder)
