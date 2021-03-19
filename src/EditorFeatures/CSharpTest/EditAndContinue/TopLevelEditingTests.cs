@@ -53,9 +53,7 @@ using System.Collections.Generic;
                 "Delete [using D = System.Diagnostics;]@2",
                 "Delete [using System.Collections;]@33");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.using_directive),
-                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -75,9 +73,7 @@ using System.Collections.Generic;
                 "Insert [using D = System.Diagnostics;]@2",
                 "Insert [using System.Collections;]@33");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "using D = System.Diagnostics;", CSharpFeaturesResources.using_directive),
-                Diagnostic(RudeEditKind.Insert, "using System.Collections;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -98,8 +94,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using System.Collections;]@29 -> [using X = System.Collections;]@29");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using X = System.Collections;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -120,8 +115,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using X1 = System.Collections;]@29 -> [using X2 = System.Collections;]@29");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using X2 = System.Collections;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -142,8 +136,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using System.Diagnostics;]@2 -> [using System;]@2");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using System;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
