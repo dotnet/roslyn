@@ -700,18 +700,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         if (attribute.IsTargetAttribute(this, AttributeDescription.CallerArgumentExpressionAttribute))
                         {
-                            // TODO: Extract this to a helper and share between SourceComplexParameterSymbol
-                            if (attribute.CommonConstructorArguments.Length == 1) // PROTOTYPE: else?? Should produce a diagnostic?
+                            if (attribute.DecodeCallerArgumentExpressionAttribute() is string parameterName)
                             {
-                                if (attribute.CommonConstructorArguments[0].TryDecodeValue(SpecialType.System_String, out string parameterName))
+                                var parameters = ContainingSymbol.GetParameters();
+                                for (int i = 0; i < parameters.Length; i++)
                                 {
-                                    var parameters = ContainingSymbol.GetParameters();
-                                    for (int i = 0; i < parameters.Length; i++)
+                                    if (parameters[i].Name == parameterName)
                                     {
-                                        if (parameters[i].Name == parameterName)
-                                        {
-                                            return i;
-                                        }
+                                        return i;
                                     }
                                 }
                             }
