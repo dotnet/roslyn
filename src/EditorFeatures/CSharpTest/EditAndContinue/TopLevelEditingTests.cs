@@ -211,6 +211,126 @@ namespace N
                 "Delete [using System.Collections;]@22");
         }
 
+        [Fact]
+        public void Using_Delete_ChangesCodeMeaning()
+        {
+            // This test specifically validates the scenario we _don't_ support, namely when inserting or deleting
+            // a using directive, if existing code changes in meaning as a result, we don't issue edits for that code.
+            // If this ever regresses then please buy a lottery ticket because the feature has magically fixed itself.
+            var src1 = @"
+using System.IO;
+using DirectoryInfo = N.C;
+
+namespace N
+{
+    public class C
+    {
+        public C(string a) { }
+        public FileAttributes Attributes { get; set; }
+    }
+
+    public class D
+    {
+        public void M()
+        {
+            var d = new DirectoryInfo(""a"");
+            var x = directoryInfo.Attributes;
+        }
+    }
+}";
+            var src2 = @"
+using System.IO;
+
+namespace N
+{
+    public class C
+    {
+        public FileAttributes Attributes { get; set; }
+    }
+
+    public class D
+    {
+        public void M()
+        {
+            var d = new DirectoryInfo(""aa"");
+            var x = directoryInfo.Attributes;
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Delete [using DirectoryInfo = N.C;]@20");
+
+            edits.VerifySemantics();
+        }
+
+        [Fact]
+        public void Using_Insert_ForNewCode()
+        {
+            // As distinct from the above, this test validates a real world scenario of inserting a using directive
+            // and changing code that utilizes the new directive to some effect.
+            var src1 = @"
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+    }
+}";
+            var src2 = @"
+using System;
+
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(""Hello World!"");
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("N.Program.Main")));
+        }
+
+        [Fact]
+        public void Using_Delete_ForOldCode()
+        {
+            var src1 = @"
+using System;
+
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(""Hello World!"");
+        }
+    }
+}";
+            var src2 = @"
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("N.Program.Main")));
+        }
+
         #endregion
 
         #region Extern Alias
