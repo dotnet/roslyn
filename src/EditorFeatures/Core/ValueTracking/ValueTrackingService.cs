@@ -112,6 +112,5 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             public ValueTask OnStartedAsync() => new();
         }
-
     }
 }
