@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 
         public async Task<IReadOnlyList<TextChange>?> GetChangedEditorConfigAsync()
         {
-            var changes = await Task.WhenAll(_providers.Select(x => x.GetChangedEditorConfigAsync())).ConfigureAwait(false);
+            var changesArray = await Task.WhenAll(_providers.Select(x => x.GetChangedEditorConfigAsync())).ConfigureAwait(false);
 
-            changes = changes.WhereNotNull().ToArray();
+            var changes = changesArray.WhereNotNull();
             if (!changes.Any())
                 return null;
 
