@@ -68,7 +68,15 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// Gets custom tags for the CodeAction.
         /// </summary>
-        public virtual ImmutableArray<string> CustomTags => ImmutableArray<string>.Empty;
+        public ImmutableArray<string> CustomTags { get; protected set; } = ImmutableArray<string>.Empty;
+
+        /// <summary>
+        /// Used by the CodeFixService and CodeRefactoringService to add the Provider Name as a CustomTag.
+        /// </summary>
+        internal void AddCustomTag(string tag)
+        {
+            CustomTags = CustomTags.Add(tag);
+        }
 
         /// <summary>
         /// The sequence of operations that define the code action.
@@ -366,16 +374,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public SimpleCodeAction(
                 string title,
                 string? equivalenceKey,
-                ImmutableArray<string>? customTags = null)
+                IEnumerable<string>? customTags = null)
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
-                CustomTags = customTags.GetValueOrDefault(base.CustomTags);
+
+                CustomTags = customTags.ToImmutableArrayOrEmpty();
             }
 
             public sealed override string Title { get; }
             public sealed override string? EquivalenceKey { get; }
-            public sealed override ImmutableArray<string> CustomTags { get; }
         }
 
         internal class CodeActionWithNestedActions : SimpleCodeAction
@@ -385,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 ImmutableArray<CodeAction> nestedActions,
                 bool isInlinable,
                 CodeActionPriority priority = CodeActionPriority.Medium,
-                ImmutableArray<string>? customTags = null)
+                IEnumerable<string>? customTags = null)
                 : base(title, ComputeEquivalenceKey(nestedActions), customTags)
             {
                 Debug.Assert(nestedActions.Length > 0);
@@ -427,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
                 string? equivalenceKey = null,
-                ImmutableArray<string>? customTags = null)
+                IEnumerable<string>? customTags = null)
                 : base(title, equivalenceKey, customTags)
             {
                 _createChangedDocument = createChangedDocument;
@@ -445,7 +453,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution,
                 string? equivalenceKey = null,
-                ImmutableArray<string>? customTags = null)
+                IEnumerable<string>? customTags = null)
                 : base(title, equivalenceKey, customTags)
             {
                 _createChangedSolution = createChangedSolution;
@@ -460,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             public NoChangeAction(
                 string title,
                 string? equivalenceKey = null,
-                ImmutableArray<string>? customTags = null)
+                IEnumerable<string>? customTags = null)
                 : base(title, equivalenceKey, customTags)
             {
             }

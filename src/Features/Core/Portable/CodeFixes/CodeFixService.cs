@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         // Shared by project fixers and workspace fixers.
         private ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>> _fixerToFixableIdsMap = ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>>.Empty;
+        private ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata> _fixerToMetadataMap = ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata>.Empty;
 
         private readonly Func<Workspace, ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>> _getFixerPriorityMap;
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>? _lazyFixerPriorityMap;
@@ -66,6 +67,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             _errorLoggers = loggers;
             _diagnosticService = diagnosticAnalyzerService;
+
+            _fixerToMetadataMap = fixers.ToImmutableDictionary(service => service.Value, service => service.Metadata);
             var fixersPerLanguageMap = fixers.ToPerLanguageMapWithMultipleLanguages();
             var configurationProvidersPerLanguageMap = configurationProviders.ToPerLanguageMapWithMultipleLanguages();
 
@@ -399,19 +402,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         getFixes: dxs =>
                         {
                             var fixerName = fixer.GetType().Name;
+                            var fixerMetadata = _fixerToMetadataMap[fixer];
+
                             using (addOperationScope(fixerName))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixerName, cancellationToken))
                             {
                                 if (fixAllForInSpan)
                                 {
                                     var primaryDiagnostic = dxs.First();
-                                    return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking,
+                                    return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata, isBlocking,
                                         ImmutableArray.Create(primaryDiagnostic), uniqueDiagosticToEquivalenceKeysMap,
                                         diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                 }
                                 else
                                 {
-                                    return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs,
+                                    return GetCodeFixesAsync(document, span, fixer, fixerMetadata, isBlocking, dxs,
                                         uniqueDiagosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                 }
                             }
@@ -433,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
-            Document document, TextSpan span, CodeFixProvider fixer, bool isBlocking,
+            Document document, TextSpan span, CodeFixProvider fixer, CodeChangeProviderMetadata fixerMetadata, bool isBlocking,
             ImmutableArray<Diagnostic> diagnostics,
             Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap,
             Dictionary<(Diagnostic diagnostic, string? equivalenceKey), CodeFixProvider> diagnosticAndEquivalenceKeyToFixersMap,
@@ -453,6 +458,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                         if (!applicableDiagnostics.IsEmpty)
                         {
+                            // Add the CodeFix Provider Name to the parent CodeAction's CustomTags.
+                            action.AddCustomTag(fixerMetadata.Name ?? fixer.GetTypeDisplayName());
+
                             fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
                         }
                     }
