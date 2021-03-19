@@ -49,11 +49,15 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {
                     var location = Location.Create(syntaxRef.SyntaxTree, syntaxRef.Span);
+<<<<<<< HEAD
                     var item = await ValueTrackedItem.TryCreateAsync(solution, location, symbol, parent: null, cancellationToken).ConfigureAwait(false);
                     if (item is not null)
                     {
                         progressCollector.Push(item);
                     }
+=======
+                    progressCollector.Report(new ValueTrackedItem(location, symbol));
+>>>>>>> upstream/features/value_tracking
                 }
 
                 var findReferenceProgressCollector = new FindReferencesProgress(progressCollector);
@@ -112,7 +116,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     var item = await ValueTrackedItem.TryCreateAsync(solution, location.Location, symbol, parent: null, CancellationToken.None).ConfigureAwait(false);
                     if (item is not null)
                     {
-                        _valueTrackingProgressCollector.Push(item);
+                        _valueTrackingProgressCollector.Report(new ValueTrackedItem(location.Location, symbol));
                     }
                 }
             }

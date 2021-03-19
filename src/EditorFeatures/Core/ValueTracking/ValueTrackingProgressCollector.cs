@@ -8,14 +8,14 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
-    internal class ValueTrackingProgressCollector
+    internal class ValueTrackingProgressCollector : IProgress<ValueTrackedItem>
     {
         private readonly object _lock = new();
         private readonly Stack<ValueTrackedItem> _items = new();
 
         public event EventHandler<ValueTrackedItem>? OnNewItem;
 
-        public void Push(ValueTrackedItem item)
+        public void Report(ValueTrackedItem item)
         {
             lock (_lock)
             {
