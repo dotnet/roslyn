@@ -66,6 +66,14 @@
                               Unchecked="Show_items_from_unimported_namespaces_CheckedChanged"
                               Indeterminate="Show_items_from_unimported_namespaces_CheckedChanged"
                               IsThreeState="True"/>
+
+                    <CheckBox x:Uid="Tab_twice_to_insert_arguments"
+                                  x:Name="Tab_twice_to_insert_arguments"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Tab_twice_to_insert_arguments}" 
+                              Checked="Tab_twice_to_insert_arguments_CheckedChanged"
+                              Unchecked="Tab_twice_to_insert_arguments_CheckedChanged"
+                              Indeterminate="Tab_twice_to_insert_arguments_CheckedChanged"
+                              IsThreeState="True"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

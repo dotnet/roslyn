@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -84,6 +85,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             private readonly IAnonymousTypeDisplayService _anonymousTypeDisplayService;
             private readonly Dictionary<SymbolDescriptionGroups, IList<SymbolDisplayPart>> _groupMap = new();
             private readonly Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> _documentationMap = new();
+            private readonly Func<ISymbol, string> _getNavigationHint;
+
             protected readonly Workspace Workspace;
             protected readonly CancellationToken CancellationToken;
 
@@ -99,6 +102,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 CancellationToken = cancellationToken;
                 _semanticModel = semanticModel;
                 _position = position;
+                _getNavigationHint = GetNavigationHint;
             }
 
             protected abstract void AddExtensionPrefix();
@@ -106,6 +110,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected abstract void AddAwaitableExtensionPrefix();
             protected abstract void AddDeprecatedPrefix();
             protected abstract Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(ISymbol symbol);
+            protected abstract ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format);
+            protected abstract string GetNavigationHint(ISymbol symbol);
 
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormat { get; }
             protected abstract SymbolDisplayFormat MinimallyQualifiedFormatWithConstants { get; }
@@ -430,7 +436,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 // Merge the two maps into one final result.
                 var result = new Dictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>>(_documentationMap);
                 foreach (var (group, parts) in _groupMap)
-                    result[group] = parts.ToTaggedText();
+                    result[group] = parts.ToTaggedText(_getNavigationHint);
 
                 return result;
             }
@@ -777,7 +783,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             protected ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SymbolDisplayFormat format = null)
             {
                 format ??= MinimallyQualifiedFormat;
-                return symbol.ToMinimalDisplayParts(_semanticModel, _position, format);
+                return ToMinimalDisplayParts(symbol, _semanticModel, _position, format);
             }
 
             private static IEnumerable<SymbolDisplayPart> Part(SymbolDisplayPartKind kind, ISymbol symbol, string text)
