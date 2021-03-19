@@ -29,6 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
         private readonly ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings;
+#if DEBUG
+        private readonly ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts;
+#endif
+        private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 
         private const int LazyAllMembersIsSorted = 0x1;   // Set if "lazyAllMembers" is sorted.
         private int _flags;
@@ -46,18 +50,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _mergedDeclaration = mergedDeclaration;
 
             var builder = ImmutableDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
-
+#if DEBUG
+            var builderForAsserts = ImmutableDictionary.CreateBuilder<SingleNamespaceDeclaration, AliasesAndUsings>(ReferenceEqualityComparer.Instance);
+#endif
             foreach (var singleDeclaration in mergedDeclaration.Declarations)
             {
                 if (singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings)
                 {
                     builder.Add(singleDeclaration, new AliasesAndUsings());
                 }
+#if DEBUG
+                else
+                {
+                    builderForAsserts.Add(singleDeclaration, new AliasesAndUsings());
+                }
+#endif
 
                 diagnostics.AddRange(singleDeclaration.Diagnostics);
             }
 
             _aliasesAndUsings = builder.ToImmutable();
+#if DEBUG
+            _aliasesAndUsingsForAsserts = builderForAsserts.ToImmutable();
+#endif
         }
 
         internal MergedNamespaceDeclaration MergedDeclaration

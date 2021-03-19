@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.MembersCompleted:
                         {
+                            SingleNamespaceDeclaration targetDeclarationWithImports = null;
+
                             // ensure relevant imports are complete.
                             foreach (var declaration in _mergedDeclaration.Declarations)
                             {
@@ -34,9 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     if (declaration.HasGlobalUsings || declaration.HasUsings || declaration.HasExternAliases)
                                     {
+                                        targetDeclarationWithImports = declaration;
                                         _aliasesAndUsings[declaration].Complete(this, declaration.SyntaxReference, cancellationToken);
                                     }
                                 }
+                            }
+
+                            if (IsGlobalNamespace && (locationOpt is null || targetDeclarationWithImports is object))
+                            {
+                                GetMergedGlobalAliasesAndUsings(basesBeingResolved: null, cancellationToken).Complete(this, cancellationToken);
                             }
 
                             var members = this.GetMembers();

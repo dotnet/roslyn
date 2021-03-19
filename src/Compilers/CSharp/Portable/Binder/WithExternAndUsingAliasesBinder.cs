@@ -87,12 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// This overload is added primarily to shadow the one from the base.
+        /// This overload is added to shadow the one from the base.
         /// </summary>
-        [Obsolete]
+        [Obsolete("Use other overloads", error: true)]
         internal static new WithExternAndUsingAliasesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, Binder next)
         {
-            return new FromSyntax(declaringSymbol, declarationSyntax, (WithUsingNamespacesAndTypesBinder)next);
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal static WithExternAndUsingAliasesBinder Create(SourceNamespaceSymbol declaringSymbol, CSharpSyntaxNode declarationSyntax, WithUsingNamespacesAndTypesBinder next)
@@ -174,6 +174,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (_declarationSyntax)
                         {
                             case CompilationUnitSyntax compilationUnit:
+                                // Take global aliases from other compilation units into account
+                                foreach (var declaration in ((SourceNamespaceSymbol)Compilation.SourceModule.GlobalNamespace).MergedDeclaration.Declarations)
+                                {
+                                    if (declaration.HasGlobalUsings && compilationUnit.SyntaxTree != declaration.SyntaxReference.SyntaxTree)
+                                    {
+                                        result = result.AddAliasesIfAny(((CompilationUnitSyntax)declaration.SyntaxReference.GetSyntax()).Usings, onlyGlobalAliases: true);
+                                    }
+                                }
+
                                 usingDirectives = compilationUnit.Usings;
                                 break;
 

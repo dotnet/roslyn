@@ -1932,7 +1932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            Binder binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
+            Binder binder = _binderFactory.GetInNamespaceBinder(declarationSyntax.Parent);
 
             for (; binder != null; binder = binder.Next)
             {
@@ -1965,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(declarationSyntax);
 
-            var binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
+            var binder = _binderFactory.GetInNamespaceBinder(declarationSyntax.Parent);
 
             for (; binder != null; binder = binder.Next)
             {

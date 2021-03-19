@@ -2336,12 +2336,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void ReportUnusedImports(SyntaxTree? filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        internal override void ReportUnusedImports(DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            ReportUnusedImports(filterTree, new BindingDiagnosticBag(diagnostics), cancellationToken);
+            ReportUnusedImports(filterTree: null, new BindingDiagnosticBag(diagnostics), cancellationToken);
         }
 
-        internal void ReportUnusedImports(SyntaxTree? filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private void ReportUnusedImports(SyntaxTree? filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             if (_lazyImportInfos != null && (filterTree is null || ReportUnusedImportsInTree(filterTree)))
             {
@@ -2782,6 +2782,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnostics = DiagnosticBag.GetInstance();
             var bindingDiagnostics = new BindingDiagnosticBag(diagnostics);
 
+            // Report unused directives only if computing diagnostics for the entire tree.
+            // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
+            bool reportUnusedUsings = !span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan;
+
+            // PROTOTYPE(GlobalUsingDirective): We should consider optimizing and not recompiling the world every time we are asked for 
+            //                                  diagnostics in a tree with global imports. Perhaps, we should keep track of trees that
+            //                                  we already compiled and not recompile them. It might be also worth checking if any
+            //                                  global using in the tree is still considered unused.
+            SyntaxTree? filterTree = tree;
+            TextSpan? filterSpan = span;
+
+            if (reportUnusedUsings)
+            {
+                foreach (var singleDeclaration in ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).MergedDeclaration.Declarations)
+                {
+                    if (singleDeclaration.SyntaxReference.SyntaxTree == tree)
+                    {
+                        if (singleDeclaration.HasGlobalUsings)
+                        {
+                            // PROTOTYPE(GlobalUsingDirective): Compile the world for now.
+                            filterTree = null;
+                            filterSpan = null;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
                 moduleBeingBuiltOpt: null,
@@ -2790,16 +2819,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasDeclarationErrors: false,
                 emitMethodBodies: false,
                 diagnostics: bindingDiagnostics,
-                filterOpt: s => IsDefinedOrImplementedInSourceTree(s, tree, span),
+                filterOpt: filterTree is object ? (Predicate<Symbol>?)(s => IsDefinedOrImplementedInSourceTree(s, filterTree!, filterSpan)) : (Predicate<Symbol>?)null,
                 cancellationToken: cancellationToken);
 
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, bindingDiagnostics, cancellationToken, tree, span);
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, bindingDiagnostics, cancellationToken, filterTree, filterSpan);
 
-            // Report unused directives only if computing diagnostics for the entire tree.
-            // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
-            if (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan)
+            if (reportUnusedUsings)
             {
-                ReportUnusedImports(tree, diagnostics, cancellationToken);
+                ReportUnusedImports(tree, bindingDiagnostics, cancellationToken);
             }
 
             return diagnostics.ToReadOnlyAndFree();
