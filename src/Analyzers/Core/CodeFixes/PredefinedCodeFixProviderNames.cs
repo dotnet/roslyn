@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddBraces = nameof(AddBraces);
         public const string ChangeReturnType = nameof(ChangeReturnType);
         public const string ChangeToYield = nameof(ChangeToYield);
-        public const string ConfigureCodeStyleOption = nameof(ConfigureCodeStyleOption);
-        public const string ConfigureSeverity = nameof(ConfigureSeverity);
         public const string ConvertToAsync = nameof(ConvertToAsync);
         public const string ConvertToIterator = nameof(ConvertToIterator);
         public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
@@ -62,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string SimplifyNames = nameof(SimplifyNames);
         public const string SimplifyThisOrMe = nameof(SimplifyThisOrMe);
         public const string SpellCheck = nameof(SpellCheck);
-        public const string Suppression = nameof(Suppression);
         public const string AddOverloads = nameof(AddOverloads);
         public const string AddNew = nameof(AddNew);
         public const string RemoveNew = nameof(RemoveNew);
