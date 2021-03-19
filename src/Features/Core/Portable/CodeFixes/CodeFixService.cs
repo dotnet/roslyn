@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         // Shared by project fixers and workspace fixers.
         private ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>> _fixerToFixableIdsMap = ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>>.Empty;
-        private ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata> _fixerToMetadataMap = ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata>.Empty;
+        private readonly Lazy<ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata>> _lazyFixerToMetadataMap;
 
         private readonly Func<Workspace, ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>> _getFixerPriorityMap;
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>? _lazyFixerPriorityMap;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _errorLoggers = loggers;
             _diagnosticService = diagnosticAnalyzerService;
 
-            _fixerToMetadataMap = fixers.ToImmutableDictionary(service => service.Value, service => service.Metadata);
+            _lazyFixerToMetadataMap = new(() => fixers.ToImmutableDictionary(service => service.Value, service => service.Metadata));
             var fixersPerLanguageMap = fixers.ToPerLanguageMapWithMultipleLanguages();
             var configurationProvidersPerLanguageMap = configurationProviders.ToPerLanguageMapWithMultipleLanguages();
 
@@ -84,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _createProjectCodeFixProvider = new ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback(r => new ProjectCodeFixProvider(r));
             _fixAllProviderMap = ImmutableDictionary<object, FixAllProviderInfo?>.Empty;
         }
+
+        private ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata> FixerToMetadataMap => _lazyFixerToMetadataMap.Value;
 
         public async Task<FirstDiagnosticResult> GetMostSevereFixableDiagnosticAsync(
             Document document, TextSpan range, CancellationToken cancellationToken)
@@ -402,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         getFixes: dxs =>
                         {
                             var fixerName = fixer.GetType().Name;
-                            var fixerMetadata = _fixerToMetadataMap[fixer];
+                            FixerToMetadataMap.TryGetValue(fixer, out var fixerMetadata);
 
                             using (addOperationScope(fixerName))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixerName, cancellationToken))
@@ -438,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
-            Document document, TextSpan span, CodeFixProvider fixer, CodeChangeProviderMetadata fixerMetadata, bool isBlocking,
+            Document document, TextSpan span, CodeFixProvider fixer, CodeChangeProviderMetadata? fixerMetadata, bool isBlocking,
             ImmutableArray<Diagnostic> diagnostics,
             Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap,
             Dictionary<(Diagnostic diagnostic, string? equivalenceKey), CodeFixProvider> diagnosticAndEquivalenceKeyToFixersMap,
@@ -459,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         if (!applicableDiagnostics.IsEmpty)
                         {
                             // Add the CodeFix Provider Name to the parent CodeAction's CustomTags.
-                            action.AddCustomTag(fixerMetadata.Name ?? fixer.GetTypeDisplayName());
+                            action.AddCustomTag(fixerMetadata?.Name ?? fixer.GetTypeDisplayName());
 
                             fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
                         }

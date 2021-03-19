@@ -69,6 +69,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>> LanguageToProvidersMap
             => _lazyLanguageToProvidersMap.Value;
 
+        private ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata> RefactoringToMetadataMap
+            => _lazyRefactoringToMetadataMap.Value;
+
         private ConcatImmutableArray<CodeRefactoringProvider> GetProviders(Document document)
         {
             var allRefactorings = ImmutableArray<CodeRefactoringProvider>.Empty;
@@ -90,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             foreach (var provider in GetProviders(document))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var providerMetadata = _lazyRefactoringToMetadataMap.Value[provider];
+                RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                 var refactoring = await GetRefactoringFromProviderAsync(
                     document, state, provider, providerMetadata, extensionManager, isBlocking: false, cancellationToken).ConfigureAwait(false);
@@ -135,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         () =>
                         {
                             var providerName = provider.GetType().Name;
-                            var providerMetadata = _lazyRefactoringToMetadataMap.Value[provider];
+                            RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
+
                             using (addOperationScope(providerName))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             {
@@ -154,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan state,
             CodeRefactoringProvider provider,
-            CodeChangeProviderMetadata providerMetadata,
+            CodeChangeProviderMetadata? providerMetadata,
             IExtensionManager extensionManager,
             bool isBlocking,
             CancellationToken cancellationToken)
@@ -177,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         lock (actions)
                         {
                             // Add the Refactoring Provider Name to the parent CodeAction's CustomTags.
-                            action.AddCustomTag(providerMetadata.Name ?? provider.GetTypeDisplayName());
+                            action.AddCustomTag(providerMetadata?.Name ?? provider.GetTypeDisplayName());
 
                             actions.Add((action, applicableToSpan));
                         }
