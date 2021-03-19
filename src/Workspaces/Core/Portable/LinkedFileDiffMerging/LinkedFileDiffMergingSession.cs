@@ -74,8 +74,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            LogLinkedFileDiffMergingSessionInfo(sessionInfo);
-
             return new LinkedFileMergeSessionResult(updatedSolution, linkedFileMergeResults);
         }
 
@@ -317,16 +315,6 @@ namespace Microsoft.CodeAnalysis
 
             normalizedChanges.Add(currentChange);
             return normalizedChanges;
-        }
-
-        private void LogLinkedFileDiffMergingSessionInfo(LinkedFileDiffMergingSessionInfo sessionInfo)
-        {
-            if (!_logSessionInfo)
-            {
-                return;
-            }
-
-            LinkedFileDiffMergingLogger.LogSession(sessionInfo);
         }
 
         internal class LinkedFileDiffMergingSessionInfo

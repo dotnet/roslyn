@@ -203,13 +203,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
-                var latencyTracker = new RequestLatencyTracker(SyntacticLspLogger.RequestType.SyntacticTagger);
-                using (latencyTracker)
-                {
-                    // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
-                    // F#/typescript and other languages that doesn't support syntax tree will return null here.
-                    _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                }
+                // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
+                // F#/typescript and other languages that doesn't support syntax tree will return null here.
+                _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
                 lock (_gate)
                 {
