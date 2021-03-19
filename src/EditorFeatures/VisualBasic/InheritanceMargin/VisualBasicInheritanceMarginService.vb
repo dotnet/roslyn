@@ -36,10 +36,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
                             builder.Add(methodBlockNode.BlockStatement)
                         End If
 
+                        Dim methodStatementNode = TryCast(member, MethodStatementSyntax)
+                        If methodStatementNode IsNot Nothing Then
+                            builder.Add(methodStatementNode)
+                        End If
+
                         'Property
                         Dim propertyBlockNode = TryCast(member, PropertyBlockSyntax)
                         If propertyBlockNode IsNot Nothing Then
                             builder.Add(propertyBlockNode.PropertyStatement)
+                        End If
+
+                        Dim propertyStatementNode = TryCast(member, PropertyStatementSyntax)
+                        If propertyStatementNode IsNot Nothing Then
+                            builder.Add(propertyStatementNode)
                         End If
 
                         'Custom event
