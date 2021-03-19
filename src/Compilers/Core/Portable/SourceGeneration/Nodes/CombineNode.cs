@@ -27,5 +27,7 @@ namespace Microsoft.CodeAnalysis
 
             return previousTable;
         }
+
+        public INode<(TInput1, TInput2)> WithComparer(IEqualityComparer<(TInput1, TInput2)> comparer) => this;
     }
 }

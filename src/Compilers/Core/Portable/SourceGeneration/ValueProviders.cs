@@ -13,6 +13,16 @@ namespace Microsoft.CodeAnalysis
 {
     public class ValueSources
     {
+        //TODO: really, we need *two* value sources.
+        //      one that we pass to the generators to register from
+        //      and a second that we can update as we go.
+        //      when the graph runs, we replace the ones we passed to the generator
+        //      with the 'real' latest ones.
+
+        //TODO: we can also track which sources are actually
+        //      used, and not bother running when only an unused
+        //      source has changed
+
         public SingleValueSource<Compilation> CompilationSource { get; }
 
         public MultiValueSource<string> Strings { get; }
@@ -49,6 +59,11 @@ namespace Microsoft.CodeAnalysis
             tableBuilder.AddEntries(ImmutableArray.Create(_value), _state);
             _state = EntryState.Cached;
             return tableBuilder.ToImmutableAndFree();
+        }
+
+        public INode<T> WithComparer(IEqualityComparer<T> comparer)
+        {
+            throw new NotImplementedException();
         }
 
         internal void UpdateValue(T newValue)
@@ -121,6 +136,11 @@ namespace Microsoft.CodeAnalysis
                 _currentBuilder.AddEntries(ImmutableArray.Create(value), state);
             }
             hasChanged = true;
+        }
+
+        public INode<T> WithComparer(IEqualityComparer<T> comparer)
+        {
+            throw new NotImplementedException();
         }
     }
 }

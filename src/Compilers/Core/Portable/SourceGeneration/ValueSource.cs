@@ -60,17 +60,16 @@ namespace Microsoft.CodeAnalysis
 
 
         // joing 1 => many ((source1[0], source2), (source1[1], source2) ...)
-        internal static MultiValueSource<(T, U)> Combine<T, U>(this MultiValueSource<T> source1, SingleValueSource<U> source2) => new MultiValueSource<(T,U)>(new CombineNode<T, U>(source1.node, source2.node));
+        internal static MultiValueSource<(T, U)> Combine<T, U>(this MultiValueSource<T> source1, SingleValueSource<U> source2) => new MultiValueSource<(T, U)>(new CombineNode<T, U>(source1.node, source2.node));
 
         // join 1 => 1 (source1, source2)
-        internal static SingleValueSource<(T, U)> Combine<T, U>(this SingleValueSource<T> source1, SingleValueSource<U> source2) => new SingleValueSource<(T,U)>(new CombineNode<T, U>(source1.node, source2.node));
-
+        internal static SingleValueSource<(T, U)> Combine<T, U>(this SingleValueSource<T> source1, SingleValueSource<U> source2) => new SingleValueSource<(T, U)>(new CombineNode<T, U>(source1.node, source2.node));
 
 
         // allow the user to override the comparison decision of if an element has changed for the underlying value source
-        internal static MultiValueSource<T> WithComparer<T>(this MultiValueSource<T> source) => throw new Exception();
+        internal static MultiValueSource<T> WithComparer<T>(this MultiValueSource<T> source, IEqualityComparer<T> comparer) => new MultiValueSource<T>(source.node.WithComparer(comparer));
 
-        internal static SingleValueSource<T> WithComparer<T>(this SingleValueSource<T> source) => throw new Exception();
+        internal static SingleValueSource<T> WithComparer<T>(this SingleValueSource<T> source, IEqualityComparer<T> comparer) => new SingleValueSource<T>(source.node.WithComparer(comparer));
 
 
         // convert between IMulti and ISingle values sources

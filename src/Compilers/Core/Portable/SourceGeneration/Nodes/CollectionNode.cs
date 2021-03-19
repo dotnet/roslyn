@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis
 
             return previousTable;
         }
+
+        public INode<IEnumerable<T>> WithComparer(IEqualityComparer<IEnumerable<T>> comparer) => this;
     }
 
     internal class UnrollNode<T> : INode<T>
@@ -54,5 +56,7 @@ namespace Microsoft.CodeAnalysis
 
             return previousTable;
         }
+
+        public INode<T> WithComparer(IEqualityComparer<T> comparer) => this;
     }
 }

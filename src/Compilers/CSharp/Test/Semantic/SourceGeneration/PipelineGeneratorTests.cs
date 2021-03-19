@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -93,6 +94,18 @@ class C { }
 
         }
 
+        class Comparer : IEqualityComparer<string>
+        {
+            public bool Equals(string? x, string? y)
+            {
+                return true;
+            }
+
+            public int GetHashCode([DisallowNull] string obj)
+            {
+                return obj.GetHashCode();
+            }
+        }
 
         [Fact]
         public void Manually_Call_StateTable()
@@ -112,13 +125,13 @@ class C { }
             ValueSources sources = ValueSources.Create(compilation);
 
             var compilationSource = sources.CompilationSource;
-            var strings = sources.Strings;
+            var strings = sources.Strings; // TODO: comparer here won't work, but it should. we need to sort out the inputs next
 
             var t1 = compilationSource.Transform(c => c.Options);
             var t2 = t1.GenerateSource((ctx, co) => { });
 
 
-            var t3 = strings.Transform((s) => (IEnumerable<string>)(new List<string>() { s, "inserted" }));
+            var t3 = strings.Transform((s) => (IEnumerable<string>)(new List<string>() { s, "inserted" })).WithComparer(new Comparer());
             var t4 = t3.Transform((s) => s + "_transformed");
             var t5 = t4.GenerateSource((ctx, s) => { });
 

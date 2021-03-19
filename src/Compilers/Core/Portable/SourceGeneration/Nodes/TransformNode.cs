@@ -16,21 +16,28 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly INode<TInput> _sourceNode;
         private readonly Func<TInput, TOutput>? _singleFunc;
+        private readonly IEqualityComparer<TOutput> _comparer;
         private readonly Func<TInput, IEnumerable<TOutput>>? _multiFunc;
 
-        public TransformNode(INode<TInput> sourceNode, Func<TInput, TOutput> func)
+        public TransformNode(INode<TInput> sourceNode, Func<TInput, TOutput> singleFunc)
+            : this(sourceNode, singleFunc, multiFunc: null, EqualityComparer<TOutput>.Default)
         {
-            _sourceNode = sourceNode;
-            _singleFunc = func;
-            _multiFunc = null;
         }
 
-        public TransformNode(INode<TInput> sourceNode, Func<TInput, IEnumerable<TOutput>> func)
+        public TransformNode(INode<TInput> sourceNode, Func<TInput, IEnumerable<TOutput>> multiFunc)
+            : this(sourceNode, singleFunc: null, multiFunc, EqualityComparer<TOutput>.Default)
+        {
+        }
+
+        private TransformNode(INode<TInput> sourceNode, Func<TInput, TOutput>? singleFunc, Func<TInput, IEnumerable<TOutput>>? multiFunc, IEqualityComparer<TOutput> comparer)
         {
             _sourceNode = sourceNode;
-            _singleFunc = null;
-            _multiFunc = func;
+            _singleFunc = singleFunc;
+            _comparer = comparer;
+            _multiFunc = multiFunc;
         }
+
+        public INode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new TransformNode<TInput, TOutput>(_sourceNode, _singleFunc, _multiFunc, comparer);
 
         public StateTable<TOutput> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<TOutput> previousTable)
         {
@@ -73,8 +80,6 @@ namespace Microsoft.CodeAnalysis
                     {
                         var oldEntries = previousTable.GetEntries(entry.index).ToImmutableArray();
 
-                        IEqualityComparer<TOutput> comparer = EqualityComparer<TOutput>.Default;
-
                         bool areEqualLength = oldEntries.Length == newEntries.Length;
                         var updatedEntries = ArrayBuilder<(TOutput, EntryState)>.GetInstance(areEqualLength ? oldEntries.Length : oldEntries.Length + newEntries.Length);
 
@@ -83,7 +88,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             for (int i = 0; i < newEntries.Length; i++)
                             {
-                                var cacheState = comparer.Equals(oldEntries[i], newEntries[i]) ? EntryState.Cached : EntryState.Modified;
+                                var cacheState = _comparer.Equals(oldEntries[i], newEntries[i]) ? EntryState.Cached : EntryState.Modified;
                                 updatedEntries.Add((newEntries[i], cacheState));
                             }
                         }

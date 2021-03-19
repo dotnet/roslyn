@@ -11,5 +11,7 @@ namespace Microsoft.CodeAnalysis
     internal interface INode<T>
     {
         StateTable<T> UpdateStateTable(GraphStateTable.Builder stateTableBuilder, StateTable<T> previousTable);
+
+        INode<T> WithComparer(IEqualityComparer<T> comparer);
     }
 }
