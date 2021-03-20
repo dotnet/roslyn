@@ -7,7 +7,6 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
-using System.Threading;
 
 namespace Roslyn.Test.Utilities
 {
@@ -33,7 +32,7 @@ namespace Roslyn.Test.Utilities
 
         public EnsureEnglishUICulture()
         {
-            _threadId = Thread.CurrentThread.ManagedThreadId;
+            _threadId = Environment.CurrentManagedThreadId;
             var preferred = PreferredOrNull;
 
             if (preferred != null)
@@ -47,9 +46,9 @@ namespace Roslyn.Test.Utilities
 
         public void Dispose()
         {
-            Debug.Assert(_threadId == Thread.CurrentThread.ManagedThreadId);
+            Debug.Assert(_threadId == Environment.CurrentManagedThreadId);
 
-            if (_needToRestore && _threadId == Thread.CurrentThread.ManagedThreadId)
+            if (_needToRestore && _threadId == Environment.CurrentManagedThreadId)
             {
                 _needToRestore = false;
                 CultureInfo.CurrentUICulture = _threadUICulture;

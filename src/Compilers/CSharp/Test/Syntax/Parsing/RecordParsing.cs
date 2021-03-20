@@ -2608,5 +2608,11 @@ class C(int X, int Y)
             }
             EOF();
         }
+
+        [Fact, WorkItem(51590, "https://github.com/dotnet/roslyn/issues/51590")]
+        public void ParseIncompleteRecordSyntax()
+        {
+            ParseIncompleteSyntax("public sealed record C() { }");
+        }
     }
 }

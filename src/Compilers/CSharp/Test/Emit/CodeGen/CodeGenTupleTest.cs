@@ -24811,7 +24811,9 @@ namespace System
             var libWithVTRef = libWithVT.EmitToImageReference();
 
             var comp = CSharpCompilation.Create("test", references: new[] { libWithVTRef, corlibWithVTRef });
-            Assert.True(comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).IsErrorType());
+            var found = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
+            Assert.False(found.IsErrorType());
+            Assert.Equal("corlib", found.ContainingAssembly.Name);
 
             var comp2 = comp.WithOptions(comp.Options.WithTopLevelBinderFlags(BinderFlags.IgnoreCorLibraryDuplicatedTypes));
             var tuple2 = comp2.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
@@ -24823,6 +24825,11 @@ namespace System
             var tuple3 = comp3.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
             Assert.False(tuple3.IsErrorType());
             Assert.Equal(libWithVTRef.Display, tuple3.ContainingAssembly.MetadataName.ToString());
+
+            var libWithVTRef2 = CreateEmptyCompilation(valuetuple_cs, references: new[] { corlibWithoutVTRef }).EmitToImageReference();
+            var comp4 = CreateEmptyCompilation("", references: new[] { libWithVTRef, libWithVTRef2, corlibWithoutVTRef });
+            var tuple4 = comp4.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
+            Assert.True(tuple4.IsErrorType());
         }
 
         [Fact]

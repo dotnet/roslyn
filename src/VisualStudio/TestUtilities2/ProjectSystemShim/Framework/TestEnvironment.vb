@@ -185,7 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Select Case serviceType
                     Case GetType(SVsSolution)
                         ' Return a loose mock that just is a big no-op
-                        Dim solutionMock As New Mock(Of IVsSolution)(MockBehavior.Loose)
+                        Dim solutionMock As New Mock(Of IVsSolution2)(MockBehavior.Loose)
                         Return solutionMock.Object
 
                     Case GetType(SComponentModel)

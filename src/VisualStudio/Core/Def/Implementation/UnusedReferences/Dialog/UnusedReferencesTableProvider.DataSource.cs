@@ -30,9 +30,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 return new SinkManager(this, sink);
             }
 
-            public void AddTableData(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates)
+            public void AddTableData(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates)
             {
-                var solutionName = Path.GetFileName(project.Solution.FilePath);
+                var solutionName = Path.GetFileName(solution.FilePath);
+                var project = solution.Projects.First(project => projectFilePath.Equals(project.FilePath, StringComparison.OrdinalIgnoreCase));
                 var entries = referenceUpdates
                     .Select(update => new UnusedReferencesEntry(solutionName, project.Name, project.Language, update))
                     .ToImmutableArray();

@@ -149,6 +149,7 @@ class C
                 xmlDocumentationStream: null,
                 cancellationToken: default,
                 win32Resources: null,
+                useRawWin32Resources: false,
                 manifestResources: null,
                 options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
                 debugEntryPoint: null,
