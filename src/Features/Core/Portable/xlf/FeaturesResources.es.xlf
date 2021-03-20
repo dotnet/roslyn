@@ -92,7 +92,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <target state="translated">Agregar "{0}" a un tipo genérico impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
@@ -142,7 +142,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
         <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
+        <target state="translated">Se quitó una instrucción activa de su método original. Debe revertir los cambios para continuar o reiniciar la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -227,7 +227,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
-        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
+        <target state="translated">Si se cambia la visibilidad de {0}, la sesión de depuración no podrá continuar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -632,7 +632,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Modifying_body_of_member_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying the body of '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">Si se modifica el cuerpo de "{0}", se impedirá que continúe la sesión de depuración debido a un error interno: {1}.</target>
+        <target state="translated">Si se modifica el cuerpo de "{0}", se impedirá que continúe la sesión de depuración debido a un error interno: {1}</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_because_the_file_is_too_big">
@@ -662,7 +662,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file '{0}' will prevent the debug session from continuing due to internal error: {1}</source>
-        <target state="translated">Si se modifica el archivo de código fuente "{0}", se impedirá que continúe la sesión de depuración debido a un error interno: {1}.</target>
+        <target state="translated">Si se modifica el archivo de código fuente "{0}", se impedirá que continúe la sesión de depuración debido a un error interno: {1}</target>
         <note>{1} is a multi-line exception message including a stacktrace. Place it at the end of the message and don’t add any punctation after or around {1}</note>
       </trans-unit>
       <trans-unit id="Nested_quantifier_0">
@@ -679,11 +679,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <source>Not enough )'s</source>
         <target state="translated">No hay suficientes )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
-      </trans-unit>
-      <trans-unit id="Operators">
-        <source>Operators</source>
-        <target state="new">Operators</target>
-        <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
@@ -2122,7 +2117,7 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
-        <target state="new">You can use the navigation bar to switch contexts.</target>
+        <target state="translated">Puede usar la barra de navegación para cambiar contextos.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
@@ -2388,7 +2383,7 @@ Si el especificador de formato "H" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="code">
         <source>code</source>
-        <target state="new">code</target>
+        <target state="translated">código</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -2549,7 +2544,7 @@ El especificador de formato estándar "f" representa una combinación de los pat
       </trans-unit>
       <trans-unit id="member_kind_and_name">
         <source>{0} '{1}'</source>
-        <target state="new">{0} '{1}'</target>
+        <target state="translated">{0} "{1}"</target>
         <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
@@ -3211,7 +3206,7 @@ Si el especificador de formato "g" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
         <source>Deleting {0} will prevent the debug session from continuing.</source>
-        <target state="needs-review-translation">Eliminar '{0}' impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Eliminar "{0}" impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3311,7 +3306,7 @@ Si el especificador de formato "g" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="needs-review-translation">Quitar '{0}' que contiene una instrucción activa impedirá que continúe la sesión de depuración.</target>
+        <target state="translated">Quitar "{0}", que contiene una instrucción activa, impedirá que continúe la sesión de depuración.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -3437,7 +3432,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Not_Available">
         <source>Not Available ⚠</source>
-        <target state="needs-review-translation">No disponible</target>
+        <target state="translated">No disponible ⚠</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
@@ -3707,7 +3702,7 @@ Cuando se usa este especificador de formato estándar, la operación de formato 
       </trans-unit>
       <trans-unit id="static_constructor">
         <source>static constructor</source>
-        <target state="new">static constructor</target>
+        <target state="translated">constructor estático</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

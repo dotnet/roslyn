@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
-        <target state="new">extern alias</target>
+        <target state="translated">externí alias</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">

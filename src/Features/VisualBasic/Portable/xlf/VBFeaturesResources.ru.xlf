@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
-        <target state="needs-review-translation">Добавить отсутствующий оператор Imports</target>
+        <target state="translated">Добавить отсутствующий оператор Imports</target>
         <note>{Locked="Import"}</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
@@ -124,7 +124,7 @@
       </trans-unit>
       <trans-unit id="Shared_constructor">
         <source>Shared constructor</source>
-        <target state="new">Shared constructor</target>
+        <target state="translated">Общий конструктор</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -139,7 +139,7 @@
       </trans-unit>
       <trans-unit id="_0_Events">
         <source>({0} Events)</source>
-        <target state="new">({0} Events)</target>
+        <target state="translated">({0} События)</target>
         <note />
       </trans-unit>
       <trans-unit id="new_field">
@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
-        <target state="needs-review-translation">Удаление квалификации Me</target>
+        <target state="translated">Удаление квалификации Me</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">

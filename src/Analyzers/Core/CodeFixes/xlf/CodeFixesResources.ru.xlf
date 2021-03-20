@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Add_blank_line_after_block">
         <source>Add blank line after block</source>
-        <target state="new">Add blank line after block</target>
+        <target state="translated">Добавить пустую строку после блока</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_both">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Remove_extra_blank_lines">
         <source>Remove extra blank lines</source>
-        <target state="new">Remove extra blank lines</target>
+        <target state="translated">Удалите лишние пустые строки</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_redundant_assignment">

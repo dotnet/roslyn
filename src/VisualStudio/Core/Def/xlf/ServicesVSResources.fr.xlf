@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Action">
         <source>Action</source>
-        <target state="new">Action</target>
+        <target state="translated">Action</target>
         <note>Action to perform on an unused reference, such as remove or keep</note>
       </trans-unit>
       <trans-unit id="Add">
@@ -64,12 +64,12 @@
       </trans-unit>
       <trans-unit id="Allow_multiple_blank_lines">
         <source>Allow multiple blank lines</source>
-        <target state="new">Allow multiple blank lines</target>
+        <target state="translated">Autoriser plusieurs lignes vides</target>
         <note />
       </trans-unit>
       <trans-unit id="Allow_statement_immediately_after_block">
         <source>Allow statement immediately after block</source>
-        <target state="new">Allow statement immediately after block</target>
+        <target state="translated">Autoriser l'instruction juste après le bloc</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -79,12 +79,12 @@
       </trans-unit>
       <trans-unit id="Analyzing_project_references">
         <source>Analyzing project references...</source>
-        <target state="new">Analyzing project references...</target>
+        <target state="translated">Analyse des références de projet...</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply">
         <source>Apply</source>
-        <target state="new">Apply</target>
+        <target state="translated">Appliquer</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
@@ -94,7 +94,7 @@
       </trans-unit>
       <trans-unit id="Assemblies">
         <source>Assemblies</source>
-        <target state="new">Assemblies</target>
+        <target state="translated">Assemblys</target>
         <note />
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="Choose_which_action_you_would_like_to_perform_on_the_unused_references">
         <source>Choose which action you would like to perform on the unused references.</source>
-        <target state="new">Choose which action you would like to perform on the unused references.</target>
+        <target state="translated">Choisissez l'action à effectuer sur les références inutilisées.</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
@@ -369,7 +369,7 @@
       </trans-unit>
       <trans-unit id="Keep">
         <source>Keep</source>
-        <target state="new">Keep</target>
+        <target state="translated">Conserver</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
@@ -609,12 +609,12 @@
       </trans-unit>
       <trans-unit id="New_line_preferences_experimental_colon">
         <source>New line preferences (experimental):</source>
-        <target state="new">New line preferences (experimental):</target>
+        <target state="translated">Préférences de nouvelle ligne (expérimental) :</target>
         <note />
       </trans-unit>
       <trans-unit id="No_unused_references_were_found">
         <source>No unused references were found.</source>
-        <target state="new">No unused references were found.</target>
+        <target state="translated">Références inutilisées introuvables.</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -654,7 +654,7 @@
       </trans-unit>
       <trans-unit id="Packages">
         <source>Packages</source>
-        <target state="new">Packages</target>
+        <target state="translated">Packages</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Details">
@@ -749,7 +749,7 @@
       </trans-unit>
       <trans-unit id="Projects">
         <source>Projects</source>
-        <target state="new">Projects</target>
+        <target state="translated">Projets</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_Members_Up">
@@ -759,7 +759,7 @@
       </trans-unit>
       <trans-unit id="Reference">
         <source>Reference</source>
-        <target state="new">Reference</target>
+        <target state="translated">Référence</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -769,12 +769,12 @@
       </trans-unit>
       <trans-unit id="Remove_All">
         <source>Remove All</source>
-        <target state="new">Remove All</target>
+        <target state="translated">Tout supprimer</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Unused_References">
         <source>Remove Unused References</source>
-        <target state="new">Remove Unused References</target>
+        <target state="translated">Supprimer les références inutilisées</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -794,7 +794,7 @@
       </trans-unit>
       <trans-unit id="Require_colon">
         <source>Require:</source>
-        <target state="new">Require:</target>
+        <target state="translated">Nécessite :</target>
         <note />
       </trans-unit>
       <trans-unit id="Required">
@@ -879,7 +879,7 @@
       </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
         <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
-        <target state="new">Show "Remove Unused References" command in Solution Explorer (experimental)</target>
+        <target state="translated">Afficher la commande Supprimer les références inutilisées dans l'Explorateur de solutions (expérimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">
@@ -929,7 +929,7 @@
       </trans-unit>
       <trans-unit id="Symbols_without_references">
         <source>Symbols without references</source>
-        <target state="new">Symbols without references</target>
+        <target state="translated">Symboles sans références</target>
         <note />
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
@@ -954,7 +954,7 @@
       </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
         <source>This action cannot be undone. Do you wish to continue?</source>
-        <target state="new">This action cannot be undone. Do you wish to continue?</target>
+        <target state="translated">Il est impossible d'annuler cette action. Voulez-vous continuer ?</target>
         <note />
       </trans-unit>
       <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
@@ -999,7 +999,7 @@
       </trans-unit>
       <trans-unit id="Updating_project_references">
         <source>Updating project references...</source>
-        <target state="new">Updating project references...</target>
+        <target state="translated">Mise à jour des références de projet...</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_severity">

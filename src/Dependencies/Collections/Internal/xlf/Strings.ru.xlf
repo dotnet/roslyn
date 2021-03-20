@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Arg_BogusIComparer">
         <source>Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</source>
-        <target state="new">Unable to sort because the IComparer.Compare() method returns inconsistent results. Either a value does not compare equal to itself, or one value repeatedly compared to another value yields different results. IComparer: '{0}'.</target>
+        <target state="translated">Не удалось выполнить сортировку, поскольку метод IComparer.Compare() вернул несовместимые результаты. Значение не равно самому себе при сравнении, либо многократное сравнение одного значения с другим значением дает разные результаты. IComparer: "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Arg_HTCapacityOverflow">

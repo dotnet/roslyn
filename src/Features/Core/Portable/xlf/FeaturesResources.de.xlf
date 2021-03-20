@@ -92,7 +92,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <target state="translated">Durch Hinzufügen von "{0}" in einem generischen Typ wird die Fortsetzung der Debugsitzung verhindert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
@@ -142,7 +142,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
         <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
+        <target state="translated">Eine aktive Anweisung wurde aus der ursprünglichen Methode entfernt. Sie müssen Ihre Änderungen rückgängig machen, um die Debuggingsitzung fortzusetzen oder neu zu starten.</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -227,7 +227,7 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
       </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
-        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
+        <target state="translated">Durch Änderungen an der Sichtbarkeit von "{0}" wird die Fortsetzung der Debugsitzung verhindert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -679,11 +679,6 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <source>Not enough )'s</source>
         <target state="translated">Zu wenige )-Zeichen</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
-      </trans-unit>
-      <trans-unit id="Operators">
-        <source>Operators</source>
-        <target state="new">Operators</target>
-        <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
@@ -2122,7 +2117,7 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
-        <target state="new">You can use the navigation bar to switch contexts.</target>
+        <target state="translated">Sie können die Navigationsleiste verwenden, um den Kontext zu wechseln.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
@@ -2388,7 +2383,7 @@ Bei Verwendung des Formatbezeichners "H" ohne weitere benutzerdefinierte Formatb
       </trans-unit>
       <trans-unit id="code">
         <source>code</source>
-        <target state="new">code</target>
+        <target state="translated">Code</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -2549,7 +2544,7 @@ Der Standardformatbezeichner "f" repräsentiert eine Kombination aus den Mustern
       </trans-unit>
       <trans-unit id="member_kind_and_name">
         <source>{0} '{1}'</source>
-        <target state="new">{0} '{1}'</target>
+        <target state="translated">{0} "{1}"</target>
         <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
@@ -3211,7 +3206,7 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
         <source>Deleting {0} will prevent the debug session from continuing.</source>
-        <target state="needs-review-translation">Durch Löschen von "{0}" wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
+        <target state="translated">Durch Löschen von "{0}" wird die Fortsetzung der Debugsitzung verhindert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3311,7 +3306,7 @@ Bei Verwendung des Formatbezeichners "g" ohne weitere benutzerdefinierte Formatb
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="needs-review-translation">Durch Entfernen von "{0}", das eine aktive Anweisung enthält, wird verhindert, dass die Debuggingsitzung fortgesetzt wird.</target>
+        <target state="translated">Durch Entfernen von "{0}" mit darin enthaltener aktiver Anweisung wird die Fortsetzung der Debugsitzung verhindert.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -3437,7 +3432,7 @@ Möchten Sie fortfahren?</target>
       </trans-unit>
       <trans-unit id="Not_Available">
         <source>Not Available ⚠</source>
-        <target state="needs-review-translation">Nicht verfügbar</target>
+        <target state="translated">Nicht verfügbar ⚠</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
@@ -3707,7 +3702,7 @@ Bei Verwendung dieses Standardformatbezeichners wird zur Formatierung oder Analy
       </trans-unit>
       <trans-unit id="static_constructor">
         <source>static constructor</source>
-        <target state="new">static constructor</target>
+        <target state="translated">statischer Konstruktor</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">

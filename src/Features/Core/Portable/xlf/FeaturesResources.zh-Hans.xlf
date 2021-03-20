@@ -72,12 +72,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
         <source>Add project reference to '{0}'.</source>
-        <target state="translated">将参数引用添加到“{0}”。</target>
+        <target state="translated">添加到“{0}”的项目引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_reference_to_0">
         <source>Add reference to '{0}'.</source>
-        <target state="translated">将引用添加到“{0}”。</target>
+        <target state="translated">添加到“{0}”的引用。</target>
         <note />
       </trans-unit>
       <trans-unit id="Actions_can_not_be_empty">
@@ -92,7 +92,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Adding_0_into_a_generic_type_will_prevent_the_debug_session_from_continuing">
         <source>Adding '{0}' into a generic type will prevent the debug session from continuing.</source>
-        <target state="new">Adding '{0}' into a generic type will prevent the debug session from continuing.</target>
+        <target state="translated">将“{0}”添加到泛型类型会中止调试会话。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_will_prevent_the_debug_session_from_continuing">
@@ -142,7 +142,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
         <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
-        <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
+        <target state="translated">活动语句已从其初始方法中删除。必须还原更改才能继续或重新启动调试会话。</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
@@ -197,7 +197,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Change_namespace_to_0">
         <source>Change namespace to '{0}'</source>
-        <target state="translated">将名称空间更改为“{0}”</target>
+        <target state="translated">将命名空间更改为“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_global_namespace">
@@ -227,7 +227,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_visibility_of_0_will_prevent_the_debug_session_from_continuing">
         <source>Changing visibility of {0} will prevent the debug session from continuing.</source>
-        <target state="new">Changing visibility of {0} will prevent the debug session from continuing.</target>
+        <target state="translated">更改 {0} 的可见性将会中止调试会话。</target>
         <note />
       </trans-unit>
       <trans-unit id="Configure_0_code_style">
@@ -267,7 +267,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Convert_to_linq_call_form">
         <source>Convert to LINQ (call form)</source>
-        <target state="translated">转换为 LINQ (调用表单)</target>
+        <target state="translated">转换为 LINQ (调用形式)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_record">
@@ -287,22 +287,22 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
         <source>Create and assign field '{0}'</source>
-        <target state="translated">创建并分配字段 "{0}"</target>
+        <target state="translated">创建字段 "{0}" 并赋值</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_property_0">
         <source>Create and assign property '{0}'</source>
-        <target state="translated">创建并分配属性 "{0}"</target>
+        <target state="translated">创建属性 "{0}" 并赋值</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_remaining_as_fields">
         <source>Create and assign remaining as fields</source>
-        <target state="translated">创建并分配其余字段</target>
+        <target state="translated">创建其余部分并赋值为字段</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_remaining_as_properties">
         <source>Create and assign remaining as properties</source>
-        <target state="translated">创建并分配其余属性</target>
+        <target state="translated">创建其余部分并赋值为属性</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -367,7 +367,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Extract_interface">
         <source>Extract interface...</source>
-        <target state="translated">提取接口…</target>
+        <target state="translated">提取接口...</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_local_function">
@@ -607,7 +607,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Merge_with_previous_0_statement">
         <source>Merge with previous '{0}' statement</source>
-        <target state="translated">与以前的 "{0}" 语句合并</target>
+        <target state="translated">与上一个 "{0}" 语句合并</target>
         <note />
       </trans-unit>
       <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
@@ -680,11 +680,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">")" 不足</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
-      <trans-unit id="Operators">
-        <source>Operators</source>
-        <target state="new">Operators</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
         <target state="translated">无法更新属性引用</target>
@@ -702,7 +697,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
         <source>Pull members up to base type...</source>
-        <target state="translated">将成员拉到基本类型..。</target>
+        <target state="translated">将成员拉到基类...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_new_base_class">
@@ -1912,12 +1907,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
-        <target state="translated">取消 {0}</target>
+        <target state="translated">抑制 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
         <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: 释放未托管的资源(未托管的对象)并替代终结器</target>
+        <target state="translated">TODO: 释放未托管的资源(未托管的对象)并重写终结器</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
@@ -2122,12 +2117,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
-        <target state="new">You can use the navigation bar to switch contexts.</target>
+        <target state="translated">可使用导航栏切换上下文。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
         <source>'{0}' cannot be null or empty.</source>
-        <target state="translated">“{0}”不能为 Null 或空。</target>
+        <target state="translated">“{0}”不能为 null 或空。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_whitespace">
@@ -2388,7 +2383,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="code">
         <source>code</source>
-        <target state="new">code</target>
+        <target state="translated">代码</target>
         <note />
       </trans-unit>
       <trans-unit id="date_separator">
@@ -2549,7 +2544,7 @@ The "f" standard format specifier represents a combination of the long date ("D"
       </trans-unit>
       <trans-unit id="member_kind_and_name">
         <source>{0} '{1}'</source>
-        <target state="new">{0} '{1}'</target>
+        <target state="translated">{0}“{1}”</target>
         <note>e.g. "method 'M'"</note>
       </trans-unit>
       <trans-unit id="minute_1_2_digits">
@@ -3211,7 +3206,7 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Deleting_0_will_prevent_the_debug_session_from_continuing">
         <source>Deleting {0} will prevent the debug session from continuing.</source>
-        <target state="needs-review-translation">删除“{0}”将阻止调试会话继续。</target>
+        <target state="translated">删除 {0} 将会中止调试会话。</target>
         <note />
       </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_will_prevent_the_debug_session_from_continuing">
@@ -3311,7 +3306,7 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_will_prevent_the_debug_session_from_continuing">
         <source>Removing {0} that contains an active statement will prevent the debug session from continuing.</source>
-        <target state="needs-review-translation">删除含活动语句的“{0}”将阻止调试会话继续。</target>
+        <target state="translated">删除包含活动语句的 {0} 将会中止调试会话。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_a_new_file_will_prevent_the_debug_session_from_continuing">
@@ -3437,7 +3432,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="Not_Available">
         <source>Not Available ⚠</source>
-        <target state="needs-review-translation">不可用</target>
+        <target state="translated">不可用 ⚠</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_1">
@@ -3707,7 +3702,7 @@ When this standard format specifier is used, the formatting or parsing operation
       </trans-unit>
       <trans-unit id="static_constructor">
         <source>static constructor</source>
-        <target state="new">static constructor</target>
+        <target state="translated">静态构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="symbol_cannot_be_a_namespace">
