@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     // unmanaged[Cdecl, Thiscall
                     else if (token.IsKind(SyntaxKind.CommaToken))
                     {
-                        return true:
+                        return true;
                     }
                 }
 
