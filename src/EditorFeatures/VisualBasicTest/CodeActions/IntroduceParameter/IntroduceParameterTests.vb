@@ -29,8 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
 End Class"
             Dim expected =
 "Class Program
-    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
-        Dim num As Integer = {|Rename:v|}
+    Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=0)
@@ -50,8 +49,7 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
-        Dim num As Integer = {|Rename:v|}
+    Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
@@ -107,12 +105,11 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
-        Dim num As Integer = {|Rename:v|}
+    Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
-        M(z, y, x, z * y* x)
+        M(z, y, x, z * y * x)
         M(a + b, 5, x, (a + b) * 5 * x)
     End Sub
 End Class"
@@ -134,9 +131,8 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
-        Dim num2 As Integer = {|Rename:v|}
-        Dim num As Integer = {|Rename:v|}
+    Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
+        Dim num2 As Integer = num
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
@@ -156,12 +152,11 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Public Function M_v(x As Integer, y As Integer, z As Integer) As Integer
+    Public Function M_num(x As Integer, y As Integer, z As Integer) As Integer
         Return x * y * z
     End Function
 
-    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
-        Dim num As Integer = {|Rename:v|}
+    Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=2)
@@ -181,19 +176,181 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Public Function M_v(x As Integer, y As Integer, z As Integer) As Integer
+    Public Function M_num(x As Integer, y As Integer, z As Integer) As Integer
         Return x * y * z
     End Function
 
-    Sub M(x As Integer, y As Integer, z As Integer, v As Integer)
-        Dim num As Integer = {|Rename:v|}
+    Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
-        M(z, y, x, M_v(z, y, x))
+        M(z, y, x, M_num(z, y, x))
     End Sub
 End Class"
             Await TestInRegularAndScriptAsync(source, expected, index:=2)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestSimpleExpressionWithSingleMethodCallTrampolineAllOccurrences() As Task
+            Dim source =
+"Class Program
+    Sub M(x As Integer, y As Integer, z As Integer)
+        Dim num As Integer = [|x * y * z|]
+        Dim num2 As Integer = x * y * z
+    End Sub
+
+    Sub M1(x As Integer, y As Integer, z As Integer)
+        M(z, y, x)
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Public Function M_num(x As Integer, y As Integer, z As Integer) As Integer
+        Return x * y * z
+    End Function
+
+    Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
+        Dim num2 As Integer = num
+    End Sub
+
+    Sub M1(x As Integer, y As Integer, z As Integer)
+        M(z, y, x, M_num(z, y, x))
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=3)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestSimpleExpressionWithNoMethodCallOverload() As Task
+            Dim source =
+"Class Program
+    Sub M(x As Integer, y As Integer, z As Integer)
+        Dim num As Integer = [|x * y * z|]
+    End Sub
+
+    Sub M1(x As Integer, y As Integer, z As Integer)
+        M(z, y, x)
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Public Sub M(x As Integer, y As Integer, z As Integer)
+        M(x, y, z, x * y * z)
+    End Sub
+
+    Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
+    End Sub
+
+    Sub M1(x As Integer, y As Integer, z As Integer)
+        M(z, y, x)
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=4)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestSimpleExpressionCaseWithRecursiveCall() As Task
+            Dim source =
+"Class Program
+    Sub M(x As Integer, y As Integer, z As Integer)
+        Dim num As Integer = [|x * y * z|]
+        M(x, x, z)
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
+        M(x, x, z, x * x * z)
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestSimpleExpressionCaseWithNestedRecursiveCall() As Task
+            Dim source =
+"Class Program
+    Function M(x As Integer, y As Integer, z As Integer) As Integer
+        Dim num As Integer = [|x * y * z|]
+        return M(x, x, M(x, y, z))
+    End Function
+End Class"
+            Dim expected =
+"Class Program
+    Function M(x As Integer, y As Integer, z As Integer, num As Integer) As Integer
+        return M(x, x, M(x, y, z, x * y * z), x * x * M(x, y, z, x * y * z))
+    End Function
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestSimpleExpressionCaseWithParamsArg() As Task
+            Dim source =
+"Class Program
+    Function M(ParamArray args() As Integer) As Integer
+        Dim num As Integer = [|args(0) + args(1)|]
+        Return num
+    End Function
+End Class"
+
+            Await TestMissingInRegularAndScriptAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestSimpleExpressionCaseWithOptionalParametersUsed() As Task
+            Dim source =
+"Class Program
+    Sub M(x As Integer, Optional y As Integer = 5)
+        Dim num As Integer = [|x * y|]
+    End Sub
+
+    Sub M1()
+        M(7)
+    End Sub
+End Class"
+            Dim expected =
+"Class Program
+    Sub M(x As Integer, num As Integer, Optional y As Integer = 5)
+    End Sub
+
+    Sub M1()
+        M(7, num:=7 * 5)
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=0)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
+        Public Async Function TestSimpleExpressionCaseWithCancellationToken() As Task
+            Dim source =
+"Imports System.Threading
+Class Program
+    Sub M(x As Integer, cancellationToken As CancellationToken)
+        Dim num As Integer = [|x * x|]
+    End Sub
+
+    Sub M1(cancellationToken As CancellationToken)
+        M(7, cancellationToken)
+    End Sub
+End Class"
+            Dim expected =
+"Imports System.Threading
+Class Program
+    Sub M(x As Integer, num As Integer, cancellationToken As CancellationToken)
+    End Sub
+
+    Sub M1(cancellationToken As CancellationToken)
+        M(7, 7 * 7, cancellationToken)
+    End Sub
+End Class"
+
+            Await TestInRegularAndScriptAsync(source, expected, index:=0)
         End Function
     End Class
 End Namespace

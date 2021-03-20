@@ -7,16 +7,11 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.IntroduceVariable;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
@@ -33,15 +28,52 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
         }
 
-        protected override SeparatedSyntaxList<SyntaxNode> AddArgumentToArgumentList(SeparatedSyntaxList<SyntaxNode> invocationArguments, SyntaxNode newArgumentExpression)
+        protected override SeparatedSyntaxList<SyntaxNode> AddArgumentToArgumentList(SeparatedSyntaxList<SyntaxNode> invocationArguments,
+                                                                                     SyntaxNode newArgumentExpression,
+                                                                                     int insertionIndex,
+                                                                                     string name,
+                                                                                     bool named)
         {
-            return invocationArguments.Add(SyntaxFactory.Argument((ExpressionSyntax)newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation)));
+            ArgumentSyntax argument;
+            if (named)
+            {
+                var nameColon = SyntaxFactory.NameColon(name);
+                argument = SyntaxFactory.Argument(nameColon, default, (ExpressionSyntax)newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation));
+            }
+            else
+            {
+                argument = SyntaxFactory.Argument((ExpressionSyntax)newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation));
+            }
+            return invocationArguments.Insert(insertionIndex, argument);
+        }
+
+        protected override SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol)
+        {
+            return ExpressionGenerator.GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
         }
 
         protected override ImmutableArray<SyntaxNode> AddExpressionArgumentToArgumentList(ImmutableArray<SyntaxNode> arguments, SyntaxNode expression)
         {
             var newArgument = SyntaxFactory.Argument((ExpressionSyntax)expression);
             return arguments.Add(newArgument);
+        }
+
+        protected override List<IParameterSymbol> GetParameterList(SemanticDocument document, SyntaxNode parameterList, CancellationToken cancellationToken)
+        {
+            var semanticModel = document.SemanticModel;
+            var parameterSyntaxList = ((ParameterListSyntax)parameterList).Parameters;
+            var parameterSymbolList = new List<IParameterSymbol>();
+
+            foreach (var parameterSyntax in parameterSyntaxList)
+            {
+                var symbolInfo = semanticModel.GetDeclaredSymbol(parameterSyntax, cancellationToken);
+                if (symbolInfo is IParameterSymbol parameterSymbol)
+                {
+                    parameterSymbolList.Add(parameterSymbol);
+                }
+            }
+
+            return parameterSymbolList;
         }
 
         protected override bool IsMethodDeclaration(SyntaxNode node)

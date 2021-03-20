@@ -77,7 +77,7 @@ class TestClass
 
     void M1(int x, int y, int z) 
     {
-        M(z, y, x);
+        M(z, x, z);
     }
 }";
 
@@ -91,7 +91,7 @@ class TestClass
 
     void M1(int x, int y, int z) 
     {
-        M(z, y, x, z * x * x);
+        M(z, x, z, z * z * z);
     }
 }";
 
@@ -126,6 +126,43 @@ class TestClass
         int m = M2(x, z, x * z);
                         
         int M2(int x, int y, int val)
+        {
+            return val;
+        }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithSingleMethodCallInStaticLocalFunction()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z)
+    {
+        int m = M2(x, z);
+                        
+        static int M2(int x, int y)
+        {
+            int val = [|x * y|];
+            return val;
+        }
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z)
+    {
+        int m = M2(x, z, x * z);
+                        
+        static int M2(int x, int y, int val)
         {
             return val;
         }
@@ -202,8 +239,8 @@ class TestClass
 {
     void M(int x, int y, int z)
     {
-        int m = [|x * y * z|];
-        int f = x * y * z;
+        int m = x * y * z;
+        int f = [|x * y * z|];
     }
 
     void M1(int x, int y, int z) 
@@ -216,9 +253,9 @@ class TestClass
 @"using System;
 class TestClass
 {
-    void M(int x, int y, int z, int m)
+    void M(int x, int y, int z, int f)
     {
-        int f = m;
+        int m = f;
     }
 
     void M1(int x, int y, int z) 
@@ -475,15 +512,120 @@ class TestClass
         int m = [|args[0] + args[1]|];
         return m;
     }
+
+    void M1()
+    {
+        M(5, 6, 7);
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithOptionalParameters()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y = 5)
+    {
+        int m = [|x * y|];
+        return m;
+    }
+
+    void M1()
+    {
+        M(5, 3);
+    }
 }";
 
             var expected =
 @"using System;
 class TestClass
 {
-    int M(params int[] args, int m)
+    int M(int x, int m, int y = 5)
     {
         return m;
+    }
+
+    void M1()
+    {
+        M(5, 5 * 3, 3);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithOptionalParametersUsed()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y = 5)
+    {
+        int m = [|x * y|];
+        return m;
+    }
+
+    void M1()
+    {
+        M(7);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    int M(int x, int m, int y = 5)
+    {
+        return m;
+    }
+
+    void M1()
+    {
+        M(7, m: 7 * 5);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithCancellationToken()
+        {
+            var code =
+@"using System;
+using System.Threading;
+class TestClass
+{
+    int M(int x, CancellationToken cancellationToken)
+    {
+        int m = [|x * x|];
+        return m;
+    }
+
+    void M1(CancellationToken cancellationToken)
+    {
+        M(7, cancellationToken);
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Threading;
+class TestClass
+{
+    int M(int x, int m, CancellationToken cancellationToken)
+    {
+        return m;
+    }
+
+    void M1(CancellationToken cancellationToken)
+    {
+        M(7, 7 * 7, cancellationToken);
     }
 }";
             await TestInRegularAndScriptAsync(code, expected, index: 0);

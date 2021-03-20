@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -34,9 +33,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TInvocationExpressionSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
     {
-        protected abstract SeparatedSyntaxList<SyntaxNode> AddArgumentToArgumentList(SeparatedSyntaxList<SyntaxNode> invocationArguments, SyntaxNode newArgumentExpression);
+        protected abstract SeparatedSyntaxList<SyntaxNode> AddArgumentToArgumentList(SeparatedSyntaxList<SyntaxNode> invocationArguments,
+            SyntaxNode newArgumentExpression, int insertionIndex, string name, bool named);
         protected abstract bool IsMethodDeclaration(SyntaxNode node);
         protected abstract ImmutableArray<SyntaxNode> AddExpressionArgumentToArgumentList(ImmutableArray<SyntaxNode> arguments, SyntaxNode expression);
+        protected abstract List<IParameterSymbol> GetParameterList(SemanticDocument document, SyntaxNode parameterList, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             if (IsExpressionRemovable(document, expression))
             {
                 var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                return syntaxFacts.GetIdentifierOfVariableDeclarator(expression.Parent.Parent).ValueText;
+                return syntaxFacts.GetIdentifierOfVariableDeclarator(expression.Parent!.Parent!).ValueText;
             }
 
             var semanticFacts = document.Document.GetRequiredLanguageService<ISemanticFactsService>();
@@ -260,7 +262,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                                               bool allOccurrences, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(semanticDocument.Document);
-            var matches = FindMatches(semanticDocument, expression, semanticDocument, scope, allOccurrences, cancellationToken).ToArray();
+            var matches = FindMatches(semanticDocument, expression, semanticDocument, scope, allOccurrences, cancellationToken);
             var parameterNameSyntax = (TIdentifierNameSyntax)generator.IdentifierName(parameterName);
             // Parenthesize the variable, and go and replace anything we find with it.
             // NOTE: we do not want elastic trivia as we want to just replace the existing code 
@@ -271,14 +273,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            for (var i = 0; i < matches.Length; i++)
+            foreach (var match in matches)
             {
-                if (i == 0)
+                if (match.Equals(expression))
                 {
                     if (IsExpressionRemovable(semanticDocument, expression))
                     {
                         var localDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => syntaxFacts.IsLocalDeclarationStatement(node));
-                        editor.RemoveNode(localDeclaration);
+                        if (localDeclaration is not null)
+                        {
+                            editor.RemoveNode(localDeclaration);
+                        }
                     }
                     else
                     {
@@ -288,14 +293,31 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                         replacement = generator.AddParentheses(parameterNameSyntax, includeElasticTrivia: false)
                                                      .WithAdditionalAnnotations(Formatter.Annotation);
-                        editor.ReplaceNode(matches[i], replacement);
+                        editor.ReplaceNode(match, replacement);
                     }
                 }
                 else
                 {
-                    editor.ReplaceNode(matches[i], replacement);
+                    editor.ReplaceNode(match, replacement);
                 }
             }
+        }
+
+        private int GetInsertionIndex(SemanticDocument document, Compilation compilation, ISyntaxFactsService syntaxFacts, SyntaxNode methodDeclaration, CancellationToken cancellationToken)
+        {
+            var parameterList = syntaxFacts.GetParameterList(methodDeclaration);
+            var parameterSymbolList = GetParameterList(document, parameterList!, cancellationToken);
+            var insertionIndex = 0;
+
+            foreach (var parameterSymbol in parameterSymbolList)
+            {
+                if (!parameterSymbol.HasExplicitDefaultValue && !parameterSymbol.Type.Equals(compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName)))
+                {
+                    insertionIndex++;
+                }
+            }
+
+            return insertionIndex;
         }
 
         /// <summary>
@@ -331,6 +353,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var editor = new SyntaxEditor(root, generator);
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                    var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsMethodDeclaration(node), ascendOutOfTrivia: true)!;
+                    var insertionIndex = GetInsertionIndex(semanticDocument, compilation, syntaxFacts, oldMethodDeclaration, cancellationToken);
 
                     if (trampoline)
                     {
@@ -342,7 +366,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                 var methodName = generator.IdentifierName(newMethodIdentifier);
                                 var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
                                 var newMethodInvocation = generator.InvocationExpression(methodName, invocationArguments);
-                                var allArguments = invocationArguments.Add(newMethodInvocation);
+                                var allArguments = invocationArguments.Insert(insertionIndex, newMethodInvocation);
                                 return editor.Generator.InvocationExpression(expressionFromInvocation, allArguments);
                             });
                         }
@@ -359,13 +383,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                             await IntroduceNewMethodOverloadAsync(semanticDocument, expression, methodSymbol, editor, cancellationToken).ConfigureAwait(false);
                         }
 
-                        var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsMethodDeclaration(node), ascendOutOfTrivia: true)!;
                         UpdateExpressionInOriginalFunction(semanticDocument, expression, oldMethodDeclaration, parameterName, editor, allOccurrences, cancellationToken);
 
                         var parameterType = semanticDocument.SemanticModel.GetTypeInfo(expression, cancellationToken).Type ?? semanticDocument.SemanticModel.Compilation.ObjectType;
                         var refKind = syntaxFacts.GetRefKindOfArgument(expression);
                         var parameter = generator.ParameterDeclaration(name: parameterName, type: generator.TypeExpression(parameterType), refKind: refKind);
-                        editor.AddParameter(oldMethodDeclaration, parameter);
+                        editor.InsertParameter(oldMethodDeclaration, insertionIndex, parameter);
                     }
 
                     var newRoot = editor.GetChangedRoot();
@@ -412,6 +435,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var editor = new SyntaxEditor(root, generator);
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                    var oldMethodDeclaration = expressionCopy.FirstAncestorOrSelf<SyntaxNode>(node => IsMethodDeclaration(node), ascendOutOfTrivia: true)!;
+                    var insertionIndex = GetInsertionIndex(semanticDocument, compilation, syntaxFacts, oldMethodDeclaration, cancellationToken);
 
                     foreach (var invocationExpression in invocationExpressionList)
                     {
@@ -422,11 +447,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         editor.ReplaceNode(invocationExpression, (currentInvo, _) =>
                         {
                             var updatedInvocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvo);
+                            var parameterIsNamed = false;
 
                             foreach (var variable in variablesInExpression)
                             {
                                 if (mappingDictionary.TryGetValue(variable, out var mappedParameter))
                                 {
+                                    var parameterNotMapped = true;
                                     for (var i = 0; i < invocationArguments.ToArray().Length; i++)
                                     {
                                         var argumentParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, invocationArguments.ToArray()[i], cancellationToken);
@@ -436,14 +463,24 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                             var argumentExpression = syntaxFacts.GetExpressionOfArgument(updatedInvocationArgument);
                                             var parenthesizedArgumentExpression = generator.AddParentheses(argumentExpression, includeElasticTrivia: false);
                                             newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(variable), parenthesizedArgumentExpression);
+                                            parameterNotMapped = false;
                                             break;
                                         }
+                                    }
+
+                                    if (mappedParameter.HasExplicitDefaultValue && parameterNotMapped)
+                                    {
+                                        parameterIsNamed = true;
+                                        var generatedExpression = GenerateExpressionFromOptionalParameter(mappedParameter);
+                                        var parenthesizedGeneratedExpression = generator.AddParentheses(generatedExpression, includeElasticTrivia: false);
+                                        newArgumentExpression = newArgumentExpression.ReplaceNode(newArgumentExpression.GetCurrentNode(variable), parenthesizedGeneratedExpression);
                                     }
                                 }
                             }
 
                             var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-                            var allArguments = AddArgumentToArgumentList(updatedInvocationArguments, newArgumentExpression.WithAdditionalAnnotations(Formatter.Annotation));
+                            var allArguments = AddArgumentToArgumentList(updatedInvocationArguments,
+                                newArgumentExpression.WithAdditionalAnnotations(Formatter.Annotation), insertionIndex, parameterName, parameterIsNamed);
                             var newInvo = editor.Generator.InvocationExpression(expressionFromInvocation, allArguments);
                             return newInvo;
                         });
@@ -451,13 +488,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                     if (document.Id == semanticDocument.Document.Id)
                     {
-                        var oldMethodDeclaration = expressionCopy.FirstAncestorOrSelf<SyntaxNode>(node => IsMethodDeclaration(node), ascendOutOfTrivia: true)!;
                         UpdateExpressionInOriginalFunction(semanticDocument, expressionCopy, oldMethodDeclaration, parameterName, editor, allOccurrences, cancellationToken);
 
                         var parameterType = semanticDocument.SemanticModel.GetTypeInfo(expressionCopy, cancellationToken).Type ?? semanticDocument.SemanticModel.Compilation.ObjectType;
                         var refKind = syntaxFacts.GetRefKindOfArgument(expressionCopy);
                         var parameter = generator.ParameterDeclaration(name: parameterName, type: generator.TypeExpression(parameterType), refKind: refKind);
-                        editor.AddParameter(oldMethodDeclaration, parameter);
+                        editor.InsertParameter(oldMethodDeclaration, insertionIndex, parameter);
                     }
 
                     var newRoot = editor.GetChangedRoot();
@@ -494,37 +530,52 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// <summary>
         /// Determines if the expression is contained within something that is "parameterized"
         /// </summary>
-        private bool ExpressionWithinParameterizedMethod(SemanticDocument semanticDocument, TExpressionSyntax expression, CancellationToken cancellationToken)
+        private (bool isParameterized, bool hasOptionalParameter) ExpressionWithinParameterizedMethod(SemanticDocument semanticDocument,
+                                                                                                      TExpressionSyntax expression,
+                                                                                                      CancellationToken cancellationToken)
         {
             var methodSymbol = GetMethodSymbolFromExpression(semanticDocument, expression, cancellationToken);
 
             var variablesInExpression = expression.DescendantNodes().OfType<TIdentifierNameSyntax>();
             var semanticModel = semanticDocument.SemanticModel;
+            var hasOptionalParameter = false;
 
             foreach (var variable in variablesInExpression)
             {
                 var parameterSymbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
                 if (parameterSymbol == null || parameterSymbol is not IParameterSymbol)
                 {
-                    return false;
+                    return (false, hasOptionalParameter);
+                }
+                if (((IParameterSymbol)parameterSymbol).IsParams)
+                {
+                    return (false, hasOptionalParameter);
+                }
+                if (((IParameterSymbol)parameterSymbol).HasExplicitDefaultValue)
+                {
+                    hasOptionalParameter = true;
                 }
             }
-            return methodSymbol != null && methodSymbol.GetParameters().Any();
+            return (methodSymbol != null && methodSymbol.GetParameters().Any(), hasOptionalParameter);
         }
 
         private (string title, ImmutableArray<CodeAction> actions) AddActions(SemanticDocument semanticDocument, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var actionsBuilder = new ArrayBuilder<CodeAction>();
-            if (ExpressionWithinParameterizedMethod(semanticDocument, expression, cancellationToken))
+            var (isParameterized, hasOptionalParameter) = ExpressionWithinParameterizedMethod(semanticDocument, expression, cancellationToken);
+            if (isParameterized)
             {
                 actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, false, false, false));
                 actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, true, false, false));
 
-                actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, false, true, false));
-                actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, true, true, false));
+                if (!hasOptionalParameter)
+                {
+                    actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, false, true, false));
+                    actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, true, true, false));
 
-                actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, false, false, true));
-                actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, true, false, true));
+                    actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, false, false, true));
+                    actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, (TService)this, expression, true, false, true));
+                }
             }
 
             return (FeaturesResources.Introduce_parameter, actionsBuilder.ToImmutable());

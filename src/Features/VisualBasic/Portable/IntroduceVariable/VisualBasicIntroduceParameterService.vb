@@ -5,9 +5,11 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
@@ -20,8 +22,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         Public Sub New()
         End Sub
 
-        Protected Overrides Function AddArgumentToArgumentList(invocationArguments As SeparatedSyntaxList(Of SyntaxNode), newArgumentExpression As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
-            Return invocationArguments.Add(SyntaxFactory.SimpleArgument(DirectCast(newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation), ExpressionSyntax)))
+        Protected Overrides Function AddArgumentToArgumentList(invocationArguments As SeparatedSyntaxList(Of SyntaxNode),
+                                                               newArgumentExpression As SyntaxNode,
+                                                               insertionIndex As Integer,
+                                                               name As String,
+                                                               named As Boolean) As SeparatedSyntaxList(Of SyntaxNode)
+            Dim argument As ArgumentSyntax
+            If named Then
+                Dim identifierName = SyntaxFactory.IdentifierName(name)
+                Dim nameColon = SyntaxFactory.NameColonEquals(identifierName)
+                argument = SyntaxFactory.SimpleArgument(nameColon, DirectCast(newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation), ExpressionSyntax))
+            Else
+                argument = SyntaxFactory.SimpleArgument(DirectCast(newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation), ExpressionSyntax))
+            End If
+
+            Return invocationArguments.Insert(insertionIndex, argument)
+        End Function
+
+        Protected Overrides Function GenerateExpressionFromOptionalParameter(parameterSymbol As IParameterSymbol) As SyntaxNode
+            Return GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference:=True)
         End Function
 
         Protected Overrides Function AddExpressionArgumentToArgumentList(arguments As ImmutableArray(Of SyntaxNode), expression As SyntaxNode) As ImmutableArray(Of SyntaxNode)
@@ -39,6 +58,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             End Select
 
             Return False
+        End Function
+
+        Protected Overrides Function GetParameterList(document As SemanticDocument, parameterList As SyntaxNode, cancellationToken As CancellationToken) As List(Of IParameterSymbol)
+            Dim semanticModel = document.SemanticModel
+            Dim parameterSyntaxList = DirectCast(parameterList, ParameterListSyntax).Parameters
+            Dim parameterSymbolList = New List(Of IParameterSymbol)
+
+            For Each parameter In parameterSyntaxList
+                Dim symbolInfo = semanticModel.GetDeclaredSymbol(parameter, cancellationToken)
+                parameterSymbolList.Add(symbolInfo)
+            Next
+
+            Return parameterSymbolList
         End Function
     End Class
 End Namespace
