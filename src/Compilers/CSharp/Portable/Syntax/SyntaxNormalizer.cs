@@ -595,18 +595,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            // No space after asterisk in function pointer.
-            if (token.IsKind(SyntaxKind.AsteriskToken) && token.Parent.IsKind(SyntaxKind.FunctionPointerType))
-            {
-                return false;
-            }
-
-            // No space before asterisk in function pointer.
-            if (next.IsKind(SyntaxKind.AsteriskToken) && next.Parent.IsKind(SyntaxKind.FunctionPointerType))
-            {
-                return false;
-            }
-
             if (token.IsKind(SyntaxKind.EqualsGreaterThanToken) || next.IsKind(SyntaxKind.EqualsGreaterThanToken))
             {
                 return true;
