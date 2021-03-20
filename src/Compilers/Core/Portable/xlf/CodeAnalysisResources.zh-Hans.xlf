@@ -711,11 +711,6 @@
         <target state="translated">参数不能具有 null 元素。</target>
         <note />
       </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">分析器尝试注册 "async" 操作，但此操作不受支持。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
         <source>Reported diagnostic with ID '{0}' is not supported by the analyzer.</source>
         <target state="translated">分析器不支持 ID 为“{0}”的报告的诊断。</target>

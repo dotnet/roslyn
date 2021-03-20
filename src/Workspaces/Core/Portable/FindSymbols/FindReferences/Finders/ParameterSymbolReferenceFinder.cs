@@ -95,26 +95,31 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             };
         }
 
-        protected override async Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             IParameterSymbol parameter,
             Solution solution,
             IImmutableSet<Project>? projects,
             FindReferencesSearchOptions options,
+            FindReferencesCascadeDirection cascadeDirection,
             CancellationToken cancellationToken)
         {
             if (parameter.IsThis)
             {
-                return ImmutableArray<ISymbol>.Empty;
+                return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
             }
 
-            var result = ArrayBuilder<ISymbol>.GetInstance();
+            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
-            await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, result, cancellationToken).ConfigureAwait(false);
-            CascadeBetweenPropertyAndAccessorParameters(parameter, result);
-            CascadeBetweenDelegateMethodParameters(parameter, result);
-            CascadeBetweenPartialMethodParameters(parameter, result);
+            await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, symbols, cancellationToken).ConfigureAwait(false);
+            CascadeBetweenPropertyAndAccessorParameters(parameter, symbols);
+            CascadeBetweenDelegateMethodParameters(parameter, symbols);
+            CascadeBetweenPartialMethodParameters(parameter, symbols);
 
-            return result.ToImmutableAndFree();
+            using var _2 = ArrayBuilder<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.GetInstance(symbols.Count, out var result);
+            foreach (var symbol in symbols)
+                result.Add((symbol, cascadeDirection));
+
+            return result.ToImmutable();
         }
 
         private static async Task CascadeBetweenAnonymousFunctionParametersAsync(
@@ -250,7 +255,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var ordinal = parameter.Ordinal;
             if (parameter.ContainingSymbol is IMethodSymbol containingMethod)
             {
-                var containingType = containingMethod.ContainingType as INamedTypeSymbol;
+                var containingType = containingMethod.ContainingType;
                 if (containingType.IsDelegateType())
                 {
                     if (containingMethod.MethodKind == MethodKind.DelegateInvoke)

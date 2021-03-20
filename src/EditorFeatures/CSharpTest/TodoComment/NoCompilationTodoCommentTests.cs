@@ -57,9 +57,9 @@ $@"<Workspace>
         {
         }
 
-        public Task<ImmutableArray<TodoComments.TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
+        public Task<ImmutableArray<CodeAnalysis.TodoComments.TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
-            return Task.FromResult(ImmutableArray.Create(new TodoComments.TodoComment(commentDescriptors.First(), "Message", 3)));
+            return Task.FromResult(ImmutableArray.Create(new CodeAnalysis.TodoComments.TodoComment(commentDescriptors.First(), "Message", 3)));
         }
     }
 }
