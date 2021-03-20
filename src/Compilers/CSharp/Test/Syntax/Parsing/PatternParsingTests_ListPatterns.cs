@@ -612,5 +612,107 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+
+        [Fact]
+        public void SlicePattern_07()
+        {
+            UsingExpression(@"c is {.. p or q}");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.OrPattern);
+                            {
+                                N(SyntaxKind.SlicePattern);
+                                {
+                                    N(SyntaxKind.DotDotToken);
+                                    N(SyntaxKind.ConstantPattern);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "p");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.OrKeyword);
+                                N(SyntaxKind.ConstantPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "q");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void SlicePattern_08()
+        {
+            UsingExpression(@"c is {.. p or .. q}");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.RecursivePattern);
+                {
+                    N(SyntaxKind.PropertyPatternClause);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.Subpattern);
+                        {
+                            N(SyntaxKind.OrPattern);
+                            {
+                                N(SyntaxKind.SlicePattern);
+                                {
+                                    N(SyntaxKind.DotDotToken);
+                                    N(SyntaxKind.ConstantPattern);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "p");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.OrKeyword);
+                                N(SyntaxKind.SlicePattern);
+                                {
+                                    N(SyntaxKind.DotDotToken);
+                                    N(SyntaxKind.ConstantPattern);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "q");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
     }
 }
