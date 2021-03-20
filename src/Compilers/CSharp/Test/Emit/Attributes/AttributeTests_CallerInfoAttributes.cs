@@ -40,7 +40,39 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "123");
+            CompileAndVerify(compilation, expectedOutput: "123", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
+        {
+            // PROTOTYPE(caller-expr): What should the expected output be?
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        Log(// comment
+               123 /* comment */ +
+               5 /* comment */ // comment
+        );
+    }
+    const string p = nameof(p);
+    static void Log(int p, [CallerArgumentExpression(p)] string arg = null)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"123 /* comment */ +
+               5", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -66,7 +98,7 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "124");
+            CompileAndVerify(compilation, expectedOutput: "124", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -98,7 +130,7 @@ public static class Program
 
             var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "2 + 2");
+            CompileAndVerify(compilation, expectedOutput: "2 + 2", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -125,7 +157,7 @@ public static class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression");
+            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -152,7 +184,7 @@ public static class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2");
+            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -182,7 +214,7 @@ class Program
                 //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 22)
                 );
-            CompileAndVerify(compilation, expectedOutput: "<default>");
+            CompileAndVerify(compilation, expectedOutput: "<default>", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -212,7 +244,7 @@ class Program
                 //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
                 );
-            CompileAndVerify(compilation, expectedOutput: "Main");
+            CompileAndVerify(compilation, expectedOutput: "Main", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -245,7 +277,7 @@ class Program
 @"target default value
 arg default value
 caller target value
-callerTargetExp");
+callerTargetExp", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -287,7 +319,7 @@ callerTargetExp
 target default value
 arg default value
 caller target value
-callerTargetExp");
+callerTargetExp", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -324,7 +356,7 @@ param1: param1_value, param2: ""param1_value""
 param1: param1_value, param2: ""param1_value""
 param1: ""param2_value"", param2: param2_value
 param1: param1_value, param2: param2_value
-param1: param1_value, param2: param2_value");
+param1: param1_value, param2: param2_value", verify: Verification.Skipped);
         }
 
         // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
@@ -376,7 +408,7 @@ public static class C
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
-value");
+value", verify: Verification.Skipped);
         }
 
         [Fact]
