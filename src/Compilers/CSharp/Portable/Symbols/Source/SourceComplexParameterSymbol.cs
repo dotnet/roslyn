@@ -621,6 +621,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute))
                 {
+                    // PROTOTYPE(caller-expr): From 333fred review:
+                    // As the language exists today we can do this as an early attribute, but if we do implement the
+                    // nameof proposal (allowing nameof(parameter) in parameters/attributes on methods) I don't believe it
+                    // will end well (this will cause a loop or fail to bind entirely).
+                    // Consider moving binding of the actual attribute data into regular attribute binding.
                     arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasCallerArgumentExpressionAttribute = true;
 
                     var index = -1;
