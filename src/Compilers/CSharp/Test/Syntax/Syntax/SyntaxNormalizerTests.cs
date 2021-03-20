@@ -653,7 +653,76 @@ $"  ///  </summary>{Environment.NewLine}" +
         [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
         public void TestNormalizeFunctionPointer()
         {
-            TestNormalizeDeclaration("delegate * <string, int> M() => throw null;", "delegate*<string, int> M() => throw null;");
+            var content =
+@"unsafe class C
+{
+  delegate * < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate*<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithManagedCallingConvention()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *managed < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* managed<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithUnmanagedCallingConvention()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *unmanaged < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* unmanaged<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
+        }
+
+        [Fact]
+        [WorkItem(50664, "https://github.com/dotnet/roslyn/issues/50664")]
+        public void TestNormalizeFunctionPointerWithUnmanagedCallingConventionAndSpecifiers()
+        {
+            var content =
+@"unsafe class C
+{
+  delegate *unmanaged [ Cdecl ,  Thiscall ] < int ,  int > functionPointer;
+}";
+
+            var expected =
+@"unsafe class C
+{
+  delegate* unmanaged[Cdecl, Thiscall]<int, int> functionPointer;
+}";
+
+            TestNormalizeDeclaration(content, expected);
         }
 
         [Fact]
