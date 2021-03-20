@@ -3534,12 +3534,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
             }
 
-            // PROTOTYPE(record-structs): update for record structs
-            if (isRecordClass)
-            {
-                var printMembers = addPrintMembersMethod();
-                addToStringMethod(printMembers);
-            }
+            var printMembers = addPrintMembersMethod();
+            addToStringMethod(printMembers);
 
             memberSignatures.Free();
 
@@ -3671,7 +3667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     printMembersMethod = (MethodSymbol)existingPrintMembersMethod;
-                    if (this.IsSealed && this.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+                    if ((this.IsSealed && this.BaseTypeNoUseSiteDiagnostics.IsObjectType()) || !isRecordClass)
                     {
                         if (printMembersMethod.DeclaredAccessibility != Accessibility.Private)
                         {
@@ -3690,7 +3686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_SignatureMismatchInRecord, printMembersMethod.Locations[0], printMembersMethod, targetMethod.ReturnType);
                         }
                     }
-                    else
+                    else if (isRecordClass)
                     {
                         SynthesizedRecordPrintMembers.VerifyOverridesPrintMembersFromBase(printMembersMethod, diagnostics);
                     }

@@ -4925,6 +4925,7 @@ public record C : B {
         [Fact, WorkItem(47093, "https://github.com/dotnet/roslyn/issues/47093")]
         public void ToString_TopLevelRecord_Empty()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -5151,6 +5152,7 @@ record C2 : C1
         [Fact]
         public void ToString_TopLevelRecord_MissingStringBuilder()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1;
 ";
@@ -5173,6 +5175,7 @@ record C1;
         [Fact]
         public void ToString_TopLevelRecord_MissingStringBuilderCtor()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1;
 ";
@@ -5189,6 +5192,7 @@ record C1;
         [Fact]
         public void ToString_TopLevelRecord_MissingStringBuilderAppendString()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1;
 ";
@@ -5205,6 +5209,7 @@ record C1;
         [Fact]
         public void ToString_TopLevelRecord_OneProperty_MissingStringBuilderAppendString()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1(int P);
 ";
@@ -5271,6 +5276,7 @@ sealed record C2(int I1, int I2) : C1(I1);
         [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
         public void ToString_RecordWithIndexer()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1(42);
 System.Console.Write(c1.ToString());
@@ -5313,6 +5319,7 @@ record C1(int I1)
         [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
         public void ToString_PrivateGetter()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -5324,7 +5331,7 @@ record C1
 ";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1 { P1 = 43 }", verify: Verification.Skipped /* init-only */);
+            CompileAndVerify(comp, expectedOutput: "C1 { P1 = 43 }");
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5475,7 +5482,7 @@ record C1
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
@@ -5521,6 +5528,7 @@ record C1
         [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_ConstrainedValueType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1<int>() { field = 42 };
 System.Console.Write(c1.ToString());
@@ -5533,7 +5541,7 @@ record C1<T> where T : struct
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }");
 
             v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
@@ -5563,6 +5571,7 @@ record C1<T> where T : struct
         [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_ReferenceType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1() { field = ""hello"" };
 System.Console.Write(c1.ToString());
@@ -5575,7 +5584,7 @@ record C1
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = hello }", verify: Verification.Skipped /* init-only */);
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = hello }");
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
@@ -5669,6 +5678,7 @@ record C1
         [Fact]
         public void ToString_TopLevelRecord_TwoFields_ReferenceType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1() { field1 = ""hi"", field2 = null };
 System.Console.Write(c1.ToString());
@@ -5704,7 +5714,7 @@ record C1
                 //     private protected string field7;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field7").WithArguments("C1.field7", "null").WithLocation(14, 30)
                 );
-            var v = CompileAndVerify(comp, expectedOutput: "C1 { field1 = hi, field2 =  }", verify: Verification.Skipped /* init-only */);
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field1 = hi, field2 =  }");
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
@@ -7027,6 +7037,7 @@ public record B : A {
         [Fact]
         public void ToString_TopLevelRecord_UserDefinedToString()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -7048,6 +7059,7 @@ record C1
         [Fact]
         public void ToString_TopLevelRecord_UserDefinedToString_Sealed()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7080,6 +7092,7 @@ sealed record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_WithNullableStringBuilder()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record C1
@@ -7095,6 +7108,7 @@ record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_ErrorReturnType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7113,6 +7127,7 @@ record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_WrongReturnType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7201,6 +7216,7 @@ sealed record C
         [Fact]
         public void ToString_UserDefinedPrintMembers()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -7223,6 +7239,7 @@ record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_WrongAccessibility()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7290,6 +7307,7 @@ record C1 : B
         [Fact]
         public void ToString_UserDefinedPrintMembers_New()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record B;
 record C1 : B
@@ -27529,6 +27547,7 @@ record C1(int I1)
         [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
         public void ToString_NestedRecord()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new Outer.C1(42);
 System.Console.Write(c1.ToString());

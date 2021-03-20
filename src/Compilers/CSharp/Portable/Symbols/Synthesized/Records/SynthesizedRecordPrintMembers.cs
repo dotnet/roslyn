@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)
         {
-            var result = (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() && ContainingType.IsSealed) ?
+            var result = (ContainingType.IsRecordStruct || (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() && ContainingType.IsSealed)) ?
                 DeclarationModifiers.Private :
                 DeclarationModifiers.Protected;
 
-            if (virtualPrintInBase() is object)
+            if (ContainingType.IsRecord && virtualPrintInBase() is object)
             {
                 result |= DeclarationModifiers.Override;
             }
@@ -61,8 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 #if DEBUG
-            static bool modifiersAreValid(DeclarationModifiers modifiers)
+            bool modifiersAreValid(DeclarationModifiers modifiers)
             {
+                if (ContainingType.IsRecordStruct)
+                {
+                    return modifiers == DeclarationModifiers.Private;
+                }
+
                 if ((modifiers & DeclarationModifiers.AccessibilityMask) != DeclarationModifiers.Private &&
                     (modifiers & DeclarationModifiers.AccessibilityMask) != DeclarationModifiers.Protected)
                 {
@@ -88,10 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
+            var annotation = ContainingType.IsRecordStruct ? NullableAnnotation.Oblivious : NullableAnnotation.NotAnnotated;
             return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Boolean, location, diagnostics)),
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                         new SourceSimpleParameterSymbol(owner: this,
-                            TypeWithAnnotations.Create(Binder.GetWellKnownType(compilation, WellKnownType.System_Text_StringBuilder, diagnostics, location), NullableAnnotation.NotAnnotated),
+                            TypeWithAnnotations.Create(Binder.GetWellKnownType(compilation, WellKnownType.System_Text_StringBuilder, diagnostics, location), annotation),
                             ordinal: 0, RefKind.None, "builder", isDiscard: false, Locations)),
                     IsVararg: false,
                     DeclaredConstraintsForOverrideOrImplementation: ImmutableArray<TypeParameterConstraintClause>.Empty);
@@ -113,13 +119,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
-                ArrayBuilder<BoundStatement>? block = printableMembers.IsEmpty ? null : ArrayBuilder<BoundStatement>.GetInstance();
+                ArrayBuilder<BoundStatement>? block = (printableMembers.IsEmpty && !ContainingType.IsRecordStruct) ? null : ArrayBuilder<BoundStatement>.GetInstance();
                 BoundParameter builder = F.Parameter(this.Parameters[0]);
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
                     if (printableMembers.IsEmpty)
                     {
                         // return false;
+                        F.CloseMethod(F.Return(F.Literal(false)));
+                        return;
+                    }
+                }
+                else if (ContainingType.IsRecordStruct)
+                {
+                    if (printableMembers.IsEmpty)
+                    {
                         F.CloseMethod(F.Return(F.Literal(false)));
                         return;
                     }
