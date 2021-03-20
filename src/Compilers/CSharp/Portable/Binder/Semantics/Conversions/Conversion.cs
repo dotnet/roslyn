@@ -9,6 +9,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -634,6 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Implicit and explicit user-defined conversions are described in section 6.4 of the C# language specification.
         /// </remarks>
+        [MemberNotNullWhen(true, nameof(Method), nameof(MethodSymbol))]
         public bool IsUserDefined
         {
             get
