@@ -1831,10 +1831,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
             var argument = node.ArgumentList.Arguments[0].Expression;
-            CheckSyntaxForNameofArgument(argument, out string name, diagnostics);
             // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
             var nameofBinder = new NameofBinder(argument, this);
             var boundArgument = nameofBinder.BindExpression(argument, diagnostics);
+            CheckSyntaxForNameofArgument(argument, out string name, diagnostics, boundArgument.HasAnyErrors);
             if (!boundArgument.HasAnyErrors && boundArgument.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)boundArgument;
@@ -1874,7 +1874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if syntax form is OK (so no errors were reported)
         /// </summary>
-        private bool CheckSyntaxForNameofArgument(ExpressionSyntax argument, out string name, BindingDiagnosticBag diagnostics, bool top = true)
+        private bool CheckSyntaxForNameofArgument(ExpressionSyntax argument, out string name, BindingDiagnosticBag diagnostics, bool boundArgumentHasAnyErrors, bool top = true)
         {
             switch (argument.Kind())
             {
@@ -1900,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SyntaxKind.ThisExpression:
                                 break;
                             default:
-                                ok = CheckSyntaxForNameofArgument(syntax.Expression, out name, diagnostics, false);
+                                ok = CheckSyntaxForNameofArgument(syntax.Expression, out name, diagnostics, boundArgumentHasAnyErrors, false);
                                 break;
                         }
                         name = syntax.Name.Identifier.ValueText;
@@ -1926,8 +1926,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 default:
                     {
-                        var code = top ? ErrorCode.ERR_ExpressionHasNoName : ErrorCode.ERR_SubexpressionNotInNameof;
-                        diagnostics.Add(code, argument.Location);
+                        if (!boundArgumentHasAnyErrors)
+                        {
+                            var code = top ? ErrorCode.ERR_ExpressionHasNoName : ErrorCode.ERR_SubexpressionNotInNameof;
+                            diagnostics.Add(code, argument.Location);
+                        }
+
                         name = "";
                         return false;
                     }
