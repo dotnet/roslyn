@@ -461,8 +461,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (token.IsKind(SyntaxKind.ColonToken))
             {
-                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause)
-                    && !token.Parent.IsKind(SyntaxKind.XmlPrefix);
+                return !token.Parent.IsKind(SyntaxKind.InterpolationFormatClause) &&
+                    !token.Parent.IsKind(SyntaxKind.XmlPrefix);
             }
 
             if (next.IsKind(SyntaxKind.ColonToken))
@@ -499,6 +499,100 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             if (next.IsKind(SyntaxKind.EqualsToken))
             {
                 return !next.Parent.IsKind(SyntaxKind.XmlTextAttribute);
+            }
+
+            // Rules for function pointer below are taken from:
+            // https://github.com/dotnet/roslyn/blob/1cca63b5d8ea170f8d8e88e1574aa3ebe354c23b/src/Workspaces/SharedUtilitiesAndExtensions/Compiler/CSharp/Formatting/Rules/SpacingFormattingRule.cs#L321-L413
+            if (token.Parent.IsKind(SyntaxKind.FunctionPointerType))
+            {
+                // No spacing between delegate and *
+                if (next.IsKind(SyntaxKind.AsteriskToken) && token.IsKind(SyntaxKind.DelegateKeyword))
+                {
+                    return false;
+                }
+
+                // Force a space between * and the calling convention
+                if (token.IsKind(SyntaxKind.AsteriskToken) && next.Parent.IsKind(SyntaxKind.FunctionPointerCallingConvention))
+                {
+                    switch (next.Kind())
+                    {
+                        case SyntaxKind.IdentifierToken:
+                        case SyntaxKind.ManagedKeyword:
+                        case SyntaxKind.UnmanagedKeyword:
+                            return true;
+                    }
+                }
+            }
+
+            if (next.Parent.IsKind(SyntaxKind.FunctionPointerParameterList && token.IsKind(SyntaxKind.LessThanToken)))
+            {
+                switch (token.Kind())
+                {
+                    // No spacing between the * and < tokens if there is no calling convention
+                    case SyntaxKind.AsteriskToken:
+                    // No spacing between the calling convention and opening angle bracket of function pointer types:
+                    // delegate* managed<
+                    case SyntaxKind.ManagedKeyword:
+                    case SyntaxKind.UnmanagedKeyword:
+                    // No spacing between the calling convention specifier and the opening angle
+                    // delegate* unmanaged[Cdecl]<
+                    case SyntaxKind.CloseBracketToken when token.Parent.IsKind(SyntaxKind.FunctionPointerUnmanagedCallingConventionList):
+                        return false;
+                }
+            }
+
+            // No space between unmanaged and the [
+            // delegate* unmanaged[
+            if (token.Parent.IsKind(SyntaxKind.FunctionPointerCallingConvention) && next.Parent.IsKind(SyntaxKind.FunctionPointerUnmanagedCallingConventionList) &&
+                next.IsKind(SyntaxKind.OpenBracketToken))
+            {
+                return false;
+            }
+
+            // Function pointer calling convention adjustments
+            if (next.Parent.IsKind(SyntaxKind.FunctionPointerUnmanagedCallingConventionList) && token.Parent.IsKind(SyntaxKind.FunctionPointerUnmanagedCallingConventionList))
+            {
+                if (next.IsKind(SyntaxKind.IdentifierToken))
+                {
+                    if (token.IsKind(SyntaxKind.OpenBracketToken))
+                    {
+                        return false;
+                    }
+                    // Space after the ,
+                    // unmanaged[Cdecl, Thiscall
+                    else if (token.IsKind(SyntaxKind.CommaToken))
+                    {
+                        return true:
+                    }
+                }
+
+                // No space between identifier and comma
+                // unmanaged[Cdecl,
+                if (next.IsKind(SyntaxKind.CommaToken))
+                {
+                    return false;
+                }
+
+                // No space before the ]
+                // unmanaged[Cdecl]
+                if (next.IsKind(SyntaxKind.CloseBracketToken))
+                {
+                    return false;
+                }
+            }
+
+            // No space after the < in function pointer parameter lists
+            // delegate*<void
+            if (token.IsKind(SyntaxKind.LessThanToken) && token.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
+            {
+                return false;
+            }
+
+            // No space before the > in function pointer parameter lists
+            // delegate*<void>
+            if (next.IsKind(SyntaxKind.GreaterThanToken) && next.Parent.IsKind(SyntaxKind.FunctionPointerParameterList))
+            {
+                return false;
             }
 
             // No space after asterisk in function pointer.
