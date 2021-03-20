@@ -9,7 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
@@ -23,27 +25,31 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         }
 
         public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
-            Solution solution,
-            ISymbol symbol,
+            TextSpan selection,
+            Document document,
             CancellationToken cancellationToken)
         {
             var progressTracker = new ValueTrackingProgressCollector();
-            await TrackValueSourceAsync(solution, symbol, progressTracker, cancellationToken).ConfigureAwait(false);
+            await TrackValueSourceAsync(selection, document, progressTracker, cancellationToken).ConfigureAwait(false);
             return progressTracker.GetItems();
         }
 
         public async Task TrackValueSourceAsync(
-            Solution solution,
-            ISymbol symbol,
+            TextSpan selection,
+            Document document,
             ValueTrackingProgressCollector progressCollector,
             CancellationToken cancellationToken)
         {
+            var symbol = await GetSelectedSymbolAsync(selection, document, cancellationToken).ConfigureAwait(false);
+
             if (symbol
                 is IPropertySymbol
                 or IFieldSymbol
                 or ILocalSymbol
                 or IParameterSymbol)
             {
+                var solution = document.Project.Solution;
+
                 // Add all initializations of the symbol. Those are not caught in 
                 // the reference finder but should still show up in the tree
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
@@ -64,22 +70,33 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         }
 
         public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
-            Solution solution,
             ValueTrackedItem previousTrackedItem,
             CancellationToken cancellationToken)
         {
             var progressTracker = new ValueTrackingProgressCollector();
-            await TrackValueSourceAsync(solution, previousTrackedItem, progressTracker, cancellationToken).ConfigureAwait(false);
+            await TrackValueSourceAsync(previousTrackedItem, progressTracker, cancellationToken).ConfigureAwait(false);
             return progressTracker.GetItems();
         }
 
         public Task TrackValueSourceAsync(
-            Solution solution,
             ValueTrackedItem previousTrackedItem,
             ValueTrackingProgressCollector progressCollector,
             CancellationToken cancellationToken)
         {
             return Task.CompletedTask;
+        }
+
+        private static async Task<ISymbol?> GetSelectedSymbolAsync(TextSpan textSpan, Document document, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var selectedNode = root.FindNode(textSpan);
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var selectedSymbol =
+                semanticModel.GetSymbolInfo(selectedNode, cancellationToken).Symbol
+                ?? semanticModel.GetDeclaredSymbol(selectedNode, cancellationToken);
+
+            return selectedSymbol;
         }
 
         private class FindReferencesProgress : IStreamingFindReferencesProgress, IStreamingProgressTracker

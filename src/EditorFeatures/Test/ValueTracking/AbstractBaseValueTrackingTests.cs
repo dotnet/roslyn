@@ -20,26 +20,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
             var cursorDocument = testWorkspace.DocumentWithCursor;
             var document = testWorkspace.CurrentSolution.GetRequiredDocument(cursorDocument.Id);
             var textSpan = new TextSpan(cursorDocument.CursorPosition!.Value, 0);
-            var symbol = await GetSelectedSymbolAsync(textSpan, document, cancellationToken);
             var service = testWorkspace.Services.GetRequiredService<IValueTrackingService>();
-            return await service.TrackValueSourceAsync(testWorkspace.CurrentSolution, symbol, cancellationToken);
+            return await service.TrackValueSourceAsync(textSpan, document, cancellationToken);
 
         }
 
-        internal static async Task<ISymbol> GetSelectedSymbolAsync(TextSpan textSpan, Document document, CancellationToken cancellationToken)
+        internal static async Task<ImmutableArray<ValueTrackedItem>> GetTrackedItemsAsync(TestWorkspace testWorkspace, ValueTrackedItem item, CancellationToken cancellationToken = default)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedNode = root.FindNode(textSpan);
-
-            Assert.NotNull(selectedNode);
-
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedSymbol =
-                semanticModel.GetSymbolInfo(selectedNode, cancellationToken).Symbol
-                ?? semanticModel.GetDeclaredSymbol(selectedNode, cancellationToken);
-
-            Assert.NotNull(selectedSymbol);
-            return selectedSymbol!;
+            var service = testWorkspace.Services.GetRequiredService<IValueTrackingService>();
+            return await service.TrackValueSourceAsync(item, cancellationToken);
         }
 
         internal static void ValidateItem(ValueTrackedItem item, int line)

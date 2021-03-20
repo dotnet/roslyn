@@ -180,5 +180,52 @@ namespace $$N
             var initialItems = await GetTrackedItemsAsync(workspace);
             Assert.Empty(initialItems);
         }
+
+        [Fact]
+        public async Task PropertyAssignment1()
+        {
+            var code =
+@"
+class C
+{
+    public string S { get; set; } = """""";
+
+    public void SetS(string s)
+    {
+        S$$ = s;
+    }
+
+    public string GetS() => S;
+}
+
+class Other
+{
+    public void CallS(C c, string s)
+    {
+        c.SetS(s);
+    }
+
+    public void CallS(C c)
+    {
+        CallS(c, ""defaultstring"");
+    }
+}
+";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var initialItems = await GetTrackedItemsAsync(workspace);
+
+            //
+            // S = s; [Code.cs:7]
+            //  |> S = [|s|] [Code.cs:7]
+            //      |> public void [|SetS|](string s) [Code.cs:5]
+            //          |> c.SetS(s); [Code.cs:17]
+            //  |> S = ""; [Code.cs:4]
+            Assert.Equal(2, initialItems.Length);
+            ValidateItem(initialItems[0], 7);
+            ValidateItem(initialItems[1], 3);
+
+            //var items = await GetTrackedItemsAsync(workspace, initialItems[0]);
+            //Assert.Equal(1, items.Length);
+        }
     }
 }
