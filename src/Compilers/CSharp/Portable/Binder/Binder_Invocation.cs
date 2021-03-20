@@ -1834,8 +1834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
             var nameofBinder = new NameofBinder(argument, this);
             var boundArgument = nameofBinder.BindExpression(argument, diagnostics);
-            CheckSyntaxForNameofArgument(argument, out string name, diagnostics, boundArgument.HasAnyErrors);
-            if (!boundArgument.HasAnyErrors && boundArgument.Kind == BoundKind.MethodGroup)
+            var syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, diagnostics, boundArgument.HasAnyErrors);
+            if (!boundArgument.HasAnyErrors && syntaxIsOk && boundArgument.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)boundArgument;
                 if (!methodGroup.TypeArgumentsOpt.IsDefaultOrEmpty)
@@ -1912,7 +1912,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool ok = true;
                         if (top)
                         {
-                            diagnostics.Add(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, argument.Location);
+                            if (!boundArgumentHasAnyErrors)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, argument.Location);
+                            }
                             ok = false;
                         }
                         name = syntax.Name.Identifier.ValueText;
