@@ -259,22 +259,22 @@
       </trans-unit>
       <trans-unit id="PreferIsKindDescription">
         <source>Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</source>
-        <target state="new">Prefer 'syntax.IsKind(kind)' to 'syntax.Kind() == kind' when checking syntax kinds. Code using 'IsKind' is slightly more efficient at runtime, so consistent use of this form where applicable helps improve performance in complex analysis scenarios.</target>
+        <target state="translated">檢查語法類型時，相較於 'syntax.Kind() == kind'，更建議使用 'syntax.IsKind(kind)'。使用 'IsKind' 的程式碼，在執行階段的效率稍高。因此在適用情況下，一致使用此格式有助改進複雜分析案例的效能。</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindFix">
         <source>Use 'IsKind' instead of 'Kind'</source>
-        <target state="new">Use 'IsKind' instead of 'Kind'</target>
+        <target state="translated">使用 'IsKind' 代替 'Kind'</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindMessage">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">建議使用 'IsKind' 來檢查語法類型</target>
         <note />
       </trans-unit>
       <trans-unit id="PreferIsKindTitle">
         <source>Prefer 'IsKind' for checking syntax kinds</source>
-        <target state="new">Prefer 'IsKind' for checking syntax kinds</target>
+        <target state="translated">建議使用 'IsKind' 來檢查語法類型</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideCustomTagsInDescriptorDescription">
@@ -557,7 +557,7 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
         <source>A CodeFixProvider should provide FixAll support to enable users to fix multiple instances of the underlying diagnostic with a single code fix. See documentation at https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md for further details.</source>
-        <target state="translated">CodeFixProvider 應提供 FixAll 支援，讓使用者能利用單一程式碼修正來修正基礎診斷的多個執行個體。如需進一步的詳細資料，請參閱位置在 https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md 的文件。</target>
+        <target state="translated">CodeFixProvider 應提供 FixAll 支援，讓使用者能利用單一程式碼修正來修正基礎診斷的多個執行個體。如需進一步的詳細資料，請參閱下列位置的文件 https://github.com/dotnet/roslyn/blob/main/docs/analyzers/FixAllProvider.md。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
