@@ -102,6 +102,60 @@ public static class Program
         }
 
         [Fact]
+        public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_ThisParameter()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public static class Program
+{
+    public static void Main()
+    {
+        int myIntegerExpression = 5;
+        myIntegerExpression.M();
+    }
+    const string p = nameof(p);
+    public static void M(this int p, [CallerArgumentExpression(p)] string arg = null)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression");
+        }
+
+        [Fact]
+        public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_NotThisParameter()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public static class Program
+{
+    public static void Main()
+    {
+        int myIntegerExpression = 5;
+        myIntegerExpression.M(myIntegerExpression * 2);
+    }
+    const string q = nameof(q);
+    public static void M(this int p, int q, [CallerArgumentExpression(q)] string arg = null)
+    {
+        Console.WriteLine(arg);
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2");
+        }
+
+        [Fact]
         public void TestIncorrectParameterNameInCallerArgumentExpressionAttribute()
         {
             string source = @"

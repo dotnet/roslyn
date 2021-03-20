@@ -1374,11 +1374,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (callerSourceLocation is object && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex &&
                     argumentIndex > -1 && argumentIndex < arguments.Length)
                 {
-                    // - Test extension methods.
-                    // - Test combining different attributes (e.g, both CallerArgumentExpression and MemberCallerName).
-                    // - Test having the CallerArgumentExpression tied to an optional parameter that doesn't exist in callsite.
-                    // - Test having a non-existent expression.
-
                     // PROTOTYPE(caller-expr): Do we need to support VB?
                     // PROTOTYPE(caller-expr): Do we need to add a warning/error for pre-C# 10 using this feature?
 
