@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
             }
 
-            if (next.Parent.IsKind(SyntaxKind.FunctionPointerParameterList && token.IsKind(SyntaxKind.LessThanToken)))
+            if (next.Parent.IsKind(SyntaxKind.FunctionPointerParameterList) && token.IsKind(SyntaxKind.LessThanToken))
             {
                 switch (token.Kind())
                 {
