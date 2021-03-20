@@ -1112,8 +1112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attribute.CommonConstructorArguments[0].TryDecodeValue(SpecialType.System_String, out string parameterName) &&
                 !ContainingSymbol.GetParameters().Any(p => p.Name == parameterName))
             {
-                // CS8918: The CallerArgumentExpressionAttribute is applied with an invalid parameter name.
-                diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location);
+                // CS8918: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.
+                diagnostics.Add(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
 
             diagnostics.Add(node.Name.Location, useSiteInfo);

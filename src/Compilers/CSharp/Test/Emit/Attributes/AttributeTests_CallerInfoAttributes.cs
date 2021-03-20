@@ -178,9 +178,9 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
-                // (12,22): error CS8918: The CallerArgumentExpressionAttribute is applied with an invalid parameter name.
+                // (12,22): warning CS8918: The CallerArgumentExpressionAttribute applied to parameter 'arg' will have no effect. It is applied with an invalid parameter name.
                 //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
-                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithLocation(12, 22)
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 22)
                 );
             CompileAndVerify(compilation, expectedOutput: "<default>");
         }
