@@ -4205,8 +4205,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundNullCoalescingOperatorResultKind.NoCommonType => TypeWithState.Create(node.Type, NullableFlowState.NotNull),
                 BoundNullCoalescingOperatorResultKind.LeftType => getLeftResultType(leftResultType!, rightResultType!),
                 BoundNullCoalescingOperatorResultKind.LeftUnwrappedType => getLeftResultType(leftResultType!.StrippedType(), rightResultType!),
-                BoundNullCoalescingOperatorResultKind.RightType => getRightResultType(leftResult, leftResultType!, rightResultType!),
-                BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType => getRightResultType(leftResult, leftResultType!.StrippedType(), rightResultType!),
+                BoundNullCoalescingOperatorResultKind.RightType => getResultStateWithRightType(leftResultType!, rightResultType!),
+                BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType => getResultStateWithRightType(leftResultType!.StrippedType(), rightResultType!),
                 BoundNullCoalescingOperatorResultKind.RightDynamicType => TypeWithState.Create(rightResultType!, NullableFlowState.NotNull),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind),
             };
@@ -4232,7 +4232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TypeWithState.Create(leftType, NullableFlowState.NotNull);
             }
 
-            TypeWithState getRightResultType(TypeWithState leftTypeWithState, TypeSymbol leftType, TypeSymbol rightType)
+            TypeWithState getResultStateWithRightType(TypeSymbol leftType, TypeSymbol rightType)
             {
                 var conversion = GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
                 if (conversion.IsUserDefined)
@@ -4242,7 +4242,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node.LeftOperand,
                         conversion,
                         TypeWithAnnotations.Create(rightType),
-                        leftTypeWithState,
+                        // When considering the conversion on the left node, it can only occur in the case where the underlying
+                        // execution returned non-null
+                        TypeWithState.Create(leftType, NullableFlowState.NotNull),
                         checkConversion: false,
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
