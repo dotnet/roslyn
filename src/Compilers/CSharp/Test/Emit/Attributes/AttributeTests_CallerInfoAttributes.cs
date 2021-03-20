@@ -236,6 +236,43 @@ caller target value
 callerTargetExp");
         }
 
+        [Fact]
+        public void TestCallerArgumentExpressionWithDifferentParametersReferringToEachOther()
+        {
+            string source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+class Program
+{
+    public static void Main()
+    {
+        M();
+        M(""param1_value"");
+        M(param1: ""param1_value"");
+        M(param2: ""param2_value"");
+        M(param1: ""param1_value"", param2: ""param2_value"");
+        M(param2: ""param2_value"", param1: ""param1_value"");
+    }
+
+    static void M([CallerArgumentExpression(""param2"")] string param1 = ""param1_default"", [CallerArgumentExpression(""param1"")] string param2 = ""param2_default"")
+    {
+        Console.WriteLine($""param1: {param1}, param2: {param2}"");
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput:
+@"param1: param1_default, param2: param2_default
+param1: param1_value, param2: ""param1_value""
+param1: param1_value, param2: ""param1_value""
+param1: ""param2_value"", param2: param2_value
+param1: param1_value, param2: param2_value
+param1: param1_value, param2: param2_value");
+        }
+
         // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
         [Fact]
         public void TestArgumentExpressionIsCallerMember()
