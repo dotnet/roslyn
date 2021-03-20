@@ -2733,6 +2733,27 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(13, 9));
         }
 
+        [Fact]
+        public void NullCoalescing_CondAccess_NullableEnum()
+        {
+            var source = @"
+public enum E { E1 = 1 }
+
+public static class Extensions
+{
+    public static E M1(this E e, object obj) => e;
+
+    static void M2(E? e)
+    {
+        int x;
+        E e2 = e?.M1(x = 0) ?? e.Value.M1(x = 0);
+        x.ToString();
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         [WorkItem(529603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529603")]
         [Theory]
         [InlineData("true", "false")]
