@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpSyntaxTree
     {
-        private class LazySyntaxTree : CSharpSyntaxTree
+        private sealed class LazySyntaxTree : CSharpSyntaxTree
         {
             private readonly SourceText _text;
             private readonly CSharpParseOptions _options;

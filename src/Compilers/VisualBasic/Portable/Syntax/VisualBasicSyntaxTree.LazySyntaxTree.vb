@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Public Class VisualBasicSyntaxTree
 
-        Private Class LazySyntaxTree
+        Private NotInheritable Class LazySyntaxTree
             Inherits VisualBasicSyntaxTree
 
             Private ReadOnly _text As SourceText
