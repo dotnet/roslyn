@@ -4886,13 +4886,22 @@ select t";
             UsingExpression("new[] { ref[] }",
                 // (1,9): error CS1525: Invalid expression term 'ref'
                 // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[]").WithArguments("ref").WithLocation(1, 9),
-                // (1,12): error CS1525: Invalid expression term '['
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref[] ").WithArguments("ref").WithLocation(1, 9),
+                // (1,12): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 12),
-                // (1,13): error CS0443: Syntax error; value expected
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[]").WithArguments("lambda attributes").WithLocation(1, 12),
+                // (1,13): error CS1001: Identifier expected
                 // new[] { ref[] }
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 13),
+                // (1,15): error CS1001: Identifier expected
+                // new[] { ref[] }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "}").WithLocation(1, 15),
+                // (1,15): error CS1003: Syntax error, '=>' expected
+                // new[] { ref[] }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("=>", "}").WithLocation(1, 15),
+                // (1,15): error CS1525: Invalid expression term '}'
+                // new[] { ref[] }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 15));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {

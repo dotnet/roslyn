@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -808,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations()
+        private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations(bool forLambda = false)
         {
             var attributes = _pool.Allocate<AttributeListSyntax>();
             try
@@ -818,7 +817,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 while (this.IsPossibleAttributeDeclaration())
                 {
-                    attributes.Add(this.ParseAttributeDeclaration());
+                    var attribute = this.ParseAttributeDeclaration();
+                    if (forLambda)
+                    {
+                        attribute = CheckFeatureAvailability(attribute, MessageID.IDS_FeatureLambdaAttributes);
+                    }
+                    attributes.Add(attribute);
                 }
 
                 _termState = saveTerm;
@@ -10349,6 +10353,8 @@ tryAgain:
                     {
                         return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                     }
+                case SyntaxKind.OpenBracketToken:
+                    return this.ParseLambdaExpression();
                 case SyntaxKind.ThisKeyword:
                     return _syntaxFactory.ThisExpression(this.EatToken());
                 case SyntaxKind.BaseKeyword:
@@ -11037,7 +11043,7 @@ tryAgain:
             {
                 bool foundParameterModifier = false;
 
-                // do we have the following:
+                // do we have the following, possibly with attributes before the parameter:
                 //   case 1: ( T x , ... ) =>
                 //   case 2: ( T x ) =>
                 //   case 3: ( out T x,
@@ -11055,6 +11061,8 @@ tryAgain:
                 {
                     // Advance past the open paren or comma.
                     this.EatToken();
+
+                    _ = ParseAttributeDeclarations(forLambda: true);
 
                     // Eat 'out' or 'ref' for cases [3, 6]. Even though not allowed in a lambda,
                     // we treat `params` similarly for better error recovery.
@@ -12233,6 +12241,7 @@ tryAgain:
 
         private LambdaExpressionSyntax ParseLambdaExpression()
         {
+            var attributes = ParseAttributeDeclarations(forLambda: true);
             var parentScopeIsInAsync = this.IsInAsync;
             var result = parseLambdaExpressionWorker();
             this.IsInAsync = parentScopeIsInAsync;
@@ -12254,7 +12263,7 @@ tryAgain:
                     var (block, expression) = ParseLambdaBody();
 
                     return _syntaxFactory.ParenthesizedLambdaExpression(
-                        modifiers, paramList, arrow, block, expression);
+                        attributes, modifiers, paramList, arrow, block, expression);
                 }
                 else
                 {
@@ -12268,7 +12277,7 @@ tryAgain:
                     var (block, expression) = ParseLambdaBody();
 
                     return _syntaxFactory.SimpleLambdaExpression(
-                        modifiers, parameter, arrow, block, expression);
+                        attributes, modifiers, parameter, arrow, block, expression);
                 }
             }
         }
@@ -12345,6 +12354,7 @@ tryAgain:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.OpenParenToken:   // tuple
+                case SyntaxKind.OpenBracketToken: // attribute
                     return true;
 
                 case SyntaxKind.IdentifierToken:
@@ -12368,6 +12378,8 @@ tryAgain:
 
         private ParameterSyntax ParseLambdaParameter()
         {
+            var attributes = ParseAttributeDeclarations(forLambda: true);
+
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
             bool hasModifier = IsParameterModifier(this.CurrentToken.Kind);
@@ -12386,7 +12398,7 @@ tryAgain:
             }
 
             SyntaxToken paramName = this.ParseIdentifierToken();
-            var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, null);
+            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, paramName, null);
             _pool.Free(modifiers);
             return parameter;
         }

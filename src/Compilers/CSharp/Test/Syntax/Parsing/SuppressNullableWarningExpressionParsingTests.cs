@@ -442,15 +442,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void ConditionalAccess_05()
         {
             UsingNode("x?.y?![0].ToString()", options: null,
-                // (1,7): error CS1525: Invalid expression term '['
+                // (1,7): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[", isSuppressed: false).WithArguments("[").WithLocation(1, 7),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[0]").WithArguments("lambda attributes").WithLocation(1, 7),
+                // (1,8): error CS1001: Identifier expected
+                // x?.y?![0].ToString()
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(1, 8),
+                // (1,8): error CS1001: Identifier expected
+                // x?.y?![0].ToString()
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(1, 8),
+                // (1,10): error CS1001: Identifier expected
+                // x?.y?![0].ToString()
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 10),
+                // (1,10): error CS1003: Syntax error, '=>' expected
+                // x?.y?![0].ToString()
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments("=>", ".").WithLocation(1, 10),
+                // (1,10): error CS1525: Invalid expression term '.'
+                // x?.y?![0].ToString()
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(1, 10),
                 // (1,21): error CS1003: Syntax error, ':' expected
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":", "").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 21),
                 // (1,21): error CS1733: Expected expression
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 21));
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 21));
 
             N(SyntaxKind.ConditionalExpression);
             {
