@@ -110,12 +110,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.Kind == ConversionKind.SwitchExpression)
             {
-                return ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+
+                var convertedSwitch = ConvertSwitchExpression((BoundUnconvertedSwitchExpression)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+                return new BoundConversion(
+                    syntax,
+                    convertedSwitch,
+                    conversion,
+                    CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast && !wasCompilerGenerated,
+                    conversionGroupOpt,
+                    convertedSwitch.ConstantValue,
+                    destination,
+                    hasErrors);
             }
 
             if (conversion.Kind == ConversionKind.ConditionalExpression)
             {
-                return ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+                var convertedConditional = ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, destination, conversionIfTargetTyped: conversion, diagnostics);
+                return new BoundConversion(
+                    syntax,
+                    convertedConditional,
+                    conversion,
+                    CheckOverflowAtRuntime,
+                    explicitCastInCode: isCast && !wasCompilerGenerated,
+                    conversionGroupOpt,
+                    convertedConditional.ConstantValue,
+                    destination,
+                    hasErrors);
             }
 
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
