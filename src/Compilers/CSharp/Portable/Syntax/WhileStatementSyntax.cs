@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class WhileStatementSyntax
     {
         public WhileStatementSyntax Update(SyntaxToken whileKeyword, SyntaxToken openParenToken, ExpressionSyntax condition, SyntaxToken closeParenToken, StatementSyntax statement)
-            => Update(attributeLists: default, whileKeyword, openParenToken, condition, closeParenToken, statement);
+            => Update(attributeLists: AttributeLists, whileKeyword, openParenToken, condition, closeParenToken, statement);
     }
 }
 
