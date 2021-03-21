@@ -10551,10 +10551,17 @@ class C
               ImmutableArray.Create(
                   SemanticEdit.Create(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
+
             diffError.EmitResult.Diagnostics.Verify(
-                // (9,21): error CS0104: 'Timer' is an ambiguous reference between 'System.Threading.Timer' and 'System.Timers.Timer'
-                //         var t = new Timer(s => System.Console.WriteLine(s));
-                Diagnostic(ErrorCode.ERR_AmbigContext, "Timer").WithArguments("Timer", "System.Threading.Timer", "System.Timers.Timer").WithLocation(9, 21));
+#if NETFRAMEWORK
+                        // (9,21): error CS0104: 'Timer' is an ambiguous reference between 'System.Timers.Timer' and 'System.Threading.Timer'
+                        //         var t = new Timer(s => System.Console.WriteLine(s));
+                        Diagnostic(ErrorCode.ERR_AmbigContext, "Timer").WithArguments("Timer", "System.Timers.Timer", "System.Threading.Timer").WithLocation(9, 21));
+#else
+                       // (9,21): error CS0104: 'Timer' is an ambiguous reference between 'System.Threading.Timer' and 'System.Timers.Timer'
+                       //         var t = new Timer(s => System.Console.WriteLine(s));
+                       Diagnostic(ErrorCode.ERR_AmbigContext, "Timer").WithArguments("Timer", "System.Threading.Timer", "System.Timers.Timer").WithLocation(9, 21));
+#endif
 
             // Semantic errors are reported only for the bodies of members being emitted so we shouldn't see any
 

@@ -233,7 +233,7 @@ namespace N
     {
         public void M()
         {
-            var d = new DirectoryInfo(""a"");
+            var d = new DirectoryInfo(""aa"");
             var x = directoryInfo.Attributes;
         }
     }
@@ -245,6 +245,7 @@ namespace N
 {
     public class C
     {
+        public C(string a) { }
         public FileAttributes Attributes { get; set; }
     }
 
