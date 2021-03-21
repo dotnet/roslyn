@@ -5895,14 +5895,7 @@ record C2 : C1;
 ";
 
             var comp = CreateCompilation(src);
-            comp.VerifyEmitDiagnostics(
-                // (4,35): error CS8870: 'C1.ToString()' cannot be sealed because containing record is not sealed.
-                //     public sealed override string ToString() => throw null;
-                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35),
-                // (6,8): error CS0239: 'C2.ToString()': cannot override inherited member 'C1.ToString()' because it is sealed
-                // record C2 : C1;
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "C2").WithArguments("C2.ToString()", "C1.ToString()").WithLocation(6, 8)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6974,11 +6967,7 @@ public record B : A {
 public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
-            comp.VerifyEmitDiagnostics(
-                // (2,15): error CS0239: 'B.ToString()': cannot override inherited member 'A.ToString()' because it is sealed
-                // public record B : A {
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.ToString()", "A.ToString()").WithLocation(2, 15)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -7013,11 +7002,7 @@ record C1
 ";
 
             var comp = CreateCompilation(src);
-            comp.VerifyEmitDiagnostics(
-                // (4,35): error CS8870: 'C1.ToString()' cannot be sealed because containing record is not sealed.
-                //     public sealed override string ToString() => throw null;
-                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("C1.ToString()").WithLocation(4, 35)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -15350,12 +15335,6 @@ record B(int X, int Y) : A
                 // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                 //     public sealed override bool Equals(object other) => false;
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
-                // (5,35): error CS8870: 'A.ToString()' cannot be sealed because containing record is not sealed.
-                //     public sealed override string ToString() => null;
-                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "ToString").WithArguments("A.ToString()").WithLocation(5, 35),
-                // (7,8): error CS0239: 'B.ToString()': cannot override inherited member 'A.ToString()' because it is sealed
-                // record B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.ToString()", "A.ToString()").WithLocation(7, 8),
                 // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
                 //     public sealed override int GetHashCode() => 0;
                 Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
@@ -15378,7 +15357,6 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y.get",
                 "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
                 "System.Int32 B.Y { get; init; }",
-                "System.String B.ToString()",
                 "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
                 "System.Boolean B.op_Inequality(B? left, B? right)",
                 "System.Boolean B.op_Equality(B? left, B? right)",

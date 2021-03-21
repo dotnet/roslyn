@@ -3641,16 +3641,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
                 {
-                    var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
-                    members.Add(toStringMethod);
-                }
-                else
-                {
-                    var toStringMethod = (MethodSymbol)existingToStringMethod;
-                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialMember.System_Object__ToString, diagnostics) && toStringMethod.IsSealed && !IsSealed)
+                    var baseToStringMethod = getBaseToStringMethod();
+                    if (baseToStringMethod is null || !baseToStringMethod.IsSealed)
                     {
-                        diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, toStringMethod.Locations[0], toStringMethod);
+                        var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
+                        members.Add(toStringMethod);
                     }
+                }
+
+                MethodSymbol? getBaseToStringMethod()
+                {
+                    var tmp = this.BaseTypeNoUseSiteDiagnostics;
+                    while (tmp is not null)
+                    {
+                        var method = tmp.GetSimpleNonTypeMembers(WellKnownMemberNames.ObjectToString)
+                            .OfType<MethodSymbol>()
+                            .SingleOrDefault(m => m.ParameterCount == 0 && m.ReturnType.SpecialType == SpecialType.System_String);
+
+                        if (method is not null)
+                            return method;
+
+                        tmp = tmp.BaseTypeNoUseSiteDiagnostics;
+                    }
+
+                    return null;
                 }
             }
 
