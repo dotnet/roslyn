@@ -3527,6 +3527,10 @@ _Default:
         Friend Function GetMessage(stage As CompilationStage) As String
             Return String.Format("{0} ({1})", Me.SyntaxTree.FilePath, stage.ToString())
         End Function
+
+        Protected Overrides Function GetCorrespondingParameterCore(node As SyntaxNode, cancellationToken As CancellationToken) As IParameterSymbol
+            Throw New NotImplementedException()
+        End Function
 #End Region
     End Class
 End Namespace

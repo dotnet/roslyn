@@ -5282,6 +5282,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                 };
         }
 
+        protected override IParameterSymbol GetCorrespondingParameterCore(SyntaxNode node, CancellationToken cancellationToken)
+        {
+            if (node is ArgumentSyntax && node.Parent is ArgumentListSyntax list && node.Parent.Parent is ExpressionSyntax expression)
+            {
+                var argumentIndex = -1;
+                for (int i = 0; i < list.Arguments.Count; i++)
+                {
+                    if (list.Arguments[i] == node)
+                    {
+                        argumentIndex = i;
+                        break;
+                    }
+                }
+
+                if (argumentIndex == -1)
+                {
+                    return null;
+                }
+
+                var binder = GetEnclosingBinder(GetAdjustedNodePosition(node));
+                if (binder.BindExpression(expression, BindingDiagnosticBag.Discarded) is BoundCall boundCall)
+                {
+                    var parameterIndex = getParameterIndex(argumentIndex, boundCall.ArgsToParamsOpt);
+                    if (parameterIndex > -1 && parameterIndex < boundCall.Method.Parameters.Length)
+                    {
+                        return boundCall.Method.Parameters[argumentIndex].GetPublicSymbol();
+                    }
+                }
+            }
+
+            return null;
+
+            static int getParameterIndex(int argumentIndex, ImmutableArray<int> argsToParamsOpt)
+            {
+                if (argsToParamsOpt.IsDefault)
+                {
+                    return argumentIndex;
+                }
+
+                if (argumentIndex < argsToParamsOpt.Length)
+                {
+                    return argsToParamsOpt[argumentIndex];
+                }
+
+                return -1;
+
+
+            }
+        }
+
         #endregion
     }
 }

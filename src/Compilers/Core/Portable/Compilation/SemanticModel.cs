@@ -89,6 +89,13 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract IOperation? GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
+        public IParameterSymbol? GetCorrespondingParameter(SyntaxNode node, CancellationToken cancellationToken)
+        {
+            return GetCorrespondingParameterCore(node, cancellationToken);
+        }
+
+        protected abstract IParameterSymbol? GetCorrespondingParameterCore(SyntaxNode node, CancellationToken cancellationToken);
+
         /// <summary>
         /// Returns true if this is a SemanticModel that ignores accessibility rules when answering semantic questions.
         /// </summary>

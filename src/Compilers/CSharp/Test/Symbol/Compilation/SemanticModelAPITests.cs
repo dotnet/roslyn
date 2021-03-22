@@ -4234,6 +4234,35 @@ class C
             Assert.Equal(SpecialType.System_Boolean, speculativeTypeInfo.Type.SpecialType);
         }
 
+        [Fact, WorkItem(40201, "https://github.com/dotnet/roslyn/issues/40201")]
+        public void TestGetCorrespondingParameter()
+        {
+            var source = @"
+class C
+{
+    void M1()
+    {
+        M2(5, 3);
+    }
+
+    void M2(int x, int y) { }
+}
+";
+            var comp = CreateCompilation(source);
+
+            var syntaxTree = comp.SyntaxTrees[0];
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var argumentList = root.DescendantNodes().OfType<ArgumentListSyntax>().Single();
+            var first = argumentList.Arguments[0];
+            var second = argumentList.Arguments[1];
+
+            var parameter = model.GetCorrespondingParameter(first, default);
+            Assert.Equal("x", parameter.Name);
+
+        }
+
         #region "regression helper"
         private void Regression(string text)
         {
