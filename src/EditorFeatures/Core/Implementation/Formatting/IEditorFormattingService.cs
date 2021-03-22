@@ -59,11 +59,5 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Returns the text changes necessary to format the document after the user enters a Return.
         /// The position provided is the position of the caret in the document after Return.</summary>
         Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(Document document, int position, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Returns the text changes necessary to format the document after the user enters a Return
-        /// using custom document options. The position provided is the position of the caret in the
-        /// document after Return.</summary>
-        Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(Document document, int position, DocumentOptionSet documentOptions, CancellationToken cancellationToken);
     }
 }
