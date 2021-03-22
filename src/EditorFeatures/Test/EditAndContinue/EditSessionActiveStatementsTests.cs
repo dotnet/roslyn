@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
-                var debuggingSession = new DebuggingSession(solution, mockCompilationOutputsProvider);
+                var debuggingSession = new DebuggingSession(solution, mockCompilationOutputsProvider, SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>());
 
                 if (initialState != CommittedSolution.DocumentState.None)
                 {
