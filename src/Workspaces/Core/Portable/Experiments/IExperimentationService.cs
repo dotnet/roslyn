@@ -37,5 +37,6 @@ namespace Microsoft.CodeAnalysis.Experiments
         public const string LspTextSyncEnabled = "Roslyn.LspTextSyncEnabled";
         public const string RemoveUnusedReferences = "Roslyn.RemoveUnusedReferences";
         public const string LSPCompletion = "Roslyn.LSP.Completion";
+        public const string UnnamedSymbolCompletionDisabled = "Roslyn.UnnamedSymbolCompletionDisabled";
     }
 }
