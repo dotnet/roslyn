@@ -19,18 +19,15 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class LinkedFileDiffMergingSession
     {
-        private readonly bool _logSessionInfo;
-
         private readonly Solution _oldSolution;
         private readonly Solution _newSolution;
         private readonly SolutionChanges _solutionChanges;
 
-        public LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges, bool logSessionInfo)
+        public LinkedFileDiffMergingSession(Solution oldSolution, Solution newSolution, SolutionChanges solutionChanges)
         {
             _oldSolution = oldSolution;
             _newSolution = newSolution;
             _solutionChanges = solutionChanges;
-            _logSessionInfo = logSessionInfo;
         }
 
         internal async Task<LinkedFileMergeSessionResult> MergeDiffsAsync(IMergeConflictHandler mergeConflictHandler, CancellationToken cancellationToken)
