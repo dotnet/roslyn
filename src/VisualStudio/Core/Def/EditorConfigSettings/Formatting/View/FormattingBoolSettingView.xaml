@@ -5,6 +5,5 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" 
              x:ClassModifier="internal">
-    <Grid x:Name="RootGrid">
-    </Grid>
+    <CheckBox x:Name="RootCheckBox" Checked="CheckBoxChanged" Unchecked="CheckBoxChanged" />
 </UserControl>

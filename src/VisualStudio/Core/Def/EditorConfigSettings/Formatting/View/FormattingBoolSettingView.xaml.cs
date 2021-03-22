@@ -14,28 +14,21 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
     internal partial class FormattingBoolSettingView : UserControl
     {
         private readonly FormattingSetting _setting;
-        private readonly CheckBox _checkBox;
 
         public FormattingBoolSettingView(FormattingSetting setting)
         {
             InitializeComponent();
             _setting = setting;
-            _checkBox = new CheckBox();
 
             if (setting.GetValue() is bool value)
             {
-                _checkBox.IsChecked = value;
+                RootCheckBox.IsChecked = value;
             }
-
-            _checkBox.Checked += CheckBoxChanged;
-            _checkBox.Unchecked += CheckBoxChanged;
-
-            _ = RootGrid.Children.Add(_checkBox);
         }
 
         private void CheckBoxChanged(object sender, RoutedEventArgs e)
         {
-            _setting.SetValue(_checkBox.IsChecked == true);
+            _setting.SetValue(RootCheckBox.IsChecked == true);
         }
     }
 }
