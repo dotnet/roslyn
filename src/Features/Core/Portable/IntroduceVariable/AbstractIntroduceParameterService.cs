@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var methodSymbolInfo = GetMethodSymbolFromExpression(document, expression, cancellationToken)!;
             var methodCallSites = await FindCallSitesAsync(document, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
 
-            var updatedCallSitesSolution = await RewriteCallSitesAsync(document, 
+            var updatedCallSitesSolution = await RewriteCallSitesAsync(document,
                 expression, methodCallSites, allOccurrences, parameterName, cancellationToken).ConfigureAwait(false);
             return updatedCallSitesSolution;
         }
@@ -183,6 +183,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     invocations = new List<TInvocationExpressionSyntax>();
                     methodCallSites.Add(refLocation.Document, invocations);
                 }
+
                 invocations.Add((TInvocationExpressionSyntax)refLocation.Location.FindNode(cancellationToken).Parent!);
             }
 
@@ -256,9 +257,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol);
-
             var methodDeclaration = generator.MethodDeclaration(newMethod, invocationReturn);
-
             editor.InsertBefore(methodExpression, methodDeclaration);
         }
 
@@ -534,6 +533,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     }
                 }
             }
+
             return nameToParameterDict;
         }
 
@@ -566,6 +566,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     hasOptionalParameter = true;
                 }
             }
+
             return (methodSymbol != null && methodSymbol.GetParameters().Any(), hasOptionalParameter);
         }
 
