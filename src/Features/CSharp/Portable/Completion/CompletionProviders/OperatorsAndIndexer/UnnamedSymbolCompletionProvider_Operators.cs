@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         /// <summary>
         /// Ordered in the order we want to display operators in the completion list.
         /// </summary>
-        private static readonly ImmutableArray<(string name, OperatorPosition position)> s_operatorInfo1 =
+        private static readonly ImmutableArray<(string name, OperatorPosition position)> s_operatorInfo =
             ImmutableArray.Create(
                 (WellKnownMemberNames.EqualityOperatorName, OperatorPosition.Infix),
                 (WellKnownMemberNames.InequalityOperatorName, OperatorPosition.Infix),
@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             // `!=` so they can select and commit them.
             using var _ = PooledHashSet<char>.GetInstance(out var filterCharacters);
 
-            for (var i = 0; i < s_operatorInfo1.Length; i++)
+            for (var i = 0; i < s_operatorInfo.Length; i++)
             {
-                var (opName, position) = s_operatorInfo1[i];
+                var (opName, position) = s_operatorInfo[i];
                 var opText = GetOperatorText(opName);
                 s_operatorNameToInfo[opName] = (sortOrder: i, position);
 
