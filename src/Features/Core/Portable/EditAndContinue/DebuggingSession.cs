@@ -87,14 +87,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal DebuggingSession(
             Solution solution,
-            Func<Project, CompilationOutputs> compilationOutputsProvider)
+            Func<Project, CompilationOutputs> compilationOutputsProvider,
+            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates)
         {
             _compilationOutputsProvider = compilationOutputsProvider;
             _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
             _projectEmitBaselines = new Dictionary<ProjectId, EmitBaseline>();
             _modulesPreparedForUpdate = new HashSet<Guid>();
 
-            LastCommittedSolution = new CommittedSolution(this, solution);
+            LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
             NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
 

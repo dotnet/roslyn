@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ValueTask CommitSolutionUpdateAsync(CancellationToken cancellationToken);
         ValueTask DiscardSolutionUpdateAsync(CancellationToken cancellationToken);
 
-        ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken);
+        ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, bool captureMatchingDocuments, CancellationToken cancellationToken);
         ValueTask<ImmutableArray<DocumentId>> StartEditSessionAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
         ValueTask<ImmutableArray<DocumentId>> EndEditSessionAsync(CancellationToken cancellationToken);
         ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(CancellationToken cancellationToken);

@@ -7688,6 +7688,65 @@ class C
             End Using
         End Function
 
+        <WorkItem(47511, "https://github.com/dotnet/roslyn/pull/47511")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ConversionsOperatorsAndIndexerAreShownBelowMethodsAndPropertiesAndBeforeUnimportedItems()
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+namespace A
+{
+    using B;
+    public static class CExtensions{
+        public static void ExtensionUnimported(this C c) { }
+    }
+}
+namespace B
+{
+    public static class CExtensions{
+        public static void ExtensionImported(this C c) { }
+    }
+
+    public class C
+    {
+        public int A { get; } = default;
+        public int Z { get; } = default;
+        public void AM() { }
+        public void ZM() { }
+        public int this[int _] => default;
+        public static explicit operator int(C _) => default;
+        public static C operator +(C a, C b) => default;
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            var c = new C();
+            c.$$
+        }
+    }
+}                              </Document>)
+                state.Workspace.SetOptions(state.Workspace.Options.WithChangedOption(
+                                           CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+                state.SendInvokeCompletionList()
+                state.AssertItemsInOrder(New String() {
+                    "A", ' Method, properties, and imported extension methods alphabetical ordered
+                    "AM",
+                    "Equals",
+                    "ExtensionImported",
+                    "GetHashCode",
+                    "GetType",
+                    "this[]", ' Indexer
+                    "ToString",
+                    "Z",
+                    "ZM",
+                    "(int)", ' Conversions
+                    "+", ' Operators
+                    "ExtensionUnimported" 'Unimported extension methods
+                })
+            End Using
+        End Sub
+
         <WpfTheory, CombinatorialData>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestCompleteMethodParenthesisForSymbolCompletionProvider(showCompletionInArgumentLists As Boolean, <CombinatorialValues(";"c, "."c)> commitChar As Char)

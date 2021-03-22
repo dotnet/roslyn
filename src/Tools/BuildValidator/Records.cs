@@ -6,12 +6,14 @@ using System;
 using System.IO;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.Text;
 
 namespace BuildValidator
 {
     internal sealed record AssemblyInfo(string FilePath, Guid Mvid)
     {
         internal string FileName => Path.GetFileName(FilePath);
+        internal string TargetFramework => Path.GetFileName(Path.GetDirectoryName(FilePath))!;
     }
 
     internal sealed record PortableExecutableInfo(string FilePath, Guid Mvid, bool IsReadyToRun);
@@ -26,4 +28,12 @@ namespace BuildValidator
         bool Debug,
         string DebugPath);
 
+    internal record ResolvedSource(
+        string? OnDiskPath,
+        SourceText SourceText,
+        SourceFileInfo SourceFileInfo)
+    {
+        public string DisplayPath => OnDiskPath ?? ("[embedded]" + SourceFileInfo.SourceFilePath);
+        public SyntaxTreeInfo SyntaxTreeInfo => new SyntaxTreeInfo(SourceFileInfo.SourceFilePath, SourceText);
+    }
 }
