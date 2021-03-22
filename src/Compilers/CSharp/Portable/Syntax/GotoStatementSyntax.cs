@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class GotoStatementSyntax
     {
         public GotoStatementSyntax Update(SyntaxToken gotoKeyword, SyntaxToken caseOrDefaultKeyword, ExpressionSyntax expression, SyntaxToken semicolonToken)
-            => Update(attributeLists: AttributeLists, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
+            => Update(AttributeLists, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
     }
 }
 
