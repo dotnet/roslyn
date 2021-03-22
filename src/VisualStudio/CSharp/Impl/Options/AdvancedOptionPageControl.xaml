@@ -135,6 +135,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
                     <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
+                    <CheckBox x:Name="Move_to_end_of_expression_on_semi_colon"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Move_to_end_of_expression_on_semi_colon}" />
                 </StackPanel>
             </GroupBox>
 
