@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             foreach (var parameterSymbol in parameterSymbolList)
             {
-                if (!parameterSymbol.HasExplicitDefaultValue && !parameterSymbol.Type.Equals(compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName)))
+                if (!parameterSymbol.HasExplicitDefaultValue && !parameterSymbol.Type.Equals(compilation.GetTypeByMetadataName(typeof(CancellationToken)?.FullName!)))
                 {
                     insertionIndex++;
                 }
