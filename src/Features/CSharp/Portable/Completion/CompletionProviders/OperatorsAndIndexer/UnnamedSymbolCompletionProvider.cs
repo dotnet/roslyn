@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
@@ -106,6 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var document = context.Document;
             var position = context.Position;
 
+            // Escape hatch feature flag to let us disable this feature remotely if we run into any issues with it, 
+            var workspace = document.Project.Solution.Workspace;
+            var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
+            var disabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.UnnamedSymbolCompletionDisabled);
+            if (disabled)
+                return;
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var dotAndExprStart = GetDotAndExpressionStart(root, position);
             if (dotAndExprStart == default)
@@ -116,8 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var options = CodeAnalysis.Completion.Providers.CompletionUtilities.GetUpdatedRecommendationOptions(context.Options, document.Project.Language);
-            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(
-                document.Project.Solution.Workspace, semanticModel, position, options, cancellationToken);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(workspace, semanticModel, position, options, cancellationToken);
 
             AddUnnamedSymbols(context, position, semanticModel, recommendedSymbols.UnnamedSymbols, cancellationToken);
         }
