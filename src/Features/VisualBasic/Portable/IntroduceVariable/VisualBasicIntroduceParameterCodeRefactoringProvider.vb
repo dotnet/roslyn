@@ -14,8 +14,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicIntroduceParameterService
-        Inherits AbstractIntroduceParameterService(Of VisualBasicIntroduceParameterService, ExpressionSyntax, InvocationExpressionSyntax, IdentifierNameSyntax)
+    Friend Class VisualBasicIntroduceParameterCodeRefactoringProvider
+        Inherits AbstractIntroduceParameterService(Of VisualBasicIntroduceParameterCodeRefactoringProvider, ExpressionSyntax, InvocationExpressionSyntax, IdentifierNameSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>

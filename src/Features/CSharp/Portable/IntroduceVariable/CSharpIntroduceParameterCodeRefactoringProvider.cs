@@ -16,15 +16,15 @@ using Microsoft.CodeAnalysis.Simplification;
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
-    internal partial class CSharpIntroduceParameterService : AbstractIntroduceParameterService<
-        CSharpIntroduceParameterService,
+    internal partial class CSharpIntroduceParameterCodeRefactoringProvider : AbstractIntroduceParameterService<
+        CSharpIntroduceParameterCodeRefactoringProvider,
         ExpressionSyntax,
         InvocationExpressionSyntax,
         IdentifierNameSyntax>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpIntroduceParameterService()
+        public CSharpIntroduceParameterCodeRefactoringProvider()
         {
         }
 

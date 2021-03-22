@@ -590,6 +590,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return (FeaturesResources.Introduce_parameter, actionsBuilder.ToImmutable());
         }
 
+        /// <summary>
+        /// Finds the matches of the expression within the same block
+        /// </summary>
         protected static ISet<TExpressionSyntax> FindMatches(SemanticDocument originalDocument,
                                                              TExpressionSyntax expressionInOriginal,
                                                              SemanticDocument currentDocument,
