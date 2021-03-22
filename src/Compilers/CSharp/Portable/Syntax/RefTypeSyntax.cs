@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public RefTypeSyntax Update(SyntaxToken refKeyword, TypeSyntax type)
         {
-            return Update(refKeyword, readOnlyKeyword: ReadOnlyKeyword, type);
+            return Update(refKeyword, ReadOnlyKeyword, type);
         }
     }
 }
