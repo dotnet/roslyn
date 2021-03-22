@@ -96,10 +96,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         public async Task<Solution> IntroduceParameterForRefactoringAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, CancellationToken cancellationToken)
         {
             var parameterName = GetNewParameterName(document, expression, cancellationToken);
+
+            // MethodSymbol not null here since we know we're contained in something containing parameters at this point
             var methodSymbolInfo = GetMethodSymbolFromExpression(document, expression, cancellationToken)!;
             var methodCallSites = await FindCallSitesAsync(document, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
 
-            var updatedCallSitesSolution = await RewriteCallSitesAsync(document, expression, methodCallSites, allOccurrences, parameterName, cancellationToken).ConfigureAwait(false);
+            var updatedCallSitesSolution = await RewriteCallSitesAsync(document, 
+                expression, methodCallSites, allOccurrences, parameterName, cancellationToken).ConfigureAwait(false);
             return updatedCallSitesSolution;
         }
 
@@ -110,6 +113,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         public async Task<Solution> IntroduceParameterForTrampolineAsync(SemanticDocument document, TExpressionSyntax expression, bool allOccurrences, bool trampoline, CancellationToken cancellationToken)
         {
             var parameterName = GetNewParameterName(document, expression, cancellationToken);
+
+            // MethodSymbol not null here since we know we're contained in something containing parameters at this point
             var methodSymbolInfo = GetMethodSymbolFromExpression(document, expression, cancellationToken)!;
             var methodCallSites = await FindCallSitesAsync(document, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
             var updatedInvocationsSolution = await RewriteCallSitesWithNewMethodAsync(document,
@@ -119,6 +124,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         protected static string GetNewParameterName(SemanticDocument document, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
+            // IsExpressionRemovable checks if the expression's parent and parent's parent are not null, so we can ignore any warnings here
             if (IsExpressionRemovable(document, expression))
             {
                 var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -138,16 +144,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// <summary>
         /// Gets the method symbol the expression is enclosed within
         /// </summary>
-        protected IMethodSymbol? GetMethodSymbolFromExpression(SemanticDocument annotatedSemanticDocument, TExpressionSyntax annotatedExpression, CancellationToken cancellationToken)
+        protected IMethodSymbol? GetMethodSymbolFromExpression(SemanticDocument semanticDocument, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
-            var syntaxFacts = annotatedSemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var methodDeclaration = annotatedExpression.FirstAncestorOrSelf<SyntaxNode>(node => IsMethodDeclaration(node), ascendOutOfTrivia: true);
+            var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var methodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsMethodDeclaration(node), ascendOutOfTrivia: true);
             if (methodDeclaration is null)
             {
                 return null;
             }
 
-            return (IMethodSymbol)annotatedSemanticDocument.SemanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken)!;
+            return (IMethodSymbol)semanticDocument.SemanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken)!;
         }
 
         /// <summary>
@@ -463,6 +469,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                             var argumentExpression = syntaxFacts.GetExpressionOfArgument(updatedInvocationArgument);
                                             var parenthesizedArgumentExpression = generator.AddParentheses(argumentExpression, includeElasticTrivia: false);
                                             var oldNode = newArgumentExpression.GetCurrentNode(variable);
+                                            RoslynDebug.AssertNotNull(oldNode);
                                             newArgumentExpression = newArgumentExpression.ReplaceNode(oldNode, parenthesizedArgumentExpression);
                                             parameterMapped = true;
                                             break;
@@ -475,6 +482,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                         var generatedExpression = GenerateExpressionFromOptionalParameter(mappedParameter);
                                         var parenthesizedGeneratedExpression = generator.AddParentheses(generatedExpression, includeElasticTrivia: false);
                                         var oldNode = newArgumentExpression.GetCurrentNode(variable);
+                                        RoslynDebug.AssertNotNull(oldNode);
                                         newArgumentExpression = newArgumentExpression.ReplaceNode(oldNode, parenthesizedGeneratedExpression);
                                     }
                                 }
