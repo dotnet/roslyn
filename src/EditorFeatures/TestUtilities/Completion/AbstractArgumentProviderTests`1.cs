@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
             Contract.ThrowIfNull(target);
 
             var parameter = target.GetParameters().Single();
-            var context = new ArgumentContext(provider, document, position, parameter, previousDefaultValue, CancellationToken.None);
+            var context = new ArgumentContext(provider, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
             await provider.ProvideArgumentAsync(context);
 
             Assert.Equal(expectedDefaultValue, context.DefaultValue);

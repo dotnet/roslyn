@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         private PackageInstallerService _packageInstallerService;
         private VisualStudioSymbolSearchService _symbolSearchService;
+        private IComponentModel _componentModel_doNotAccessDirectly;
 
         protected AbstractPackage()
         {
@@ -107,7 +108,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 ThreadHelper.ThrowIfNotOnUIThread();
 
-                return (IComponentModel)GetService(typeof(SComponentModel));
+                if (_componentModel_doNotAccessDirectly == null)
+                    _componentModel_doNotAccessDirectly = (IComponentModel)GetService(typeof(SComponentModel));
+
+                return _componentModel_doNotAccessDirectly;
             }
         }
 

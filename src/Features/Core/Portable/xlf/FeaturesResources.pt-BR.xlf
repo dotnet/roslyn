@@ -130,6 +130,16 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Condições de alternância não capturam e não podem ser nomeadas</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?(?'x'))</note>
       </trans-unit>
+      <trans-unit id="Apply_file_header_preferences">
+        <source>Apply file header preferences</source>
+        <target state="new">Apply file header preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_collection_initialization_preferences">
+        <source>Apply object/collection initialization preferences</source>
+        <target state="new">Apply object/collection initialization preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_active_statement_has_been_removed_from_its_original_method_You_must_revert_your_changes_to_continue_or_restart_the_debugging_session">
         <source>An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</source>
         <target state="new">An active statement has been removed from its original method. You must revert your changes to continue or restart the debugging session.</target>
@@ -383,6 +393,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corrigir erro de digitação '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="new">Format document</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_document">
@@ -664,6 +679,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <source>Not enough )'s</source>
         <target state="translated">Não há )'s suficientes</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
+      </trans-unit>
+      <trans-unit id="Operators">
+        <source>Operators</source>
+        <target state="new">Operators</target>
+        <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
@@ -1845,6 +1865,16 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Remover o modificador 'async'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_casts">
+        <source>Remove unnecessary casts</source>
+        <target state="new">Remove unnecessary casts</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unused_variables">
+        <source>Remove unused variables</source>
+        <target state="new">Remove unused variables</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="translated">Substituir '{0}' por '{1}'</target>
@@ -1858,6 +1888,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="RudeEdit">
         <source>Rude edit</source>
         <target state="translated">Edição rudimentar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_accessibility_modifiers">
+        <source>Sort accessibility modifiers</source>
+        <target state="new">Sort accessibility modifiers</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
