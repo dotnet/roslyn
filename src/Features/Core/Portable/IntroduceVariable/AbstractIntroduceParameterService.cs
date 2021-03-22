@@ -459,6 +459,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                 if (mappingDictionary.TryGetValue(variable, out var mappedParameter))
                                 {
                                     var parameterMapped = false;
+                                    var oldNode = newArgumentExpression.GetCurrentNode(variable);
+                                    RoslynDebug.AssertNotNull(oldNode);
                                     for (var i = 0; i < invocationArguments.ToArray().Length; i++)
                                     {
                                         var argumentParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, invocationArguments.ToArray()[i], cancellationToken);
@@ -467,8 +469,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                             var updatedInvocationArgument = updatedInvocationArguments.ToArray()[i];
                                             var argumentExpression = syntaxFacts.GetExpressionOfArgument(updatedInvocationArgument);
                                             var parenthesizedArgumentExpression = generator.AddParentheses(argumentExpression, includeElasticTrivia: false);
-                                            var oldNode = newArgumentExpression.GetCurrentNode(variable);
-                                            RoslynDebug.AssertNotNull(oldNode);
                                             newArgumentExpression = newArgumentExpression.ReplaceNode(oldNode, parenthesizedArgumentExpression);
                                             parameterMapped = true;
                                             break;
@@ -480,8 +480,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                         parameterIsNamed = true;
                                         var generatedExpression = GenerateExpressionFromOptionalParameter(mappedParameter);
                                         var parenthesizedGeneratedExpression = generator.AddParentheses(generatedExpression, includeElasticTrivia: false);
-                                        var oldNode = newArgumentExpression.GetCurrentNode(variable);
-                                        RoslynDebug.AssertNotNull(oldNode);
                                         newArgumentExpression = newArgumentExpression.ReplaceNode(oldNode, parenthesizedGeneratedExpression);
                                     }
                                 }
