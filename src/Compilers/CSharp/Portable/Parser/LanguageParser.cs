@@ -10354,6 +10354,10 @@ tryAgain:
                         return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                     }
                 case SyntaxKind.OpenBracketToken:
+                    if (precedence > Precedence.Lambda)
+                    {
+                        goto default;
+                    }
                     return this.ParseLambdaExpression();
                 case SyntaxKind.ThisKeyword:
                     return _syntaxFactory.ThisExpression(this.EatToken());

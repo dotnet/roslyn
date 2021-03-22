@@ -4914,16 +4914,12 @@ select t";
                     N(SyntaxKind.RefExpression);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ElementAccessExpression);
+                        N(SyntaxKind.SimpleLambdaExpression);
                         {
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.BracketedArgumentList);
+                            N(SyntaxKind.AttributeList);
                             {
                                 N(SyntaxKind.OpenBracketToken);
-                                M(SyntaxKind.Argument);
+                                M(SyntaxKind.Attribute);
                                 {
                                     M(SyntaxKind.IdentifierName);
                                     {
@@ -4931,6 +4927,15 @@ select t";
                                     }
                                 }
                                 N(SyntaxKind.CloseBracketToken);
+                            }
+                            M(SyntaxKind.Parameter);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.EqualsGreaterThanToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                         }
                     }
