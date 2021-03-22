@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             _cancellationToken = cancellationToken;
         }
 
-        public abstract ImmutableArray<ISymbol> GetSymbols();
+        public abstract RecommendedSymbols GetRecommendedSymbols();
 
         public abstract bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(returnValue: true)] out ITypeSymbol explicitLambdaParameterType);
 
