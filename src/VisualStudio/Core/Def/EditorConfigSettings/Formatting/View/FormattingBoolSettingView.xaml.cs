@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
@@ -18,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
         public FormattingBoolSettingView(FormattingSetting setting)
         {
             InitializeComponent();
+            RootCheckBox.SetValue(AutomationProperties.NameProperty, ServicesVSResources.Value);
             _setting = setting;
 
             if (setting.GetValue() is bool value)

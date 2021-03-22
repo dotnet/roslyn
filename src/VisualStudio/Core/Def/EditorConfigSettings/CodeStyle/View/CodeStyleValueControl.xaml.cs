@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
@@ -26,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
                 ItemsSource = values
             };
             _comboBox.SelectedIndex = index;
+            _comboBox.SetValue(AutomationProperties.NameProperty, ServicesVSResources.Value);
             _comboBox.SelectionChanged += ComboBox_SelectionChanged;
             _ = RootGrid.Children.Add(_comboBox);
             _setting = setting;

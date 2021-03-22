@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Windows.Automation;
 using System.Windows.Controls;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
@@ -28,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
             };
 
             _comboBox.SelectedIndex = model.GetValueIndex();
+            _comboBox.SetValue(AutomationProperties.NameProperty, ServicesVSResources.Value);
             _comboBox.SelectionChanged += ComboBox_SelectionChanged;
 
             _ = RootGrid.Children.Add(_comboBox);
