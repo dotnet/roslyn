@@ -808,5 +808,120 @@ class C
 
             Await VerifyHighlightsAsync(input, testHost)
         End Function
+
+        <WorkItem(51841, "https://github.com/dotnet/roslyn/issues/51841")>
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function TestHighlightIgnoresOperators1(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        int {|Definition:x|};
+        {|WrittenReference:x|}$$=1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WorkItem(51841, "https://github.com/dotnet/roslyn/issues/51841")>
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function TestHighlightIgnoresOperators2(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        int {|Definition:x|};
+        {|WrittenReference:x|}$$++;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WorkItem(51841, "https://github.com/dotnet/roslyn/issues/51841")>
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function TestHighlightIgnoresOperators3(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        int {|Definition:x|};
+        {|WrittenReference:x|}$$+=1;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WorkItem(51841, "https://github.com/dotnet/roslyn/issues/51841")>
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function TestHighlightIgnoresOperators4(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        int {|Definition:x|};
+        {|WrittenReference:x|}$$--;
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
+
+        <WorkItem(51841, "https://github.com/dotnet/roslyn/issues/51841")>
+        <WpfTheory>
+        <CombinatorialData>
+        Public Async Function TestHighlightIgnoresOperators5(testHost As TestHost) As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class C
+{
+    void M()
+    {
+        int {|Definition:x|};
+        --$${|WrittenReference:x|};
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyHighlightsAsync(input, testHost)
+        End Function
     End Class
 End Namespace

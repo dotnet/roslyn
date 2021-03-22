@@ -51,13 +51,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return semanticInfo.GetAnySymbol(includeType: false);
         }
 
-        internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
+        internal static Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
             SemanticModel semanticModel,
             int position,
             Workspace workspace,
             CancellationToken cancellationToken)
         {
-            var token = await GetTokenAtPositionAsync(semanticModel, position, workspace, cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
+
+            return GetSemanticInfoAtPositionAsync(semanticModel, position, syntaxFacts.IsBindableToken, workspace, cancellationToken);
+        }
+
+        internal static async Task<TokenSemanticInfo> GetSemanticInfoAtPositionAsync(
+            SemanticModel semanticModel,
+            int position,
+            Predicate<SyntaxToken> predicate,
+            Workspace workspace,
+            CancellationToken cancellationToken)
+        {
+            var token = await GetTokenAtPositionAsync(semanticModel, position, predicate, cancellationToken).ConfigureAwait(false);
 
             if (token != default &&
                 token.Span.IntersectsWith(position))
@@ -71,13 +83,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Task<SyntaxToken> GetTokenAtPositionAsync(
             SemanticModel semanticModel,
             int position,
-            Workspace workspace,
+            Predicate<SyntaxToken> predicate,
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
-            var syntaxFacts = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
 
-            return syntaxTree.GetTouchingTokenAsync(position, syntaxFacts.IsBindableToken, cancellationToken, findInsideTrivia: true);
+            return syntaxTree.GetTouchingTokenAsync(position, predicate, cancellationToken, findInsideTrivia: true);
         }
 
         public static async Task<ISymbol> FindSymbolAtPositionAsync(

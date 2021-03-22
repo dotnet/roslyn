@@ -63,8 +63,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             var solution = document.Project.Solution;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
-                semanticModel, position, solution.Workspace, cancellationToken).ConfigureAwait(false);
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(semanticModel, position, IsBindableNonOperator, solution.Workspace, cancellationToken).ConfigureAwait(false);
+            var symbol = semanticInfo.GetAnySymbol(includeType: false);
             if (symbol == null)
             {
                 return ImmutableArray<DocumentHighlights>.Empty;
@@ -73,6 +76,14 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             // Get unique tags for referenced symbols
             return await GetTagsForReferencedSymbolAsync(
                 symbol, document, documentsToSearch, cancellationToken).ConfigureAwait(false);
+
+            bool IsBindableNonOperator(SyntaxToken token)
+            {
+                // If the cursor is at the end of an identifier, with an operator immediately following, eg count$$++;
+                // the normal logic would be to return the operators semantic info, but that isn't useful for highlighting
+                // so we exclude operators from being valid matches.
+                return syntaxFacts.IsBindableToken(token) && !syntaxFacts.IsOperator(token);
+            }
         }
 
         private static async Task<ImmutableArray<DocumentHighlights>> TryGetEmbeddedLanguageHighlightsAsync(
