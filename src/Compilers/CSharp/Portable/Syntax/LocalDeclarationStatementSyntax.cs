@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class LocalDeclarationStatementSyntax
     {
         public LocalDeclarationStatementSyntax Update(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
-            => Update(awaitKeyword: AwaitKeyword, usingKeyword: UsingKeyword, modifiers, declaration, semicolonToken);
+            => Update(AwaitKeyword, UsingKeyword, modifiers, declaration, semicolonToken);
 
         public LocalDeclarationStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
-            => Update(attributeLists: AttributeLists, awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
+            => Update(AttributeLists, awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
     }
 }
 
