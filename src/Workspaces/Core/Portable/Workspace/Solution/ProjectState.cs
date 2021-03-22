@@ -304,10 +304,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public AnalyzerConfigOptions GetOptionsForSourcePath(string path)
-            {
-                // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
-                return new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(path));
-            }
+                => new WorkspaceAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigSet.GetValue(CancellationToken.None).GetOptionsForSourcePath(path));
 
             private sealed class WorkspaceAnalyzerConfigOptions : AnalyzerConfigOptions
             {
