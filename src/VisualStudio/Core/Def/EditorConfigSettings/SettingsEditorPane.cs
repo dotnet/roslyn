@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
@@ -23,15 +22,13 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Threading;
 using static Microsoft.VisualStudio.VSConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
-    internal sealed class SettingsEditorPane : WindowPane, IOleComponent, IVsDeferredDocView, IVsLinkedUndoClient, IVsWindowSearch
+    internal sealed partial class SettingsEditorPane : WindowPane, IOleComponent, IVsDeferredDocView, IVsLinkedUndoClient, IVsWindowSearch
     {
         private readonly IVsEditorAdaptersFactoryService _vsEditorAdaptersFactoryService;
         private readonly IThreadingContext _threadingContext;
@@ -204,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 }
 
                 // Throw away the undo stack etc.
-                // It is important to â€œzombifyâ€ the undo manager when the owning object is shutting down.
+                // It is important to "zombify" the undo manager when the owning object is shutting down.
                 // This is done by calling IVsLifetimeControlledObject.SeverReferencesToOwner on the undoManager.
                 // This call will clear the undo and redo stacks. This is particularly important to do if
                 // your undo units hold references back to your object. It is also important if you use
@@ -318,19 +315,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 
         public void ClearSearch()
         {
+            _threadingContext.ThrowIfNotOnUIThread();
             if (_control is not null)
             {
                 var tables = _control.GetTableControls();
                 // remove filter on tablar data controls
-                _ = _threadingContext.JoinableTaskFactory.RunAsync(
-                    async () =>
-                    {
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        foreach (var tableControl in tables)
-                        {
-                            _ = tableControl.SetFilter(string.Empty, null);
-                        }
-                    });
+                foreach (var tableControl in tables)
+                {
+                    _ = tableControl.SetFilter(string.Empty, null);
+                }
             }
         }
 
@@ -373,184 +366,5 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         public Guid Category { get; } = new Guid("1BE8950F-AF27-4B71-8D54-1F7FFEFDC237");
         public IVsEnumWindowSearchFilters? SearchFiltersEnum => null;
         public IVsEnumWindowSearchOptions? SearchOptionsEnum => null;
-
-        internal class SearchTask : VsSearchTask
-        {
-            private readonly IThreadingContext _threadingContext;
-            private readonly IWpfTableControl[] _controls;
-
-            public SearchTask(uint dwCookie,
-                              IVsSearchQuery pSearchQuery,
-                              IVsSearchCallback pSearchCallback,
-                              IWpfTableControl[] controls,
-                              IThreadingContext threadingContext)
-                : base(dwCookie, pSearchQuery, pSearchCallback)
-            {
-                _threadingContext = threadingContext;
-                _controls = controls;
-            }
-
-            protected override void OnStartSearch()
-            {
-                _ = _threadingContext.JoinableTaskFactory.RunAsync(
-                    async () =>
-                    {
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        foreach (var control in _controls)
-                        {
-                            _ = control.SetFilter(string.Empty, new SearchFilter(SearchQuery, control));
-                        }
-
-                        await TaskScheduler.Default;
-                        uint resultCount = 0;
-                        foreach (var control in _controls)
-                        {
-                            var results = await control.ForceUpdateAsync().ConfigureAwait(false);
-                            resultCount += (uint)results.FilteredAndSortedEntries.Count;
-                        }
-
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        SearchCallback.ReportComplete(this, dwResultsFound: resultCount);
-                    });
-            }
-
-            protected override void OnStopSearch()
-            {
-                _ = _threadingContext.JoinableTaskFactory.RunAsync(
-                    async () =>
-                    {
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                        foreach (var control in _controls)
-                        {
-                            _ = control.SetFilter(string.Empty, null);
-                        }
-                    });
-            }
-        }
-
-        internal class SearchFilter : IEntryFilter
-        {
-            private readonly IEnumerable<IVsSearchToken> _searchTokens;
-            private readonly IReadOnlyList<ITableColumnDefinition>? _visibleColumns;
-
-            public SearchFilter(IVsSearchQuery searchQuery, IWpfTableControl control)
-            {
-                _searchTokens = SearchUtilities.ExtractSearchTokens(searchQuery);
-                if (_searchTokens == null)
-                {
-                    _searchTokens = Array.Empty<IVsSearchToken>();
-                }
-
-                var newVisibleColumns = new List<ITableColumnDefinition>();
-                foreach (var c in control.ColumnStates)
-                {
-                    if (c.IsVisible || ((c as ColumnState2)?.GroupingPriority > 0))
-                    {
-                        var definition = control.ColumnDefinitionManager.GetColumnDefinition(c.Name);
-                        if (definition != null)
-                        {
-                            newVisibleColumns.Add(definition);
-                        }
-                    }
-                }
-
-                _visibleColumns = newVisibleColumns;
-            }
-
-            public bool Match(ITableEntryHandle entry)
-            {
-                if (_visibleColumns is null)
-                {
-                    return false;
-                }
-
-                // An entry is considered matching a search query if all tokens in the search query are matching at least one of entry's columns.
-                // Reserve one more column for details content
-                var cachedColumnValues = new string[_visibleColumns.Count + 1];
-
-                foreach (var searchToken in _searchTokens)
-                {
-                    // No support for filters yet
-                    if (searchToken is IVsSearchFilterToken)
-                    {
-                        continue;
-                    }
-
-                    if (!AtLeastOneColumnOrDetailsContentMatches(entry, searchToken, cachedColumnValues))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            private bool AtLeastOneColumnOrDetailsContentMatches(ITableEntryHandle entry, IVsSearchToken searchToken, string[] cachedColumnValues)
-            {
-                // Check details content for any matches
-                if (cachedColumnValues[0] == null)
-                {
-                    cachedColumnValues[0] = GetDetailsContentAsString(entry);
-                }
-
-                var detailsContent = cachedColumnValues[0];
-                if (detailsContent != null && Match(detailsContent, searchToken))
-                {
-                    // Found match in details content
-                    return true;
-                }
-
-                if (_visibleColumns is null)
-                {
-                    return false;
-                }
-
-                // Check each column for any matches
-                for (var i = 0; i < _visibleColumns.Count; i++)
-                {
-                    if (cachedColumnValues[i + 1] == null)
-                    {
-                        cachedColumnValues[i + 1] = GetColumnValueAsString(entry, _visibleColumns[i]);
-                    }
-
-                    var columnValue = cachedColumnValues[i + 1];
-
-                    if (columnValue != null && Match(columnValue, searchToken))
-                    {
-                        // Found match in this column
-                        return true;
-                    }
-                }
-
-                // No match found in this entry
-                return false;
-            }
-
-            private static string GetColumnValueAsString(ITableEntryHandle entry, ITableColumnDefinition column)
-            {
-                return (entry.TryCreateStringContent(column, truncatedText: false, singleColumnView: false, content: out var columnValue) && (columnValue != null))
-                       ? columnValue : string.Empty;
-            }
-
-            private static string GetDetailsContentAsString(ITableEntryHandle entry)
-            {
-                string? detailsString = null;
-
-                if (entry.CanShowDetails)
-                {
-                    if (entry is IWpfTableEntry wpfEntry)
-                    {
-                        _ = wpfEntry.TryCreateDetailsStringContent(out detailsString);
-                    }
-                }
-
-                return detailsString ?? string.Empty;
-            }
-
-            private static bool Match(string columnValue, IVsSearchToken searchToken)
-            {
-                return (columnValue != null) && (columnValue.IndexOf(searchToken.ParsedTokenText, StringComparison.OrdinalIgnoreCase) >= 0);
-            }
-        }
     }
 }

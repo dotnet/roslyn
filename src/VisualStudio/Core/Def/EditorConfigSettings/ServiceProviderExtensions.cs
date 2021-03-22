@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         public static bool TryGetService<TInterface>(this IServiceProvider sp, [NotNullWhen(true)] out TInterface? @interface)
                 where TInterface : class
         {
-            @interface = sp.GetService<TInterface, TInterface>(throwOnFailure: false);
+            @interface = sp.GetService<TInterface>();
             return @interface is not null;
         }
 

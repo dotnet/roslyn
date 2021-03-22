@@ -2,51 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formatting.ViewModel
 {
-    [Export(typeof(IEnumSettingViewModelFactory)), Shared]
-    internal class TabSizeViewModelFactory : IEnumSettingViewModelFactory
-    {
-        private readonly OptionKey2 _key;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TabSizeViewModelFactory()
-        {
-            _key = new OptionKey2(FormattingOptions2.TabSize, LanguageNames.CSharp);
-        }
-
-        public IEnumSettingViewModel CreateViewModel(FormattingSetting setting)
-        {
-            return new TabSizeViewModel(setting);
-        }
-
-        public bool IsSupported(OptionKey2 key) => _key == key;
-    }
-
-    internal enum TabSizeSettings
-    {
-        _1,
-        _2,
-        _3,
-        _4,
-        _5,
-        _6,
-        _7,
-        _8,
-    }
-
     internal class TabSizeViewModel : EnumSettingViewModel<TabSizeSettings>
     {
         private readonly FormattingSetting _setting;
@@ -57,37 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
         }
 
         protected override void ChangePropertyTo(TabSizeSettings newValue)
-        {
-            switch (newValue)
-            {
-                case TabSizeSettings._1:
-                    _setting.SetValue(1);
-                    break;
-                case TabSizeSettings._2:
-                    _setting.SetValue(2);
-                    break;
-                case TabSizeSettings._3:
-                    _setting.SetValue(3);
-                    break;
-                case TabSizeSettings._4:
-                    _setting.SetValue(4);
-                    break;
-                case TabSizeSettings._5:
-                    _setting.SetValue(5);
-                    break;
-                case TabSizeSettings._6:
-                    _setting.SetValue(6);
-                    break;
-                case TabSizeSettings._7:
-                    _setting.SetValue(7);
-                    break;
-                case TabSizeSettings._8:
-                    _setting.SetValue(8);
-                    break;
-                default:
-                    break;
-            }
-        }
+            => _setting.SetValue((int)newValue);
 
         protected override TabSizeSettings GetCurrentValue()
         {
