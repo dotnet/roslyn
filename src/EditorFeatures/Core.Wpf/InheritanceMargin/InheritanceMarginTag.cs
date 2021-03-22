@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         /// <summary>
         /// Margin moniker.
         /// </summary>
-        public readonly ImageMoniker Moniker;
+        public ImageMoniker Moniker { get; }
 
         /// <summary>
         /// Members needs to be shown on this line. There might be multiple members.
@@ -64,12 +64,12 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
             //  If there are multiple targets and we have the corresponding compound image, use it
             if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverriding))
             {
-                return KnownMonikers.ImplementingOverriding;
+                return KnownMonikers.Overriding;
             }
 
             if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverridden))
             {
-                return KnownMonikers.ImplementingOverridden;
+                return KnownMonikers.Overridden;
             }
 
             // Otherwise, show the image based on this preference

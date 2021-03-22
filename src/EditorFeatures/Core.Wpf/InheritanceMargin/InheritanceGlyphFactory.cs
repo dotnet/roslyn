@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Windows;
+using Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
@@ -12,7 +13,12 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
     {
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
         {
-            // TODO: Add UI
+            if (tag is InheritanceMarginTag inheritanceMarginTag)
+            {
+                var margin = new ClickableMargin { DataContext = inheritanceMarginTag };
+                return margin;
+            }
+
             return null;
         }
     }
