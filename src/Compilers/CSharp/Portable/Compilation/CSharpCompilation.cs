@@ -2819,7 +2819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasDeclarationErrors: false,
                 emitMethodBodies: false,
                 diagnostics: bindingDiagnostics,
-                filterOpt: filterTree is object ? (Predicate<Symbol>?)(s => IsDefinedOrImplementedInSourceTree(s, filterTree!, filterSpan)) : (Predicate<Symbol>?)null,
+                filterOpt: filterTree is object ? (Predicate<Symbol>?)(s => IsDefinedOrImplementedInSourceTree(s, filterTree, filterSpan)) : (Predicate<Symbol>?)null,
                 cancellationToken: cancellationToken);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, bindingDiagnostics, cancellationToken, filterTree, filterSpan);

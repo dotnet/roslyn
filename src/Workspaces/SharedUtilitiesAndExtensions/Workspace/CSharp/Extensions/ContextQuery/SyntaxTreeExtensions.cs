@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             token = token.GetPreviousTokenIfTouchingWord(position);
 
             // a type decl can't come before usings/externs
-            if (originalToken.GetNextToken(includeSkipped: true).IsUsingOrExternKeyword())
+            if (originalToken.GetNextToken(includeSkipped: true).IsStartOfUsingOrExternDirective())
             {
                 return false;
             }

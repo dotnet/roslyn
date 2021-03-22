@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // a namespace can't come before usings/externs
             // a child namespace can't come before usings/externs
-            if (leftToken.GetNextToken(includeSkipped: true).IsUsingOrExternKeyword())
+            if (leftToken.GetNextToken(includeSkipped: true).IsStartOfUsingOrExternDirective())
             {
                 return false;
             }

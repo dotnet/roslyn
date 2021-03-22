@@ -1411,6 +1411,12 @@ tryAgain:
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.IdentifierToken:
+                    if (this.CurrentToken.ContextualKind == SyntaxKind.GlobalKeyword && this.PeekToken(1).Kind == SyntaxKind.UsingKeyword)
+                    {
+                        return false;
+                    }
+
+                    return true;
                 case SyntaxKind.ThisKeyword:
                     return true;
                 default:
@@ -2840,6 +2846,11 @@ parse_member_name:;
         private bool IsFieldDeclaration(bool isEvent)
         {
             if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+            {
+                return false;
+            }
+
+            if (this.CurrentToken.ContextualKind == SyntaxKind.GlobalKeyword && this.PeekToken(1).Kind == SyntaxKind.UsingKeyword)
             {
                 return false;
             }

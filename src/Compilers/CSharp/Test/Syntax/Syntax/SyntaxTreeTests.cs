@@ -793,5 +793,134 @@ namespace ns {}
             }
             EOF();
         }
+
+        [Fact]
+        public void UsingDirective_01()
+        {
+            var test = "d using ns1;";
+
+            UsingTree(test, TestOptions.Regular,
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // d using ns1;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_17()
+        {
+            var test = "d global using ns1;";
+
+            UsingTree(test, TestOptions.RegularPreview,
+                // (1,1): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // d global using ns1;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UsingDirective_02()
+        {
+            var test = "using ns1; p using ns2;";
+
+            UsingTree(test, TestOptions.Regular,
+                // (1,12): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // using ns1; p using ns2;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(1, 12)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns2");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void GlobalUsingDirective_18()
+        {
+            var test = "global using ns1; p global using ns2;";
+
+            UsingTree(test, TestOptions.RegularPreview,
+                // (1,19): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // global using ns1; p global using ns2;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "p").WithLocation(1, 19)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns1");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.UsingDirective);
+                {
+                    N(SyntaxKind.GlobalKeyword);
+                    N(SyntaxKind.UsingKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "ns2");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }
