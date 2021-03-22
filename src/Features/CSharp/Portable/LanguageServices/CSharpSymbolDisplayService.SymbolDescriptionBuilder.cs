@@ -101,6 +101,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return SpecializedTasks.EmptyImmutableArray<SymbolDisplayPart>();
             }
 
+            protected override ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format)
+                => CodeAnalysis.CSharp.SymbolDisplay.ToMinimalDisplayParts(symbol, semanticModel, position, format);
+
+            protected override string GetNavigationHint(ISymbol symbol)
+                => symbol == null ? null : CodeAnalysis.CSharp.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
+
             private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
                 IFieldSymbol symbol)
             {
