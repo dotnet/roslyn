@@ -6,6 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -4082,6 +4083,29 @@ class D
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void TestWithSettingTurnedOff()
+        {
+            var code = @"
+public class ClassC
+{
+    private int xValue = 7;
+    public int XValue
+    {
+        get
+        {
+            return Math.Min(xValue$$, 1)
+        } 
+    }
+}";
+            var expected = code.Replace("$$", ";$$");
+
+            Verify(code, expected, ExecuteTest,
+                setOptionsOpt: workspace =>
+                {
+                    workspace.SetOptions(workspace.Options.WithChangedOption(FeatureOnOffOptions.MoveToEndOfExpressionOnSemiColon, false));
+                });
+        }
         protected override TestWorkspace CreateTestWorkspace(string code)
             => TestWorkspace.CreateCSharp(code);
     }
