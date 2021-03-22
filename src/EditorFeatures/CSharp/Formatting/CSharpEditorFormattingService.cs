@@ -101,14 +101,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken)
         {
+            var documentOptions = await document.GetDocumentOptionsWithInferredIndentationAsync(
+                explicitFormat: true, _indentationManagerService, cancellationToken).ConfigureAwait(false);
+            return await GetFormattingChangesAsync(document, textSpan, documentOptions, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<IList<TextChange>> GetFormattingChangesAsync(
+            Document document,
+            TextSpan? textSpan,
+            DocumentOptionSet documentOptions,
+            CancellationToken cancellationToken)
+        {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
 
-            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: true, indentationManagerService: _indentationManagerService, cancellationToken: cancellationToken).ConfigureAwait(false);
             return Formatter.GetFormattedTextChanges(root,
                 SpecializedCollections.SingletonEnumerable(formattingSpan),
-                document.Project.Solution.Workspace, options, cancellationToken);
+                document.Project.Solution.Workspace, documentOptions, cancellationToken);
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
@@ -138,6 +148,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         }
 
         Task<IList<TextChange>?> IEditorFormattingService.GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
+            => SpecializedTasks.Null<IList<TextChange>>();
+
+        Task<IList<TextChange>?> IEditorFormattingService.GetFormattingChangesOnReturnAsync(Document document, int caretPosition, DocumentOptionSet documentOptions, CancellationToken cancellationToken)
             => SpecializedTasks.Null<IList<TextChange>>();
 
         private static async Task<bool> TokenShouldNotFormatOnTypeCharAsync(
@@ -173,7 +186,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return false;
         }
 
-        public async Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
+        public async Task<IList<TextChange>?> GetFormattingChangesAsync(
+            Document document,
+            char typedChar,
+            int caretPosition,
+            CancellationToken cancellationToken)
+        {
+            var documentOptions = await document.GetDocumentOptionsWithInferredIndentationAsync(
+                explicitFormat: false, _indentationManagerService, cancellationToken).ConfigureAwait(false);
+            return await GetFormattingChangesAsync(document, typedChar, caretPosition, documentOptions, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<IList<TextChange>?> GetFormattingChangesAsync(
+            Document document,
+            char typedChar,
+            int caretPosition,
+            DocumentOptionSet documentOptions,
+            CancellationToken cancellationToken)
         {
             // first, find the token user just typed.
             var token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
@@ -227,29 +256,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // If the user hits `}` then we will properly smart indent the `}` to match the `{`.
             // However, we won't touch any of the other code in that block, unlike if we were
             // formatting.
-            var options = await document.GetDocumentOptionsWithInferredIndentationAsync(explicitFormat: false, indentationManagerService: _indentationManagerService, cancellationToken: cancellationToken).ConfigureAwait(false);
-
             var onlySmartIndent =
-                (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(options)) ||
-                (token.IsKind(SyntaxKind.OpenBraceToken) && OnlySmartIndentOpenBrace(options));
+                (token.IsKind(SyntaxKind.CloseBraceToken) && OnlySmartIndentCloseBrace(documentOptions)) ||
+                (token.IsKind(SyntaxKind.OpenBraceToken) && OnlySmartIndentOpenBrace(documentOptions));
 
             if (onlySmartIndent)
             {
                 // if we're only doing smart indent, then ignore all edits to this token that occur before
                 // the span of the token. They're irrelevant and may screw up other code the user doesn't 
                 // want touched.
-                var tokenEdits = await FormatTokenAsync(document, options, token, formattingRules, cancellationToken).ConfigureAwait(false);
+                var tokenEdits = await FormatTokenAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
                 return tokenEdits.Where(t => t.Span.Start >= token.FullSpan.Start).ToList();
             }
 
             // if formatting range fails, do format token one at least
-            var changes = await FormatRangeAsync(document, options, token, formattingRules, cancellationToken).ConfigureAwait(false);
+            var changes = await FormatRangeAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
             if (changes.Count > 0)
             {
                 return changes;
             }
 
-            return await FormatTokenAsync(document, options, token, formattingRules, cancellationToken).ConfigureAwait(false);
+            return await FormatTokenAsync(document, documentOptions, token, formattingRules, cancellationToken).ConfigureAwait(false);
         }
 
         private static bool OnlySmartIndentCloseBrace(DocumentOptionSet options)
