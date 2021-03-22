@@ -2517,6 +2517,35 @@ public class C
             }
         }
 
+        [Fact]
+        public void CondAccess_NullCoalescing_DataFlow()
+        {
+            // This test corresponds to ExtractMethodTests.TestFlowStateNullableParameters3
+            var dataFlowAnalysis = CompileAndAnalyzeDataFlowExpression(@"
+#nullable enable
+class C
+{
+    public string M()
+    {
+        string? a = null;
+        string? b = null;
+        return /*<bind>*/(a + b + a)?.ToString()/*</bind>*/ ?? string.Empty;
+    }
+}
+");
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.AlwaysAssigned));
+            Assert.Equal("a, b", GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.DataFlowsOut));
+            Assert.Equal("a, b", GetSymbolNamesJoined(dataFlowAnalysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.ReadOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.WrittenInside));
+            Assert.Equal("this, a, b", GetSymbolNamesJoined(dataFlowAnalysis.WrittenOutside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.Captured));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.CapturedInside));
+            Assert.Null(GetSymbolNamesJoined(dataFlowAnalysis.CapturedOutside));
+        }
+
         #endregion
 
         #region "Statements"
