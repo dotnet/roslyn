@@ -3257,8 +3257,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseClass">
-        <source>Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'</source>
-        <target state="translated">Incoherencia de accesibilidad: la clase base '{1}' es menos accesible que la clase '{0}'</target>
+        <source>Inconsistent accessibility: base type '{1}' is less accessible than type '{0}'</source>
+        <target state="needs-review-translation">Incoherencia de accesibilidad: la clase base '{1}' es menos accesible que la clase '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseInterface">
@@ -4157,8 +4157,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">Las declaraciones parciales de '{0}' no deben especificar clases base diferentes</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">Las declaraciones parciales de '{0}' no deben especificar clases base diferentes</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -4367,8 +4367,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassBoundNotFirst">
-        <source>The class type constraint '{0}' must come before any other constraints</source>
-        <target state="translated">La restricción de tipo de clase '{0}' debe preceder a cualquier otra restricción</target>
+        <source>The type constraint '{0}' must come before any other constraints</source>
+        <target state="needs-review-translation">La restricción de tipo de clase '{0}' debe preceder a cualquier otra restricción</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRetType">

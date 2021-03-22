@@ -547,7 +547,7 @@
     <value>Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'</value>
   </data>
   <data name="ERR_BadVisBaseClass" xml:space="preserve">
-    <value>Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'</value>
+    <value>Inconsistent accessibility: base type '{1}' is less accessible than type '{0}'</value>
   </data>
   <data name="ERR_BadVisBaseInterface" xml:space="preserve">
     <value>Inconsistent accessibility: base interface '{1}' is less accessible than interface '{0}'</value>
@@ -1138,7 +1138,7 @@
     <value>Partial declarations of '{0}' have conflicting accessibility modifiers</value>
   </data>
   <data name="ERR_PartialMultipleBases" xml:space="preserve">
-    <value>Partial declarations of '{0}' must not specify different base classes</value>
+    <value>Partial declarations of '{0}' must not specify different base types</value>
   </data>
   <data name="ERR_PartialWrongTypeParams" xml:space="preserve">
     <value>Partial declarations of '{0}' must have the same type parameter names in the same order</value>
@@ -1276,7 +1276,7 @@
     <value>Duplicate constraint '{0}' for type parameter '{1}'</value>
   </data>
   <data name="ERR_ClassBoundNotFirst" xml:space="preserve">
-    <value>The class type constraint '{0}' must come before any other constraints</value>
+    <value>The type constraint '{0}' must come before any other constraints</value>
   </data>
   <data name="ERR_BadRetType" xml:space="preserve">
     <value>'{1} {0}' has the wrong return type</value>

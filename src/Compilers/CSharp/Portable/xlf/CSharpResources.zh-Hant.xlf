@@ -3257,8 +3257,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseClass">
-        <source>Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'</source>
-        <target state="translated">不一致的存取範圍: 基底類別 '{1}' 比類別 '{0}' 的存取範圍小</target>
+        <source>Inconsistent accessibility: base type '{1}' is less accessible than type '{0}'</source>
+        <target state="needs-review-translation">不一致的存取範圍: 基底類別 '{1}' 比類別 '{0}' 的存取範圍小</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseInterface">
@@ -4157,8 +4157,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">'{0}' 的部分宣告不得指定不同的基底類別</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">'{0}' 的部分宣告不得指定不同的基底類別</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -4367,8 +4367,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassBoundNotFirst">
-        <source>The class type constraint '{0}' must come before any other constraints</source>
-        <target state="translated">類別類型條件約束 '{0}' 必須在所有其他條件約束之前</target>
+        <source>The type constraint '{0}' must come before any other constraints</source>
+        <target state="needs-review-translation">類別類型條件約束 '{0}' 必須在所有其他條件約束之前</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRetType">

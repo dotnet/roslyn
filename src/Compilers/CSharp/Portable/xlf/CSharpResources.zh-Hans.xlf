@@ -3262,8 +3262,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseClass">
-        <source>Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'</source>
-        <target state="translated">可访问性不一致: 基类“{1}”的可访问性低于类“{0}”</target>
+        <source>Inconsistent accessibility: base type '{1}' is less accessible than type '{0}'</source>
+        <target state="needs-review-translation">可访问性不一致: 基类“{1}”的可访问性低于类“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseInterface">
@@ -4162,8 +4162,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">“{0}”的分部声明一定不能指定不同的基类</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">“{0}”的分部声明一定不能指定不同的基类</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -4372,8 +4372,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassBoundNotFirst">
-        <source>The class type constraint '{0}' must come before any other constraints</source>
-        <target state="translated">类类型约束“{0}”必须在其他任何约束之前</target>
+        <source>The type constraint '{0}' must come before any other constraints</source>
+        <target state="needs-review-translation">类类型约束“{0}”必须在其他任何约束之前</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRetType">

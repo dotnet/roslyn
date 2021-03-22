@@ -3257,8 +3257,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseClass">
-        <source>Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'</source>
-        <target state="translated">Tutarsız erişilebilirlik: '{1}' temel sınıfı, '{0}' sınıfından daha az erişilebilir</target>
+        <source>Inconsistent accessibility: base type '{1}' is less accessible than type '{0}'</source>
+        <target state="needs-review-translation">Tutarsız erişilebilirlik: '{1}' temel sınıfı, '{0}' sınıfından daha az erişilebilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseInterface">
@@ -4157,8 +4157,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">'{0}' öğesinin kısmi bildirimleri farklı temel sınıflar belirtmemelidir</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">'{0}' öğesinin kısmi bildirimleri farklı temel sınıflar belirtmemelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -4367,8 +4367,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassBoundNotFirst">
-        <source>The class type constraint '{0}' must come before any other constraints</source>
-        <target state="translated">'{0}' sınıf türü kısıtlaması tüm diğer kısıtlamalardan önce gelmelidir</target>
+        <source>The type constraint '{0}' must come before any other constraints</source>
+        <target state="needs-review-translation">'{0}' sınıf türü kısıtlaması tüm diğer kısıtlamalardan önce gelmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRetType">

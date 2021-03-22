@@ -3257,8 +3257,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseClass">
-        <source>Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'</source>
-        <target state="translated">アクセシビリティに一貫性がありません。基底クラス '{1}' のアクセシビリティはクラス '{0}' よりも低く設定されています</target>
+        <source>Inconsistent accessibility: base type '{1}' is less accessible than type '{0}'</source>
+        <target state="needs-review-translation">アクセシビリティに一貫性がありません。基底クラス '{1}' のアクセシビリティはクラス '{0}' よりも低く設定されています</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseInterface">
@@ -4157,8 +4157,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">'{0}' の partial 宣言では、異なる基底クラスを指定してはいけません</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">'{0}' の partial 宣言では、異なる基底クラスを指定してはいけません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -4367,8 +4367,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassBoundNotFirst">
-        <source>The class type constraint '{0}' must come before any other constraints</source>
-        <target state="translated">クラス型制約 '{0}' は、他の制約の前に指定されなければなりません</target>
+        <source>The type constraint '{0}' must come before any other constraints</source>
+        <target state="needs-review-translation">クラス型制約 '{0}' は、他の制約の前に指定されなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRetType">

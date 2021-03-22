@@ -3256,8 +3256,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseClass">
-        <source>Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'</source>
-        <target state="translated">일관성 없는 액세스 가능성: '{1}' 기본 클래스가 '{0}' 클래스보다 액세스하기 어렵습니다.</target>
+        <source>Inconsistent accessibility: base type '{1}' is less accessible than type '{0}'</source>
+        <target state="needs-review-translation">일관성 없는 액세스 가능성: '{1}' 기본 클래스가 '{0}' 클래스보다 액세스하기 어렵습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadVisBaseInterface">
@@ -4156,8 +4156,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMultipleBases">
-        <source>Partial declarations of '{0}' must not specify different base classes</source>
-        <target state="translated">'{0}'의 partial 선언에는 서로 다른 기본 클래스를 지정할 수 없습니다.</target>
+        <source>Partial declarations of '{0}' must not specify different base types</source>
+        <target state="needs-review-translation">'{0}'의 partial 선언에는 서로 다른 기본 클래스를 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialWrongTypeParams">
@@ -4366,8 +4366,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassBoundNotFirst">
-        <source>The class type constraint '{0}' must come before any other constraints</source>
-        <target state="translated">클래스 형식 제약 조건 '{0}'은(는) 다른 모든 제약 조건보다 앞에 와야 합니다.</target>
+        <source>The type constraint '{0}' must come before any other constraints</source>
+        <target state="needs-review-translation">클래스 형식 제약 조건 '{0}'은(는) 다른 모든 제약 조건보다 앞에 와야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRetType">
