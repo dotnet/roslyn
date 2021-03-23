@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis
         //      used, and not bother running when only an unused
         //      source has changed
 
-        public SingleValueSource<Compilation> CompilationSource { get; }
+        public GeneratorSource<Compilation, Compilation> CompilationSource { get; }
 
-        public MultiValueSource<string> Strings { get; }
+        public GeneratorSource<IEnumerable<string>, string> Strings { get; }
 
         private ValueSources(Compilation compilation, string[] additionalTexts)
         {
-            this.CompilationSource = new SingleValueSource<Compilation>(new SingleItemValueProvider<Compilation>(compilation));
-            this.Strings = new MultiValueSource<string>(new MultiItemValueProvider<string>(additionalTexts));
+            this.CompilationSource = new GeneratorSource<Compilation, Compilation>(new SingleItemValueProvider<Compilation>(compilation));
+            this.Strings = new GeneratorSource<IEnumerable<string>, string>(new MultiItemValueProvider<string>(additionalTexts));
         }
 
 

@@ -20,11 +20,11 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
     class Scratch
     {
-        public class SyntaxNodeValueSource /*: IValueSource<GeneratorSyntaxContext> { }*/
+        public class SyntaxNodeValueSource
         {
-            public MultiValueSource<T> CreateSyntaxTransform<T>(Func<GeneratorSyntaxContext, IEnumerable<T>> func) => throw null!;
+            public GeneratorSource<IEnumerable<T>, T> CreateSyntaxTransform<T>(Func<GeneratorSyntaxContext, IEnumerable<T>> func) => throw null!;
 
-            public MultiValueSource<GeneratorSyntaxContext> CreateSyntaxFilter(Func<GeneratorSyntaxContext, bool> applies) => throw null!;
+            public GeneratorSource<IEnumerable<GeneratorSyntaxContext>, GeneratorSyntaxContext> CreateSyntaxFilter(Func<GeneratorSyntaxContext, bool> applies) => throw null!;
         }
 
 
