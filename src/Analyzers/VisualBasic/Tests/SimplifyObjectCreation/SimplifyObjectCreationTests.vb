@@ -85,6 +85,52 @@ End Class
         End Function
 
         <Fact>
+        Public Async Function SimplifyObjectCreation_WithInitializer() As Task
+            Await VerifyVB.VerifyCodeFixAsync("
+Public Class S
+    Public X As Integer
+
+    Public Shared Function Create() As S
+        Dim [|result As S = New S() With { .X = 0 }|]
+        return result
+    End Function
+End Class
+", "
+Public Class S
+    Public X As Integer
+
+    Public Shared Function Create() As S
+        Dim result As New S() With { .X = 0 }
+        return result
+    End Function
+End Class
+")
+        End Function
+
+        <Fact>
+        Public Async Function SimplifyObjectCreation_FromCollectionInitializer() As Task
+            Await VerifyVB.VerifyCodeFixAsync("
+Imports System.Collections.Generic
+
+Public Class S
+    Public Shared Function Create() As List(Of Integer)
+        Dim [|result As List(Of Integer) = New List(Of Integer)() From { 0, 1, 2, 3 }|]
+        return result
+    End Function
+End Class
+", "
+Imports System.Collections.Generic
+
+Public Class S
+    Public Shared Function Create() As List(Of Integer)
+        Dim result As New List(Of Integer)() From { 0, 1, 2, 3 }
+        return result
+    End Function
+End Class
+")
+        End Function
+
+        <Fact>
         Public Async Function TypeIsConverted_NoDiagnostic() As Task
             Await VerifyVB.VerifyAnalyzerAsync("
 Public Interface IInterface

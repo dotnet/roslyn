@@ -56,6 +56,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
                 MyBase.New(title, createChangedDocument, NameOf(VisualBasicCodeFixesResources.Simplify_object_creation))
             End Sub
         End Class
-
     End Class
 End Namespace
