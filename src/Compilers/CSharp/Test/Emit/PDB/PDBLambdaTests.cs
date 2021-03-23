@@ -1436,7 +1436,7 @@ class Test
             compilation.VerifyPdbLambdasAndClosures(source);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/52068")]
         public void WithExpression_3()
         {
             var source = MarkedSource(WithWindowsLineBreaks(@"
