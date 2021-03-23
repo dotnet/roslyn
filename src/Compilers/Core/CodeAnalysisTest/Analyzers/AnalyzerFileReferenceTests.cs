@@ -423,7 +423,6 @@ public class Generator : ISourceGenerator
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSVB", allAnalyzers[7]);
         }
 
-
         [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
         public void TestLoadedGeneratorOrderIsDeterministic()
         {
@@ -459,7 +458,6 @@ public class Generator : ISourceGenerator
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator", allGenerators[7]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.FSharpGenerator", allGenerators[8]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator", allGenerators[9]);
-
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]
