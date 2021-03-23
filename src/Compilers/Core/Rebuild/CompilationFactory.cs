@@ -30,19 +30,13 @@ namespace BuildValidator
     {
         public string AssemblyFileName { get; }
         public CompilationOptionsReader OptionsReader { get; }
-        public ParseOptions ParseOptions { get; }
-        public CompilationOptions CompilationOptions { get; }
+        public abstract ParseOptions ParseOptions { get; }
+        public abstract CompilationOptions CompilationOptions { get; }
 
-        protected CompilationFactory(
-            string assemblyFileName,
-            CompilationOptionsReader optionsReader,
-            ParseOptions parseOptions,
-            CompilationOptions compilationOptions)
+        protected CompilationFactory(string assemblyFileName, CompilationOptionsReader optionsReader)
         {
             AssemblyFileName = assemblyFileName;
             OptionsReader = optionsReader;
-            ParseOptions = parseOptions;
-            CompilationOptions = compilationOptions;
         }
 
         public static CompilationFactory Create(string assemblyFileName, CompilationOptionsReader optionsReader)

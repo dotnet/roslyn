@@ -29,26 +29,33 @@ namespace BuildValidator
 {
     public class VisualBasicCompilationFactory : CompilationFactory
     {
-        public new VisualBasicCompilationOptions CompilationOptions { get; }
-        public new VisualBasicParseOptions ParseOptions => CompilationOptions.ParseOptions;
+        public override ParseOptions ParseOptions => VisualBasicParseOptions;
+        public override CompilationOptions CompilationOptions => VisualBasicCompilationOptions;
+        public VisualBasicCompilationOptions VisualBasicCompilationOptions { get; }
+        public VisualBasicParseOptions VisualBasicParseOptions => VisualBasicCompilationOptions.ParseOptions;
 
         private VisualBasicCompilationFactory(
             string assemblyFileName,
             CompilationOptionsReader optionsReader,
             VisualBasicCompilationOptions compilationOptions)
-            : base(assemblyFileName, optionsReader, compilationOptions.ParseOptions, compilationOptions)
+            : base(assemblyFileName, optionsReader)
         {
-            CompilationOptions = compilationOptions;
+            VisualBasicCompilationOptions = compilationOptions;
         }
 
         public static new VisualBasicCompilationFactory Create(string assemblyFileName, CompilationOptionsReader optionsReader)
         {
+            if (optionsReader.GetLanguageName() != LanguageNames.VisualBasic)
+            {
+                throw new ArgumentException("", nameof(optionsReader));
+            }
+
             var compilationOptions = CreateVisualBasicCompilationOptions(assemblyFileName, optionsReader);
             return new VisualBasicCompilationFactory(assemblyFileName, optionsReader, compilationOptions);
         }
 
         public override SyntaxTree CreateSyntaxTree(string filePath, SourceText sourceText)
-            => VisualBasicSyntaxTree.ParseText(sourceText, ParseOptions, filePath);
+            => VisualBasicSyntaxTree.ParseText(sourceText, VisualBasicParseOptions, filePath);
 
         public override Compilation CreateCompilation(
             ImmutableArray<SyntaxTree> syntaxTrees,
@@ -57,7 +64,7 @@ namespace BuildValidator
                 Path.GetFileNameWithoutExtension(AssemblyFileName),
                 syntaxTrees: syntaxTrees,
                 references: metadataReferences,
-                options: CompilationOptions);
+                options: VisualBasicCompilationOptions);
 
         private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(string assemblyFileName, CompilationOptionsReader optionsReader)
         {

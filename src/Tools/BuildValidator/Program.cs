@@ -117,8 +117,6 @@ namespace BuildValidator
                     }
                 }
 
-                var sourceResolver = new LocalSourceResolver(options, loggerFactory);
-                var referenceResolver = new LocalReferenceResolver(options, loggerFactory);
                 var assemblyInfos = GetAssemblyInfos(
                     options.AssembliesPaths,
                     options.Excludes,
