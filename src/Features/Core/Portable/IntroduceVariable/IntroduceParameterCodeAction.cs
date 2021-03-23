@@ -13,20 +13,20 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal partial class AbstractIntroduceParameterService<TService, TExpressionSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax>
+    internal partial class AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax>
     {
         internal class IntroduceParameterCodeAction : CodeAction
         {
             private readonly bool _allOccurrences;
             private readonly bool _trampoline;
             private readonly bool _overload;
-            private readonly TService _service;
+            private readonly AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax> _service;
             private readonly TExpressionSyntax _expression;
             private readonly SemanticDocument _semanticDocument;
 
             internal IntroduceParameterCodeAction(
                 SemanticDocument document,
-                TService service,
+                AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax> service,
                 TExpressionSyntax expression,
                 bool allOccurrences,
                 bool trampoline,
