@@ -1834,7 +1834,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.
             var nameofBinder = new NameofBinder(argument, this);
             var boundArgument = nameofBinder.BindExpression(argument, diagnostics);
-            var syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, diagnostics, boundArgument.HasAnyErrors);
+
+            bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
             if (!boundArgument.HasAnyErrors && syntaxIsOk && boundArgument.Kind == BoundKind.MethodGroup)
             {
                 var methodGroup = (BoundMethodGroup)boundArgument;
@@ -1874,7 +1875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if syntax form is OK (so no errors were reported)
         /// </summary>
-        private bool CheckSyntaxForNameofArgument(ExpressionSyntax argument, out string name, BindingDiagnosticBag diagnostics, bool boundArgumentHasAnyErrors, bool top = true)
+        private bool CheckSyntaxForNameofArgument(ExpressionSyntax argument, out string name, BindingDiagnosticBag diagnostics, bool top = true)
         {
             switch (argument.Kind())
             {
@@ -1900,7 +1901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case SyntaxKind.ThisExpression:
                                 break;
                             default:
-                                ok = CheckSyntaxForNameofArgument(syntax.Expression, out name, diagnostics, boundArgumentHasAnyErrors, false);
+                                ok = CheckSyntaxForNameofArgument(syntax.Expression, out name, diagnostics, false);
                                 break;
                         }
                         name = syntax.Name.Identifier.ValueText;
@@ -1912,10 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool ok = true;
                         if (top)
                         {
-                            if (!boundArgumentHasAnyErrors)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, argument.Location);
-                            }
+                            diagnostics.Add(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, argument.Location);
                             ok = false;
                         }
                         name = syntax.Name.Identifier.ValueText;
@@ -1929,12 +1927,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 default:
                     {
-                        if (!boundArgumentHasAnyErrors)
-                        {
-                            var code = top ? ErrorCode.ERR_ExpressionHasNoName : ErrorCode.ERR_SubexpressionNotInNameof;
-                            diagnostics.Add(code, argument.Location);
-                        }
-
+                        var code = top ? ErrorCode.ERR_ExpressionHasNoName : ErrorCode.ERR_SubexpressionNotInNameof;
+                        diagnostics.Add(code, argument.Location);
                         name = "";
                         return false;
                     }
