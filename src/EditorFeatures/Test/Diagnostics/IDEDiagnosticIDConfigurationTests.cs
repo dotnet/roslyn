@@ -589,6 +589,9 @@ dotnet_diagnostic.IDE1008.severity = %value%
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
 
+# IDE0131
+dotnet_diagnostic.IDE0131.severity = %value%
+
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
 
@@ -1207,6 +1210,9 @@ No editorconfig based code style option
 No editorconfig based code style option
 
 # IDE0120
+No editorconfig based code style option
+
+# IDE0131
 No editorconfig based code style option
 
 # IDE2000, AllowMultipleBlankLines
