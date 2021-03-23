@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
                 workspace.ApplyOptions(options!);
             }
 
-            var intentSource = workspace.ExportProvider.GetExportedValue<IIntentProcessor>();
+            var intentSource = workspace.ExportProvider.GetExportedValue<IIntentSourceProvider>();
 
             // The first document will be the active document.
             var document = workspace.Documents.Single(d => d.Name == "test1.cs");
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
                 ImmutableArray.Create(rewindTextChange),
                 TextSpan.FromBounds(rewindTextChange.Span.Start, rewindTextChange.Span.Start),
                 intentData: null);
-            var results = await intentSource.ComputeEditsAsync(intentContext, CancellationToken.None).ConfigureAwait(false);
+            var results = await intentSource.ComputeIntentsAsync(intentContext, CancellationToken.None).ConfigureAwait(false);
 
             // For now, we're just taking the first result to match intellicode behavior.
             var result = results.First();

@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis.Features.Intents
     /// Defines the text changes needed to apply an intent.
     /// </summary>
     internal struct IntentProcessorResult
-
     {
         /// <summary>
         /// The changed solution for this intent result.

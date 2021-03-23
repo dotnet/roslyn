@@ -19,14 +19,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
 {
-    [Export(typeof(IIntentProcessor)), Shared]
-    internal class IntentProcessor : IIntentProcessor
+    [Export(typeof(IIntentSourceProvider)), Shared]
+    internal class IntentSourceProvider : IIntentSourceProvider
     {
         private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public IntentProcessor([ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders)
+        public IntentSourceProvider([ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders)
         {
             _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);
         }
@@ -39,15 +39,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 provider => provider);
         }
 
-        public async Task<ImmutableArray<IntentResult>> ComputeEditsAsync(IntentRequestContext intentRequestContext, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<IntentSource>> ComputeIntentsAsync(IntentRequestContext intentRequestContext, CancellationToken cancellationToken)
         {
             var currentDocument = intentRequestContext.CurrentSnapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            Contract.ThrowIfNull(currentDocument);
+            if (currentDocument == null)
+            {
+                throw new ArgumentException("could not retrieve document for request snapshot");
+            }
 
-            var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var originalDocument = currentDocument.WithText(currentText.WithChanges(intentRequestContext.PriorTextEdits));
-
-            var languageName = originalDocument.Project.Language;
+            var languageName = currentDocument.Project.Language;
             if (!_lazyIntentProviders.TryGetValue((LanguageName: languageName, IntentName: intentRequestContext.IntentName), out var provider))
             {
                 Logger.Log(FunctionId.Intellicode_UnknownIntent, KeyValueLogMessage.Create(LogType.UserAction, m =>
@@ -56,8 +56,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                     m["language"] = languageName;
                 }));
 
-                return ImmutableArray<IntentResult>.Empty;
+                return ImmutableArray<IntentSource>.Empty;
             }
+
+            var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var originalDocument = currentDocument.WithText(currentText.WithChanges(intentRequestContext.PriorTextEdits));
 
             var selectionTextSpan = intentRequestContext.PriorSelection;
             var results = await provider.Value.ComputeIntentAsync(
@@ -68,10 +71,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 cancellationToken).ConfigureAwait(false);
             if (results.IsDefaultOrEmpty)
             {
-                return ImmutableArray<IntentResult>.Empty;
+                return ImmutableArray<IntentSource>.Empty;
             }
 
-            using var _ = ArrayBuilder<IntentResult>.GetInstance(out var convertedResults);
+            using var _ = ArrayBuilder<IntentSource>.GetInstance(out var convertedResults);
             foreach (var result in results)
             {
                 var convertedIntent = await ConvertToIntelliCodeResultAsync(result, originalDocument, currentDocument, cancellationToken).ConfigureAwait(false);
@@ -81,9 +84,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
             return convertedResults.ToImmutable();
         }
 
-        private static async Task<IntentResult?> ConvertToIntelliCodeResultAsync(IntentProcessorResult processorResult, Document originalDocument, Document currentDocument, CancellationToken cancellationToken)
+        private static async Task<IntentSource?> ConvertToIntelliCodeResultAsync(
+            IntentProcessorResult processorResult,
+            Document originalDocument,
+            Document currentDocument,
+            CancellationToken cancellationToken)
         {
-            var title = processorResult.Title;
             var newSolution = processorResult.Solution;
 
             // Merge linked file changes so all linked files have the same text changes.
@@ -100,7 +106,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 return null;
             }
 
-            return new IntentResult(textDiffs, title, processorResult.ActionName);
+            return new IntentSource(processorResult.Title, textDiffs, processorResult.ActionName);
         }
     }
 }

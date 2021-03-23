@@ -96,7 +96,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(CodeAction codeAction, CancellationToken cancellationToken)
             {
-                var title = codeAction.Title;
                 var operations = await GetCodeActionOperationsAsync(codeAction, cancellationToken).ConfigureAwait(false);
 
                 // Generate ctor will only return an ApplyChangesOperation or potentially document navigation actions.
@@ -107,19 +106,16 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     return null;
                 }
 
-                var type = typeof(CodeAction);
-                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, title, type.Name);
+                var type = codeAction.GetType();
+                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, codeAction.Title, type.Name);
             }
 
             static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(
                 CodeAction action,
                 CancellationToken cancellationToken)
             {
-                if (action is CodeActionWithOptions)
+                if (action is GenerateConstructorWithDialogCodeAction dialogAction)
                 {
-                    // Generate ctor only returns GenerateConstructorWithDialogCodeAction for CodeActionWithOptions
-                    var dialogAction = (GenerateConstructorWithDialogCodeAction)action;
-
                     // Usually applying this code action pops up a dialog allowing the user to choose which options.
                     // We can't do that here, so instead we just take the defaults until we have more intent data.
                     var options = new PickMembersResult(dialogAction.ViableMembers, dialogAction.PickMembersOptions);

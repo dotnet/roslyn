@@ -12,20 +12,20 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api
 {
-    internal interface IIntentProcessor
+    internal interface IIntentSourceProvider
     {
         /// <summary>
         /// For an input intent, computes the edits required to apply that intent and returns them.
         /// </summary>
-        /// <param name="intentRequestContext">the intents with the context in which the intent was found.</param>
+        /// <param name="context">the intents with the context in which the intent was found.</param>
         /// <returns>the edits that should be applied to the current snapshot.</returns>
-        Task<ImmutableArray<IntentResult>> ComputeEditsAsync(IntentRequestContext intentRequestContext, CancellationToken cancellationToken);
+        Task<ImmutableArray<IntentSource>> ComputeIntentsAsync(IntentRequestContext context, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
     /// Defines the data needed to compute the code action edits from an intent.
     /// </summary>
-    internal struct IntentRequestContext
+    internal readonly struct IntentRequestContext
     {
         /// <summary>
         /// The intent name.  <see cref="WellKnownIntents"/> contains all intents roslyn knows how to handle.
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api
         public string? IntentData { get; }
 
         /// <summary>
-        /// The text snapshot and selection when <see cref="IIntentProcessor.ComputeEditsAsync"/>
+        /// The text snapshot and selection when <see cref="IIntentSourceProvider.ComputeIntentsAsync"/>
         /// was called to compute the text edits and against which the resulting text edits will be calculated.
         /// </summary>
         public SnapshotSpan CurrentSnapshotSpan { get; }
@@ -68,25 +68,26 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api
     /// <summary>
     /// Defines the text changes needed to apply an intent.
     /// </summary>
-    internal struct IntentResult
+    internal readonly struct IntentSource
     {
-        /// <summary>
-        /// The text changes that should be applied to the <see cref="IntentRequestContext.CurrentSnapshotSpan"/>
-        /// </summary>
-        public readonly ImmutableArray<TextChange> TextChanges;
-
         /// <summary>
         /// The title associated with this intent result.
         /// </summary>
-        public readonly string Title;
+        public readonly string Title { get; }
+
+        /// <summary>
+        /// The text changes that should be applied to the <see cref="IntentRequestContext.CurrentSnapshotSpan"/>
+        /// </summary>
+        public readonly ImmutableArray<TextChange> TextChanges { get; }
 
         /// <summary>
         /// Contains metadata that can be used to identify the kind of sub-action these edits
         /// apply to for the requested intent.  Used for telemetry purposes only.
+        /// For example, the code action type name like FieldDelegatingCodeAction.
         /// </summary>
-        public readonly string ActionName;
+        public readonly string ActionName { get; }
 
-        public IntentResult(ImmutableArray<TextChange> textChanges, string title, string actionName)
+        public IntentSource(string title, ImmutableArray<TextChange> textChanges, string actionName)
         {
             TextChanges = textChanges;
             Title = title ?? throw new ArgumentNullException(nameof(title));
