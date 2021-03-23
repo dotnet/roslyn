@@ -155,14 +155,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // StartEditSession
 
-            mockEncService.StartEditSessionImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
-            {
-                documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
-            };
+            mockEncService.StartEditSessionImpl = () => { };
 
-            await proxy.StartEditSessionAsync(
-                mockDiagnosticService.Object,
-                CancellationToken.None).ConfigureAwait(false);
+            await proxy.StartEditSessionAsync(CancellationToken.None).ConfigureAwait(false);
 
             VerifyReanalyzeInvocation(ImmutableArray<DocumentId>.Empty);
 
@@ -186,12 +181,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // EndDebuggingSession
 
-            mockEncService.EndDebuggingSessionImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
-            {
-                documentsToReanalyze = ImmutableArray.Create(document.Id);
-            };
+            mockEncService.EndDebuggingSessionImpl = () => { };
 
-            await proxy.EndDebuggingSessionAsync(diagnosticUpdateSource, mockDiagnosticService.Object, CancellationToken.None).ConfigureAwait(false);
+            await proxy.EndDebuggingSessionAsync(diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
             Assert.Equal(1, emitDiagnosticsClearedCount);
             emitDiagnosticsClearedCount = 0;

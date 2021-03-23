@@ -51,13 +51,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
         private readonly Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
-        /// <summary>
-        /// A document id is added whenever a diagnostic is reported while in run mode.
-        /// These diagnostics are cleared as soon as we enter break mode or the debugging session terminates.
-        /// </summary>
-        private readonly HashSet<DocumentId> _documentsWithReportedDiagnosticsDuringRunMode;
-        private readonly object _documentsWithReportedDiagnosticsDuringRunModeGuard = new();
-
         private DebuggingSession? _debuggingSession;
         private EditSession? _editSession;
 
@@ -67,7 +60,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
-            _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
             _compilationOutputsProvider = testCompilationOutputsProvider ?? GetCompilationOutputs;
             _reportTelemetry = testReportTelemetry ?? ReportTelemetry;
         }
@@ -104,7 +96,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
-        public void StartEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void StartEditSession()
         {
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
@@ -113,9 +105,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
-
-            // clear diagnostics reported during run mode:
-            ClearReportedRunModeDiagnostics(out documentsToReanalyze);
         }
 
         public void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
@@ -135,7 +124,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             session.Dispose();
         }
 
-        public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void EndDebuggingSession()
         {
             var debuggingSession = Interlocked.Exchange(ref _debuggingSession, null);
             Contract.ThrowIfNull(debuggingSession, "Debugging session has not started.");
@@ -144,9 +133,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             debuggingSession.Cancel();
 
             _reportTelemetry(_debuggingSessionTelemetry.GetDataAndClear());
-
-            // clear diagnostics reported during run mode:
-            ClearReportedRunModeDiagnostics(out documentsToReanalyze);
 
             debuggingSession.Dispose();
         }
@@ -201,23 +187,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                // The document has not changed while the application is running since the last changes were committed:
                 var editSession = _editSession;
-
-                if (editSession == null)
-                {
-                    if (document == oldDocument)
-                    {
-                        return ImmutableArray<Diagnostic>.Empty;
-                    }
-
-                    // Any changes made in loaded, built projects outside of edit session are rude edits (the application is running):
-                    var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(newSyntaxTree);
-
-                    var changedSpans = await GetChangedSpansAsync(oldDocument, newSyntaxTree, cancellationToken).ConfigureAwait(false);
-                    return GetRunModeDocumentDiagnostics(document, newSyntaxTree, changedSpans);
-                }
+                Contract.ThrowIfNull(editSession);
 
                 var oldProject = oldDocument?.Project ?? debuggingSession.LastCommittedSolution.GetProject(project.Id);
                 if (oldProject == null)
@@ -258,102 +229,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 return ImmutableArray<Diagnostic>.Empty;
-            }
-        }
-
-        private static async Task<IEnumerable<TextSpan>> GetChangedSpansAsync(Document? oldDocument, SyntaxTree newSyntaxTree, CancellationToken cancellationToken)
-        {
-            if (oldDocument != null)
-            {
-                var oldSyntaxTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(oldSyntaxTree);
-
-                return GetSpansInNewDocument(await GetDocumentTextChangesAsync(oldSyntaxTree, newSyntaxTree, cancellationToken).ConfigureAwait(false));
-            }
-
-            var newRoot = await newSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            return SpecializedCollections.SingletonEnumerable(newRoot.FullSpan);
-        }
-
-        private ImmutableArray<Diagnostic> GetRunModeDocumentDiagnostics(Document newDocument, SyntaxTree newSyntaxTree, IEnumerable<TextSpan> changedSpans)
-        {
-            if (!changedSpans.Any())
-            {
-                return ImmutableArray<Diagnostic>.Empty;
-            }
-
-            lock (_documentsWithReportedDiagnosticsDuringRunModeGuard)
-            {
-                _documentsWithReportedDiagnosticsDuringRunMode.Add(newDocument.Id);
-            }
-
-            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ChangesNotAppliedWhileRunning);
-            var args = new[] { newDocument.Project.Name };
-            return changedSpans.SelectAsArray(span => Diagnostic.Create(descriptor, Location.Create(newSyntaxTree, span), args));
-        }
-
-        // internal for testing
-        internal static async Task<IList<TextChange>> GetDocumentTextChangesAsync(SyntaxTree oldSyntaxTree, SyntaxTree newSyntaxTree, CancellationToken cancellationToken)
-        {
-            var list = newSyntaxTree.GetChanges(oldSyntaxTree);
-            if (list.Count != 0)
-            {
-                return list;
-            }
-
-            var oldText = await oldSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newText = await newSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (oldText.ContentEquals(newText))
-            {
-                return Array.Empty<TextChange>();
-            }
-
-            var roList = newText.GetTextChanges(oldText);
-            if (roList.Count != 0)
-            {
-                return roList.ToArray();
-            }
-
-            return Array.Empty<TextChange>();
-        }
-
-        // internal for testing
-        internal static IEnumerable<TextSpan> GetSpansInNewDocument(IEnumerable<TextChange> changes)
-        {
-            var oldPosition = 0;
-            var newPosition = 0;
-            foreach (var change in changes)
-            {
-                if (change.Span.Start < oldPosition)
-                {
-                    Debug.Fail("Text changes not ordered");
-                    yield break;
-                }
-
-                RoslynDebug.Assert(change.NewText is object);
-                if (change.Span.Length == 0 && change.NewText.Length == 0)
-                {
-                    continue;
-                }
-
-                // skip unchanged text:
-                newPosition += change.Span.Start - oldPosition;
-
-                yield return new TextSpan(newPosition, change.NewText.Length);
-
-                // apply change:
-                oldPosition = change.Span.End;
-                newPosition += change.NewText.Length;
-            }
-        }
-
-        private void ClearReportedRunModeDiagnostics(out ImmutableArray<DocumentId> documentsToReanalyze)
-        {
-            // clear diagnostics reported during run mode:
-            lock (_documentsWithReportedDiagnosticsDuringRunModeGuard)
-            {
-                documentsToReanalyze = _documentsWithReportedDiagnosticsDuringRunMode.ToImmutableArray();
-                _documentsWithReportedDiagnosticsDuringRunMode.Clear();
             }
         }
 

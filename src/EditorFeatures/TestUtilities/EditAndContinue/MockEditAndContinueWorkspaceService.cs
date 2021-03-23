@@ -12,8 +12,7 @@ using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal delegate void StartEditSession(out ImmutableArray<DocumentId> documentsToReanalyze);
-    internal delegate void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze);
+    internal delegate void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze);
 
     internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
@@ -22,9 +21,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         public Func<Document, DocumentActiveStatementSpanProvider, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetAdjustedActiveStatementSpansImpl;
         public Action<Solution, IManagedEditAndContinueDebuggerService, bool>? StartDebuggingSessionImpl;
-        public StartEditSession? StartEditSessionImpl;
-        public EndSession? EndDebuggingSessionImpl;
-        public EndSession? EndEditSessionImpl;
+        public Action? StartEditSessionImpl;
+        public Action? EndDebuggingSessionImpl;
+        public EndEditSession? EndEditSessionImpl;
         public Func<Solution, SolutionActiveStatementSpanProvider, string?, bool>? HasChangesImpl;
         public Func<Solution, SolutionActiveStatementSpanProvider, EmitSolutionUpdateResults>? EmitSolutionUpdateImpl;
         public Func<Solution, ManagedInstructionId, bool?>? IsActiveStatementInExceptionRegionImpl;
@@ -42,10 +41,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
             => new((EmitSolutionUpdateImpl ?? throw new NotImplementedException()).Invoke(solution, activeStatementSpanProvider));
 
-        public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void EndDebuggingSession()
         {
-            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
-            EndDebuggingSessionImpl?.Invoke(out documentsToReanalyze);
+            EndDebuggingSessionImpl?.Invoke();
         }
 
         public void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
@@ -81,10 +79,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return default;
         }
 
-        public void StartEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void StartEditSession()
         {
-            documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
-            StartEditSessionImpl?.Invoke(out documentsToReanalyze);
+            StartEditSessionImpl?.Invoke();
         }
     }
 }

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 
         public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            _encService.StartEditSession(out _);
+            _encService.StartEditSession();
 
             var results = await _encService.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
@@ -92,6 +92,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         }
 
         public void EndSession()
-            => _encService.EndDebuggingSession(out _);
+            => _encService.EndDebuggingSession();
     }
 }

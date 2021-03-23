@@ -79,14 +79,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> StartEditSessionAsync(CancellationToken cancellationToken)
+        public ValueTask StartEditSessionAsync(CancellationToken cancellationToken)
         {
-            return RunServiceAsync((Func<CancellationToken, ValueTask<ImmutableArray<DocumentId>>>)(cancellationToken =>
+            return RunServiceAsync(cancellationToken =>
             {
-                GetService().StartEditSession(out var documentsToReanalyze);
-
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
-            }), cancellationToken);
+                GetService().StartEditSession();
+                return default;
+            }, cancellationToken);
         }
 
         /// <summary>
@@ -104,12 +103,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(CancellationToken cancellationToken)
+        public ValueTask EndDebuggingSessionAsync(CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().EndDebuggingSession(out var documentsToReanalyze);
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
+                GetService().EndDebuggingSession();
+                return default;
             }, cancellationToken);
         }
 

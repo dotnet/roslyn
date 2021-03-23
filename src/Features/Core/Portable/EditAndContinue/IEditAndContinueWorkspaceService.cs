@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         void OnSourceFileUpdated(Document document);
 
         ValueTask StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken);
-        void StartEditSession(out ImmutableArray<DocumentId> documentsToReanalyze);
+        void StartEditSession();
         void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze);
-        void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze);
+        void EndDebuggingSession();
 
         ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken);
         ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken);
