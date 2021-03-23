@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -14,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public LambdaAttributeParsingTests(ITestOutputHelper output) : base(output) { }
 
-        protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
+        protected override SyntaxTree ParseTree(string text, CSharpParseOptions? options)
         {
             return SyntaxFactory.ParseSyntaxTree(text, options: options);
         }
 
-        protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options)
+        protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions? options)
         {
             return SyntaxFactory.ParseExpression(text, options: options);
         }
