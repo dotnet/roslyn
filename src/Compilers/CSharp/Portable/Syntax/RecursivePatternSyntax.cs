@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     {
         public RecursivePatternSyntax Update(TypeSyntax? type, PositionalPatternClauseSyntax? positionalPatternClause, PropertyPatternClauseSyntax? propertyPatternClause, VariableDesignationSyntax? designation)
         {
-            return Update(type, positionalPatternClause, lengthPatternClause: null, propertyPatternClause, designation);
+            return Update(type, positionalPatternClause, this.LengthPatternClause, propertyPatternClause, designation);
         }
     }
 }

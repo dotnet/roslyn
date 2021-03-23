@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.PositionalPatternClause(InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.SubpatternSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         private static Syntax.InternalSyntax.PropertyPatternClauseSyntax GeneratePropertyPatternClause()
-            => InternalSyntaxFactory.PropertyPatternClause(InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.SubpatternSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            => InternalSyntaxFactory.PropertyPatternClause(SyntaxKind.PropertyPatternClause, InternalSyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.SubpatternSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static Syntax.InternalSyntax.SubpatternSyntax GenerateSubpattern()
             => InternalSyntaxFactory.Subpattern(null, GenerateDiscardPattern());
@@ -10020,7 +10020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.PositionalPatternClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), new SeparatedSyntaxList<SubpatternSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
         private static PropertyPatternClauseSyntax GeneratePropertyPatternClause()
-            => SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<SubpatternSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            => SyntaxFactory.PropertyPatternClause(SyntaxKind.PropertyPatternClause, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<SubpatternSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         private static SubpatternSyntax GenerateSubpattern()
             => SyntaxFactory.Subpattern(default(NameColonSyntax), GenerateDiscardPattern());

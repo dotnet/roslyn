@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // PROTOTYPE(list-patterns)
             missingSyntaxKinds.Add(SyntaxKind.SlicePattern);
             missingSyntaxKinds.Add(SyntaxKind.LengthPatternClause);
+            missingSyntaxKinds.Add(SyntaxKind.ListPatternClause);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());

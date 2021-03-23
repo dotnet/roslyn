@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             // PROTOTYPE(list-patterns)
             missingSyntaxNodes.Add(SyntaxKind.SlicePattern);
             missingSyntaxNodes.Add(SyntaxKind.LengthPatternClause);
+            missingSyntaxNodes.Add(SyntaxKind.ListPatternClause);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using var workspace = TestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);

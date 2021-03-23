@@ -2031,6 +2031,7 @@
   </Node>
   <Node Name="PropertyPatternClauseSyntax" Base="CSharpSyntaxNode">
     <Kind Name="PropertyPatternClause"/>
+    <Kind Name="ListPatternClause"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>

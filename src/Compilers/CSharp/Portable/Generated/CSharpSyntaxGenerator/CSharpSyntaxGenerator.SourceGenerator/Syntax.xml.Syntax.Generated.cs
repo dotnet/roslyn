@@ -5082,11 +5082,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             var positionalPatternClause = this.PositionalPatternClause ?? SyntaxFactory.PositionalPatternClause();
             return WithPositionalPatternClause(positionalPatternClause.WithSubpatterns(positionalPatternClause.Subpatterns.AddRange(items)));
         }
-        public RecursivePatternSyntax AddPropertyPatternClauseSubpatterns(params SubpatternSyntax[] items)
-        {
-            var propertyPatternClause = this.PropertyPatternClause ?? SyntaxFactory.PropertyPatternClause();
-            return WithPropertyPatternClause(propertyPatternClause.WithSubpatterns(propertyPatternClause.Subpatterns.AddRange(items)));
-        }
     }
 
     /// <remarks>
@@ -5192,6 +5187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     /// <para>This node is associated with the following syntax kinds:</para>
     /// <list type="bullet">
     /// <item><description><see cref="SyntaxKind.PropertyPatternClause"/></description></item>
+    /// <item><description><see cref="SyntaxKind.ListPatternClause"/></description></item>
     /// </list>
     /// </remarks>
     public sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
@@ -5227,7 +5223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (openBraceToken != this.OpenBraceToken || subpatterns != this.Subpatterns || closeBraceToken != this.CloseBraceToken)
             {
-                var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
+                var newNode = SyntaxFactory.PropertyPatternClause(this.Kind(), openBraceToken, subpatterns, closeBraceToken);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
