@@ -113,7 +113,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             Assumes.Present(_componentModel);
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
-            _componentModel.GetExtensions<IOptionPersister>();
+            foreach (var provider in _componentModel.GetExtensions<IOptionPersisterProvider>())
+            {
+                _ = provider.GetPersister();
+            }
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // give out new option service per workspace
             return new OptionServiceFactory.OptionService(
-                new GlobalOptionService(_providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersister>>()),
+                new GlobalOptionService(_providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersisterProvider>>()),
                 workspaceServices);
         }
     }

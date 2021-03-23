@@ -9,6 +9,8 @@ using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Options
             = ImmutableDictionary.Create<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)>(AnalyzerConfigOptions.KeyComparer);
 
         private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
-        private readonly ImmutableArray<Lazy<IOptionPersister>> _optionSerializers;
+        private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionSerializerProviders;
         private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
         private readonly HashSet<string> _forceComputedLanguages;
 
@@ -38,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Options
         private ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> _visualBasicEditorConfigKeysToOptions = s_emptyEditorConfigKeysToOptions;
 #pragma warning restore IDE0044 // Add readonly modifier
 
+        private ImmutableArray<IOptionPersister> _lazyOptionSerializers;
+
         private ImmutableDictionary<OptionKey, object?> _currentValues;
         private ImmutableHashSet<OptionKey> _changedOptionKeys;
         private ImmutableArray<Workspace> _registeredWorkspaces;
@@ -46,10 +50,10 @@ namespace Microsoft.CodeAnalysis.Options
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GlobalOptionService(
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders,
-            [ImportMany] IEnumerable<Lazy<IOptionPersister>> optionSerializers)
+            [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionSerializers)
         {
             _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() => optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
-            _optionSerializers = optionSerializers.ToImmutableArray();
+            _optionSerializerProviders = optionSerializers.ToImmutableArray();
             _serializableOptionsByLanguage = CreateLazySerializableOptionsByLanguage(optionProviders);
             _forceComputedLanguages = new HashSet<string>();
             _registeredWorkspaces = ImmutableArray<Workspace>.Empty;
@@ -91,12 +95,28 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
+        private ImmutableArray<IOptionPersister> GetOptionPersisters()
+        {
+            if (_lazyOptionSerializers is { IsDefault: false } optionSerializers)
+            {
+                return optionSerializers;
+            }
+
+            var constructedOptionSerializers = _optionSerializerProviders.SelectAsArray(
+                static (lazyProvider) => lazyProvider.Value.GetPersister());
+
+            optionSerializers = constructedOptionSerializers.WhereNotNull().ToImmutableArray();
+            ImmutableInterlocked.InterlockedInitialize(ref _lazyOptionSerializers, optionSerializers);
+
+            return _lazyOptionSerializers;
+        }
+
         private object? LoadOptionFromSerializerOrGetDefault(OptionKey optionKey)
         {
-            foreach (var serializer in _optionSerializers)
+            foreach (var serializer in GetOptionPersisters())
             {
                 // We have a deserializer, so deserialize and use that value.
-                if (serializer.Value.TryFetch(optionKey, out var deserializedValue))
+                if (serializer.TryFetch(optionKey, out var deserializedValue))
                 {
                     return deserializedValue;
                 }
@@ -326,9 +346,9 @@ namespace Microsoft.CodeAnalysis.Options
 
                     SetOptionCore(optionKey, setValue);
 
-                    foreach (var serializer in _optionSerializers)
+                    foreach (var serializer in GetOptionPersisters())
                     {
-                        if (serializer.Value.TryPersist(optionKey, setValue))
+                        if (serializer.TryPersist(optionKey, setValue))
                         {
                             break;
                         }

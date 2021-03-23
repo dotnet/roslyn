@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public TestOptionsServiceWithSharedGlobalOptionsServiceFactory(
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
         {
-            _globalOptionService = new GlobalOptionService(optionProviders.ToImmutableArray(), SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersister>>());
+            _globalOptionService = new GlobalOptionService(optionProviders.ToImmutableArray(), SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersisterProvider>>());
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     new Lazy<IOptionProvider, LanguageMetadata>(() => optionProvider ??= new TestOptionsProvider(), new LanguageMetadata(LanguageNames.CSharp))
                 },
-                Enumerable.Empty<Lazy<IOptionPersister>>()), workspaceServices: workspace.Services);
+                Enumerable.Empty<Lazy<IOptionPersisterProvider>>()), workspaceServices: workspace.Services);
         }
 
         internal class TestOptionsProvider : IOptionProvider
