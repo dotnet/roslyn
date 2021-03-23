@@ -1342,8 +1342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetSimpleNonTypeMembers(string name)
         {
-            // PROTOTYPE(record-structs): update for record structs
-            if (_lazyMembersDictionary != null || declaration.MemberNames.Contains(name) || declaration.Kind == DeclarationKind.Record)
+            if (_lazyMembersDictionary != null || declaration.MemberNames.Contains(name) || declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
             {
                 return GetMembers(name);
             }
@@ -2263,8 +2262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // PROTOTYPE(record-structs): update for record structs
-            if (IsRecord)
+            if (IsRecord || IsRecordStruct)
             {
                 // For records the warnings reported below are simply going to echo record specific errors,
                 // producing more noise.
@@ -3485,6 +3483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CSharpCompilation compilation = this.DeclaringCompilation;
+            bool isRecordClass = declaration.Kind == DeclarationKind.Record;
 
             // Positional record
             bool primaryAndCopyCtorAmbiguity = false;
@@ -3504,31 +3503,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     addDeconstruct(ctor, existingOrAddedMembers);
                 }
 
-                if (declaration.Kind == DeclarationKind.Record)
+                if (isRecordClass)
                 {
                     primaryAndCopyCtorAmbiguity = ctor.ParameterCount == 1 && ctor.Parameters[0].Type.Equals(this, TypeCompareKind.AllIgnoreOptions);
                 }
             }
 
-            // PROTOTYPE(record-structs): update for record structs
-            if (declaration.Kind == DeclarationKind.Record)
+
+            if (isRecordClass)
             {
                 addCopyCtor(primaryAndCopyCtorAmbiguity);
                 addCloneMethod();
+            }
 
-                PropertySymbol equalityContract = addEqualityContract();
+            PropertySymbol? equalityContract = isRecordClass ? addEqualityContract() : null;
 
-                var thisEquals = addThisEquals(equalityContract);
-                addOtherEquals();
-                addObjectEquals(thisEquals);
-                var getHashCode = addGetHashCode(equalityContract);
-                addEqualityOperators();
+            var thisEquals = addThisEquals(equalityContract);
 
-                if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
-                {
-                    diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
-                }
+            if (isRecordClass)
+            {
+                addBaseEquals();
+            }
 
+            addObjectEquals(thisEquals);
+            var getHashCode = addGetHashCode(equalityContract);
+            addEqualityOperators();
+
+            if (thisEquals is not SynthesizedRecordEquals && getHashCode is SynthesizedRecordGetHashCode)
+            {
+                diagnostics.Add(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, thisEquals.Locations[0], declaration.Name);
+            }
+
+            // PROTOTYPE(record-structs): update for record structs
+            if (isRecordClass)
+            {
                 var printMembers = addPrintMembersMethod();
                 addToStringMethod(printMembers);
             }
@@ -3589,6 +3597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addCopyCtor(bool primaryAndCopyCtorAmbiguity)
             {
+                Debug.Assert(isRecordClass);
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.InstanceConstructorName,
                     this,
@@ -3630,6 +3639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void addCloneMethod()
             {
+                Debug.Assert(isRecordClass);
                 members.Add(new SynthesizedRecordClone(this, memberOffset: members.Count, diagnostics));
             }
 
@@ -3794,7 +3804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 members.Add(new SynthesizedRecordObjEquals(this, thisEquals, memberOffset: members.Count, diagnostics));
             }
 
-            MethodSymbol addGetHashCode(PropertySymbol equalityContract)
+            MethodSymbol addGetHashCode(PropertySymbol? equalityContract)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.ObjectGetHashCode,
@@ -3829,6 +3839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             PropertySymbol addEqualityContract()
             {
+                Debug.Assert(isRecordClass);
                 var targetProperty = new SignatureOnlyPropertySymbol(SynthesizedRecordEqualityContractProperty.PropertyName,
                                                                      this,
                                                                      ImmutableArray<ParameterSymbol>.Empty,
@@ -3885,7 +3896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return equalityContract;
             }
 
-            MethodSymbol addThisEquals(PropertySymbol equalityContract)
+            MethodSymbol addThisEquals(PropertySymbol? equalityContract)
             {
                 var targetMethod = new SignatureOnlyMethodSymbol(
                     WellKnownMemberNames.ObjectEquals,
@@ -3934,7 +3945,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void reportStaticOrNotOverridableAPIInRecord(Symbol symbol, BindingDiagnosticBag diagnostics)
             {
-                if (!IsSealed &&
+                if (isRecordClass &&
+                    !IsSealed &&
                     ((!symbol.IsAbstract && !symbol.IsVirtual && !symbol.IsOverride) || symbol.IsSealed))
                 {
                     diagnostics.Add(ErrorCode.ERR_NotOverridableAPIInRecord, symbol.Locations[0], symbol);
@@ -3945,8 +3957,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            void addOtherEquals()
+            void addBaseEquals()
             {
+                Debug.Assert(isRecordClass);
                 if (!BaseTypeNoUseSiteDiagnostics.IsObjectType())
                 {
                     members.Add(new SynthesizedRecordBaseEquals(this, memberOffset: members.Count, diagnostics));
