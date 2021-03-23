@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly DebuggingSession DebuggingSession;
         internal readonly EditSessionTelemetry Telemetry;
-        internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
 
         private readonly ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> _nonRemappableRegions;
 
@@ -59,12 +58,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal EditSession(
             DebuggingSession debuggingSession,
-            EditSessionTelemetry telemetry,
-            IManagedEditAndContinueDebuggerService debuggerService)
+            EditSessionTelemetry telemetry)
         {
             DebuggingSession = debuggingSession;
             Telemetry = telemetry;
-            DebuggerService = debuggerService;
 
             _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
@@ -86,7 +83,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <returns><see langword="default"/> if the module is not loaded.</returns>
         public async Task<ImmutableArray<Diagnostic>?> GetModuleDiagnosticsAsync(Guid mvid, string projectDisplayName, CancellationToken cancellationToken)
         {
-            var availability = await DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+            var availability = await DebuggingSession.DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
             if (availability.Status == ManagedEditAndContinueAvailabilityStatus.ModuleNotLoaded)
             {
                 return null;
@@ -106,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
-                return CreateActiveStatementsMap(await DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
+                return CreateActiveStatementsMap(await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {

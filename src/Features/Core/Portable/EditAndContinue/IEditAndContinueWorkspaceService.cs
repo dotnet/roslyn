@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         void OnSourceFileUpdated(Document document);
 
-        ValueTask StartDebuggingSessionAsync(Solution solution, bool captureMatchingDocuments, CancellationToken cancellationToken);
-        void StartEditSession(IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze);
+        ValueTask StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken);
+        void StartEditSession(out ImmutableArray<DocumentId> documentsToReanalyze);
         void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze);
         void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze);
 

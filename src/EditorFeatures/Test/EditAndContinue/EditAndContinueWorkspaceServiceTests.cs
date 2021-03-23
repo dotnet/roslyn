@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         private readonly List<string> _telemetryLog;
         private int _telemetryId;
 
-        private readonly MockManagedEditAndContinueDebuggerService _loadedModulesProvider;
+        private readonly MockManagedEditAndContinueDebuggerService _debuggerService;
 
         public EditAndContinueWorkspaceServiceTests()
         {
             _mockCompilationOutputsProvider = _ => new MockCompilationOutputs(Guid.NewGuid());
             _telemetryLog = new List<string>();
 
-            _loadedModulesProvider = new MockManagedEditAndContinueDebuggerService()
+            _debuggerService = new MockManagedEditAndContinueDebuggerService()
             {
                 LoadedModules = new Dictionary<Guid, ManagedEditAndContinueAvailability>()
             };
@@ -137,23 +137,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private static EditSession StartEditSession(
             EditAndContinueWorkspaceService service,
-            ImmutableArray<ManagedActiveStatementDebugInfo> activeStatements = default,
-            IManagedEditAndContinueDebuggerService loadedModules = null,
             ImmutableArray<DocumentId> documentsWithRunModeDiagnostics = default)
         {
-            service.StartEditSession(
-                loadedModules ?? new MockManagedEditAndContinueDebuggerService()
-                {
-                    // all modules are considered loaded by default:
-                    IsEditAndContinueAvailable = _ => new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Available),
-
-                    GetActiveStatementsImpl = () => activeStatements.NullToEmpty(),
-                },
-                out var documentsToReanalyze);
+            service.StartEditSession(out var documentsToReanalyze);
 
             AssertEx.Equal(documentsWithRunModeDiagnostics.NullToEmpty(), documentsToReanalyze);
 
             return service.Test_GetEditSession();
+        }
+
+        private EditSession EnterBreakMode(
+            EditAndContinueWorkspaceService service,
+            ImmutableArray<ManagedActiveStatementDebugInfo> activeStatements = default,
+            ImmutableArray<DocumentId> documentsWithRunModeDiagnostics = default)
+        {
+            _debuggerService.GetActiveStatementsImpl = () => activeStatements.NullToEmpty();
+            return StartEditSession(service, documentsWithRunModeDiagnostics);
         }
 
         private static void EndEditSession(EditAndContinueWorkspaceService service, ImmutableArray<DocumentId> documentsWithRudeEdits = default)
@@ -162,9 +161,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertEx.Equal(documentsWithRudeEdits.NullToEmpty(), documentsToReanalyze);
         }
 
-        private static async Task<DebuggingSession> StartDebuggingSessionAsync(EditAndContinueWorkspaceService service, Solution solution, CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
+        private async Task<DebuggingSession> StartDebuggingSessionAsync(
+            EditAndContinueWorkspaceService service,
+            Solution solution,
+            CommittedSolution.DocumentState initialState = CommittedSolution.DocumentState.MatchesBuildOutput)
         {
-            await service.StartDebuggingSessionAsync(solution, captureMatchingDocuments: false, CancellationToken.None);
+            await service.StartDebuggingSessionAsync(
+                solution,
+                _debuggerService,
+                captureMatchingDocuments: false,
+                CancellationToken.None);
 
             var session = service.Test_GetDebuggingSession();
             if (initialState != CommittedSolution.DocumentState.None)
@@ -224,7 +230,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private void LoadLibraryToDebuggee(Guid moduleId, ManagedEditAndContinueAvailability availability = default)
         {
-            _loadedModulesProvider.LoadedModules.Add(moduleId, availability);
+            _debuggerService.LoadedModules.Add(moduleId, availability);
         }
 
         private Guid EmitLibrary(
@@ -448,7 +454,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var service = CreateEditAndContinueService();
 
-            await service.StartDebuggingSessionAsync(solution, captureMatchingDocuments: true, CancellationToken.None);
+            await service.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: true, CancellationToken.None);
 
             var debuggingSession = service.Test_GetDebuggingSession();
 
@@ -463,7 +469,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             sourceFileB.WriteAllText(sourceB3, encodingB);
             solution = solution.WithDocumentTextLoader(documentIdB, new FileTextLoader(sourceFileB.Path, encodingB), PreservationMode.PreserveValue);
 
-            StartEditSession(service);
+            EnterBreakMode(service);
 
             var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(service, solution);
             Assert.Equal(ManagedModuleUpdateStatus.None, updates.Status);
@@ -795,7 +801,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var service = CreateEditAndContinueService();
 
                 await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-                StartEditSession(service);
+                EnterBreakMode(service);
 
                 // change the source:
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -836,7 +842,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var service = CreateEditAndContinueService();
 
             await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            StartEditSession(service);
+            EnterBreakMode(service);
 
             // change the source:
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single(d => d.Id == documentInfo.Id);
@@ -889,9 +895,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var service = CreateEditAndContinueService();
 
-            await service.StartDebuggingSessionAsync(workspace.CurrentSolution, captureMatchingDocuments: false, CancellationToken.None);
+            await service.StartDebuggingSessionAsync(workspace.CurrentSolution, _debuggerService, captureMatchingDocuments: false, CancellationToken.None);
 
-            StartEditSession(service);
+            EnterBreakMode(service);
 
             // change the source (rude edit):
             workspace.ChangeDocument(documentB.Id, SourceText.From("class B { public void RenamedMethod() { } }"));
@@ -953,7 +959,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var service = CreateEditAndContinueService();
 
                 await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-                StartEditSession(service);
+                EnterBreakMode(service);
 
                 // change the source:
                 var document1 = project.Documents.Single();
@@ -1013,7 +1019,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var service = CreateEditAndContinueService();
             await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None);
-            StartEditSession(service, loadedModules: _loadedModulesProvider);
+            EnterBreakMode(service);
 
             // change the source:
             workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }", Encoding.UTF8));
@@ -1062,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var service = CreateEditAndContinueService();
             await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None);
-            StartEditSession(service, loadedModules: _loadedModulesProvider);
+            EnterBreakMode(service);
 
             // change the source:
             workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void M() { System.Console.WriteLine(2); } }", Encoding.UTF8));
@@ -1127,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var service = CreateEditAndContinueService();
 
             await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            StartEditSession(service);
+            EnterBreakMode(service);
 
             // add a source file:
             var documentB = project.AddDocument("file2.cs", SourceText.From(sourceB, Encoding.UTF8), filePath: sourceFileB.Path);
@@ -1189,7 +1195,7 @@ class C1
 
                 var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
 
-                StartEditSession(service, loadedModules: _loadedModulesProvider);
+                EnterBreakMode(service);
 
                 // change the source:
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1250,7 +1256,7 @@ class C1
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None);
 
-            StartEditSession(service, loadedModules: _loadedModulesProvider);
+            EnterBreakMode(service);
 
             // Emulate opening the file, which will trigger "out-of-sync" check.
             // Since we find content matching the PDB checksum we update the committed solution with this source text.
@@ -1278,7 +1284,7 @@ class C1
 
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
 
-            StartEditSession(service);
+            EnterBreakMode(service);
 
             // change the source (rude edit):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1332,7 +1338,7 @@ class C { int Y => 2; }
             var service = CreateEditAndContinueService();
 
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            StartEditSession(service);
+            EnterBreakMode(service);
 
             // change the source:
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1383,7 +1389,7 @@ class C { int Y => 2; }
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None);
 
-            StartEditSession(service, loadedModules: _loadedModulesProvider);
+            EnterBreakMode(service);
 
             // change the source (rude edit):
             workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void RenamedMethod() { System.Console.WriteLine(1); } }"));
@@ -1458,7 +1464,7 @@ class C { int Y => 2; }
             // do not initialize the document state - we will detect the state based on the PDB content.
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None);
 
-            StartEditSession(service, loadedModules: _loadedModulesProvider);
+            EnterBreakMode(service);
 
             // change the source (rude edit since the base document content matches the PDB checksum, so the document is not out-of-sync):
             workspace.ChangeDocument(document1.Id, SourceText.From("abstract class C { public abstract void M(); public abstract void N(); }"));
@@ -1507,7 +1513,7 @@ class C { int Y => 2; }
             // do not initialize the document state - we will detect the state based on the PDB content.
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None);
 
-            StartEditSession(service);
+            EnterBreakMode(service);
 
             // change the source (rude edit) before the library is loaded:
             workspace.ChangeDocument(document1.Id, SourceText.From("class C { public void Renamed() { } }"));
@@ -1559,7 +1565,7 @@ class C { int Y => 2; }
 
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
 
-            StartEditSession(service);
+            EnterBreakMode(service);
 
             // change the source (compilation error):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1604,7 +1610,7 @@ class C { int Y => 2; }
 
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
 
-            StartEditSession(service, loadedModules: _loadedModulesProvider);
+            EnterBreakMode(service);
 
             // change the source (compilation error):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1658,7 +1664,7 @@ class C { int Y => 2; }
             var service = CreateEditAndContinueService();
 
             await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            StartEditSession(service);
+            EnterBreakMode(service);
 
             // change C.cs to have a compilation error:
             var projectC = workspace.CurrentSolution.GetProjectsByName("C").Single();
@@ -1692,7 +1698,7 @@ class C { int Y => 2; }
 
             await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
 
-            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service);
 
             // change the source (valid edit but passing no encoding to emulate emit error):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -1778,7 +1784,7 @@ class C { int Y => 2; }
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None);
 
-            StartEditSession(service, loadedModules: _loadedModulesProvider);
+            EnterBreakMode(service);
 
             // The user opens the source file and changes the source before Roslyn receives file watcher event.
             var source2 = "class C1 { void M() { System.Console.WriteLine(2); } }";
@@ -1802,7 +1808,7 @@ class C { int Y => 2; }
 
             EndEditSession(service);
 
-            StartEditSession(service, loadedModules: _loadedModulesProvider);
+            EnterBreakMode(service);
 
             // file watcher updates the workspace:
             workspace.ChangeDocument(documentId, CreateSourceTextFromFile(sourceFile.Path));
@@ -1861,7 +1867,7 @@ class C { int Y => 2; }
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None);
 
-            StartEditSession(service, loadedModules: _loadedModulesProvider);
+            EnterBreakMode(service);
 
             // user edits the file:
             workspace.ChangeDocument(documentId, SourceText.From(source3, Encoding.UTF8));
@@ -1928,6 +1934,9 @@ class C { int Y => 2; }
             var moduleId = EmitAndLoadLibraryToDebuggee(source1, sourceFilePath: sourceFile.Path);
 
             var service = CreateEditAndContinueService();
+
+            _debuggerService.IsEditAndContinueAvailable = _ => new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Attach, localizedMessage: "*attached*");
+
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None);
 
             // An active statement may be present in the added file since the file exists in the PDB:
@@ -1943,13 +1952,7 @@ class C { int Y => 2; }
                     ActiveStatementFlags.IsLeafFrame));
 
             // disallow any edits (attach scenario)
-            StartEditSession(
-                service,
-                activeStatements,
-                loadedModules: new MockManagedEditAndContinueDebuggerService()
-                {
-                    IsEditAndContinueAvailable = _ => new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.Attach, localizedMessage: "*attached*")
-                });
+            EnterBreakMode(service, activeStatements);
 
             // File watcher observes the document and adds it to the workspace:
 
@@ -2009,7 +2012,7 @@ class C { int Y => 2; }
 
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution, initialState: CommittedSolution.DocumentState.None);
 
-            StartEditSession(service);
+            EnterBreakMode(service);
 
             // no changes have been made to the project
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, sourceFilePath: null, CancellationToken.None));
@@ -2053,7 +2056,7 @@ class C { int Y => 2; }
 
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service);
 
             // change the source (valid edit):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -2177,7 +2180,7 @@ class C { int Y => 2; }
             await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
 
             // module is not loaded:
-            var editSession = StartEditSession(service, activeStatements, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service, activeStatements);
 
             // change the source (valid edit):
             workspace.ChangeDocument(document1.Id, SourceText.From("class C1 { void M1() { int a = 1; System.Console.WriteLine(a); } void M2() { System.Console.WriteLine(2); } }", Encoding.UTF8));
@@ -2236,7 +2239,7 @@ class C { int Y => 2; }
                 EndEditSession(service);
 
                 // make another update:
-                StartEditSession(service);
+                EnterBreakMode(service);
 
                 // Update M1 - this method has an active statement, so we will attempt to preserve the local signature.
                 // Since the method hasn't been edited before we'll read the baseline PDB to get the signature token.
@@ -2305,7 +2308,7 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
 
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service);
 
             // change the source (valid edit):
             var documentA = project.Documents.First();
@@ -2412,7 +2415,7 @@ class C { int Y => 2; }
 
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service);
 
             // change the source (valid edit):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -2472,7 +2475,7 @@ class G
 
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service);
 
             // change the source (valid edit):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -2520,7 +2523,7 @@ partial class C { int X = 1; }
 
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service);
 
             // change the source (valid edit):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -2567,7 +2570,7 @@ class C { int Y => 1; }
 
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service);
 
             // change the additional source (valid edit):
             var additionalDocument1 = workspace.CurrentSolution.Projects.Single().AdditionalDocuments.Single();
@@ -2610,7 +2613,7 @@ class C { int Y => 1; }
 
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service);
 
             // change the additional source (valid edit):
             var configDocument1 = workspace.CurrentSolution.Projects.Single().AnalyzerConfigDocuments.Single();
@@ -2651,7 +2654,7 @@ class C { int Y => 1; }
 
             var service = CreateEditAndContinueService();
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
-            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service);
 
             // remove the source document (valid edit):
             var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -2719,7 +2722,7 @@ class C { int Y => 1; }
 
             await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
 
-            var editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            var editSession = EnterBreakMode(service);
 
             //
             // First update.
@@ -2772,7 +2775,7 @@ class C { int Y => 1; }
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, sourceFilePath: null, CancellationToken.None));
 
             EndEditSession(service);
-            editSession = StartEditSession(service, loadedModules: _loadedModulesProvider);
+            editSession = EnterBreakMode(service);
 
             //
             // Second update.
@@ -2912,7 +2915,7 @@ class C1
                 await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
 
                 // module not loaded
-                StartEditSession(service, loadedModules: _loadedModulesProvider);
+                EnterBreakMode(service);
 
                 // change the source (valid edit):
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -2949,7 +2952,7 @@ class C1
                 await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
 
                 // module not loaded
-                StartEditSession(service, loadedModules: _loadedModulesProvider);
+                EnterBreakMode(service);
 
                 // change the source (valid edit):
                 var document1 = workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -3027,7 +3030,7 @@ class C1
                     activeLineSpan12.ToSourceSpan(),
                     ActiveStatementFlags.IsLeafFrame));
 
-            var editSession = StartEditSession(service, activeStatements);
+            var editSession = EnterBreakMode(service, activeStatements);
 
             var baseSpans = await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(document1.Id), CancellationToken.None);
             AssertEx.Equal(new[]
@@ -3128,7 +3131,7 @@ class C1
                     activeLineSpan12.ToSourceSpan(),
                     ActiveStatementFlags.IsLeafFrame));
 
-            var editSession = StartEditSession(service, activeStatements);
+            var editSession = EnterBreakMode(service, activeStatements);
 
             // change the source (valid edit):
             workspace.ChangeDocument(documentId, sourceTextV2);
@@ -3179,7 +3182,7 @@ class C1
                     sourceSpan: new SourceSpan(0, 1, 0, 2),
                     ActiveStatementFlags.IsNonLeafFrame));
 
-            StartEditSession(service, activeStatements);
+            EnterBreakMode(service, activeStatements);
 
             // active statements are tracked not in non-Roslyn projects:
             var currentSpans = await service.GetAdjustedActiveStatementSpansAsync(document, s_noDocumentActiveSpans, CancellationToken.None);

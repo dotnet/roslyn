@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
         private readonly IManagedEditAndContinueDebuggerService _debuggerService;
 
-        private IDisposable? _editSessionConnection;
+        private IDisposable? _debuggingSessionConnection;
 
         private bool _disabled;
 
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var solution = _proxy.Workspace.CurrentSolution;
-                await _proxy.StartDebuggingSessionAsync(solution, captureMatchingDocuments: false, cancellationToken).ConfigureAwait(false);
+                _debuggingSessionConnection = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                _editSessionConnection = await _proxy.StartEditSessionAsync(_diagnosticService, _debuggerService, cancellationToken).ConfigureAwait(false);
+                await _proxy.StartEditSessionAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
@@ -105,10 +105,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 return;
             }
-
-            Contract.ThrowIfNull(_editSessionConnection);
-            _editSessionConnection.Dispose();
-            _editSessionConnection = null;
 
             _activeStatementTrackingService.EndTracking();
 
@@ -162,6 +158,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 await _proxy.EndDebuggingSessionAsync(_diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
+
+                Contract.ThrowIfNull(_debuggingSessionConnection);
+                _debuggingSessionConnection.Dispose();
+                _debuggingSessionConnection = null;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
