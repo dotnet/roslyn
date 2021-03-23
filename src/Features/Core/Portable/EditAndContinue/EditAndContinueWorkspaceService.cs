@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,12 +41,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
-                => new EditAndContinueWorkspaceService(workspaceServices.Workspace);
+                => new EditAndContinueWorkspaceService();
         }
 
         internal static readonly TraceLog Log = new(2048, "EnC");
 
-        private readonly Workspace _workspace;
         private readonly EditSessionTelemetry _editSessionTelemetry;
         private readonly DebuggingSessionTelemetry _debuggingSessionTelemetry;
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
@@ -62,11 +62,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private EditSession? _editSession;
 
         internal EditAndContinueWorkspaceService(
-            Workspace workspace,
             Func<Project, CompilationOutputs>? testCompilationOutputsProvider = null,
             Action<DebuggingSessionTelemetry.Data>? testReportTelemetry = null)
         {
-            _workspace = workspace;
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
             _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
@@ -77,7 +75,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // test only:
         internal DebuggingSession? Test_GetDebuggingSession() => _debuggingSession;
         internal EditSession? Test_GetEditSession() => _editSession;
-        internal Workspace Test_GetWorkspace() => _workspace;
 
         private static CompilationOutputs GetCompilationOutputs(Project project)
         {
@@ -87,19 +84,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputInfo.AssemblyPath);
         }
 
-        public void OnSourceFileUpdated(Document document)
+        public async ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
         {
             var debuggingSession = _debuggingSession;
             if (debuggingSession != null)
             {
-                // fire and forget
-                _ = Task.Run(() => debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, debuggingSession.CancellationToken));
+                using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(debuggingSession.CancellationToken, cancellationToken);
+                await debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, linkedTokenSource.Token).ConfigureAwait(false);
             }
         }
 
-        public void StartDebuggingSession(Solution solution)
+        public async ValueTask StartDebuggingSessionAsync(Solution solution, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
-            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(solution, _compilationOutputsProvider), null);
+            var initialDocumentStates =
+                captureMatchingDocuments ? await CommittedSolution.GetMatchingDocumentsAsync(solution, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false) :
+                SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+
+            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(solution, _compilationOutputsProvider, initialDocumentStates), null);
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
@@ -153,6 +154,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static bool SupportsEditAndContinue(Project project)
             => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
 
+        // Note: source generated files have relative paths: https://github.com/dotnet/roslyn/issues/51998
+        internal static bool SupportsEditAndContinue(DocumentState documentState)
+            => !documentState.Attributes.DesignTimeOnly && documentState.SupportsSyntaxTree &&
+               (PathUtilities.IsAbsolute(documentState.FilePath) || documentState is SourceGeneratedDocumentState);
+
         public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             try
@@ -171,14 +177,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // Document does not compile to the assembly (e.g. cshtml files, .g.cs files generated for completion only)
-                if (document.State.Attributes.DesignTimeOnly || !document.SupportsSyntaxTree)
+                if (!SupportsEditAndContinue(document.DocumentState))
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
                 // Do not analyze documents (and report diagnostics) of projects that have not been built.
                 // Allow user to make any changes in these documents, they won't be applied within the current debugging session.
-                // Do not report the file read error - it might be an intermittent issue. The error will be reported when the 
+                // Do not report the file read error - it might be an intermittent issue. The error will be reported when the
                 // change is attempted to be applied.
                 var (mvid, _) = await debuggingSession.GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
                 if (mvid == Guid.Empty)
@@ -217,7 +223,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (oldProject == null)
                 {
                     // TODO https://github.com/dotnet/roslyn/issues/1204:
-                    // Project deleted (shouldn't happen since Project System does not allow removing projects while debugging) or 
+                    // Project deleted (shouldn't happen since Project System does not allow removing projects while debugging) or
                     // was not loaded when the debugging session started.
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -352,21 +358,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         /// <summary>
-        /// Determine whether the updates made to projects containing the specified file (or all projects that are built, 
+        /// Determine whether the updates made to projects containing the specified file (or all projects that are built,
         /// if <paramref name="sourceFilePath"/> is null) are ready to be applied and the debugger should attempt to apply
         /// them on "continue".
         /// </summary>
         /// <returns>
-        /// Returns <see cref="ManagedModuleUpdateStatus.Blocked"/> if there are rude edits or other errors 
-        /// that block the application of the updates. Might return <see cref="ManagedModuleUpdateStatus.Ready"/> even if there are 
-        /// errors in the code that will block the application of the updates. E.g. emit diagnostics can't be determined until 
+        /// Returns <see cref="ManagedModuleUpdateStatus.Blocked"/> if there are rude edits or other errors
+        /// that block the application of the updates. Might return <see cref="ManagedModuleUpdateStatus.Ready"/> even if there are
+        /// errors in the code that will block the application of the updates. E.g. emit diagnostics can't be determined until
         /// emit is actually performed. Therefore, this method only serves as an optimization to avoid unnecessary emit attempts,
         /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
         /// the update is valid or not.
         /// </returns>
         public ValueTask<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
         {
-            // GetStatusAsync is called outside of edit session when the debugger is determining 
+            // GetStatusAsync is called outside of edit session when the debugger is determining
             // whether a source file checksum matches the one in PDB.
             // The debugger expects no changes in this case.
             var editSession = _editSession;
@@ -378,13 +384,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return editSession.HasChangesAsync(solution, solutionActiveStatementSpanProvider, sourceFilePath, cancellationToken);
         }
 
-        public async ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics)>
-            EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
+            Solution solution,
+            SolutionActiveStatementSpanProvider activeStatementSpanProvider,
+            CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
             {
-                return (new(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty), ImmutableArray<DiagnosticData>.Empty);
+                return EmitSolutionUpdateResults.Empty;
             }
 
             var solutionUpdate = await editSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
@@ -395,26 +403,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
-            return (solutionUpdate.ModuleUpdates, ToDiagnosticData(solution, solutionUpdate.Diagnostics));
-        }
-
-        private static ImmutableArray<DiagnosticData> ToDiagnosticData(Solution solution, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnosticsByProject)
-        {
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
-
-            foreach (var (projectId, diagnostics) in diagnosticsByProject)
-            {
-                var project = solution.GetRequiredProject(projectId);
-
-                foreach (var diagnostic in diagnostics)
-                {
-                    var document = solution.GetDocument(diagnostic.Location.SourceTree);
-                    var data = (document != null) ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(diagnostic, project);
-                    result.Add(data);
-                }
-            }
-
-            return result.ToImmutable();
+            return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics);
         }
 
         public void CommitSolutionUpdate()
@@ -506,7 +495,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so. 
+                // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so.
                 // We return null since there the concept of active statement only makes sense during break mode.
                 var editSession = _editSession;
                 if (editSession == null)
@@ -559,7 +548,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// If the debugger determines we can remap active statements, the application of changes proceeds.
         /// </summary>
         /// <returns>
-        /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement 
+        /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement
         /// or the exception regions can't be determined.
         /// </returns>
         public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
@@ -572,7 +561,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                // This method is only called when the EnC is about to apply changes, at which point all active statements and 
+                // This method is only called when the EnC is about to apply changes, at which point all active statements and
                 // their exception regions will be needed. Hence it's not necessary to scope this query down to just the instruction
                 // the debugger is interested at this point while not calculating the others.
 

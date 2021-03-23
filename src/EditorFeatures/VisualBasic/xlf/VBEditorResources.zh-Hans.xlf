@@ -42,11 +42,6 @@
         <target state="translated">智能缩进</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">设置文档的格式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">正在设置文档格式...</target>

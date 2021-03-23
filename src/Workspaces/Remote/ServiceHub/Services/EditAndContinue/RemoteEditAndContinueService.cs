@@ -66,12 +66,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        public ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                GetService().StartDebuggingSession(solution);
+                await GetService().StartDebuggingSessionAsync(solution, captureMatchingDocuments, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -155,7 +155,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 try
                 {
-                    return await service.EmitSolutionUpdateAsync(solution, CreateSolutionActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    var results = await service.EmitSolutionUpdateAsync(solution, CreateSolutionActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
+                    return (results.ModuleUpdates, results.GetDiagnosticData(solution));
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var document = solution.GetDocument(documentId);
                 if (document != null)
                 {
-                    GetService().OnSourceFileUpdated(document);
+                    await GetService().OnSourceFileUpdatedAsync(document, cancellationToken).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

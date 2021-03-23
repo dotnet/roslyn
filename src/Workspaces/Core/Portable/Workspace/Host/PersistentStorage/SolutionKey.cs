@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
@@ -18,10 +16,10 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
     internal readonly struct SolutionKey
     {
         public readonly SolutionId Id;
-        public readonly string FilePath;
+        public readonly string? FilePath;
         public readonly bool IsPrimaryBranch;
 
-        public SolutionKey(SolutionId id, string filePath, bool isPrimaryBranch)
+        public SolutionKey(SolutionId id, string? filePath, bool isPrimaryBranch)
         {
             Id = id;
             FilePath = filePath;
@@ -45,12 +43,12 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         public readonly SolutionId Id;
 
         [DataMember(Order = 1)]
-        public readonly string FilePath;
+        public readonly string? FilePath;
 
         [DataMember(Order = 2)]
         public readonly bool IsPrimaryBranch;
 
-        public SerializableSolutionKey(SolutionId id, string filePath, bool isPrimaryBranch)
+        public SerializableSolutionKey(SolutionId id, string? filePath, bool isPrimaryBranch)
         {
             Id = id;
             FilePath = filePath;
