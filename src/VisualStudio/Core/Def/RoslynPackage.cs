@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
@@ -113,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             Assumes.Present(_componentModel);
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
-            foreach (var provider in _componentModel.GetExtensions<IOptionPersisterProvider>())
+            foreach (var provider in await GetOptionPersistersAsync(_componentModel, cancellationToken).ConfigureAwait(true))
             {
                 _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
             }
@@ -139,6 +140,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
 
             TrackBulkFileOperations();
+
+            static async Task<ImmutableArray<IOptionPersisterProvider>> GetOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
+            {
+                // Switch to a background thread to ensure assembly loads don't show up as UI delays attributed to
+                // InitializeAsync.
+                await TaskScheduler.Default;
+
+                return componentModel.GetExtensions<IOptionPersisterProvider>().ToImmutableArray();
+            }
         }
 
         private void InitializeColors()
