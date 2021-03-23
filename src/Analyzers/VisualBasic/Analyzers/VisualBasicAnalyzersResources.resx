@@ -143,7 +143,4 @@
   <data name="Object_creation_can_be_simplified" xml:space="preserve">
     <value>Object creation can be simplified</value>
   </data>
-  <data name="Simplify_object_creation" xml:space="preserve">
-    <value />
-  </data>
 </root>

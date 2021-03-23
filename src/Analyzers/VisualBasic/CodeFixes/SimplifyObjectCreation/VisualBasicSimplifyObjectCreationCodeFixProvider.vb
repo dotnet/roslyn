@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
         Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             For Each diagnostic In context.Diagnostics
                 context.RegisterCodeFix(New MyCodeAction(
-                    VisualBasicAnalyzersResources.Simplify_object_creation,
+                    VisualBasicCodeFixesResources.Simplify_object_creation,
                     Function(ct) FixAsync(context.Document, diagnostic, ct)),
                     diagnostic)
             Next
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
             Inherits CustomCodeActions.DocumentChangeAction
 
             Friend Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
-                MyBase.New(title, createChangedDocument, NameOf(VisualBasicAnalyzersResources.Simplify_object_creation))
+                MyBase.New(title, createChangedDocument, NameOf(VisualBasicCodeFixesResources.Simplify_object_creation))
             End Sub
         End Class
 
