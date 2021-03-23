@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
             // If there is a selection then it makes more sense for highlighting to apply to the token at the start
             // of the selection rather than where the caret is, otherwise you can be in a situation like [|count$$|]++
             // and it will try to highlight the operator.
-            return textViewOpt.Selection.Start.Position;
+            return textViewOpt.BufferGraph.MapDownToFirstMatch(textViewOpt.Selection.Start.Position, PointTrackingMode.Positive, b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
