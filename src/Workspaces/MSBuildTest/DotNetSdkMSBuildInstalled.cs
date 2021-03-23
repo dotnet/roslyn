@@ -9,12 +9,12 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
-    internal class VisualStudioMSBuildInstalled : ExecutionCondition
+    internal partial class DotNetSdkMSBuildInstalled : ExecutionCondition
     {
         private static readonly VisualStudioInstance? s_instance;
 
-#if !NETCOREAPP
-        static VisualStudioMSBuildInstalled()
+#if NETCOREAPP
+        static DotNetSdkMSBuildInstalled()
         {
             s_instance = MSBuildLocator.QueryVisualStudioInstances()
                 .OrderByDescending(instances => instances.Version)
@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             if (s_instance != null && !MSBuildLocator.IsRegistered)
             {
+                LooseVersionAssemblyLoader.Register(s_instance.MSBuildPath);
                 MSBuildLocator.RegisterInstance(s_instance);
             }
         }
@@ -29,11 +30,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         private readonly Version _minimumVersion;
 
-        public VisualStudioMSBuildInstalled() : this(new Version(15, 0))
+        public DotNetSdkMSBuildInstalled() : this(new Version(2, 1))
         {
         }
 
-        internal VisualStudioMSBuildInstalled(Version minimumVersion)
+        internal DotNetSdkMSBuildInstalled(Version minimumVersion)
         {
             _minimumVersion = minimumVersion;
         }
@@ -41,10 +42,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         public override bool ShouldSkip => s_instance is null || s_instance.Version < _minimumVersion;
 
         public override string SkipReason
-#if !NETCOREAPP
-            => $"Could not locate Visual Studio with MSBuild {_minimumVersion} or higher installed";
+#if NETCOREAPP
+            => $"Could not locate .NET SDK {_minimumVersion} or higher installed";
 #else
-            => $"Test runs on .NET Framework";
+            => $"Test runs on .NET Core";
 #endif
     }
 }
