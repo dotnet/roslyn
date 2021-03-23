@@ -154,13 +154,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             Assert.True(called);
 
-            // StartEditSession
+            // BreakStateEntered
 
-            mockEncService.StartEditSessionImpl = () => { };
+            mockEncService.BreakStateEnteredImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
+            {
+                documentsToReanalyze = ImmutableArray.Create(document.Id);
+            };
 
-            await proxy.StartEditSessionAsync(CancellationToken.None).ConfigureAwait(false);
-
-            VerifyReanalyzeInvocation(ImmutableArray<DocumentId>.Empty);
+            await proxy.BreakStateEnteredAsync(mockDiagnosticService.Object, CancellationToken.None).ConfigureAwait(false);
+            VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
 
             var activeStatement = (await remoteDebuggeeModuleMetadataProvider!.GetActiveStatementsAsync(CancellationToken.None).ConfigureAwait(false)).Single();
             Assert.Equal(as1.ActiveInstruction, activeStatement.ActiveInstruction);
@@ -170,21 +172,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var availability = await remoteDebuggeeModuleMetadataProvider!.GetAvailabilityAsync(moduleId1, CancellationToken.None).ConfigureAwait(false);
             Assert.Equal(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotAllowedForModule, "can't do enc"), availability);
 
-            // EndEditSession
+            // EndDebuggingSession
 
-            mockEncService.EndEditSessionImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
+            mockEncService.EndDebuggingSessionImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
             {
                 documentsToReanalyze = ImmutableArray.Create(document.Id);
             };
 
-            await proxy.EndEditSessionAsync(mockDiagnosticService.Object, CancellationToken.None).ConfigureAwait(false);
-            VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
-
-            // EndDebuggingSession
-
-            mockEncService.EndDebuggingSessionImpl = () => { };
-
-            await proxy.EndDebuggingSessionAsync(diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
+            await proxy.EndDebuggingSessionAsync(diagnosticUpdateSource, mockDiagnosticService.Object, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
             Assert.Equal(1, emitDiagnosticsClearedCount);
             emitDiagnosticsClearedCount = 0;
@@ -268,10 +263,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // CommitSolutionUpdate
 
-            called = false;
-            mockEncService.CommitSolutionUpdateImpl = () => called = true;
-            await proxy.CommitSolutionUpdateAsync(CancellationToken.None).ConfigureAwait(false);
-            Assert.True(called);
+            mockEncService.CommitSolutionUpdateImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
+            {
+                documentsToReanalyze = ImmutableArray.Create(document.Id);
+            };
+
+            await proxy.CommitSolutionUpdateAsync(mockDiagnosticService.Object, CancellationToken.None).ConfigureAwait(false);
+            VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
 
             // DiscardSolutionUpdate
 

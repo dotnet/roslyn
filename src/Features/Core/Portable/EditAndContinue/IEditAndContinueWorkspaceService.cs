@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
@@ -19,15 +18,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ValueTask<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken);
         ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken);
 
-        void CommitSolutionUpdate();
+        void CommitSolutionUpdate(out ImmutableArray<DocumentId> documentsToReanalyze);
         void DiscardSolutionUpdate();
 
         ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken);
 
         ValueTask StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken);
-        void StartEditSession();
-        void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze);
-        void EndDebuggingSession();
+        void BreakStateEntered(out ImmutableArray<DocumentId> documentsToReanalyze);
+        void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze);
 
         ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken);
         ValueTask<LinePositionSpan?> GetCurrentActiveStatementPositionAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, ManagedInstructionId instructionId, CancellationToken cancellationToken);

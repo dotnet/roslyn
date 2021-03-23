@@ -87,35 +87,27 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                await _proxy.StartEditSessionAsync(cancellationToken).ConfigureAwait(false);
+                await _proxy.BreakStateEnteredAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 _disabled = true;
+                return;
             }
 
             _activeStatementTrackingService.StartTracking();
         }
 
-        public async Task ExitBreakStateAsync(CancellationToken cancellationToken)
+        public Task ExitBreakStateAsync(CancellationToken cancellationToken)
         {
             _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
 
-            if (_disabled)
+            if (!_disabled)
             {
-                return;
+                _activeStatementTrackingService.EndTracking();
             }
 
-            _activeStatementTrackingService.EndTracking();
-
-            try
-            {
-                await _proxy.EndEditSessionAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
-            {
-                _disabled = true;
-            }
+            return Task.CompletedTask;
         }
 
         public async Task CommitUpdatesAsync(CancellationToken cancellationToken)
@@ -123,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 Contract.ThrowIfTrue(_disabled);
-                await _proxy.CommitSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
+                await _proxy.CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -157,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                await _proxy.EndDebuggingSessionAsync(_diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                await _proxy.EndDebuggingSessionAsync(_diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
 
                 Contract.ThrowIfNull(_debuggingSessionConnection);
                 _debuggingSessionConnection.Dispose();
