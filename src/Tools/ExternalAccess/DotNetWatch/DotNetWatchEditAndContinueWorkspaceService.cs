@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
 
         public void EndDebuggingSession() => _workspaceService.EndDebuggingSession(out _);
 
-        public void StartDebuggingSession(Solution solution) => _workspaceService.StartDebuggingSession(solution);
+        public void StartDebuggingSession(Solution solution)
+            => _workspaceService.StartDebuggingSessionAsync(solution, captureMatchingDocuments: false, CancellationToken.None).GetAwaiter().GetResult();
 
         public void StartEditSession() => _workspaceService.StartEditSession(StubManagedEditAndContinueDebuggerService.Instance, out _);
 
@@ -57,9 +58,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
 
         public async ValueTask<DotNetWatchManagedModuleUpdatesWrapper> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var (updates, _) = await _workspaceService.EmitSolutionUpdateAsync(solution, _nullSolutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            var results = await _workspaceService.EmitSolutionUpdateAsync(solution, _nullSolutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-            return new DotNetWatchManagedModuleUpdatesWrapper(in updates);
+            return new DotNetWatchManagedModuleUpdatesWrapper(in results.ModuleUpdates);
         }
     }
 }
