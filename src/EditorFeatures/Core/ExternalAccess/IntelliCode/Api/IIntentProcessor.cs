@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api
 
         /// <summary>
         /// Contains metadata that can be used to identify the kind of sub-action these edits
-        /// apply to for the requested intent.
+        /// apply to for the requested intent.  Used for telemetry purposes only.
         /// </summary>
         public readonly string ActionName;
 
