@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -34,8 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             foreach (var (providerPart, providerExport) in exportedProviders)
             {
-                if (!providerExport.Metadata.TryGetValue("Name", out var name)
-                    || name is not string { Length: > 0 })
+                if (!TryGetExportName(providerExport, out var _))
                 {
                     failureMessage.AppendLine(providerPart.Definition.Type.FullName);
                 }
@@ -60,16 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             failureMessage.AppendLine($"The following {providerType.Name}s are exported for {language} without unique Name metadata:");
             var passLength = failureMessage.Length;
 
-            var exportedProvidersByName = exportedProviders.GroupBy(exportedProvider =>
-            {
-                if (!exportedProvider.Export.Metadata.TryGetValue("Name", out var name)
-                    || name is not string { Length: > 0 })
-                {
-                    return string.Empty;
-                }
-
-                return (string)name;
-            });
+            var exportedProvidersByName = exportedProviders.GroupBy(
+                exportedProvider => TryGetExportName(exportedProvider.Export, out var name) ? name : string.Empty);
 
             foreach (var namedGroup in exportedProvidersByName)
             {
@@ -78,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     continue;
                 }
 
-                if (namedGroup.Take(2).Count() == 1)
+                if (namedGroup.Count() == 1)
                 {
                     continue;
                 }
@@ -107,8 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             foreach (var (providerPart, providerExport) in exportedProviders)
             {
-                if (providerExport.Metadata.TryGetValue("Name", out var name)
-                    && name is string { Length: > 0 }
+                if (TryGetExportName(providerExport, out var name)
                     && !predefinedNames.Contains(name))
                 {
                     failureMessage.AppendLine(providerPart.Definition.Type.FullName);
@@ -128,16 +119,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var configuration = EditorTestCompositions.EditorFeatures.GetCompositionConfiguration();
             var exportedProviders = FindComposedPartsWithExport(configuration, providerType.FullName);
-            var providerNames = exportedProviders.Select(exportedProvider =>
-            {
-                if (!exportedProvider.Export.Metadata.TryGetValue("Name", out var name)
-                    || name is not string { Length: > 0 })
-                {
-                    return string.Empty;
-                }
-
-                return (string)name;
-            }).ToImmutableHashSet();
+            var providerNames = exportedProviders
+                .Select(exportedProvider => TryGetExportName(exportedProvider.Export, out var name) ? name : string.Empty)
+                .ToImmutableHashSet();
 
             var failureMessage = new StringBuilder();
             failureMessage.AppendLine($"The following Predefined{providerType.Name}Names are not used as Name metadata:");
@@ -150,6 +134,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
             Assert.True(failureMessage.Length == passLength, failureMessage.ToString());
+        }
+
+        private static bool TryGetExportName(ExportDefinition export, [NotNullWhen(returnValue: true)] out string? name)
+        {
+            if (!export.Metadata.TryGetValue("Name", out var nameObj)
+                || nameObj is string { Length: > 0 })
+            {
+                name = null;
+                return false;
+            }
+
+            name = (string)nameObj;
+            return true;
         }
 
         private static ImmutableHashSet<string> GetPredefinedNamesFromType(Type namesType)
