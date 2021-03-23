@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         private static bool TryGetExportName(ExportDefinition export, [NotNullWhen(returnValue: true)] out string? name)
         {
             if (!export.Metadata.TryGetValue("Name", out var nameObj)
-                || nameObj is string { Length: > 0 })
+                || nameObj is string { Length: 0 })
             {
                 name = null;
                 return false;
