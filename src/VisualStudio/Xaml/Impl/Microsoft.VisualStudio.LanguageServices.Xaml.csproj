@@ -30,6 +30,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" ExcludeAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Update="Resources.resx" GenerateSource="true" />
   </ItemGroup>
 </Project>

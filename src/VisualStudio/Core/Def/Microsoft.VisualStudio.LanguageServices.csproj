@@ -172,7 +172,7 @@
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
 
     <!-- By default build assets that define embedded interop types do not flow. Set PrivateAssets to none to make them flow. -->
-    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" PrivateAssets="none" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" ExcludeAssets="all" />
     <PackageReference Include="NuGet.VisualStudio.Contracts" Version="$(NuGetVisualStudioContractsVersion)" />
     
     <!-- This is working around Microsoft.VisualStudio.Shell.15.0 having an unstated conflicting reference on this with NuGet.VisualStudio.Contracts -->

@@ -33,6 +33,9 @@
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35076" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" ExcludeAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System.Design" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="WindowsFormsIntegration" />
