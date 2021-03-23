@@ -30,21 +30,21 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// Initializes a new instance of the <see cref="FileHeader"/> struct.
         /// </summary>
         /// <param name="copyrightText">The copyright string, as parsed from the header.</param>
-        /// <param name="fileHeaderStart">The offset within the file at which the header started.</param>
-        /// <param name="fileHeaderEnd">The offset within the file at which the header ended.</param>
-        internal FileHeader(string copyrightText, int fileHeaderStart, int fileHeaderEnd, int commentPrefixLength)
-            : this(copyrightText, fileHeaderStart, fileHeaderEnd, commentPrefixLength, isMissing: false)
+        /// <param name="headerSpan">The <see cref="TextSpan"/> within the file at which the header is located.</param>
+        internal FileHeader(string copyrightText, TextSpan headerSpan, int commentPrefixLength)
+            : this(copyrightText, headerSpan, commentPrefixLength, isMissing: false)
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileHeader"/> struct.
         /// </summary>
-        /// <param name="fileHeaderStart">The offset within the file at which the header started, or was expected to start.</param>
+        /// <param name="copyrightText">The copyright string, as parsed from the header.</param>
+        /// <param name="headerSpan">The <see cref="TextSpan"/> within the file at which the header is located.</param>
         /// <param name="isMissing"><see langword="true"/> if the file header is missing; otherwise, <see langword="false"/>.</param>
-        private FileHeader(string copyrightText, int fileHeaderStart, int fileHeaderEnd, int commentPrefixLength, bool isMissing)
+        private FileHeader(string copyrightText, TextSpan headerSpan, int commentPrefixLength, bool isMissing)
         {
-            HeaderSpan = TextSpan.FromBounds(fileHeaderStart, fileHeaderEnd);
+            HeaderSpan = headerSpan;
             CopyrightText = copyrightText;
             _commentPrefixLength = commentPrefixLength;
             IsMissing = isMissing;
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         /// A <see cref="FileHeader"/> instance representing a missing file header.
         /// </returns>
         internal static FileHeader MissingFileHeader(int fileHeaderStart)
-            => new(copyrightText: "", fileHeaderStart, fileHeaderEnd: fileHeaderStart, commentPrefixLength: 0, isMissing: true);
+            => new(copyrightText: "", new TextSpan(fileHeaderStart, 0), commentPrefixLength: 0, isMissing: true);
 
         /// <summary>
         /// Gets the location representing the start of the file header.

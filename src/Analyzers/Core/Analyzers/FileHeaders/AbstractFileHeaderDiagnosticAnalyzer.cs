@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FileHeaders
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
                 if (fileHeaderStart.HasValue && fileHeaderEnd.HasValue && commentPrefix != null)
                 {
-                    return new FileHeader(sb.ToString(), fileHeaderStart.Value, fileHeaderEnd.Value, commentPrefix.Length);
+                    return new FileHeader(sb.ToString(), TextSpan.FromBounds(fileHeaderStart.Value, fileHeaderEnd.Value), commentPrefix.Length);
                 }
             }
 
