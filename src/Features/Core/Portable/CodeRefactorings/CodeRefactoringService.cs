@@ -181,6 +181,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         lock (actions)
                         {
                             // Add the Refactoring Provider Name to the parent CodeAction's CustomTags.
+                            // Always add a name even in cases of 3rd party refactorings that do not export
+                            // name metadata.
                             action.AddCustomTag(providerMetadata?.Name ?? provider.GetTypeDisplayName());
 
                             actions.Add((action, applicableToSpan));

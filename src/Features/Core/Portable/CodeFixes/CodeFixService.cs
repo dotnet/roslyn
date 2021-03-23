@@ -461,6 +461,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         if (!applicableDiagnostics.IsEmpty)
                         {
                             // Add the CodeFix Provider Name to the parent CodeAction's CustomTags.
+                            // Always add a name even in cases of 3rd party fixers that do not export
+                            // name metadata.
                             action.AddCustomTag(fixerMetadata?.Name ?? fixer.GetTypeDisplayName());
 
                             fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
