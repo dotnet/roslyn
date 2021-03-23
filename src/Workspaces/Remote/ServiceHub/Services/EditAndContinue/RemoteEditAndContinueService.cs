@@ -66,25 +66,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, bool captureMatchingDocuments, CancellationToken cancellationToken)
+        public ValueTask StartDebuggingSessionAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                await GetService().StartDebuggingSessionAsync(solution, captureMatchingDocuments, cancellationToken).ConfigureAwait(false);
+                var debuggerService = new ManagedEditAndContinueDebuggerService(_callback, callbackId);
+                await GetService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> StartEditSessionAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<DocumentId>> StartEditSessionAsync(CancellationToken cancellationToken)
         {
             return RunServiceAsync((Func<CancellationToken, ValueTask<ImmutableArray<DocumentId>>>)(cancellationToken =>
             {
-                GetService().StartEditSession(
-                    debuggerService: new ManagedEditAndContinueDebuggerService(_callback, callbackId),
-                    out var documentsToReanalyze);
+                GetService().StartEditSession(out var documentsToReanalyze);
 
                 return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
             }), cancellationToken);

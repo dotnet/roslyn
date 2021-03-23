@@ -95,18 +95,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private sealed class EditSessionCallback
         {
-            private readonly IManagedEditAndContinueDebuggerService _managedModuleInfoProvider;
+            private readonly IManagedEditAndContinueDebuggerService _debuggerService;
 
-            public EditSessionCallback(IManagedEditAndContinueDebuggerService debuggeeModuleMetadataProvider)
+            public EditSessionCallback(IManagedEditAndContinueDebuggerService debuggerService)
             {
-                _managedModuleInfoProvider = debuggeeModuleMetadataProvider;
+                _debuggerService = debuggerService;
             }
 
             public async ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
             {
                 try
                 {
-                    return await _managedModuleInfoProvider.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
+                    return await _debuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                 {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 try
                 {
-                    return await _managedModuleInfoProvider.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+                    return await _debuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                 {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 try
                 {
-                    await _managedModuleInfoProvider.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
+                    await _debuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
                 {
@@ -149,53 +149,47 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private IEditAndContinueWorkspaceService GetLocalService()
             => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
 
-        public async ValueTask StartDebuggingSessionAsync(Solution solution, bool captureMatchingDocuments, CancellationToken cancellationToken)
+        public async ValueTask<IDisposable?> StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                await GetLocalService().StartDebuggingSessionAsync(solution, captureMatchingDocuments, cancellationToken).ConfigureAwait(false);
-                return;
+                await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, cancellationToken).ConfigureAwait(false);
+                return LocalConnection.Instance;
             }
 
-            await client.TryInvokeAsync<IRemoteEditAndContinueService>(
+            // need to keep the providers alive until the edit session ends:
+            var connection = client.CreateConnection<IRemoteEditAndContinueService>(
+                callbackTarget: new EditSessionCallback(debuggerService));
+
+            await connection.TryInvokeAsync(
                 solution,
-                async (service, solutionInfo, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, captureMatchingDocuments, cancellationToken).ConfigureAwait(false),
+                async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
+
+            return connection;
         }
 
-        public async ValueTask<IDisposable?> StartEditSessionAsync(
-            IDiagnosticAnalyzerService diagnosticService,
-            IManagedEditAndContinueDebuggerService debuggerService,
-            CancellationToken cancellationToken)
+        public async ValueTask StartEditSessionAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
         {
-            IDisposable result;
             ImmutableArray<DocumentId> documentsToReanalyze;
 
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().StartEditSession(debuggerService, out documentsToReanalyze);
-                result = LocalConnection.Instance;
+                GetLocalService().StartEditSession(out documentsToReanalyze);
             }
             else
             {
-                // need to keep the providers alive until the edit session ends:
-                var connection = client.CreateConnection<IRemoteEditAndContinueService>(
-                    callbackTarget: new EditSessionCallback(debuggerService));
-
-                var documentsToReanalyzeOpt = await connection.TryInvokeAsync(
-                    (service, callbackId, cancellationToken) => service.StartEditSessionAsync(callbackId, cancellationToken),
+                var documentsToReanalyzeOpt = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DocumentId>>(
+                    (service, cancellationToken) => service.StartEditSessionAsync(cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
-                result = connection;
             }
 
             // clear all reported run mode diagnostics:
             diagnosticService.Reanalyze(Workspace, documentIds: documentsToReanalyze);
-
-            return result;
         }
 
         private sealed class LocalConnection : IDisposable

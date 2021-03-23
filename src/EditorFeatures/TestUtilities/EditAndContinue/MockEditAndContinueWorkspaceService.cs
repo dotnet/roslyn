@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal delegate void StartEditSession(IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze);
+    internal delegate void StartEditSession(out ImmutableArray<DocumentId> documentsToReanalyze);
     internal delegate void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze);
 
     internal class MockEditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public Func<Solution, SolutionActiveStatementSpanProvider, ManagedInstructionId, LinePositionSpan?>? GetCurrentActiveStatementPositionImpl;
 
         public Func<Document, DocumentActiveStatementSpanProvider, ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>? GetAdjustedActiveStatementSpansImpl;
-        public Action<Solution, bool>? StartDebuggingSessionImpl;
+        public Action<Solution, IManagedEditAndContinueDebuggerService, bool>? StartDebuggingSessionImpl;
         public StartEditSession? StartEditSessionImpl;
         public EndSession? EndDebuggingSessionImpl;
         public EndSession? EndEditSessionImpl;
@@ -75,16 +75,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         public ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
             => OnSourceFileUpdatedAsyncImpl?.Invoke(document, cancellationToken) ?? throw new NotImplementedException();
 
-        public ValueTask StartDebuggingSessionAsync(Solution solution, bool captureMatchingDocuments, CancellationToken cancellationToken)
+        public ValueTask StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
-            StartDebuggingSessionImpl?.Invoke(solution, captureMatchingDocuments);
+            StartDebuggingSessionImpl?.Invoke(solution, debuggerService, captureMatchingDocuments);
             return default;
         }
 
-        public void StartEditSession(IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void StartEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
-            StartEditSessionImpl?.Invoke(debuggerService, out documentsToReanalyze);
+            StartEditSessionImpl?.Invoke(out documentsToReanalyze);
         }
     }
 }

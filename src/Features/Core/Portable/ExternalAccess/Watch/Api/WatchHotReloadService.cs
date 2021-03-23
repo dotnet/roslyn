@@ -63,11 +63,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
         public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
-            => await _encService.StartDebuggingSessionAsync(solution, captureMatchingDocuments: true, cancellationToken).ConfigureAwait(false);
+            => await _encService.StartDebuggingSessionAsync(solution, DebuggerService.Instance, captureMatchingDocuments: true, cancellationToken).ConfigureAwait(false);
 
         public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            _encService.StartEditSession(DebuggerService.Instance, out _);
+            _encService.StartEditSession(out _);
 
             var results = await _encService.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 

@@ -132,32 +132,37 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // StartDebuggingSession
 
+            IManagedEditAndContinueDebuggerService? remoteDebuggeeModuleMetadataProvider = null;
+
             var called = false;
-            mockEncService.StartDebuggingSessionImpl = (solution, captureMatchingDocuments) =>
+            mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, captureMatchingDocuments) =>
             {
                 Assert.Equal("proj", solution.Projects.Single().Name);
+                remoteDebuggeeModuleMetadataProvider = debuggerService;
                 called = true;
             };
 
-            await proxy.StartDebuggingSessionAsync(localWorkspace.CurrentSolution, captureMatchingDocuments: false, CancellationToken.None).ConfigureAwait(false);
-            Assert.True(called);
-
-            // StartEditSession
-
-            IManagedEditAndContinueDebuggerService? remoteDebuggeeModuleMetadataProvider = null;
-            mockEncService.StartEditSessionImpl = (IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze) =>
-            {
-                remoteDebuggeeModuleMetadataProvider = debuggerService;
-                documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
-            };
-
-            await proxy.StartEditSessionAsync(
-                mockDiagnosticService.Object,
+            await proxy.StartDebuggingSessionAsync(
+                localWorkspace.CurrentSolution,
                 debuggerService: new MockManagedEditAndContinueDebuggerService()
                 {
                     IsEditAndContinueAvailable = _ => new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotAllowedForModule, "can't do enc"),
                     GetActiveStatementsImpl = () => ImmutableArray.Create(as1)
                 },
+                captureMatchingDocuments: false,
+                CancellationToken.None).ConfigureAwait(false);
+
+            Assert.True(called);
+
+            // StartEditSession
+
+            mockEncService.StartEditSessionImpl = (out ImmutableArray<DocumentId> documentsToReanalyze) =>
+            {
+                documentsToReanalyze = ImmutableArray<DocumentId>.Empty;
+            };
+
+            await proxy.StartEditSessionAsync(
+                mockDiagnosticService.Object,
                 CancellationToken.None).ConfigureAwait(false);
 
             VerifyReanalyzeInvocation(ImmutableArray<DocumentId>.Empty);

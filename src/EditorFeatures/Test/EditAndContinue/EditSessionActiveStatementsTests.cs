@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 var mockCompilationOutputsProvider = new Func<Project, CompilationOutputs>(_ => new MockCompilationOutputs(Guid.NewGuid()));
 
-                var debuggingSession = new DebuggingSession(solution, mockCompilationOutputsProvider, SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>());
+                var debuggingSession = new DebuggingSession(solution, mockDebuggerService, mockCompilationOutputsProvider, SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>());
 
                 if (initialState != CommittedSolution.DocumentState.None)
                 {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
                 var telemetry = new EditSessionTelemetry();
-                EditSession = new EditSession(debuggingSession, telemetry, mockDebuggerService);
+                EditSession = new EditSession(debuggingSession, telemetry);
             }
 
             public void Dispose()

@@ -94,22 +94,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public async ValueTask StartDebuggingSessionAsync(Solution solution, bool captureMatchingDocuments, CancellationToken cancellationToken)
+        public async ValueTask StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
             var initialDocumentStates =
                 captureMatchingDocuments ? await CommittedSolution.GetMatchingDocumentsAsync(solution, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false) :
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
 
-            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(solution, _compilationOutputsProvider, initialDocumentStates), null);
+            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(solution, debuggerService, _compilationOutputsProvider, initialDocumentStates), null);
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
-        public void StartEditSession(IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void StartEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, debuggerService);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (debuggingSession.AddModulePreparedForUpdate(mvid))
                     {
                         // fire and forget:
-                        _ = Task.Run(() => editSession.DebuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
+                        _ = Task.Run(() => debuggingSession.DebuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
                     }
                 }
 
