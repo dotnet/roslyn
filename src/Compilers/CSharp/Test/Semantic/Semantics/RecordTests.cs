@@ -25219,7 +25219,7 @@ record B
 ");
 
             c.VerifyDiagnostics(
-                // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                // (8,12): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than type 'B.C'
                 //     record C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 12),
                 // (8,12): error CS0050: Inconsistent accessibility: return type 'X<B.C.D.E>' is less accessible than method 'B.C.<Clone>$()'
@@ -25340,10 +25340,10 @@ public partial record C3 : Base<(int a, int b)> { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (5,23): error CS0263: Partial declarations of 'C2' must not specify different base classes
+                // (5,23): error CS0263: Partial declarations of 'C2' must not specify different base types
                 // public partial record C2 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C2").WithArguments("C2").WithLocation(5, 23),
-                // (3,23): error CS0263: Partial declarations of 'C1' must not specify different base classes
+                // (3,23): error CS0263: Partial declarations of 'C1' must not specify different base types
                 // public partial record C1 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C1").WithArguments("C1").WithLocation(3, 23),
                 // (5,23): error CS0115: 'C2.GetHashCode()': no suitable method found to override
@@ -25423,13 +25423,13 @@ class C<T, U>
     void M<V>() where V : U, A, B { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,18): error CS0406: The class type constraint 'A' must come before any other constraints
+                // (5,18): error CS0406: The type constraint 'A' must come before any other constraints
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(5, 18),
-                // (6,18): error CS0406: The class type constraint 'B' must come before any other constraints
+                // (6,18): error CS0406: The type constraint 'B' must come before any other constraints
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "B").WithArguments("B").WithLocation(6, 18),
-                // (8,30): error CS0406: The class type constraint 'A' must come before any other constraints
+                // (8,30): error CS0406: The type constraint 'A' must come before any other constraints
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(8, 30),
-                // (8,33): error CS0406: The class type constraint 'B' must come before any other constraints
+                // (8,33): error CS0406: The type constraint 'B' must come before any other constraints
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "B").WithArguments("B").WithLocation(8, 33));
         }
 
@@ -25570,7 +25570,7 @@ public partial record C1
                 // (6,23): error CS0051: Inconsistent accessibility: parameter type 'NV' is less accessible than method 'C1.Equals(NV?)'
                 // public partial record C1
                 Diagnostic(ErrorCode.ERR_BadVisParamType, "C1").WithArguments("C1.Equals(NV?)", "NV").WithLocation(6, 23),
-                // (10,16): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // (10,16): error CS0060: Inconsistent accessibility: base type 'NV' is less accessible than type 'C1'
                 // partial record C1 : NV
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 16)
                 );

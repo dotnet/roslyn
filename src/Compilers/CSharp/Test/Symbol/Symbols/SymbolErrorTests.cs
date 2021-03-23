@@ -738,13 +738,13 @@ public class C2 : B<object>.C<A> { }
 public class C3 : B<A>.C<object> { }
 public class C4 : B<B<A>>.C<object> { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,14): error CS0060: Inconsistent accessibility: base type 'B<A>' is less accessible than class 'C1'
+                // (6,14): error CS0060: Inconsistent accessibility: base type 'B<A>' is less accessible than type 'C1'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "B<A>").WithLocation(6, 14),
-                // (7,14): error CS0060: Inconsistent accessibility: base type 'B<object>.C<A>' is less accessible than class 'C2'
+                // (7,14): error CS0060: Inconsistent accessibility: base type 'B<object>.C<A>' is less accessible than type 'C2'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C2").WithArguments("C2", "B<object>.C<A>").WithLocation(7, 14),
-                // (8,14): error CS0060: Inconsistent accessibility: base type 'B<A>.C<object>' is less accessible than class 'C3'
+                // (8,14): error CS0060: Inconsistent accessibility: base type 'B<A>.C<object>' is less accessible than type 'C3'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C3").WithArguments("C3", "B<A>.C<object>").WithLocation(8, 14),
-                // (9,14): error CS0060: Inconsistent accessibility: base type 'B<B<A>>.C<object>' is less accessible than class 'C4'
+                // (9,14): error CS0060: Inconsistent accessibility: base type 'B<B<A>>.C<object>' is less accessible than type 'C4'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C4").WithArguments("C4", "B<B<A>>.C<object>").WithLocation(9, 14));
         }
 
@@ -762,7 +762,7 @@ public class C4 : B<B<A>>.C<object> { }";
 public class B<T> : A { }
 public class C : B<A.B.C> { }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (9,14): error CS0060: Inconsistent accessibility: base type 'B<A.B.C>' is less accessible than class 'C'
+                // (9,14): error CS0060: Inconsistent accessibility: base type 'B<A.B.C>' is less accessible than type 'C'
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("C", "B<A.B.C>").WithLocation(9, 14));
         }
 
@@ -4561,13 +4561,13 @@ class C<T, U>
     void M<V>() where V : U, A, B { }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,18): error CS0406: The class type constraint 'A' must come before any other constraints
+                // (5,18): error CS0406: The type constraint 'A' must come before any other constraints
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(5, 18),
-                // (6,18): error CS0406: The class type constraint 'B' must come before any other constraints
+                // (6,18): error CS0406: The type constraint 'B' must come before any other constraints
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "B").WithArguments("B").WithLocation(6, 18),
-                // (8,30): error CS0406: The class type constraint 'A' must come before any other constraints
+                // (8,30): error CS0406: The type constraint 'A' must come before any other constraints
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(8, 30),
-                // (8,33): error CS0406: The class type constraint 'B' must come before any other constraints
+                // (8,33): error CS0406: The type constraint 'B' must come before any other constraints
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "B").WithArguments("B").WithLocation(8, 33));
         }
 

@@ -429,7 +429,7 @@ class B
 ");
 
             c.VerifyDiagnostics(
-                // (8,11): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                // (8,11): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than type 'B.C'
                 //     class C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 11));
         }
@@ -593,7 +593,7 @@ class B
 ");
 
             c.VerifyDiagnostics(
-                // (8,11): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than class 'B.C'
+                // (8,11): error CS0060: Inconsistent accessibility: base type 'X<B.C.D.E>' is less accessible than type 'B.C'
                 //     class C : X<C.D.E>
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C").WithArguments("B.C", "X<B.C.D.E>").WithLocation(8, 11));
         }

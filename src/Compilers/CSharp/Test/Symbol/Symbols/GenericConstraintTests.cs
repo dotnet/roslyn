@@ -2113,10 +2113,10 @@ partial class E<T> where T : I, B { }
                 // (7,15): error CS0265: Partial declarations of 'D<T>' have inconsistent constraints for type parameter 'T'
                 // partial class D<T> where T : A, I { }
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "D").WithArguments("D<T>", "T").WithLocation(7, 15),
-                // (8,33): error CS0406: The class type constraint 'A' must come before any other constraints
+                // (8,33): error CS0406: The type constraint 'A' must come before any other constraints
                 // partial class D<T> where T : I, A { }
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(8, 33),
-                // (9,33): error CS0406: The class type constraint 'A' must come before any other constraints
+                // (9,33): error CS0406: The type constraint 'A' must come before any other constraints
                 // partial class D<T> where T : I, A { }
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(9, 33),
                 // (10,15): error CS0265: Partial declarations of 'E<T>' have inconsistent constraints for type parameter 'T'
@@ -2647,7 +2647,7 @@ class C<T>
                 // (13,27): error CS0246: The type or namespace name 'Z' could not be found (are you missing a using directive or an assembly reference?)
                 //     void M<U>() where U : Z, A { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Z").WithArguments("Z").WithLocation(13, 27),
-                // (13,30): error CS0406: The class type constraint 'A' must come before any other constraints
+                // (13,30): error CS0406: The type constraint 'A' must come before any other constraints
                 //     void M<U>() where U : Z, A { }
                 Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(13, 30));
         }

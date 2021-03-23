@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (constraintTypes.Count > 0)
                 {
-                    // "The class type constraint '{0}' must come before any other constraints"
+                    // "The type constraint '{0}' must come before any other constraints"
                     Error(diagnostics, ErrorCode.ERR_ClassBoundNotFirst, syntax, type.Type);
                     return false;
                 }
