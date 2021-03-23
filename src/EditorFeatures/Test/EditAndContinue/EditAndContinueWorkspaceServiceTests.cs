@@ -135,24 +135,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 testReportTelemetry: data => EditAndContinueWorkspaceService.LogDebuggingSessionTelemetry(data, (id, message) => _telemetryLog.Add($"{id}: {message.GetMessage()}"), () => ++_telemetryId));
         }
 
-        private static EditSession StartEditSession(
-            EditAndContinueWorkspaceService service,
-            ImmutableArray<DocumentId> documentsWithRunModeDiagnostics = default)
+        private static EditSession StartEditSession(EditAndContinueWorkspaceService service)
         {
-            service.StartEditSession(out var documentsToReanalyze);
-
-            AssertEx.Equal(documentsWithRunModeDiagnostics.NullToEmpty(), documentsToReanalyze);
+            service.StartEditSession();
 
             return service.Test_GetEditSession();
         }
 
-        private EditSession EnterBreakMode(
-            EditAndContinueWorkspaceService service,
-            ImmutableArray<ManagedActiveStatementDebugInfo> activeStatements = default,
-            ImmutableArray<DocumentId> documentsWithRunModeDiagnostics = default)
+        private EditSession EnterBreakMode(EditAndContinueWorkspaceService service, ImmutableArray<ManagedActiveStatementDebugInfo> activeStatements = default)
         {
             _debuggerService.GetActiveStatementsImpl = () => activeStatements.NullToEmpty();
-            return StartEditSession(service, documentsWithRunModeDiagnostics);
+            return StartEditSession(service);
         }
 
         private static void EndEditSession(EditAndContinueWorkspaceService service, ImmutableArray<DocumentId> documentsWithRudeEdits = default)
@@ -181,10 +174,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return session;
         }
 
-        private static void EndDebuggingSession(EditAndContinueWorkspaceService service, ImmutableArray<DocumentId> documentsWithRunModeDiagnostics = default)
+        private static void EndDebuggingSession(EditAndContinueWorkspaceService service)
         {
-            service.EndDebuggingSession(out var documentsToReanalyze);
-            AssertEx.Equal(documentsWithRunModeDiagnostics.NullToEmpty(), documentsToReanalyze);
+            service.EndDebuggingSession();
         }
 
         private static async Task<(ManagedModuleUpdates updates, ImmutableArray<DiagnosticData> diagnostics)> EmitSolutionUpdateAsync(
@@ -645,7 +637,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noDocumentActiveSpans, CancellationToken.None);
             AssertEx.Equal(new[] { "ENC1003" }, diagnostics.Select(d => d.Id));
 
-            EndDebuggingSession(service, documentsWithRunModeDiagnostics: ImmutableArray.Create(document1.Id));
+            EndDebuggingSession(service);
 
             AssertEx.Equal(new[]
             {
@@ -693,7 +685,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             Assert.False(await service.HasChangesAsync(workspace.CurrentSolution, s_noSolutionActiveSpans, sourceFilePath: null, CancellationToken.None));
 
-            EndDebuggingSession(service, documentsWithRunModeDiagnostics: ImmutableArray.Create(documentB.Id));
+            EndDebuggingSession(service);
 
             AssertEx.Equal(new[]
             {
@@ -741,7 +733,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noDocumentActiveSpans, CancellationToken.None);
                 AssertEx.Equal(new[] { "ENC1003" }, diagnostics.Select(d => d.Id));
 
-                EndDebuggingSession(service, documentsWithRunModeDiagnostics: ImmutableArray.Create(document2.Id));
+                EndDebuggingSession(service);
 
                 AssertEx.Equal(new[]
                 {
@@ -2833,68 +2825,6 @@ class C { int Y => 1; }
 
             // open deferred module readers should be dispose when the debugging session ends:
             VerifyReadersDisposed(readers);
-        }
-
-        [Fact]
-        public void GetSpansInNewDocument()
-        {
-            // 012345678901234567890
-            // 012___890_3489____0
-            var changes = new[]
-            {
-                new TextChange(new TextSpan(3, 5), "___"),
-                new TextChange(new TextSpan(11, 2), "_"),
-                new TextChange(new TextSpan(15, 3), ""),
-                new TextChange(new TextSpan(20, 0), "____"),
-            };
-
-            Assert.Equal("012___890_3489____0", SourceText.From("012345678901234567890").WithChanges(changes).ToString());
-
-            AssertEx.Equal(new[]
-            {
-                "[3..6)",
-                "[9..10)",
-                "[12..12)",
-                "[14..18)"
-            }, EditAndContinueWorkspaceService.GetSpansInNewDocument(changes).Select(s => s.ToString()));
-        }
-
-        [Fact]
-        public async Task GetDocumentTextChangesAsync()
-        {
-            var source1 = @"
-class C1 
-{ 
-  void M() 
-  {
-    System.Console.WriteLine(1);
-    System.Console.WriteLine(2);
-    System.Console.WriteLine(3);
-  } 
-}";
-            var source2 = @"
-class C1 
-{ 
-
-  void M() 
-  {
-    System.Console.WriteLine(9);
-    System.Console.WriteLine();
-    System.Console.WriteLine(30);
-  } 
-}";
-
-            var oldTree = SyntaxFactory.ParseSyntaxTree(source1);
-            var newTree = SyntaxFactory.ParseSyntaxTree(source2);
-            var changes = await EditAndContinueWorkspaceService.GetDocumentTextChangesAsync(oldTree, newTree, CancellationToken.None);
-
-            AssertEx.Equal(new[]
-            {
-                "[17..17) '\r\n'",
-                "[64..65) '9'",
-                "[98..99) ''",
-                "[133..133) '0'"
-            }, changes.Select(s => $"{s.Span} '{s.NewText}'"));
         }
 
         [Fact]

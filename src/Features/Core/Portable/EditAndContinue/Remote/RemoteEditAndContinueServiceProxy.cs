@@ -170,26 +170,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return connection;
         }
 
-        public async ValueTask StartEditSessionAsync(IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
+        public async ValueTask StartEditSessionAsync(CancellationToken cancellationToken)
         {
-            ImmutableArray<DocumentId> documentsToReanalyze;
-
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().StartEditSession(out documentsToReanalyze);
+                GetLocalService().StartEditSession();
             }
             else
             {
-                var documentsToReanalyzeOpt = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DocumentId>>(
+                await client.TryInvokeAsync<IRemoteEditAndContinueService>(
                     (service, cancellationToken) => service.StartEditSessionAsync(cancellationToken),
                     cancellationToken).ConfigureAwait(false);
-
-                documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
             }
-
-            // clear all reported run mode diagnostics:
-            diagnosticService.Reanalyze(Workspace, documentIds: documentsToReanalyze);
         }
 
         private sealed class LocalConnection : IDisposable
@@ -223,29 +216,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             diagnosticService.Reanalyze(Workspace, documentIds: documentsToReanalyze);
         }
 
-        public async ValueTask EndDebuggingSessionAsync(EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, IDiagnosticAnalyzerService diagnosticService, CancellationToken cancellationToken)
+        public async ValueTask EndDebuggingSessionAsync(EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, CancellationToken cancellationToken)
         {
-            ImmutableArray<DocumentId> documentsToReanalyze;
-
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                GetLocalService().EndDebuggingSession(out documentsToReanalyze);
+                GetLocalService().EndDebuggingSession();
             }
             else
             {
-                var documentsToReanalyzeOpt = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DocumentId>>(
+                await client.TryInvokeAsync<IRemoteEditAndContinueService>(
                     (service, cancellationToken) => service.EndDebuggingSessionAsync(cancellationToken),
                     cancellationToken).ConfigureAwait(false);
-
-                documentsToReanalyze = documentsToReanalyzeOpt.HasValue ? documentsToReanalyzeOpt.Value : ImmutableArray<DocumentId>.Empty;
             }
 
             // clear emit/apply diagnostics reported previously:
             diagnosticUpdateSource.ClearDiagnostics();
-
-            // clear diagnostics reported during run mode:
-            diagnosticService.Reanalyze(Workspace, documentIds: documentsToReanalyze);
         }
 
         public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
