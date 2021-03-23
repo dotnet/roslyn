@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
                 var telemetry = new EditSessionTelemetry();
-                EditSession = new EditSession(debuggingSession, telemetry);
+                EditSession = new EditSession(debuggingSession, telemetry, inBreakState: true);
             }
 
             public void Dispose()

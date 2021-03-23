@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
@@ -67,16 +66,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
 
         public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            _encService.StartEditSession();
-
             var results = await _encService.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
-                _encService.CommitSolutionUpdate();
+                _encService.CommitSolutionUpdate(out _);
             }
-
-            _encService.EndEditSession(out _);
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Blocked)
             {
@@ -92,6 +87,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         }
 
         public void EndSession()
-            => _encService.EndDebuggingSession();
+            => _encService.EndDebuggingSession(out _);
     }
 }

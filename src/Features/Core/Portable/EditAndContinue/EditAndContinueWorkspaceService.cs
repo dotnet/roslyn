@@ -94,20 +94,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(solution, debuggerService, _compilationOutputsProvider, initialDocumentStates), null);
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
+
+            StartEditSession(inBreakState: false);
         }
 
-        public void StartEditSession()
+        private void StartEditSession(bool inBreakState)
         {
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, inBreakState);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
         }
 
-        public void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        private void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             // first, publish null session:
             var session = Interlocked.Exchange(ref _editSession, null);
@@ -119,13 +121,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // clear all reported rude edits:
             documentsToReanalyze = session.GetDocumentsWithReportedDiagnostics();
 
-            _debuggingSessionTelemetry.LogEditSession(_editSessionTelemetry.GetDataAndClear());
+            // TODO: report a separate telemetry data for hot reload sessions to preserve the semantics of the current telemetry data
+            if (session.InBreakState)
+            {
+                _debuggingSessionTelemetry.LogEditSession(_editSessionTelemetry.GetDataAndClear());
+            }
 
             session.Dispose();
         }
 
-        public void EndDebuggingSession()
+        public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
+            EndEditSession(out documentsToReanalyze);
+
             var debuggingSession = Interlocked.Exchange(ref _debuggingSession, null);
             Contract.ThrowIfNull(debuggingSession, "Debugging session has not started.");
 
@@ -135,6 +143,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             _reportTelemetry(_debuggingSessionTelemetry.GetDataAndClear());
 
             debuggingSession.Dispose();
+        }
+
+        public void BreakStateEntered(out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            // Document analyses must be recalculated to account for active statements.
+            EndEditSession(out documentsToReanalyze);
+            StartEditSession(inBreakState: true);
         }
 
         internal static bool SupportsEditAndContinue(Project project)
@@ -281,14 +296,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics);
         }
 
-        public void CommitSolutionUpdate()
+        public void CommitSolutionUpdate(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var editSession = _editSession;
             Contract.ThrowIfNull(editSession);
 
             var pendingUpdate = editSession.RetrievePendingUpdate();
             editSession.DebuggingSession.CommitSolutionUpdate(pendingUpdate);
-            editSession.ChangesApplied();
+
+            // restart edit session with no active statements (switching to run mode):
+            EndEditSession(out documentsToReanalyze);
+            StartEditSession(inBreakState: false);
         }
 
         public void DiscardSolutionUpdate()
@@ -306,7 +324,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async ValueTask<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
-            if (editSession == null)
+            if (editSession == null || !editSession.InBreakState)
             {
                 return default;
             }
@@ -339,7 +357,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async ValueTask<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
-            if (editSession == null)
+            if (editSession == null || !editSession.InBreakState)
             {
                 return default;
             }
@@ -373,7 +391,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so. 
                 // We return null since there the concept of active statement only makes sense during break mode.
                 var editSession = _editSession;
-                if (editSession == null)
+                if (editSession == null || !editSession.InBreakState)
                 {
                     return null;
                 }
@@ -431,7 +449,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 var editSession = _editSession;
-                if (editSession == null)
+                if (editSession == null || !editSession.InBreakState)
                 {
                     return null;
                 }

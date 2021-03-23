@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         internal readonly EditAndContinueDocumentAnalysesCache Analyses;
 
+        internal readonly bool InBreakState;
+
         /// <summary>
         /// A <see cref="DocumentId"/> is added whenever EnC analyzer reports 
         /// rude edits or module diagnostics. At the end of the session we ask the diagnostic analyzer to reanalyze 
@@ -54,18 +56,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly object _documentsWithReportedDiagnosticsGuard = new();
 
         private PendingSolutionUpdate? _pendingUpdate;
-        private bool _changesApplied;
 
         internal EditSession(
             DebuggingSession debuggingSession,
-            EditSessionTelemetry telemetry)
+            EditSessionTelemetry telemetry,
+            bool inBreakState)
         {
             DebuggingSession = debuggingSession;
             Telemetry = telemetry;
 
             _nonRemappableRegions = debuggingSession.NonRemappableRegions;
 
-            BaseActiveStatements = new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(cancellationToken), cacheResult: true);
+            InBreakState = inBreakState;
+
+            BaseActiveStatements = inBreakState ?
+                new AsyncLazy<ActiveStatementsMap>(cancellationToken => GetBaseActiveStatementsAsync(cancellationToken), cacheResult: true) :
+                new AsyncLazy<ActiveStatementsMap>(ActiveStatementsMap.Empty);
+
             Analyses = new EditAndContinueDocumentAnalysesCache(BaseActiveStatements);
         }
 
@@ -476,11 +483,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                if (_changesApplied)
-                {
-                    return false;
-                }
-
                 var baseSolution = DebuggingSession.LastCommittedSolution;
                 if (baseSolution.HasNoChanges(solution))
                 {
@@ -1127,12 +1129,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var pendingUpdate = Interlocked.Exchange(ref _pendingUpdate, null);
             Contract.ThrowIfNull(pendingUpdate);
             return pendingUpdate;
-        }
-
-        internal void ChangesApplied()
-        {
-            Debug.Assert(!_changesApplied);
-            _changesApplied = true;
         }
     }
 }
