@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             if (result.HasValue)
             {
-                return result.Value.SelectAsArrayAsync(r => r.RehydrateAsync(solution, cancellationToken));
+                return result.Value.SelectAsArrayAsync((r, cancellationToken) => r.RehydrateAsync(solution, cancellationToken), cancellationToken);
             }
             else
             {
