@@ -335,7 +335,6 @@ global using Bar;";
             //await VerifyWorkerAsync(source, absent: true, Options.Script);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNestedAbstract()
         {
