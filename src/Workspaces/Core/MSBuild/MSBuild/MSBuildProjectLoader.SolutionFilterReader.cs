@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     using var document = JsonDocument.Parse(File.ReadAllText(filterFilename));
                     var solution = document.RootElement.GetProperty("solution");
-                    var solutionPath = solution.GetProperty("path").GetString();
+                    // Convert directory separators to the platform's default, since that is what MSBuild provide us.
+                    var solutionPath = solution.GetProperty("path").GetString()?.Replace('\\', Path.DirectorySeparatorChar);
 
                     if (!pathResolver.TryGetAbsoluteSolutionPath(solutionPath, baseDirectory: Path.GetDirectoryName(filterFilename), DiagnosticReportingMode.Throw, out solutionFilename))
                     {
@@ -40,16 +41,24 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         return false;
                     }
 
+                    // The base directory for projects is the solution folder.
+                    var baseDirectory = Path.GetDirectoryName(solutionFilename);
+
                     var filterProjects = ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
                     foreach (var project in solution.GetProperty("projects").EnumerateArray())
                     {
-                        var projectPath = project.GetString();
+                        // Convert directory separators to the platform's default, since that is what MSBuild provide us.
+                        var projectPath = project.GetString()?.Replace('\\', Path.DirectorySeparatorChar);
                         if (projectPath is null)
                         {
                             continue;
                         }
 
-                        filterProjects.Add(projectPath);
+                        // Fill the filter with the absolute project paths.
+                        if (pathResolver.TryGetAbsoluteProjectPath(projectPath, baseDirectory, DiagnosticReportingMode.Throw, out var absoluteProjectPath))
+                        {
+                            filterProjects.Add(absoluteProjectPath);
+                        }
                     }
 
                     projectFilter = filterProjects.ToImmutable();
