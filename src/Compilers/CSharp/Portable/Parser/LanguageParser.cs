@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.CurrentToken.Kind == SyntaxKind.OpenBracketToken;
         }
 
-        private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations(bool forLambda = false)
+        private SyntaxList<AttributeListSyntax> ParseAttributeDeclarations(bool checkLambdaAttributesFeature = false)
         {
             var attributes = _pool.Allocate<AttributeListSyntax>();
             try
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 while (this.IsPossibleAttributeDeclaration())
                 {
                     var attribute = this.ParseAttributeDeclaration();
-                    if (forLambda)
+                    if (checkLambdaAttributesFeature)
                     {
                         attribute = CheckFeatureAvailability(attribute, MessageID.IDS_FeatureLambdaAttributes);
                     }
@@ -9678,6 +9678,8 @@ tryAgain:
                     return true;
                 case SyntaxKind.StaticKeyword:
                     return IsPossibleAnonymousMethodExpression() || IsPossibleLambdaExpression(Precedence.Expression);
+                case SyntaxKind.OpenBracketToken:
+                    return IsPossibleLambdaExpression(Precedence.Expression);
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
                     // expression (whether it is used as an identifier or a keyword).
@@ -10354,7 +10356,7 @@ tryAgain:
                         return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                     }
                 case SyntaxKind.OpenBracketToken:
-                    if (precedence > Precedence.Lambda)
+                    if (!this.IsPossibleLambdaExpression(precedence))
                     {
                         goto default;
                     }
@@ -10978,6 +10980,8 @@ tryAgain:
 
         private bool ScanParenthesizedImplicitlyTypedLambda(Precedence precedence)
         {
+            Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
+
             if (!(precedence <= Precedence.Lambda))
             {
                 return false;
@@ -11037,6 +11041,8 @@ tryAgain:
 
         private bool ScanExplicitlyTypedLambda(Precedence precedence)
         {
+            Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
+
             if (!(precedence <= Precedence.Lambda))
             {
                 return false;
@@ -11066,7 +11072,7 @@ tryAgain:
                     // Advance past the open paren or comma.
                     this.EatToken();
 
-                    _ = ParseAttributeDeclarations(forLambda: true);
+                    _ = ParseAttributeDeclarations();
 
                     // Eat 'out' or 'ref' for cases [3, 6]. Even though not allowed in a lambda,
                     // we treat `params` similarly for better error recovery.
@@ -11314,14 +11320,54 @@ tryAgain:
 
         private bool IsPossibleLambdaExpression(Precedence precedence)
         {
-            // Only call into this if after `static` or after a legal identifier.
+            // Only call into this if after `static`, '[',  or after a legal identifier.
             Debug.Assert(
-                this.CurrentToken.Kind == SyntaxKind.StaticKeyword ||
+                this.CurrentToken.Kind is SyntaxKind.StaticKeyword or SyntaxKind.OpenBracketToken ||
                 this.IsTrueIdentifier(this.CurrentToken));
             if (precedence > Precedence.Lambda)
             {
                 return false;
             }
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
+            {
+                var resetPoint = this.GetResetPoint();
+
+                _ = ParseAttributeDeclarations();
+                bool result;
+
+                switch (CurrentToken.Kind)
+                {
+                    case SyntaxKind.StaticKeyword:
+                    case SyntaxKind.IdentifierToken:
+                        result = IsPossibleLambdaExpressionCore(precedence);
+                        break;
+                    case SyntaxKind.OpenParenToken:
+                        result = ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
+                        break;
+                    default:
+                        result = false;
+                        break;
+                }
+
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+
+                return result;
+            }
+            else
+            {
+                return IsPossibleLambdaExpressionCore(precedence);
+            }
+        }
+
+        private bool IsPossibleLambdaExpressionCore(Precedence precedence)
+        {
+            // Only call into this if after `static` or after a legal identifier.
+            Debug.Assert(
+                this.CurrentToken.Kind == SyntaxKind.StaticKeyword ||
+                this.IsTrueIdentifier(this.CurrentToken));
+            Debug.Assert(precedence <= Precedence.Lambda);
 
             // If we start with `static` or `async static` then just jump past those and do the
             // analysis after that point.  Note, we don't just blindly consume `async` in `static
@@ -12245,7 +12291,7 @@ tryAgain:
 
         private LambdaExpressionSyntax ParseLambdaExpression()
         {
-            var attributes = ParseAttributeDeclarations(forLambda: true);
+            var attributes = ParseAttributeDeclarations(checkLambdaAttributesFeature: true);
             var parentScopeIsInAsync = this.IsInAsync;
             var result = parseLambdaExpressionWorker();
             this.IsInAsync = parentScopeIsInAsync;
@@ -12382,7 +12428,7 @@ tryAgain:
 
         private ParameterSyntax ParseLambdaParameter()
         {
-            var attributes = ParseAttributeDeclarations(forLambda: true);
+            var attributes = ParseAttributeDeclarations(checkLambdaAttributesFeature: true);
 
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
