@@ -458,9 +458,11 @@ class Program
 }";
 
             var expected =
-@"class Program
+@"using System.Threading.Tasks;
+
+class Program
 {
-    async System.Threading.Tasks.Task<int> TestAsync()
+    async Task<int> TestAsync()
     {
         await Task.Delay(1);
     }
@@ -481,9 +483,11 @@ class Program
 }";
 
             var expected =
-@"class Program
+@"using System.Threading.Tasks;
+
+class Program
 {
-    async System.Threading.Tasks.Task<Program> TestAsync()
+    async Task<Program> TestAsync()
     {
         await Task.Delay(1);
     }
@@ -1199,9 +1203,11 @@ class C
         }
     }
 }",
-@"class C
+@"using System.Threading.Tasks;
+
+class C
 {
-    async System.Threading.Tasks.Task MAsync()
+    async Task MAsync()
     {
         await using (var x = new object())
         {
@@ -1238,9 +1244,11 @@ class C
         }
     }
 }",
-@"class C
+@"using System.Threading.Tasks;
+
+class C
 {
-    async System.Threading.Tasks.Task MAsync()
+    async Task MAsync()
     {
         await foreach (var n in new int[] { })
         {
@@ -1277,9 +1285,11 @@ class C
         }
     }
 }",
-@"class C
+@"using System.Threading.Tasks;
+
+class C
 {
-    async System.Threading.Tasks.Task MAsync()
+    async Task MAsync()
     {
         await foreach (var (a, b) in new(int, int)[] { })
         {

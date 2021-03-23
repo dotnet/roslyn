@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal sealed class CSharpSyntaxContext : SyntaxContext
     {
-        public readonly TypeDeclarationSyntax ContainingTypeDeclaration;
-        public readonly BaseTypeDeclarationSyntax ContainingTypeOrEnumDeclaration;
+        public readonly TypeDeclarationSyntax? ContainingTypeDeclaration;
+        public readonly BaseTypeDeclarationSyntax? ContainingTypeOrEnumDeclaration;
 
         public readonly bool IsInNonUserCode;
 
@@ -58,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             int position,
             SyntaxToken leftToken,
             SyntaxToken targetToken,
-            TypeDeclarationSyntax containingTypeDeclaration,
-            BaseTypeDeclarationSyntax containingTypeOrEnumDeclaration,
+            TypeDeclarationSyntax? containingTypeDeclaration,
+            BaseTypeDeclarationSyntax? containingTypeOrEnumDeclaration,
             bool isInNonUserCode,
             bool isPreProcessorDirectiveContext,
             bool isPreProcessorKeywordContext,

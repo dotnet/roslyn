@@ -297,6 +297,11 @@
         <target state="translated">完成</target>
         <note />
       </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="new">Format document</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">基于设置生成 .editorconfig 文件</target>
@@ -889,7 +894,7 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_implicit_object_creation">
         <source>Show hints for implicit object creation</source>
-        <target state="new">Show hints for implicit object creation</target>
+        <target state="translated">显示创建隐式对象的提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_lambda_parameter_types">
@@ -925,6 +930,11 @@
       <trans-unit id="Symbols_without_references">
         <source>Symbols without references</source>
         <target state="new">Symbols without references</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tab_twice_to_insert_arguments">
+        <source>Tab twice to insert arguments (experimental)</source>
+        <target state="new">Tab twice to insert arguments (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">

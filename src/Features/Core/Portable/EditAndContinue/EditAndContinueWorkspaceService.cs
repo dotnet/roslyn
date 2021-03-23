@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,12 +41,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
-                => new EditAndContinueWorkspaceService(workspaceServices.Workspace);
+                => new EditAndContinueWorkspaceService();
         }
 
         internal static readonly TraceLog Log = new(2048, "EnC");
 
-        private readonly Workspace _workspace;
         private readonly EditSessionTelemetry _editSessionTelemetry;
         private readonly DebuggingSessionTelemetry _debuggingSessionTelemetry;
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
@@ -62,11 +62,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private EditSession? _editSession;
 
         internal EditAndContinueWorkspaceService(
-            Workspace workspace,
             Func<Project, CompilationOutputs>? testCompilationOutputsProvider = null,
             Action<DebuggingSessionTelemetry.Data>? testReportTelemetry = null)
         {
-            _workspace = workspace;
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
             _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
@@ -77,7 +75,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         // test only:
         internal DebuggingSession? Test_GetDebuggingSession() => _debuggingSession;
         internal EditSession? Test_GetEditSession() => _editSession;
-        internal Workspace Test_GetWorkspace() => _workspace;
 
         private static CompilationOutputs GetCompilationOutputs(Project project)
         {
@@ -97,9 +94,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public void StartDebuggingSession(Solution solution)
+        public async ValueTask StartDebuggingSessionAsync(Solution solution, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
-            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(solution, _compilationOutputsProvider), null);
+            var initialDocumentStates =
+                captureMatchingDocuments ? await CommittedSolution.GetMatchingDocumentsAsync(solution, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false) :
+                SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+
+            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(solution, _compilationOutputsProvider, initialDocumentStates), null);
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
         }
 
@@ -153,6 +154,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal static bool SupportsEditAndContinue(Project project)
             => project.LanguageServices.GetService<IEditAndContinueAnalyzer>() != null;
 
+        // Note: source generated files have relative paths: https://github.com/dotnet/roslyn/issues/51998
+        internal static bool SupportsEditAndContinue(DocumentState documentState)
+            => !documentState.Attributes.DesignTimeOnly && documentState.SupportsSyntaxTree &&
+               (PathUtilities.IsAbsolute(documentState.FilePath) || documentState is SourceGeneratedDocumentState);
+
         public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             try
@@ -171,7 +177,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 // Document does not compile to the assembly (e.g. cshtml files, .g.cs files generated for completion only)
-                if (document.State.Attributes.DesignTimeOnly || !document.SupportsSyntaxTree)
+                if (!SupportsEditAndContinue(document.DocumentState))
                 {
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -378,13 +384,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return editSession.HasChangesAsync(solution, solutionActiveStatementSpanProvider, sourceFilePath, cancellationToken);
         }
 
-        public async ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics)>
-            EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
+            Solution solution,
+            SolutionActiveStatementSpanProvider activeStatementSpanProvider,
+            CancellationToken cancellationToken)
         {
             var editSession = _editSession;
             if (editSession == null)
             {
-                return (new(ManagedModuleUpdateStatus.None, ImmutableArray<ManagedModuleUpdate>.Empty), ImmutableArray<DiagnosticData>.Empty);
+                return EmitSolutionUpdateResults.Empty;
             }
 
             var solutionUpdate = await editSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
@@ -395,26 +403,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
-            return (solutionUpdate.ModuleUpdates, ToDiagnosticData(solution, solutionUpdate.Diagnostics));
-        }
-
-        private static ImmutableArray<DiagnosticData> ToDiagnosticData(Solution solution, ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnosticsByProject)
-        {
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var result);
-
-            foreach (var (projectId, diagnostics) in diagnosticsByProject)
-            {
-                var project = solution.GetRequiredProject(projectId);
-
-                foreach (var diagnostic in diagnostics)
-                {
-                    var document = solution.GetDocument(diagnostic.Location.SourceTree);
-                    var data = (document != null) ? DiagnosticData.Create(diagnostic, document) : DiagnosticData.Create(diagnostic, project);
-                    result.Add(data);
-                }
-            }
-
-            return result.ToImmutable();
+            return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics);
         }
 
         public void CommitSolutionUpdate()
@@ -455,7 +444,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (baseActiveStatements.DocumentMap.TryGetValue(documentId, out var documentActiveStatements))
                 {
-                    var document = solution.GetDocument(documentId);
+                    var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                     var (baseDocument, _) = await lastCommittedSolution.GetDocumentAndStateAsync(documentId, document, cancellationToken).ConfigureAwait(false);
                     if (baseDocument != null)
                     {
@@ -523,7 +512,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return null;
                 }
 
-                var primaryDocument = solution.GetDocument(baseActiveStatement.PrimaryDocumentId);
+                var primaryDocument = await solution.GetDocumentAsync(baseActiveStatement.PrimaryDocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                 if (primaryDocument == null)
                 {
                     // The document has been deleted.

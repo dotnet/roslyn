@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Recommendations;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -19,6 +21,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return false;
+        }
+
+        public static OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
+        {
+            var filterOutOfScopeLocals = options.GetOption(CompletionControllerOptions.FilterOutOfScopeLocals);
+            var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, language);
+
+            return options
+                .WithChangedOption(RecommendationOptions.FilterOutOfScopeLocals, language, filterOutOfScopeLocals)
+                .WithChangedOption(RecommendationOptions.HideAdvancedMembers, language, hideAdvancedMembers);
         }
     }
 }

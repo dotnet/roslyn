@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Completion.Utilities;
@@ -48,7 +49,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async Task<LSP.DocumentOnAutoInsertResponseItem?> HandleRequestAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
-
             if (document == null)
             {
                 return null;
@@ -56,10 +56,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
+            // We should use the options passed in by LSP instead of the document's options.
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var updatedOptions = options
+                .WithChangedOption(FormattingOptions.UseTabs, !autoInsertParams.Options.InsertSpaces)
+                .WithChangedOption(FormattingOptions.TabSize, autoInsertParams.Options.TabSize);
+
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
             if (autoInsertParams.Character == "\n" || autoInsertParams.Character == service.DocumentationCommentCharacter)
             {
-                var documentationCommentResponse = await GetDocumentationCommentResponseAsync(autoInsertParams, document, service, cancellationToken).ConfigureAwait(false);
+                var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
+                    autoInsertParams, document, service, updatedOptions, cancellationToken).ConfigureAwait(false);
                 if (documentationCommentResponse != null)
                 {
                     return documentationCommentResponse;
@@ -71,7 +78,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Once LSP supports overtype we can move all of brace completion to LSP.
             if (autoInsertParams.Character == "\n" && context.ClientName == document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName)
             {
-                var braceCompletionAfterReturnResponse = await GetBraceCompletionAfterReturnResponseAsync(autoInsertParams, document, cancellationToken).ConfigureAwait(false);
+                var braceCompletionAfterReturnResponse = await GetBraceCompletionAfterReturnResponseAsync(
+                    autoInsertParams, document, updatedOptions, cancellationToken).ConfigureAwait(false);
                 if (braceCompletionAfterReturnResponse != null)
                 {
                     return braceCompletionAfterReturnResponse;
@@ -85,18 +93,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             LSP.DocumentOnAutoInsertParams autoInsertParams,
             Document document,
             IDocumentationCommentSnippetService service,
+            DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var linePosition = ProtocolConversions.PositionToLinePosition(autoInsertParams.Position);
             var position = sourceText.Lines.GetPosition(linePosition);
 
             var result = autoInsertParams.Character == "\n"
-                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
-                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken);
+                ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, documentOptions, cancellationToken)
+                : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, documentOptions, cancellationToken);
 
             if (result == null)
             {
@@ -114,7 +122,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             };
         }
 
-        private async Task<LSP.DocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(LSP.DocumentOnAutoInsertParams autoInsertParams, Document document, CancellationToken cancellationToken)
+        private async Task<LSP.DocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(
+            LSP.DocumentOnAutoInsertParams autoInsertParams,
+            Document document,
+            DocumentOptionSet documentOptions,
+            CancellationToken cancellationToken)
         {
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var position = sourceText.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(autoInsertParams.Position));
@@ -126,7 +138,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var (service, context) = serviceAndContext.Value;
-            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, cancellationToken).ConfigureAwait(false);
+            var postReturnEdit = await service.GetTextChangeAfterReturnAsync(context, documentOptions, cancellationToken).ConfigureAwait(false);
             if (postReturnEdit == null)
             {
                 return null;
@@ -142,7 +154,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 if (caretLine.Span.IsEmpty)
                 {
                     // We have an empty line with the caret column at an indented position, let's add whitespace indentation to the text.
-                    var indentedText = await GetIndentedTextAsync(document, newSourceText, caretLine, desiredCaretLinePosition, cancellationToken).ConfigureAwait(false);
+                    var indentedText = GetIndentedText(newSourceText, caretLine, desiredCaretLinePosition, documentOptions);
 
                     // Get the overall text changes between the original text and the formatted + indented text.
                     textChanges = indentedText.GetTextChanges(sourceText).ToImmutableArray();
@@ -174,13 +186,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return autoInsertChange;
 
-            static async Task<SourceText> GetIndentedTextAsync(Document originalDocument, SourceText textToIndent, TextLine lineToIndent, LinePosition desiredCaretLinePosition, CancellationToken cancellationToken)
+            static SourceText GetIndentedText(
+                SourceText textToIndent,
+                TextLine lineToIndent,
+                LinePosition desiredCaretLinePosition,
+                DocumentOptionSet documentOptions)
             {
                 // Indent by the amount needed to make the caret line contain the desired indentation column.
                 var amountToIndent = desiredCaretLinePosition.Character - lineToIndent.Span.Length;
 
                 // Create and apply a text change with whitespace for the indentation amount.
-                var documentOptions = await originalDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var indentText = amountToIndent.CreateIndentationString(documentOptions.GetOption(FormattingOptions.UseTabs), documentOptions.GetOption(FormattingOptions.TabSize));
                 var indentedText = textToIndent.WithChanges(new TextChange(new TextSpan(lineToIndent.End, 0), indentText));
                 return indentedText;

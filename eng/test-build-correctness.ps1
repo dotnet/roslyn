@@ -33,8 +33,8 @@ try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   Push-Location $RepoRoot
 
-  # Verify no PROTOTYPE marker left in master
-  if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "master") {
+  # Verify no PROTOTYPE marker left in main
+  if ($env:SYSTEM_PULLREQUEST_TARGETBRANCH -eq "main") {
     Write-Host "Checking no PROTOTYPE markers in compiler source"
     $prototypes = Get-ChildItem -Path src/Compilers/*.cs, src/Compilers/*.vb,src/Compilers/*.xml -Recurse | Select-String -Pattern 'PROTOTYPE' -CaseSensitive -SimpleMatch
     if ($prototypes) {
@@ -45,7 +45,7 @@ try {
   }
 
   Write-Host "Building Roslyn"
-  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
+  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -bootstrapConfiguration:Debug -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
 
   # Verify the state of our various build artifacts
   Write-Host "Running BuildBoss"

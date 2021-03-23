@@ -942,8 +942,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_resolved == null)
                 {
-                    Debug.Assert(_underlying.IsSafeToResolve());
-
                     TryForceResolve(asValueType: _underlying.Type.IsValueType);
                 }
 

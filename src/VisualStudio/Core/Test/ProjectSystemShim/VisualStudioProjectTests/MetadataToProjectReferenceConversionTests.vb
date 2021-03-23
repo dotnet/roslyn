@@ -313,5 +313,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project2.RemoveFromWorkspace()
             End Using
         End Function
+
+        <WpfFact>
+        <WorkItem(39904, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279845")>
+        Public Async Function DoNotCreateProjectReferenceWhenReferencingOwnOutput() As Task
+            Using environment = New TestEnvironment()
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync("project", LanguageNames.CSharp, CancellationToken.None)
+
+                Const ReferencePath = "C:\project.dll"
+
+                project.OutputFilePath = ReferencePath
+
+                project.AddMetadataReference(ReferencePath, MetadataReferenceProperties.Assembly)
+
+                Assert.Single(environment.Workspace.CurrentSolution.Projects.Single().MetadataReferences)
+            End Using
+        End Function
     End Class
 End Namespace

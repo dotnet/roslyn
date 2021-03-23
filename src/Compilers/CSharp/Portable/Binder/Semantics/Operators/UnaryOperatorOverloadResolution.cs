@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: base class of T0 if T0 is a type parameter.
 
             // https://github.com/dotnet/roslyn/issues/34451: The spec quote should be adjusted to cover operators from interfaces as well.
-            // From https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-27.md:
+            // From https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-06-27.md:
             // - We only even look for operator implementations in interfaces if one of the operands has a type that is an interface or
             // a type parameter with a non-empty effective base interface list.
             // - The applicable operators from classes / structs shadow those in interfaces.This matters for constrained type parameters:

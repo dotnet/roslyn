@@ -121,7 +121,16 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
                 // i.e. if one connection writes data to this, another connection will see that data when reading.
                 // Without this, each connection would get their own private memory db independent of all other
                 // connections.
-                connection.ExecuteCommand($"attach database '{new Uri(databasePath).AbsoluteUri}?mode=memory&cache=shared' as {Database.WriteCache.GetName()};");
+
+                // Workaround https://github.com/ericsink/SQLitePCL.raw/issues/407.  On non-windows do not pass in the
+                // uri of the DB on disk we're associating this in-memory cache with.  This throws on at least OSX for
+                // reasons that aren't fully understood yet.  If more details/fixes emerge in that linked issue, we can
+                // ideally remove this and perform the attachment uniformly on all platforms.
+                var attachString = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? $"attach database '{new Uri(databasePath).AbsoluteUri}?mode=memory&cache=shared' as {Database.WriteCache.GetName()};"
+                    : $"attach database 'file::memory:?cache=shared' as {Database.WriteCache.GetName()};";
+
+                connection.ExecuteCommand(attachString);
 
                 return connection;
             }

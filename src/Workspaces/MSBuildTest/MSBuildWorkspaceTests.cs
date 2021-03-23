@@ -255,6 +255,21 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestCompilationOutputInfo()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles());
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var sol = await workspace.OpenSolutionAsync(solutionFilePath);
+            var p1 = sol.Projects.First(p => p.Language == LanguageNames.CSharp);
+            var p2 = sol.Projects.First(p => p.Language == LanguageNames.VisualBasic);
+
+            Assert.Equal("CSharpProject.dll", Path.GetFileName(p1.CompilationOutputInfo.AssemblyPath));
+            Assert.Equal("VisualBasicProject.dll", Path.GetFileName(p2.CompilationOutputInfo.AssemblyPath));
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         public async Task TestCrossLanguageReferencesUsesInMemoryGeneratedMetadata()
         {
             CreateFiles(GetMultiProjectSolutionFiles());
@@ -3273,6 +3288,33 @@ class C { }";
 
             var project = await workspace.OpenProjectAsync(projectFullPath);
             Assert.Empty(project.AnalyzerConfigDocuments);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestSolutionFilterSupport()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"CSharpSolutionFilter.slnf", Resources.SolutionFilters.CSharp));
+            var solutionFilePath = GetSolutionFileName(@"CSharpSolutionFilter.slnf");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+            var csharpProject = solution.Projects.Single();
+
+            Assert.Equal(LanguageNames.CSharp, csharpProject.Language);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        public async Task TestInvalidSolutionFilterDoesNotLoad()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .WithFile(@"InvalidSolutionFilter.slnf", Resources.SolutionFilters.Invalid));
+            var solutionFilePath = GetSolutionFileName(@"InvalidSolutionFilter.slnf");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var exception = await Assert.ThrowsAsync<Exception>(() => workspace.OpenSolutionAsync(solutionFilePath));
+
+            Assert.Equal(0, workspace.CurrentSolution.ProjectIds.Count);
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader

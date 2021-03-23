@@ -57,4 +57,21 @@ namespace BuildValidator
         {
         }
     }
+
+    internal sealed class EmptyLogger : ILogger, IDisposable
+    {
+        public static EmptyLogger Instance { get; } = new EmptyLogger();
+
+        public void Dispose()
+        {
+        }
+
+        public IDisposable BeginScope<TState>(TState state) => this;
+
+        public bool IsEnabled(LogLevel logLevel) => false;
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+        }
+    }
 }

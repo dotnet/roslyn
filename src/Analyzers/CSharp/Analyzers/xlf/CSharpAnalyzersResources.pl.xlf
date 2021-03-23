@@ -113,8 +113,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
-        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</source>
-        <target state="translated">Element Struct zawiera przypisanie do elementu „this” poza konstruktorem. Ustaw pola tylko do odczytu jako zapisywalne</target>
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
+        <target state="needs-review-translation">Element Struct zawiera przypisanie do elementu „this” poza konstruktorem. Ustaw pola tylko do odczytu jako zapisywalne</target>
         <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
