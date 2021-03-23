@@ -47,13 +47,13 @@ namespace BuildValidator
             return new VisualBasicCompilationFactory(assemblyFileName, optionsReader, compilationOptions);
         }
 
-        public override SyntaxTree CreateSyntaxTree(string filePath, SourceText sourceText) =>
-            VisualBasicSyntaxTree.ParseText(sourceText, ParseOptions, filePath);
+        public override SyntaxTree CreateSyntaxTree(string filePath, SourceText sourceText)
+            => VisualBasicSyntaxTree.ParseText(sourceText, ParseOptions, filePath);
 
         public override Compilation CreateCompilation(
             ImmutableArray<SyntaxTree> syntaxTrees,
-            ImmutableArray<MetadataReference> metadataReferences) =>
-            VisualBasicCompilation.Create(
+            ImmutableArray<MetadataReference> metadataReferences)
+            => VisualBasicCompilation.Create(
                 Path.GetFileNameWithoutExtension(AssemblyFileName),
                 syntaxTrees: syntaxTrees,
                 references: metadataReferences,

@@ -38,13 +38,13 @@ namespace BuildValidator
             return new CSharpCompilationFactory(assemblyFileName, optionsReader, parseOptions, compilationOptions);
         }
 
-        public override SyntaxTree CreateSyntaxTree(string filePath, SourceText sourceText) =>
-            CSharpSyntaxTree.ParseText(sourceText, ParseOptions, filePath);
+        public override SyntaxTree CreateSyntaxTree(string filePath, SourceText sourceText)
+            => CSharpSyntaxTree.ParseText(sourceText, ParseOptions, filePath);
 
         public override Compilation CreateCompilation(
             ImmutableArray<SyntaxTree> syntaxTrees,
-            ImmutableArray<MetadataReference> metadataReferences) =>
-            CSharpCompilation.Create(
+            ImmutableArray<MetadataReference> metadataReferences)
+            => CSharpCompilation.Create(
                 Path.GetFileNameWithoutExtension(AssemblyFileName),
                 syntaxTrees: syntaxTrees,
                 references: metadataReferences,

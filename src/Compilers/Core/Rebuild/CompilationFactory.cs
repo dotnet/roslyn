@@ -45,8 +45,8 @@ namespace BuildValidator
             CompilationOptions = compilationOptions;
         }
 
-        public static CompilationFactory Create(string assemblyFileName, CompilationOptionsReader optionsReader) =>
-            optionsReader.GetLanguageName() switch
+        public static CompilationFactory Create(string assemblyFileName, CompilationOptionsReader optionsReader)
+            => optionsReader.GetLanguageName() switch
             {
                 LanguageNames.CSharp => CSharpCompilationFactory.Create(assemblyFileName, optionsReader),
                 LanguageNames.VisualBasic => VisualBasicCompilationFactory.Create(assemblyFileName, optionsReader),
@@ -63,8 +63,8 @@ namespace BuildValidator
             Stream rebuildPeStream,
             ImmutableArray<SyntaxTree> syntaxTrees,
             ImmutableArray<MetadataReference> metadataReferences,
-            CancellationToken cancellationToken) =>
-            Emit(
+            CancellationToken cancellationToken)
+            => Emit(
                 rebuildPeStream,
                 CreateCompilation(syntaxTrees, metadataReferences),
                 cancellationToken);
