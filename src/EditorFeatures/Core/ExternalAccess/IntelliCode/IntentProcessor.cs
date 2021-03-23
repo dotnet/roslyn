@@ -8,15 +8,16 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Intents
+namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
 {
     [Export(typeof(IIntentProcessor)), Shared]
     internal class IntentProcessor : IIntentProcessor
@@ -38,14 +39,13 @@ namespace Microsoft.CodeAnalysis.Editor.Intents
                 provider => provider);
         }
 
-        public async Task<IntentResult?> ComputeEditsAsync(IntentRequestContext intentRequestContext, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<IntentResult>> ComputeEditsAsync(IntentRequestContext intentRequestContext, CancellationToken cancellationToken)
         {
-            var originalDocument = intentRequestContext.PriorSnapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             var currentDocument = intentRequestContext.CurrentSnapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-            Contract.ThrowIfNull(originalDocument);
             Contract.ThrowIfNull(currentDocument);
-            Contract.ThrowIfFalse(originalDocument.Id == currentDocument.Id);
+
+            var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var originalDocument = currentDocument.WithText(currentText.WithChanges(intentRequestContext.PriorTextEdits));
 
             var languageName = originalDocument.Project.Language;
             if (!_lazyIntentProviders.TryGetValue((LanguageName: languageName, IntentName: intentRequestContext.IntentName), out var provider))
@@ -56,26 +56,38 @@ namespace Microsoft.CodeAnalysis.Editor.Intents
                     m["language"] = languageName;
                 }));
 
-                return null;
+                return ImmutableArray<IntentResult>.Empty;
             }
 
-            var selectionTextSpan = intentRequestContext.PriorSnapshotSpan.Span.ToTextSpan();
-            var result = await provider.Value.ComputeIntentAsync(
+            var selectionTextSpan = intentRequestContext.PriorSelection;
+            var results = await provider.Value.ComputeIntentAsync(
                 originalDocument,
                 selectionTextSpan,
                 currentDocument,
                 intentRequestContext.IntentData,
                 cancellationToken).ConfigureAwait(false);
-            if (result == null)
+            if (results.IsDefaultOrEmpty)
             {
-                return null;
+                return ImmutableArray<IntentResult>.Empty;
             }
 
-            var (title, newSolution) = result.Value;
+            using var _ = ArrayBuilder<IntentResult>.GetInstance(out var convertedResults);
+            foreach (var result in results)
+            {
+                var convertedIntent = await ConvertToIntelliCodeResultAsync(result, originalDocument, currentDocument, cancellationToken).ConfigureAwait(false);
+                convertedResults.AddIfNotNull(convertedIntent);
+            }
+
+            return convertedResults.ToImmutable();
+        }
+
+        private static async Task<IntentResult?> ConvertToIntelliCodeResultAsync(IntentProcessorResult processorResult, Document originalDocument, Document currentDocument, CancellationToken cancellationToken)
+        {
+            var title = processorResult.Title;
+            var newSolution = processorResult.Solution;
 
             // Merge linked file changes so all linked files have the same text changes.
             newSolution = await newSolution.WithMergedLinkedFileChangesAsync(originalDocument.Project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var changes = newSolution.GetChanges(originalDocument.Project.Solution);
 
             // For now we only support changes to the current document.  Everything else is dropped.
             var changedDocument = newSolution.GetRequiredDocument(currentDocument.Id);
@@ -88,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Intents
                 return null;
             }
 
-            return new IntentResult(textDiffs, title);
+            return new IntentResult(textDiffs, title, processorResult.ActionName);
         }
     }
 }

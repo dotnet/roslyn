@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 (actions) => context.RegisterRefactorings(actions), context.CancellationToken);
         }
 
-        public async Task<(string Title, Solution Solution)?> ComputeIntentAsync(
+        public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
             Document priorDocument,
             TextSpan priorSelection,
             Document currentDocument,
@@ -80,25 +80,36 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (actions.IsEmpty())
             {
-                return null;
+                return ImmutableArray<IntentProcessorResult>.Empty;
             }
 
             // The refactorings returned will be in the following order (if available)
             // FieldDelegatingCodeAction, ConstructorDelegatingCodeAction, GenerateConstructorWithDialogCodeAction
-            // For now since we don't have an idea of which one to pick, we'll take the action that appears first in the group.
-            var codeAction = actions.First();
-            var title = codeAction.Title;
-            var operations = await GetCodeActionOperationsAsync(codeAction, cancellationToken).ConfigureAwait(false);
-
-            // Generate ctor will only return an ApplyChangesOperation or potentially document navigation actions.
-            // We can only return edits, so we only care about the ApplyChangesOperation.
-            var applyChangesOperation = operations.OfType<ApplyChangesOperation>().SingleOrDefault();
-            if (applyChangesOperation == null)
+            using var resultsBuilder = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
+            foreach (var action in actions)
             {
-                return null;
+                var intentResult = await GetIntentProcessorResultAsync(action, cancellationToken).ConfigureAwait(false);
+                results.AddIfNotNull(intentResult);
             }
 
-            return (title, applyChangesOperation.ChangedSolution);
+            return results.ToImmutable();
+
+            static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(CodeAction codeAction, CancellationToken cancellationToken)
+            {
+                var title = codeAction.Title;
+                var operations = await GetCodeActionOperationsAsync(codeAction, cancellationToken).ConfigureAwait(false);
+
+                // Generate ctor will only return an ApplyChangesOperation or potentially document navigation actions.
+                // We can only return edits, so we only care about the ApplyChangesOperation.
+                var applyChangesOperation = operations.OfType<ApplyChangesOperation>().SingleOrDefault();
+                if (applyChangesOperation == null)
+                {
+                    return null;
+                }
+
+                var type = typeof(CodeAction);
+                return new IntentProcessorResult(applyChangesOperation.ChangedSolution, title, type.Name);
+            }
 
             static async Task<ImmutableArray<CodeActionOperation>> GetCodeActionOperationsAsync(
                 CodeAction action,

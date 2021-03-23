@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Intents
+namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api
 {
     internal interface IIntentProcessor
     {
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Intents
         /// </summary>
         /// <param name="intentRequestContext">the intents with the context in which the intent was found.</param>
         /// <returns>the edits that should be applied to the current snapshot.</returns>
-        Task<IntentResult?> ComputeEditsAsync(IntentRequestContext intentRequestContext, CancellationToken cancellationToken);
+        Task<ImmutableArray<IntentResult>> ComputeEditsAsync(IntentRequestContext intentRequestContext, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -38,26 +38,30 @@ namespace Microsoft.CodeAnalysis.Editor.Intents
         public string? IntentData { get; }
 
         /// <summary>
-        /// The text and selection in the document before changes were made triggering an intent.
-        /// <remarks>
-        /// For example, if the text typed was 'public Class(' which led to a generate ctor intent,
-        /// we expect a snapshot before any of the ctor was typed.
-        /// </remarks>
-        /// </summary>
-        public SnapshotSpan PriorSnapshotSpan { get; }
-
-        /// <summary>
         /// The text snapshot and selection when <see cref="IIntentProcessor.ComputeEditsAsync"/>
         /// was called to compute the text edits and against which the resulting text edits will be calculated.
         /// </summary>
         public SnapshotSpan CurrentSnapshotSpan { get; }
 
-        public IntentRequestContext(string intentName, SnapshotSpan priorSnapshotSpan, SnapshotSpan currentSnapshotSpan, string? intentData)
+        /// <summary>
+        /// The text edits that should be applied to the <see cref="CurrentSnapshotSpan"/> to calculate
+        /// a prior text snapshot before the intent happened.  The snapshot is used to calculate the actions.
+        /// </summary>
+        public ImmutableArray<TextChange> PriorTextEdits { get; }
+
+        /// <summary>
+        /// The caret position / selection in the snapshot calculated by applying
+        /// <see cref="PriorTextEdits"/> to the <see cref="CurrentSnapshotSpan"/>
+        /// </summary>
+        public TextSpan PriorSelection { get; }
+
+        public IntentRequestContext(string intentName, SnapshotSpan currentSnapshotSpan, ImmutableArray<TextChange> textEditsToPrior, TextSpan priorSelection, string? intentData)
         {
             IntentName = intentName ?? throw new ArgumentNullException(nameof(intentName));
             IntentData = intentData;
-            PriorSnapshotSpan = priorSnapshotSpan;
             CurrentSnapshotSpan = currentSnapshotSpan;
+            PriorTextEdits = textEditsToPrior;
+            PriorSelection = priorSelection;
         }
     }
 
@@ -76,10 +80,17 @@ namespace Microsoft.CodeAnalysis.Editor.Intents
         /// </summary>
         public readonly string Title;
 
-        public IntentResult(ImmutableArray<TextChange> textChanges, string title)
+        /// <summary>
+        /// Contains metadata that can be used to identify the kind of sub-action these edits
+        /// apply to for the requested intent.
+        /// </summary>
+        public readonly string ActionName;
+
+        public IntentResult(ImmutableArray<TextChange> textChanges, string title, string actionName)
         {
             TextChanges = textChanges;
-            Title = title;
+            Title = title ?? throw new ArgumentNullException(nameof(title));
+            ActionName = actionName ?? throw new ArgumentNullException(nameof(actionName));
         }
     }
 }

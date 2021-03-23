@@ -2,21 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Editor.Intents;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -36,9 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     private readonly int _someInt;
 
-    $$
+    {|typed:public C|}
 }";
-            var typedText = "public C";
             var expectedText =
 @"class C
 {
@@ -50,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     }
 }";
 
-            await VerifyExpectedTextAsync(initialText, typedText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(initialText, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
@@ -61,9 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     private readonly int _someInt;
 
-    $$
+    {|typed:private C|}
 }";
-            var typedText = "private C";
             var expectedText =
 @"class C
 {
@@ -75,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     }
 }";
 
-            await VerifyExpectedTextAsync(initialText, typedText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(initialText, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
@@ -84,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             var initialText =
 @"partial class C
 {
-    $$
+    {|typed:public C|}
 }";
             var additionalDocuments = new string[]
             {
@@ -93,7 +87,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     private readonly int _someInt;
 }"
             };
-            var typedText = "public C";
             var expectedText =
 @"partial class C
 {
@@ -103,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     }
 }";
 
-            await VerifyExpectedTextAsync(initialText, additionalDocuments, typedText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(initialText, additionalDocuments, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
@@ -114,9 +107,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     private readonly object _someObject;
 
-    $$
+    {|typed:public C|}
 }";
-            var typedText = "public C";
             var expectedText =
 @"class C
 {
@@ -128,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     }
 }";
 
-            await VerifyExpectedTextAsync(initialText, typedText, expectedText).ConfigureAwait(false);
+            await VerifyExpectedTextAsync(initialText, expectedText).ConfigureAwait(false);
         }
 
         [Fact]
@@ -139,9 +131,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 {
     private readonly int _someInt;
 
-    $$
+    {|typed:public C|}
 }";
-            var typedText = "public C";
             var expectedText =
 @"class C
 {
@@ -150,19 +141,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
     public C(int someInt) => _someInt = someInt;
 }";
 
-            await VerifyExpectedTextAsync(initialText, typedText, expectedText,
+            await VerifyExpectedTextAsync(initialText, expectedText,
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
                     { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement }
                 }).ConfigureAwait(false);
         }
 
-        private static Task VerifyExpectedTextAsync(string markupBeforeIntent, string typedText, string expectedText, OptionsCollection? options = null)
+        private static Task VerifyExpectedTextAsync(string markup, string expectedText, OptionsCollection? options = null)
         {
-            return VerifyExpectedTextAsync(markupBeforeIntent, new string[] { }, typedText, expectedText, options);
+            return VerifyExpectedTextAsync(markup, new string[] { }, expectedText, options);
         }
 
-        private static async Task VerifyExpectedTextAsync(string activeDocument, string[] additionalDocuments, string typedText, string expectedText, OptionsCollection? options = null)
+        private static async Task VerifyExpectedTextAsync(string activeDocument, string[] additionalDocuments, string expectedText, OptionsCollection? options = null)
         {
             var documentSet = additionalDocuments.Prepend(activeDocument).ToArray();
             using var workspace = TestWorkspace.CreateCSharp(documentSet, exportProvider: EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider());
@@ -175,21 +166,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
 
             // The first document will be the active document.
             var document = workspace.Documents.Single(d => d.Name == "test1.cs");
-            var selectedSpan = document.SelectedSpans.FirstOrDefault();
-            if (selectedSpan.IsEmpty)
+            var textBuffer = document.GetTextBuffer();
+            var annotatedSpan = document.AnnotatedSpans["typed"].Single();
+
+            // Get the current snapshot span and selection.
+            var currentSelectedSpan = document.SelectedSpans.FirstOrDefault();
+            if (currentSelectedSpan.IsEmpty)
             {
-                selectedSpan = TextSpan.FromBounds(document.CursorPosition!.Value, document.CursorPosition.Value);
+                currentSelectedSpan = TextSpan.FromBounds(annotatedSpan.End, annotatedSpan.End);
             }
 
-            var textBuffer = document.GetTextBuffer();
-            var initialSnapshotSpan = new SnapshotSpan(textBuffer.CurrentSnapshot, selectedSpan.ToSpan());
-            var snapshotSpanAfterTyping = new SnapshotSpan(textBuffer.Replace(selectedSpan.ToSpan(), typedText), new Span(selectedSpan.Start, typedText.Length));
+            var currentSnapshotSpan = new SnapshotSpan(textBuffer.CurrentSnapshot, currentSelectedSpan.ToSpan());
 
-            var intentContext = new IntentRequestContext(WellKnownIntents.GenerateConstructor, initialSnapshotSpan, snapshotSpanAfterTyping, intentData: null);
-            var result = await intentSource.ComputeEditsAsync(intentContext, CancellationToken.None).ConfigureAwait(false);
+            // Determine the edits to rewind to the prior snapshot by removing the changes in the annotated span.
+            var rewindTextChange = new TextChange(annotatedSpan, "");
+
+            var intentContext = new IntentRequestContext(
+                WellKnownIntents.GenerateConstructor,
+                currentSnapshotSpan,
+                ImmutableArray.Create(rewindTextChange),
+                TextSpan.FromBounds(rewindTextChange.Span.Start, rewindTextChange.Span.Start),
+                intentData: null);
+            var results = await intentSource.ComputeEditsAsync(intentContext, CancellationToken.None).ConfigureAwait(false);
+
+            // For now, we're just taking the first result to match intellicode behavior.
+            var result = results.First();
 
             using var edit = textBuffer.CreateEdit();
-            foreach (var change in result.Value.TextChanges)
+            foreach (var change in result.TextChanges)
             {
                 edit.Replace(change.Span.ToSpan(), change.NewText);
             }
