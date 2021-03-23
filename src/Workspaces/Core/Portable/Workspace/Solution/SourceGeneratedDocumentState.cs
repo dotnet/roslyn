@@ -11,16 +11,15 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class SourceGeneratedDocumentState : DocumentState
     {
-        public string HintName { get; }
-        public ISourceGenerator SourceGenerator { get; }
+        private readonly SourceGeneratedDocumentIdentity _identity;
+
+        public string HintName => _identity.HintName;
+        public ISourceGenerator SourceGenerator => _identity.Generator;
 
         public static SourceGeneratedDocumentState Create(
-            string hintName,
+            SourceGeneratedDocumentIdentity documentIdentity,
             SourceText generatedSourceText,
-            DocumentId documentId,
-            string? filePath,
             ParseOptions parseOptions,
-            ISourceGenerator sourceGenerator,
             HostLanguageServices languageServices,
             SolutionServices solutionServices)
         {
@@ -28,44 +27,41 @@ namespace Microsoft.CodeAnalysis
             var textSource = new ConstantValueSource<TextAndVersion>(textAndVersion);
             var treeSource = CreateLazyFullyParsedTree(
                 textSource,
-                documentId.ProjectId,
-                filePath,
+                documentIdentity.DocumentId.ProjectId,
+                documentIdentity.FilePath,
                 parseOptions,
                 languageServices);
 
             return new SourceGeneratedDocumentState(
+                documentIdentity,
                 languageServices,
                 solutionServices,
                 documentServiceProvider: null,
                 new DocumentInfo.DocumentAttributes(
-                    documentId,
-                    name: hintName,
+                    documentIdentity.DocumentId,
+                    name: documentIdentity.HintName,
                     folders: SpecializedCollections.EmptyReadOnlyList<string>(),
                     parseOptions.Kind,
-                    filePath: filePath,
+                    filePath: documentIdentity.FilePath,
                     isGenerated: true,
                     designTimeOnly: false),
                 parseOptions,
                 textSource,
-                treeSource,
-                sourceGenerator,
-                hintName);
+                treeSource);
         }
 
         private SourceGeneratedDocumentState(
+            SourceGeneratedDocumentIdentity documentIdentity,
             HostLanguageServices languageServices,
             SolutionServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
             DocumentInfo.DocumentAttributes attributes,
             ParseOptions options,
             ValueSource<TextAndVersion> textSource,
-            ValueSource<TreeAndVersion> treeSource,
-            ISourceGenerator sourceGenerator,
-            string hintName)
+            ValueSource<TreeAndVersion> treeSource)
             : base(languageServices, solutionServices, documentServiceProvider, attributes, options, sourceText: null, textSource, treeSource)
         {
-            SourceGenerator = sourceGenerator;
-            HintName = hintName;
+            _identity = documentIdentity;
         }
 
         // The base allows for parse options to be null for non-C#/VB languages, but we'll always have parse options
@@ -87,12 +83,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             return Create(
-                this.HintName,
+                _identity,
                 sourceText,
-                this.Id,
-                this.FilePath,
                 ParseOptions,
-                this.SourceGenerator,
                 this.LanguageServices,
                 this.solutionServices);
         }
