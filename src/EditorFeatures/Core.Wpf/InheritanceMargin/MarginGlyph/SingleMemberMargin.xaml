@@ -1,0 +1,43 @@
+﻿<Button x:Class="Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph.SingleMemberMargin"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph"
+        xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+        ToolTip="{Binding ToolTip}"
+        Click="Margin_OnClick">
+    <Button.Resources>
+
+        <Style x:Key="TargetDisplayStyle" TargetType="{x:Type MenuItem}">
+            <Setter Property="Icon">
+                <Setter.Value>
+                    <imaging:CrispImage Moniker="{Binding ImageMoniker}"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Header" Value="{Binding DisplayContent}"/>
+            <Setter Property="ToolTip" Value="{Binding ToolTip}"/>
+            <Setter Property="Command" Value="{Binding ToolTip}"/>
+            <EventSetter Event="Click" Handler="MenuItem_OnClick"/>
+        </Style>
+
+        <ControlTemplate x:Key="ContextMenu" TargetType="{x:Type ContextMenu}">
+            <ScrollViewer>
+                <ItemsPresenter/>
+            </ScrollViewer>
+        </ControlTemplate>
+    </Button.Resources>
+
+    <Button.Template>
+        <ControlTemplate>
+            <imaging:CrispImage Moniker="{Binding Path=Moniker}"/>
+        </ControlTemplate>
+    </Button.Template>
+
+    <Button.ContextMenu>
+        <ContextMenu ItemsSource="{Binding Targets}"
+                     Template="{StaticResource ContextMenu}"
+                     ItemContainerStyle="{StaticResource TargetDisplayStyle}">
+        </ContextMenu>
+    </Button.ContextMenu>
+</Button>
+

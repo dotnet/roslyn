@@ -6,9 +6,9 @@ using System.Windows.Controls;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 {
-    public partial class ClickableMargin : Button
+    internal partial class MutipleMembersMargin : UserControl
     {
-        public ClickableMargin()
+        public MutipleMembersMargin()
         {
             InitializeComponent();
         }

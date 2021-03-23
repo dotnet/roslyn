@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -16,9 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [TagType(typeof(InheritanceMarginTag))]
-    [Order]
+    [Order(After = "VsTextMarker")]
     internal class InheritanceGlyphFactoryProvider : IGlyphFactoryProvider
     {
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceGlyphFactoryProvider()

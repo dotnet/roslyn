@@ -4,6 +4,7 @@
 
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 
@@ -15,8 +16,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         {
             if (tag is InheritanceMarginTag inheritanceMarginTag)
             {
-                var margin = new ClickableMargin { DataContext = inheritanceMarginTag };
-                return margin;
+                var members = inheritanceMarginTag.MembersOnLine;
+                if (members.Length == 1)
+                {
+                    return new SingleMemberMargin(inheritanceMarginTag);
+                }
             }
 
             return null;
