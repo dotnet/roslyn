@@ -444,13 +444,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             UsingNode("x?.y?![0].ToString()", options: null,
                 // (1,7): error CS1525: Invalid expression term '['
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 7),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[", isSuppressed: false).WithArguments("[").WithLocation(1, 7),
                 // (1,21): error CS1003: Syntax error, ':' expected
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "", isSuppressed: false).WithArguments(":", "").WithLocation(1, 21),
                 // (1,21): error CS1733: Expected expression
                 // x?.y?![0].ToString()
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 21));
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "", isSuppressed: false).WithLocation(1, 21));
 
             N(SyntaxKind.ConditionalExpression);
             {

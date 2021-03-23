@@ -517,34 +517,19 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsInvalid) (Syntax: '[0')
-  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: '0')
-    IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '0')
-      ReturnedValue: 
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[0]')
+  Children(2):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+        Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,27): error CS8652: The feature 'lambda attributes' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // CS1525: Invalid expression term '['
                 //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[").WithArguments("lambda attributes").WithLocation(6, 27),
-                // file.cs(6,28): error CS1001: Identifier expected
-                //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(6, 28),
-                // file.cs(6,28): error CS1003: Syntax error, ']' expected
-                //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("]", "").WithLocation(6, 28),
-                // file.cs(6,28): error CS1001: Identifier expected
-                //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "0").WithLocation(6, 28),
-                // file.cs(6,28): error CS1003: Syntax error, '=>' expected
-                //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "0").WithArguments("=>", "").WithLocation(6, 28),
-                // file.cs(6,29): error CS1003: Syntax error, ',' expected
-                //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",", "]").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<LambdaExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]

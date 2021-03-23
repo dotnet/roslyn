@@ -12326,6 +12326,7 @@ tryAgain:
                         type: null, identifier: name, @default: null);
                     var (block, expression) = ParseLambdaBody();
 
+                    // PROTOTYPE: Report binding error if any attributes.
                     return _syntaxFactory.SimpleLambdaExpression(
                         attributes, modifiers, parameter, arrow, block, expression);
                 }

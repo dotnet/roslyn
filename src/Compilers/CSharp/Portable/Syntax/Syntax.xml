@@ -1396,6 +1396,7 @@
   </AbstractNode>
   <Node Name="SimpleLambdaExpressionSyntax" Base="LambdaExpressionSyntax">
     <Kind Name="SimpleLambdaExpression"/>
+    <!-- PROTOTYPE: Move AttributeLists to base class. -->
     <Field Name="AttributeLists" Type="SyntaxList&lt;AttributeListSyntax&gt;"/>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;" Override="true"/>
     <Field Name="Parameter" Type="ParameterSyntax">
