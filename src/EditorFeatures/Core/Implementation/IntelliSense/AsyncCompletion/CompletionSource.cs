@@ -7,16 +7,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
@@ -222,6 +220,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             SnapshotSpan applicableToSpan,
             CancellationToken cancellationToken)
         {
+            if (session is null)
+                throw new ArgumentNullException(nameof(session));
+
             session.Properties[TriggerLocation] = triggerLocation;
             return GetCompletionContextWorkerAsync(session, trigger, triggerLocation, isExpanded: false, cancellationToken);
         }
@@ -267,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             var disallowAddingImports = _isDebuggerTextView ||
-                document.Project.Solution.Workspace.Services.GetService<IEditAndContinueWorkspaceService>()?.IsDebuggingSessionInProgress == true;
+                document.Project.Solution.Workspace.Services.GetRequiredService<IDebuggingWorkspaceService>().CurrentDebuggingState != DebuggingState.Design;
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var options = documentOptions
@@ -348,6 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         excludedCommitCharacters = excludedCommitCharacters.Union(excludedCommitCharactersBefore).ToImmutableArray();
                     }
+
                     session.Properties[ExcludedCommitCharacters] = excludedCommitCharacters;
                 }
             }
@@ -364,6 +366,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public async Task<object> GetDescriptionAsync(IAsyncCompletionSession session, VSCompletionItem item, CancellationToken cancellationToken)
         {
+            if (session is null)
+                throw new ArgumentNullException(nameof(session));
+            if (item is null)
+                throw new ArgumentNullException(nameof(item));
+
             if (!item.Properties.TryGetProperty(RoslynItem, out RoslynCompletionItem roslynItem) ||
                 !Helpers.TryGetInitialTriggerLocation(session, out var triggerLocation))
             {

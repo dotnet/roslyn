@@ -1339,5 +1339,28 @@ Enum E As UShort
     Y = &H8000US
 End Enum")
         End Function
+
+        <WorkItem(49679, "https://github.com/dotnet/roslyn/issues/49679")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
+        Public Async Function TestWithLeftShift_Long() As Task
+            Await TestInRegularAndScriptAsync(
+"Module Program
+    Sub Main(args As String())
+        Goo([|Color.Blue|])
+    End Sub
+    Enum Color
+        Green = 1L << 0
+    End Enum
+End Module",
+"Module Program
+    Sub Main(args As String())
+        Goo(Color.Blue)
+    End Sub
+    Enum Color
+        Green = 1L << 0
+        Blue = 1L << 1
+    End Enum
+End Module")
+        End Function
     End Class
 End Namespace

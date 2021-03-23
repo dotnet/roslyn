@@ -96,7 +96,7 @@ function Exec-Process([string]$command, [string]$commandArgs) {
   }
 }
 
-function InitializeDotNetCli([bool]$install) {
+function InitializeDotNetCli([bool]$install, [string] $runtimeSourceFeed, [string] $runtimeSourceFeedKey) {
   if (Test-Path variable:global:_DotNetInstallDir) {
     return $global:_DotNetInstallDir
   }
@@ -138,7 +138,7 @@ function InitializeDotNetCli([bool]$install) {
 
     if (-not (Test-Path(Join-Path $dotnetRoot "sdk\$dotnetSdkVersion"))) {
       if ($install) {
-        InstallDotNetSdk $dotnetRoot $dotnetSdkVersion
+        InstallDotNetSdk -dotnetRoot $dotnetRoot -version $dotnetSdkVersion -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
       } else {
         Write-PipelineTelemetryError -Category "InitializeToolset" -Message "Unable to find dotnet with SDK version '$dotnetSdkVersion'"
         ExitWithExitCode 1
@@ -176,14 +176,39 @@ function GetDotNetInstallScript([string] $dotnetRoot) {
   if (!(Test-Path $installScript)) {
     Create-Directory $dotnetRoot
     $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
-    Invoke-WebRequest "https://dot.net/$dotnetInstallScriptVersion/dotnet-install.ps1" -OutFile $installScript
+
+    $maxRetries = 5
+    $retries = 1
+
+    $uri = "https://dot.net/$dotnetInstallScriptVersion/dotnet-install.ps1"
+
+    while($true) {
+      try {
+        Write-Host "GET $uri"
+        Invoke-WebRequest $uri -OutFile $installScript
+        break
+      }
+      catch {
+        Write-Host "Failed to download '$uri'"
+        Write-Error $_.Exception.Message -ErrorAction Continue
+      }
+
+      if (++$retries -le $maxRetries) {
+        $delayInSeconds = [math]::Pow(2, $retries) - 1 # Exponential backoff
+        Write-Host "Retrying. Waiting for $delayInSeconds seconds before next attempt ($retries of $maxRetries)."
+        Start-Sleep -Seconds $delayInSeconds
+      }
+      else {
+        throw "Unable to download file in $maxRetries attempts."
+      }
+    }
   }
 
   return $installScript
 }
 
-function InstallDotNetSdk([string] $dotnetRoot, [string] $version, [string] $architecture = "") {
-  InstallDotNet $dotnetRoot $version $architecture
+function InstallDotNetSdk([string] $dotnetRoot, [string] $version, [string] $architecture = "", [string] $runtimeSourceFeed, [string] $runtimeSourceFeedKey ) {
+  InstallDotNet -dotnetRoot $dotnetRoot -version $version -architecture $architecture -skipNonVersionedFiles $false -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
 }
 
 function InstallDotNet([string] $dotnetRoot, 
@@ -208,10 +233,9 @@ function InstallDotNet([string] $dotnetRoot,
     & $installScript @installParameters
   }
   catch {
-    Write-PipelineTelemetryError -Category "InitializeToolset" -Message "Failed to install dotnet runtime '$runtime' from public location."
-
-    # Only the runtime can be installed from a custom [private] location.
-    if ($runtime -and ($runtimeSourceFeed -or $runtimeSourceFeedKey)) {
+    # If we fail, retry from a custom (possibly private) location.
+    if ($runtimeSourceFeed -or $runtimeSourceFeedKey) {
+      Write-Host "Failed to install dotnet runtime '$runtime' version '$version' from public location; trying specified alternate feed credentials"
       if ($runtimeSourceFeed) { $installParameters.AzureFeed = $runtimeSourceFeed }
 
       if ($runtimeSourceFeedKey) {
@@ -228,6 +252,7 @@ function InstallDotNet([string] $dotnetRoot,
         ExitWithExitCode 1
       }
     } else {
+      Write-PipelineTelemetryError -Category "InitializeToolset" -Message "Failed to install dotnet runtime '$runtime' version '$version' from public location."
       ExitWithExitCode 1
     }
   }
@@ -366,7 +391,27 @@ function LocateVisualStudio([object]$vsRequirements = $null){
   if (!(Test-Path $vsWhereExe)) {
     Create-Directory $vsWhereDir
     Write-Host "Downloading vswhere"
-    Invoke-WebRequest "https://github.com/Microsoft/vswhere/releases/download/$vswhereVersion/vswhere.exe" -OutFile $vswhereExe
+    $maxRetries = 5
+    $retries = 1
+
+    while($true) {
+      try {
+        Invoke-WebRequest "https://netcorenativeassets.blob.core.windows.net/resource-packages/external/windows/vswhere/$vswhereVersion/vswhere.exe" -OutFile $vswhereExe
+        break
+      }
+      catch{
+        Write-PipelineTelemetryError -Category 'InitializeToolset' -Message $_
+      }
+
+      if (++$retries -le $maxRetries) {
+        $delayInSeconds = [math]::Pow(2, $retries) - 1 # Exponential backoff
+        Write-Host "Retrying. Waiting for $delayInSeconds seconds before next attempt ($retries of $maxRetries)."
+        Start-Sleep -Seconds $delayInSeconds
+      }
+      else {
+        Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Unable to download file in $maxRetries attempts."
+      }
+    }
   }
 
   if (!$vsRequirements) { $vsRequirements = $GlobalJson.tools.vs }
@@ -384,11 +429,9 @@ function LocateVisualStudio([object]$vsRequirements = $null){
     }
   }
 
-  $rawInfo =& $vsWhereExe $args 
-  $vsInfo = $rawInfo | ConvertFrom-Json
+  $vsInfo =& $vsWhereExe $args | ConvertFrom-Json
 
   if ($lastExitCode -ne 0) {
-    Write-Host $rawInfo
     return $null
   }
 
@@ -396,7 +439,7 @@ function LocateVisualStudio([object]$vsRequirements = $null){
   return $vsInfo[0]
 }
 
-function InitializeBuildTool() {
+function InitializeBuildTool([string] $runtimeSourceFeed, [string] $runtimeSourceFeedKey) {
   if (Test-Path variable:global:_BuildTool) {
     return $global:_BuildTool
   }
@@ -408,7 +451,7 @@ function InitializeBuildTool() {
   # Initialize dotnet cli if listed in 'tools'
   $dotnetRoot = $null
   if (Get-Member -InputObject $GlobalJson.tools -Name "dotnet") {
-    $dotnetRoot = InitializeDotNetCli -install:$restore
+    $dotnetRoot = InitializeDotNetCli -install:$restore -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
   }
 
   if ($msbuildEngine -eq "dotnet") {
@@ -480,7 +523,8 @@ function InitializeNativeTools() {
   }
 }
 
-function InitializeToolset() {
+function InitializeToolset([string] $runtimeSourceFeed, [string] $runtimeSourceFeedKey) 
+{
   if (Test-Path variable:global:_ToolsetBuildProj) {
     return $global:_ToolsetBuildProj
   }
@@ -502,7 +546,7 @@ function InitializeToolset() {
     ExitWithExitCode 1
   }
 
-  $buildTool = InitializeBuildTool
+  $buildTool = InitializeBuildTool -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
 
   $proj = Join-Path $ToolsetDir "restore.proj"
   $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "ToolsetRestore.binlog") } else { "" }

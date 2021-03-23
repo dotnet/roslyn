@@ -19,22 +19,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             MyBase.New(componentModel)
         End Sub
 
-        Protected Overrides ReadOnly Property ContentTypeName As String
-            Get
-                Return ContentTypeNames.VisualBasicContentType
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property ContentTypeName As String = ContentTypeNames.VisualBasicContentType
 
-        Protected Overrides ReadOnly Property LanguageName As String
-            Get
-                Return LanguageNames.VisualBasic
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property LanguageName As String = LanguageNames.VisualBasic
 
-        Protected Overrides ReadOnly Property SyntaxGenerator As SyntaxGenerator
-            Get
-                Return VisualBasicSyntaxGenerator.Instance
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property SyntaxGenerator As SyntaxGenerator = VisualBasicSyntaxGenerator.Instance
+        Protected Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
     End Class
 End Namespace

@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                     foreach (var descriptor in analyzer.SupportedDiagnostics)
                     {
                         var diagnosticId = descriptor.Id;
+                        ValidateHelpLinkForDiagnostic(diagnosticId, descriptor.HelpLinkUri);
 
                         if (!diagnosticId.StartsWith(diagnosticIdPrefix) ||
                             !int.TryParse(diagnosticId.Substring(startIndex: diagnosticIdPrefix.Length), out _))
@@ -67,6 +68,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
 
             diagnosticIdAndOptions.Sort();
             return diagnosticIdAndOptions.ToImmutableArray();
+        }
+
+        private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
+        {
+            if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
+                or "IDE1007" or "IDE1008" or "RemoveUnnecessaryImportsFixable"
+                or "RE0001") // Tracked by https://github.com/dotnet/roslyn/issues/48530
+            {
+                Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
+                return;
+            }
+
+            if (diagnosticId == "IDE0005_gen")
+            {
+                diagnosticId = "IDE0005";
+            }
+
+            if (helpLinkUri != $"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{diagnosticId.ToLowerInvariant()}")
+            {
+                Assert.True(false, $"Invalid help link for {diagnosticId}");
+            }
         }
 
         private static Dictionary<string, string> GetExpectedMap(string expected, out string[] expectedLines)
@@ -334,15 +356,6 @@ dotnet_diagnostic.IDE0065.severity = %value%
 # IDE0066
 dotnet_diagnostic.IDE0066.severity = %value%
 
-# IDE0067
-dotnet_diagnostic.IDE0067.severity = %value%
-
-# IDE0068
-dotnet_diagnostic.IDE0068.severity = %value%
-
-# IDE0069
-dotnet_diagnostic.IDE0069.severity = %value%
-
 # IDE0070
 dotnet_diagnostic.IDE0070.severity = %value%
 
@@ -402,6 +415,27 @@ dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE1008
 dotnet_diagnostic.IDE1008.severity = %value%
+
+# IDE0120
+dotnet_diagnostic.IDE0120.severity = %value%
+
+# IDE0130
+dotnet_diagnostic.IDE0130.severity = %value%
+
+# IDE2000
+dotnet_diagnostic.IDE2000.severity = %value%
+
+# IDE2001
+dotnet_diagnostic.IDE2001.severity = %value%
+
+# IDE2002
+dotnet_diagnostic.IDE2002.severity = %value%
+
+# IDE2003
+dotnet_diagnostic.IDE2003.severity = %value%
+
+# IDE2004
+dotnet_diagnostic.IDE2004.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -510,15 +544,6 @@ dotnet_diagnostic.IDE0059.severity = %value%
 # IDE0060
 dotnet_diagnostic.IDE0060.severity = %value%
 
-# IDE0067
-dotnet_diagnostic.IDE0067.severity = %value%
-
-# IDE0068
-dotnet_diagnostic.IDE0068.severity = %value%
-
-# IDE0069
-dotnet_diagnostic.IDE0069.severity = %value%
-
 # IDE0070
 dotnet_diagnostic.IDE0070.severity = %value%
 
@@ -560,6 +585,15 @@ dotnet_diagnostic.IDE1007.severity = %value%
 
 # IDE1008
 dotnet_diagnostic.IDE1008.severity = %value%
+
+# IDE0120
+dotnet_diagnostic.IDE0120.severity = %value%
+
+# IDE2000
+dotnet_diagnostic.IDE2000.severity = %value%
+
+# IDE2003
+dotnet_diagnostic.IDE2003.severity = %value%
 ";
             VerifyConfigureSeverityCore(expected, LanguageNames.VisualBasic);
         }
@@ -900,15 +934,6 @@ csharp_using_directive_placement = outside_namespace
 # IDE0066, PreferSwitchExpression
 csharp_style_prefer_switch_expression = true
 
-# IDE0067
-No editorconfig based code style option
-
-# IDE0068
-No editorconfig based code style option
-
-# IDE0069
-No editorconfig based code style option
-
 # IDE0070
 No editorconfig based code style option
 
@@ -951,11 +976,17 @@ csharp_style_prefer_not_pattern = true
 # IDE0090, ImplicitObjectCreationWhenTypeIsApparent
 csharp_style_implicit_object_creation_when_type_is_apparent = true
 
+# IDE0100
+No editorconfig based code style option
+
 # IDE0110
 No editorconfig based code style option
 
-# IDE0100
+# IDE0120
 No editorconfig based code style option
+
+# IDE0130, PreferNamespaceAndFolderMatchStructure
+dotnet_style_namespace_match_folder = true
 
 # IDE1005, PreferConditionalDelegateCall
 csharp_style_conditional_delegate_call = true
@@ -968,6 +999,21 @@ No editorconfig based code style option
 
 # IDE1008
 No editorconfig based code style option
+
+# IDE2000, AllowMultipleBlankLines
+dotnet_style_allow_multiple_blank_lines_experimental = true
+
+# IDE2001, AllowEmbeddedStatementsOnSameLine
+csharp_style_allow_embedded_statements_on_same_line_experimental = true
+
+# IDE2002, AllowBlankLinesBetweenConsecutiveBraces
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true
+
+# IDE2003, AllowStatementImmediatelyAfterBlock
+dotnet_style_allow_statement_immediately_after_block_experimental = true
+
+# IDE2004, AllowBlankLineAfterColonInConstructorInitializer
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.CSharp);
@@ -1118,15 +1164,6 @@ visual_basic_style_unused_value_assignment_preference = unused_local_variable
 # IDE0060, UnusedParameters
 dotnet_code_quality_unused_parameters = all
 
-# IDE0067
-No editorconfig based code style option
-
-# IDE0068
-No editorconfig based code style option
-
-# IDE0069
-No editorconfig based code style option
-
 # IDE0070
 No editorconfig based code style option
 
@@ -1168,6 +1205,15 @@ No editorconfig based code style option
 
 # IDE1008
 No editorconfig based code style option
+
+# IDE0120
+No editorconfig based code style option
+
+# IDE2000, AllowMultipleBlankLines
+dotnet_style_allow_multiple_blank_lines_experimental = true
+
+# IDE2003, AllowStatementImmediatelyAfterBlock
+dotnet_style_allow_statement_immediately_after_block_experimental = true
 ";
 
             VerifyConfigureCodeStyleOptionsCore(expected, LanguageNames.VisualBasic);

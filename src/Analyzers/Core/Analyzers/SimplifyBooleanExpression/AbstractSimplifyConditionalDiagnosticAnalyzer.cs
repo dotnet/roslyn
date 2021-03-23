@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
         protected AbstractSimplifyConditionalDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId,
+                   EnforceOnBuildValues.SimplifyConditionalExpression,
                    CodeStyleOptions2.PreferSimplifiedBooleanExpressions,
                    new LocalizableResourceString(nameof(AnalyzersResources.Simplify_conditional_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Conditional_expression_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))

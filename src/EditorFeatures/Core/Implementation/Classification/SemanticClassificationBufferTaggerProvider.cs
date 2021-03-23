@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -47,13 +46,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Classification);
         }
 
-        public IAccurateTagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
+        public IAccurateTagger<T>? CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             this.AssertIsForeground();
+
+            // The LSP client will handle producing tags when running under the LSP editor.
+            // Our tagger implementation should return nothing to prevent conflicts.
+            if (buffer.IsInLspEditorContext())
+            {
+                return null;
+            }
+
             return new Tagger(this, buffer, _asyncListener) as IAccurateTagger<T>;
         }
 
-        ITagger<T> ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
+        ITagger<T>? ITaggerProvider.CreateTagger<T>(ITextBuffer buffer)
             => CreateTagger<T>(buffer);
     }
 }

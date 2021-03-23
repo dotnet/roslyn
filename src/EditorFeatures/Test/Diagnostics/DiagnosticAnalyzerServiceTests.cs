@@ -949,6 +949,39 @@ class A
         }
 
         [Theory, CombinatorialData]
+        [WorkItem(49698, "https://github.com/dotnet/roslyn/issues/49698")]
+        internal async Task TestOnlyRequiredAnalyzerExecutedDuringDiagnosticComputation(bool documentAnalysis)
+        {
+            using var workspace = TestWorkspace.CreateCSharp("class A { }");
+
+            // Verify that requesting analyzer diagnostics for analyzer1 does not lead to invoking analyzer2.
+            var analyzer1 = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: true, DiagnosticSeverity.Warning, throwOnAllNamedTypes: false);
+            var analyzer1Id = analyzer1.GetAnalyzerId();
+            var analyzer2 = new NamedTypeAnalyzer();
+            var analyzerIdsToRequestDiagnostics = new[] { analyzer1Id };
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer1, analyzer2));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            var project = workspace.CurrentSolution.Projects.Single();
+            var documentId = documentAnalysis ? project.Documents.Single().Id : null;
+            var diagnosticComputer = new DiagnosticComputer(documentId, project, span: null, AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache());
+            var diagnosticsMapResults = await diagnosticComputer.GetDiagnosticsAsync(analyzerIdsToRequestDiagnostics, reportSuppressedDiagnostics: false,
+                logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
+            Assert.False(analyzer2.ReceivedSymbolCallback);
+
+            Assert.Equal(1, diagnosticsMapResults.Diagnostics.Length);
+            var (actualAnalyzerId, diagnosticMap) = diagnosticsMapResults.Diagnostics.Single();
+            Assert.Equal(analyzer1Id, actualAnalyzerId);
+            Assert.Equal(1, diagnosticMap.Semantic.Length);
+            var semanticDiagnostics = diagnosticMap.Semantic.Single().Item2;
+            var diagnostic = Assert.Single(semanticDiagnostics);
+            Assert.Equal(analyzer1.Descriptor.Id, diagnostic.Id);
+
+            Assert.Empty(diagnosticMap.Syntax);
+            Assert.Empty(diagnosticMap.NonLocal);
+            Assert.Empty(diagnosticMap.Other);
+        }
+
+        [Theory, CombinatorialData]
         internal async Task TestCancellationDuringDiagnosticComputation_OutOfProc(AnalyzerRegisterActionKind actionKind)
         {
             // This test verifies that we do no attempt to re-use CompilationWithAnalyzers instance in IDE OutOfProc diagnostic computation in presence of an OperationCanceledException during analysis.
@@ -1282,11 +1315,13 @@ class A
                 => _supportedDiagnostics = ImmutableArray.Create(new DiagnosticDescriptor(DiagnosticId, "test", "test", "test", defaultSeverity, isEnabledByDefault: true));
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
+            public bool ReceivedSymbolCallback { get; private set; }
 
             public override void Initialize(AnalysisContext context)
             {
                 context.RegisterSymbolAction(c =>
                 {
+                    ReceivedSymbolCallback = true;
                     c.ReportDiagnostic(Diagnostic.Create(_supportedDiagnostics[0], c.Symbol.Locations[0]));
                 }, SymbolKind.NamedType);
             }

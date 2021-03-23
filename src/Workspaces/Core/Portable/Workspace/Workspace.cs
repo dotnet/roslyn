@@ -1161,8 +1161,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns <see langword="true"/> if a reference to referencedProject can be added to
         /// referencingProject.  <see langword="false"/> otherwise.
         /// </summary>
-        internal virtual Task<bool> CanAddProjectReferenceAsync(ProjectId referencingProject, ProjectId referencedProject, CancellationToken cancellationToken)
-            => SpecializedTasks.False;
+        internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
+            => false;
 
         /// <summary>
         /// Apply changes made to a solution back to the workspace.
@@ -1349,7 +1349,9 @@ namespace Microsoft.CodeAnalysis
             // Checking for unchangeable documents will only be done if we were asked not to ignore them.
             foreach (var documentId in changedDocumentIds)
             {
-                var document = projectChanges.OldProject.GetDocumentState(documentId) ?? projectChanges.NewProject.GetDocumentState(documentId)!;
+                var document = projectChanges.OldProject.State.DocumentStates.GetState(documentId) ??
+                               projectChanges.NewProject.State.DocumentStates.GetState(documentId)!;
+
                 if (!document.CanApplyChange())
                 {
                     throw new NotSupportedException(string.Format(WorkspacesResources.Changing_document_0_is_not_supported, document.FilePath ?? document.Name));

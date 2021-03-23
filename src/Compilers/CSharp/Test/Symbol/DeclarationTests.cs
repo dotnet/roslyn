@@ -271,7 +271,7 @@ namespace NA
             Assert.Equal(SymbolKind.NamedType, comp.GlobalNamespace.GetMembers()[0].Kind);
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
         public void OnlyOneParse()
         {
             var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"
@@ -293,7 +293,7 @@ public class B
 
             var countedTree = new CountedSyntaxTree(foreignType);
 
-            var compilation = CreateCompilation(new SyntaxTree[] { underlyingTree, countedTree }, skipUsesIsNullable: true);
+            var compilation = CreateCompilation(new SyntaxTree[] { underlyingTree, countedTree }, skipUsesIsNullable: true, options: TestOptions.ReleaseDll);
 
             var type = compilation.Assembly.GlobalNamespace.GetTypeMembers().First();
             Assert.Equal(1, countedTree.AccessCount);   // parse once to build the decl table
@@ -318,6 +318,10 @@ public class B
             Assert.Equal(1, countedTree.AccessCount);
         }
 
+        /// <remarks>
+        /// When using this type, make sure to pass an explicit CompilationOptions to CreateCompilation, as the check
+        /// to see whether the syntax tree has top-level statements will increment the counter.
+        /// </remarks>
         private class CountedSyntaxTree : CSharpSyntaxTree
         {
             private class Reference : SyntaxReference

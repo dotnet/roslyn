@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly CharacterSetModificationRule WithoutQuoteRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '"');
         private static readonly CharacterSetModificationRule WithoutSpaceRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ' ');
 
-        internal static readonly ImmutableArray<CharacterSetModificationRule> FilterRules = ImmutableArray.Create(
+        protected static readonly ImmutableArray<CharacterSetModificationRule> FilterRules = ImmutableArray.Create(
             CharacterSetModificationRule.Create(CharacterSetModificationKind.Add, '!', '-', '['));
 
         private CompletionItemRules GetCompletionItemRules(string displayText)

@@ -2,12 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Remote.Testing
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.NavigateTo.Interfaces
 Imports Microsoft.VisualStudio.Text.PatternMatching
+Imports Roslyn.Test.EditorUtilities.NavigateTo
 
 #Disable Warning BC40000 ' MatchKind is obsolete
 
@@ -409,7 +412,7 @@ Partial Private Sub Bar()
 End Sub
 End Class", Async Function(w)
                 Dim item As NavigateToItem = (Await _aggregator.GetItemsAsync("Bar")).Single()
-                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_project_1, "Goo", "Test"))
+                VerifyNavigateToResultItem(item, "Bar", "[|Bar|]()", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPrivate, String.Format(FeaturesResources.in_0_1_2, "Goo", "test1.vb", "Test"))
             End Function)
         End Function
 
@@ -813,6 +816,226 @@ End Class
                 assertDescription("File:", workspace.Documents.Single().FilePath)
                 assertDescription("Line:", "2")
                 assertDescription("Project:", "VisualBasicAssembly1")
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoNotIncludeTrivialPartialContainer(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Partial Class Inner
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoNotIncludeTrivialPartialContainerWithMultipleNestedTypes(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Partial Class Inner1
+    End Class
+    Public Partial Class Inner2
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoNotIncludeWhenAllAreTrivialPartialContainer(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Partial Class Inner1
+    End Class
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Partial Class Inner2
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem),
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludeNonTrivialPartialContainer(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Sub Goo2
+    End Sub
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludeNonTrivialPartialContainerWithNestedType(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+    Public Sub Goo
+    End Sub
+End Class
+                        </Document>
+                        <Document FilePath="Test2.vb">
+Public Partial Class Outer
+    Public Sub Goo2
+    End Sub
+    Public Class Inner
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludePartialWithNoContents(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Partial Class Outer
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
+            End Using
+        End Function
+
+        <Theory>
+        <CombinatorialData>
+        Public Async Function DoIncludeNonPartialOnlyContainingNestedTypes(testHost As TestHost) As Task
+            Using workspace = CreateWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document FilePath="Test1.vb">
+Public Class Outer
+    Public Class Inner
+    End Class
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>, testHost, createTrackingService:=Nothing)
+
+                _provider = New NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener)
+                _aggregator = New NavigateToTestAggregator(_provider)
+
+                VerifyNavigateToResultItems(
+                    New List(Of NavigateToItem) From
+                    {
+                        New NavigateToItem("Outer", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                    },
+                    Await _aggregator.GetItemsAsync("Outer"))
             End Using
         End Function
     End Class

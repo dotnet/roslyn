@@ -11,13 +11,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class LinkedFileReferenceFinder : IReferenceFinder
     {
-        public Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        public async Task<ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>> DetermineCascadedSymbolsAsync(
             ISymbol symbol, Solution solution, IImmutableSet<Project>? projects,
-            FindReferencesSearchOptions options, CancellationToken cancellationToken)
+            FindReferencesSearchOptions options, FindReferencesCascadeDirection cascadeDirection,
+            CancellationToken cancellationToken)
         {
-            return options.Cascade
-                ? SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken)
-                : SpecializedTasks.EmptyImmutableArray<ISymbol>();
+            if (!options.Cascade)
+                return ImmutableArray<(ISymbol symbol, FindReferencesCascadeDirection cascadeDirection)>.Empty;
+
+            var linkedSymbols = await SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            return linkedSymbols.SelectAsArray(s => (s, cascadeDirection));
         }
 
         public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(

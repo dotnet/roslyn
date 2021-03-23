@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
 
             if (typeInfo.Type?.SpecialType == SpecialType.System_String &&
-                typeInfo.ConvertedType?.IsFormattableString() == true)
+                typeInfo.ConvertedType?.IsFormattableStringOrIFormattable() == true)
             {
                 return typeInfo.ConvertedType;
             }

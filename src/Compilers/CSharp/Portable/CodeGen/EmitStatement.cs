@@ -1426,7 +1426,8 @@ oneMoreTime:
             // If named, add it to the local debug scope.
             if (localDef.Name != null &&
                 !(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)) // Visibility scope of such locals is represented by BoundScope node.
+                // Visibility scope of such locals is represented by BoundScope node.
+                (local.ScopeDesignatorOpt?.Kind() is SyntaxKind.SwitchSection or SyntaxKind.SwitchExpressionArm)))
             {
                 _builder.AddLocalToScope(localDef);
             }

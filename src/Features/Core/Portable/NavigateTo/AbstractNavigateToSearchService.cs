@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     (service, solutionInfo, cancellationToken) => service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return result.HasValue ? result.Value.SelectAsArray(r => r.Rehydrate(solution)) : ImmutableArray<INavigateToSearchResult>.Empty;
+                return await RehydrateAsync(result, solution, cancellationToken).ConfigureAwait(false);
             }
 
             return await SearchDocumentInCurrentProcessAsync(
@@ -61,11 +62,26 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     (service, solutionInfo, cancellationToken) => service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                return result.HasValue ? result.Value.SelectAsArray(r => r.Rehydrate(solution)) : ImmutableArray<INavigateToSearchResult>.Empty;
+                return await RehydrateAsync(result, solution, cancellationToken).ConfigureAwait(false);
             }
 
             return await SearchProjectInCurrentProcessAsync(
                 project, priorityDocuments, searchPattern, kinds, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static ValueTask<ImmutableArray<INavigateToSearchResult>> RehydrateAsync(
+            Optional<ImmutableArray<SerializableNavigateToSearchResult>> result,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            if (result.HasValue)
+            {
+                return result.Value.SelectAsArrayAsync(r => r.RehydrateAsync(solution, cancellationToken));
+            }
+            else
+            {
+                return ValueTaskFactory.FromResult(ImmutableArray<INavigateToSearchResult>.Empty);
+            }
         }
     }
 }

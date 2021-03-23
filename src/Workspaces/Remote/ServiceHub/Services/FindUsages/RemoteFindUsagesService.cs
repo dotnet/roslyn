@@ -40,21 +40,18 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (UserOperationBooster.Boost())
-                {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var project = solution.GetProject(symbolAndProjectId.ProjectId);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var project = solution.GetProject(symbolAndProjectId.ProjectId);
 
-                    var symbol = await symbolAndProjectId.TryRehydrateAsync(
-                        solution, cancellationToken).ConfigureAwait(false);
+                var symbol = await symbolAndProjectId.TryRehydrateAsync(
+                    solution, cancellationToken).ConfigureAwait(false);
 
-                    if (symbol == null)
-                        return;
+                if (symbol == null)
+                    return;
 
-                    var context = new RemoteFindUsageContext(_callback, callbackId, cancellationToken);
-                    await AbstractFindUsagesService.FindReferencesAsync(
-                        context, symbol, project, options).ConfigureAwait(false);
-                }
+                var context = new RemoteFindUsageContext(_callback, callbackId, cancellationToken);
+                await AbstractFindUsagesService.FindReferencesAsync(
+                    context, symbol, project, options).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -66,20 +63,17 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
-                using (UserOperationBooster.Boost())
-                {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var project = solution.GetProject(symbolAndProjectId.ProjectId);
+                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+                var project = solution.GetProject(symbolAndProjectId.ProjectId);
 
-                    var symbol = await symbolAndProjectId.TryRehydrateAsync(
-                        solution, cancellationToken).ConfigureAwait(false);
-                    if (symbol == null)
-                        return;
+                var symbol = await symbolAndProjectId.TryRehydrateAsync(
+                    solution, cancellationToken).ConfigureAwait(false);
+                if (symbol == null)
+                    return;
 
-                    var context = new RemoteFindUsageContext(_callback, callbackId, cancellationToken);
-                    await AbstractFindUsagesService.FindImplementationsAsync(
-                        symbol, project, context).ConfigureAwait(false);
-                }
+                var context = new RemoteFindUsageContext(_callback, callbackId, cancellationToken);
+                await AbstractFindUsagesService.FindImplementationsAsync(
+                    symbol, project, context).ConfigureAwait(false);
             }, cancellationToken);
         }
 

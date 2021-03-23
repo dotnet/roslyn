@@ -284,6 +284,7 @@ namespace Microsoft.CodeAnalysis
                         _builder.Append(Data[i]);
                     }
                 }
+
                 _builder.Append(DoubleQuoteChar);
                 return null;
             }

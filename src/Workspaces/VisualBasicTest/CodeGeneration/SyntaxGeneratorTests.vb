@@ -2272,6 +2272,26 @@ End Class ' end")
 
 End Interface")
         End Sub
+
+        <Fact>
+        Public Sub TestEnumDeclarationFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.DateTimeKind")),
+"Public Enum DateTimeKind
+    Unspecified = 0
+    Utc = 1
+    Local = 2
+End Enum")
+        End Sub
+
+        <Fact>
+        Public Sub TestEnumWithUnderlyingTypeFromSymbol()
+            VerifySyntax(Of EnumBlockSyntax)(Generator.Declaration(_emptyCompilation.GetTypeByMetadataName("System.Security.SecurityRuleSet")),
+"Public Enum SecurityRuleSet As Byte
+    None = CByte(0)
+    Level1 = CByte(1)
+    Level2 = CByte(2)
+End Enum")
+        End Sub
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"

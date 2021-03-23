@@ -2175,6 +2175,258 @@ is_global = true
         public void GlobalConfigIssuesWarningWithInvalidSectionNames_PlatformSpecific(string sectionName, bool isValidWindows, bool isValidOther)
             => GlobalConfigIssuesWarningWithInvalidSectionNames(sectionName, ExecutionConditionUtil.IsWindows ? isValidWindows : isValidOther);
 
+        [Theory]
+        [InlineData("/.globalconfig", true)]
+        [InlineData("/.GLOBALCONFIG", true)]
+        [InlineData("/.glObalConfiG", true)]
+        [InlineData("/path/to/.globalconfig", true)]
+        [InlineData("/my.globalconfig", false)]
+        [InlineData("/globalconfig", false)]
+        [InlineData("/path/to/globalconfig", false)]
+        [InlineData("/path/to/my.globalconfig", false)]
+        [InlineData("/.editorconfig", false)]
+        [InlineData("/.globalconfİg", false)]
+        public void FileNameCausesConfigToBeReportedAsGlobal(string fileName, bool shouldBeTreatedAsGlobal)
+        {
+            var config = Parse("", fileName);
+            Assert.Equal(shouldBeTreatedAsGlobal, config.IsGlobal);
+        }
+
+        [Fact]
+        public void GlobalLevelCanBeReadFromAnyConfig()
+        {
+            var config = Parse("global_level = 5", "/.editorconfig");
+            Assert.Equal(5, config.GlobalLevel);
+        }
+
+        [Fact]
+        public void GlobalLevelDefaultsTo100ForUserGlobalConfigs()
+        {
+            var config = Parse("", "/" + AnalyzerConfig.UserGlobalConfigName);
+
+            Assert.True(config.IsGlobal);
+            Assert.Equal(100, config.GlobalLevel);
+        }
+
+        [Fact]
+        public void GlobalLevelCanBeOverriddenForUserGlobalConfigs()
+        {
+            var config = Parse("global_level = 5", "/" + AnalyzerConfig.UserGlobalConfigName);
+
+            Assert.True(config.IsGlobal);
+            Assert.Equal(5, config.GlobalLevel);
+        }
+
+        [Fact]
+        public void GlobalLevelDefaultsToZeroForNonUserGlobalConfigs()
+        {
+            var config = Parse("is_global = true", "/.nugetconfig");
+
+            Assert.True(config.IsGlobal);
+            Assert.Equal(0, config.GlobalLevel);
+        }
+
+        [Fact]
+        public void GlobalLevelIsNotPresentInConfigSet()
+        {
+            var config = Parse("global_level = 123", "/.globalconfig");
+
+            var set = AnalyzerConfigSet.Create(ImmutableArray.Create(config));
+            var globalOptions = set.GlobalConfigOptions;
+
+            Assert.Empty(globalOptions.AnalyzerOptions);
+            Assert.Empty(globalOptions.TreeOptions);
+            Assert.Empty(globalOptions.Diagnostics);
+        }
+
+        [Fact]
+        public void GlobalLevelInSectionIsPresentInConfigSet()
+        {
+            var config = Parse(@"
+[/path]
+global_level = 123", "/.globalconfig");
+
+            var set = AnalyzerConfigSet.Create(ImmutableArray.Create(config));
+            var globalOptions = set.GlobalConfigOptions;
+
+            Assert.Empty(globalOptions.AnalyzerOptions);
+            Assert.Empty(globalOptions.TreeOptions);
+            Assert.Empty(globalOptions.Diagnostics);
+
+            var sectionOptions = set.GetOptionsForSourcePath("/path");
+
+            Assert.Single(sectionOptions.AnalyzerOptions);
+            Assert.Equal("123", sectionOptions.AnalyzerOptions["global_level"]);
+            Assert.Empty(sectionOptions.TreeOptions);
+            Assert.Empty(sectionOptions.Diagnostics);
+        }
+
+        [Theory]
+        [InlineData(1, 2)]
+        [InlineData(2, 1)]
+        [InlineData(-2, -1)]
+        [InlineData(2, -1)]
+        public void GlobalLevelAllowsOverrideOfGlobalKeys(int level1, int level2)
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse($@"
+is_global = true
+global_level = {level1}
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse($@"
+is_global = true
+global_level = {level2}
+option1 = value2",
+"/.globalconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+            diagnostics.Verify();
+
+            Assert.Single(globalConfig.GlobalSection.Properties.Keys, "option1");
+
+            string expectedValue = level1 > level2 ? "value1" : "value2";
+            Assert.Single(globalConfig.GlobalSection.Properties.Values, expectedValue);
+
+            configs.Free();
+        }
+
+        [Fact]
+        public void GlobalLevelAllowsOverrideOfSectionKeys()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+is_global = true
+global_level = 1
+
+[/path]
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse(@"
+is_global = true
+global_level = 2
+
+[/path]
+option1 = value2",
+"/.globalconfig2"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+            diagnostics.Verify();
+
+            Assert.Single(globalConfig.NamedSections);
+            Assert.Equal("/path", globalConfig.NamedSections[0].Name);
+            Assert.Single(globalConfig.NamedSections[0].Properties.Keys, "option1");
+            Assert.Single(globalConfig.NamedSections[0].Properties.Values, "value2");
+
+            configs.Free();
+        }
+
+        [Theory]
+        [InlineData(1, 2, 3, "value3")]
+        [InlineData(2, 1, 3, "value3")]
+        [InlineData(3, 2, 1, "value1")]
+        [InlineData(1, 2, 1, "value2")]
+        [InlineData(1, 1, 2, "value3")]
+        [InlineData(2, 1, 1, "value1")]
+        public void GlobalLevelAllowsOverrideOfDuplicateGlobalKeys(int level1, int level2, int level3, string expectedValue)
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse($@"
+is_global = true
+global_level = {level1}
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse($@"
+is_global = true
+global_level = {level2}
+option1 = value2",
+"/.globalconfig2"));
+
+            configs.Add(Parse($@"
+is_global = true
+global_level = {level3}
+option1 = value3",
+"/.globalconfig3"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+            diagnostics.Verify();
+
+            Assert.Single(globalConfig.GlobalSection.Properties.Keys, "option1");
+            Assert.Single(globalConfig.GlobalSection.Properties.Values, expectedValue);
+
+            configs.Free();
+        }
+
+        [Fact]
+        public void GlobalLevelReportsConflictsOnlyAtTheHighestLevel()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse($@"
+is_global = true
+global_level = 1
+option1 = value1
+", "/.globalconfig1"));
+
+            configs.Add(Parse($@"
+is_global = true
+global_level = 1
+option1 = value2",
+"/.globalconfig2"));
+
+            configs.Add(Parse($@"
+is_global = true
+global_level = 3
+option1 = value3",
+"/.globalconfig3"));
+
+            configs.Add(Parse($@"
+is_global = true
+global_level = 3
+option1 = value4",
+"/.globalconfig4"));
+
+            configs.Add(Parse($@"
+is_global = true
+global_level = 2
+option1 = value5",
+"/.globalconfig5"));
+
+            configs.Add(Parse($@"
+is_global = true
+global_level = 2
+option1 = value6",
+"/.globalconfig6"));
+
+            var globalConfig = AnalyzerConfigSet.MergeGlobalConfigs(configs, out var diagnostics);
+
+            // we don't report config1, 2, 5, or 6, because they didn't conflict: 3 + 4 overrode them, but then themselves were conflicting
+            diagnostics.Verify(
+                Diagnostic("MultipleGlobalAnalyzerKeys").WithArguments("option1", "Global Section", "/.globalconfig3, /.globalconfig4").WithLocation(1, 1)
+                );
+
+            configs.Free();
+        }
+
+        [Fact]
+        public void InvalidGlobalLevelIsIgnored()
+        {
+            var userGlobalConfig = Parse($@"
+is_global = true
+global_level = abc
+", "/.globalconfig");
+
+            var nonUserGlobalConfig = Parse($@"
+is_global = true
+global_level = abc
+", "/.editorconfig");
+
+            Assert.Equal(100, userGlobalConfig.GlobalLevel);
+            Assert.Equal(0, nonUserGlobalConfig.GlobalLevel);
+        }
+
         #endregion
     }
 }

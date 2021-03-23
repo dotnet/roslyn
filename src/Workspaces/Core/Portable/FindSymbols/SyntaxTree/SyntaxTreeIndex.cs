@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -21,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly ContextInfo _contextInfo;
         private readonly DeclarationInfo _declarationInfo;
         private readonly ExtensionMethodInfo _extensionMethodInfo;
+        private readonly Lazy<HashSet<DeclaredSymbolInfo>> _declaredSymbolInfoSet;
 
         private SyntaxTreeIndex(
             Checksum checksum,
@@ -36,6 +39,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _contextInfo = contextInfo;
             _declarationInfo = declarationInfo;
             _extensionMethodInfo = extensionMethodInfo;
+            _declaredSymbolInfoSet = new(() => new(this.DeclaredSymbolInfos));
         }
 
         private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new();

@@ -243,20 +243,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, Type attributeType, AttributeLanguagesFunc languagesFunc)
         {
+            IEnumerable<string>? result = null;
             foreach (CustomAttributeHandle customAttrHandle in typeDef.GetCustomAttributes())
             {
                 if (peModule.IsTargetAttribute(customAttrHandle, attributeType.Namespace!, attributeType.Name, ctor: out _))
                 {
-                    IEnumerable<string>? attributeSupportedLanguages = languagesFunc(peModule, customAttrHandle);
-                    if (attributeSupportedLanguages != null)
+                    if (languagesFunc(peModule, customAttrHandle) is { } attributeSupportedLanguages)
                     {
-                        foreach (string item in attributeSupportedLanguages)
+                        if (result is null)
                         {
-                            yield return item;
+                            result = attributeSupportedLanguages;
+                        }
+                        else
+                        {
+                            // This is a slow path, but only occurs if a single type has multiple
+                            // DiagnosticAnalyzerAttribute instances applied to it.
+                            result = result.Concat(attributeSupportedLanguages);
                         }
                     }
                 }
             }
+
+            return result ?? SpecializedCollections.EmptyEnumerable<string>();
         }
 
         private static IEnumerable<string> GetDiagnosticsAnalyzerSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle)

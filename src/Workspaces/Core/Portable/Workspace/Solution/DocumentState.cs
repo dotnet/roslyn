@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         // null if the document doesn't support syntax trees:
         private readonly ValueSource<TreeAndVersion>? _treeSource;
 
-        private DocumentState(
+        protected DocumentState(
             HostLanguageServices languageServices,
             SolutionServices solutionServices,
             IDocumentServiceProvider? documentServiceProvider,
@@ -101,6 +101,7 @@ namespace Microsoft.CodeAnalysis
             {
                 return info.FilePath;
             }
+
             return info.SourceCodeKind == SourceCodeKind.Regular
                 ? info.Name
                 : "";

@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 namedType.GetAttributes(),
                 namedType.DeclaredAccessibility,
                 namedType.GetSymbolModifiers(),
+                namedType.IsRecord,
                 namedType.TypeKind,
                 namedType.Name,
                 namedType.TypeParameters,

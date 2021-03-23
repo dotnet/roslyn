@@ -615,6 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
 
                         case "generatedfilesout":
+                            value = RemoveQuotesAndSlashes(value);
                             if (string.IsNullOrWhiteSpace(value))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, MessageID.IDS_Text.Localize(), arg);
@@ -1481,6 +1482,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                  "nullable", nullableContextOptions, parseOptions.LanguageVersion.ToDisplayString(),
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
             }
+
+            pathMap = SortPathMap(pathMap);
 
             return new CSharpCommandLineArguments
             {

@@ -24,21 +24,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </remarks>
     internal abstract class InteractiveWindow_InProc : TextViewWindow_InProc
     {
+        private static readonly Func<string, string, bool> s_contains = (expected, actual) => actual.Contains(expected);
+        private static readonly Func<string, string, bool> s_endsWith = (expected, actual) => actual.EndsWith(expected);
+
         private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
-        private const int DefaultTimeoutInMilliseconds = 10000;
 
         private readonly string _viewCommand;
         private readonly Guid _windowId;
-        private int _timeoutInMilliseconds;
         private IInteractiveWindow _interactiveWindow;
 
         protected InteractiveWindow_InProc(string viewCommand, Guid windowId)
         {
             _viewCommand = viewCommand;
             _windowId = windowId;
-            _timeoutInMilliseconds = DefaultTimeoutInMilliseconds;
         }
 
         public void Initialize()
@@ -53,16 +53,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
-
-        public void SetTimeout(int milliseconds)
-        {
-            _timeoutInMilliseconds = milliseconds;
-        }
-
-        public int GetTimeoutInMilliseconds()
-        {
-            return _timeoutInMilliseconds;
-        }
 
         public bool IsInitializing
             => InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
@@ -198,42 +188,43 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void WaitForReplPrompt()
-            => WaitForPredicate(GetReplText, value => value.EndsWith(ReplPromptText));
+            => WaitForPredicate(GetReplText, ReplPromptText, s_endsWith);
 
         public void WaitForReplOutput(string outputText)
-            => WaitForPredicate(GetReplText, value => value.EndsWith(outputText + Environment.NewLine + ReplPromptText));
+            => WaitForPredicate(GetReplText, outputText + Environment.NewLine + ReplPromptText, s_endsWith);
 
         public void ClearScreen()
-        {
-            ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ClearScreen);
-        }
+            => ExecuteCommand(WellKnownCommandNames.InteractiveConsole_ClearScreen);
 
         public void InsertCode(string text)
-        {
-            InvokeOnUIThread(cancellationToken => _interactiveWindow.InsertCode(text));
-        }
+            => InvokeOnUIThread(cancellationToken => _interactiveWindow.InsertCode(text));
 
         public void WaitForLastReplOutput(string outputText)
-            => WaitForPredicate(GetLastReplOutput, value => value.Contains(outputText));
+            => WaitForPredicate(GetLastReplOutput, outputText, s_contains);
 
         public void WaitForLastReplOutputContains(string outputText)
-            => WaitForPredicate(GetLastReplOutput, value => value.Contains(outputText));
+            => WaitForPredicate(GetLastReplOutput, outputText, s_contains);
 
         public void WaitForLastReplInputContains(string outputText)
-            => WaitForPredicate(GetLastReplInput, value => value.Contains(outputText));
+            => WaitForPredicate(GetLastReplInput, outputText, s_contains);
 
-        private void WaitForPredicate(Func<string> getValue, Func<string, bool> isExpectedValue)
+        private void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer)
         {
             var beginTime = DateTime.UtcNow;
-            while (!isExpectedValue(getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
+            while (!valueComparer(expectedValue, getValue()) && DateTime.UtcNow < beginTime + Helper.HangMitigatingTimeout)
             {
                 Thread.Sleep(50);
             }
 
-            string value;
-            if (!isExpectedValue(value = getValue()))
+            var actualValue = getValue();
+            if (!valueComparer(expectedValue, getValue()))
             {
-                throw new Exception($"Unable to find expected content in REPL within {_timeoutInMilliseconds} milliseconds and no exceptions were thrown. Actual content:{Environment.NewLine}[[{value}]]");
+                throw new Exception(
+                    $"Unable to find expected content in REPL within {Helper.HangMitigatingTimeout.TotalMilliseconds} milliseconds and no exceptions were thrown.{Environment.NewLine}" +
+                    $"Expected:{Environment.NewLine}" +
+                    $"[[{expectedValue}]]" +
+                    $"Actual:{Environment.NewLine}" +
+                    $"[[{actualValue}]]");
             }
         }
 

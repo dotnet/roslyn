@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public IAsyncCompletionSource GetOrCreate(ITextView textView)
         {
-            if (textView.TextBuffer.IsInCloudEnvironmentClientContext())
+            if (textView.TextBuffer.IsInLspEditorContext())
             {
                 return null;
             }

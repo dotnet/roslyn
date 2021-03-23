@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Base class for all Roslyn light bulb menu items.
     /// </summary>
-    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction, IEquatable<ISuggestedAction>
+    internal abstract partial class SuggestedAction : ForegroundThreadAffinitizedObject, ISuggestedAction3, IEquatable<ISuggestedAction>
     {
         protected readonly SuggestedActionsSourceProvider SourceProvider;
 
@@ -94,6 +95,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public void Invoke(CancellationToken cancellationToken)
         {
+            SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
+            {
+                using var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken);
+                Invoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
+            });
+        }
+
+        public void Invoke(IUIThreadOperationContext context)
+        {
+            using var scope = context.AddScope(allowCancellation: true, CodeAction.Message);
+            this.Invoke(new UIThreadOperationContextProgressTracker(scope), context.UserCancellationToken);
+        }
+
+        private void Invoke(IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
             // While we're not technically doing anything async here, we need to let the
             // integration test harness know that it should not proceed until all this
             // work is done.  Otherwise it might ask to do some work before we finish.
@@ -102,17 +118,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             // to the UI thread as well.
             using (SourceProvider.OperationListener.BeginAsyncOperation($"{nameof(SuggestedAction)}.{nameof(Invoke)}"))
             {
-                // WaitIndicator cannot be used with async/await. Even though we call async methods
-                // later in this call chain, do not await them.
-                SourceProvider.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, showProgress: true, action: waitContext =>
-                {
-                    using var combinedCancellationToken = cancellationToken.CombineWith(waitContext.CancellationToken);
-                    InnerInvoke(waitContext.ProgressTracker, combinedCancellationToken.Token);
-                    foreach (var actionCallback in SourceProvider.ActionCallbacks)
-                    {
-                        actionCallback.Value.OnSuggestedActionExecuted(this);
-                    }
-                });
+                InnerInvoke(progressTracker, cancellationToken);
+                foreach (var actionCallback in SourceProvider.ActionCallbacks)
+                    actionCallback.Value.OnSuggestedActionExecuted(this);
             }
         }
 
@@ -211,6 +219,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return text.Replace("_", "__");
             }
         }
+
+        public string DisplayTextSuffix => "";
 
         protected async Task<SolutionPreviewResult> GetPreviewResultAsync(CancellationToken cancellationToken)
         {

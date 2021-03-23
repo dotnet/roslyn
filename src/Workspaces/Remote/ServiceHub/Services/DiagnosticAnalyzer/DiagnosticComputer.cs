@@ -75,6 +75,12 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 return SerializableDiagnosticAnalysisResults.Empty;
             }
 
+            if (_document == null && analyzers.Length < compilationWithAnalyzers.Analyzers.Length)
+            {
+                // PERF: Generate a new CompilationWithAnalyzers with trimmed analyzers for non-document analysis case.
+                compilationWithAnalyzers = compilationWithAnalyzers.Compilation.WithAnalyzers(analyzers, compilationWithAnalyzers.AnalysisOptions);
+            }
+
             var cacheService = _project.Solution.Workspace.Services.GetRequiredService<IProjectCacheService>();
             using var cache = cacheService.EnableCaching(_project.Id);
             var skippedAnalyzersInfo = _project.GetSkippedAnalyzersInfo(_analyzerInfoCache);

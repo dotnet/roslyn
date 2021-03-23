@@ -785,8 +785,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 // TODO: if it is a missing symbol error but no longer missing in the target assembly, then we can resolve it here.
 
-                var useSiteDiagnostic = type.GetUseSiteDiagnostic();
-                if (useSiteDiagnostic != null)
+                var useSiteDiagnostic = type.GetUseSiteInfo().DiagnosticInfo;
+                if (useSiteDiagnostic?.Severity == DiagnosticSeverity.Error)
                 {
                     return type;
                 }
@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         retargetedType,
                         method.MethodKind,
                         method.CallingConvention,
-                        IndexedTypeParameterSymbol.Take(method.Arity),
+                        IndexedTypeParameterSymbol.TakeSymbols(method.Arity),
                         targetParamsBuilder.ToImmutableAndFree(),
                         method.RefKind,
                         method.IsInitOnly,

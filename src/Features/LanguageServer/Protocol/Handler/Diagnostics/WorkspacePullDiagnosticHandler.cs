@@ -4,11 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -17,11 +15,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspMethod(MSLSPMethods.WorkspacePullDiagnosticName, mutatesSolutionState: false), Shared]
     internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public override string Method => MSLSPMethods.WorkspacePullDiagnosticName;
+
         public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
             : base(diagnosticService)
         {
@@ -56,6 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
         {
+            Contract.ThrowIfNull(context.Solution);
+
             // If we're being called from razor, we do not support WorkspaceDiagnostics at all.  For razor, workspace
             // diagnostics will be handled by razor itself, which will operate by calling into Roslyn and asking for
             // document-diagnostics instead.
@@ -71,8 +70,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             // Collect all the documents from the solution in the order we'd like to get diagnostics for.  This will
             // prioritize the files from currently active projects, but then also include all other docs in all projects
             // (depending on current FSA settings).
-
-            // Oen docs will not be included as those are handled by DocumentPullDiagnosticHandler.
 
             var activeDocument = documentTrackingService.GetActiveDocument(solution);
             var visibleDocuments = documentTrackingService.GetVisibleDocuments(solution);
@@ -101,27 +98,36 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     var analysisScope = solution.Workspace.Options.GetOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, project.Language);
                     if (analysisScope != BackgroundAnalysisScope.FullSolution)
+                    {
+                        context.TraceInformation($"Skipping project '{project.Name}' as it has no open document and Full Solution Analysis is off");
                         return;
+                    }
                 }
 
                 // Otherwise, if the user has an open file from this project, or FSA is on, then include all the
                 // documents from it.
-                result.AddRange(project.Documents);
+                foreach (var document in project.Documents)
+                {
+                    // Only consider closed documents here (and only open ones in the DocumentPullDiagnosticHandler).
+                    // Each handler treats those as separate worlds that they are responsible for.
+                    if (context.IsTracking(document.GetURI()))
+                    {
+                        context.TraceInformation($"Skipping tracked document: {document.GetURI()}");
+                        continue;
+                    }
+
+                    result.Add(document);
+                }
             }
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
         {
-            // We only support workspace diagnostics for closed files.
-            if (context.IsTracking(document.GetURI()))
-                return SpecializedTasks.EmptyImmutableArray<DiagnosticData>();
-
             // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
             // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
             // any deviations in the spans of diagnostics shouldn't be impactful for the user.
-            var diagnostics = this.DiagnosticService.GetPullDiagnostics(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken);
-            return Task.FromResult(diagnostics);
+            return DiagnosticService.GetPullDiagnosticsAsync(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken).AsTask();
         }
     }
 }

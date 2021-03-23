@@ -46,6 +46,15 @@
     -->
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
+
+    <!-- 
+        When markup compilation is involved, WPF generates .g.cs files via the GenerateTemporaryTargetAssembly task. 
+        These do not always have the correct full-paths to their respective .xaml files annotated in them in the #line directives.
+        This can cause compile errors if these files are included in Source Link. 
+        https://github.com/dotnet/wpf/issues/1718
+    -->
+    <EmbedUntrackedSources Condition="$(UseWpf) == 'true'">false</EmbedUntrackedSources>
+    <EmbedUntrackedSources Condition="$(EmbedUntrackedSources) == ''">true</EmbedUntrackedSources>
   </PropertyGroup>
 
   <!--
@@ -167,23 +176,6 @@
     <SingleError Text="The msbuild version $(MSBuildVersion) is below the minimum required version $(MinimumMSBuildVersion)"
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
   </Target> 
-
-  <!--
-    Work around missing code fix references causing VBCSCompiler.exe to reject compilations.
-    https://github.com/dotnet/roslyn/issues/46684
-  -->
-  <Target Name="ExcludeCodeFixes"
-          BeforeTargets="CoreCompile"
-          Condition="'$(BuildingProject)' == 'true'">
-    <!--
-      Disable analyzers that only provide code fixes.
-    -->
-    <ItemGroup>
-      <Analyzer Remove="@(Analyzer)"
-                Condition="'%(Filename)' == 'Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes'
-                  OR '%(Filename)' == 'Microsoft.VisualStudio.Threading.Analyzers.CodeFixes'"/>
-    </ItemGroup>
-  </Target>
 
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 

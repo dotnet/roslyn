@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Structure
             CancellationToken cancellationToken)
         {
             var context = await CreateContextAsync(document, cancellationToken).ConfigureAwait(false);
-            return await GetBlockStructureAsync(context).ConfigureAwait(false);
+            return await GetBlockStructureAsync(context, _providers).ConfigureAwait(false);
         }
 
         public override BlockStructure GetBlockStructure(
@@ -57,20 +58,43 @@ namespace Microsoft.CodeAnalysis.Structure
             CancellationToken cancellationToken)
         {
             var context = CreateContextAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
-            return GetBlockStructure(context);
+            return GetBlockStructure(context, _providers);
         }
 
-        public async Task<BlockStructure> GetBlockStructureAsync(BlockStructureContext context)
-            => await GetBlockStructureAsync(context, _providers).ConfigureAwait(false);
+        public async Task<BlockStructure> GetBlockStructureAsync(
+            SyntaxTree syntaxTree,
+            OptionSet options,
+            bool isMetadataAsSource,
+            CancellationToken cancellationToken)
+        {
+            var context = CreateContext(syntaxTree, options, isMetadataAsSource, cancellationToken);
+            return await GetBlockStructureAsync(context, _providers).ConfigureAwait(false);
+        }
 
-        public BlockStructure GetBlockStructure(BlockStructureContext context)
-            => GetBlockStructure(context, _providers);
+        public BlockStructure GetBlockStructure(
+            SyntaxTree syntaxTree,
+            OptionSet options,
+            bool isMetadataAsSource,
+            CancellationToken cancellationToken)
+        {
+            var context = CreateContext(syntaxTree, options, isMetadataAsSource, cancellationToken);
+            return GetBlockStructure(context, _providers);
+        }
 
         private static async Task<BlockStructureContext> CreateContextAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var options = document.Project.Solution.Options;
             var isMetadataAsSource = document.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
+            return CreateContext(syntaxTree, options, isMetadataAsSource, cancellationToken);
+        }
+
+        private static BlockStructureContext CreateContext(
+            SyntaxTree syntaxTree,
+            OptionSet options,
+            bool isMetadataAsSource,
+            CancellationToken cancellationToken)
+        {
             var optionProvider = new BlockStructureOptionProvider(options, isMetadataAsSource);
             return new BlockStructureContext(syntaxTree, optionProvider, cancellationToken);
         }

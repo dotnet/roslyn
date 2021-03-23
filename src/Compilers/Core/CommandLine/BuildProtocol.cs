@@ -80,13 +80,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(compilerHash), "CompilerHash is required to send request to the build server");
 
-            Log($@"
-Creating BuildRequest
-  Working directory: {workingDirectory}
-  Temp directory: {tempDirectory}
-  Lib directory: {libDirectory ?? null}
-  Compiler hash: {compilerHash}");
-
             var requestLength = args.Count + 1 + (libDirectory == null ? 0 : 1);
             var requestArgs = new List<Argument>(requestLength);
 
@@ -357,7 +350,7 @@ Creating BuildRequest
                     case ResponseType.IncorrectHash:
                         return new IncorrectHashBuildResponse();
                     case ResponseType.AnalyzerInconsistency:
-                        return new AnalyzerInconsistencyBuildResponse();
+                        return AnalyzerInconsistencyBuildResponse.Create(reader);
                     case ResponseType.Shutdown:
                         return ShutdownBuildResponse.Create(reader);
                     case ResponseType.Rejected:
@@ -377,7 +370,6 @@ Creating BuildRequest
     ///  Length             UInteger        4
     ///  ReturnCode         Integer         4
     ///  Output             String          Variable
-    ///  ErrorOutput        String          Variable
     /// 
     /// Strings are encoded via a character count prefix as a 
     /// 32-bit integer, followed by an array of characters.
@@ -388,7 +380,6 @@ Creating BuildRequest
         public readonly int ReturnCode;
         public readonly bool Utf8Output;
         public readonly string Output;
-        public readonly string ErrorOutput;
 
         public CompletedBuildResponse(int returnCode,
                                       bool utf8output,
@@ -397,11 +388,6 @@ Creating BuildRequest
             ReturnCode = returnCode;
             Utf8Output = utf8output;
             Output = output ?? string.Empty;
-
-            // This field existed to support writing to Console.Error.  The compiler doesn't ever write to 
-            // this field or Console.Error.  This field is only kept around in order to maintain the existing
-            // protocol semantics.
-            ErrorOutput = string.Empty;
         }
 
         public override ResponseType Type => ResponseType.Completed;
@@ -411,12 +397,6 @@ Creating BuildRequest
             var returnCode = reader.ReadInt32();
             var utf8Output = reader.ReadBoolean();
             var output = ReadLengthPrefixedString(reader);
-            var errorOutput = ReadLengthPrefixedString(reader);
-            if (!string.IsNullOrEmpty(errorOutput))
-            {
-                throw new InvalidOperationException();
-            }
-
             return new CompletedBuildResponse(returnCode, utf8Output, output);
         }
 
@@ -425,7 +405,6 @@ Creating BuildRequest
             writer.Write(ReturnCode);
             writer.Write(Utf8Output);
             WriteLengthPrefixedString(writer, Output);
-            WriteLengthPrefixedString(writer, ErrorOutput);
         }
     }
 
@@ -476,11 +455,33 @@ Creating BuildRequest
     {
         public override ResponseType Type => ResponseType.AnalyzerInconsistency;
 
-        /// <summary>
-        /// AnalyzerInconsistency has no body.
-        /// </summary>
-        /// <param name="writer"></param>
-        protected override void AddResponseBody(BinaryWriter writer) { }
+        public ReadOnlyCollection<string> ErrorMessages { get; }
+
+        public AnalyzerInconsistencyBuildResponse(ReadOnlyCollection<string> errorMessages)
+        {
+            ErrorMessages = errorMessages;
+        }
+
+        protected override void AddResponseBody(BinaryWriter writer)
+        {
+            writer.Write(ErrorMessages.Count);
+            foreach (var message in ErrorMessages)
+            {
+                WriteLengthPrefixedString(writer, message);
+            }
+        }
+
+        public static AnalyzerInconsistencyBuildResponse Create(BinaryReader reader)
+        {
+            var count = reader.ReadInt32();
+            var list = new List<string>(count);
+            for (var i = 0; i < count; i++)
+            {
+                list.Add(ReadLengthPrefixedString(reader) ?? "");
+            }
+
+            return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(list));
+        }
     }
 
     internal sealed class RejectedBuildResponse : BuildResponse
@@ -494,10 +495,6 @@ Creating BuildRequest
             Reason = reason;
         }
 
-        /// <summary>
-        /// AnalyzerInconsistency has no body.
-        /// </summary>
-        /// <param name="writer"></param>
         protected override void AddResponseBody(BinaryWriter writer)
         {
             WriteLengthPrefixedString(writer, Reason);

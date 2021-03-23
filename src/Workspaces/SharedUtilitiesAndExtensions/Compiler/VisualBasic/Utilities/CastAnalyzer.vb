@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
             ' in order to call string.Format(...) anyway.
-            If (castType?.SpecialType = SpecialType.System_Object).GetValueOrDefault() AndAlso
+            If If(castType?.SpecialType = SpecialType.System_Object, False) AndAlso
                 _castNode.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation) Then
                 Return True
             End If

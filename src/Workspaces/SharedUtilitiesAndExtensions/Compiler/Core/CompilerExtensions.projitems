@@ -22,6 +22,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReferenceEqualityComparer.cs" Link="InternalUtilities\ReferenceEqualityComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\RoslynString.cs" Link="InternalUtilities\RoslynString.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.cs" Link="InternalUtilities\SpecializedCollections.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SharedStopwatch.cs" Link="InternalUtilities\SharedStopwatch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Collection.cs" Link="InternalUtilities\SpecializedCollections.Empty.Collection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.cs" Link="InternalUtilities\SpecializedCollections.Empty.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedCollections.Empty.Dictionary.cs" Link="InternalUtilities\SpecializedCollections.Empty.Dictionary.cs" />
@@ -179,8 +180,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\NotificationOption2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\OperatorPlacementWhenWrappingPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\ParenthesesPreference.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArrayHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Collections\SegmentedArray`1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArrayExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Collections\TemporaryArray`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\IPragmaSuppressionsAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\Common\EmbeddedDiagnostic.cs" />
@@ -383,6 +383,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\CommonFormattingHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ComparerWithState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Contract.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Matcher.SingleOrNone.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PublicContract.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EditDistance.cs" />

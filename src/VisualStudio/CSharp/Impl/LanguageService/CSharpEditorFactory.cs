@@ -31,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         protected override string ContentTypeName => ContentTypeNames.CSharpContentType;
         protected override string LanguageName => LanguageNames.CSharp;
         protected override SyntaxGenerator SyntaxGenerator => CSharpSyntaxGenerator.Instance;
+        protected override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
 
         protected override async Task<Document> OrganizeUsingsCreatedFromTemplateAsync(Document document, CancellationToken cancellationToken)
         {

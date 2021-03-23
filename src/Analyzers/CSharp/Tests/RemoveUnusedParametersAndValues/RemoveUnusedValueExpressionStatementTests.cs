@@ -626,5 +626,27 @@ $@"class C
     int M2() => 0;
 }", optionName);
         }
+
+        [WorkItem(43648, "https://github.com/dotnet/roslyn/issues/43648")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ExpressionStatement_Dynamic(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+            List<dynamic> returnValue = new List<dynamic>();
+
+            dynamic dynamicValue = new object();
+
+            [|returnValue.Add(dynamicValue)|];
+    }
+}", optionName);
+        }
     }
 }

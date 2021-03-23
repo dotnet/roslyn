@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Xunit;
 
@@ -24,14 +23,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Throws<IndexOutOfRangeException>(() =>
             {
                 using var array = TemporaryArray<int>.Empty;
-                Unsafe.AsRef(in array)[-1] = 1;
+                array.AsRef()[-1] = 1;
             });
 
             Assert.Throws<IndexOutOfRangeException>(() => TemporaryArray<int>.Empty[0]);
             Assert.Throws<IndexOutOfRangeException>(() =>
             {
                 using var array = TemporaryArray<int>.Empty;
-                Unsafe.AsRef(in array)[0] = 1;
+                array.AsRef()[0] = 1;
             });
 
             Assert.False(TemporaryArray<int>.Empty.GetEnumerator().MoveNext());
@@ -67,12 +66,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 var i = array.Count;
                 Assert.Throws<IndexOutOfRangeException>(() => array[i]);
-                Assert.Throws<IndexOutOfRangeException>(() => Unsafe.AsRef(in array)[i] = 1);
+                Assert.Throws<IndexOutOfRangeException>(() => array.AsRef()[i] = 1);
 
                 array.Add(i);
                 Assert.Equal(i + 1, array.Count);
                 Assert.Equal(i, array[i]);
-                Unsafe.AsRef(in array)[i] = i + 1;
+                array.AsRef()[i] = i + 1;
                 Assert.Equal(i + 1, array[i]);
             }
         }

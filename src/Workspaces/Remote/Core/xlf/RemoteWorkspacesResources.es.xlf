@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="FeatureName_AssetSynchronization">
         <source>Asset synchronization</source>
-        <target state="new">Asset synchronization</target>
+        <target state="translated">Sincronización de recursos</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_AsynchronousOperationListener">
         <source>Asynchronous operation listener</source>
-        <target state="new">Asynchronous operation listener</target>
+        <target state="translated">Cliente de escucha de operaciones asincrónicas</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_CodeLensReferences">
@@ -42,6 +42,11 @@
         <target state="translated">Contenidos destacados del documento</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_EditAndContinue">
+        <source>Edit and Continue</source>
+        <target state="new">Edit and Continue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_EncapsulateField">
         <source>Encapsulate field refactoring</source>
         <target state="translated">Encapsular la refactorización de campo</target>
@@ -72,6 +77,11 @@
         <target state="translated">Navegar a</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_NavigationBarItem">
+        <source>Navigation bar</source>
+        <target state="new">Navigation bar</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_ProjectTelemetry">
         <source>Project telemetry collection</source>
         <target state="translated">Recopilación de telemetría del proyecto</target>
@@ -94,7 +104,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
-        <target state="new">Asset provider</target>
+        <target state="translated">Proveedor de recursos</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SymbolFinder">

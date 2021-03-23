@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="The_snapshot_does_not_contain_the_specified_position">
         <source>The snapshot does not contain the specified position.</source>
-        <target state="new">The snapshot does not contain the specified position.</target>
+        <target state="translated">Lo snapshot non contiene la posizione specificata.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_snapshot_does_not_contain_the_specified_span">
         <source>The snapshot does not contain the specified span.</source>
-        <target state="new">The snapshot does not contain the specified span.</target>
+        <target state="translated">Lo snapshot non contiene la selezione specificata.</target>
         <note />
       </trans-unit>
       <trans-unit id="textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer">

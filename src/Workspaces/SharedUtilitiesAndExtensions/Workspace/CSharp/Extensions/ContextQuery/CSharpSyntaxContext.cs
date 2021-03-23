@@ -14,13 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal sealed class CSharpSyntaxContext : SyntaxContext
     {
-        public readonly TypeDeclarationSyntax ContainingTypeDeclaration;
-        public readonly BaseTypeDeclarationSyntax ContainingTypeOrEnumDeclaration;
+        public readonly TypeDeclarationSyntax? ContainingTypeDeclaration;
+        public readonly BaseTypeDeclarationSyntax? ContainingTypeOrEnumDeclaration;
 
         public readonly bool IsInNonUserCode;
 
         public readonly bool IsPreProcessorKeywordContext;
-        public readonly bool IsPreProcessorExpressionContext;
 
         public readonly bool IsGlobalStatementContext;
 
@@ -59,8 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             int position,
             SyntaxToken leftToken,
             SyntaxToken targetToken,
-            TypeDeclarationSyntax containingTypeDeclaration,
-            BaseTypeDeclarationSyntax containingTypeOrEnumDeclaration,
+            TypeDeclarationSyntax? containingTypeDeclaration,
+            BaseTypeDeclarationSyntax? containingTypeOrEnumDeclaration,
             bool isInNonUserCode,
             bool isPreProcessorDirectiveContext,
             bool isPreProcessorKeywordContext,
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
-                   isPreProcessorDirectiveContext,
+                   isPreProcessorDirectiveContext, isPreProcessorExpressionContext,
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
                    isInQuery, isInImportsDirective, IsWithinAsyncMethod(), isPossibleTupleContext,
@@ -122,7 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
             this.IsInNonUserCode = isInNonUserCode;
             this.IsPreProcessorKeywordContext = isPreProcessorKeywordContext;
-            this.IsPreProcessorExpressionContext = isPreProcessorExpressionContext;
             this.IsGlobalStatementContext = isGlobalStatementContext;
             this.IsNonAttributeExpressionContext = isNonAttributeExpressionContext;
             this.IsConstantExpressionContext = isConstantExpressionContext;

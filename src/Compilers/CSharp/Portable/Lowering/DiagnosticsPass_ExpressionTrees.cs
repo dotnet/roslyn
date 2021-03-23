@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed partial class DiagnosticsPass
     {
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly CSharpCompilation _compilation;
         private bool _inExpressionLambda;
         private bool _reportedUnsafe;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Containing static local function, static anonymous function, or static lambda.
         private SourceMethodSymbol _staticLocalOrAnonymousFunction;
 
-        public static void IssueDiagnostics(CSharpCompilation compilation, BoundNode node, DiagnosticBag diagnostics, MethodSymbol containingSymbol)
+        public static void IssueDiagnostics(CSharpCompilation compilation, BoundNode node, BindingDiagnosticBag diagnostics, MethodSymbol containingSymbol)
         {
             Debug.Assert(node != null);
             Debug.Assert((object)containingSymbol != null);
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DiagnosticsPass(CSharpCompilation compilation, DiagnosticBag diagnostics, MethodSymbol containingSymbol)
+        private DiagnosticsPass(CSharpCompilation compilation, BindingDiagnosticBag diagnostics, MethodSymbol containingSymbol)
         {
             Debug.Assert(diagnostics != null);
             Debug.Assert((object)containingSymbol != null);
@@ -422,6 +422,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(ErrorCode.ERR_DictionaryInitializerInExpressionTree, node);
             }
 
+            if (node.MemberSymbol is PropertySymbol property)
+            {
+                CheckRefReturningPropertyAccess(node, property);
+            }
+
             return base.VisitObjectInitializerMember(node);
         }
 
@@ -481,14 +486,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitIndexerAccess(node);
         }
 
-        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        private void CheckRefReturningPropertyAccess(BoundNode node, PropertySymbol property)
         {
-            var property = node.PropertySymbol;
-            var method = property.GetMethod; // This is only checking for ref returns, so we don't fall back to the set method.
-            if ((object)method != null && _inExpressionLambda && method.RefKind != RefKind.None)
+            if (_inExpressionLambda && property.RefKind != RefKind.None)
             {
                 Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
             }
+        }
+
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            var property = node.PropertySymbol;
+            CheckRefReturningPropertyAccess(node, property);
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitPropertyAccess(node);
         }

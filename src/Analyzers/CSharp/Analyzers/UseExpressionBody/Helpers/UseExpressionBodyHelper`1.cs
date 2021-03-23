@@ -31,16 +31,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override LocalizableString UseExpressionBodyTitle { get; }
         public override LocalizableString UseBlockBodyTitle { get; }
         public override string DiagnosticId { get; }
+        public override EnforceOnBuild EnforceOnBuild { get; }
         public override ImmutableArray<SyntaxKind> SyntaxKinds { get; }
 
         protected UseExpressionBodyHelper(
             string diagnosticId,
+            EnforceOnBuild enforceOnBuild,
             LocalizableString useExpressionBodyTitle,
             LocalizableString useBlockBodyTitle,
             Option2<CodeStyleOption2<ExpressionBodyPreference>> option,
             ImmutableArray<SyntaxKind> syntaxKinds)
         {
             DiagnosticId = diagnosticId;
+            EnforceOnBuild = enforceOnBuild;
             Option = option;
             UseExpressionBodyTitle = useExpressionBodyTitle;
             UseBlockBodyTitle = useBlockBodyTitle;
