@@ -5,7 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -30,14 +30,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _serviceProvider = serviceProvider;
         }
 
-        public IOptionPersister GetPersister()
+        public IOptionPersister? TryGetPersister()
+        {
+            return _lazyPersister;
+        }
+
+        public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
             if (_lazyPersister is not null)
             {
                 return _lazyPersister;
             }
 
-            _threadingContext.ThrowIfNotOnUIThread();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _lazyPersister ??= new LocalUserRegistryOptionPersister(_threadingContext, _serviceProvider);
             return _lazyPersister;

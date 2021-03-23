@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             foreach (var provider in _componentModel.GetExtensions<IOptionPersisterProvider>())
             {
-                _ = provider.GetPersister();
+                _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
             }
 
             _workspace = _componentModel.GetService<VisualStudioWorkspace>();

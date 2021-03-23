@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             var constructedOptionSerializers = _optionSerializerProviders.SelectAsArray(
-                static (lazyProvider) => lazyProvider.Value.GetPersister());
+                static (lazyProvider) => lazyProvider.Value.TryGetPersister());
 
             optionSerializers = constructedOptionSerializers.WhereNotNull().ToImmutableArray();
             ImmutableInterlocked.InterlockedInitialize(ref _lazyOptionSerializers, optionSerializers);

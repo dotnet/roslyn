@@ -5,14 +5,14 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Settings;
-using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
+using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
+using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal sealed class RoamingVisualStudioProfileOptionPersisterProvider : IOptionPersisterProvider
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IAsyncServiceProvider _serviceProvider;
         private readonly IGlobalOptionService _optionService;
         private RoamingVisualStudioProfileOptionPersister? _lazyPersister;
 
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoamingVisualStudioProfileOptionPersisterProvider(
             IThreadingContext threadingContext,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
             IGlobalOptionService optionService)
         {
             _threadingContext = threadingContext;
@@ -36,16 +36,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _optionService = optionService;
         }
 
-        public IOptionPersister GetPersister()
+        public IOptionPersister? TryGetPersister()
+        {
+            return _lazyPersister;
+        }
+
+        public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
             if (_lazyPersister is not null)
             {
                 return _lazyPersister;
             }
 
-            _threadingContext.ThrowIfNotOnUIThread();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var settingsManager = _serviceProvider.GetService<SVsSettingsPersistenceManager, ISettingsManager>();
+            var settingsManager = (ISettingsManager?)await _serviceProvider.GetServiceAsync(typeof(SVsSettingsPersistenceManager)).ConfigureAwait(true);
 
             _lazyPersister ??= new RoamingVisualStudioProfileOptionPersister(_threadingContext, _optionService, settingsManager);
             return _lazyPersister;

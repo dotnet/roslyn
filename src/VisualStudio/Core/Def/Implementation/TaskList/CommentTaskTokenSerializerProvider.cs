@@ -5,13 +5,13 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
+using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using ITaskList = Microsoft.VisualStudio.Shell.ITaskList;
-using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
+using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
 using SVsTaskList = Microsoft.VisualStudio.Shell.Interop.SVsTaskList;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
     internal sealed class CommentTaskTokenSerializerProvider : IOptionPersisterProvider
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IAsyncServiceProvider _serviceProvider;
         private readonly IGlobalOptionService _optionService;
         private CommentTaskTokenSerializer? _lazyPersister;
 
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CommentTaskTokenSerializerProvider(
             IThreadingContext threadingContext,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
             IGlobalOptionService optionService)
         {
             _threadingContext = threadingContext;
@@ -36,16 +36,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _optionService = optionService;
         }
 
-        public IOptionPersister GetPersister()
+        public IOptionPersister? TryGetPersister()
+        {
+            return _lazyPersister;
+        }
+
+        public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
             if (_lazyPersister is not null)
             {
                 return _lazyPersister;
             }
 
-            _threadingContext.ThrowIfNotOnUIThread();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var taskList = _serviceProvider.GetService<SVsTaskList, ITaskList>();
+            // Not all SVsTaskList implementations implement ITaskList, but when it does we will use it
+            var taskList = await _serviceProvider.GetServiceAsync(typeof(SVsTaskList)).ConfigureAwait(true) as ITaskList;
             _lazyPersister ??= new CommentTaskTokenSerializer(_optionService, taskList);
             return _lazyPersister;
         }

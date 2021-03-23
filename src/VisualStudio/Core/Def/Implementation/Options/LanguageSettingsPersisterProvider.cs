@@ -5,13 +5,13 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.TextManager.Interop;
-using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
+using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
+using SAsyncServiceProvider = Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal sealed class LanguageSettingsPersisterProvider : IOptionPersisterProvider
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IAsyncServiceProvider _serviceProvider;
         private readonly IGlobalOptionService _optionService;
         private LanguageSettingsPersister? _lazyPersister;
 
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LanguageSettingsPersisterProvider(
             IThreadingContext threadingContext,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider,
             IGlobalOptionService optionService)
         {
             _threadingContext = threadingContext;
@@ -35,16 +35,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _optionService = optionService;
         }
 
-        public IOptionPersister GetPersister()
+        public IOptionPersister? TryGetPersister()
+        {
+            return _lazyPersister;
+        }
+
+        public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
             if (_lazyPersister is not null)
             {
                 return _lazyPersister;
             }
 
-            _threadingContext.ThrowIfNotOnUIThread();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var textManager = _serviceProvider.GetService<SVsTextManager, IVsTextManager4>();
+            var textManager = (IVsTextManager4?)await _serviceProvider.GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(true);
             Assumes.Present(textManager);
 
             _lazyPersister ??= new LanguageSettingsPersister(_threadingContext, textManager, _optionService);
