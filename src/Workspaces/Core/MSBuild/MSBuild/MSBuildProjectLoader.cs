@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 // Load project if we have an empty project filter and the project path is present.
                 if (projectfilter.IsEmpty ||
-                    projectfilter.Contains(project.RelativePath))
+                    projectfilter.Contains(project.AbsolutePath))
                 {
                     projectPaths.Add(project.RelativePath);
                 }
