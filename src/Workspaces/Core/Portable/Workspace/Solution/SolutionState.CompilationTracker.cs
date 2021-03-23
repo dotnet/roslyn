@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis
 
                     // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
                     // being made to the project, but it's the best we have so we'll use it.
-                    inProgressCompilation = compilationWithoutGeneratedDocuments.AddSyntaxTrees(sourceGeneratedDocuments.States.Select(state => state.SyntaxTree));
+                    inProgressCompilation = compilationWithoutGeneratedDocuments.AddSyntaxTrees(sourceGeneratedDocuments.States.Select(state => state.GetSyntaxTree(cancellationToken)));
 
                     // This is likely a bug.  It seems possible to pass out a partial compilation state that we don't
                     // properly record assembly symbols for.
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis
                     inProgressCompilation = compilationWithoutGeneratedDocuments;
                 }
 
-                inProgressCompilation = inProgressCompilation.AddSyntaxTrees(sourceGeneratedDocuments.States.Select(state => state.SyntaxTree));
+                inProgressCompilation = inProgressCompilation.AddSyntaxTrees(sourceGeneratedDocuments.States.Select(state => state.GetSyntaxTree(cancellationToken)));
 
                 // Now add in back a consistent set of project references.  For project references
                 // try to get either a CompilationReference or a SkeletonReference. This ensures
@@ -852,7 +852,8 @@ namespace Microsoft.CodeAnalysis
                     if (authoritativeGeneratedDocuments.HasValue)
                     {
                         generatedDocuments = authoritativeGeneratedDocuments.Value;
-                        compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(generatedDocuments.States.Select(state => state.SyntaxTree));
+                        compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(
+                            await generatedDocuments.States.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
                     }
                     else
                     {
@@ -900,9 +901,7 @@ namespace Microsoft.CodeAnalysis
                                         {
                                             var newDocument = existing.WithUpdatedGeneratedContent(
                                                     generatedSource.SourceText,
-                                                    generatedSource.SyntaxTree,
-                                                    this.ProjectState.ParseOptions!,
-                                                    cancellationToken);
+                                                    this.ProjectState.ParseOptions!);
 
                                             generatedDocumentsBuilder.Add(newDocument);
 
@@ -911,16 +910,18 @@ namespace Microsoft.CodeAnalysis
                                         }
                                         else
                                         {
+                                            // NOTE: the use of generatedSource.SyntaxTree to fetch the path and options is OK,
+                                            // since the tree is a lazy tree and that won't trigger the parse.
                                             generatedDocumentsBuilder.Add(
                                                 SourceGeneratedDocumentState.Create(
                                                     generatedSource.HintName,
                                                     generatedSource.SourceText,
-                                                    generatedSource.SyntaxTree,
                                                     CreateStableSourceGeneratedDocumentId(ProjectState.Id, generatorResult.Generator, generatedSource.HintName),
+                                                    generatedSource.SyntaxTree.FilePath,
+                                                    generatedSource.SyntaxTree.Options,
                                                     generatorResult.Generator,
                                                     this.ProjectState.LanguageServices,
-                                                    solution.Services,
-                                                    cancellationToken));
+                                                    solution.Services));
 
                                             // The count of trees was the same, but something didn't match up. Since we're here, at least one tree
                                             // was added, and an equal number must have been removed. Rather than trying to incrementally update
@@ -941,7 +942,8 @@ namespace Microsoft.CodeAnalysis
                         else
                         {
                             generatedDocuments = new TextDocumentStates<SourceGeneratedDocumentState>(generatedDocumentsBuilder.ToImmutableAndClear());
-                            compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(generatedDocuments.States.Select(state => state.SyntaxTree));
+                            compilationWithGenerators = compilationWithoutGenerators.AddSyntaxTrees(
+                                await generatedDocuments.States.SelectAsArrayAsync(state => state.GetSyntaxTreeAsync(cancellationToken)).ConfigureAwait(false));
                         }
                     }
 
