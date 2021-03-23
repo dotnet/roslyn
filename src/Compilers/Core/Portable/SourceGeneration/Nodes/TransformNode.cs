@@ -9,12 +9,12 @@ using System.Diagnostics;
 using System.Text;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class TransformNode<TInput, TOutput> : INode<TOutput>
+    internal class TransformNode<TInput, TOutput> : AbstractSingleParentNode<TInput, TOutput>, INode<TOutput>
     {
-        private readonly INode<TInput> _sourceNode;
         private readonly Func<TInput, TOutput>? _singleFunc;
         private readonly IEqualityComparer<TOutput> _comparer;
         private readonly Func<TInput, IEnumerable<TOutput>>? _multiFunc;
@@ -30,20 +30,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         private TransformNode(INode<TInput> sourceNode, Func<TInput, TOutput>? singleFunc, Func<TInput, IEnumerable<TOutput>>? multiFunc, IEqualityComparer<TOutput> comparer)
+            : base(sourceNode)
         {
-            _sourceNode = sourceNode;
             _singleFunc = singleFunc;
             _comparer = comparer;
             _multiFunc = multiFunc;
         }
 
-        public INode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new TransformNode<TInput, TOutput>(_sourceNode, _singleFunc, _multiFunc, comparer);
+        public INode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new TransformNode<TInput, TOutput>(_parentNode, _singleFunc, _multiFunc, comparer);
 
-        public StateTable<TOutput> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<TOutput> previousTable)
+        protected override StateTable<TOutput> UpdateStateTable(StateTable<TInput> sourceTable, StateTable<TOutput> previousTable)
         {
-            // get the parent state table
-            var sourceTable = stateTable.GetLatestStateTableForNode(_sourceNode);
-
             // TODO: if the input node returns all cached values, then we can just
             //       return the previous table.
 
@@ -60,9 +57,11 @@ namespace Microsoft.CodeAnalysis
                 else if (entry.state == EntryState.Added || entry.state == EntryState.Modified)
                 {
                     // generate the new entries
-                    ImmutableArray<TOutput> newEntries = _singleFunc is object
-                                                         ? ImmutableArray.Create(_singleFunc(entry.item))
-                                                         : _multiFunc!(entry.item).ToImmutableArray();
+                    if (!TryGetTransformedEntries(entry.index, entry.item, entry.state, out var newEntries, out var exc))
+                    {
+                        newTable.SetFaulted(exc);
+                        break;
+                    }
 
                     if (entry.state == EntryState.Added)
                     {
@@ -105,5 +104,43 @@ namespace Microsoft.CodeAnalysis
 
             return newTable.ToImmutableAndFree();
         }
+
+        private bool TryGetTransformedEntries(int index, TInput item, EntryState state, out ImmutableArray<TOutput> output, [NotNullWhen(false)]out Exception? exc)
+        {
+            if (_singleFunc is object)
+            {
+                TOutput singleItem;
+                try
+                {
+                    singleItem = _singleFunc(item);
+                }
+                catch (Exception e)
+                {
+                    output = ImmutableArray<TOutput>.Empty;
+                    exc = e;
+                    return false;
+                }
+                output = ImmutableArray.Create(singleItem);
+            }
+            else
+            {
+                Debug.Assert(_multiFunc is object);
+                try
+                {
+                    output = _multiFunc(item).ToImmutableArray();
+                }
+                catch (Exception e)
+                {
+                    output = ImmutableArray<TOutput>.Empty;
+                    exc = e;
+                    return false;
+                }
+            }
+
+            exc = null;
+            return true;
+        }
+
+
     }
 }

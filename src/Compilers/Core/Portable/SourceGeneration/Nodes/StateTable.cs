@@ -21,28 +21,28 @@ namespace Microsoft.CodeAnalysis
 
     internal class StateTable<T> : IStateTable
     {
-        internal static StateTable<T> Empty { get; } = new StateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, 0);
+        internal static StateTable<T> Empty { get; } = new StateTable<T>(ImmutableArray<ImmutableArray<(T, EntryState)>>.Empty, 0, exception: null);
 
         readonly ImmutableArray<ImmutableArray<(T, EntryState)>> _states;
 
         readonly int _removedCount;
 
-        private StateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, int removedCount)
+        readonly Exception? _exception;
+
+        private StateTable(ImmutableArray<ImmutableArray<(T, EntryState)>> states, int removedCount, Exception? exception)
         {
             _states = states;
             _removedCount = removedCount;
+            _exception = exception;
         }
 
+        public bool IsFaulted { get => _exception is not null; }
+
+        //TODO: should this just be an indexer?
         public ImmutableArray<T> GetEntries(int inputIndex)
         {
-            if (inputIndex < _states.Length)
-            {
-                return _states[inputIndex].SelectAsArray(e => e.Item1);
-            }
-            else
-            {
-                return ImmutableArray<T>.Empty;
-            }
+            Debug.Assert(inputIndex < _states.Length);
+            return _states[inputIndex].SelectAsArray(e => e.Item1);
         }
 
         public IEnumerator<(int index, T item, EntryState state)> GetEnumerator()
@@ -65,7 +65,13 @@ namespace Microsoft.CodeAnalysis
                     compacted.Add(entry.SelectAsArray(e => (e.Item1, EntryState.Cached)));
                 }
             }
-            return new StateTable<T>(compacted.ToImmutableAndFree(), 0);
+            return new StateTable<T>(compacted.ToImmutableAndFree(), 0, _exception);
+        }
+
+        public static StateTable<T> FromFaultedTable<U>(StateTable<U> table)
+        {
+            Debug.Assert(table.IsFaulted);
+            return new StateTable<T>(Empty._states, 0, table._exception);
         }
 
         public class Builder
@@ -73,6 +79,8 @@ namespace Microsoft.CodeAnalysis
             private readonly ArrayBuilder<ImmutableArray<(T, EntryState)>> _states = ArrayBuilder<ImmutableArray<(T, EntryState)>>.GetInstance();
 
             private int _removedCount = 0;
+
+            private Exception? _exception = null;
 
             public void AddEntries(ImmutableArray<T> values, EntryState state)
             {
@@ -98,7 +106,12 @@ namespace Microsoft.CodeAnalysis
                 _states[inputIndex] = values.ToImmutableArray();
             }
 
-            public StateTable<T> ToImmutableAndFree() => new StateTable<T>(_states.ToImmutableAndFree(), _removedCount);
+            public void SetFaulted(Exception e)
+            {
+                _exception = e;
+            }
+
+            public StateTable<T> ToImmutableAndFree() => new StateTable<T>(_states.ToImmutableAndFree(), _removedCount, exception: _exception);
         }
     }
 
@@ -148,7 +161,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // we can compact the tables at this point, as we'll no longer be using them to determine current state
                 var keys = _tableBuilder.Keys.ToArray();
-                for(int i = 0; i < _tableBuilder.Count; i++)
+                for (int i = 0; i < _tableBuilder.Count; i++)
                 {
                     _tableBuilder[keys[i]] = _tableBuilder[keys[i]].Compact();
                 }
