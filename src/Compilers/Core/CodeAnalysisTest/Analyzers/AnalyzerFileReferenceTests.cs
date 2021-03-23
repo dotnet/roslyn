@@ -392,6 +392,7 @@ public class Generator : ISourceGenerator
         }
 
         [Fact]
+        [WorkItem(52035, "https://github.com/dotnet/roslyn/issues/52035")]
         public void TestLoadedAnalyzerOrderIsDeterministic()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
@@ -424,6 +425,7 @@ public class Generator : ISourceGenerator
         }
 
         [ConditionalFact(typeof(CoreClrOnly), Reason = "Can't load a framework targeting generator, which these are in desktop")]
+        [WorkItem(52035, "https://github.com/dotnet/roslyn/issues/52035")]
         public void TestLoadedGeneratorOrderIsDeterministic()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
