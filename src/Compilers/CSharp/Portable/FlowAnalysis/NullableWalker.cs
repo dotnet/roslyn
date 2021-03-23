@@ -9362,6 +9362,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode? VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
+        {
+            // This is only involved with unbound lambdas or when visiting the source of a converted tuple literal
+            var result = base.VisitInterpolatedStringBase(node);
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return result;
+        }
+
         public override BoundNode? VisitStringInsert(BoundStringInsert node)
         {
             var result = base.VisitStringInsert(node);

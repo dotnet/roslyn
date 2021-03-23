@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
 
-            ConstantValueUtils.CheckLangVersionForConstantValue(expression, diagnostics);
+            ConstantValueUtils.CheckLangVersionForConstantValue(convertedExpression, diagnostics);
 
             if (!convertedExpression.HasErrors && !hasErrors)
             {

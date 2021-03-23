@@ -2002,12 +2002,18 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundInterpolatedString" Base="BoundExpression">
+  <AbstractNode Name="BoundInterpolatedStringBase" Base="BoundExpression">
     <!-- The sequence of parts of an interpolated string. The even numbered positions (starting with 0) are
          from the literal parts of the input. The odd numbered positions are the string inserts. When a
          width or format string are provided, the corresponding insert will be a BoundStringInsert -->
     <Field Name="Parts" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+  </AbstractNode>
+
+  <Node Name="BoundUnconvertedInterpolatedString" Base="BoundInterpolatedStringBase">
+  </Node>
+
+  <Node Name="BoundInterpolatedString" Base="BoundInterpolatedStringBase">
   </Node>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">

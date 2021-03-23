@@ -118,6 +118,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConvertConditionalExpression((BoundUnconvertedConditionalOperator)source, destination, conversionIfTargetTyped: conversion, diagnostics);
             }
 
+            if (conversion.Kind == ConversionKind.InterpolatedString)
+            {
+                var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
+                source = new BoundInterpolatedString(
+                    unconvertedSource.Syntax,
+                    unconvertedSource.Parts,
+                    unconvertedSource.ConstantValue,
+                    unconvertedSource.Type,
+                    unconvertedSource.HasErrors);
+            }
+
             if (source.Kind == BoundKind.UnconvertedSwitchExpression)
             {
                 TypeSymbol? type = source.Type;
