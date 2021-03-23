@@ -706,20 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var attributes = GetAttributes();
-                var result = ImmutableHashSet<string>.Empty;
-                foreach (var attribute in attributes)
-                {
-                    if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullIfNotNullAttribute))
-                    {
-                        if (attribute.DecodeNotNullIfNotNullAttribute() is string parameterName)
-                        {
-                            result = result.Add(parameterName);
-                        }
-                    }
-                }
-
-                return result;
+                return _moduleSymbol.Module.GetStringValuesOfNotNullIfNotNullAttribute(_handle);
             }
         }
 
