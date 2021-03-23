@@ -406,5 +406,81 @@ global using Bar;");
             await VerifyKeywordAsync(
 @"global $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeNamespace()
+        {
+            await VerifyKeywordAsync(
+@"$$
+namespace NS
+{}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeClass()
+        {
+            await VerifyKeywordAsync(
+@"$$
+class C1
+{}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeAttribute_01()
+        {
+            await VerifyKeywordAsync(
+@"$$
+[Call()]");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeAttribute_02()
+        {
+            await VerifyKeywordAsync(
+@"$$
+[assembly: Call()]");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeNamespaceAfterGlobal()
+        {
+            await VerifyKeywordAsync(
+@"global $$
+namespace NS
+{}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeClassAfterGlobal()
+        {
+            await VerifyKeywordAsync(
+@"global $$
+class C1
+{}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeStatementAfterGlobal()
+        {
+            await VerifyKeywordAsync(
+@"global $$
+Call();");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeAttributeAfterGlobal_01()
+        {
+            await VerifyKeywordAsync(
+@"global $$
+[Call()]");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeAttributeAfterGlobal_02()
+        {
+            await VerifyKeywordAsync(
+@"global $$
+[assembly: Call()]");
+        }
     }
 }

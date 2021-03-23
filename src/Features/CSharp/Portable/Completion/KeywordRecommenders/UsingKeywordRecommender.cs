@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             {
                 // root namespace
 
-                return isValidContextAtTheRoot(context, originalToken, cancellationToken);
+                return IsValidContextAtTheRoot(context, originalToken, cancellationToken);
             }
 
             if (token.Kind() == SyntaxKind.OpenBraceToken &&
@@ -118,8 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // |
             if (token.Kind() == SyntaxKind.SemicolonToken)
             {
-                if (token.Parent.IsKind(SyntaxKind.ExternAliasDirective) ||
-                    token.Parent.IsKind(SyntaxKind.UsingDirective))
+                if (token.Parent.IsKind(SyntaxKind.ExternAliasDirective, SyntaxKind.UsingDirective))
                 {
                     return true;
                 }
@@ -140,26 +139,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     // root namespace
                     if (token.Kind() == SyntaxKind.GlobalKeyword)
                     {
-                        if (!token.Parent.IsKind(SyntaxKind.UsingDirective) || token.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                     else if (token.Kind() == SyntaxKind.IdentifierToken && SyntaxFacts.GetContextualKeywordKind((string)token.Value!) == SyntaxKind.GlobalKeyword)
                     {
-                        return isValidContextAtTheRoot(context, originalToken, cancellationToken);
+                        return IsValidContextAtTheRoot(context, originalToken, cancellationToken);
                     }
                 }
                 else if (previousToken.Kind() == SyntaxKind.SemicolonToken &&
-                    (previousToken.Parent.IsKind(SyntaxKind.ExternAliasDirective) ||
-                    previousToken.Parent.IsKind(SyntaxKind.UsingDirective)))
+                    previousToken.Parent.IsKind(SyntaxKind.ExternAliasDirective, SyntaxKind.UsingDirective))
                 {
                     if (token.Kind() == SyntaxKind.GlobalKeyword)
                     {
-                        if (!token.Parent.IsKind(SyntaxKind.UsingDirective) || token.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                     else if (token.Kind() == SyntaxKind.IdentifierToken && SyntaxFacts.GetContextualKeywordKind((string)token.Value!) == SyntaxKind.GlobalKeyword)
                     {
@@ -170,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             return false;
 
-            static bool isValidContextAtTheRoot(CSharpSyntaxContext context, SyntaxToken originalToken, CancellationToken cancellationToken)
+            static bool IsValidContextAtTheRoot(CSharpSyntaxContext context, SyntaxToken originalToken, CancellationToken cancellationToken)
             {
                 // a using can't come before externs
                 var nextToken = originalToken.GetNextToken(includeSkipped: true);

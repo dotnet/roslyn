@@ -310,5 +310,47 @@ global using Bar;");
 global $$
 using Bar;");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeNamespace()
+        {
+            await VerifyKeywordAsync(
+@"$$
+namespace NS
+{}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeClass()
+        {
+            await VerifyKeywordAsync(
+@"$$
+class C1
+{}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeStatement()
+        {
+            await VerifyKeywordAsync(
+@"$$
+Call();");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeAttribute_01()
+        {
+            await VerifyKeywordAsync(
+@"$$
+[Call()]");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeAttribute_02()
+        {
+            await VerifyKeywordAsync(
+@"$$
+[assembly: Call()]");
+        }
     }
 }

@@ -13,12 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
     internal static partial class SyntaxTokenExtensions
     {
-        public static bool IsStartOfUsingOrExternDirective(this SyntaxToken token)
+        public static bool IsUsingOrExternKeyword(this SyntaxToken token)
         {
             return
                 token.Kind() == SyntaxKind.UsingKeyword ||
-                token.Kind() == SyntaxKind.ExternKeyword ||
-                (token.Kind() == SyntaxKind.GlobalKeyword && token.GetAncestor<UsingDirectiveSyntax>()?.GlobalKeyword == token);
+                token.Kind() == SyntaxKind.ExternKeyword;
         }
 
         public static bool IsUsingKeywordInUsingDirective(this SyntaxToken token)
