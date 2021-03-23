@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         private static ImmutableArray<(string diagnosticId, ImmutableHashSet<IOption2> codeStyleOptions)> GetIDEDiagnosticIdsAndOptions(
             string languageName)
         {
-            const string diagnosticIdPrefix = "IDE";
-
             var diagnosticIdAndOptions = new List<(string diagnosticId, ImmutableHashSet<IOption2> options)>();
             var uniqueDiagnosticIds = new HashSet<string>();
             foreach (var assembly in MefHostServices.DefaultAssemblies)
@@ -41,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
                         var diagnosticId = descriptor.Id;
                         ValidateHelpLinkForDiagnostic(diagnosticId, descriptor.HelpLinkUri);
 
-                        if (!diagnosticId.StartsWith(diagnosticIdPrefix) ||
-                            !int.TryParse(diagnosticId.Substring(startIndex: diagnosticIdPrefix.Length), out _))
+                        if (diagnosticId.StartsWith("ENC") ||
+                            !char.IsDigit(diagnosticId[^1]))
                         {
                             // Ignore non-IDE diagnostic IDs (such as ENCxxxx diagnostics) and
                             // diagnostic IDs for suggestions, fading, etc. (such as IDExxxxWithSuggestion)
