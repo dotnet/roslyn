@@ -118,38 +118,34 @@ namespace Microsoft.CodeAnalysis.FileHeaders
         private FileHeader ParseFileHeader(SyntaxNode root)
         {
             var banner = SyntaxFacts.GetFileBanner(root);
-            if (banner.Length == 0)
+            if (banner.Length > 0)
             {
-                return GetMissingHeader(root);
-            }
+                using var _ = PooledStringBuilder.GetInstance(out var sb);
+                int? fileHeaderStart = null;
+                int? fileHeaderEnd = null;
+                string? commentPrefix = null;
 
-            using var _ = PooledStringBuilder.GetInstance(out var sb);
-            int? fileHeaderStart = null;
-            int? fileHeaderEnd = null;
-            string? commentPrefix = null;
-
-            foreach (var trivia in banner)
-            {
-                if (SyntaxFacts.IsRegularComment(trivia))
+                foreach (var trivia in banner)
                 {
-                    var comment = SyntaxFacts.GetCommentText(trivia);
-                    fileHeaderStart ??= trivia.FullSpan.Start;
-                    fileHeaderEnd = trivia.FullSpan.End;
-                    commentPrefix ??= SyntaxFacts.GetCommentPrefix(trivia);
+                    if (SyntaxFacts.IsRegularComment(trivia))
+                    {
+                        var comment = SyntaxFacts.GetCommentText(trivia);
+                        fileHeaderStart ??= trivia.FullSpan.Start;
+                        fileHeaderEnd = trivia.FullSpan.End;
+                        commentPrefix ??= SyntaxFacts.GetCommentPrefix(trivia);
 
-                    sb.AppendLine(comment.Trim());
+                        sb.AppendLine(comment.Trim());
+                    }
+                }
+
+                if (fileHeaderStart.HasValue && fileHeaderEnd.HasValue && commentPrefix != null)
+                {
+                    return new FileHeader(sb.ToString(), fileHeaderStart.Value, fileHeaderEnd.Value, commentPrefix.Length);
                 }
             }
 
-            return fileHeaderStart is int start && fileHeaderEnd is int end && commentPrefix is string { Length: var commentPrefixLength }
-                ? new FileHeader(sb.ToString(), start, end, commentPrefixLength)
-                : GetMissingHeader(root);
-
-            static FileHeader GetMissingHeader(SyntaxNode root)
-            {
-                var missingHeaderOffset = root.GetLeadingTrivia().FirstOrDefault(t => t.IsDirective).FullSpan.End;
-                return FileHeader.MissingFileHeader(missingHeaderOffset);
-            }
+            var missingHeaderOffset = root.GetLeadingTrivia().FirstOrDefault(t => t.IsDirective).FullSpan.End;
+            return FileHeader.MissingFileHeader(missingHeaderOffset);
         }
     }
 }
