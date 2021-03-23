@@ -94,6 +94,9 @@ namespace Microsoft.CodeAnalysis.FileHeaders
             var trailingWhiteSpaceOrEndOfLineFromExisitingHeader = GetTrailingWhiteSpaceOrEndOfLineFromExisitingHeader(syntaxFacts, existingBanner);
             if (trailingWhiteSpaceOrEndOfLineFromExisitingHeader.IsEmpty)
             {
+                // In cases like unterminated block comments, there are no trailing newLines, so we need to add them ourselves.
+                // see also TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment1Async and 
+                // TestInvalidFileHeaderWithWrongTextInUnterminatedMultiLineComment2Async
                 trailingWhiteSpaceOrEndOfLineFromExisitingHeader = trailingWhiteSpaceOrEndOfLineFromExisitingHeader
                     .Add(newLineTrivia)
                     .Add(newLineTrivia);
