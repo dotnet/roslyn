@@ -43,6 +43,12 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             Document = document;
         }
 
+        public override string ToString()
+        {
+            var subText = SourceText.GetSubText(Span);
+            return subText.ToString();
+        }
+
         public static async Task<ValueTrackedItem?> TryCreateAsync(Solution solution, Location location, ISymbol symbol, ValueTrackedItem? parent = null, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfNull(location.SourceTree);

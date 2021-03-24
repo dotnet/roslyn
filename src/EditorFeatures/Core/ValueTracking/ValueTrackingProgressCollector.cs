@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
@@ -14,6 +16,8 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         private readonly Stack<ValueTrackedItem> _items = new();
 
         public event EventHandler<ValueTrackedItem>? OnNewItem;
+
+        internal ValueTrackedItem? Parent { get; set; }
 
         public void Report(ValueTrackedItem item)
         {
@@ -31,6 +35,18 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             {
                 return _items.ToImmutableArray();
             }
+        }
+
+        internal async Task<bool> TryReportAsync(Solution solution, Location location, ISymbol symbol, CancellationToken cancellationToken = default)
+        {
+            var item = await ValueTrackedItem.TryCreateAsync(solution, location, symbol, Parent, cancellationToken).ConfigureAwait(false);
+            if (item is not null)
+            {
+                Report(item);
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
@@ -182,7 +183,7 @@ namespace $$N
         }
 
         [Fact]
-        public async Task PropertyAssignment1()
+        public async Task MethodTracking1()
         {
             var code =
 @"
@@ -207,7 +208,22 @@ class Other
 
     public void CallS(C c)
     {
-        CallS(c, ""defaultstring"");
+        CallS(c, CalculateDefault(c));
+    }
+
+    private string CalculateDefault(C c)
+    {
+        if (c is null)
+        {
+            return ""null"";
+        }
+
+        if (string.IsNullOrEmpty(c.S))
+        {
+            return ""defaultstring"";
+        }
+
+        return """";
     }
 }
 ";
@@ -217,15 +233,195 @@ class Other
             //
             // S = s; [Code.cs:7]
             //  |> S = [|s|] [Code.cs:7]
-            //      |> public void [|SetS|](string s) [Code.cs:5]
-            //          |> c.SetS(s); [Code.cs:17]
-            //  |> S = ""; [Code.cs:4]
-            Assert.Equal(2, initialItems.Length);
+            //    |> c.SetS(s); [Code.cs:17]
+            //      |> CallS([|c|], CalculateDefault(c)) [Code.cs:22]
+            //      |> CallS(c, [|CalculateDefault(c)|]) [Code.cs:22]
+            //         |>  return "" [Code.cs:37]
+            //         |>  return "defaultstring" [Code.cs:34]
+            //         |> return "null" [Code.cs:29]
+            // 
+            Assert.Equal(1, initialItems.Length);
             ValidateItem(initialItems[0], 7);
-            ValidateItem(initialItems[1], 3);
 
-            //var items = await GetTrackedItemsAsync(workspace, initialItems[0]);
-            //Assert.Equal(1, items.Length);
+            var items = await ValidateChildrenAsync(
+                workspace,
+                initialItems.Single(),
+                lines: new[]
+                {
+                    17 // |> c.SetS(s); [Code.cs:17]
+                });
+
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (22, "c" ), // |> CallS([|c|], CalculateDefault(c)) [Code.cs:22]
+                    (22, "CalculateDefault" ) // |> CallS(c, [|CalculateDefault(c)|]) [Code.cs:22]
+                });
+
+            var referenceC = items[0];
+            await ValidateChildrenEmptyAsync(workspace, referenceC);
+
+            var calculateDefaultCall = items[1];
+            var children = await ValidateChildrenAsync(
+                workspace,
+                calculateDefaultCall,
+                childInfo: new[]
+                {
+                    (37, "\"\""), // |>  return "" [Code.cs:37]
+                    (34, "\"defaultstring\""), // |>  return "defaultstring" [Code.cs:34]
+                    (29, "\"null\""), // |> return "null" [Code.cs:29]
+                });
+
+            foreach (var child in children)
+            {
+                await ValidateChildrenEmptyAsync(workspace, child);
+            }
+        }
+
+        [Fact]
+        public async Task MethodTracking2()
+        {
+            var code =
+@"
+class C
+{
+    public string S { get; set; } = """""";
+
+    public void SetS(string s)
+    {
+        S$$ = s;
+    }
+
+    public string GetS() => S;
+}
+
+class Other
+{
+    private readonly string _adornment;
+    public Other(string adornment)
+    {
+        _adornment = adornment;
+    }
+
+    public void CallS(C c, string s)
+    {
+        c.SetS(s);
+    }
+
+    public void CallS(C c)
+    {
+        CallS(c, CalculateDefault(c) + _adornment);
+    }
+
+    private string CalculateDefault(C c)
+    {
+        if (c is null)
+        {
+            return ""null"";
+        }
+
+        if (string.IsNullOrEmpty(c.S))
+        {
+            return ""defaultstring"";
+        }
+
+        return """";
+    }
+}
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var other = new Other(""some value"");
+        var c = new C();
+        other.CallS(c);
+    }
+}
+";
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var initialItems = await GetTrackedItemsAsync(workspace);
+
+            //
+            // S = s; [Code.cs:7]
+            //  |> S = [|s|] [Code.cs:7]
+            //    |> c.SetS(s); [Code.cs:23]
+            //      |> CallS([|c|], CalculateDefault(c) + _adornment) [Code.cs:28]
+            //        |> other.CallS([|c|]); [Code.cs:53]
+            //      |> CallS(c, CalculateDefault(c) + [|_adornment|]) [Code.cs:28]
+            //        |> _adornment = [|adornment|]; [Code.cs:18]
+            //          |> var other = new Other([|"some value"|]); [Code.cs:51]
+            //      |> CallS(c, [|CalculateDefault(c)|] + _adornment) [Code.cs:28]
+            //        |>  return "" [Code.cs:37]
+            //        |>  return "defaultstring" [Code.cs:34]
+            //        |> return "null" [Code.cs:29]
+            // 
+            Assert.Equal(1, initialItems.Length);
+            ValidateItem(initialItems[0], 7);
+
+            var items = await ValidateChildrenAsync(
+                workspace,
+                initialItems.Single(),
+                lines: new[]
+                {
+                    23 // |> c.SetS(s); [Code.cs:23]
+                });
+
+
+            items = await ValidateChildrenAsync(
+                workspace,
+                items.Single(),
+                childInfo: new[]
+                {
+                    (28, "c" ), // |> CallS([|c|], CalculateDefault(c) + _adornment) [Code.cs:28]
+                    (28, "_adornment" ), // |> CallS(c, CalculateDefault(c) + [|_adornment|]) [Code.cs:28]
+                    (28, "CalculateDefault(c)" ), // |> CallS(c, [|CalculateDefault|](c) + _adornment) [Code.cs:28]
+                });
+
+            var referenceC = items[0];
+            var children = await ValidateChildrenAsync(
+                workspace,
+                referenceC,
+                childInfo: new[]
+                {
+                    (53, "c"), // |> other.CallS([|c|]); [Code.cs:53]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, children);
+
+            var adornmentAssignment = items[1];
+            children = await ValidateChildrenAsync(
+                workspace,
+                adornmentAssignment,
+                childInfo: new[]
+                {
+                    (18, "adornment"), // |> _adornment = [|adornment|] [Code.cs:18]
+                });
+
+            children = await ValidateChildrenAsync(
+                workspace,
+                children.Single(),
+                childInfo: new[]
+                {
+                    (51, "\"some value\"") // |> var other = new Other([|"some value"|]); [Code.cs:51]
+                });
+            await ValidateChildrenEmptyAsync(workspace, children);
+
+            var calculateDefaultCall = items[2];
+            children = await ValidateChildrenAsync(
+                workspace,
+                calculateDefaultCall,
+                childInfo: new[]
+                {
+                    (43, "\"\""), // |>  return "" [Code.cs:37]
+                    (40, "\"defaultstring\""), // |>  return "defaultstring" [Code.cs:34]
+                    (35, "\"null\""), // |> return "null" [Code.cs:29]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, children);
         }
     }
 }
