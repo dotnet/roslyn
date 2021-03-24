@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     closeToken: out SyntaxToken closeParenToken,
                     openKind: SyntaxKind.OpenParenToken,
                     closeKind: SyntaxKind.CloseParenToken,
-                    isPropertyPattern: out _);
+                    isPropertyPatternClause: out _);
 
                 parseLengthPatternClause(out LengthPatternClauseSyntax lengthPatternClause0);
                 parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause0);
@@ -539,8 +539,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 closeToken: out SyntaxToken closeBraceToken,
                 openKind: SyntaxKind.OpenBraceToken,
                 closeKind: SyntaxKind.CloseBraceToken,
-                out bool isPropertyPattern);
-            var kind = isPropertyPattern ? SyntaxKind.PropertyPatternClause : SyntaxKind.ListPatternClause;
+                out bool isPropertyPatternClause);
+            var kind = isPropertyPatternClause ? SyntaxKind.PropertyPatternClause : SyntaxKind.ListPatternClause;
             return _syntaxFactory.PropertyPatternClause(kind, openBraceToken, subPatterns, closeBraceToken);
         }
 
@@ -550,14 +550,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             out SyntaxToken closeToken,
             SyntaxKind openKind,
             SyntaxKind closeKind,
-            out bool isPropertyPattern)
+            out bool isPropertyPatternClause)
         {
-            isPropertyPattern = true;
-
             Debug.Assert((openKind, closeKind) is
                 (SyntaxKind.OpenParenToken, SyntaxKind.CloseParenToken) or
                 (SyntaxKind.OpenBraceToken, SyntaxKind.CloseBraceToken));
             Debug.Assert(openKind == this.CurrentToken.Kind);
+
+            isPropertyPatternClause = true;
 
             openToken = this.EatToken(openKind);
             var list = _pool.AllocateSeparated<SubpatternSyntax>();
@@ -566,9 +566,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 tryAgain:
                 if (this.IsPossibleSubpatternElement() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
-                    isPropertyPattern = false;
+                    isPropertyPatternClause = false;
                     // first pattern
-                    list.Add(this.ParseSubpatternElement(ref isPropertyPattern));
+                    list.Add(this.ParseSubpatternElement(ref isPropertyPatternClause));
 
                     // additional patterns
                     int lastTokenPosition = -1;
@@ -587,7 +587,7 @@ tryAgain:
                             {
                                 break;
                             }
-                            list.Add(this.ParseSubpatternElement(ref isPropertyPattern));
+                            list.Add(this.ParseSubpatternElement(ref isPropertyPatternClause));
                             continue;
                         }
                         else if (this.SkipBadPatternListTokens(ref openToken, list, SyntaxKind.CommaToken, closeKind) == PostSkipAction.Abort)
