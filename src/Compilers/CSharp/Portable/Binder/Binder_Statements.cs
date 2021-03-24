@@ -3461,7 +3461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If this binder owns the scope that can declare using aliases, a set of declared aliases should be returned (even if empty).
         /// Otherwise, a default instance should be returned. 
-        /// Note, only aliases syntactically declared within enclosing declaration are included. For example, global aliases
+        /// Note, only aliases syntactically declared within the enclosing declaration are included. For example, global aliases
         /// declared in a different compilation units are not included.
         /// </summary>
         internal virtual ImmutableArray<AliasAndUsingDirective> UsingAliases
