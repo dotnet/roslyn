@@ -525,10 +525,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var symbol = semanticModel.GetSymbolInfo(variable, cancellationToken).Symbol;
                 if (symbol is IParameterSymbol parameterSymbol)
                 {
-                    if (!nameToParameterDict.ContainsKey(variable))
-                    {
-                        nameToParameterDict.Add(variable, parameterSymbol);
-                    }
+                    nameToParameterDict.Add(variable, parameterSymbol);
                 }
             }
 
