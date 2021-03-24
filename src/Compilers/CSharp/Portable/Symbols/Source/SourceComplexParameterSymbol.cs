@@ -1061,6 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, CSharpAttributeData attribute, BindingDiagnosticBag diagnostics)
         {
+            MessageID.IDS_FeatureCallerArgumentExpression.CheckFeatureAvailability(diagnostics, node);
             CSharpCompilation compilation = this.DeclaringCompilation;
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 

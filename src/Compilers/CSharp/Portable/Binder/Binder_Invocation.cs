@@ -1374,6 +1374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (callerSourceLocation is object && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex &&
                     argumentIndex > -1 && argumentIndex < argumentsCount)
                 {
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCallerArgumentExpression, diagnostics);
                     // PROTOTYPE(caller-expr): Do we need to support VB?
                     // PROTOTYPE(caller-expr): Do we need to add a warning/error for pre-C# 10 using this feature?
 
