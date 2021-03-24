@@ -36,11 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _optionService = optionService;
         }
 
-        public IOptionPersister? TryGetPersister()
-        {
-            return _lazyPersister;
-        }
-
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
             if (_lazyPersister is not null)

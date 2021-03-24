@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Options
         private static readonly ImmutableDictionary<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)> s_emptyEditorConfigKeysToOptions
             = ImmutableDictionary.Create<string, (IOption? option, IEditorConfigStorageLocation2? storageLocation)>(AnalyzerConfigOptions.KeyComparer);
 
+        private readonly IWorkspaceThreadingService? _workspaceThreadingService;
         private readonly Lazy<ImmutableHashSet<IOption>> _lazyAllOptions;
         private readonly ImmutableArray<Lazy<IOptionPersisterProvider>> _optionSerializerProviders;
         private readonly ImmutableDictionary<string, Lazy<ImmutableHashSet<IOption>>> _serializableOptionsByLanguage;
@@ -49,9 +51,11 @@ namespace Microsoft.CodeAnalysis.Options
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GlobalOptionService(
+            [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders,
             [ImportMany] IEnumerable<Lazy<IOptionPersisterProvider>> optionSerializers)
         {
+            _workspaceThreadingService = workspaceThreadingService;
             _lazyAllOptions = new Lazy<ImmutableHashSet<IOption>>(() => optionProviders.SelectMany(p => p.Value.Options).ToImmutableHashSet());
             _optionSerializerProviders = optionSerializers.ToImmutableArray();
             _serializableOptionsByLanguage = CreateLazySerializableOptionsByLanguage(optionProviders);
@@ -97,18 +101,42 @@ namespace Microsoft.CodeAnalysis.Options
 
         private ImmutableArray<IOptionPersister> GetOptionPersisters()
         {
+            // If _lazyOptionSerializers is already initialized, return its value directly.
             if (_lazyOptionSerializers is { IsDefault: false } optionSerializers)
             {
                 return optionSerializers;
             }
 
-            var constructedOptionSerializers = _optionSerializerProviders.SelectAsArray(
-                static (lazyProvider) => lazyProvider.Value.TryGetPersister());
-
-            optionSerializers = constructedOptionSerializers.WhereNotNull().ToImmutableArray();
-            ImmutableInterlocked.InterlockedInitialize(ref _lazyOptionSerializers, optionSerializers);
+            ImmutableInterlocked.InterlockedInitialize(
+                ref _lazyOptionSerializers,
+                GetOptionPersistersSlow(_workspaceThreadingService, _optionSerializerProviders, CancellationToken.None));
 
             return _lazyOptionSerializers;
+
+            // Local functions
+            static ImmutableArray<IOptionPersister> GetOptionPersistersSlow(
+                IWorkspaceThreadingService? workspaceThreadingService,
+                ImmutableArray<Lazy<IOptionPersisterProvider>> optionSerializerProviders,
+                CancellationToken cancellationToken)
+            {
+                if (workspaceThreadingService is not null)
+                {
+                    return workspaceThreadingService.Run(() => GetOptionPersistersAsync(optionSerializerProviders, cancellationToken));
+                }
+                else
+                {
+                    return GetOptionPersistersAsync(optionSerializerProviders, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                }
+            }
+
+            static async Task<ImmutableArray<IOptionPersister>> GetOptionPersistersAsync(
+                ImmutableArray<Lazy<IOptionPersisterProvider>> optionSerializerProviders,
+                CancellationToken cancellationToken)
+            {
+                return await optionSerializerProviders.SelectAsArrayAsync(
+                    static (lazyProvider, cancellationToken) => lazyProvider.Value.GetOrCreatePersisterAsync(cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private object? LoadOptionFromSerializerOrGetDefault(OptionKey optionKey)

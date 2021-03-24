@@ -30,11 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _serviceProvider = serviceProvider;
         }
 
-        public IOptionPersister? TryGetPersister()
-        {
-            return _lazyPersister;
-        }
-
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
         {
             if (_lazyPersister is not null)

@@ -3,12 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -16,7 +17,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         public static OptionServiceFactory.OptionService GetService(Workspace workspace, IOptionProvider? optionProvider = null)
         {
-            return new OptionServiceFactory.OptionService(new GlobalOptionService(new[]
+            var mefHostServices = (IMefHostExportProvider)workspace.Services.HostServices;
+            var workspaceThreadingService = mefHostServices.GetExportedValues<IWorkspaceThreadingService>().SingleOrDefault();
+            return new OptionServiceFactory.OptionService(new GlobalOptionService(
+                workspaceThreadingService,
+                new[]
                 {
                     new Lazy<IOptionProvider, LanguageMetadata>(() => optionProvider ??= new TestOptionsProvider(), new LanguageMetadata(LanguageNames.CSharp))
                 },
