@@ -18,6 +18,7 @@ using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Roslyn.Utilities;
 
 namespace BuildValidator
 {
@@ -43,6 +44,8 @@ namespace BuildValidator
         public PEReader PeReader { get; }
         private readonly ILogger _logger;
 
+        public bool HasMetadataCompilationOptions => TryGetMetadataCompilationOptions(out _);
+
         private MetadataCompilationOptions? _metadataCompilationOptions;
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
         private byte[]? _sourceLinkUTF8;
@@ -63,7 +66,7 @@ namespace BuildValidator
         {
             if (!TryGetMetadataCompilationOptionsBlobReader(out var reader))
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("Does not contain metadata compilation options");
             }
             return reader;
         }
@@ -90,13 +93,27 @@ namespace BuildValidator
             return _metadataCompilationOptions;
         }
 
+        /// <summary>
+        /// Get the specified <see cref="LanguageNames"/> for this compilation.
+        /// </summary>
+        public string GetLanguageName()
+        {
+            var pdbCompilationOptions = GetMetadataCompilationOptions();
+            if (!pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Language, out var language))
+            {
+                throw new Exception("Invalid language name");
+            }
+
+            return language;
+        }
+
         public Encoding GetEncoding()
         {
             using var scope = _logger.BeginScope("Encoding");
 
             var optionsReader = GetMetadataCompilationOptions();
-            optionsReader.TryGetUniqueOption(_logger, "default-encoding", out var defaultEncoding);
-            optionsReader.TryGetUniqueOption(_logger, "fallback-encoding", out var fallbackEncoding);
+            optionsReader.TryGetUniqueOption(_logger, CompilationOptionNames.DefaultEncoding, out var defaultEncoding);
+            optionsReader.TryGetUniqueOption(_logger, CompilationOptionNames.FallbackEncoding, out var fallbackEncoding);
 
             var encodingString = defaultEncoding ?? fallbackEncoding;
             var encoding = encodingString is null
@@ -135,15 +152,9 @@ namespace BuildValidator
             ? OutputKind.ConsoleApplication
             : OutputKind.DynamicallyLinkedLibrary;
 
-        public string? GetMainTypeName() => GetMainMethodInfo() is { } tuple
-            ? tuple.MainTypeName
-            : null;
+        public string? GetMainTypeName() => GetMainMethodInfo()?.MainTypeName;
 
-        public string? GetMainMethodName() => GetMainMethodInfo() is { } tuple
-            ? tuple.MainMethodName
-            : null;
-
-        private (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
+        public (string MainTypeName, string MainMethodName)? GetMainMethodInfo()
         {
             if (!(PdbReader.DebugMetadataHeader is { } header) ||
                 header.EntryPoint.IsNil)
@@ -154,6 +165,15 @@ namespace BuildValidator
             var mdReader = PeReader.GetMetadataReader();
             var methodDefinition = mdReader.GetMethodDefinition(header.EntryPoint);
             var methodName = mdReader.GetString(methodDefinition.Name);
+
+            // Here we only want to give the caller the main method name and containing type name if the method is named "Main" per convention.
+            // If the main method has another name, we have to assume that specifying a main type name won't work.
+            // For example, if the compilation uses top-level statements.
+            if (methodName != WellKnownMemberNames.EntryPointMethodName)
+            {
+                return null;
+            }
+
             var typeHandle = methodDefinition.GetDeclaringType();
             var typeDefinition = mdReader.GetTypeDefinition(typeHandle);
             var typeName = mdReader.GetString(typeDefinition.Name);

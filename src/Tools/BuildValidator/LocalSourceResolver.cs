@@ -54,15 +54,16 @@ namespace BuildValidator
                 var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false);
                 if (!sourceText.GetChecksum().AsSpan().SequenceEqual(sourceFileInfo.Hash))
                 {
-                    _logger.LogError($@"File ""{onDiskPath}"" has incorrect hash");
+                    throw new Exception($@"File ""{onDiskPath}"" has incorrect hash");
                 }
+
                 return new ResolvedSource(onDiskPath, sourceText, sourceFileInfo);
             }
 
             throw new FileNotFoundException(pdbDocumentPath);
         }
 
-        internal ImmutableArray<ResolvedSource> ResolveSources(
+        internal ImmutableArray<ResolvedSource>? ResolveSources(
             ImmutableArray<SourceFileInfo> sourceFileInfos,
             ImmutableArray<SourceLink> sourceLinks,
             Encoding encoding)
@@ -70,12 +71,21 @@ namespace BuildValidator
             _logger.LogInformation("Locating source files");
 
             var sources = ImmutableArray.CreateBuilder<ResolvedSource>();
+            var isError = false;
             foreach (var sourceFileInfo in sourceFileInfos)
             {
-                sources.Add(ResolveSource(sourceFileInfo, sourceLinks, encoding));
+                try
+                {
+                    sources.Add(ResolveSource(sourceFileInfo, sourceLinks, encoding));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Unable to resolve {sourceFileInfo.SourceFilePath}: {ex.Message}");
+                    isError = true;
+                }
             }
 
-            return sources.ToImmutable();
+            return isError ? null : sources.ToImmutable();
         }
     }
 }
