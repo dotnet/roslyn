@@ -2331,8 +2331,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             => ParametersEquivalent(oldParameters, newParameters) &&
                s_assemblyEqualityComparer.Equals(oldReturnType, newReturnType); // TODO: should check ref, ref readonly, custom mods
 
-        private static bool ParametersEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters)
-            => oldParameters.SequenceEqual(newParameters, s_assemblyEqualityComparer.ParameterEquivalenceComparer);
+        private static bool ParametersEquivalent(ImmutableArray<IParameterSymbol> oldParameters, ImmutableArray<IParameterSymbol> newParameters, bool allowDiscards = false)
+            => oldParameters.SequenceEqual(newParameters, (o, n) => s_assemblyEqualityComparer.ParameterEquivalenceComparer.Equals(o, n) || (n.IsDiscard && allowDiscards));
 
         private static bool ReturnTypesEquivalent(IMethodSymbol oldMethod, IMethodSymbol newMethod)
             => oldMethod.ReturnsByRef == newMethod.ReturnsByRef &&
@@ -4936,8 +4936,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var oldLambdaSymbol = GetLambdaExpressionSymbol(oldModel, oldLambda, cancellationToken);
             var newLambdaSymbol = GetLambdaExpressionSymbol(newModel, newLambda, cancellationToken);
 
-            // signature validation:
-            if (!ParametersEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters))
+            AnalyzeCustomAttributes(oldLambdaSymbol, newLambdaSymbol, capabilities, diagnostics, semanticEdits: null, syntaxMap: null, cancellationToken);
+
+            // We allow parameters to be changed to discards, but not the other way around
+            if (!ParametersEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters, allowDiscards: true))
             {
                 ReportUpdateRudeEdit(diagnostics, RudeEditKind.ChangingLambdaParameters, newLambda);
                 hasSignatureErrors = true;
