@@ -599,11 +599,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private static string CreateDisplayText(bool allOccurrences, bool trampoline, bool overload)
                 => (allOccurrences, trampoline, overload) switch
                 {
-                    (true, true, false) => FeaturesResources.Introduce_parameter_and_extract_method_for_all_occurrences_of_0,
+                    (true, true, false) => FeaturesResources.Extract_method_to_invoke_at_all_callsites_for_all_occurrences_of_0,
                     (true, false, false) => FeaturesResources.Introduce_parameter_for_all_occurrences_of_0,
-                    (true, false, true) => FeaturesResources.Introduce_new_parameter_overload_for_all_occurrences_of_0,
-                    (false, true, false) => FeaturesResources.Introduce_parameter_and_extract_method_for_0,
-                    (false, false, true) => FeaturesResources.Introduce_new_parameter_overload_for_0,
+                    (true, false, true) => FeaturesResources.Introduce_overload_with_new_parameter_for_all_occurrences_of_0,
+                    (false, true, false) => FeaturesResources.Extract_method_to_invoke_at_all_callsites_for_0,
+                    (false, false, true) => FeaturesResources.Introduce_overload_with_new_parameter_for_0,
                     (false, false, false) => FeaturesResources.Introduce_parameter_for_0,
                     _ => throw new System.NotImplementedException()
                 };
