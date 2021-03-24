@@ -19,7 +19,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    internal sealed class NavigateToItemDisplay : INavigateToItemDisplay3
+    internal sealed class NavigateToItemDisplay :
+#if false
+        INavigateToItemDisplay3
+#else
+        INavigateToItemDisplay2
+#endif
     {
         private readonly INavigateToSearchResult _searchResult;
         private ReadOnlyCollection<DescriptionItem> _descriptionItems;
