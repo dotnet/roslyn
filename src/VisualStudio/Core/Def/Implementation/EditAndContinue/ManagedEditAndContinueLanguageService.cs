@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 var solution = _proxy.Workspace.CurrentSolution;
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                return await _proxy.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                return await _proxy.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {

@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
-            return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics);
+            return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics, solutionUpdate.DocumentsWithRudeEdits);
         }
 
         public void CommitSolutionUpdate(out ImmutableArray<DocumentId> documentsToReanalyze)

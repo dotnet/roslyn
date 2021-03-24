@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -271,10 +273,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return result.HasValue ? result.Value : true;
         }
 
-        public async ValueTask<ManagedModuleUpdates> EmitSolutionUpdateAsync(Solution solution, SolutionActiveStatementSpanProvider activeStatementSpanProvider, EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource, CancellationToken cancellationToken)
+        public async ValueTask<ManagedModuleUpdates> EmitSolutionUpdateAsync(
+            Solution solution,
+            SolutionActiveStatementSpanProvider activeStatementSpanProvider,
+            IDiagnosticAnalyzerService diagnosticService,
+            EditAndContinueDiagnosticUpdateSource diagnosticUpdateSource,
+            CancellationToken cancellationToken)
         {
             ManagedModuleUpdates moduleUpdates;
             ImmutableArray<DiagnosticData> diagnosticData;
+            IEnumerable<DocumentId> documentsWithRudeEdits;
 
             var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
@@ -282,10 +290,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var results = await GetLocalService().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 moduleUpdates = results.ModuleUpdates;
                 diagnosticData = results.GetDiagnosticData(solution);
+                documentsWithRudeEdits = results.DocumentsWithRudeEdits.Select(d => d.DocumentId);
             }
             else
             {
-                var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, (ManagedModuleUpdates, ImmutableArray<DiagnosticData>)>(
+                var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, (ManagedModuleUpdates, ImmutableArray<DiagnosticData>, ImmutableArray<DocumentId>)>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) => service.EmitSolutionUpdateAsync(solutionInfo, callbackId, cancellationToken),
                     callbackTarget: new SolutionActiveStatementSpanProviderCallback(activeStatementSpanProvider),
@@ -293,17 +302,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (result.HasValue)
                 {
-                    (moduleUpdates, diagnosticData) = result.Value;
+                    (moduleUpdates, diagnosticData, documentsWithRudeEdits) = result.Value;
                 }
                 else
                 {
                     moduleUpdates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
                     diagnosticData = ImmutableArray<DiagnosticData>.Empty;
+                    documentsWithRudeEdits = SpecializedCollections.EmptyEnumerable<DocumentId>();
                 }
             }
 
             // clear emit/apply diagnostics reported previously:
             diagnosticUpdateSource.ClearDiagnostics();
+
+            // clear all reported rude edits:
+            diagnosticService.Reanalyze(Workspace, documentIds: documentsWithRudeEdits);
 
             // report emit/apply diagnostics:
             diagnosticUpdateSource.ReportDiagnostics(Workspace, solution, diagnosticData);

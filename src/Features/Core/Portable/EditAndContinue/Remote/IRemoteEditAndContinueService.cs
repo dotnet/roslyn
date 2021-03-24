@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
         ValueTask<bool> HasChangesAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, string? sourceFilePath, CancellationToken cancellationToken);
 
-        ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics)> EmitSolutionUpdateAsync(PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+        ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics, ImmutableArray<DocumentId> DocumentsWithRudeEdits)> EmitSolutionUpdateAsync(
+            PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
 
         ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(CancellationToken cancellationToken);
         ValueTask DiscardSolutionUpdateAsync(CancellationToken cancellationToken);

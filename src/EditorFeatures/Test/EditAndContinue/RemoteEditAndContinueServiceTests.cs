@@ -25,7 +25,6 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
-using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -86,11 +85,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var project = solution.Projects.Single();
             var document = project.Documents.Single();
 
-            var mockDiagnosticService = new Mock<IDiagnosticAnalyzerService>(MockBehavior.Strict);
-            mockDiagnosticService.Setup(s => s.Reanalyze(It.IsAny<Workspace>(), It.IsAny<IEnumerable<ProjectId>>(), It.IsAny<IEnumerable<DocumentId>>(), It.IsAny<bool>()));
+            var mockDiagnosticService = new MockDiagnosticAnalyzerService();
 
             void VerifyReanalyzeInvocation(ImmutableArray<DocumentId> documentIds)
-               => mockDiagnosticService.Invocations.VerifyAndClear((nameof(IDiagnosticAnalyzerService.Reanalyze), new object?[] { localWorkspace, null, documentIds, false }));
+            {
+                AssertEx.Equal(documentIds, mockDiagnosticService.DocumentsToReanalyze);
+                mockDiagnosticService.DocumentsToReanalyze.Clear();
+            }
 
             var diagnosticUpdateSource = new EditAndContinueDiagnosticUpdateSource();
             var emitDiagnosticsUpdated = new List<DiagnosticsUpdatedArgs>();
@@ -161,7 +162,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 documentsToReanalyze = ImmutableArray.Create(document.Id);
             };
 
-            await proxy.BreakStateEnteredAsync(mockDiagnosticService.Object, CancellationToken.None).ConfigureAwait(false);
+            await proxy.BreakStateEnteredAsync(mockDiagnosticService, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
 
             var activeStatement = (await remoteDebuggeeModuleMetadataProvider!.GetActiveStatementsAsync(CancellationToken.None).ConfigureAwait(false)).Single();
@@ -179,7 +180,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 documentsToReanalyze = ImmutableArray.Create(document.Id);
             };
 
-            await proxy.EndDebuggingSessionAsync(diagnosticUpdateSource, mockDiagnosticService.Object, CancellationToken.None).ConfigureAwait(false);
+            await proxy.EndDebuggingSessionAsync(diagnosticUpdateSource, mockDiagnosticService, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
             Assert.Equal(1, emitDiagnosticsClearedCount);
             emitDiagnosticsClearedCount = 0;
@@ -222,10 +223,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 var documentDiagnostic = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "some error" });
                 var projectDiagnostic = Diagnostic.Create(diagnosticDescriptor1, Location.None, new[] { "proj", "some error" });
 
-                return new(new(ManagedModuleUpdateStatus.Ready, deltas), ImmutableArray.Create((project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic))));
+                var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Ready, deltas);
+                var diagnostics = ImmutableArray.Create((project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic)));
+                var documentsWithRudeEdits = ImmutableArray.Create((document1.Id, ImmutableArray<RudeEditDiagnostic>.Empty));
+
+                return new(updates, diagnostics, documentsWithRudeEdits);
             };
 
-            var updates = await proxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, solutionActiveStatementSpanProvider, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
+            var updates = await proxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, solutionActiveStatementSpanProvider, mockDiagnosticService, diagnosticUpdateSource, CancellationToken.None).ConfigureAwait(false);
+            VerifyReanalyzeInvocation(ImmutableArray.Create(document1.Id));
+
             Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
 
             Assert.Equal(1, emitDiagnosticsClearedCount);
@@ -268,7 +275,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 documentsToReanalyze = ImmutableArray.Create(document.Id);
             };
 
-            await proxy.CommitSolutionUpdateAsync(mockDiagnosticService.Object, CancellationToken.None).ConfigureAwait(false);
+            await proxy.CommitSolutionUpdateAsync(mockDiagnosticService, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
 
             // DiscardSolutionUpdate

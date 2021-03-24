@@ -758,6 +758,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _4 = ArrayBuilder<IDisposable>.GetInstance(out var readers);
                 using var _5 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
                 using var _6 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
+                using var _7 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
 
                 var oldSolution = DebuggingSession.LastCommittedSolution;
 
@@ -831,8 +832,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
 
                     var projectSummary = GetProjectAnalysisSymmary(changedDocumentAnalyses);
-                    if (projectSummary == ProjectAnalysisSummary.CompilationErrors || projectSummary == ProjectAnalysisSummary.RudeEdits)
+                    if (projectSummary == ProjectAnalysisSummary.CompilationErrors)
                     {
+                        isBlocked = true;
+                    }
+                    else if (projectSummary == ProjectAnalysisSummary.RudeEdits)
+                    {
+                        foreach (var analysis in changedDocumentAnalyses)
+                        {
+                            if (analysis.RudeEditErrors.Length > 0)
+                            {
+                                documentsWithRudeEdits.Add((analysis.DocumentId, analysis.RudeEditErrors));
+                            }
+                        }
+
                         isBlocked = true;
                     }
 
@@ -954,7 +967,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         reader.Dispose();
                     }
 
-                    return SolutionUpdate.Blocked(diagnostics.ToImmutable());
+                    return SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable());
                 }
 
                 return new SolutionUpdate(
@@ -964,7 +977,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     nonRemappableRegions.ToImmutable(),
                     readers.ToImmutable(),
                     emitBaselines.ToImmutable(),
-                    diagnostics.ToImmutable());
+                    diagnostics.ToImmutable(),
+                    documentsWithRudeEdits.ToImmutable());
             }
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
             {

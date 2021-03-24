@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics)> EmitSolutionUpdateAsync(
+        public ValueTask<(ManagedModuleUpdates Updates, ImmutableArray<DiagnosticData> Diagnostics, ImmutableArray<DocumentId> DocumentsWithRudeEdits)> EmitSolutionUpdateAsync(
             PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -143,15 +143,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 try
                 {
                     var results = await service.EmitSolutionUpdateAsync(solution, CreateSolutionActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
-                    return (results.ModuleUpdates, results.GetDiagnosticData(solution));
+                    return (results.ModuleUpdates, results.GetDiagnosticData(solution), results.DocumentsWithRudeEdits.SelectAsArray(d => d.DocumentId));
                 }
                 catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
                 {
+                    var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
                     var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
                     var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
                     var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
 
-                    return (new(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty), diagnostics);
+                    return (updates, diagnostics, ImmutableArray<DocumentId>.Empty);
                 }
             }, cancellationToken);
         }
