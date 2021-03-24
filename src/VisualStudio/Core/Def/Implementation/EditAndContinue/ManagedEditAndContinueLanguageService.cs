@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var solution = _proxy.Workspace.CurrentSolution;
-                await _proxy.StartDebuggingSessionAsync(solution, cancellationToken).ConfigureAwait(false);
+                await _proxy.StartDebuggingSessionAsync(solution, captureMatchingDocuments: false, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {

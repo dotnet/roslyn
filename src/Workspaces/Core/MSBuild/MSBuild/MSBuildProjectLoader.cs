@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         /// <summary>
         /// Determines if unrecognized projects are skipped when solutions or projects are opened.
-        /// 
-        /// A project is unrecognized if it either has 
-        ///   a) an invalid file path, 
+        ///
+        /// A project is unrecognized if it either has
+        ///   a) an invalid file path,
         ///   b) a non-existent project file,
-        ///   c) has an unrecognized file extension or 
+        ///   c) has an unrecognized file extension or
         ///   d) a file extension associated with an unsupported language.
-        /// 
+        ///
         /// If unrecognized projects cannot be skipped a corresponding exception is thrown.
         /// </summary>
         public bool SkipUnrecognizedProjects { get; set; } = true;
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 : DiagnosticReportingMode.Throw;
 
         /// <summary>
-        /// Loads the <see cref="SolutionInfo"/> for the specified solution file, including all projects referenced by the solution file and 
+        /// Loads the <see cref="SolutionInfo"/> for the specified solution file, including all projects referenced by the solution file and
         /// all the projects referenced by the project files.
         /// </summary>
         /// <param name="solutionFilePath">The path to the solution file to be loaded. This may be an absolute path or a path relative to the
@@ -163,13 +163,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return null!;
             }
 
+            var projectfilter = ImmutableHashSet<string>.Empty;
+            if (SolutionFilterReader.IsSolutionFilterFilename(absoluteSolutionPath) &&
+                !SolutionFilterReader.TryRead(absoluteSolutionPath, _pathResolver, out absoluteSolutionPath, out projectfilter))
+            {
+                throw new Exception(string.Format(WorkspaceMSBuildResources.Failed_to_load_solution_filter_0, solutionFilePath));
+            }
+
             using (_dataGuard.DisposableWait(cancellationToken))
             {
                 this.SetSolutionProperties(absoluteSolutionPath);
             }
 
             var solutionFile = MSB.Construction.SolutionFile.Parse(absoluteSolutionPath);
-
             var reportingMode = GetReportingModeForUnrecognizedProjects();
 
             var reportingOptions = new DiagnosticReportingOptions(
@@ -183,7 +189,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (project.ProjectType != MSB.Construction.SolutionProjectType.SolutionFolder)
+                if (project.ProjectType == MSB.Construction.SolutionProjectType.SolutionFolder)
+                {
+                    continue;
+                }
+
+                // Load project if we have an empty project filter and the project path is present.
+                if (projectfilter.IsEmpty ||
+                    projectfilter.Contains(project.AbsolutePath))
                 {
                     projectPaths.Add(project.RelativePath);
                 }

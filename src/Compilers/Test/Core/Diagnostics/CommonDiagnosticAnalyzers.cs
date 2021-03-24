@@ -842,56 +842,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public sealed class AnalyzerWithAsyncMethodRegistration : DiagnosticAnalyzer
-        {
-            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-                "ID",
-                "Title1",
-                "Message1",
-                "Category1",
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-            public override void Initialize(AnalysisContext context)
-            {
-                context.RegisterCompilationAction(AsyncAction);
-            }
-
-#pragma warning disable VSTHRD100 // Avoid async void methods
-            private async void AsyncAction(CompilationAnalysisContext context)
-#pragma warning restore VSTHRD100 // Avoid async void methods
-            {
-                context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
-                await Task.FromResult(true);
-            }
-        }
-
-        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-        public sealed class AnalyzerWithAsyncLambdaRegistration : DiagnosticAnalyzer
-        {
-            public static readonly DiagnosticDescriptor Descriptor = new DiagnosticDescriptor(
-                "ID",
-                "Title1",
-                "Message1",
-                "Category1",
-                defaultSeverity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true);
-
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
-            public override void Initialize(AnalysisContext context)
-            {
-#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
-                context.RegisterCompilationAction(async (compilationContext) =>
-#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
-                {
-                    compilationContext.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
-                    await Task.FromResult(true);
-                });
-            }
-        }
-
-        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public sealed class AnalyzerThatThrowsInSupportedDiagnostics : DiagnosticAnalyzer
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => throw new NotImplementedException();
