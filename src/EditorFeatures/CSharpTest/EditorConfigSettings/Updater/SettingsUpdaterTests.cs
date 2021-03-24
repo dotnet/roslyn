@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,28 +17,27 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     [UseExportProvider]
-    public class SettingsUpdaterTests : TestBase
+    public partial class SettingsUpdaterTests : TestBase
     {
-        public static Workspace CreateWorkspace(Type[]? additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
-
         private static Workspace CreateWorkspaceWithProjectAndDocuments()
         {
             var projectId = ProjectId.CreateNewId();
 
-            var workspace = CreateWorkspace();
+            var workspace = new AdhocWorkspace(EditorTestCompositions.EditorFeatures.GetHostServices(), WorkspaceKind.Host);
 
             Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
                 .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
                 .AddDocument(DocumentId.CreateNewId(projectId), "goo.cs", "public class Goo { }")
                 .AddAdditionalDocument(DocumentId.CreateNewId(projectId), "add.txt", "text")
-                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From("config"), filePath: "/a/b")));
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), "editorcfg", SourceText.From(""), filePath: "/a/b/config")));
 
             return workspace;
         }
@@ -318,6 +318,52 @@ csharp_new_line_before_else=true";
                 initialEditorConfig,
                 updatedEditorConfig,
                 (CSharpFormattingOptions2.NewLineForElse, true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public async Task TestAnalyzerSettingsUpdaterService()
+        {
+            var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var updater = new AnalyzerSettingsUpdater(workspace, "/a/b/config");
+            var id = "Test001";
+            var descriptor = new DiagnosticDescriptor(id: id, title: "", messageFormat: "", category: "Naming", defaultSeverity: DiagnosticSeverity.Warning, isEnabledByDefault: false);
+            var analyzerSetting = new AnalyzerSetting(descriptor, ReportDiagnostic.Suppress, updater, Language.CSharp);
+            analyzerSetting.ChangeSeverity(DiagnosticSeverity.Error);
+            var updates = await updater.GetChangedEditorConfigAsync(default);
+            var update = Assert.Single(updates);
+            Assert.Equal($"[*.cs]\r\ndotnet_diagnostic.{id}.severity=error", update.NewText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public async Task TestCodeStyleSettingUpdaterService()
+        {
+            var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var updater = new OptionUpdater(workspace, "/a/b/config");
+            var setting = CodeStyleSetting.Create(CSharpCodeStyleOptions.AllowBlankLineAfterColonInConstructorInitializer,
+                                                  "",
+                                                  TestAnalyzerConfigOptions.Instance,
+                                                  workspace.Options,
+                                                  updater);
+            setting.ChangeSeverity(DiagnosticSeverity.Error);
+            var updates = await updater.GetChangedEditorConfigAsync(default);
+            var update = Assert.Single(updates);
+            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=true:error", update.NewText);
+            setting.ChangeValue(1);
+            updates = await updater.GetChangedEditorConfigAsync(default);
+            update = Assert.Single(updates);
+            Assert.Equal("[*.cs]\r\ncsharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental=false:error", update.NewText);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        public async Task TestFormattingSettingUpdaterService()
+        {
+            var workspace = CreateWorkspaceWithProjectAndDocuments();
+            var updater = new OptionUpdater(workspace, "/a/b/config");
+            var setting = FormattingSetting.Create(CSharpFormattingOptions2.NewLineForElse, "", TestAnalyzerConfigOptions.Instance, workspace.Options, updater);
+            setting.SetValue(false);
+            var updates = await updater.GetChangedEditorConfigAsync(default);
+            var update = Assert.Single(updates);
+            Assert.Equal("[*.cs]\r\ncsharp_new_line_before_else=false", update.NewText);
         }
     }
 }
