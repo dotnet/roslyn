@@ -155,7 +155,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             SupportedPlatformData? supportedPlatforms,
             CancellationToken cancellationToken)
         {
-            var descriptionService = workspace.Services.GetLanguageServices(token.Language).GetRequiredService<ISymbolDisplayService>();
             var syntaxFactsService = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxFactsService>();
 
             var symbols = tokenInformation.Symbols;
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             }
 
             return QuickInfoUtilities.CreateQuickInfoItemAsync(
-                workspace, descriptionService, semanticModel, token.Span, symbols, supportedPlatforms,
+                workspace, semanticModel, token.Span, symbols, supportedPlatforms,
                 tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, cancellationToken);
         }
 

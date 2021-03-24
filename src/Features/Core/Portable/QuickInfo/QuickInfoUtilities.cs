@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     {
         public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
             Workspace workspace,
-            ISymbolDisplayService descriptionService,
             SemanticModel semanticModel,
             TextSpan span,
             ImmutableArray<ISymbol> symbols,
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             NullableFlowState flowState = NullableFlowState.None,
             CancellationToken cancellationToken = default)
         {
-            var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
+            var descriptionService = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISymbolDisplayService>();
             var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, span.Start, symbols, cancellationToken).ConfigureAwait(false);
 
             using var _1 = ArrayBuilder<QuickInfoSection>.GetInstance(out var sections);
