@@ -19,10 +19,11 @@ namespace BuildValidator
 {
     public sealed class VisualBasicCompilationFactory : CompilationFactory
     {
-        public override ParseOptions ParseOptions => VisualBasicParseOptions;
-        public override CompilationOptions CompilationOptions => VisualBasicCompilationOptions;
-        public VisualBasicCompilationOptions VisualBasicCompilationOptions { get; }
-        public VisualBasicParseOptions VisualBasicParseOptions => VisualBasicCompilationOptions.ParseOptions;
+        public new VisualBasicCompilationOptions CompilationOptions { get; }
+        public new VisualBasicParseOptions ParseOptions => CompilationOptions.ParseOptions;
+
+        protected override ParseOptions CommonParseOptions => ParseOptions;
+        protected override CompilationOptions CommonCompilationOptions => CompilationOptions;
 
         private VisualBasicCompilationFactory(
             string assemblyFileName,
@@ -30,7 +31,7 @@ namespace BuildValidator
             VisualBasicCompilationOptions compilationOptions)
             : base(assemblyFileName, optionsReader)
         {
-            VisualBasicCompilationOptions = compilationOptions;
+            CompilationOptions = compilationOptions;
         }
 
         internal static new VisualBasicCompilationFactory Create(string assemblyFileName, CompilationOptionsReader optionsReader)
@@ -41,7 +42,7 @@ namespace BuildValidator
         }
 
         public override SyntaxTree CreateSyntaxTree(string filePath, SourceText sourceText)
-            => VisualBasicSyntaxTree.ParseText(sourceText, VisualBasicParseOptions, filePath);
+            => VisualBasicSyntaxTree.ParseText(sourceText, ParseOptions, filePath);
 
         public override Compilation CreateCompilation(
             ImmutableArray<SyntaxTree> syntaxTrees,
@@ -50,7 +51,7 @@ namespace BuildValidator
                 Path.GetFileNameWithoutExtension(AssemblyFileName),
                 syntaxTrees: syntaxTrees,
                 references: metadataReferences,
-                options: VisualBasicCompilationOptions);
+                options: CompilationOptions);
 
         private static VisualBasicCompilationOptions CreateVisualBasicCompilationOptions(string assemblyFileName, CompilationOptionsReader optionsReader)
         {

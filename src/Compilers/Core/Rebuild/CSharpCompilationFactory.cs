@@ -16,10 +16,11 @@ namespace BuildValidator
 {
     public sealed class CSharpCompilationFactory : CompilationFactory
     {
-        public override ParseOptions ParseOptions => CSharpParseOptions;
-        public override CompilationOptions CompilationOptions => CSharpCompilationOptions;
-        public CSharpParseOptions CSharpParseOptions { get; }
-        public CSharpCompilationOptions CSharpCompilationOptions { get; }
+        public new CSharpParseOptions ParseOptions { get; }
+        public new CSharpCompilationOptions CompilationOptions { get; }
+
+        protected override ParseOptions CommonParseOptions => ParseOptions;
+        protected override CompilationOptions CommonCompilationOptions => CompilationOptions;
 
         private CSharpCompilationFactory(
             string assemblyFileName,
@@ -29,8 +30,8 @@ namespace BuildValidator
             : base(assemblyFileName, optionsReader)
         {
             Debug.Assert(optionsReader.GetLanguageName() == LanguageNames.CSharp);
-            CSharpParseOptions = parseOptions;
-            CSharpCompilationOptions = compilationOptions;
+            ParseOptions = parseOptions;
+            CompilationOptions = compilationOptions;
         }
 
         internal static new CSharpCompilationFactory Create(string assemblyFileName, CompilationOptionsReader optionsReader)
@@ -41,7 +42,7 @@ namespace BuildValidator
         }
 
         public override SyntaxTree CreateSyntaxTree(string filePath, SourceText sourceText)
-            => CSharpSyntaxTree.ParseText(sourceText, CSharpParseOptions, filePath);
+            => CSharpSyntaxTree.ParseText(sourceText, ParseOptions, filePath);
 
         public override Compilation CreateCompilation(
             ImmutableArray<SyntaxTree> syntaxTrees,
@@ -50,7 +51,7 @@ namespace BuildValidator
                 Path.GetFileNameWithoutExtension(AssemblyFileName),
                 syntaxTrees: syntaxTrees,
                 references: metadataReferences,
-                options: CSharpCompilationOptions);
+                options: CompilationOptions);
 
         private static (CSharpCompilationOptions, CSharpParseOptions) CreateCSharpCompilationOptions(string assemblyFileName, CompilationOptionsReader optionsReader)
         {

@@ -18,8 +18,11 @@ namespace BuildValidator
     {
         public string AssemblyFileName { get; }
         public CompilationOptionsReader OptionsReader { get; }
-        public abstract ParseOptions ParseOptions { get; }
-        public abstract CompilationOptions CompilationOptions { get; }
+        public ParseOptions ParseOptions => CommonParseOptions;
+        public CompilationOptions CompilationOptions => CommonCompilationOptions;
+
+        protected abstract ParseOptions CommonParseOptions { get; }
+        protected abstract CompilationOptions CommonCompilationOptions { get; }
 
         protected CompilationFactory(string assemblyFileName, CompilationOptionsReader optionsReader)
         {
