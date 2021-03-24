@@ -11527,5 +11527,52 @@ Console.WriteLine(""Hello World"");
                 Handle(7, TableIndex.MemberRef),
                 Handle(2, TableIndex.AssemblyRef));
         }
+
+        [Fact]
+        public void LambdaParameterToDiscard()
+        {
+            var source0 = MarkedSource(@"
+using System;
+class C
+{
+    void M()
+    {
+        var x = new Func<int, int, int>((a, b) => a + b + 1);
+        Console.WriteLine(x(1, 2));
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+class C
+{
+    void M()
+    {
+        var x = new Func<int, int, int>((_, _) => 10);
+        Console.WriteLine(x(1, 2));
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
+
+            var diff = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
+
+            // There should be no diagnostics from rude edits
+            diff.EmitResult.Diagnostics.Verify();
+
+            diff.VerifyIL("C.<>c.<M>b__0#1_0#1(int, int)", @"
+{
+    // Code size        3 (0x3)
+    .maxstack  1
+    IL_0000:  ldc.i4.s   10
+    IL_0002:  ret
+}");
+        }
     }
 }
