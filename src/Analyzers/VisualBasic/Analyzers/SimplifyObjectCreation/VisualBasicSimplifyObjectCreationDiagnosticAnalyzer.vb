@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
@@ -15,7 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
             MyBase.New(
                 diagnosticId:=IDEDiagnosticIds.SimplifyObjectCreationDiagnosticId,
                 enforceOnBuild:=EnforceOnBuildValues.SimplifyObjectCreation,
-                [option]:=Nothing,
+                [option]:=VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation,
+                language:=LanguageNames.VisualBasic,
                 title:=New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.Object_creation_can_be_simplified), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources)))
         End Sub
 
@@ -33,7 +35,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
             ' which can be simplified to
             ' Dim x As New SomeType()
 
-            Dim variableDeclarator = DirectCast(context.Node, VariableDeclaratorSyntax)
+            Dim node = context.Node
+            Dim tree = node.SyntaxTree
+            Dim cancellationToken = context.CancellationToken
+
+            Dim styleOption = context.Options.GetOption(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, tree, cancellationToken)
+            If Not styleOption.Value Then
+                Return
+            End If
+
+            Dim variableDeclarator = DirectCast(node, VariableDeclaratorSyntax)
             Dim asClauseType = variableDeclarator.AsClause?.Type()
             If asClauseType Is Nothing Then
                 Return
@@ -44,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
                 Return
             End If
 
-            Dim symbolInfo = context.SemanticModel.GetTypeInfo(objectCreation)
+            Dim symbolInfo = context.SemanticModel.GetTypeInfo(objectCreation, cancellationToken)
             If symbolInfo.Type IsNot Nothing AndAlso symbolInfo.Type.Equals(symbolInfo.ConvertedType, SymbolEqualityComparer.Default) Then
                 context.ReportDiagnostic(Diagnostic.Create(Descriptor, variableDeclarator.GetLocation()))
             End If

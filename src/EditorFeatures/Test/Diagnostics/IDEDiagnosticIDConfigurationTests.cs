@@ -589,8 +589,8 @@ dotnet_diagnostic.IDE1008.severity = %value%
 # IDE0120
 dotnet_diagnostic.IDE0120.severity = %value%
 
-# IDE0131
-dotnet_diagnostic.IDE0131.severity = %value%
+# IDE0140
+dotnet_diagnostic.IDE0140.severity = %value%
 
 # IDE2000
 dotnet_diagnostic.IDE2000.severity = %value%
@@ -1212,8 +1212,8 @@ No editorconfig based code style option
 # IDE0120
 No editorconfig based code style option
 
-# IDE0131
-No editorconfig based code style option
+# IDE0140, PreferSimplifiedObjectCreation
+visual_basic_style_prefer_simplified_object_creation = true
 
 # IDE2000, AllowMultipleBlankLines
 dotnet_style_allow_multiple_blank_lines_experimental = true

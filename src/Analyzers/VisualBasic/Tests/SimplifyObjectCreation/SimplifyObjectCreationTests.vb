@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(
     Of Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation.VisualBasicSimplifyObjectCreationDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation.VisualBasicSimplifyObjectCreationCodeFixProvider)
@@ -25,6 +26,52 @@ Public Class S
     End Function
 End Class
 ")
+        End Function
+
+        <Fact>
+        Public Async Function SimplifyObjectCreation_CodeStyleOptionTurnedOn() As Task
+            Dim code = "
+Public Class S
+    Public Shared Function Create() As S
+        Dim [|result As S = New S()|]
+        return result
+    End Function
+End Class
+"
+            Dim fixedCode = "
+Public Class S
+    Public Shared Function Create() As S
+        Dim result As New S()
+        return result
+    End Function
+End Class
+"
+            Dim test = New VerifyVB.Test With
+            {
+                .TestCode = code,
+                .FixedCode = fixedCode
+            }
+            test.Options.Add(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, False)
+            Await test.RunAsync()
+        End Function
+
+        <Fact>
+        Public Async Function SimplifyObjectCreation_CodeStyleOptionTurnedOff() As Task
+            Dim code = "
+Public Class S
+    Public Shared Function Create() As S
+        Dim [|result As S = New S()|]
+        return result
+    End Function
+End Class
+"
+            Dim test = New VerifyVB.Test With
+            {
+                .TestCode = code,
+                .FixedCode = code
+            }
+            test.Options.Add(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, False)
+            Await test.RunAsync()
         End Function
 
         <Fact>
@@ -141,6 +188,17 @@ Public Class S : Implements IInterface
         Dim result as IInterface = NEW S()
         return result
     End Function
+End Class
+")
+        End Function
+
+        <Fact>
+        Public Async Function ArrayCreation_NoDiagnostic() As Task
+            Await VerifyVB.VerifyAnalyzerAsync("
+Public Class C
+    Public Sub M()
+        Dim x As String() = New String() { }
+    End Sub
 End Class
 ")
         End Function
