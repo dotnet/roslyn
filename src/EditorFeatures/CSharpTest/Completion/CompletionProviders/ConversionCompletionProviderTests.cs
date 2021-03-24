@@ -1472,6 +1472,8 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
         public async Task TestEditorBrowsableOnConversionIsRespected_EditorBrowsableStateNever_InheritedConversion_2()
         {
             var markup = @"
