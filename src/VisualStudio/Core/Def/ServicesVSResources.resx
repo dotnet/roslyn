@@ -1647,4 +1647,10 @@ I agree to all of the foregoing:</value>
   <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
     <value>This action cannot be undone. Do you wish to continue?</value>
   </data>
+  <data name="Show_inheritance_margin" xml:space="preserve">
+    <value>Show inheritance margin</value>
+  </data>
+  <data name="Inheritance_Margin_experimental" xml:space="preserve">
+    <value>Inheritance Margin (experimental)</value>
+  </data>
 </root>

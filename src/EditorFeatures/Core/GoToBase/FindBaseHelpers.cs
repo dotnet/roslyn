@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
                 namedTypeSymbol.TypeKind == TypeKind.Interface ||
                 namedTypeSymbol.TypeKind == TypeKind.Struct))
             {
-                return ValueTaskFactory.FromResult(BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol));
+                var result = BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol).CastArray<ISymbol>();
+                return ValueTaskFactory.FromResult(result);
             }
 
             if (symbol.Kind == SymbolKind.Property ||
