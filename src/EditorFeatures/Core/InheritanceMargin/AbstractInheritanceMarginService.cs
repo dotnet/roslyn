@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// Given the syntax nodes to search,
         /// get all the method, event, property and type declaration syntax nodes.
         /// </summary>
-        protected abstract ImmutableArray<SyntaxNode> GetMembers(ImmutableArray<SyntaxNode> nodesToSearch);
+        protected abstract ImmutableArray<SyntaxNode> GetMembers(IEnumerable<SyntaxNode> nodesToSearch);
 
         /// <summary>
         /// Get the identifier of declaration node is declared.
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var allDeclarationNodes = GetMembers(root.DescendantNodes(spanToSearch).ToImmutableArray());
+            var allDeclarationNodes = GetMembers(root.DescendantNodes(spanToSearch));
             if (allDeclarationNodes.IsEmpty)
             {
                 return ImmutableArray<InheritanceMarginItem>.Empty;

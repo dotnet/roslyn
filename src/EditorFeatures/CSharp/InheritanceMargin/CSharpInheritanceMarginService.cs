@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
         {
         }
 
-        protected override ImmutableArray<SyntaxNode> GetMembers(ImmutableArray<SyntaxNode> nodesToSearch)
+        protected override ImmutableArray<SyntaxNode> GetMembers(IEnumerable<SyntaxNode> nodesToSearch)
         {
             var typeDeclarationNodes = nodesToSearch.OfType<TypeDeclarationSyntax>();
 

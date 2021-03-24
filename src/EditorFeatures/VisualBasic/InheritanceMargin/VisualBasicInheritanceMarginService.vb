@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetMembers(nodesToSearch As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of SyntaxNode)
+        Protected Overrides Function GetMembers(nodesToSearch As IEnumerable(Of SyntaxNode)) As ImmutableArray(Of SyntaxNode)
             Dim typeBlockNodes = nodesToSearch.OfType(Of TypeBlockSyntax)
 
             Dim builder As ArrayBuilder(Of SyntaxNode) = Nothing
