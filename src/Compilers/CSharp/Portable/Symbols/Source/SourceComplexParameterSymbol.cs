@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (HasCallerMemberNameAttribute)
             {
-                // CS8917: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the MemberNameAttribute.
+                // CS8917: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
             else if (attribute.CommonConstructorArguments.Length == 1 &&
