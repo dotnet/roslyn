@@ -17,7 +17,7 @@ using static Microsoft.CodeAnalysis.ProjectState;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 {
-    internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TValue> : ISettingsProvider<TData>, IDisposable
+    internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TValue> : ISettingsProvider<TData>
         where TOptionsUpdater : ISettingUpdater<TOption, TValue>
     {
         private readonly List<TData> _snapshot = new();
@@ -34,32 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
             FileName = fileName;
             SettingsUpdater = settingsUpdater;
             Workspace = workspace;
-            Workspace.WorkspaceChanged += OnWorkspaceChanged;
             Update();
-        }
-
-        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
-        {
-            switch (e.Kind)
-            {
-                case WorkspaceChangeKind.SolutionChanged:
-                case WorkspaceChangeKind.SolutionAdded:
-                case WorkspaceChangeKind.SolutionRemoved:
-                case WorkspaceChangeKind.SolutionCleared:
-                case WorkspaceChangeKind.SolutionReloaded:
-                case WorkspaceChangeKind.ProjectAdded:
-                case WorkspaceChangeKind.ProjectRemoved:
-                case WorkspaceChangeKind.ProjectChanged:
-                case WorkspaceChangeKind.ProjectReloaded:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
-                case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                    Update();
-                    break;
-                default:
-                    break;
-            }
         }
 
         private void Update()
@@ -96,8 +71,5 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 
         public void RegisterViewModel(ISettingsEditorViewModel viewModel)
             => _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
-
-        public void Dispose()
-            => Workspace.WorkspaceChanged -= OnWorkspaceChanged;
     }
 }
