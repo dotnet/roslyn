@@ -1308,7 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Params array is filled in the local rewriter
             var lastIndex = expanded ? ^1 : ^0;
 
-            var arguments = argumentsBuilder.ToImmutable();
+            var argumentsCount = argumentsBuilder.Count;
             // Go over missing parameters, inserting default values for optional parameters
             foreach (var parameter in parameters.AsSpan()[..lastIndex])
             {
@@ -1317,7 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
 
                     defaultArguments[argumentsBuilder.Count] = true;
-                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, arguments, argsToParamsOpt));
+                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, argumentsBuilder, argumentsCount, argsToParamsOpt));
 
                     if (argumentRefKindsBuilder is { Count: > 0 })
                     {
@@ -1336,7 +1336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsBuilder.Free();
             }
 
-            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics, ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argsToParamsOpt)
+            BoundExpression bindDefaultArgument(SyntaxNode syntax, ParameterSymbol parameter, Symbol containingMember, bool enableCallerInfo, BindingDiagnosticBag diagnostics, ArrayBuilder<BoundExpression> argumentsBuilder, int argumentsCount, ImmutableArray<int> argsToParamsOpt)
             {
                 TypeSymbol parameterType = parameter.Type;
                 if (Flags.Includes(BinderFlags.ParameterDefaultValue))
@@ -1372,12 +1372,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (callerSourceLocation is object && getArgumentIndex(parameter.CallerArgumentExpressionParameterIndex, argsToParamsOpt) is int argumentIndex &&
-                    argumentIndex > -1 && argumentIndex < arguments.Length)
+                    argumentIndex > -1 && argumentIndex < argumentsCount)
                 {
                     // PROTOTYPE(caller-expr): Do we need to support VB?
                     // PROTOTYPE(caller-expr): Do we need to add a warning/error for pre-C# 10 using this feature?
 
-                    var argument = arguments[argumentIndex];
+                    var argument = argumentsBuilder[argumentIndex];
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (defaultConstantValue == ConstantValue.NotAvailable)
