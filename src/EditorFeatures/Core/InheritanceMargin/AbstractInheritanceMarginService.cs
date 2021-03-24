@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                         memberDeclarationNode,
                         namedTypeSymbol, builder, cancellationToken).ConfigureAwait(false);
                 }
-
-                if (mappingResult.Symbol.IsOrdinaryMethod() || mappingResult.Symbol is IEventSymbol or IPropertySymbol)
+                else if (mappingResult.Symbol.IsOrdinaryMethod() || mappingResult.Symbol is IEventSymbol or IPropertySymbol)
                 {
                     // Find the implementing/implemented/overridden/overriding members
                     await AddInheritanceMemberItemsForTypeMembersAsync(
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // 2. System.ValueType. (otherwise margin would be shown for all structs)
             // 3. System.Enum. (otherwise margin would be shown for all enum)
             var baseSymbols = allBaseSymbols
-                .WhereAsArray(symbol => ((ITypeSymbol)symbol).SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum));
+                .WhereAsArray(symbol => symbol.SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum));
 
             // Get all derived types
             var derivedSymbols = await GetDerivedTypesAndImplementationsAsync(
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     solution,
                     memberSymbol,
                     lineNumber,
-                    baseSymbols: baseSymbols,
+                    baseSymbols: baseSymbols.CastArray<ISymbol>(),
                     derivedTypesSymbols: derivedSymbols.CastArray<ISymbol>(),
                     cancellationToken).ConfigureAwait(false);
                 builder.AddIfNotNull(item);
