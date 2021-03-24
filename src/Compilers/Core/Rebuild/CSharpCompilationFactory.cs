@@ -5,13 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace BuildValidator
@@ -35,13 +33,9 @@ namespace BuildValidator
             CSharpCompilationOptions = compilationOptions;
         }
 
-        public static new CSharpCompilationFactory Create(string assemblyFileName, CompilationOptionsReader optionsReader)
+        internal static new CSharpCompilationFactory Create(string assemblyFileName, CompilationOptionsReader optionsReader)
         {
-            if (optionsReader.GetLanguageName() != LanguageNames.CSharp)
-            {
-                throw new ArgumentException("", nameof(optionsReader));
-            }
-
+            Debug.Assert(optionsReader.GetLanguageName() == LanguageNames.CSharp);
             var (compilationOptions, parseOptions) = CreateCSharpCompilationOptions(assemblyFileName, optionsReader);
             return new CSharpCompilationFactory(assemblyFileName, optionsReader, parseOptions, compilationOptions);
         }

@@ -6,28 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
-using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace BuildValidator
 {
-    public class VisualBasicCompilationFactory : CompilationFactory
+    public sealed class VisualBasicCompilationFactory : CompilationFactory
     {
         public override ParseOptions ParseOptions => VisualBasicParseOptions;
         public override CompilationOptions CompilationOptions => VisualBasicCompilationOptions;
@@ -43,13 +33,9 @@ namespace BuildValidator
             VisualBasicCompilationOptions = compilationOptions;
         }
 
-        public static new VisualBasicCompilationFactory Create(string assemblyFileName, CompilationOptionsReader optionsReader)
+        internal static new VisualBasicCompilationFactory Create(string assemblyFileName, CompilationOptionsReader optionsReader)
         {
-            if (optionsReader.GetLanguageName() != LanguageNames.VisualBasic)
-            {
-                throw new ArgumentException("", nameof(optionsReader));
-            }
-
+            Debug.Assert(optionsReader.GetLanguageName() == LanguageNames.VisualBasic);
             var compilationOptions = CreateVisualBasicCompilationOptions(assemblyFileName, optionsReader);
             return new VisualBasicCompilationFactory(assemblyFileName, optionsReader, compilationOptions);
         }
