@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Tags;
@@ -31,12 +32,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             CancellationToken cancellationToken = default)
         {
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<IDocumentationCommentFormattingService>();
-
-            var showWarningGlyph = supportedPlatforms != null && supportedPlatforms.HasValidAndInvalidProjects();
-
             var groups = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, span.Start, symbols, cancellationToken).ConfigureAwait(false);
 
-            var sections = ImmutableArray.CreateBuilder<QuickInfoSection>(initialCapacity: groups.Count);
+            using var _1 = ArrayBuilder<QuickInfoSection>.GetInstance(out var sections);
 
             var symbol = symbols.First();
             if (showAwaitReturn)
@@ -49,30 +47,26 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                     AddSection(QuickInfoSectionKinds.Description, builder.ToImmutable());
                     return QuickInfoItem.Create(span, sections: sections.ToImmutable());
                 }
-                else
-                {
-                    if (TryGetGroupText(SymbolDescriptionGroups.MainDescription, out var mainDescriptionTaggedParts))
-                    {
-                        // We'll take the existing message and wrap it with a message saying this was returned from the task.
-                        var defaultSymbol = "{0}";
-                        var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf(defaultSymbol);
 
-                        var builder = ImmutableArray.CreateBuilder<TaggedText>();
-                        builder.AddText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex));
-                        builder.AddRange(mainDescriptionTaggedParts);
-                        builder.AddText(FeaturesResources.Awaited_task_returns_0[(symbolIndex + defaultSymbol.Length)..]);
-
-                        AddSection(QuickInfoSectionKinds.Description, builder.ToImmutable());
-                    }
-                }
-            }
-            else
-            {
                 if (TryGetGroupText(SymbolDescriptionGroups.MainDescription, out var mainDescriptionTaggedParts))
                 {
-                    AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
+                    // We'll take the existing message and wrap it with a message saying this was returned from the task.
+                    var defaultSymbol = "{0}";
+                    var symbolIndex = FeaturesResources.Awaited_task_returns_0.IndexOf(defaultSymbol);
+
+                    var builder = ImmutableArray.CreateBuilder<TaggedText>();
+                    builder.AddText(FeaturesResources.Awaited_task_returns_0.Substring(0, symbolIndex));
+                    builder.AddRange(mainDescriptionTaggedParts);
+                    builder.AddText(FeaturesResources.Awaited_task_returns_0[(symbolIndex + defaultSymbol.Length)..]);
+
+                    AddSection(QuickInfoSectionKinds.Description, builder.ToImmutable());
                 }
             }
+            else if (TryGetGroupText(SymbolDescriptionGroups.MainDescription, out var mainDescriptionTaggedParts))
+            {
+                AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
+            }
+
 
             if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty)
                 AddSection(QuickInfoSectionKinds.DocumentationComments, docParts);
@@ -122,11 +116,15 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.AnonymousTypes, builder.ToImmutable());
             }
 
-            var usageTextBuilder = ImmutableArray.CreateBuilder<TaggedText>();
+            using var _ = ArrayBuilder<TaggedText>.GetInstance(out var usageTextBuilder);
             if (TryGetGroupText(SymbolDescriptionGroups.AwaitableUsageText, out var awaitableUsageText))
-            {
                 usageTextBuilder.AddRange(awaitableUsageText);
-            }
+
+            if (supportedPlatforms != null)
+                usageTextBuilder.AddRange(supportedPlatforms.ToDisplayParts().ToTaggedText());
+
+            if (usageTextBuilder.Count > 0)
+                AddSection(QuickInfoSectionKinds.Usage, usageTextBuilder.ToImmutable());
 
             var nullableMessage = flowState switch
             {
@@ -140,28 +138,14 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.NullabilityAnalysis, ImmutableArray.Create(new TaggedText(TextTags.Text, nullableMessage)));
             }
 
-            if (supportedPlatforms != null)
-            {
-                usageTextBuilder.AddRange(supportedPlatforms.ToDisplayParts().ToTaggedText());
-            }
-
-            if (usageTextBuilder.Count > 0)
-            {
-                AddSection(QuickInfoSectionKinds.Usage, usageTextBuilder.ToImmutable());
-            }
-
             if (TryGetGroupText(SymbolDescriptionGroups.Exceptions, out var exceptionsText))
-            {
                 AddSection(QuickInfoSectionKinds.Exception, exceptionsText);
-            }
 
             if (TryGetGroupText(SymbolDescriptionGroups.Captures, out var capturesText))
-            {
                 AddSection(QuickInfoSectionKinds.Captures, capturesText);
-            }
 
             var tags = ImmutableArray.CreateRange(GlyphTags.GetTags(symbol.GetGlyph()));
-            if (showWarningGlyph)
+            if (supportedPlatforms?.HasValidAndInvalidProjects() == true)
                 tags = tags.Add(WellKnownTags.Warning);
 
             return QuickInfoItem.Create(span, tags, sections.ToImmutable());
