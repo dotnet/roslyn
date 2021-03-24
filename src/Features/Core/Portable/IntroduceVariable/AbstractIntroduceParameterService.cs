@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -67,11 +68,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return null;
             }
 
-            var (title, actions) = AddActions(semanticDocument, expression, cancellationToken);
+            var actions = AddActions(semanticDocument, expression, cancellationToken);
 
             if (actions.Length > 0)
             {
-                return new CodeActionWithNestedActions(title, actions, isInlinable: true);
+                return new CodeActionWithNestedActions(FeaturesResources.Introduce_parameter, actions, isInlinable: true);
             }
 
             return null;
@@ -367,7 +368,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var editor = new SyntaxEditor(root, generator);
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                     var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => GetContainingParameterizedDeclaration(node), ascendOutOfTrivia: true)!;
-                    var insertionIndex = AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax>.GetInsertionIndex(semanticDocument, compilation, syntaxFacts, oldMethodDeclaration, cancellationToken);
+                    var insertionIndex = GetInsertionIndex(semanticDocument, compilation, syntaxFacts, oldMethodDeclaration, cancellationToken);
 
                     if (trampoline)
                     {
@@ -439,7 +440,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var editor = new SyntaxEditor(root, generator);
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                     var oldMethodDeclaration = expressionCopy.FirstAncestorOrSelf<SyntaxNode>(node => GetContainingParameterizedDeclaration(node), ascendOutOfTrivia: true)!;
-                    var insertionIndex = AbstractIntroduceParameterService<TExpressionSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax>.GetInsertionIndex(semanticDocument, compilation, syntaxFacts, oldMethodDeclaration, cancellationToken);
+                    var insertionIndex = GetInsertionIndex(semanticDocument, compilation, syntaxFacts, oldMethodDeclaration, cancellationToken);
 
                     foreach (var invocationExpression in invocationExpressionList)
                     {
@@ -570,28 +571,45 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return (methodSymbol != null && methodSymbol.GetParameters().Any(), hasOptionalParameter);
         }
 
-        private (string title, ImmutableArray<CodeAction> actions) AddActions(SemanticDocument semanticDocument,
+        private ImmutableArray<CodeAction> AddActions(SemanticDocument semanticDocument,
             TExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var actionsBuilder = new ArrayBuilder<CodeAction>();
             var (isParameterized, hasOptionalParameter) = ExpressionWithinParameterizedMethod(semanticDocument, expression, cancellationToken);
             if (isParameterized)
             {
-                actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, service: this, expression, allOccurrences: false, trampoline: false, overload: false));
-                actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, service: this, expression, allOccurrences: true, trampoline: false, overload: false));
+                actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: false, trampoline: false, overload: false),
+                    c => IntroduceParameterAsync(semanticDocument, expression, false, false, false, cancellationToken)));
+                actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: true, trampoline: false, overload: false),
+                    c => IntroduceParameterAsync(semanticDocument, expression, true, false, false, cancellationToken)));
 
                 if (!hasOptionalParameter)
                 {
-                    actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, service: this, expression, allOccurrences: false, trampoline: true, overload: false));
-                    actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, service: this, expression, allOccurrences: true, trampoline: true, overload: false));
-
-                    actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, service: this, expression, allOccurrences: false, trampoline: false, overload: true));
-                    actionsBuilder.Add(new IntroduceParameterCodeAction(semanticDocument, service: this, expression, allOccurrences: true, trampoline: false, overload: true));
+                    actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: false, trampoline: true, overload: false),
+                        c => IntroduceParameterAsync(semanticDocument, expression, false, true, false, cancellationToken)));
+                    actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: true, trampoline: true, overload: false),
+                        c => IntroduceParameterAsync(semanticDocument, expression, true, true, false, cancellationToken)));
+                    actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: false, trampoline: false, overload: true),
+                        c => IntroduceParameterAsync(semanticDocument, expression, false, false, true, cancellationToken)));
+                    actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: true, trampoline: false, overload: true),
+                        c => IntroduceParameterAsync(semanticDocument, expression, true, false, true, cancellationToken)));
                 }
             }
 
-            return (FeaturesResources.Introduce_parameter, actionsBuilder.ToImmutable());
+            return actionsBuilder.ToImmutable();
         }
+
+        private static string CreateDisplayText(bool allOccurrences, bool trampoline, bool overload)
+                => (allOccurrences, trampoline, overload) switch
+                {
+                    (true, true, false) => FeaturesResources.Introduce_parameter_and_extract_method_for_all_occurrences_of_0,
+                    (true, false, false) => FeaturesResources.Introduce_parameter_for_all_occurrences_of_0,
+                    (true, false, true) => FeaturesResources.Introduce_new_parameter_overload_for_all_occurrences_of_0,
+                    (false, true, false) => FeaturesResources.Introduce_parameter_and_extract_method_for_0,
+                    (false, false, true) => FeaturesResources.Introduce_new_parameter_overload_for_0,
+                    (false, false, false) => FeaturesResources.Introduce_parameter_for_0,
+                    _ => throw new System.NotImplementedException()
+                };
 
         /// <summary>
         /// Finds the matches of the expression within the same block
@@ -660,6 +678,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             static bool IsInstanceMemberReference(IOperation operation)
                 => operation is IMemberReferenceOperation memberReferenceOperation &&
                     memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
+        }
+
+        private class MyCodeAction : SolutionChangeAction
+        {
+            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+                : base(title, createChangedSolution)
+            {
+            }
         }
     }
 }
