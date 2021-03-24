@@ -13,7 +13,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions
 {
@@ -52,51 +54,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 return Enumerable.Empty<TaggedText>();
             }
 
-            var description = await symbolDisplayService.ToDescriptionPartsAsync(codeProject.Solution.Workspace, semanticModel, position: 0, ImmutableArray.Create(symbol), SymbolDescriptionGroups.MainDescription, cancellationToken).ConfigureAwait(false);
-
+            var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(codeProject.Solution.Workspace, semanticModel, TextSpan.FromBounds(0, 0), ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
             var builder = new List<TaggedText>();
-            builder.AddRange(description.ToTaggedText());
-
-            var documentation = symbol.GetDocumentationParts(semanticModel, position: 0, formatter, cancellationToken);
-            if (documentation.Any())
+            foreach (var section in quickInfo.Sections)
             {
-                builder.AddLineBreak();
-                builder.AddRange(documentation);
+                if (builder.Any())
+                {
+                    builder.AddLineBreak();
+                }
+                builder.AddRange(section.TaggedParts);
             }
-
-            var remarksDocumentation = symbol.GetRemarksDocumentationParts(semanticModel, position: 0, formatter, cancellationToken);
-            if (remarksDocumentation.Any())
-            {
-                builder.AddLineBreak();
-                builder.AddLineBreak();
-                builder.AddRange(remarksDocumentation);
-            }
-
-            var returnsDocumentation = symbol.GetReturnsDocumentationParts(semanticModel, position: 0, formatter, cancellationToken);
-            if (returnsDocumentation.Any())
-            {
-                builder.AddLineBreak();
-                builder.AddLineBreak();
-                builder.AddText(FeaturesResources.Returns_colon);
-                builder.AddLineBreak();
-                builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
-                builder.AddRange(returnsDocumentation);
-                builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
-            }
-
-            var valueDocumentation = symbol.GetValueDocumentationParts(semanticModel, position: 0, formatter, cancellationToken);
-            if (valueDocumentation.Any())
-            {
-                builder.AddLineBreak();
-                builder.AddLineBreak();
-                builder.AddText(FeaturesResources.Value_colon);
-                builder.AddLineBreak();
-                builder.Add(new TaggedText(TextTags.ContainerStart, "  "));
-                builder.AddRange(valueDocumentation);
-                builder.Add(new TaggedText(TextTags.ContainerEnd, string.Empty));
-            }
-
-            return builder;
+            return builder.ToImmutableArray();
         }
     }
 }
