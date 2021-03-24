@@ -14,6 +14,7 @@ namespace Roslyn.Test.Utilities
 {
     internal class TestMetadataReferenceResolver : MetadataReferenceResolver
     {
+        private readonly IFileSystem _fileSystem;
         private readonly RelativePathResolver _pathResolver;
         private readonly Dictionary<string, PortableExecutableReference> _assemblyNames;
         private readonly Dictionary<string, PortableExecutableReference> _files;
@@ -21,11 +22,13 @@ namespace Roslyn.Test.Utilities
         public TestMetadataReferenceResolver(
             RelativePathResolver pathResolver = null,
             Dictionary<string, PortableExecutableReference> assemblyNames = null,
-            Dictionary<string, PortableExecutableReference> files = null)
+            Dictionary<string, PortableExecutableReference> files = null,
+            IFileSystem fileSystem = null)
         {
             _pathResolver = pathResolver;
             _assemblyNames = assemblyNames ?? new Dictionary<string, PortableExecutableReference>();
             _files = files ?? new Dictionary<string, PortableExecutableReference>();
+            _fileSystem = fileSystem ?? StandardFileSystem.Instance;
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
@@ -36,7 +39,7 @@ namespace Roslyn.Test.Utilities
             {
                 if (_pathResolver != null)
                 {
-                    reference = _pathResolver.ResolvePath(reference, baseFilePath);
+                    reference = _pathResolver.ResolvePath(_fileSystem, reference, baseFilePath);
                     if (reference == null)
                     {
                         return ImmutableArray<PortableExecutableReference>.Empty;

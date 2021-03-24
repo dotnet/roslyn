@@ -33,62 +33,62 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 dotted
             };
 
-            var resolver = new VirtualizedRelativePathResolver(
-                existingFullPaths: fs,
+            var resolver = new RelativePathResolver(
                 searchPaths: ImmutableArray.Create<string>(),
                 baseDirectory: subdir);
 
             // unqualified file name:
-            var path = resolver.ResolvePath(fileName, baseFilePath: null);
+            var fileSystem = TestableFileSystem.CreateForExistingPaths(fs);
+            var path = resolver.ResolvePath(fileSystem, fileName, baseFilePath: null);
             Assert.Equal(subFilePath, path);
 
             // prefer the base file over base directory:
-            path = resolver.ResolvePath(fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "goo.csx"));
+            path = resolver.ResolvePath(fileSystem, fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "goo.csx"));
             Assert.Equal(filePath, path);
 
-            path = resolver.ResolvePath(@"\" + fileName, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @"\" + fileName, baseFilePath: null);
             Assert.Null(path);
 
-            path = resolver.ResolvePath(@"/" + fileName, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @"/" + fileName, baseFilePath: null);
             Assert.Null(path);
 
-            path = resolver.ResolvePath(@".", baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @".", baseFilePath: null);
             Assert.Null(path);
 
-            path = resolver.ResolvePath(@".\" + fileName, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @".\" + fileName, baseFilePath: null);
             Assert.Equal(subFilePath, path);
 
-            path = resolver.ResolvePath(@"./" + fileName, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @"./" + fileName, baseFilePath: null);
             Assert.Equal(subFilePath, path);
 
-            path = resolver.ResolvePath(@".x.dll", baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @".x.dll", baseFilePath: null);
             Assert.Equal(dotted, path);
 
-            path = resolver.ResolvePath(@"..", baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @"..", baseFilePath: null);
             Assert.Null(path);
 
-            path = resolver.ResolvePath(@"..\" + fileName, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @"..\" + fileName, baseFilePath: null);
             Assert.Equal(filePath, path);
 
-            path = resolver.ResolvePath(@"../" + fileName, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @"../" + fileName, baseFilePath: null);
             Assert.Equal(filePath, path);
 
-            path = resolver.ResolvePath(@"C:\" + fileName, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @"C:\" + fileName, baseFilePath: null);
             Assert.Null(path);
 
-            path = resolver.ResolvePath(@"C:/" + fileName, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, @"C:/" + fileName, baseFilePath: null);
             Assert.Null(path);
 
-            path = resolver.ResolvePath(filePath, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, filePath, baseFilePath: null);
             Assert.Equal(filePath, path);
 
             // drive-relative paths not supported:
-            path = resolver.ResolvePath(drive + ":" + fileName, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, drive + ":" + fileName, baseFilePath: null);
             Assert.Null(path);
 
             // \abc\def
             string rooted = filePath.Substring(2);
-            path = resolver.ResolvePath(rooted, null);
+            path = resolver.ResolvePath(fileSystem, rooted, null);
             Assert.Equal(filePath, path);
         }
 
@@ -106,54 +106,53 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 filePath,
                 subFilePath
             };
+            var fileSystem = TestableFileSystem.CreateForExistingPaths(fs);
 
             // with no search paths
-            var resolver = new VirtualizedRelativePathResolver(
-                existingFullPaths: fs,
+            var resolver = new RelativePathResolver(
+                searchPaths: ImmutableArray<string>.Empty,
                 baseDirectory: subdir);
 
             // using base path
-            var path = resolver.ResolvePath(fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "goo.csx"));
+            var path = resolver.ResolvePath(fileSystem, fileName, baseFilePath: PathUtilities.CombineAbsoluteAndRelativePaths(dir, "goo.csx"));
             Assert.Equal(filePath, path);
 
             // using base dir
-            path = resolver.ResolvePath(fileName, baseFilePath: null);
+            path = resolver.ResolvePath(fileSystem, fileName, baseFilePath: null);
             Assert.Equal(subFilePath, path);
 
             // search paths
-            var resolverSP = new VirtualizedRelativePathResolver(
-                existingFullPaths: fs,
+            var resolverSP = new RelativePathResolver(
                 searchPaths: new[] { dir, subdir }.AsImmutableOrNull(),
                 baseDirectory: @"C:\goo");
 
-            path = resolverSP.ResolvePath(fileName, baseFilePath: null);
+            path = resolverSP.ResolvePath(fileSystem, fileName, baseFilePath: null);
             Assert.Equal(filePath, path);
 
             // null base dir, no search paths
-            var resolverNullBase = new VirtualizedRelativePathResolver(
-                existingFullPaths: fs,
+            var resolverNullBase = new RelativePathResolver(
+                searchPaths: ImmutableArray<string>.Empty,
                 baseDirectory: null);
 
             // relative path
-            path = resolverNullBase.ResolvePath(fileName, baseFilePath: null);
+            path = resolverNullBase.ResolvePath(fileSystem, fileName, baseFilePath: null);
             Assert.Null(path);
 
             // full path
-            path = resolverNullBase.ResolvePath(filePath, baseFilePath: null);
+            path = resolverNullBase.ResolvePath(fileSystem, filePath, baseFilePath: null);
             Assert.Equal(filePath, path);
 
             // null base dir
-            var resolverNullBaseSP = new VirtualizedRelativePathResolver(
-                existingFullPaths: fs,
+            var resolverNullBaseSP = new RelativePathResolver(
                 searchPaths: new[] { dir, subdir }.AsImmutableOrNull(),
                 baseDirectory: null);
 
             // relative path
-            path = resolverNullBaseSP.ResolvePath(fileName, baseFilePath: null);
+            path = resolverNullBaseSP.ResolvePath(fileSystem, fileName, baseFilePath: null);
             Assert.Equal(filePath, path);
 
             // full path
-            path = resolverNullBaseSP.ResolvePath(filePath, baseFilePath: null);
+            path = resolverNullBaseSP.ResolvePath(fileSystem, filePath, baseFilePath: null);
             Assert.Equal(filePath, path);
         }
 
@@ -171,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ImmutableArray.Create(dir1.Path, dir2.Path),
                 baseDirectory: null);
 
-            var path = resolver.ResolvePath("f.dll", null);
+            var path = resolver.ResolvePath(StandardFileSystem.Instance, "f.dll", null);
             Assert.Equal(f1, path);
         }
     }

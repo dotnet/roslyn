@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             // resolve all analyzer references.
             foreach (var path in commandLineArguments.AnalyzerReferences.Select(r => r.FilePath))
             {
-                analyzerLoader.AddDependencyLocation(relativePathResolver.ResolvePath(path, baseFilePath: null));
+                analyzerLoader.AddDependencyLocation(relativePathResolver.ResolvePath(StandardFileSystem.Instance, path, baseFilePath: null));
             }
 
             var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(analyzerLoader);
