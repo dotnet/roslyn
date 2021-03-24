@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 return Enumerable.Empty<TaggedText>();
             }
 
-            var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(codeProject.Solution.Workspace, semanticModel, TextSpan.FromBounds(0, 0), ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
+            var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(codeProject.Solution.Workspace, semanticModel, span: default, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
             var builder = new List<TaggedText>();
             foreach (var section in quickInfo.Sections)
             {
