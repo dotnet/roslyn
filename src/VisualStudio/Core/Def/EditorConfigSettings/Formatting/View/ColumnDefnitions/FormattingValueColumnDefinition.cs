@@ -33,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
         public override string DisplayName => ServicesVSResources.Value;
         public override double MinWidth => 80;
         public override bool DefaultVisible => false;
-        public override bool IsFilterable => true;
-        public override bool IsSortable => true;
+        public override bool IsFilterable => false;
+        public override bool IsSortable => false;
         public override TextWrapping TextWrapping => TextWrapping.NoWrap;
 
         public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)

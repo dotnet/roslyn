@@ -28,8 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
         public override string DisplayName => ServicesVSResources.Severity;
         public override double MinWidth => 120;
         public override bool DefaultVisible => false;
-        public override bool IsFilterable => true;
-        public override bool IsSortable => true;
+        public override bool IsFilterable => false;
+        public override bool IsSortable => false;
 
         public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string? content)
         {
