@@ -24,63 +24,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
+    using static ActiveStatementTestHelpers;
+
     [UseExportProvider]
     public class EditSessionActiveStatementsTests : TestBase
     {
-        internal static ImmutableArray<ManagedActiveStatementDebugInfo> GetActiveStatementDebugInfos(
-            string[] markedSources,
-            string extension = ".cs",
-            int[] methodRowIds = null,
-            Guid[] modules = null,
-            int[] methodVersions = null,
-            int[] ilOffsets = null,
-            ActiveStatementFlags[] flags = null)
-        {
-            IEnumerable<(TextSpan Span, int Id, SourceText Text, string DocumentName, DocumentId DocumentId)> EnumerateAllSpans()
-            {
-                var sourceIndex = 0;
-                foreach (var markedSource in markedSources)
-                {
-                    var documentName = TestWorkspace.GetDefaultTestSourceDocumentName(sourceIndex, extension);
-                    var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId(), documentName);
-                    var text = SourceText.From(markedSource);
-
-                    foreach (var (span, id) in ActiveStatementsDescription.GetActiveSpans(markedSource))
-                    {
-                        yield return (span, id, text, documentName, documentId);
-                    }
-
-                    sourceIndex++;
-                }
-            }
-
-            IEnumerable<ManagedActiveStatementDebugInfo> Enumerate()
-            {
-                var moduleId = new Guid("00000000-0000-0000-0000-000000000001");
-                var threadId = new Guid("00000000-0000-0000-0000-000000000010");
-
-                var index = 0;
-                foreach (var (span, id, text, documentName, documentId) in EnumerateAllSpans().OrderBy(s => s.Id))
-                {
-                    yield return new ManagedActiveStatementDebugInfo(
-                        new ManagedInstructionId(
-                            new ManagedMethodId(
-                                (modules != null) ? modules[index] : moduleId,
-                                new ManagedModuleMethodId(
-                                    token: 0x06000000 | (methodRowIds != null ? methodRowIds[index] : index + 1),
-                                    version: (methodVersions != null) ? methodVersions[index] : 1)),
-                            ilOffset: (ilOffsets != null) ? ilOffsets[index] : 0),
-                        documentName: documentName,
-                        sourceSpan: text.Lines.GetLinePositionSpan(span).ToSourceSpan(),
-                        flags: (flags != null) ? flags[index] : ((id == 0 ? ActiveStatementFlags.IsLeafFrame : ActiveStatementFlags.IsNonLeafFrame) | ActiveStatementFlags.MethodUpToDate));
-
-                    index++;
-                }
-            }
-
-            return Enumerate().ToImmutableArray();
-        }
-
         private sealed class Validator : IDisposable
         {
             public readonly TestWorkspace Workspace;
@@ -136,67 +84,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     from d in p.DocumentIds
                     select d).ToImmutableArray();
         }
-
-        private static string Delete(string src, string marker)
-        {
-            while (true)
-            {
-                var startStr = "/*delete" + marker;
-                var endStr = "*/";
-                var start = src.IndexOf(startStr);
-                if (start == -1)
-                {
-                    return src;
-                }
-
-                var end = src.IndexOf(endStr, start + startStr.Length) + endStr.Length;
-                src = src.Substring(0, start) + src.Substring(end);
-            }
-        }
-
-        private static string Insert(string src, string marker)
-        {
-            while (true)
-            {
-                var startStr = "/*insert" + marker + "[";
-                var endStr = "*/";
-
-                var start = src.IndexOf(startStr);
-                if (start == -1)
-                {
-                    return src;
-                }
-
-                var startOfLineCount = start + startStr.Length;
-                var endOfLineCount = src.IndexOf(']', startOfLineCount);
-                var lineCount = int.Parse(src.Substring(startOfLineCount, endOfLineCount - startOfLineCount));
-
-                var end = src.IndexOf(endStr, endOfLineCount) + endStr.Length;
-
-                src = src.Substring(0, start) + string.Join("", Enumerable.Repeat(Environment.NewLine, lineCount)) + src.Substring(end);
-            }
-        }
-
-        private static string Update(string src, string marker)
-            => Insert(Delete(src, marker), marker);
-
-        private static string InspectActiveStatement(ActiveStatement statement)
-            => $"{statement.Ordinal}: {statement.Span} flags=[{statement.Flags}] pdid={statement.PrimaryDocumentId.DebugName} docs=[{string.Join(",", statement.DocumentIds.Select(d => d.DebugName))}]";
-
-        private static string InspectActiveStatementAndInstruction(ActiveStatement statement)
-            => InspectActiveStatement(statement) + " " + statement.InstructionId.GetDebuggerDisplay();
-
-        private static string InspectActiveStatementAndInstruction(ActiveStatement statement, SourceText text)
-            => InspectActiveStatementAndInstruction(statement) + $" '{GetFirstLineText(statement.Span, text)}'";
-
-        private static string InspectActiveStatementUpdate(ManagedActiveStatementUpdate update)
-            => $"{update.Method.GetDebuggerDisplay()} IL_{update.ILOffset:X4}: {update.NewSpan.GetDebuggerDisplay()}";
-
-        private static string InspectExceptionRegionUpdate(ManagedExceptionRegionUpdate r)
-            => $"{r.Method.GetDebuggerDisplay()} | {r.NewSpan.GetDebuggerDisplay()} Delta={r.Delta}";
-
-        private static string GetFirstLineText(LinePositionSpan span, SourceText text)
-            => text.Lines[span.Start.Line].ToString().Trim();
 
         [Fact]
         public async Task BaseActiveStatementsAndExceptionRegions1()
@@ -412,13 +299,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         <AS:1>throw new Exception();</AS:1>
     }
 }";
-            var updatedSource = Update(baseSource, "1");
+            var updatedSource = Update(baseSource, marker: "1");
 
             var module1 = new Guid("11111111-1111-1111-1111-111111111111");
             var baseText = SourceText.From(baseSource);
             var updatedText = SourceText.From(updatedSource);
 
-            var baseActiveStatementInfos = GetActiveStatementDebugInfos(new[] { baseSource },
+            var baseActiveStatementInfos = GetActiveStatementDebugInfos(
+                new[] { baseSource },
                 modules: new[] { module1, module1 },
                 methodVersions: new[] { 1, 1 },
                 flags: new[]
@@ -635,8 +523,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }</ER:3.1>
     }
 }";
-            var markedSourceV2 = Update(markedSourceV1, "1");
-            var markedSourceV3 = Update(markedSourceV2, "2");
+            var markedSourceV2 = Update(markedSourceV1, marker: "1");
+            var markedSourceV3 = Update(markedSourceV2, marker: "2");
 
             var module1 = new Guid("11111111-1111-1111-1111-111111111111");
             var sourceTextV1 = SourceText.From(markedSourceV1);
