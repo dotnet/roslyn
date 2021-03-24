@@ -38,5 +38,18 @@ namespace Roslyn.Test.Utilities
                 FileExistsFunc = filePath => set.Contains(filePath)
             };
         }
+
+        public static TestableFileSystem CreateForMap(Dictionary<string, TestableFile> map)
+            => new TestableFileSystem()
+            {
+                OpenFileExFunc = (string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath) =>
+                {
+                    normalizedFilePath = filePath;
+                    return map[filePath].GetStream(access);
+                },
+
+                OpenFileFunc = (string filePath, FileMode mode, FileAccess access, FileShare share) => map[filePath].GetStream(access),
+                FileExistsFunc = filePath => map.ContainsKey(filePath),
+            };
     }
 }
