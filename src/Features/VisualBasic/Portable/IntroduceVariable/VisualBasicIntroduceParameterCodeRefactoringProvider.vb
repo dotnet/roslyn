@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference:=True)
         End Function
 
-        Protected Overrides Function GetContainingParameterizedDeclaration(node As SyntaxNode) As Boolean
+        Protected Overrides Function IsContainedInParameterizedDeclaration(node As SyntaxNode) As Boolean
             Select Case node.Kind()
                 Case SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,

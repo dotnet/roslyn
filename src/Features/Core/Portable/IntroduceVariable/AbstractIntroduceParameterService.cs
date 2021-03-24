@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TIdentifierNameSyntax : TExpressionSyntax
     {
-        protected abstract bool GetContainingParameterizedDeclaration(SyntaxNode node);
+        protected abstract bool IsContainedInParameterizedDeclaration(SyntaxNode node);
         protected abstract SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             var methodSymbol = (IMethodSymbol)semanticDocument.SemanticModel.GetRequiredEnclosingSymbol(expression.SpanStart, cancellationToken);
             var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var methodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => GetContainingParameterizedDeclaration(node), ascendOutOfTrivia: true);
+            var methodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), ascendOutOfTrivia: true);
             if (methodDeclaration is null)
             {
                 return null;
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         {
             var document = semanticDocument.Document;
             var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => GetContainingParameterizedDeclaration(node), true)!;
+            var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), true)!;
             var returnExpression = new List<SyntaxNode>
             {
                 editor.Generator.ReturnStatement(expression.WithoutTrailingTrivia())
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var document = semanticDocument.Document;
             var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             var generator = editor.Generator;
-            var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => GetContainingParameterizedDeclaration(node), true)!;
+            var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), true)!;
             var arguments = generator.CreateArguments(methodSymbol.Parameters);
             arguments = AddExpressionArgumentToArgumentList(arguments, expression.WithoutTrailingTrivia(), generator);
             var memberName = methodSymbol.IsGenericMethod
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var editor = new SyntaxEditor(root, generator);
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => GetContainingParameterizedDeclaration(node), ascendOutOfTrivia: true)!;
+                    var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), ascendOutOfTrivia: true)!;
                     var insertionIndex = GetInsertionIndex(semanticDocument, compilation, syntaxFacts, oldMethodDeclaration, cancellationToken);
 
                     if (trampoline)
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     var editor = new SyntaxEditor(root, generator);
                     var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var oldMethodDeclaration = expressionCopy.FirstAncestorOrSelf<SyntaxNode>(node => GetContainingParameterizedDeclaration(node), ascendOutOfTrivia: true)!;
+                    var oldMethodDeclaration = expressionCopy.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), ascendOutOfTrivia: true)!;
                     var insertionIndex = GetInsertionIndex(semanticDocument, compilation, syntaxFacts, oldMethodDeclaration, cancellationToken);
 
                     foreach (var invocationExpression in invocationExpressionList)

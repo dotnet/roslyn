@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return ExpressionGenerator.GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
         }
 
-        protected override bool GetContainingParameterizedDeclaration(SyntaxNode node)
+        protected override bool IsContainedInParameterizedDeclaration(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement) || node.IsKind(SyntaxKind.MethodDeclaration) ||
             node.IsKind(SyntaxKind.ConstructorDeclaration) || node.IsKind(SyntaxKind.IndexerDeclaration) ||
             node.IsKind(SyntaxKind.ParenthesizedLambdaExpression);
