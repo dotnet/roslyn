@@ -4946,6 +4946,39 @@ class Program
                 Diagnostic(RudeEditKind.Renamed, "int X", FeaturesResources.parameter));
         }
 
+        [Fact]
+        public void Lambda_Parameter_To_Discard1()
+        {
+            var src1 = "var x = new Func<int, int, int>((int a, int b) => a + 1);";
+            var src2 = "var x = new Func<int, int, int>((int a, _) => 10);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(int a, int b) => a + 1]@34 -> [(int a, _) => 10]@34",
+                "Update [int b]@42 -> [_]@42");
+
+            // A single underscore in a lambda is not actually a discard, its a valid identifier
+            GetTopEdits(edits).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ChangingLambdaParameters, "(int a, _)", "lambda"));
+        }
+
+        [Fact]
+        public void Lambda_Parameter_To_Discard2()
+        {
+            var src1 = "var x = new Func<int, int, int>((int a, int b) => a + 1);";
+            var src2 = "var x = new Func<int, int, int>((_, _) => 10);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [(int a, int b) => a + 1]@34 -> [(_, _) => 10]@34",
+                "Update [int a]@35 -> [_]@35",
+                "Update [int b]@42 -> [_]@38");
+
+            GetTopEdits(edits).VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true));
+            GetTopEdits(edits).VerifyRudeDiagnostics();
+        }
+
         #endregion
 
         #region Local Functions
