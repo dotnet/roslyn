@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
                 update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta));
 
-            var diagnostics = results.Diagnostics.SelectMany(d => d.Diagnostic).ToImmutableArray();
+            var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
 
             return (updates, diagnostics);
         }
