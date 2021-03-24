@@ -123,9 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool HasCallerMemberNameAttribute
             => GetEarlyDecodedWellKnownAttributeData()?.HasCallerMemberNameAttribute == true;
 
-        private bool HasCallerArgumentExpressionAttribute
-            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerArgumentExpressionAttribute == true;
-
         internal override bool IsCallerLineNumber => HasCallerLineNumberAttribute;
 
         internal override bool IsCallerFilePath => !HasCallerLineNumberAttribute && HasCallerFilePathAttribute;
@@ -138,12 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!HasCallerLineNumberAttribute && !HasCallerFilePathAttribute && !HasCallerMemberNameAttribute && HasCallerArgumentExpressionAttribute)
-                {
-                    return GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex ?? -1;
-                }
-
-                return -1;
+                return GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex ?? -1;
             }
         }
 
@@ -621,13 +613,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute))
                 {
-                    // PROTOTYPE(caller-expr): From 333fred review:
-                    // As the language exists today we can do this as an early attribute, but if we do implement the
-                    // nameof proposal (allowing nameof(parameter) in parameters/attributes on methods) I don't believe it
-                    // will end well (this will cause a loop or fail to bind entirely).
-                    // Consider moving binding of the actual attribute data into regular attribute binding.
-                    arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasCallerArgumentExpressionAttribute = true;
-
                     var index = -1;
                     var attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out bool generatedDiagnostics);
                     if (!generatedDiagnostics && !attribute.HasErrors)

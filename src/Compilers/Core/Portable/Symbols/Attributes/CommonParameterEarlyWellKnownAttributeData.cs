@@ -81,21 +81,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private bool _hasCallerArgumentExpressionAttribute;
-        public bool HasCallerArgumentExpressionAttribute
-        {
-            get
-            {
-                VerifySealed(expected: true);
-                return _hasCallerArgumentExpressionAttribute;
-            }
-            set
-            {
-                VerifySealed(expected: false);
-                _hasCallerArgumentExpressionAttribute = value;
-                SetDataStored();
-            }
-        }
+        // PROTOTYPE(caller-expr): If VB won't be supported, this should be moved into a C#-specific type.
 
         private int _argumentExpressionParameterIndex = -1;
         public int CallerArgumentExpressionParameterIndex
