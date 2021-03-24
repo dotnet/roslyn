@@ -4,9 +4,7 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -17,14 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal class CompletionResolveData
     {
-        public TextDocumentIdentifier TextDocument { get; set; }
-
-        public Position Position { get; set; }
-
-        public string DisplayText { get; set; }
-
-        public CompletionTrigger CompletionTrigger { get; set; }
-
         /// <summary>
         /// ID associated with the item's completion list.
         /// </summary>
