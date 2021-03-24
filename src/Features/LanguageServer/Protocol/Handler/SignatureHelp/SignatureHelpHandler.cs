@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.Document;
             if (document == null)
             {
-                return new LSP.SignatureHelp();
+                return null;
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
-            return new LSP.SignatureHelp();
+            return null;
         }
 
         private static int GetActiveSignature(SignatureHelpItems items)
