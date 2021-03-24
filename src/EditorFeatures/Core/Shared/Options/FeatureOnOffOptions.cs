@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
 
         public static readonly PerLanguageOption2<bool> ShowInheritanceMargin =
-            new(nameof(ShowInheritanceMargin),
+            new(nameof(FeatureOnOffOptions),
                 nameof(ShowInheritanceMargin),
                 defaultValue: false,
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
