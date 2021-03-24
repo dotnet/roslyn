@@ -32,6 +32,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
+    using static ActiveStatementTestHelpers;
+
     [UseExportProvider]
     public sealed partial class EditAndContinueWorkspaceServiceTests : TestBase
     {
@@ -218,7 +220,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return metadataReader.GetGuid(mvidHandle);
         }
 
-        private Guid EmitAndLoadLibraryToDebuggee(string source, string sourceFilePath = "test1.cs", Encoding encoding = null, string assemblyName = "")
+        private Guid EmitAndLoadLibraryToDebuggee(string source, string sourceFilePath = null, Encoding encoding = null, string assemblyName = "")
         {
             var moduleId = EmitLibrary(source, sourceFilePath, encoding, assemblyName);
             LoadLibraryToDebuggee(moduleId);
@@ -232,7 +234,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private Guid EmitLibrary(
             string source,
-            string sourceFilePath = "test1.cs",
+            string sourceFilePath = null,
             Encoding encoding = null,
             string assemblyName = "",
             DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             string additionalFileText = null,
             IEnumerable<(string, string)> analyzerOptions = null)
         {
-            return EmitLibrary(new[] { (source, sourceFilePath) }, encoding, assemblyName, pdbFormat, generator, additionalFileText, analyzerOptions);
+            return EmitLibrary(new[] { (source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs")) }, encoding, assemblyName, pdbFormat, generator, additionalFileText, analyzerOptions);
         }
 
         private Guid EmitLibrary(
@@ -2850,12 +2852,12 @@ class C { int Y => 1; }
 
             var service = CreateEditAndContinueService();
 
-            // default if called outside of edit session
+            // default if not called in a break state
             Assert.True((await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(document1.Id), CancellationToken.None)).IsDefault);
 
             var debuggingSession = await StartDebuggingSessionAsync(service, workspace.CurrentSolution);
 
-            // default if called outside of edit session
+            // default if not called in a break state
             Assert.True((await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(document1.Id), CancellationToken.None)).IsDefault);
 
             var moduleId = Guid.NewGuid();
@@ -3036,6 +3038,127 @@ class C { int Y => 1; }
 
             var baseSpans = await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(document.Id), CancellationToken.None);
             Assert.Empty(baseSpans.Single());
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// F5 a program that has function F that calls G. G has a long-running loop, which starts executing.
+        /// The user makes following operations:
+        /// 1) Break, edit F from version 1 to version 2, continue (change is applied), G is still running in its loop
+        ///    Function remapping is produced for F v1 -> F v2.
+        /// 2) Hot-reload edit F (without breaking) to version 3.
+        ///    Function remapping is produced for F v2 -> F v3 based on the last set of active statements calculated for F v2.
+        ///    Assume that the execution did not progress since the last resume.
+        ///    These active statements will likely not match the actual runtime active statements, 
+        ///    however F v2 will never be remapped since it was hot-reloaded and not EnC'd.
+        ///    This remapping is needed for mapping from F v1 to F v3.
+        /// 3) Break. Update F to v4.
+        /// </summary>
+        [Fact, WorkItem(52100, "https://github.com/dotnet/roslyn/issues/52100")]
+        public async Task BreakStateRemappingFollowedUpByRunStateUpdate()
+        {
+            var markedSourceV1 =
+@"class Test
+{
+    static bool B() => true;
+
+    static void G() { while (B()); <AS:0>}</AS:0>
+
+    static void F()
+    {
+        /*insert1[1]*/B();/*insert2[5]*/B();/*insert3[10]*/B();
+        <AS:1>G();</AS:1>
+    }
+}";
+            var markedSourceV2 = Update(markedSourceV1, marker: "1");
+            var markedSourceV3 = Update(markedSourceV2, marker: "2");
+            var markedSourceV4 = Update(markedSourceV3, marker: "3");
+
+            var moduleId = EmitAndLoadLibraryToDebuggee(ActiveStatementsDescription.ClearTags(markedSourceV1));
+
+            using var workspace = CreateWorkspace();
+            var project = AddDefaultTestProject(workspace, ActiveStatementsDescription.ClearTags(markedSourceV1));
+            var documentId = project.DocumentIds.Single();
+            var solution = project.Solution;
+
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            // EnC update F v1 -> v2
+
+            EnterBreakState(service, GetActiveStatementDebugInfos(
+                new[] { markedSourceV1 },
+                modules: new[] { moduleId, moduleId },
+                methodRowIds: new[] { 2, 3 },
+                methodVersions: new[] { 1, 1 },
+                flags: new[]
+                {
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame,    // G
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, // F
+                }));
+
+            solution = solution.WithDocumentText(documentId, SourceText.From(ActiveStatementsDescription.ClearTags(markedSourceV2), Encoding.UTF8));
+
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(service, solution);
+            Assert.Empty(emitDiagnostics);
+            Assert.Equal(0x06000003, updates.Updates.Single().UpdatedMethods.Single());
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+
+            CommitSolutionUpdate(service);
+
+            AssertEx.Equal(new[]
+            {
+                "0x06000003 v1 | AS (9,14)-(9,18) δ=1",
+            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+
+            ExitBreakState();
+
+            // Hot Reload update F v2 -> v3
+
+            solution = solution.WithDocumentText(documentId, SourceText.From(ActiveStatementsDescription.ClearTags(markedSourceV3), Encoding.UTF8));
+
+            (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(service, solution);
+            Assert.Empty(emitDiagnostics);
+            Assert.Equal(0x06000003, updates.Updates.Single().UpdatedMethods.Single());
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+
+            CommitSolutionUpdate(service);
+
+            AssertEx.Equal(new[]
+            {
+                "0x06000003 v1 | AS (9,14)-(9,18) δ=1",
+            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+
+            // EnC update F v3 -> v4
+
+            EnterBreakState(service, GetActiveStatementDebugInfos(
+                new[] { markedSourceV1 },       // matches F v1    
+                modules: new[] { moduleId, moduleId },
+                methodRowIds: new[] { 2, 3 },
+                methodVersions: new[] { 1, 1 }, // frame F v1 is still executing (G has not returned)
+                flags: new[]
+                {
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame,    // G
+                    ActiveStatementFlags.IsNonLeafFrame,                                       // F - not up-to-date anymore
+                }));
+
+            solution = solution.WithDocumentText(documentId, SourceText.From(ActiveStatementsDescription.ClearTags(markedSourceV4), Encoding.UTF8));
+
+            (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(service, solution);
+            Assert.Empty(emitDiagnostics);
+            Assert.Equal(0x06000003, updates.Updates.Single().UpdatedMethods.Single());
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+
+            CommitSolutionUpdate(service);
+
+            // TODO: https://github.com/dotnet/roslyn/issues/52100
+            // this is incorrect. correct value is: 0x06000003 v1 | AS (9,14)-(9,18) δ=16
+            AssertEx.Equal(new[]
+            {
+                "0x06000003 v1 | AS (9,14)-(9,18) δ=5"
+            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+
+            ExitBreakState();
         }
     }
 }
