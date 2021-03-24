@@ -30,8 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Select Case node.Kind()
                 Case SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
-                     SyntaxKind.FunctionLambdaHeader,
-                     SyntaxKind.SubLambdaHeader
+                     SyntaxKind.ConstructorBlock,
+                     SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression,
+                     SyntaxKind.SingleLineFunctionLambdaExpression,
+                     SyntaxKind.SingleLineSubLambdaExpression
                     Return True
             End Select
 
