@@ -14,6 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             return Update(type, positionalPatternClause, this.LengthPatternClause, propertyPatternClause, designation);
         }
+
+        public RecursivePatternSyntax AddPropertyPatternClauseSubpatterns(params SubpatternSyntax[] items)
+        {
+            var propertyPatternClause = this.PropertyPatternClause ?? SyntaxFactory.PropertyPatternClause();
+            return WithPropertyPatternClause(propertyPatternClause.WithSubpatterns(propertyPatternClause.Subpatterns.AddRange(items)));
+        }
     }
 }
 
