@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.InheritanceMargin;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -28,10 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         /// </summary>
         public readonly ImmutableArray<InheritanceMarginItem> MembersOnLine;
 
-        public InheritanceMarginTag(ImmutableArray<InheritanceMarginItem> membersOnLine)
+        public readonly Document Document;
+
+        public InheritanceMarginTag(Document document, ImmutableArray<InheritanceMarginItem> membersOnLine)
         {
             Contract.ThrowIfTrue(membersOnLine.IsEmpty);
 
+            Document = document;
             MembersOnLine = membersOnLine;
             // The common case, one line has one member, avoid to use select & aggregate
             if (membersOnLine.Length == 1)
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                     relationship |= target.RelationToMember;
                 }
 
-                Moniker = GetMoniker(relationship);
+                Moniker = InheritanceMarginHelpers.GetMoniker(relationship);
             }
             else
             {
@@ -52,49 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 var aggregateRelationship = membersOnLine
                     .SelectMany(member => member.TargetItems.Select(target => target.RelationToMember))
                     .Aggregate((r1, r2) => r1 | r2);
-                Moniker = GetMoniker(aggregateRelationship);
+                Moniker = InheritanceMarginHelpers.GetMoniker(aggregateRelationship);
             }
-        }
-
-        /// <summary>
-        /// Decide which moniker should be shown.
-        /// </summary>
-        private static ImageMoniker GetMoniker(InheritanceRelationship inheritanceRelationship)
-        {
-            //  If there are multiple targets and we have the corresponding compound image, use it
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverriding))
-            {
-                return KnownMonikers.Overriding;
-            }
-
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverridden))
-            {
-                return KnownMonikers.Overridden;
-            }
-
-            // Otherwise, show the image based on this preference
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Implemented))
-            {
-                return KnownMonikers.Implemented;
-            }
-
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Implementing))
-            {
-                return KnownMonikers.Implementing;
-            }
-
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Overridden))
-            {
-                return KnownMonikers.Overridden;
-            }
-
-            if (inheritanceRelationship.HasFlag(InheritanceRelationship.Overriding))
-            {
-                return KnownMonikers.Overriding;
-            }
-
-            // The relationship is None. Don't know what image should be shown, throws
-            throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
         }
     }
 }

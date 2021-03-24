@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -11,24 +12,18 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 {
     internal static class InheritanceMarginHelpers
     {
-        private const InheritanceRelationship ImplementingOverriding =
-            InheritanceRelationship.Implementing | InheritanceRelationship.Overriding;
-
-        private const InheritanceRelationship ImplementingOverridden =
-            InheritanceRelationship.Implementing | InheritanceRelationship.Overridden;
-
         /// <summary>
         /// Decide which moniker should be shown.
         /// </summary>
         public static ImageMoniker GetMoniker(InheritanceRelationship inheritanceRelationship)
         {
             //  If there are multiple targets and we have the corresponding compound image, use it
-            if (inheritanceRelationship.HasFlag(ImplementingOverriding))
+            if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverriding))
             {
                 return KnownMonikers.Overriding;
             }
 
-            if (inheritanceRelationship.HasFlag(ImplementingOverridden))
+            if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverridden))
             {
                 return KnownMonikers.Overridden;
             }

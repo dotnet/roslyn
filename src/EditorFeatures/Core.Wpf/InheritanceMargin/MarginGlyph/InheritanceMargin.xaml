@@ -1,0 +1,96 @@
+﻿<Button x:Class="Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph.InheritanceMargin"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph"
+        xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+        xmlns:ui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+        xmlns:vs="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+        ToolTip="{Binding ToolTip}"
+        Click="Margin_OnClick">
+
+    <Button.Resources>
+        <!-- The image shown in the menu item, mark this is non-shared to make sure each menu item has its own image -->
+        <imaging:CrispImage x:Key="NonSharedIcon" x:Shared="False" Moniker="{Binding ImageMoniker}"/>
+
+        <Style x:Key="TargetMenuItemStyle" TargetType="{x:Type MenuItem}">
+            <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
+            <Setter Property="Header" Value="{Binding  DisplayName}"/>
+            <Setter Property="ToolTip" Value="{Binding ToolTip}"/>
+            <Setter Property="IsCheckable" Value="False"/>
+        </Style>
+
+        <!-- The key is referenced from the code behind -->
+        <Style x:Key="SingleMemberContextMenuStyle" TargetType="{x:Type ContextMenu}">
+            <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
+            <Setter Property="ItemsSource" Value="{Binding Targets}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ContextMenu}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter/>
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="SingleMemberContextMenuStyle2" TargetType="{x:Type ContextMenu}">
+            <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ContextMenu}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter/>
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MemberMenuItemStyle" TargetType="{x:Type MenuItem}">
+            <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
+            <Setter Property="Header" Value="{Binding DisplayName}"/>
+            <Setter Property="ToolTip" Value="{Binding ToolTip}"/>
+            <Setter Property="IsCheckable" Value="False"/>
+            <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}"/>
+
+            <Setter Property="ContextMenu">
+                <Setter.Value>
+                    <ContextMenu Style="{StaticResource SingleMemberContextMenuStyle2}"
+                                 ItemsSource="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}" />
+                </Setter.Value>
+            </Setter>
+            <EventSetter Event="Click" Handler="MemberMenuItem_OnClick" />
+        </Style>
+
+        <!-- The key is referenced from the code behind -->
+        <Style x:Key="MultipleMembersContextMenuStyle" TargetType="ContextMenu">
+            <Setter Property="ItemContainerStyle" Value="{StaticResource MemberMenuItemStyle}"/>
+            <Setter Property="ItemsSource" Value="{Binding Members}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ContextMenu}">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsPresenter/>
+                        </ScrollViewer>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Button.Resources>
+
+    <!-- Control template only shows the image -->
+    <Button.Template>
+        <ControlTemplate>
+            <imaging:CrispImage Moniker="{Binding Path=ImageMoniker}"/>
+        </ControlTemplate>
+    </Button.Template>
+
+    <Button.ContextMenu>
+        <!-- Ensure the context menu is not null -->
+        <ContextMenu/>
+    </Button.ContextMenu>
+</Button>
+

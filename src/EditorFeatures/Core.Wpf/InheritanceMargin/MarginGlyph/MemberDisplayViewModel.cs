@@ -9,18 +9,19 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 {
-    internal class MemberDisplayRowViewModel
+    internal class MemberDisplayViewModel
     {
         public ImageMoniker ImageMoniker { get; }
         public string DisplayName { get; }
+        public string ToolTip { get; }
+        public ImmutableArray<TargetDisplayViewModel> Targets { get; }
 
-        public ImmutableArray<TargetDisplayRowViewModel> Targets { get; }
-
-        public MemberDisplayRowViewModel(InheritanceMemberItem member)
+        public MemberDisplayViewModel(InheritanceMarginItem member)
         {
             ImageMoniker = member.Glyph.GetImageMoniker();
-            DisplayName = member.MemberDisplayName;
-            Targets = member.TargetItems.SelectAsArray(target => new TargetDisplayRowViewModel(target));
+            DisplayName = member.DisplayName;
+            ToolTip = $"Click to look for {DisplayName}";
+            Targets = member.TargetItems.SelectAsArray(item => new TargetDisplayViewModel(item));
         }
     }
 }

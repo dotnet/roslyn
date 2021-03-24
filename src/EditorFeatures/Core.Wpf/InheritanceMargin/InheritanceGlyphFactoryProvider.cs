@@ -5,7 +5,6 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;

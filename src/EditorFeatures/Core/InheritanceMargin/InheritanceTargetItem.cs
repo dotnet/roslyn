@@ -23,19 +23,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         public readonly DefinitionItem DefinitionItem;
 
-        /// <summary>
-        /// A glyph indicates the type of this target
-        /// </summary>
-        public readonly Glyph Glyph;
-
         public InheritanceTargetItem(
             InheritanceRelationship relationToMember,
-            DefinitionItem definitionItem,
-            Glyph glyph)
+            DefinitionItem definitionItem)
         {
             RelationToMember = relationToMember;
             DefinitionItem = definitionItem;
-            Glyph = glyph;
         }
     }
 }

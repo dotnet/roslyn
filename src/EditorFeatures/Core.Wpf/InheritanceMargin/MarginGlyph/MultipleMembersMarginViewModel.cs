@@ -7,21 +7,19 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 {
-    internal class SingleMemberMarginViewModel
+    internal class MultipleMembersMarginViewModel
     {
         public string ToolTip { get; }
 
         public ImageMoniker ImageMoniker { get; }
 
-        public ImmutableArray<TargetDisplayViewModel> Targets { get; }
+        public ImmutableArray<MemberDisplayViewModel> Members { get; }
 
-        public SingleMemberMarginViewModel(InheritanceMarginTag tag)
+        public MultipleMembersMarginViewModel(InheritanceMarginTag tag)
         {
-            ToolTip = "Click to select target";
+            ToolTip = "Click to select member";
             ImageMoniker = tag.Moniker;
-            var member = tag.MembersOnLine[0];
-            var targets = member.TargetItems;
-            Targets = targets.SelectAsArray(item => new TargetDisplayViewModel(item));
+            Members = tag.MembersOnLine.SelectAsArray(member => new MemberDisplayViewModel(member));
         }
     }
 }

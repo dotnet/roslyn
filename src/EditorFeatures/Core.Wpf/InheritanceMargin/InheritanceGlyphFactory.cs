@@ -4,9 +4,9 @@
 
 using System.Windows;
 using Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 {
@@ -16,10 +16,18 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         {
             if (tag is InheritanceMarginTag inheritanceMarginTag)
             {
-                var members = inheritanceMarginTag.MembersOnLine;
-                if (members.Length == 1)
+                var membersOnLine = inheritanceMarginTag.MembersOnLine;
+                Contract.ThrowIfTrue(membersOnLine.IsEmpty);
+
+                if (membersOnLine.Length == 1)
                 {
-                    return new SingleMemberMargin(inheritanceMarginTag);
+                    var viewModel = new SingleMemberMarginViewModel(inheritanceMarginTag);
+                    return new MarginGlyph.InheritanceMargin(viewModel);
+                }
+                else
+                {
+                    var viewModel = new MultipleMembersMarginViewModel(inheritanceMarginTag);
+                    return new MarginGlyph.InheritanceMargin(viewModel);
                 }
             }
 
