@@ -213,5 +213,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get { return CodeModelService.GetReadWrite(LookupNode()); }
         }
+
+        object EnvDTE.CodeProperty.Extender => throw new NotImplementedException();
+
+        string EnvDTE.CodeProperty.Prototype => throw new NotImplementedException();
+
+        object EnvDTE80.CodeProperty2.Extender => throw new NotImplementedException();
+
+        string EnvDTE80.CodeProperty2.Prototype => throw new NotImplementedException();
     }
 }

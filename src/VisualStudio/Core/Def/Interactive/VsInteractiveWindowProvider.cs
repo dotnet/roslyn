@@ -94,7 +94,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             Debug.Assert(_vsInteractiveWindow == null);
 
             // ForceCreate means that the window should be created if the persisted layout indicates that it is visible.
+#if false
             _vsInteractiveWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, __VSCREATETOOLWIN.CTW_fForceCreate);
+#endif
             _vsInteractiveWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
 
             if (_vsInteractiveWindow is ToolWindowPane interactiveWindowPane)

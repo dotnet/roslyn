@@ -166,7 +166,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             ppFileCodeModel = Nothing
 
             If pProjectItem IsNot Nothing Then
-                Dim fileName = pProjectItem.FileNames(1)
+                Dim fileName = pProjectItem.get_FileNames(1)
 
                 If Not String.IsNullOrWhiteSpace(fileName) Then
                     ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, pProjectItem)

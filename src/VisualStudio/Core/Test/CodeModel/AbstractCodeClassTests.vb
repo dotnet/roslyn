@@ -126,7 +126,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Overrides Function IsDerivedFrom(codeElement As EnvDTE80.CodeClass2, fullName As String) As Boolean
-            Return codeElement.IsDerivedFrom(fullName)
+            Return codeElement.IsDerivedFrom()
         End Function
 
         Protected Overrides Function AddAttribute(codeElement As EnvDTE80.CodeClass2, data As AttributeData) As EnvDTE.CodeAttribute

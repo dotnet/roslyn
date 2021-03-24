@@ -296,6 +296,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         public object get_Extender(string extenderName)
             => GetExtender(extenderName);
 
+        object EnvDTE.CodeElement.Extender => throw new NotImplementedException();
+
+        object EnvDTE80.CodeElement2.Extender => throw new NotImplementedException();
+
         public string ElementID
         {
             get { throw new NotImplementedException(); }

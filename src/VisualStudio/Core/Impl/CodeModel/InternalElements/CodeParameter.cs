@@ -263,5 +263,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return PARAMETER_PASSING_MODE.cmParameterTypeIn;
             }
         }
+
+        object EnvDTE.CodeParameter.Extender => throw new NotImplementedException();
+
+        object EnvDTE80.CodeParameter2.Extender => throw new NotImplementedException();
     }
 }

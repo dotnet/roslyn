@@ -1681,7 +1681,7 @@ class C
         End Sub
 
         Private Function GetAutoImplementedPropertyExtender(codeElement As EnvDTE80.CodeProperty2) As ICSAutoImplementedPropertyExtender
-            Return CType(codeElement.Extender(ExtenderNames.AutoImplementedProperty), ICSAutoImplementedPropertyExtender)
+            Return CType(codeElement.Extender(), ICSAutoImplementedPropertyExtender)
         End Function
 
         Protected Overrides Function AutoImplementedPropertyExtender_GetIsAutoImplemented(codeElement As EnvDTE80.CodeProperty2) As Boolean

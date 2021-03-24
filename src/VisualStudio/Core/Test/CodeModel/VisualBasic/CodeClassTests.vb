@@ -3139,7 +3139,7 @@ End Class
             TestElement(code,
                 Sub(codeClass)
                     For i = 1 To 100
-                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        Dim variable = codeClass.AddVariable("x", "System.Int32", , Nothing)
                         codeClass.RemoveMember(variable)
                     Next
                 End Sub)
@@ -3157,7 +3157,7 @@ End Class
             TestElement(code,
                 Sub(state, codeClass)
                     For i = 1 To 100
-                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        Dim variable = codeClass.AddVariable("x", "System.Int32", , Nothing)
 
                         ' Now, delete the variable that we just added.
                         Dim startPoint = variable.StartPoint
@@ -3262,7 +3262,7 @@ End Class
         End Sub
 
         Private Function GetGenericExtender(codeElement As EnvDTE80.CodeClass2) As IVBGenericExtender
-            Return CType(codeElement.Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
+            Return CType(codeElement.Extender(), IVBGenericExtender)
         End Function
 
         Protected Overrides Function GenericNameExtender_GetBaseTypesCount(codeElement As EnvDTE80.CodeClass2) As Integer

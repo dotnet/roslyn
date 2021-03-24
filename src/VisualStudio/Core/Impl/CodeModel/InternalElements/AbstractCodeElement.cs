@@ -267,5 +267,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]
         public string get_Prototype(int flags)
             => CodeModelService.GetPrototype(LookupNode(), LookupSymbol(), (PrototypeFlags)flags);
+
+        object EnvDTE.CodeElement.Extender => throw new NotImplementedException();
+
+        object EnvDTE80.CodeElement2.Extender => throw new NotImplementedException();
     }
 }

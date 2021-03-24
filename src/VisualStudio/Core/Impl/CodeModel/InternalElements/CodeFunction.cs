@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -161,5 +162,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 UpdateNodeAndReacquireNodeKey(FileCodeModel.UpdateType, value, trackKinds: false);
             }
         }
+
+        object EnvDTE80.CodeFunction2.Extender => throw new NotImplementedException();
+
+        string EnvDTE80.CodeFunction2.Prototype => throw new NotImplementedException();
+
+        object EnvDTE.CodeFunction.Extender => throw new NotImplementedException();
+
+        string EnvDTE.CodeFunction.Prototype => throw new NotImplementedException();
     }
 }

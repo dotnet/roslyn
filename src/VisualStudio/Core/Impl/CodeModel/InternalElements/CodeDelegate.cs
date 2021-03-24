@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -101,5 +102,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 UpdateNodeAndReacquireNodeKey(FileCodeModel.UpdateType, value, trackKinds: false);
             }
         }
+
+        object EnvDTE.CodeDelegate.Extender => throw new NotImplementedException();
+
+        bool EnvDTE.CodeDelegate.IsDerivedFrom => throw new NotImplementedException();
+
+        string EnvDTE.CodeDelegate.Prototype => throw new NotImplementedException();
+
+        object EnvDTE80.CodeDelegate2.Extender => throw new NotImplementedException();
+
+        bool EnvDTE80.CodeDelegate2.IsDerivedFrom => throw new NotImplementedException();
+
+        string EnvDTE80.CodeDelegate2.Prototype => throw new NotImplementedException();
     }
 }

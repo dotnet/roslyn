@@ -64,11 +64,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             End Get
         End Property
 
-        Public ReadOnly Property CodeElement(Scope As EnvDTE.vsCMElement) As EnvDTE.CodeElement Implements EnvDTE.TextPoint.CodeElement
-            Get
-                Throw New NotImplementedException
-            End Get
-        End Property
+        Public Function get_CodeElement(Scope As EnvDTE.vsCMElement) As EnvDTE.CodeElement Implements EnvDTE.TextPoint.get_CodeElement
+            Throw New NotImplementedException
+        End Function
 
         Public Function CreateEditPoint() As EnvDTE.EditPoint Implements EnvDTE.TextPoint.CreateEditPoint
             Throw New NotImplementedException
@@ -128,7 +126,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             End Get
         End Property
 
-        Public Function TryToShow(Optional How As EnvDTE.vsPaneShowHow = EnvDTE.vsPaneShowHow.vsPaneShowCentered, Optional PointOrCount As Object = Nothing) As Boolean Implements EnvDTE.TextPoint.TryToShow
+        Public Function TryToShow(How As EnvDTE.vsPaneShowHow, Optional PointOrCount As Object = Nothing) As Boolean Implements EnvDTE.TextPoint.TryToShow
             Throw New NotImplementedException
         End Function
     End Class

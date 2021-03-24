@@ -153,5 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         protected override string GetFullName()
             => CodeModelService.GetFullName(LookupNode(), semanticModel: null);
+
+        object EnvDTE80.CodeImport.Extender => throw new NotImplementedException();
     }
 }

@@ -146,13 +146,14 @@
     <!--🔼--><MicrosoftVisualStudioLanguageServerClientVersion>16.9.150</MicrosoftVisualStudioLanguageServerClientVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <!--🔼--><MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>2.0.1</MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>
-    <MicrosoftVisualStudioLiveShareWebEditorsVersion>2.2.0-preview1-t001</MicrosoftVisualStudioLiveShareWebEditorsVersion>
+    <!--🔼--><MicrosoftVisualStudioLiveShareWebEditorsVersion>2.2.0-preview1-t001</MicrosoftVisualStudioLiveShareWebEditorsVersion>
     <MicrosoftVisualStudioLogHubVersion>16.9.1043</MicrosoftVisualStudioLogHubVersion>
     <!--❌--><MicrosoftVisualStudioOLEInteropVersion>17.0.0-preview-1-31115-307</MicrosoftVisualStudioOLEInteropVersion>
     <MicrosoftVisualStudioPlatformVSEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioPlatformVSEditorVersion>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
     <MicrosoftVisualStudioProgressionCommonVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCommonVersion>
     <MicrosoftVisualStudioProgressionInterfacesVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionInterfacesVersion>
+    <MicrosoftVisualStudioProjectAggregatorVersion>17.0.0-preview-1-31108-209</MicrosoftVisualStudioProjectAggregatorVersion>
     <MicrosoftVisualStudioProjectSystemVersion>16.2.133-pre</MicrosoftVisualStudioProjectSystemVersion>
     <MicrosoftVisualStudioProjectSystemManagedVersion>2.3.6152103</MicrosoftVisualStudioProjectSystemManagedVersion>
     <MicrosoftVisualStudioRemoteControlVersion>16.3.32</MicrosoftVisualStudioRemoteControlVersion>
@@ -166,7 +167,10 @@
     <!--❌--><MicrosoftVisualStudioShellInteropVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInteropVersion>
     <!--❌--><MicrosoftVisualStudioShellInterop100Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop100Version>
     <!--❌--><MicrosoftVisualStudioShellInterop110Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop110Version>
+    <!--❌--><MicrosoftVisualStudioShellInterop120Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop120Version>
     <!--❌--><MicrosoftVisualStudioShellInterop121DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop121DesignTimeVersion>
+    <!--❌--><MicrosoftVisualStudioShellInterop140DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop140DesignTimeVersion>
+    <!--❌--><MicrosoftVisualStudioShellInterop150DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop150DesignTimeVersion>
     <!--❌--><MicrosoftVisualStudioShellInterop157DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop157DesignTimeVersion>
     <!--❌--><MicrosoftVisualStudioShellInterop169DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop169DesignTimeVersion>
     <!--❌--><MicrosoftVisualStudioShellInterop80Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop80Version>
@@ -182,6 +186,7 @@
     <!--❌--><MicrosoftVisualStudioTextManagerInteropVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioTextManagerInteropVersion>
     <!--❌--><MicrosoftVisualStudioTextManagerInterop80Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioTextManagerInterop80Version>
     <!--❌--><MicrosoftVisualStudioTextManagerInterop100Version>10.0.30320</MicrosoftVisualStudioTextManagerInterop100Version>
+    <!--❌--><MicrosoftVisualStudioTextManagerInterop110Version>11.0.61030</MicrosoftVisualStudioTextManagerInterop110Version>
     <!--❌--><MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
     <!--❌--><MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>
     <!--❌--><MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion>16.0.0</MicrosoftVisualStudioTextManagerInterop160DesignTimeVersion>

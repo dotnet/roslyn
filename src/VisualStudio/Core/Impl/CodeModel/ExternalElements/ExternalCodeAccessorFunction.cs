@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -127,5 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                 throw Exceptions.ThrowEFail();
             }
         }
+
+        object EnvDTE.CodeFunction.Extender => throw new NotImplementedException();
+
+        string EnvDTE.CodeFunction.Prototype => throw new NotImplementedException();
     }
 }

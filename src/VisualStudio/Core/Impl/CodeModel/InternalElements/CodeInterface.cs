@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -90,5 +91,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get { return PartialTypeCollection.Create(State, this); }
         }
+
+        object EnvDTE80.CodeInterface2.Extender => throw new NotImplementedException();
+
+        bool EnvDTE80.CodeInterface2.IsDerivedFrom => throw new NotImplementedException();
+
+        object EnvDTE.CodeInterface.Extender => throw new NotImplementedException();
+
+        bool EnvDTE.CodeInterface.IsDerivedFrom => throw new NotImplementedException();
     }
 }

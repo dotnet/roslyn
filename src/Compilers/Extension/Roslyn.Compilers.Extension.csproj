@@ -108,12 +108,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="$(MicrosoftVisualStudioProjectSystemManagedVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="$(MicrosoftVisualStudioShellInterop80Version)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="$(MicrosoftVisualStudioShellInterop100Version)" />
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
     <PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" />
@@ -122,5 +119,30 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Manual exclusions for obsolete interop assemblies -->
+    <!--<PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" ExcludeAssets="all" />-->
+    <!--<PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" ExcludeAssets="all" />-->
+    <!--<PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion)" ExcludeAssets="all" />-->
+    <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="$(MicrosoftVisualStudioDesignerInterfacesVersion)" ExcludeAssets="all" />
+    <!--<PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" ExcludeAssets="all" />-->
+    <!--<PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="$(MicrosoftVisualStudioOLEInteropVersion)" ExcludeAssets="all" />-->
+    <PackageReference Include="Microsoft.VisualStudio.ProjectAggregator" Version="$(MicrosoftVisualStudioProjectAggregatorVersion)" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="$(MicrosoftVisualStudioShellInteropVersion)" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="$(MicrosoftVisualStudioShellInterop80Version)" ExcludeAssets="all" />
+    <!--<PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0" Version="$(MicrosoftVisualStudioShellInterop90Version)" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="$(MicrosoftVisualStudioShellInterop100Version)" ExcludeAssets="all" />-->
+    <!--<PackageReference Include="Microsoft.VisualStudio.Shell.Interop.11.0" Version="$(MicrosoftVisualStudioShellInterop110Version)" ExcludeAssets="all" />-->
+    <!--<PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.0" Version="$(MicrosoftVisualStudioShellInterop120Version)" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioShellInterop121DesignTimeVersion)" ExcludeAssets="all" />-->
+    <!--<PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)" ExcludeAssets="all" />-->
+    <!--<PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime" Version="$(MicrosoftVisualStudioShellInterop150DesignTimeVersion)" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.16.9.DesignTime" Version="$(MicrosoftVisualStudioShellInterop169DesignTimeVersion)" ExcludeAssets="all" />-->
+    <!--<PackageReference Include="Microsoft.VisualStudio.TextManager.Interop" Version="$(MicrosoftVisualStudioTextManagerInteropVersion)" ExcludeAssets="all" />-->
+    <!--<PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.8.0" Version="$(MicrosoftVisualStudioTextManagerInterop80Version)" ExcludeAssets="all" />-->
+    <!--<PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.11.0" Version="$(MicrosoftVisualStudioTextManagerInterop110Version)" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.0" Version="$(MicrosoftVisualStudioTextManagerInterop120Version)" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion)" ExcludeAssets="all" />-->
   </ItemGroup>
 </Project>

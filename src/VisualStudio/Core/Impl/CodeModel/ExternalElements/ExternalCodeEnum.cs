@@ -36,5 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
 
         public EnvDTE.CodeVariable AddMember(string name, object value, object position)
             => throw Exceptions.ThrowEFail();
+
+        object CodeEnum.Extender => throw new NotImplementedException();
+
+        bool CodeEnum.IsDerivedFrom => throw new NotImplementedException();
     }
 }
