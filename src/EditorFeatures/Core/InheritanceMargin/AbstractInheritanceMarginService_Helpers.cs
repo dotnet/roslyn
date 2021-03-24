@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal partial class AbstractInheritanceMarginService
     {
-        private static async Task<InheritanceMemberItem> CreateInheritanceMemberInfoAsync(
+        private static async Task<InheritanceMarginItem> CreateInheritanceMemberItemAsync(
             Solution solution,
             INamedTypeSymbol memberSymbol,
             int lineNumber,
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken))
                 .ConfigureAwait(false);
 
-            return new InheritanceMemberItem(
+            return new InheritanceMarginItem(
                 lineNumber,
                 memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                 memberSymbol.GetGlyph(),
@@ -41,22 +41,21 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         private static async ValueTask<InheritanceTargetItem> CreateInheritanceItemAsync(
             Solution solution,
             ISymbol targetSymbol,
-            InheritanceRelationship inheritanceRelationshipWithOriginalMember,
+            InheritanceRelationship inheritanceRelationship,
             CancellationToken cancellationToken)
         {
-            var definition = await targetSymbol.ToClassifiedDefinitionItemAsync(
+            // Use non-classified currently because there is no good way to show
+            // colorized item in margin.
+            // Would like to switch to ToClassifiedDefinitionItemAsync() in the future
+            var definition = await targetSymbol.ToNonClassifiedDefinitionItemAsync(
                 solution,
-                isPrimary: true,
                 includeHiddenLocations: false,
-                FindReferencesSearchOptions.Default,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            return new InheritanceTargetItem(
-                inheritanceRelationshipWithOriginalMember,
-                definition);
+            return new InheritanceTargetItem(inheritanceRelationship, definition);
         }
 
-        private static async Task<InheritanceMemberItem> CreateInheritanceMemberInfoForMemberAsync(
+        private static async Task<InheritanceMarginItem> CreateInheritanceMemberInfoForMemberAsync(
             Solution solution,
             ISymbol memberSymbol,
             int lineNumber,
@@ -75,7 +74,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var overridingMemberItems = await overridingMembers
                 .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriding, cancellationToken)).ConfigureAwait(false);
 
-            return new InheritanceMemberItem(
+            return new InheritanceMarginItem(
                 lineNumber,
                 memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                 memberSymbol.GetGlyph(),
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             if (memberSymbol is INamedTypeSymbol { IsSealed: false } namedTypeSymbol)
             {
                 var derivedTypes = await GetDerivedTypesAndImplementationsAsync(solution, namedTypeSymbol, cancellationToken).ConfigureAwait(false);
-                return derivedTypes.CastArray<ISymbol>().ToImmutableArray();
+                return derivedTypes.CastArray<ISymbol>();
             }
 
             if (memberSymbol is IMethodSymbol or IEventSymbol or IPropertySymbol

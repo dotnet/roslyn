@@ -5,13 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InheritanceMargin;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
@@ -25,10 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
         {
         }
 
-        protected override ImmutableArray<SyntaxNode> GetMembers(SyntaxNode root, TextSpan spanToSearch)
+        protected override ImmutableArray<SyntaxNode> GetMembers(ImmutableArray<SyntaxNode> nodesToSearch)
         {
-            var typeDeclarationNodes = root
-                .DescendantNodes(spanToSearch).OfType<TypeDeclarationSyntax>();
+            var typeDeclarationNodes = nodesToSearch.OfType<TypeDeclarationSyntax>();
 
             using var _ = PooledObjects.ArrayBuilder<SyntaxNode>.GetInstance(out var builder);
             foreach (var typeDeclarationNode in typeDeclarationNodes)
@@ -60,21 +57,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
             return builder.ToImmutableArray();
         }
 
-        protected override int GetIdentifierLineNumber(SourceText sourceText, SyntaxNode declarationNode)
-        {
-            var lines = sourceText.Lines;
-            var identifierSpanStart = declarationNode switch
+        protected override SyntaxToken GetIdentifier(SyntaxNode declarationNode)
+            => declarationNode switch
             {
-                MethodDeclarationSyntax methodDeclarationNode => methodDeclarationNode.Identifier.SpanStart,
-                PropertyDeclarationSyntax propertyDeclarationNode => propertyDeclarationNode.Identifier.SpanStart,
-                EventDeclarationSyntax eventDeclarationNode => eventDeclarationNode.Identifier.SpanStart,
-                VariableDeclaratorSyntax variableDeclaratorNode => variableDeclaratorNode.Identifier.SpanStart,
-                TypeDeclarationSyntax baseTypeDeclarationNode => baseTypeDeclarationNode.Identifier.SpanStart,
+                MethodDeclarationSyntax methodDeclarationNode => methodDeclarationNode.Identifier,
+                PropertyDeclarationSyntax propertyDeclarationNode => propertyDeclarationNode.Identifier,
+                EventDeclarationSyntax eventDeclarationNode => eventDeclarationNode.Identifier,
+                VariableDeclaratorSyntax variableDeclaratorNode => variableDeclaratorNode.Identifier,
+                TypeDeclarationSyntax baseTypeDeclarationNode => baseTypeDeclarationNode.Identifier,
                 // Shouldn't reach here since the input declaration nodes are coming from GetMembers() method above
                 _ => throw ExceptionUtilities.UnexpectedValue(declarationNode),
             };
-
-            return lines.GetLineFromPosition(identifierSpanStart).LineNumber;
-        }
     }
 }

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
                 searchingSpan = spans[0];
             }
 
-            var actualItems = await service.GetInheritanceInfoAsync(
+            var actualItems = await service.GetInheritanceMemberItemsAsync(
                 document,
                 searchingSpan,
                 cancellationToken).ConfigureAwait(false);
@@ -74,10 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
             }
         }
 
-        private static void VerifyInheritanceMember(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMemberItem actualItem)
+        private static void VerifyInheritanceMember(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMarginItem actualItem)
         {
             Assert.Equal(expectedItem.LineNumber, actualItem.LineNumber);
-            Assert.Equal(expectedItem.MemberName, actualItem.MemberDisplayName);
+            Assert.Equal(expectedItem.MemberName, actualItem.DisplayName);
             Assert.Equal(expectedItem.Targets.Length, actualItem.TargetItems.Length);
             var expectedTargets = expectedItem.Targets
                 .SelectAsArray(info => TestInheritanceTargetItem.Create(info, testWorkspace));

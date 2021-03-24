@@ -7,7 +7,6 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.InheritanceMargin
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
@@ -21,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
         Public Sub New()
         End Sub
 
-        Protected Overrides Function GetMembers(root As SyntaxNode, spanToSearch As TextSpan) As ImmutableArray(Of SyntaxNode)
-            Dim typeBlockNodes = root.DescendantNodes(spanToSearch).OfType(Of TypeBlockSyntax).ToImmutableArray()
+        Protected Overrides Function GetMembers(nodesToSearch As ImmutableArray(Of SyntaxNode)) As ImmutableArray(Of SyntaxNode)
+            Dim typeBlockNodes = nodesToSearch.OfType(Of TypeBlockSyntax)
 
             Dim builder As ArrayBuilder(Of SyntaxNode) = Nothing
             Using ArrayBuilder(Of SyntaxNode).GetInstance(builder)
@@ -69,37 +68,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
             End Using
         End Function
 
-        Protected Overrides Function GetIdentifierLineNumber(sourceText As SourceText, declarationNode As SyntaxNode) As Integer
-            Dim lines = sourceText.Lines
+        Protected Overrides Function GetIdentifier(declarationNode As SyntaxNode) As SyntaxToken
 
             Dim typeStatementNode = TryCast(declarationNode, TypeStatementSyntax)
             If typeStatementNode IsNot Nothing Then
-                Dim position = typeStatementNode.Identifier.SpanStart
-                Return lines.GetLineFromPosition(position).LineNumber
+                Return typeStatementNode.Identifier
             End If
 
             Dim propertyStatementNode = TryCast(declarationNode, PropertyStatementSyntax)
             If propertyStatementNode IsNot Nothing Then
-                Dim position = propertyStatementNode.Identifier.SpanStart
-                Return lines.GetLineFromPosition(position).LineNumber
+                Return propertyStatementNode.Identifier
             End If
 
             Dim eventBlockNode = TryCast(declarationNode, EventBlockSyntax)
             If eventBlockNode IsNot Nothing Then
-                Dim position = eventBlockNode.EventStatement.Identifier.SpanStart
-                Return lines.GetLineFromPosition(position).LineNumber
+                Return eventBlockNode.EventStatement.Identifier
             End If
 
             Dim eventStatementNode = TryCast(declarationNode, EventStatementSyntax)
             If eventStatementNode IsNot Nothing Then
-                Dim position = eventStatementNode.Identifier.SpanStart
-                Return lines.GetLineFromPosition(position).LineNumber
+                Return eventStatementNode.Identifier
             End If
 
             Dim methodStatementNode = TryCast(declarationNode, MethodStatementSyntax)
             If methodStatementNode IsNot Nothing Then
-                Dim position = methodStatementNode.Identifier.SpanStart
-                Return lines.GetLineFromPosition(position).LineNumber
+                Return methodStatementNode.Identifier
             End If
 
             Throw ExceptionUtilities.UnexpectedValue(declarationNode)

@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text.Formatting;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 {
-    internal sealed class InheritanceChainGlyphFactory : IGlyphFactory
+    internal sealed class InheritanceGlyphFactory : IGlyphFactory
     {
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
         {

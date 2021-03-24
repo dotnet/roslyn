@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 
         public IGlyphFactory GetGlyphFactory(IWpfTextView view, IWpfTextViewMargin margin)
         {
-            return new InheritanceChainGlyphFactory();
+            return new InheritanceGlyphFactory();
         }
     }
 }

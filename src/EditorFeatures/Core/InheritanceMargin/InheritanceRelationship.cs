@@ -36,5 +36,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// Indicate the target is overridden by the member. It would be shown as O↓.
         /// </summary>
         Overridden = 8,
+
+        /// <summary>
+        /// A compound value for indicating there are multiple targets both implementing and overriding the member.
+        /// </summary>
+        ImplementingOverriding = InheritanceRelationship.Implementing | InheritanceRelationship.Overriding,
+
+        /// <summary>
+        /// A compound value for indicating there are multiple targets both implementing the member and overriden by the member.
+        /// </summary>
+        ImplementingOverridden = InheritanceRelationship.Implementing | InheritanceRelationship.Overridden
+
     }
 }

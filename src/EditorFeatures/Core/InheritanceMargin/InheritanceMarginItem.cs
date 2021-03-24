@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
-    internal readonly struct InheritanceMemberItem
+    internal readonly struct InheritanceMarginItem
     {
         /// <summary>
         /// Line number used to show the margin for the member.
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// <summary>
         /// Member's display name.
         /// </summary>
-        public readonly string MemberDisplayName;
+        public readonly string DisplayName;
 
         /// <summary>
         /// Member's glyph.
@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// </summary>
         public readonly ImmutableArray<InheritanceTargetItem> TargetItems;
 
-        public InheritanceMemberItem(
+        public InheritanceMarginItem(
             int lineNumber,
-            string memberDisplayName,
+            string displayName,
             Glyph glyph,
             ImmutableArray<InheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
-            MemberDisplayName = memberDisplayName;
+            DisplayName = displayName;
             Glyph = glyph;
             TargetItems = targetItems;
         }

@@ -26,26 +26,25 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         /// interface IBar { void Foo1(); void Foo2(); }
         /// class Bar : IBar { void Foo1() { } void Foo2() { } }
         /// </summary>
-        public readonly ImmutableArray<InheritanceMemberItem> MembersOnLine;
+        public readonly ImmutableArray<InheritanceMarginItem> MembersOnLine;
 
-        private const InheritanceRelationship ImplementingOverriding =
-            InheritanceRelationship.Implementing | InheritanceRelationship.Overriding;
-
-        private const InheritanceRelationship ImplementingOverridden =
-            InheritanceRelationship.Implementing | InheritanceRelationship.Overridden;
-
-        public InheritanceMarginTag(ImmutableArray<InheritanceMemberItem> membersOnLine)
+        public InheritanceMarginTag(ImmutableArray<InheritanceMarginItem> membersOnLine)
         {
-            Debug.Assert(!membersOnLine.IsEmpty);
+            Contract.ThrowIfTrue(membersOnLine.IsEmpty);
 
             MembersOnLine = membersOnLine;
-            // The common case, one line has one member
+            // The common case, one line has one member, avoid to use select & aggregate
             if (membersOnLine.Length == 1)
             {
-                var relationship = membersOnLine[0].TargetItems
-                    .Select(target => target.RelationToMember)
-                    .Aggregate((r1, r2) => r1 | r2);
-                Moniker = GetMonikers(relationship);
+                var member = membersOnLine[0];
+                var targets = member.TargetItems;
+                var relationship = targets[0].RelationToMember;
+                foreach (var target in targets.Skip(1))
+                {
+                    relationship |= target.RelationToMember;
+                }
+
+                Moniker = GetMoniker(relationship);
             }
             else
             {
@@ -53,22 +52,22 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 var aggregateRelationship = membersOnLine
                     .SelectMany(member => member.TargetItems.Select(target => target.RelationToMember))
                     .Aggregate((r1, r2) => r1 | r2);
-                Moniker = GetMonikers(aggregateRelationship);
+                Moniker = GetMoniker(aggregateRelationship);
             }
         }
 
         /// <summary>
         /// Decide which moniker should be shown.
         /// </summary>
-        private static ImageMoniker GetMonikers(InheritanceRelationship inheritanceRelationship)
+        private static ImageMoniker GetMoniker(InheritanceRelationship inheritanceRelationship)
         {
             //  If there are multiple targets and we have the corresponding compound image, use it
-            if (inheritanceRelationship.HasFlag(ImplementingOverriding))
+            if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverriding))
             {
                 return KnownMonikers.ImplementingOverriding;
             }
 
-            if (inheritanceRelationship.HasFlag(ImplementingOverridden))
+            if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverridden))
             {
                 return KnownMonikers.ImplementingOverridden;
             }

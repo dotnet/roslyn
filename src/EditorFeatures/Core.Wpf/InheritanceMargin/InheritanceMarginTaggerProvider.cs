@@ -29,22 +29,25 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(InheritanceMarginTag))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(nameof(InheritanceChainMarginTaggerProvider))]
-    internal sealed class InheritanceChainMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
+    [Name(nameof(InheritanceMarginTaggerProvider))]
+    internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewTaggerProvider<InheritanceMarginTag>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InheritanceChainMarginTaggerProvider(
+        public InheritanceMarginTaggerProvider(
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider,
             IForegroundNotificationService notificationService) : base(
                 threadingContext,
-                listenerProvider.GetListener(FeatureAttribute.InheritanceChainMargin),
+                listenerProvider.GetListener(FeatureAttribute.InheritanceMargin),
                 notificationService)
         {
         }
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
+            // Because we use frozen-partial documents for semantic classification, we may end up with incomplete
+            // semantics (esp. during solution load).  Because of this, we also register to hear when the full
+            // compilation is available so that reclassify and bring ourselves up to date.
             => new CompilationAvailableTaggerEventSource(
                 subjectBuffer,
                 TaggerDelay.OnIdle,
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, TaggerDelay.OnIdle, AsyncListener),
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textViewOpt, TaggerDelay.OnIdle, TaggerDelay.OnIdle),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.OnIdle),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin, TaggerDelay.OnIdle));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, FeatureOnOffOptions.ShowInheritanceMargin, TaggerDelay.Short));
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
         {
@@ -88,13 +91,16 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 return;
             }
 
+            // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
+            // response. (Since the full load might take a long time)
+            // We also subscribe to CompilationAvailableTaggerEventSource, so this will finally reach the correct state.
             var inheritanceMarginInfoService = document.WithFrozenPartialSemantics(cancellationToken).GetLanguageService<IInheritanceMarginService>();
             if (inheritanceMarginInfoService == null)
             {
                 return;
             }
 
-            var inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceInfoAsync(
+            var inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
                     document,
                     spanToTag.SnapshotSpan.Span.ToTextSpan(),
                     cancellationToken).ConfigureAwait(false);
@@ -109,23 +115,22 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
             // interface IBar { void Foo1(); void Foo2(); }
             // class Bar : IBar { void Foo1() { } void Foo2() { } }
             var lineToMembers = inheritanceMemberItems
-                .GroupBy(item => item.LineNumber)
-                .ToImmutableDictionary(
-                    keySelector: grouping => grouping.Key,
-                    elementSelector: grouping => grouping.SelectAsArray(g => g));
+                .GroupBy(item => item.LineNumber);
 
             var snapshot = spanToTag.SnapshotSpan.Snapshot;
             foreach (var (lineNumber, membersOnTheLine) in lineToMembers)
             {
-                if (membersOnTheLine.Length > 0)
-                {
-                    var line = snapshot.GetLineFromLineNumber(lineNumber);
-                    // We only care about the line, so just tag one char.
-                    var taggedSpan = new SnapshotSpan(snapshot, line.Start, length: 1);
-                    context.AddTag(new TagSpan<InheritanceMarginTag>(
-                        taggedSpan,
-                        new InheritanceMarginTag(membersOnTheLine)));
-                }
+                var membersOnTheLineArray = membersOnTheLine.ToImmutableArray();
+
+                // One line should at least have one member on it.
+                Contract.ThrowIfTrue(membersOnTheLineArray.IsEmpty);
+
+                var line = snapshot.GetLineFromLineNumber(lineNumber);
+                // We only care about the line, so just tag the start.
+                var taggedSpan = new SnapshotSpan(snapshot, line.Start, length: 0);
+                context.AddTag(new TagSpan<InheritanceMarginTag>(
+                    taggedSpan,
+                    new InheritanceMarginTag(membersOnTheLineArray)));
             }
         }
     }
