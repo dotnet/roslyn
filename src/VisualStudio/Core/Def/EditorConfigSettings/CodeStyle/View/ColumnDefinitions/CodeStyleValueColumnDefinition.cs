@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
         public override double MinWidth => 120;
         public override bool DefaultVisible => false;
         public override bool IsFilterable => false;
+        public override bool IsSortable => false;
 
         public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
         {

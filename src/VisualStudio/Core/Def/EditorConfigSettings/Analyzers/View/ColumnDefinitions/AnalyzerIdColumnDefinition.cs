@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
         public override string Name => Id;
         public override string DisplayName => ServicesVSResources.Id;
         public override bool IsFilterable => true;
+        public override bool IsSortable => true;
         public override double MinWidth => 50;
     }
 }

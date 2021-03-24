@@ -29,16 +29,38 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
         public override double MinWidth => 120;
         public override bool DefaultVisible => false;
         public override bool IsFilterable => true;
+        public override bool IsSortable => true;
 
-        public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
+        public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string? content)
         {
-            if (!entry.TryGetValue(Severity, out CodeStyleSetting severity))
+            if (!entry.TryGetValue(Severity, out CodeStyleSetting setting))
             {
                 content = null;
                 return false;
             }
 
-            var control = new CodeStyleSeverityControl(severity);
+            content = setting.Severity switch
+            {
+                CodeAnalysis.ReportDiagnostic.Error => ServicesVSResources.Error,
+                CodeAnalysis.ReportDiagnostic.Warn => ServicesVSResources.Warning,
+                CodeAnalysis.ReportDiagnostic.Info => ServicesVSResources.Suggestion,
+                CodeAnalysis.ReportDiagnostic.Hidden => ServicesVSResources.Refactoring_Only,
+                CodeAnalysis.ReportDiagnostic.Default => string.Empty,
+                CodeAnalysis.ReportDiagnostic.Suppress => string.Empty,
+                _ => string.Empty,
+            };
+            return true;
+        }
+
+        public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
+        {
+            if (!entry.TryGetValue(Severity, out CodeStyleSetting setting))
+            {
+                content = null;
+                return false;
+            }
+
+            var control = new CodeStyleSeverityControl(setting);
             content = control;
             return true;
         }

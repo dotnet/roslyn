@@ -27,7 +27,27 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
         public override string Name => Severity;
         public override string DisplayName => ServicesVSResources.Severity;
         public override bool IsFilterable => true;
+        public override bool IsSortable => true;
         public override double MinWidth => 120;
+
+        public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string? content)
+        {
+            if (!entry.TryGetValue(Severity, out AnalyzerSetting setting))
+            {
+                content = null;
+                return false;
+            }
+
+            content = setting.Severity switch
+            {
+                CodeAnalysis.DiagnosticSeverity.Hidden => ServicesVSResources.Disabled,
+                CodeAnalysis.DiagnosticSeverity.Info => ServicesVSResources.Suggestion,
+                CodeAnalysis.DiagnosticSeverity.Warning => ServicesVSResources.Warning,
+                CodeAnalysis.DiagnosticSeverity.Error => ServicesVSResources.Error,
+                _ => string.Empty,
+            };
+            return true;
+        }
 
         public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
         {
