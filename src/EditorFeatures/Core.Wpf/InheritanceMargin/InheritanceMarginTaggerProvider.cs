@@ -127,12 +127,8 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
 
                 var line = snapshot.GetLineFromLineNumber(lineNumber);
                 // We only care about the line, so just tag the start.
-                var taggedSpan = new SnapshotSpan(
-                    snapshot,
-                    line.Start,
-                    length: 0);
                 context.AddTag(new TagSpan<InheritanceMarginTag>(
-                    taggedSpan,
+                    new SnapshotSpan(snapshot, line.Start, length: 0),
                     new InheritanceMarginTag(membersOnTheLineArray)));
             }
         }
