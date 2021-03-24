@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public const string PullMemberUp = PredefinedCodeRefactoringProviderNames.PullMemberUp;
         public const string InlineMethod = PredefinedCodeRefactoringProviderNames.InlineMethod;
         public const string ReplaceDocCommentTextWithTag = PredefinedCodeRefactoringProviderNames.ReplaceDocCommentTextWithTag;
-        public const string SimplifyLambda = PredefinedCodeRefactoringProviderNames.SimplifyLambda;
         public const string SplitIntoConsecutiveIfStatements = PredefinedCodeRefactoringProviderNames.SplitIntoConsecutiveIfStatements;
         public const string SplitIntoNestedIfStatements = PredefinedCodeRefactoringProviderNames.SplitIntoNestedIfStatements;
         public const string SyncNamespace = PredefinedCodeRefactoringProviderNames.SyncNamespace;
@@ -50,12 +49,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public const string Wrapping = PredefinedCodeRefactoringProviderNames.Wrapping;
         public const string MakeLocalFunctionStatic = PredefinedCodeRefactoringProviderNames.MakeLocalFunctionStatic;
         public const string GenerateComparisonOperators = PredefinedCodeRefactoringProviderNames.GenerateComparisonOperators;
-        public const string ChangeImplementation = PredefinedCodeRefactoringProviderNames.ChangeImplementation;
         public const string ReplacePropertyWithMethods = PredefinedCodeRefactoringProviderNames.ReplacePropertyWithMethods;
         public const string ReplaceMethodWithProperty = PredefinedCodeRefactoringProviderNames.ReplaceMethodWithProperty;
         public const string AddDebuggerDisplay = PredefinedCodeRefactoringProviderNames.AddDebuggerDisplay;
         public const string ConvertAutoPropertyToFullProperty = PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty;
-        public const string ConvertCast = PredefinedCodeRefactoringProviderNames.ConvertCast;
         public const string ReverseForStatement = PredefinedCodeRefactoringProviderNames.ReverseForStatement;
         public const string ConvertLocalFunctionToMethod = PredefinedCodeRefactoringProviderNames.ConvertLocalFunctionToMethod;
         public const string ConvertForEachToFor = PredefinedCodeRefactoringProviderNames.ConvertForEachToFor;
@@ -65,7 +62,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public const string IntroduceLocalForExpression = PredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression;
         public const string AddParameterCheck = PredefinedCodeRefactoringProviderNames.AddParameterCheck;
         public const string InitializeMemberFromParameter = PredefinedCodeRefactoringProviderNames.InitializeMemberFromParameter;
-        public const string InitializeParameter = PredefinedCodeRefactoringProviderNames.InitializeParameter;
         public const string NameTupleElement = PredefinedCodeRefactoringProviderNames.NameTupleElement;
         public const string UseNamedArguments = PredefinedCodeRefactoringProviderNames.UseNamedArguments;
         public const string ConvertForToForEach = PredefinedCodeRefactoringProviderNames.ConvertForToForEach;
@@ -73,5 +69,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public const string ConvertBetweenRegularAndVerbatimString = PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString;
         public const string ConvertBetweenRegularAndVerbatimInterpolatedString = PredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString;
         public const string RenameTracking = PredefinedCodeRefactoringProviderNames.RenameTracking;
+        public const string UseExpressionBodyForLambda = PredefinedCodeRefactoringProviderNames.UseExpressionBodyForLambda;
+        public const string ImplementInterfaceExplicitly = PredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly;
+        public const string ImplementInterfaceImplicitly = PredefinedCodeRefactoringProviderNames.ImplementInterfaceImplicitly;
+        public const string ConvertPlaceholderToInterpolatedString = PredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString;
+        public const string ConvertConcatenationToInterpolatedString = PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString;
+        public const string InvertMultiLineIf = PredefinedCodeRefactoringProviderNames.InvertMultiLineIf;
     }
 }

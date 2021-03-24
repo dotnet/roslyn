@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public const string AddBraces = PredefinedCodeFixProviderNames.AddBraces;
         public const string ChangeReturnType = PredefinedCodeFixProviderNames.ChangeReturnType;
         public const string ChangeToYield = PredefinedCodeFixProviderNames.ChangeToYield;
-        public const string ConfigureCodeStyleOption = PredefinedCodeFixProviderNames.ConfigureCodeStyleOption;
-        public const string ConfigureSeverity = PredefinedCodeFixProviderNames.ConfigureSeverity;
         public const string ConvertToAsync = PredefinedCodeFixProviderNames.ConvertToAsync;
         public const string ConvertToIterator = PredefinedCodeFixProviderNames.ConvertToIterator;
         public const string CorrectNextControlVariable = PredefinedCodeFixProviderNames.CorrectNextControlVariable;
@@ -64,7 +62,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public const string SimplifyNames = PredefinedCodeFixProviderNames.SimplifyNames;
         public const string SimplifyThisOrMe = PredefinedCodeFixProviderNames.SimplifyThisOrMe;
         public const string SpellCheck = PredefinedCodeFixProviderNames.SpellCheck;
-        public const string Suppression = PredefinedCodeFixProviderNames.Suppression;
         public const string AddOverloads = PredefinedCodeFixProviderNames.AddOverloads;
         public const string AddNew = PredefinedCodeFixProviderNames.AddNew;
         public const string RemoveNew = PredefinedCodeFixProviderNames.RemoveNew;
@@ -108,7 +105,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public const string InvokeDelegateWithConditionalAccess = PredefinedCodeFixProviderNames.InvokeDelegateWithConditionalAccess;
         public const string RemoveUnnecessaryByVal = PredefinedCodeFixProviderNames.RemoveUnnecessaryByVal;
         public const string UseIsNotExpression = PredefinedCodeFixProviderNames.UseIsNotExpression;
-        public const string UsePatternMatching = PredefinedCodeFixProviderNames.UsePatternMatching;
         public const string UseExpressionBody = PredefinedCodeFixProviderNames.UseExpressionBody;
         public const string ConstructorInitializerPlacement = PredefinedCodeFixProviderNames.ConstructorInitializerPlacement;
         public const string EmbeddedStatementPlacement = PredefinedCodeFixProviderNames.EmbeddedStatementPlacement;
@@ -139,5 +135,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public const string MakeMemberStatic = PredefinedCodeFixProviderNames.MakeMemberStatic;
         public const string AssignOutParametersAtStart = PredefinedCodeFixProviderNames.AssignOutParametersAtStart;
         public const string AssignOutParametersAboveReturn = PredefinedCodeFixProviderNames.AssignOutParametersAboveReturn;
+        public const string UseCoalesceExpressionForNullable = PredefinedCodeFixProviderNames.UseCoalesceExpressionForNullable;
+        public const string UpdateProjectToAllowUnsafe = PredefinedCodeFixProviderNames.UpdateProjectToAllowUnsafe;
+        public const string UseExpressionBodyForLambda = PredefinedCodeFixProviderNames.UseExpressionBodyForLambda;
+        public const string PopulateSwitchExpression = PredefinedCodeFixProviderNames.PopulateSwitchExpression;
+        public const string UseIsNullCheckForCastAndEqualityOperator = PredefinedCodeFixProviderNames.UseIsNullCheckForCastAndEqualityOperator;
+        public const string UseIsNullCheckForReferenceEquals = PredefinedCodeFixProviderNames.UseIsNullCheckForReferenceEquals;
+        public const string UsePatternMatchingIsAndCastCheckWithoutName = PredefinedCodeFixProviderNames.UsePatternMatchingIsAndCastCheckWithoutName;
+        public const string UsePatternMatchingIsAndCastCheck = PredefinedCodeFixProviderNames.UsePatternMatchingIsAndCastCheck;
+        public const string UsePatternMatchingAsAndNullCheck = PredefinedCodeFixProviderNames.UsePatternMatchingAsAndNullCheck;
+        public const string UseNotPattern = PredefinedCodeFixProviderNames.UseNotPattern;
     }
 }
