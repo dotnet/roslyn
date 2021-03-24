@@ -6705,10 +6705,12 @@ done:
                                 continue;
                         }
                         goto done; // token not consumed
-                    case SyntaxKind.OpenBracketToken when (nameOptions & NameOptions.PossiblePattern) != 0:
-                        // We don't want to consume a sized rank specifier in patterns, we leave it out to parse it as a length pattern.
+                    case SyntaxKind.OpenBracketToken:
+                        // Now check for arrays.
                         {
-                            if (isOmittedSize())
+                            // We don't want to consume a sized rank specifier in patterns, we leave it out to parse it as a length pattern.
+                            bool inPattern = (nameOptions & NameOptions.PossiblePattern) != 0;
+                            if (!inPattern || isOmittedSize())
                             {
                                 bool sawOpenBracket;
                                 var ranks = _pool.Allocate<ArrayRankSpecifierSyntax>();
@@ -6718,7 +6720,7 @@ done:
                                     {
                                         ranks.Add(this.ParseArrayRankSpecifier(out _));
                                     }
-                                    while ((sawOpenBracket = this.CurrentToken.Kind == SyntaxKind.OpenBracketToken) && isOmittedSize());
+                                    while ((sawOpenBracket = this.CurrentToken.Kind == SyntaxKind.OpenBracketToken) && (!inPattern || isOmittedSize()));
 
                                     type = _syntaxFactory.ArrayType(type, ranks);
                                 }
@@ -6731,29 +6733,7 @@ done:
                                 if (!sawOpenBracket)
                                     continue;
                             }
-                            goto done;
-
-                            bool isOmittedSize() => this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBracketToken;
-                        }
-                    case SyntaxKind.OpenBracketToken:
-                        // Now check for arrays.
-                        {
-                            var ranks = _pool.Allocate<ArrayRankSpecifierSyntax>();
-                            try
-                            {
-                                do
-                                {
-                                    ranks.Add(this.ParseArrayRankSpecifier(out _));
-                                }
-                                while (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken);
-
-                                type = _syntaxFactory.ArrayType(type, ranks);
-                            }
-                            finally
-                            {
-                                _pool.Free(ranks);
-                            }
-                            continue;
+                            goto done; // token not consumed
                         }
                     default:
                         goto done; // token not consumed
@@ -6763,6 +6743,8 @@ done:;
 
             Debug.Assert(type != null);
             return type;
+
+            bool isOmittedSize() => this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseBracketToken;
         }
 
         private SyntaxToken EatNullableQualifierIfApplicable(ParseTypeMode mode)

@@ -827,6 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AndPattern = 9032,
         NotPattern = 9033,
 
+        // new patterns added in C# 10.0
         SlicePattern = 9034,
         LengthPatternClause = 9035,
         ListPatternClause = 9036,

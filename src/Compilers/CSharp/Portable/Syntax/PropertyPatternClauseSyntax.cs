@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return PropertyPatternClause(SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns, closeBraceToken);
         }
+
         public static PropertyPatternClauseSyntax PropertyPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns)
         {
             return PropertyPatternClause(SyntaxKind.PropertyPatternClause, subpatterns);
