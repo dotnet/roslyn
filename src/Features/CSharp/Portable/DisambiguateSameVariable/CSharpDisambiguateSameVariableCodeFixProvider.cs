@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
 {
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DisambiguateSameVariable), Shared]
     internal class CSharpDisambiguateSameVariableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private const string CS1717 = nameof(CS1717); // Assignment made to same variable; did you mean to assign something else?

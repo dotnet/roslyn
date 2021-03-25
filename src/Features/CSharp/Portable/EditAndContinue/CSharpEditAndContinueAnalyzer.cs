@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             Contract.ThrowIfNull(oldDeclaration.Parent);
             Contract.ThrowIfNull(newDeclaration.Parent);
-            var comparer = new SyntaxComparer(oldDeclaration.Parent, newDeclaration.Parent, new[] { oldDeclaration }, new[] { newDeclaration });
+            var comparer = new SyntaxComparer(oldDeclaration.Parent, newDeclaration.Parent, new[] { oldDeclaration }, new[] { newDeclaration }, compareStatementSyntax: false);
             return comparer.ComputeMatch(oldDeclaration.Parent, newDeclaration.Parent);
         }
 

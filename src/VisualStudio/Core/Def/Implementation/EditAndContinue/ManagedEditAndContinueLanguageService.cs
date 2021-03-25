@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticUpdateSource;
         private readonly IManagedEditAndContinueDebuggerService _debuggerService;
 
-        private IDisposable? _editSessionConnection;
+        private IDisposable? _debuggingSessionConnection;
 
         private bool _disabled;
 
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 var solution = _proxy.Workspace.CurrentSolution;
-                await _proxy.StartDebuggingSessionAsync(solution, cancellationToken).ConfigureAwait(false);
+                _debuggingSessionConnection = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
@@ -87,39 +87,27 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             try
             {
-                _editSessionConnection = await _proxy.StartEditSessionAsync(_diagnosticService, _debuggerService, cancellationToken).ConfigureAwait(false);
+                await _proxy.BreakStateEnteredAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
                 _disabled = true;
+                return;
             }
 
             _activeStatementTrackingService.StartTracking();
         }
 
-        public async Task ExitBreakStateAsync(CancellationToken cancellationToken)
+        public Task ExitBreakStateAsync(CancellationToken cancellationToken)
         {
             _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
 
-            if (_disabled)
+            if (!_disabled)
             {
-                return;
+                _activeStatementTrackingService.EndTracking();
             }
 
-            Contract.ThrowIfNull(_editSessionConnection);
-            _editSessionConnection.Dispose();
-            _editSessionConnection = null;
-
-            _activeStatementTrackingService.EndTracking();
-
-            try
-            {
-                await _proxy.EndEditSessionAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
-            {
-                _disabled = true;
-            }
+            return Task.CompletedTask;
         }
 
         public async Task CommitUpdatesAsync(CancellationToken cancellationToken)
@@ -127,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 Contract.ThrowIfTrue(_disabled);
-                await _proxy.CommitSolutionUpdateAsync(cancellationToken).ConfigureAwait(false);
+                await _proxy.CommitSolutionUpdateAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -162,6 +150,10 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             try
             {
                 await _proxy.EndDebuggingSessionAsync(_diagnosticUpdateSource, _diagnosticService, cancellationToken).ConfigureAwait(false);
+
+                Contract.ThrowIfNull(_debuggingSessionConnection);
+                _debuggingSessionConnection.Dispose();
+                _debuggingSessionConnection = null;
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {
@@ -195,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 var solution = _proxy.Workspace.CurrentSolution;
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-                return await _proxy.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
+                return await _proxy.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
             {

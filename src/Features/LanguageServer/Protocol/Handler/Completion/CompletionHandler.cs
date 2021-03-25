@@ -131,11 +131,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lspCompletionItems.Add(lspCompletionItem);
             }
 
-            return new LSP.VSCompletionList
+            var completionList = new LSP.VSCompletionList
             {
                 Items = lspCompletionItems.ToArray(),
                 SuggestionMode = list.SuggestionModeItem != null,
             };
+            var optimizedCompletionList = new LSP.OptimizedVSCompletionList(completionList);
+            return optimizedCompletionList;
 
             // Local functions
             bool IsValidTriggerCharacterForDocument(Document document, char triggerCharacter)
