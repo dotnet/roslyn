@@ -23,20 +23,23 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
+        private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InheritanceGlyphFactoryProvider(
             IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingFindUsagesPresenter)
+            IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
+            IWaitIndicator waitIndicator)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
+            _waitIndicator = waitIndicator;
         }
 
         public IGlyphFactory GetGlyphFactory(IWpfTextView view, IWpfTextViewMargin margin)
         {
-            return new InheritanceGlyphFactory(_threadingContext, _streamingFindUsagesPresenter);
+            return new InheritanceGlyphFactory(_threadingContext, _streamingFindUsagesPresenter, _waitIndicator);
         }
     }
 }

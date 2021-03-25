@@ -16,13 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
+        private readonly IWaitIndicator _waitIndicator;
 
         public InheritanceGlyphFactory(
             IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingFindUsagesPresenter)
+            IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
+            IWaitIndicator waitIndicator)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
+            _waitIndicator = waitIndicator;
         }
 
         public UIElement? GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
@@ -32,16 +35,16 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 var membersOnLine = inheritanceMarginTag.MembersOnLine;
                 Contract.ThrowIfTrue(membersOnLine.IsEmpty);
 
-                var workspace = inheritanceMarginTag.Document.Project.Solution.Workspace;
+                var solution = inheritanceMarginTag.Document.Project.Solution;
                 if (membersOnLine.Length == 1)
                 {
                     var viewModel = new SingleMemberMarginViewModel(inheritanceMarginTag);
-                    return MarginGlyph.InheritanceMargin.CreateForSingleMember(_threadingContext, _streamingFindUsagesPresenter, workspace ,viewModel);
+                    return MarginGlyph.InheritanceMargin.CreateForSingleMember(_threadingContext, _streamingFindUsagesPresenter, _waitIndicator, solution ,viewModel);
                 }
                 else
                 {
                     var viewModel = new MultipleMembersMarginViewModel(inheritanceMarginTag);
-                    return MarginGlyph.InheritanceMargin.CreateForMultipleMembers(_threadingContext, _streamingFindUsagesPresenter, workspace, viewModel);
+                    return MarginGlyph.InheritanceMargin.CreateForMultipleMembers(_threadingContext, _streamingFindUsagesPresenter, _waitIndicator, solution, viewModel);
                 }
             }
 

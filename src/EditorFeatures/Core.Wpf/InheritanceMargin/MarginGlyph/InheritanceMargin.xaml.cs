@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
@@ -15,7 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
-        private readonly Workspace _workspace;
+        private readonly IWaitIndicator _waitIndicator;
+        private readonly Solution _solution;
 
         /// <summary>
         /// Note: This name is also used in xaml file.
@@ -30,10 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public static InheritanceMargin CreateForSingleMember(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
-            Workspace workspace,
+            IWaitIndicator waitIndicator,
+            Solution solution,
             SingleMemberMarginViewModel viewModel)
         {
-            var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, workspace);
+            var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, solution);
             // This is created in the xaml file.
             margin.DataContext = viewModel;
             var contextMenu = margin.ContextMenu!;
@@ -45,10 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public static InheritanceMargin CreateForMultipleMembers(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
-            Workspace workspace,
+            IWaitIndicator waitIndicator,
+            Solution solution,
             MultipleMembersMarginViewModel viewModel)
         {
-            var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, workspace);
+            var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, solution);
 
             // This is created in the xaml file.
             margin.DataContext = viewModel;
@@ -61,31 +64,14 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         private InheritanceMargin(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
-            Workspace workspace)
+            IWaitIndicator waitIndicator,
+            Solution solution)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
-            _workspace = workspace;
+            _solution = solution;
+            _waitIndicator = waitIndicator;
             InitializeComponent();
-        }
-
-        public InheritanceMargin(
-            ThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
-            Workspace workspace,
-            MultipleMembersMarginViewModel viewModel)
-        {
-            _threadingContext = threadingContext;
-            _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
-            _workspace = workspace;
-
-            InitializeComponent();
-            this.DataContext = viewModel;
-
-            // This is created in the xaml file.
-            var contextMenu = this.ContextMenu!;
-            contextMenu.DataContext = viewModel;
-            contextMenu.Style = (Style)FindResource("MultipleMembersContextMenuStyle");
         }
 
         private void Margin_OnClick(object sender, RoutedEventArgs e)
@@ -101,13 +87,18 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         {
             if (e.OriginalSource is MenuItem menuItem && menuItem.DataContext is TargetDisplayViewModel viewModel)
             {
-                _streamingFindUsagesPresenter.TryNavigateToOrPresentItemsAsync(
-                    _threadingContext,
-                    _workspace,
-                    $"Navigate to {viewModel.DisplayName}.",
-                    ImmutableArray.Create(viewModel.DefinitionItem),
-                    // TODO: We should have a cancellationToken instead of none here.
-                    CancellationToken.None);
+                _waitIndicator.Wait(
+                    title: $"Navigate to {viewModel.DisplayName}.",
+                    message: "Navigating...",
+                    allowCancel: true,
+                    context => GoToDefinitionHelpers.TryGoToDefinition(
+                        ImmutableArray.Create(viewModel.DefinitionItem),
+                        _solution,
+                        $"Navigate to {viewModel.DisplayName}.",
+                        _threadingContext,
+                        _streamingFindUsagesPresenter,
+                        context.CancellationToken)
+                );
             }
         }
     }
