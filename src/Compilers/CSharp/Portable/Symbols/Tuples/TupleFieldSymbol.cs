@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Symbol? AssociatedSymbol
+        public sealed override Symbol? AssociatedSymbol
         {
             get
             {
@@ -291,14 +291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override int? TypeLayoutOffset
-        {
-            get
-            {
-                return null;
-            }
-        }
-
-        public override Symbol? AssociatedSymbol
         {
             get
             {
