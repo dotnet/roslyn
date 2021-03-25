@@ -39,7 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
         // TODO: support multi-instance windows
         // single instance of the Interactive Window
+#pragma warning disable 649
         private IVsInteractiveWindow _vsInteractiveWindow;
+#pragma warning restore 649
 
         public VsInteractiveWindowProvider(
            SVsServiceProvider serviceProvider,

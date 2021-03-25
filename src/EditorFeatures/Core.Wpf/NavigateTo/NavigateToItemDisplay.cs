@@ -144,10 +144,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public ImageMoniker GlyphMoniker => _searchResult.NavigableItem.Glyph.GetImageMoniker();
 
+#pragma warning disable IDE0060 // Remove unused parameter
         public IReadOnlyList<Span> GetNameMatchRuns(string searchValue)
+#pragma warning restore IDE0060 // Remove unused parameter
             => _searchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
 
+#pragma warning disable IDE0060 // Remove unused parameter
+#pragma warning disable CA1822 // Mark members as static
         public IReadOnlyList<Span> GetAdditionalInformationMatchRuns(string searchValue)
+#pragma warning restore CA1822 // Mark members as static
+#pragma warning restore IDE0060 // Remove unused parameter
             => SpecializedCollections.EmptyReadOnlyList<Span>();
     }
 }
