@@ -1906,52 +1906,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Range_01()
         {
-            UsingExpression("[s[A] x => x..]", TestOptions.RegularPreview,
-                // (1,1): error CS1073: Unexpected token ']'
-                // [s[A] x => x..]
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[s[A] x => x..").WithArguments("]").WithLocation(1, 1),
-                // (1,3): error CS1003: Syntax error, ']' expected
-                // [s[A] x => x..]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments("]", "[").WithLocation(1, 3));
+            UsingExpression("s[[A] x => x..]", TestOptions.RegularPreview);
 
-            N(SyntaxKind.SimpleLambdaExpression);
+            N(SyntaxKind.ElementAccessExpression);
             {
-                N(SyntaxKind.AttributeList);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.Attribute);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "s");
-                        }
-                    }
-                    M(SyntaxKind.CloseBracketToken);
+                    N(SyntaxKind.IdentifierToken, "s");
                 }
-                N(SyntaxKind.AttributeList);
+                N(SyntaxKind.BracketedArgumentList);
                 {
                     N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.Attribute);
+                    N(SyntaxKind.Argument);
                     {
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.SimpleLambdaExpression);
                         {
-                            N(SyntaxKind.IdentifierToken, "A");
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "A");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.RangeExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.DotDotToken);
+                            }
                         }
                     }
                     N(SyntaxKind.CloseBracketToken);
-                }
-                N(SyntaxKind.Parameter);
-                {
-                    N(SyntaxKind.IdentifierToken, "x");
-                }
-                N(SyntaxKind.EqualsGreaterThanToken);
-                N(SyntaxKind.RangeExpression);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.DotDotToken);
                 }
             }
             EOF();
