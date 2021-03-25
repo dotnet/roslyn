@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -74,10 +73,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         public ImmutableHashSet<AnalysisEntity> AnalysisEntities { get; }
         public CopyAbstractValueKind Kind { get; }
 
-        protected override void ComputeHashCodeParts(Action<int> addPart)
+        protected override void ComputeHashCodeParts(ref RoslynHashCode hashCode)
         {
-            addPart(HashUtilities.Combine(AnalysisEntities));
-            addPart(Kind.GetHashCode());
+            hashCode.Add(HashUtilities.Combine(AnalysisEntities));
+            hashCode.Add(Kind.GetHashCode());
+        }
+
+        protected override bool ComputeEqualsByHashCodeParts(CacheBasedEquatable<CopyAbstractValue> obj)
+        {
+            var other = (CopyAbstractValue)obj;
+            return HashUtilities.Combine(AnalysisEntities) == HashUtilities.Combine(other.AnalysisEntities)
+                && Kind.GetHashCode() == other.Kind.GetHashCode();
         }
     }
 }

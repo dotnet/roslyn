@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 " + CommonAnalyzerReleaseTrackingContent;
         internal const string UnshippedAnalyzerReleaseTrackingFileDefaultContent = @"; Unshipped analyzer release
 " + CommonAnalyzerReleaseTrackingContent;
-        private const string CommonAnalyzerReleaseTrackingContent = @"; https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
+        private const string CommonAnalyzerReleaseTrackingContent = @"; https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md
 
 ";
 

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers
@@ -14,32 +14,59 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.Fixers
     [Shared]
     public sealed class CSharpPreferIsKindFix : PreferIsKindFix
     {
-        protected override async Task<Document> ConvertKindToIsKindAsync(Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
+        protected override SyntaxNode? TryGetNodeToFix(SyntaxNode root, TextSpan span)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var binaryExpression = root.FindNode(sourceSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<BinaryExpressionSyntax>();
-
-            if (binaryExpression.Left is not InvocationExpressionSyntax invocation)
+            var binaryExpression = root.FindNode(span, getInnermostNodeForTie: true).FirstAncestorOrSelf<BinaryExpressionSyntax>();
+            if (binaryExpression.Left.IsKind(SyntaxKind.InvocationExpression) ||
+                binaryExpression.Left.IsKind(SyntaxKind.ConditionalAccessExpression))
             {
-                return document;
+                return binaryExpression;
             }
 
-            var newInvocation = invocation
-                .WithExpression(ConvertKindNameToIsKind(invocation.Expression))
-                .AddArgumentListArguments(SyntaxFactory.Argument(binaryExpression.Right.WithoutTrailingTrivia()))
-                .WithTrailingTrivia(binaryExpression.Right.GetTrailingTrivia());
-            var negate = binaryExpression.OperatorToken.IsKind(SyntaxKind.ExclamationEqualsToken);
-            SyntaxNode newRoot;
-            if (negate)
-            {
-                newRoot = root.ReplaceNode(binaryExpression, SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, newInvocation.WithoutLeadingTrivia()).WithLeadingTrivia(newInvocation.GetLeadingTrivia()));
-            }
-            else
-            {
-                newRoot = root.ReplaceNode(binaryExpression, newInvocation);
-            }
+            return null;
+        }
 
-            return document.WithSyntaxRoot(newRoot);
+        protected override void FixDiagnostic(DocumentEditor editor, SyntaxNode nodeToFix)
+        {
+            editor.ReplaceNode(
+                nodeToFix,
+                (nodeToFix, generator) =>
+                {
+                    var binaryExpression = (BinaryExpressionSyntax)nodeToFix;
+                    InvocationExpressionSyntax? newInvocation = null;
+                    if (binaryExpression.Left.IsKind(SyntaxKind.ConditionalAccessExpression))
+                    {
+                        var conditionalAccess = (ConditionalAccessExpressionSyntax)binaryExpression.Left;
+                        newInvocation = SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                conditionalAccess.Expression,
+                                SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("IsKind"))));
+                    }
+                    else if (binaryExpression.Left.IsKind(SyntaxKind.InvocationExpression))
+                    {
+                        var invocation = (InvocationExpressionSyntax)binaryExpression.Left;
+                        newInvocation = invocation.WithExpression(ConvertKindNameToIsKind(invocation.Expression));
+                    }
+                    else
+                    {
+                        Debug.Fail("Unreachable.");
+                        return nodeToFix;
+                    }
+
+                    newInvocation = newInvocation
+                        .AddArgumentListArguments(SyntaxFactory.Argument(binaryExpression.Right.WithoutTrailingTrivia()))
+                        .WithTrailingTrivia(binaryExpression.Right.GetTrailingTrivia());
+                    var negate = binaryExpression.OperatorToken.IsKind(SyntaxKind.ExclamationEqualsToken);
+                    if (negate)
+                    {
+                        return SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, newInvocation.WithoutLeadingTrivia()).WithLeadingTrivia(newInvocation.GetLeadingTrivia());
+                    }
+                    else
+                    {
+                        return newInvocation;
+                    }
+                });
         }
 
         private static ExpressionSyntax ConvertKindNameToIsKind(ExpressionSyntax expression)

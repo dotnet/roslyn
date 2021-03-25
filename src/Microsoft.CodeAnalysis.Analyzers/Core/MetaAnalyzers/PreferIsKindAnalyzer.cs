@@ -72,7 +72,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return;
             }
 
-            if (operation.LeftOperand.WalkDownConversion() is IInvocationOperation { TargetMethod: { Name: "Kind", ContainingType: var containingType } }
+            var possibleInvocation = operation.LeftOperand.WalkDownConversion();
+            if (possibleInvocation is IConditionalAccessOperation conditionalAccess)
+            {
+                // We don't currently report on Nullable<SyntaxToken>. If we'll report that in the future, the codefix must behave correctly.
+                if (conditionalAccess.Operation.Type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                {
+                    return;
+                }
+
+                possibleInvocation = conditionalAccess.WhenNotNull;
+            }
+
+            if (possibleInvocation is IInvocationOperation { TargetMethod: { Name: "Kind", ContainingType: var containingType } }
                 && containingTypeMap.TryGetValue(containingType, out _))
             {
                 context.ReportDiagnostic(operation.LeftOperand.CreateDiagnostic(Rule));
