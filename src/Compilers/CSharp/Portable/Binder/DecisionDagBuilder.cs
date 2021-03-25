@@ -526,13 +526,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!recursive.Properties.IsDefault)
             {
-                BoundDagTemp currentInput = input;
                 // we have a "property" form
                 foreach (var subPattern in recursive.Properties)
                 {
                     BoundPattern pattern = subPattern.Pattern;
                     if (!subPattern.Symbols.IsDefault)
                     {
+                        BoundDagTemp currentInput = input;
                         Symbol last = subPattern.Symbols[^1];
                         foreach (Symbol symbol in subPattern.Symbols)
                         {
@@ -560,14 +560,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 currentInput = MakeConvertToType(currentInput, pattern.Syntax, type.StrippedType(), isExplicitTest: false, tests);
                             }
                         }
+
+                        tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
                     }
                     else
                     {
                         RoslynDebug.Assert(recursive.HasAnyErrors);
-                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), currentInput, hasErrors: true)));
+                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
+                        tests.Add(MakeTestsAndBindings(input, pattern, bindings));
                     }
-
-                    tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
                 }
             }
 
