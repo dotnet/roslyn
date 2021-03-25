@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests
             Assert.True(failureMessage.Length == passLength, failureMessage.ToString());
         }
 
-        private static ImmutableDictionary<string, string> GetPredefinedNamesFromType(Type namesType)
+        private static ImmutableDictionary<string, string> GetPredefinedNamesFromFields(Type namesType)
         {
             return namesType.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
                 .Where(field => field.FieldType == typeof(string))
@@ -59,6 +59,5 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests
                 .Where(property => property.PropertyType == typeof(string))
                 .ToImmutableDictionary(property => property.Name, property => (string)property.GetValue(null));
         }
-
     }
 }
