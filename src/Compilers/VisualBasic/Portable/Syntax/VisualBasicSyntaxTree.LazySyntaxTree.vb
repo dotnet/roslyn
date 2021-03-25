@@ -70,17 +70,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
-                Dim root As VisualBasicSyntaxNode = Nothing
-                If Not TryGetRoot(root) Then
+                If _lazyRoot Is Nothing Then
                     ' Parse the syntax tree
                     Dim tree = SyntaxFactory.ParseSyntaxTree(_text, _options, _path, cancellationToken)
-                    root = CloneNodeAsRoot(CType(tree.GetRoot(cancellationToken), VisualBasicSyntaxNode))
+                    Dim root = CloneNodeAsRoot(CType(tree.GetRoot(cancellationToken), VisualBasicSyntaxNode))
 
-                    ' Lazily initialize _lazyRoot, and use the first instance successfully written
-                    root = If(Interlocked.CompareExchange(_lazyRoot, root, Nothing), root)
+                    Interlocked.CompareExchange(_lazyRoot, root, Nothing)
                 End If
 
-                Return root
+                Return _lazyRoot
             End Function
 
             Public Overrides Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean

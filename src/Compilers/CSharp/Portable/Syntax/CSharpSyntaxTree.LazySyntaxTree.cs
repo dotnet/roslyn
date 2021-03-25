@@ -64,17 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override CSharpSyntaxNode GetRoot(CancellationToken cancellationToken)
             {
-                if (!TryGetRoot(out var root))
+                if (_lazyRoot == null)
                 {
                     // Parse the syntax tree
                     var tree = SyntaxFactory.ParseSyntaxTree(_text, _options, _path, cancellationToken);
-                    root = CloneNodeAsRoot((CSharpSyntaxNode)tree.GetRoot(cancellationToken));
+                    var root = CloneNodeAsRoot((CSharpSyntaxNode)tree.GetRoot(cancellationToken));
 
-                    // Lazily initialize _lazyRoot, and use the first instance successfully written
-                    root = Interlocked.CompareExchange(ref _lazyRoot, root, null) ?? root;
+                    Interlocked.CompareExchange(ref _lazyRoot, root, null);
                 }
 
-                return root;
+                return _lazyRoot;
             }
 
             public override bool TryGetRoot([NotNullWhen(true)] out CSharpSyntaxNode? root)
