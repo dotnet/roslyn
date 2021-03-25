@@ -23,7 +23,7 @@
         </Style>
 
         <!-- The key is referenced from the code behind -->
-        <!-- Style used to display a single member's information, it only pops up a menu contains targets' information -->
+        <!-- Style used to display a single member's information, if click the button, it pops up a menu contains targets' information (one level menu)-->
         <Style x:Key="SingleMemberContextMenuStyle" TargetType="{x:Type ContextMenu}">
             <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
             <Setter Property="ItemsSource" Value="{Binding Targets}"/>
@@ -51,7 +51,8 @@
         </Style>
 
         <!-- The key is referenced from the code behind -->
-        <!-- Style to show multiple members -->
+        <!-- Style to show multiple members, when click the button it first pops a menu for all the members on this line (first level menu),
+        then each member has a second level of context menu, show its targerts -->
         <Style x:Key="MultipleMembersContextMenuStyle" TargetType="ContextMenu">
             <Setter Property="ItemContainerStyle" Value="{StaticResource MemberMenuItemStyle}"/>
             <Setter Property="ItemsSource" Value="{Binding Members}"/>
