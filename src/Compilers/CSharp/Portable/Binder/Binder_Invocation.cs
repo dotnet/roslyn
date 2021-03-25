@@ -1376,7 +1376,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureCallerArgumentExpression, diagnostics);
                     // PROTOTYPE(caller-expr): Do we need to support VB?
-                    // PROTOTYPE(caller-expr): Do we need to add a warning/error for pre-C# 10 using this feature?
 
                     var argument = argumentsBuilder[argumentIndex];
                     defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };

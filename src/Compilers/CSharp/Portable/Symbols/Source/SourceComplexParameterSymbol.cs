@@ -603,8 +603,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute))
                 {
                     var index = -1;
-                    var attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out bool generatedDiagnostics);
-                    if (!generatedDiagnostics && !attribute.HasErrors)
+                    var attribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out _);
+                    if (!attribute.HasErrors)
                     {
                         var constructorArguments = attribute.CommonConstructorArguments;
                         var parameterName = constructorArguments.Length == 1 && constructorArguments[0].TryDecodeValue(SpecialType.System_String, out string value) ? value : null;
