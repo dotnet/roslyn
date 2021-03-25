@@ -2847,10 +2847,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     registeredUsageOfUsingsInTree(tree);
                 }
 
-                // Compile other trees if we need to
+                // Compile other trees if we need to, but discard diagnostics from them.
                 if (recordUsageOfUsingsInAllTrees)
                 {
                     Debug.Assert(reportUnusedUsings);
+
+                    var discarded = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                    Debug.Assert(discarded.DiagnosticBag is object);
 
                     foreach (var otherTree in SyntaxTrees)
                     {
@@ -2863,10 +2866,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!trackingSet.Contains(otherTree))
                         {
-                            compileMethodBodiesAndDocComments(filterTree: otherTree, filterSpan: null, bindingDiagnostics, cancellationToken);
+                            compileMethodBodiesAndDocComments(filterTree: otherTree, filterSpan: null, discarded, cancellationToken);
                             registeredUsageOfUsingsInTree(otherTree);
+                            discarded.DiagnosticBag.Clear();
                         }
                     }
+
+                    discarded.DiagnosticBag.Free();
                 }
             }
 
