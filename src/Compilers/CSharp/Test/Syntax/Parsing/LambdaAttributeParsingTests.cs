@@ -239,6 +239,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Fact]
+        public void LambdaAttribute_05()
+        {
+            string source = "[A] (ref x) => x";
+            UsingExpression(source, TestOptions.RegularPreview,
+                    // (1,11): error CS1001: Identifier expected
+                    // [A] (ref x) => x
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 11));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.AttributeList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.Attribute);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+            }
+            EOF();
+        }
+
         // [A] <modifiers> x => x
         private void LambdaExpression_01(params SyntaxKind[] modifiers)
         {
@@ -514,8 +560,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        // [return: A] static x => x
+        // [A] (ref int x) => ref x
         private void LambdaExpression_08()
+        {
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.AttributeList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.Attribute);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+            }
+        }
+
+        // [return: A] static x => x
+        private void LambdaExpression_09()
         {
             N(SyntaxKind.SimpleLambdaExpression);
             {
@@ -550,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         // ([A] int x) => x
-        private void LambdaExpression_09()
+        private void LambdaExpression_10()
         {
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -587,8 +676,91 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        // ([A] out int x) => { }
+        private void LambdaExpression_11()
+        {
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.OutKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+
+        // ([A] ref int x) => ref x
+        private void LambdaExpression_12()
+        {
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+            }
+        }
+
         // ([A] x) => x
-        private void LambdaExpression_10()
+        private void LambdaExpression_13()
         {
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -622,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         // (int x, [A] int y) => x
-        private void LambdaExpression_11()
+        private void LambdaExpression_14()
         {
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -697,11 +869,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             yield return getData("[A(B)]() => { }", tests => tests.LambdaExpression_05());
             yield return getData("[A, B]() => { }", tests => tests.LambdaExpression_06());
             yield return getData("[A][B]() => { }", tests => tests.LambdaExpression_07());
+            yield return getData("[A] (ref int x) => ref x", tests => tests.LambdaExpression_08());
 
-            yield return getData("[return: A] static x => x", tests => tests.LambdaExpression_08());
-            yield return getData("([A] int x) => x", tests => tests.LambdaExpression_09());
-            yield return getData("([A] x) => x", tests => tests.LambdaExpression_10());
-            yield return getData("(int x, [A] int y) => x", tests => tests.LambdaExpression_11());
+            yield return getData("[return: A] static x => x", tests => tests.LambdaExpression_09());
+            yield return getData("([A] int x) => x", tests => tests.LambdaExpression_10());
+            yield return getData("([A] out int x) => { }", tests => tests.LambdaExpression_11());
+            yield return getData("([A] ref int x) => ref x", tests => tests.LambdaExpression_12());
+            yield return getData("([A] x) => x", tests => tests.LambdaExpression_13());
+            yield return getData("(int x, [A] int y) => x", tests => tests.LambdaExpression_14());
 
             static object[] getData(string expr, Action<LambdaAttributeParsingTests> action) => new object[] { expr, action };
         }
@@ -930,59 +1105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
-                }
-            }
-            EOF();
-        }
-
-        // Lambda with attribute in conditional expression is similar to conditional element access.
-        [Fact]
-        public void ConditionalExpression()
-        {
-            UsingExpression("x ? ([A] () => { }) : y", TestOptions.RegularPreview);
-
-            N(SyntaxKind.ConditionalExpression);
-            {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "x");
-                }
-                N(SyntaxKind.QuestionToken);
-                N(SyntaxKind.ParenthesizedExpression);
-                {
-                    N(SyntaxKind.OpenParenToken);
-                    N(SyntaxKind.ParenthesizedLambdaExpression);
-                    {
-                        N(SyntaxKind.AttributeList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Attribute);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.CloseParenToken);
-                }
-                N(SyntaxKind.ColonToken);
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "y");
                 }
             }
             EOF();
@@ -1423,6 +1545,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.CloseBraceToken);
                     }
+                }
+            }
+            EOF();
+        }
+
+        // Lambda with attribute in conditional expression is similar to conditional element access.
+        [Fact]
+        public void ConditionalExpression_03()
+        {
+            UsingExpression("x ? ([A] () => { }) : y", TestOptions.RegularPreview);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "y");
                 }
             }
             EOF();
