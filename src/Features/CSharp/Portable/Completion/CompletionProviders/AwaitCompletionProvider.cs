@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [Shared]
     internal sealed class AwaitCompletionProvider : LSPCompletionProvider
     {
-        private bool _shouldMakeContainerAsync = false;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public AwaitCompletionProvider()
@@ -61,31 +59,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var symbol = semanticModel.GetDeclaredSymbol(method, cancellationToken) as IMethodSymbol;
                 if (symbol is not null && IsTask(symbol.ReturnType))
                 {
-                    _shouldMakeContainerAsync = true;
-                    context.AddItem(GetCompletionItem());
+                    context.AddItem(GetCompletionItem(shouldMakeContainerAsync: true));
                     return;
                 }
             }
 
-            context.AddItem(GetCompletionItem());
+            context.AddItem(GetCompletionItem(shouldMakeContainerAsync: false));
 
             // Local functions.
             static bool IsTask(ITypeSymbol returnType)
                 => returnType.Name is "Task" or "ValueTask";
 
-            CompletionItem GetCompletionItem() => CommonCompletionItem.Create(
-                displayText: SyntaxFacts.GetText(SyntaxKind.AwaitKeyword),
-                displayTextSuffix: "",
-                rules: CompletionItemRules.Default,
-                Glyph.Keyword,
-                description: RecommendedKeyword.CreateDisplayParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), string.Empty),
-                inlineDescription: _shouldMakeContainerAsync ? CSharpFeaturesResources.Make_container_async : null,
-                isComplexTextEdit: _shouldMakeContainerAsync);
+            static CompletionItem GetCompletionItem(bool shouldMakeContainerAsync)
+                => CommonCompletionItem.Create(
+                       displayText: SyntaxFacts.GetText(SyntaxKind.AwaitKeyword),
+                       displayTextSuffix: "",
+                       rules: CompletionItemRules.Default,
+                       Glyph.Keyword,
+                       description: RecommendedKeyword.CreateDisplayParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), string.Empty),
+                       inlineDescription: shouldMakeContainerAsync ? CSharpFeaturesResources.Make_container_async : null,
+                       isComplexTextEdit: shouldMakeContainerAsync);
         }
 
         internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem completionItem, TextSpan completionListSpan, char? commitKey, bool disallowAddingImports, CancellationToken cancellationToken)
         {
-            if (!_shouldMakeContainerAsync)
+            // IsComplexTextEdit is true when we want to add async to the container.
+            if (!completionItem.IsComplexTextEdit)
             {
                 return await base.GetChangeAsync(document, completionItem, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
             }
