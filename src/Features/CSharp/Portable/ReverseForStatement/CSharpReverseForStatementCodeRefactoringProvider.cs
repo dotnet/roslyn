@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReverseForStatement
 {
     using static IntegerUtilities;
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ReverseForStatement), Shared]
     internal class CSharpReverseForStatementCodeRefactoringProvider : CodeRefactoringProvider
     {
         [ImportingConstructor]

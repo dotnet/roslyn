@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("RoundTripVerification");
-            var buildConstructor = new BuildConstructor(logger);
             var optionsReader = new CompilationOptionsReader(logger, originalPdbReader, originalReader);
             var assemblyFileName = original.AssemblyName!;
             if (typeof(TCompilation) == typeof(CSharpCompilation))
@@ -59,19 +58,17 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 assemblyFileName += assemblyFileExtension;
             }
 
-            var rebuild = buildConstructor.CreateCompilation(
-                assemblyFileName,
-                optionsReader,
-                original.SyntaxTrees.Select(x => SyntaxTreeInfo.Create(x)).ToImmutableArray(),
-                metadataReferences: original.References.ToImmutableArray());
+            var compilationFactory = CompilationFactory.Create(assemblyFileName, optionsReader);
+            var rebuild = compilationFactory.CreateCompilation(
+                original.SyntaxTrees.Select(x => compilationFactory.CreateSyntaxTree(x.FilePath, x.GetText())).ToImmutableArray(),
+                original.References.ToImmutableArray());
 
             Assert.IsType<TCompilation>(rebuild);
             VerifyCompilationOptions(original.Options, rebuild.Options);
 
             using var rebuildStream = new MemoryStream();
-            var result = BuildConstructor.Emit(
+            var result = compilationFactory.Emit(
                 rebuildStream,
-                optionsReader,
                 rebuild,
                 embeddedTexts: ImmutableArray<EmbeddedText>.Empty,
                 CancellationToken.None);
