@@ -38,7 +38,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "123", verify: Verification.Skipped);
         }
@@ -68,7 +68,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"123 /* comment */ +
@@ -96,7 +96,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "124", verify: Verification.Skipped);
         }
@@ -128,7 +128,7 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "2 + 2", verify: Verification.Skipped);
         }
@@ -155,7 +155,7 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "myIntegerExpression", verify: Verification.Skipped);
         }
@@ -182,7 +182,7 @@ public static class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2", verify: Verification.Skipped);
         }
@@ -271,7 +271,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
@@ -307,7 +307,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"target default value
@@ -348,7 +348,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"param1: param1_default, param2: param2_default
