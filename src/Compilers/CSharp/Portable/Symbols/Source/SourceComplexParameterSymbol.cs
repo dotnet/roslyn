@@ -1061,7 +1061,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void ValidateCallerArgumentExpressionAttribute(AttributeSyntax node, CSharpAttributeData attribute, BindingDiagnosticBag diagnostics)
         {
-            MessageID.IDS_FeatureCallerArgumentExpression.CheckFeatureAvailability(diagnostics, node);
+            // We intentionally don't report an error for earlier language versions here. The attribute already existed
+            // before the feature was developed. The error is only reported when the binder supplies a value
+            // based on the attribute.
             CSharpCompilation compilation = this.DeclaringCompilation;
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
