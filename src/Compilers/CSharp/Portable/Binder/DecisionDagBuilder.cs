@@ -530,10 +530,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var subPattern in recursive.Properties)
                 {
                     BoundPattern pattern = subPattern.Pattern;
-                    BoundDagTemp currentInput;
+                    BoundDagTemp currentInput = input;
                     if (!subPattern.Symbols.IsDefault)
                     {
-                        currentInput = input;
                         Symbol last = subPattern.Symbols[^1];
                         foreach (Symbol symbol in subPattern.Symbols)
                         {
@@ -565,8 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         RoslynDebug.Assert(recursive.HasAnyErrors);
-                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
-                        currentInput = input;
+                        tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), currentInput, hasErrors: true)));
                     }
 
                     tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
