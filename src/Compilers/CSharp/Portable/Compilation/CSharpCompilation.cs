@@ -134,6 +134,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private HashSet<SyntaxTree>? _lazyCompilationUnitCompletedTrees;
 
         /// <summary>
+        /// The set of trees for which enough analysis was performed in order to record usage of using directives.
+        /// Once all trees are processed the value is set to null.
+        /// </summary>
+        private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecorededInTrees = ImmutableHashSet<SyntaxTree>.Empty;
+
+        /// <summary>
         /// Nullable analysis data for methods, parameter default values, and attributes.
         /// The key is a symbol for methods or parameters, and syntax for attributes.
         /// The data is collected during testing only.
@@ -151,6 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Data = new ConcurrentDictionary<object, NullableWalker.Data>();
             }
         }
+
+        internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecorededInTrees => Volatile.Read(ref _usageOfUsingsRecorededInTrees);
 
         public override string Language
         {
@@ -2465,6 +2473,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            if (filterTree is null)
+            {
+                _usageOfUsingsRecorededInTrees = null;
+            }
         }
 
         internal void RecordImport(UsingDirectiveSyntax syntax)
@@ -2796,16 +2809,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Report unused directives only if computing diagnostics for the entire tree.
             // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
-            bool reportUnusedUsings = !span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan;
+            bool reportUnusedUsings = (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan) && ReportUnusedImportsInTree(tree);
+            bool recordUsageOfUsingsInAllTrees = false;
 
-            // PROTOTYPE(GlobalUsingDirective): We should consider optimizing and not recompiling the world every time we are asked for 
-            //                                  diagnostics in a tree with global imports. Perhaps, we should keep track of trees that
-            //                                  we already compiled and not recompile them. It might be also worth checking if any
-            //                                  global using in the tree is still considered unused.
-            SyntaxTree? filterTree = tree;
-            TextSpan? filterSpan = span;
-
-            if (reportUnusedUsings)
+            if (reportUnusedUsings && UsageOfUsingsRecorededInTrees is not null)
             {
                 foreach (var singleDeclaration in ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).MergedDeclaration.Declarations)
                 {
@@ -2813,9 +2820,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (singleDeclaration.HasGlobalUsings)
                         {
-                            // PROTOTYPE(GlobalUsingDirective): Compile the world for now.
-                            filterTree = null;
-                            filterSpan = null;
+                            // Global Using directives can be used in any tree. Make sure we collect usage information from all of them.
+                            recordUsageOfUsingsInAllTrees = true;
                         }
 
                         break;
@@ -2823,18 +2829,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            MethodCompiler.CompileMethodBodies(
-                compilation: this,
-                moduleBeingBuiltOpt: null,
-                emittingPdb: false,
-                emitTestCoverageData: false,
-                hasDeclarationErrors: false,
-                emitMethodBodies: false,
-                diagnostics: bindingDiagnostics,
-                filterOpt: filterTree is object ? (Predicate<Symbol>?)(s => IsDefinedOrImplementedInSourceTree(s, filterTree, filterSpan)) : (Predicate<Symbol>?)null,
-                cancellationToken: cancellationToken);
+            if (recordUsageOfUsingsInAllTrees && UsageOfUsingsRecorededInTrees?.IsEmpty == true)
+            {
+                Debug.Assert(reportUnusedUsings);
 
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, bindingDiagnostics, cancellationToken, filterTree, filterSpan);
+                // Simply compile the world
+                compileMethodBodiesAndDocComments(filterTree: null, filterSpan: null, bindingDiagnostics, cancellationToken);
+                _usageOfUsingsRecorededInTrees = null;
+            }
+            else
+            {
+                // Always compile the target tree
+                compileMethodBodiesAndDocComments(filterTree: tree, filterSpan: span, bindingDiagnostics, cancellationToken);
+
+                if (reportUnusedUsings)
+                {
+                    registeredUsageOfUsingsInTree(tree);
+                }
+
+                // Compile other trees if we need to
+                if (recordUsageOfUsingsInAllTrees)
+                {
+                    Debug.Assert(reportUnusedUsings);
+
+                    foreach (var otherTree in SyntaxTrees)
+                    {
+                        var trackingSet = UsageOfUsingsRecorededInTrees;
+
+                        if (trackingSet is null)
+                        {
+                            break;
+                        }
+
+                        if (!trackingSet.Contains(otherTree))
+                        {
+                            compileMethodBodiesAndDocComments(filterTree: otherTree, filterSpan: null, bindingDiagnostics, cancellationToken);
+                            registeredUsageOfUsingsInTree(otherTree);
+                        }
+                    }
+                }
+            }
 
             if (reportUnusedUsings)
             {
@@ -2842,6 +2876,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return diagnostics.ToReadOnlyAndFree();
+
+            void compileMethodBodiesAndDocComments(SyntaxTree? filterTree, TextSpan? filterSpan, BindingDiagnosticBag bindingDiagnostics, CancellationToken cancellationToken)
+            {
+                MethodCompiler.CompileMethodBodies(
+                                compilation: this,
+                                moduleBeingBuiltOpt: null,
+                                emittingPdb: false,
+                                emitTestCoverageData: false,
+                                hasDeclarationErrors: false,
+                                emitMethodBodies: false,
+                                diagnostics: bindingDiagnostics,
+                                filterOpt: filterTree is object ? (Predicate<Symbol>?)(s => IsDefinedOrImplementedInSourceTree(s, filterTree, filterSpan)) : (Predicate<Symbol>?)null,
+                                cancellationToken: cancellationToken);
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, bindingDiagnostics, cancellationToken, filterTree, filterSpan);
+            }
+
+            void registeredUsageOfUsingsInTree(SyntaxTree tree)
+            {
+                var current = UsageOfUsingsRecorededInTrees;
+
+                while (true)
+                {
+                    if (current is null)
+                    {
+                        break;
+                    }
+
+                    var updated = current.Add(tree);
+
+                    if ((object)updated == current)
+                    {
+                        break;
+                    }
+
+                    if (updated.Count == SyntaxTrees.Length)
+                    {
+                        _usageOfUsingsRecorededInTrees = null;
+                        break;
+                    }
+
+                    var recent = Interlocked.CompareExchange(ref _usageOfUsingsRecorededInTrees, updated, current);
+
+                    if (recent == (object)current)
+                    {
+                        break;
+                    }
+
+                    current = recent;
+                }
+            }
         }
 
         private ImmutableBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, CancellationToken cancellationToken = default)
