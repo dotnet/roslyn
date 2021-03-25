@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -31,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         [Guid("9B164E40-C3A2-4363-9BC5-EB4039DEF653")]
         private class SVsSettingsPersistenceManager { };
 
-        private readonly ISettingsManager _settingManager;
+        private readonly ISettingsManager? _settingManager;
         private readonly IGlobalOptionService _globalOptionService;
 
         /// <summary>
@@ -45,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         /// <remarks>
         /// We make sure this code is from the UI by asking for all <see cref="IOptionPersister"/> in <see cref="RoslynPackage.InitializeAsync"/>
         /// </remarks>
-        public RoamingVisualStudioProfileOptionPersister(IThreadingContext threadingContext, IGlobalOptionService globalOptionService, ISettingsManager settingsManager)
+        public RoamingVisualStudioProfileOptionPersister(IThreadingContext threadingContext, IGlobalOptionService globalOptionService, ISettingsManager? settingsManager)
             : base(threadingContext, assertIsForeground: true)
         {
             Contract.ThrowIfNull(globalOptionService);
@@ -65,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         private System.Threading.Tasks.Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
         {
-            List<OptionKey> optionsToRefresh = null;
+            List<OptionKey>? optionsToRefresh = null;
 
             lock (_optionsToMonitorForChangesGate)
             {
@@ -95,8 +93,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return System.Threading.Tasks.Task.CompletedTask;
         }
 
-        private object GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<RoamingProfileStorageLocation> roamingSerializations)
+        private object? GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<RoamingProfileStorageLocation> roamingSerializations)
         {
+            Contract.ThrowIfNull(_settingManager);
+
             // There can be more than 1 roaming location in the order of their priority.
             // When fetching a value, we iterate all of them until we find the first one that exists.
             // When persisting a value, we always use the first location.
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return optionKey.Option.DefaultValue;
         }
 
-        public bool TryFetch(OptionKey optionKey, out object value)
+        public bool TryFetch(OptionKey optionKey, out object? value)
         {
             if (_settingManager == null)
             {
@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return true;
         }
 
-        private bool DeserializeCodeStyleOption(ref object value, Type type)
+        private bool DeserializeCodeStyleOption(ref object? value, Type type)
         {
             if (value is string serializedValue)
             {
@@ -243,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public bool TryPersist(OptionKey optionKey, object value)
+        public bool TryPersist(OptionKey optionKey, object? value)
         {
             if (_settingManager == null)
             {
@@ -271,9 +271,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             else if (optionKey.Option.Type == typeof(NamingStylePreferences))
             {
                 // We store these as strings, so serialize
-                var valueToSerialize = value as NamingStylePreferences;
-
-                if (value != null)
+                if (value is NamingStylePreferences valueToSerialize)
                 {
                     value = valueToSerialize.CreateXElement().ToString();
                 }
