@@ -5200,6 +5200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public sealed partial class SubpatternSyntax : CSharpSyntaxNode
     {
         private NameColonSyntax? nameColon;
+        private ExpressionColonSyntax? expressionColon;
         private PatternSyntax? pattern;
 
         internal SubpatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -5209,13 +5210,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public NameColonSyntax? NameColon => GetRedAtZero(ref this.nameColon);
 
-        public PatternSyntax Pattern => GetRed(ref this.pattern, 1)!;
+        public ExpressionColonSyntax? ExpressionColon => GetRed(ref this.expressionColon, 1);
+
+        public PatternSyntax Pattern => GetRed(ref this.pattern, 2)!;
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
                 0 => GetRedAtZero(ref this.nameColon),
-                1 => GetRed(ref this.pattern, 1)!,
+                1 => GetRed(ref this.expressionColon, 1),
+                2 => GetRed(ref this.pattern, 2)!,
                 _ => null,
             };
 
@@ -5223,18 +5227,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => index switch
             {
                 0 => this.nameColon,
-                1 => this.pattern,
+                1 => this.expressionColon,
+                2 => this.pattern,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSubpattern(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSubpattern(this);
 
-        public SubpatternSyntax Update(NameColonSyntax? nameColon, PatternSyntax pattern)
+        public SubpatternSyntax Update(NameColonSyntax? nameColon, ExpressionColonSyntax? expressionColon, PatternSyntax pattern)
         {
-            if (nameColon != this.NameColon || pattern != this.Pattern)
+            if (nameColon != this.NameColon || expressionColon != this.ExpressionColon || pattern != this.Pattern)
             {
-                var newNode = SyntaxFactory.Subpattern(nameColon, pattern);
+                var newNode = SyntaxFactory.Subpattern(nameColon, expressionColon, pattern);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -5242,8 +5247,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return this;
         }
 
-        public SubpatternSyntax WithNameColon(NameColonSyntax? nameColon) => Update(nameColon, this.Pattern);
-        public SubpatternSyntax WithPattern(PatternSyntax pattern) => Update(this.NameColon, pattern);
+        public SubpatternSyntax WithNameColon(NameColonSyntax? nameColon) => Update(nameColon, this.ExpressionColon, this.Pattern);
+        public SubpatternSyntax WithExpressionColon(ExpressionColonSyntax? expressionColon) => Update(this.NameColon, expressionColon, this.Pattern);
+        public SubpatternSyntax WithPattern(PatternSyntax pattern) => Update(this.NameColon, this.ExpressionColon, pattern);
     }
 
     /// <remarks>
@@ -5284,6 +5290,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         public ConstantPatternSyntax WithExpression(ExpressionSyntax expression) => Update(expression);
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ExpressionColon"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class ExpressionColonSyntax : CSharpSyntaxNode
+    {
+        private ExpressionSyntax? expression;
+
+        internal ExpressionColonSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public ExpressionSyntax Expression => GetRedAtZero(ref this.expression)!;
+
+        public SyntaxToken ColonToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ExpressionColonSyntax)this.Green).colonToken, GetChildPosition(1), GetChildIndex(1));
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.expression)! : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.expression : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitExpressionColon(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitExpressionColon(this);
+
+        public ExpressionColonSyntax Update(ExpressionSyntax expression, SyntaxToken colonToken)
+        {
+            if (expression != this.Expression || colonToken != this.ColonToken)
+            {
+                var newNode = SyntaxFactory.ExpressionColon(expression, colonToken);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public ExpressionColonSyntax WithExpression(ExpressionSyntax expression) => Update(expression, this.ColonToken);
+        public ExpressionColonSyntax WithColonToken(SyntaxToken colonToken) => Update(this.Expression, colonToken);
     }
 
     /// <remarks>

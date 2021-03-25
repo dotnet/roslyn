@@ -602,7 +602,11 @@ positional_pattern_clause
   ;
 
 subpattern
-  : name_colon? pattern
+  : (name_colon | expression_colon)? pattern
+  ;
+
+expression_colon
+  : expression ':'
   ;
 
 property_pattern_clause

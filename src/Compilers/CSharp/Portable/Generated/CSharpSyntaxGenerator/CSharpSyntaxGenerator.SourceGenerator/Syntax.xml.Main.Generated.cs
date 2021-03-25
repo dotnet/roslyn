@@ -285,6 +285,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ConstantPatternSyntax node.</summary>
         public virtual TResult? VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a ExpressionColonSyntax node.</summary>
+        public virtual TResult? VisitExpressionColon(ExpressionColonSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a ParenthesizedPatternSyntax node.</summary>
         public virtual TResult? VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
 
@@ -981,6 +984,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when the visitor visits a ConstantPatternSyntax node.</summary>
         public virtual void VisitConstantPattern(ConstantPatternSyntax node) => this.DefaultVisit(node);
 
+        /// <summary>Called when the visitor visits a ExpressionColonSyntax node.</summary>
+        public virtual void VisitExpressionColon(ExpressionColonSyntax node) => this.DefaultVisit(node);
+
         /// <summary>Called when the visitor visits a ParenthesizedPatternSyntax node.</summary>
         public virtual void VisitParenthesizedPattern(ParenthesizedPatternSyntax node) => this.DefaultVisit(node);
 
@@ -1672,10 +1678,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.Update(VisitToken(node.OpenBraceToken), VisitList(node.Subpatterns), VisitToken(node.CloseBraceToken));
 
         public override SyntaxNode? VisitSubpattern(SubpatternSyntax node)
-            => node.Update((NameColonSyntax?)Visit(node.NameColon), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
+            => node.Update((NameColonSyntax?)Visit(node.NameColon), (ExpressionColonSyntax?)Visit(node.ExpressionColon), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"));
 
         public override SyntaxNode? VisitConstantPattern(ConstantPatternSyntax node)
             => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"));
+
+        public override SyntaxNode? VisitExpressionColon(ExpressionColonSyntax node)
+            => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.ColonToken));
 
         public override SyntaxNode? VisitParenthesizedPattern(ParenthesizedPatternSyntax node)
             => node.Update(VisitToken(node.OpenParenToken), (PatternSyntax?)Visit(node.Pattern) ?? throw new ArgumentNullException("pattern"), VisitToken(node.CloseParenToken));
@@ -3586,15 +3595,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             => SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         /// <summary>Creates a new SubpatternSyntax instance.</summary>
-        public static SubpatternSyntax Subpattern(NameColonSyntax? nameColon, PatternSyntax pattern)
+        public static SubpatternSyntax Subpattern(NameColonSyntax? nameColon, ExpressionColonSyntax? expressionColon, PatternSyntax pattern)
         {
             if (pattern == null) throw new ArgumentNullException(nameof(pattern));
-            return (SubpatternSyntax)Syntax.InternalSyntax.SyntaxFactory.Subpattern(nameColon == null ? null : (Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
+            return (SubpatternSyntax)Syntax.InternalSyntax.SyntaxFactory.Subpattern(nameColon == null ? null : (Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, expressionColon == null ? null : (Syntax.InternalSyntax.ExpressionColonSyntax)expressionColon.Green, (Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
         }
 
         /// <summary>Creates a new SubpatternSyntax instance.</summary>
         public static SubpatternSyntax Subpattern(PatternSyntax pattern)
-            => SyntaxFactory.Subpattern(default, pattern);
+            => SyntaxFactory.Subpattern(default, default, pattern);
 
         /// <summary>Creates a new ConstantPatternSyntax instance.</summary>
         public static ConstantPatternSyntax ConstantPattern(ExpressionSyntax expression)
@@ -3602,6 +3611,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression == null) throw new ArgumentNullException(nameof(expression));
             return (ConstantPatternSyntax)Syntax.InternalSyntax.SyntaxFactory.ConstantPattern((Syntax.InternalSyntax.ExpressionSyntax)expression.Green).CreateRed();
         }
+
+        /// <summary>Creates a new ExpressionColonSyntax instance.</summary>
+        public static ExpressionColonSyntax ExpressionColon(ExpressionSyntax expression, SyntaxToken colonToken)
+        {
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
+            if (colonToken.Kind() != SyntaxKind.ColonToken) throw new ArgumentException(nameof(colonToken));
+            return (ExpressionColonSyntax)Syntax.InternalSyntax.SyntaxFactory.ExpressionColon((Syntax.InternalSyntax.ExpressionSyntax)expression.Green, (Syntax.InternalSyntax.SyntaxToken)colonToken.Node!).CreateRed();
+        }
+
+        /// <summary>Creates a new ExpressionColonSyntax instance.</summary>
+        public static ExpressionColonSyntax ExpressionColon(ExpressionSyntax expression)
+            => SyntaxFactory.ExpressionColon(expression, SyntaxFactory.Token(SyntaxKind.ColonToken));
 
         /// <summary>Creates a new ParenthesizedPatternSyntax instance.</summary>
         public static ParenthesizedPatternSyntax ParenthesizedPattern(SyntaxToken openParenToken, PatternSyntax pattern, SyntaxToken closeParenToken)

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -455,6 +456,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private CSharpSyntaxNode ParseExpressionOrPatternForSwitchStatementCore()
         {
             var pattern = ParsePattern(Precedence.Conditional, whenIsKeyword: true);
+            return ConvertPatternToExpressionIfPossible(pattern);
+        }
+
+        private CSharpSyntaxNode ConvertPatternToExpressionIfPossible(PatternSyntax pattern)
+        {
             return pattern switch
             {
                 ConstantPatternSyntax cp => cp.Expression,
@@ -580,16 +586,29 @@ tryAgain:
 
         private SubpatternSyntax ParseSubpatternElement()
         {
+            PatternSyntax pattern = ParsePattern(Precedence.Conditional);
+
             NameColonSyntax nameColon = null;
-            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
+            ExpressionColonSyntax exprColon = null;
+
+            // If there is a colon but it's not preceeded by a valid expression, leave it out to parse it as a missing comma.
+            // For instance: `{ {}: {} }` results in two subpatterns devided by a missing comma.
+            if (this.CurrentToken.Kind == SyntaxKind.ColonToken && ConvertPatternToExpressionIfPossible(pattern) is ExpressionSyntax expr)
             {
-                var name = this.ParseIdentifierName();
-                var colon = this.EatToken(SyntaxKind.ColonToken);
-                nameColon = _syntaxFactory.NameColon(name, colon);
+                var colon = EatToken();
+                if (expr is IdentifierNameSyntax identifierName)
+                {
+                    nameColon = _syntaxFactory.NameColon(identifierName, colon);
+                }
+                else
+                {
+                    exprColon = _syntaxFactory.ExpressionColon(expr, colon);
+                }
+
+                pattern = ParsePattern(Precedence.Conditional);
             }
 
-            var pattern = ParsePattern(Precedence.Conditional);
-            return this._syntaxFactory.Subpattern(nameColon, pattern);
+            return _syntaxFactory.Subpattern(nameColon, exprColon, pattern);
         }
 
         /// <summary>

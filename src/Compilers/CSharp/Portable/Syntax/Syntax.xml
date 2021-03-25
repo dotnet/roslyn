@@ -2030,7 +2030,10 @@
   </Node>
   <Node Name="SubpatternSyntax" Base="CSharpSyntaxNode">
     <Kind Name="Subpattern"/>
-    <Field Name="NameColon" Type="NameColonSyntax" Optional="true" />
+    <Choice Optional="true">
+      <Field Name="NameColon" Type="NameColonSyntax"/>
+      <Field Name="ExpressionColon" Type="ExpressionColonSyntax"/>
+    </Choice>
     <Field Name="Pattern" Type="PatternSyntax" />
   </Node>
   <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
@@ -2041,7 +2044,13 @@
       </PropertyComment>
     </Field>
   </Node>
-
+  <Node Name="ExpressionColonSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="ExpressionColon"/>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+  </Node>
   <!-- Pattern forms added for C# 9.0 -->
   <Node Name="ParenthesizedPatternSyntax" Base="PatternSyntax">
     <Kind Name="ParenthesizedPattern"/>
