@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 
         public SingleMemberMarginViewModel(InheritanceMarginTag tag)
         {
+            // TODO: Move this to resources.
             ToolTip = "Click to select target";
             ImageMoniker = tag.Moniker;
             var member = tag.MembersOnLine[0];

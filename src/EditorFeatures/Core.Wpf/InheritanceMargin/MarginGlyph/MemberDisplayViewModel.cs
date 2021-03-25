@@ -15,12 +15,17 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public string DisplayName { get; }
         public string ToolTip { get; }
         public ImmutableArray<TargetDisplayViewModel> Targets { get; }
+        public string AutomationName { get; }
 
         public MemberDisplayViewModel(InheritanceMarginItem member)
         {
             ImageMoniker = member.Glyph.GetImageMoniker();
             DisplayName = member.DisplayName;
-            ToolTip = $"Click to look for {DisplayName}";
+
+            // TODO: Move this to resources.
+            ToolTip = $"Click to look for '{DisplayName}'";
+            AutomationName = ToolTip;
+
             Targets = member.TargetItems.SelectAsArray(item => new TargetDisplayViewModel(item));
         }
     }

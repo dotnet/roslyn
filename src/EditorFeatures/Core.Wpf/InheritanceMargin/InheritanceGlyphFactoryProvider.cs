@@ -4,6 +4,8 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -19,16 +21,22 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
     [Order(After = "VsTextMarker")]
     internal class InheritanceGlyphFactoryProvider : IGlyphFactoryProvider
     {
+        private readonly IThreadingContext _threadingContext;
+        private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InheritanceGlyphFactoryProvider()
+        public InheritanceGlyphFactoryProvider(
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingFindUsagesPresenter)
         {
+            _threadingContext = threadingContext;
+            _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
         }
 
         public IGlyphFactory GetGlyphFactory(IWpfTextView view, IWpfTextViewMargin margin)
         {
-            return new InheritanceGlyphFactory();
+            return new InheritanceGlyphFactory(_threadingContext, _streamingFindUsagesPresenter);
         }
     }
 }
