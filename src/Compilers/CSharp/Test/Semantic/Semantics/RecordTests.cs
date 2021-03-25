@@ -5883,38 +5883,79 @@ abstract sealed record C2 : C1;
             Assert.True(toString.IsImplicitlyDeclared);
         }
 
-        [Fact]
-        public void ToString_DerivedRecord_BaseHasSealedToString()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ToString_DerivedRecord_BaseHasSealedToString(bool usePreview)
         {
             var src = @"
+var c = new C2();
+System.Console.Write(c.ToString());
+
 record C1
 {
-    public sealed override string ToString() => throw null;
+    public sealed override string ToString() => ""C1"";
 }
 record C2 : C1;
 ";
 
-            var comp = CreateCompilation(src);
-            comp.VerifyEmitDiagnostics(
-                // (4,35): error CS8652: The feature 'sealed record ToString' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public sealed override string ToString() => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed record ToString").WithLocation(4, 35)
-                );
+            var comp = CreateCompilation(src, parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9, options: TestOptions.DebugExe);
+            if (usePreview)
+            {
+                comp.VerifyEmitDiagnostics();
+                CompileAndVerify(comp, expectedOutput: "C1");
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,35): error CS8652: The feature 'sealed record ToString' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public sealed override string ToString() => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed record ToString").WithLocation(7, 35)
+                    );
+            }
         }
 
         [Fact]
-        public void ToString_DerivedRecord_BaseHasSealedToString_PreviewSealedRecordToString()
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString()
         {
             var src = @"
+var c = new C3();
+System.Console.Write(c.ToString());
+
 record C1
 {
-    public sealed override string ToString() => throw null;
+    public sealed override string ToString() => ""C1"";
 }
 record C2 : C1;
+record C3 : C2;
 ";
 
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1");
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseHasToStringWithDifferentSignature()
+        {
+            var src = @"
+var c = new C3();
+System.Console.Write(c.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1
+{
+    public string ToString(int n) => throw null;
+}
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1");
         }
 
         [Fact]
@@ -6915,8 +6956,10 @@ public record B : A {
                 );
         }
 
-        [Fact]
-        public void ToString_BadBase_SealedToString()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ToString_BadBase_SealedToString(bool usePreview)
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit A
@@ -6985,81 +7028,10 @@ public record B : A {
             var source = @"
 public record B : A {
 }";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
-            comp.VerifyEmitDiagnostics();
-        }
-
-        [Fact]
-        public void ToString_BadBase_SealedToString_PreviewSealedRecordToString()
-        {
-            var ilSource = @"
-.class public auto ansi beforefieldinit A
-    extends System.Object
-{
-    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig virtual instance int32 GetHashCode () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .property instance class [mscorlib]System.Type EqualityContract()
-    {
-        .get instance class [mscorlib]System.Type A::get_EqualityContract()
-    }
-
-    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-
-    .method public final hidebysig virtual instance string ToString () cil managed
-    {
-        IL_0000: ldnull
-        IL_0001: throw
-    }
-}
-";
-            var source = @"
-public record B : A {
-}";
-            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithIL(
+                new[] { source, IsExternalInitTypeDefinition },
+                ilSource: ilSource,
+                parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -7084,8 +7056,10 @@ record C1
             Assert.Equal("System.Boolean C1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)", print.ToTestDisplayString());
         }
 
-        [Fact]
-        public void ToString_TopLevelRecord_UserDefinedToString_Sealed()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ToString_TopLevelRecord_UserDefinedToString_Sealed(bool usePreview)
         {
             var src = @"
 record C1
@@ -7094,26 +7068,19 @@ record C1
 }
 ";
 
-            var comp = CreateCompilation(src);
-            comp.VerifyEmitDiagnostics(
-                // (4,35): error CS8652: The feature 'sealed record ToString' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public sealed override string ToString() => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed record ToString").WithLocation(4, 35)
-                );
-        }
-
-        [Fact]
-        public void ToString_TopLevelRecord_UserDefinedToString_Sealed_PreviewSealedRecordToString()
-        {
-            var src = @"
-record C1
-{
-    public sealed override string ToString() => throw null;
-}
-";
-
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(src, parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9);
+            if (usePreview)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,35): error CS8652: The feature 'sealed record ToString' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public sealed override string ToString() => throw null;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed record ToString").WithLocation(4, 35)
+                    );
+            }
         }
 
         [Fact]
@@ -15428,8 +15395,10 @@ record B(int X, int Y)
                 comp.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
-        [Fact]
-        public void Overrides_01()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Overrides_01(bool usePreview)
         {
             var source =
 @"record A
@@ -15441,75 +15410,38 @@ record B(int X, int Y)
 record B(int X, int Y) : A
 {
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
-                //     public sealed override bool Equals(object other) => false;
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
-                // (5,35): error CS8652: The feature 'sealed record ToString' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public sealed override string ToString() => null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed record ToString").WithLocation(5, 35),
-                // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
-                //     public sealed override int GetHashCode() => 0;
-                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
-                // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
-                // record B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
-                );
-
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
-            var expectedMembers = new[]
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: usePreview ? TestOptions.RegularPreview : TestOptions.Regular9);
+            if (usePreview)
             {
-                "B..ctor(System.Int32 X, System.Int32 Y)",
-                "System.Type B.EqualityContract.get",
-                "System.Type B.EqualityContract { get; }",
-                "System.Int32 B.<X>k__BackingField",
-                "System.Int32 B.X.get",
-                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.X.init",
-                "System.Int32 B.X { get; init; }",
-                "System.Int32 B.<Y>k__BackingField",
-                "System.Int32 B.Y.get",
-                "void modreq(System.Runtime.CompilerServices.IsExternalInit) B.Y.init",
-                "System.Int32 B.Y { get; init; }",
-                "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B.op_Inequality(B? left, B? right)",
-                "System.Boolean B.op_Equality(B? left, B? right)",
-                "System.Int32 B.GetHashCode()",
-                "System.Boolean B.Equals(System.Object? obj)",
-                "System.Boolean B.Equals(A? other)",
-                "System.Boolean B.Equals(B? other)",
-                "A B." + WellKnownMemberNames.CloneMethodName + "()",
-                "B..ctor(B original)",
-                "void B.Deconstruct(out System.Int32 X, out System.Int32 Y)"
-            };
-            AssertEx.Equal(expectedMembers, actualMembers);
-        }
-
-        [Fact]
-        public void Overrides_01_PreviewSealedRecordToString()
-        {
-            var source =
-@"record A
-{
-    public sealed override bool Equals(object other) => false;
-    public sealed override int GetHashCode() => 0;
-    public sealed override string ToString() => null;
-}
-record B(int X, int Y) : A
-{
-}";
-            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics(
-                // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
-                //     public sealed override bool Equals(object other) => false;
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
-                // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
-                //     public sealed override int GetHashCode() => 0;
-                Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
-                // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
-                // record B(int X, int Y) : A
-                Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
-                );
+                comp.VerifyDiagnostics(
+                    // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
+                    //     public sealed override bool Equals(object other) => false;
+                    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
+                    // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
+                    //     public sealed override int GetHashCode() => 0;
+                    Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
+                    // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
+                    // record B(int X, int Y) : A
+                    Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
+                    //     public sealed override bool Equals(object other) => false;
+                    Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
+                    // (5,35): error CS8652: The feature 'sealed record ToString' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public sealed override string ToString() => null;
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed record ToString").WithLocation(5, 35),
+                    // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
+                    //     public sealed override int GetHashCode() => 0;
+                    Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
+                    // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
+                    // record B(int X, int Y) : A
+                    Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
+                    );
+            }
 
             var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
