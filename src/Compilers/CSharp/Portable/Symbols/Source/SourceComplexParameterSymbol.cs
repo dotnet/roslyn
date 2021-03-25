@@ -114,22 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsIUnknownConstant
             => GetDecodedWellKnownAttributeData()?.HasIUnknownConstantAttribute == true;
 
-        private bool HasCallerLineNumberAttribute
-            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerLineNumberAttribute == true;
+        internal override bool IsCallerLineNumber => GetEarlyDecodedWellKnownAttributeData()?.HasCallerLineNumberAttribute == true;
 
-        private bool HasCallerFilePathAttribute
-            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerFilePathAttribute == true;
+        internal override bool IsCallerFilePath => GetEarlyDecodedWellKnownAttributeData()?.HasCallerFilePathAttribute == true;
 
-        private bool HasCallerMemberNameAttribute
-            => GetEarlyDecodedWellKnownAttributeData()?.HasCallerMemberNameAttribute == true;
-
-        internal override bool IsCallerLineNumber => HasCallerLineNumberAttribute;
-
-        internal override bool IsCallerFilePath => !HasCallerLineNumberAttribute && HasCallerFilePathAttribute;
-
-        internal override bool IsCallerMemberName => !HasCallerLineNumberAttribute
-                                                  && !HasCallerFilePathAttribute
-                                                  && HasCallerMemberNameAttribute;
+        internal override bool IsCallerMemberName => GetEarlyDecodedWellKnownAttributeData()?.HasCallerMemberNameAttribute == true;
 
         internal override int CallerArgumentExpressionParameterIndex
         {
@@ -1014,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS4021: The CallerFilePathAttribute may only be applied to parameters with default values
                 diagnostics.Add(ErrorCode.ERR_BadCallerFilePathParamWithoutDefaultValue, node.Name.Location);
             }
-            else if (HasCallerLineNumberAttribute)
+            else if (IsCallerLineNumber)
             {
                 // CS7082: The CallerFilePathAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
@@ -1047,12 +1036,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS4022: The CallerMemberNameAttribute may only be applied to parameters with default values
                 diagnostics.Add(ErrorCode.ERR_BadCallerMemberNameParamWithoutDefaultValue, node.Name.Location);
             }
-            else if (HasCallerLineNumberAttribute)
+            else if (IsCallerLineNumber)
             {
                 // CS7081: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (HasCallerFilePathAttribute)
+            else if (IsCallerFilePath)
             {
                 // CS7080: The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
@@ -1088,17 +1077,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS8914: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 diagnostics.Add(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, node.Name.Location);
             }
-            else if (HasCallerLineNumberAttribute)
+            else if (IsCallerLineNumber)
             {
                 // CS8915: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (HasCallerFilePathAttribute)
+            else if (IsCallerFilePath)
             {
                 // CS8916: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (HasCallerMemberNameAttribute)
+            else if (IsCallerMemberName)
             {
                 // CS8917: The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is overriden by the CallerMemberNameAttribute.
                 diagnostics.Add(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
