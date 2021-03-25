@@ -24,10 +24,11 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Moq;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 {
@@ -341,10 +342,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             // OnSourceFileUpdatedAsync
 
             called = false;
-            mockEncService.OnSourceFileUpdatedImpl = updatedDocument =>
+            mockEncService.OnSourceFileUpdatedAsyncImpl = (updatedDocument, _) =>
             {
                 Assert.Equal(document.Id, updatedDocument.Id);
                 called = true;
+                return ValueTaskFactory.CompletedTask;
             };
 
             await proxy.OnSourceFileUpdatedAsync(document, CancellationToken.None).ConfigureAwait(false);
