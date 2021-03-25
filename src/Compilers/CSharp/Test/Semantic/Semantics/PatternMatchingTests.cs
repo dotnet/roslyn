@@ -24,6 +24,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTests : PatternMatchingTestBase
     {
         [Fact]
+        public void ExtendedPropertyPatterns_01()
+        {
+            var program = @"
+public class C
+{
+    public C Prop1 { get; set; }
+    public C Prop2 { get; set; }
+    public C Prop3 { get; set; }
+    
+    public static void Main(string[] args)
+    {        
+        if (new C() is { Prop1.Prop2.Prop3: null }) { }
+    }
+}";
+            var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var verifier = CompileAndVerify(compilation);
+            verifier.VerifyIL("C.Main", @"");
+        }
+
+        [Fact]
         public void DemoModes()
         {
             var source =

@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var subPattern in recursive.Properties)
                 {
                     BoundPattern pattern = subPattern.Pattern;
-                    foreach (Symbol symbol in subPattern.Symbols.NullToEmpty())
+                    foreach (Symbol symbol in subPattern.Symbols)
                     {
                         BoundDagEvaluation evaluation;
                         switch (symbol)
@@ -550,6 +550,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         tests.Add(new Tests.One(evaluation));
                         currentInput = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().Type, evaluation);
+
+                        if (!ReferenceEquals(symbol, subPattern.Symbols[^1]))
+                            MakeCheckNotNull(currentInput, pattern.Syntax, isExplicitTest: false, tests);
                     }
 
                     tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));

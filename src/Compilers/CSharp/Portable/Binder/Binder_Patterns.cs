@@ -1183,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var memberBuilder = ArrayBuilder<Symbol>.GetInstance();
                     LookupMemberForPropertyPattern(inputType, expr, memberBuilder, diagnostics, ref hasErrors, out memberType);
                     members = memberBuilder.ToImmutableOrNull();
-                    builder.Free();
+                    memberBuilder.Free();
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
@@ -1202,9 +1202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case IdentifierNameSyntax name:
                     symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
                     break;
-                case MemberAccessExpressionSyntax memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
+                case MemberAccessExpressionSyntax { Name: IdentifierNameSyntax name } memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
                     LookupMemberForPropertyPattern(inputType, memberAccess.Expression, builder, diagnostics, ref hasErrors, out memberType);
-                    symbol = BindPropertyPatternMember(memberType, memberAccess.Name, ref hasErrors, diagnostics);
+                    symbol = BindPropertyPatternMember(memberType, name, ref hasErrors, diagnostics);
                     break;
                 default:
                     symbol = null;
