@@ -6636,4 +6636,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title" xml:space="preserve">
     <value>The CallerArgumentExpressionAttribute is applied with an invalid parameter name.</value>
   </data>
+  <data name="IDS_FeatureCallerArgumentExpression" xml:space="preserve">
+    <value>caller argument expression</value>
+  </data>
 </root>
