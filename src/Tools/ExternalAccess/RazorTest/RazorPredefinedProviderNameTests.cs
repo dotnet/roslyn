@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests
         [InlineData(typeof(PredefinedCodeRefactoringProviderNames), typeof(RazorPredefinedCodeRefactoringProviderNames))]
         internal void RoslynNamesExistAndValuesMatchInRazorNamesClass(Type roslynProviderNamesType, Type razorProviderNamesType)
         {
-            var roslynProviderNames = GetPredefinedNamesFromType(roslynProviderNamesType);
-            var razorProviderNames = GetPredefinedNamesFromType(razorProviderNamesType);
+            var roslynProviderNames = GetPredefinedNamesFromFields(roslynProviderNamesType);
+            var razorProviderNames = GetPredefinedNamesFromProperties(razorProviderNamesType);
 
             var failureMessage = new StringBuilder();
             failureMessage.AppendLine($"The following Names were inconsistent between {roslynProviderNamesType.Name} and {razorProviderNamesType.Name}:");
@@ -52,5 +52,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests
                 .Where(field => field.FieldType == typeof(string))
                 .ToImmutableDictionary(field => field.Name, field => (string)field.GetValue(null));
         }
+
+        private static ImmutableDictionary<string, string> GetPredefinedNamesFromProperties(Type namesType)
+        {
+            return namesType.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
+                .Where(property => property.PropertyType == typeof(string))
+                .ToImmutableDictionary(property => property.Name, property => (string)property.GetValue(null));
+        }
+
     }
 }
