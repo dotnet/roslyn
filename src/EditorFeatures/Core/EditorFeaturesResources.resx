@@ -1071,4 +1071,7 @@ Do you want to proceed?</value>
   <data name="Use_Tabs" xml:space="preserve">
     <value>Use Tabs</value>
   </data>
+  <data name="All_methods" xml:space="preserve">
+    <value>All methods</value>
+  </data>
 </root>

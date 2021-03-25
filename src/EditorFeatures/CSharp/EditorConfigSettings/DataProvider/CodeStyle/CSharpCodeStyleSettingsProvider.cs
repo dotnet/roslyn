@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
                 option: CSharpCodeStyleOptions.PreferredUsingDirectivePlacement,
                 description: CSharpEditorResources.Preferred_using_directive_placement,
                 enumValues: new[] { AddImportPlacement.InsideNamespace, AddImportPlacement.OutsideNamespace },
-                valueDescriptions: new[] { CSharpEditorResources.Inside_namespace },
+                valueDescriptions: new[] { CSharpEditorResources.Inside_namespace, CSharpEditorResources.Outside_namespace },
                 editorConfigOptions: editorConfigOptions,
                 visualStudioOptions: visualStudioOptions, updater: updaterService);
         }

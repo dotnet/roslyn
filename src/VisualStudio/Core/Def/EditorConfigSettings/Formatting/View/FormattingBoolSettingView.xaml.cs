@@ -26,6 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
             {
                 RootCheckBox.IsChecked = value;
             }
+
+            RootCheckBox.Checked += CheckBoxChanged;
+            RootCheckBox.Unchecked += CheckBoxChanged;
         }
 
         private void CheckBoxChanged(object sender, RoutedEventArgs e)

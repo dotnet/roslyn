@@ -3,8 +3,27 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View"
              mc:Ignorable="d" 
              x:ClassModifier="internal">
-    <Grid x:Name="RootGrid">
-    </Grid>
+    <ComboBox x:Name="SeverityComboBox" SelectionChanged="ComboBox_SelectionChanged" AutomationProperties.Name="{x:Static local:CodeStyleSeverityControl.Severity}">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+            <imaging:CrispImage VerticalAlignment="Center"  Height="16" Width="16" Margin="5.0,0.0,0.0,0.0" Moniker="{x:Static catalog:KnownMonikers.None}"/>
+            <TextBlock VerticalAlignment="Center" Text="{x:Static local:CodeStyleSeverityControl.Refactoring_Only}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+            <imaging:CrispImage VerticalAlignment="Center" Height="16" Width="16" Margin="5.0,0.0,0.0,0.0" Moniker="{x:Static catalog:KnownMonikers.StatusInformation}"/>
+            <TextBlock VerticalAlignment="Center" Text="{x:Static local:CodeStyleSeverityControl.Suggestion}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+            <imaging:CrispImage VerticalAlignment="Center" Height="16" Width="16" Margin="5.0,0.0,0.0,0.0" Moniker="{x:Static catalog:KnownMonikers.StatusWarning}"/>
+            <TextBlock VerticalAlignment="Center" Text="{x:Static local:CodeStyleSeverityControl.Warning}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+            <imaging:CrispImage VerticalAlignment="Center" Height="16" Width="16" Margin="5.0,0.0,0.0,0.0" Moniker="{x:Static catalog:KnownMonikers.StatusError}"/>
+            <TextBlock VerticalAlignment="Center" Text="{x:Static local:CodeStyleSeverityControl.Error}"/>
+        </StackPanel>
+    </ComboBox>
 </UserControl>

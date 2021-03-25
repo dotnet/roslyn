@@ -262,6 +262,11 @@
         <target state="new">Never</target>
         <note />
       </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="new">Outside namespace</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Place_catch_on_new_line">
         <source>Place "catch" on new line</source>
         <target state="new">Place "catch" on new line</target>

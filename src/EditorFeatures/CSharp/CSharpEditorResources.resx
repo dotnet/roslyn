@@ -434,4 +434,7 @@
   <data name="When_variable_type_is_apparent" xml:space="preserve">
     <value>When variable type is apparent</value>
   </data>
+  <data name="Outside_namespace" xml:space="preserve">
+    <value>Outside namespace</value>
+  </data>
 </root>

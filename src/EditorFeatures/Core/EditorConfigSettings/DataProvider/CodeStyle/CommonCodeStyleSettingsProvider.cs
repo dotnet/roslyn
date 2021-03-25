@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.CodeSt
                 option: CodeStyleOptions2.UnusedParameters,
                 description: EditorFeaturesResources.Avoid_unused_parameters,
                 enumValues: new[] { UnusedParametersPreference.NonPublicMethods, UnusedParametersPreference.AllMethods },
-                new[] { EditorFeaturesResources.Non_public_methods },
+                new[] { EditorFeaturesResources.Non_public_methods, EditorFeaturesResources.All_methods },
                 editorConfigOptions: options,
                 visualStudioOptions: visualStudioOptions, updater: updater);
         }

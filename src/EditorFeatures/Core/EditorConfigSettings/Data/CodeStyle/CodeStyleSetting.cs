@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract Type Type { get; }
         public abstract string[] GetValues();
         public abstract string GetCurrentValue();
-        public abstract ReportDiagnostic Severity { get; }
+        public abstract DiagnosticSeverity Severity { get; }
         public abstract bool IsDefinedInEditorConfig { get; }
 
         public CodeStyleSetting(string description, OptionUpdater updater)

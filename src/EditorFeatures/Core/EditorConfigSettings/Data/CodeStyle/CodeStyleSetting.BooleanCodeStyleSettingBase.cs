@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
             public override string Category { get; }
             public override Type Type => typeof(bool);
-            public override ReportDiagnostic Severity => GetOption().Notification.Severity;
+            public override DiagnosticSeverity Severity => GetOption().Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
             public override string GetCurrentValue() => GetOption().Value ? _trueValueDescription : _falseValueDescription;
             public override object? Value => GetOption().Value;
             public override string[] GetValues() => new[] { _trueValueDescription, _falseValueDescription };

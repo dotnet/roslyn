@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Utilities;
 
@@ -24,6 +25,10 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                             OptionUpdater updater)
                 : base(description, updater)
             {
+                if (enumValues.Length != valueDescriptions.Length)
+                {
+                    throw new InvalidOperationException("Values and descriptions must have matching number of elements");
+                }
                 _enumValues = enumValues;
                 _valueDescriptions = valueDescriptions;
                 Category = category;
@@ -33,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             public override Type Type => typeof(T);
             public override string GetCurrentValue() => _valueDescriptions[_enumValues.IndexOf(GetOption().Value)];
             public override object? Value => GetOption().Value;
-            public override ReportDiagnostic Severity => GetOption().Notification.Severity;
+            public override DiagnosticSeverity Severity => GetOption().Notification.Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
             public override string[] GetValues() => _valueDescriptions;
             protected abstract CodeStyleOption2<T> GetOption();
         }

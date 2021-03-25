@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Windows;
-using System.Windows.Automation;
+using System;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View
 {
@@ -17,104 +14,44 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
     /// </summary>
     internal partial class CodeStyleSeverityControl : UserControl
     {
-        private readonly ComboBox _comboBox;
         private readonly CodeStyleSetting _setting;
+
+        // internal resource string cannot be statically bound in WPF 
+        public static string Severity => ServicesVSResources.Severity;
+        public static string Refactoring_Only => ServicesVSResources.Refactoring_Only;
+        public static string Suggestion => ServicesVSResources.Suggestion;
+        public static string Warning => ServicesVSResources.Warning;
+        public static string Error => ServicesVSResources.Error;
 
         public CodeStyleSeverityControl(CodeStyleSetting setting)
         {
             InitializeComponent();
-            var refactoring = CreateGridElement(KnownMonikers.None, ServicesVSResources.Refactoring_Only);
-            var suggestion = CreateGridElement(KnownMonikers.StatusInformation, ServicesVSResources.Suggestion);
-            var warning = CreateGridElement(KnownMonikers.StatusWarning, ServicesVSResources.Warning);
-            var error = CreateGridElement(KnownMonikers.StatusError, ServicesVSResources.Error);
-            _comboBox = new ComboBox()
-            {
-                ItemsSource = new[]
-    {
-                    refactoring,
-                    suggestion,
-                    warning,
-                    error
-                }
-            };
-
-            switch (setting.Severity)
-            {
-                case ReportDiagnostic.Hidden:
-                    _comboBox.SelectedIndex = 0;
-                    break;
-                case ReportDiagnostic.Info:
-                    _comboBox.SelectedIndex = 1;
-                    break;
-                case ReportDiagnostic.Warn:
-                    _comboBox.SelectedIndex = 2;
-                    break;
-                case ReportDiagnostic.Error:
-                    _comboBox.SelectedIndex = 3;
-                    break;
-                default:
-                    break;
-            }
-
-            _comboBox.SelectionChanged += ComboBox_SelectionChanged;
-            _comboBox.SetValue(AutomationProperties.NameProperty, ServicesVSResources.Severity);
-            _ = RootGrid.Children.Add(_comboBox);
             _setting = setting;
+            SeverityComboBox.SelectedIndex = setting.Severity switch
+            {
+                DiagnosticSeverity.Hidden => 0,
+                DiagnosticSeverity.Info => 1,
+                DiagnosticSeverity.Warning => 2,
+                DiagnosticSeverity.Error => 3,
+                _ => throw new InvalidOperationException(),
+            };
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            switch (_comboBox.SelectedIndex)
+            var severity = SeverityComboBox.SelectedIndex switch
             {
-                case 0:
-                    _setting.ChangeSeverity(DiagnosticSeverity.Hidden);
-                    return;
-                case 1:
-                    _setting.ChangeSeverity(DiagnosticSeverity.Info);
-                    return;
-                case 2:
-                    _setting.ChangeSeverity(DiagnosticSeverity.Warning);
-                    return;
-                case 3:
-                    _setting.ChangeSeverity(DiagnosticSeverity.Error);
-                    return;
-                default: return;
-            }
-        }
-
-        private static FrameworkElement CreateGridElement(ImageMoniker imageMoniker, string text)
-        {
-            var stackPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Stretch
+                0 => DiagnosticSeverity.Hidden,
+                1 => DiagnosticSeverity.Info,
+                2 => DiagnosticSeverity.Warning,
+                3 => DiagnosticSeverity.Error,
+                _ => throw new InvalidOperationException(),
             };
 
-            var block = new TextBlock
+            if (_setting.Severity != severity)
             {
-                VerticalAlignment = VerticalAlignment.Center,
-                Text = text
-            };
-
-            if (!imageMoniker.IsNullImage())
-            {
-                // If we have an image and text, then create some space between them.
-                block.Margin = new Thickness(5.0, 0.0, 0.0, 0.0);
-
-                var image = new CrispImage
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Moniker = imageMoniker
-                };
-                image.Width = image.Height = 16.0;
-
-                _ = stackPanel.Children.Add(image);
+                _setting.ChangeSeverity(severity);
             }
-
-            // Always add the textblock last so it can follow the image.
-            _ = stackPanel.Children.Add(block);
-
-            return stackPanel;
         }
     }
 }

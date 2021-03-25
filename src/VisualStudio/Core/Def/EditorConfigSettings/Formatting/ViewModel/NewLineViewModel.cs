@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
 
         public IEnumSettingViewModel CreateViewModel(FormattingSetting setting)
         {
-            throw new NotImplementedException();
+            return new NewLineViewModel(setting);
         }
 
         public bool IsSupported(OptionKey2 key) => _key == key;
