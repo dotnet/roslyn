@@ -530,9 +530,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var subPattern in recursive.Properties)
                 {
                     BoundPattern pattern = subPattern.Pattern;
+                    BoundDagTemp currentInput;
                     if (!subPattern.Symbols.IsDefault)
                     {
-                        BoundDagTemp currentInput = input;
+                        currentInput = input;
                         Symbol last = subPattern.Symbols[^1];
                         foreach (Symbol symbol in subPattern.Symbols)
                         {
@@ -560,15 +561,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 currentInput = MakeConvertToType(currentInput, pattern.Syntax, type.StrippedType(), isExplicitTest: false, tests);
                             }
                         }
-
-                        tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
                     }
                     else
                     {
                         RoslynDebug.Assert(recursive.HasAnyErrors);
                         tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
-                        tests.Add(MakeTestsAndBindings(input, pattern, bindings));
+                        currentInput = input;
                     }
+
+                    tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
                 }
             }
 
