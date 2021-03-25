@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
         {
-            throw ExceptionUtilities.Unreachable;
+            return VisitInterpolatedStringBase(node);
         }
 
         public override BoundNode VisitStringInsert(BoundStringInsert node)
