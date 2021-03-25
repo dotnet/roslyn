@@ -96,12 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!TypeSymbol.Equals(_underlyingField.ContainingType, _containingTuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything))
-                {
-                    return null;
-                }
-
-                return _containingTuple.GetTupleMemberSymbolForUnderlyingMember(_underlyingField.AssociatedSymbol);
+                return null;
             }
         }
 

@@ -21839,16 +21839,16 @@ public class B
                 );
 
             var methodM = comp.GetMember<MethodSymbol>("A.M");
-            Assert.Equal("RetargetingMethodSymbol", methodM.GetType().Name);
+            Assert.IsType<RetargetingMethodSymbol>(methodM);
 
             Assert.Equal("(System.Int32, System.Int32)[missing]", methodM.ReturnTypeWithAnnotations.ToTestDisplayString());
-            Assert.Equal("ConstructedErrorTypeSymbol", methodM.ReturnType.GetType().Name);
-            Assert.Equal("TopLevel", methodM.ReturnType.OriginalDefinition.GetType().Name);
+            Assert.IsType<ConstructedErrorTypeSymbol>(methodM.ReturnType);
+            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(methodM.ReturnType.OriginalDefinition);
             Assert.True(methodM.ReturnType.IsTupleType);
             Assert.True(methodM.ReturnType.IsErrorType());
             foreach (var item in methodM.ReturnType.TupleElements)
             {
-                Assert.Equal("TupleErrorFieldSymbol", item.GetType().Name);
+                Assert.IsType<TupleErrorFieldSymbol>(item);
                 Assert.False(item.IsExplicitlyNamedTupleElement);
             }
         }
@@ -21879,16 +21879,16 @@ public class B
                 );
 
             var methodM = comp.GetMember<MethodSymbol>("A.M");
-            Assert.Equal("RetargetingMethodSymbol", methodM.GetType().Name);
+            Assert.IsType<RetargetingMethodSymbol>(methodM);
 
             Assert.Equal("(System.Int32 Item1, System.Int32 Bob)[missing]", methodM.ReturnTypeWithAnnotations.ToTestDisplayString());
-            Assert.Equal("ConstructedErrorTypeSymbol", methodM.ReturnType.GetType().Name);
-            Assert.Equal("TopLevel", methodM.ReturnType.OriginalDefinition.GetType().Name);
+            Assert.IsType<ConstructedErrorTypeSymbol>(methodM.ReturnType);
+            Assert.IsType<MissingMetadataTypeSymbol.TopLevel>(methodM.ReturnType.OriginalDefinition);
             Assert.True(methodM.ReturnType.IsTupleType);
             Assert.True(methodM.ReturnType.IsErrorType());
             foreach (var item in methodM.ReturnType.TupleElements)
             {
-                Assert.Equal("TupleErrorFieldSymbol", item.GetType().Name);
+                Assert.IsType<TupleErrorFieldSymbol>(item);
                 Assert.True(item.IsExplicitlyNamedTupleElement);
             }
         }
@@ -28002,6 +28002,45 @@ namespace System
                     Assert.False(item.IsExplicitlyNamedTupleElement);
                     Assert.Same(item, item.TupleUnderlyingField);
                     Assert.Null(item.AssociatedSymbol);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestValueTuple2Definition_WithExtraAutoProperty()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+        public string Property { get; set; }
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib40, assemblyName: "customValueTuple");
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
+
+            static void verifyModule(ModuleSymbol module)
+            {
+                var namedType = (NamedTypeSymbol)module.GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMembers("ValueTuple").Single();
+                var isSourceSymbol = namedType.ContainingModule is SourceModuleSymbol;
+
+                Assert.Equal("(T1, T2)", namedType.ToTestDisplayString());
+                var fields = namedType.GetMembers().OfType<FieldSymbol>();
+                AssertEx.SetEqual(new[] { "T1 (T1, T2).Item1", "T2 (T1, T2).Item2", "System.String (T1, T2).<Property>k__BackingField" }, fields.ToTestDisplayStrings());
+                var backingField = namedType.GetField("<Property>k__BackingField");
+                if (isSourceSymbol)
+                {
+                    Assert.IsType<SynthesizedBackingFieldSymbol>(backingField);
+                    Assert.Equal("System.String (T1, T2).Property { get; set; }", backingField.AssociatedSymbol.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.IsType<PEFieldSymbol>(backingField);
+                    Assert.Null(backingField.AssociatedSymbol);
                 }
             }
         }

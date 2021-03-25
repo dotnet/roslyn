@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
             Debug.Assert(!fieldSymbol.IsVirtualTupleField &&
                 (object)(fieldSymbol.TupleUnderlyingField ?? fieldSymbol) == fieldSymbol &&
-                !(fieldSymbol is TupleErrorFieldSymbol), "tuple fields should be rewritten to underlying by now");
+                fieldSymbol is not TupleErrorFieldSymbol, "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {

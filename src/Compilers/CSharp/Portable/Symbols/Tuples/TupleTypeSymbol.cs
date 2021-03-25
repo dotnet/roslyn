@@ -596,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _ = this.GetMembers();
         }
 
-        public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember underlyingMemberOpt) where TMember : Symbol?
+        public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember? underlyingMemberOpt) where TMember : Symbol
         {
             return IsTupleType ? TupleData!.GetTupleMemberSymbolForUnderlyingMember(underlyingMemberOpt) : null;
         }
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
 
                                 var providedName = elementNames.IsDefault ? null : elementNames[tupleFieldIndex];
-                                ImmutableArray<Location> locations = getElementLocations(ref elementLocations, tupleFieldIndex);
+                                ImmutableArray<Location> locations = getElementLocations(in elementLocations, tupleFieldIndex);
 
                                 var defaultName = TupleMemberName(tupleFieldIndex + 1);
                                 // if provided name does not match the default one,
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     if (IsDefinition)
                                     {
                                         defaultTupleField = field;
-                                        fieldDefinitionsToIndexMap!.Add(field.OriginalDefinition, tupleFieldIndex);
+                                        fieldDefinitionsToIndexMap!.Add(field, tupleFieldIndex);
                                     }
                                     else
                                     {
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return fields.ToImmutableAndFree();
             }
 
-            static ImmutableArray<Location> getElementLocations(ref ImmutableArray<Location?> elementLocations, int tupleFieldIndex)
+            static ImmutableArray<Location> getElementLocations(in ImmutableArray<Location?> elementLocations, int tupleFieldIndex)
             {
                 if (elementLocations.IsDefault)
                 {
@@ -1175,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember underlyingMemberOpt) where TMember : Symbol?
+            public TMember? GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember? underlyingMemberOpt) where TMember : Symbol
             {
                 if (underlyingMemberOpt is null)
                 {
