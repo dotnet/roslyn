@@ -287,17 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundUnconvertedInterpolatedString
+    internal partial class BoundInterpolatedStringBase
     {
-        public override ConstantValue? ConstantValue
-        {
-            get { return this.ConstantValueOpt; }
-        }
-    }
-
-    internal partial class BoundInterpolatedString
-    {
-        public override ConstantValue? ConstantValue
+        public sealed override ConstantValue? ConstantValue
         {
             get { return this.ConstantValueOpt; }
         }

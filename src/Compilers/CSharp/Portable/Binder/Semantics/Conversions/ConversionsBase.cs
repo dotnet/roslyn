@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
-        protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedStringBase source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
+        protected abstract Conversion GetInterpolatedStringConversion(BoundUnconvertedInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 

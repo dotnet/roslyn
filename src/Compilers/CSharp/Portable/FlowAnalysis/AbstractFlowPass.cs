@@ -1061,6 +1061,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitInterpolatedStringBase(node);
         }
 
+        public override BoundNode VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitStringInsert(BoundStringInsert node)
         {
             VisitRvalue(node.Value);
