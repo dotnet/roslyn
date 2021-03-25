@@ -2,6 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Runtime.CompilerServices;
+
+// This assembly is currently broken due to interop limitations. Force the runtime to reject it.
+[assembly: ReferenceAssembly]
+
 #if false
 
 using System;

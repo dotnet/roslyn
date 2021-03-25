@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -16,6 +17,9 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+
+// This assembly is currently broken due to interop limitations. Force the runtime to reject it.
+[assembly: ReferenceAssembly]
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
