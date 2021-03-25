@@ -5,7 +5,7 @@
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
-    <MicrosoftCodeAnalysisVersion>3.9.0-5.final</MicrosoftCodeAnalysisVersion>
+    <MicrosoftCodeAnalysisVersion>3.9.0</MicrosoftCodeAnalysisVersion>
   </PropertyGroup>
 
   <ItemGroup>
