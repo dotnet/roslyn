@@ -30,6 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public LocalUserRegistryOptionPersister(IThreadingContext threadingContext, IServiceProvider serviceProvider)
         {
+            // Starting with Dev16, the ILocalRegistry service is expected to be free-threaded, and aquiring it from the
+            // global service provider is expected to complete without any UI thread marshaling requirements. However,
+            // since none of this is publicly documented, we keep this assertion for maximum compatibility assurance.
+            // https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.vsregistry.registryroot
+            // https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.ilocalregistry
+            // https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.slocalregistry
             threadingContext.ThrowIfNotOnUIThread();
 
             this._registryKey = VSRegistry.RegistryRoot(serviceProvider, __VsLocalRegistryType.RegType_UserSettings, writable: true);
