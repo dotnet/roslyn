@@ -201,6 +201,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration(text, expected);
         }
 
+        [Fact]
+        public void TestNormalizeAsteriskInVoidPointerCast()
+        {
+            var text = @"public unsafe class C
+{
+  void*this[int x,int y]{get   =>  (  void  *   ) 0;}
+}";
+            var expected = @"public unsafe class C
+{
+  void* this[int x, int y] { get => (void*)0; }
+}";
+            TestNormalizeDeclaration(text, expected);
+        }
+
         private void TestNormalizeStatement(string text, string expected)
         {
             var node = SyntaxFactory.ParseStatement(text);
