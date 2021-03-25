@@ -3,12 +3,23 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+        xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
         ToolTip="{Binding ToolTip}"
         AutomationProperties.Name="{Binding AutomationName}"
         Click="Margin_OnClick">
 
     <Button.Resources>
+        <!-- <Style TargetType="ScrollViewer" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ScrollViewerStyleKey}}" /> -->
+        <Style TargetType="ScrollViewer">
+            <Setter Property="Background" Value="Blue"/>
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
         <!-- The image shown in the menu item, mark this is non-shared to make sure each menu item has its own image -->
         <imaging:CrispImage x:Key="NonSharedIcon" x:Shared="False" Moniker="{Binding ImageMoniker}"/>
 
@@ -19,6 +30,8 @@
             <Setter Property="ToolTip" Value="{Binding ToolTip}"/>
             <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
             <Setter Property="IsCheckable" Value="False"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
+            <Setter Property="Background" Value="Transparent"/>
             <EventSetter Event="Click" Handler="TargetMenuItem_OnClick"/>
         </Style>
 
@@ -28,15 +41,6 @@
             <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
             <Setter Property="ItemsSource" Value="{Binding Targets}"/>
             <Setter Property="StaysOpen" Value="True"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ContextMenu}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Background="Transparent">
-                            <ItemsPresenter/>
-                        </ScrollViewer>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
 
         <!-- Style used to display one member's information and pops up a submenu show all the targets -->
@@ -47,6 +51,8 @@
             <Setter Property="ItemsSource" Value="{Binding Targets}"/>
             <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
             <Setter Property="IsCheckable" Value="False"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
         </Style>
 
@@ -57,15 +63,6 @@
             <Setter Property="ItemContainerStyle" Value="{StaticResource MemberMenuItemStyle}"/>
             <Setter Property="ItemsSource" Value="{Binding Members}"/>
             <Setter Property="StaysOpen" Value="True"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ContextMenu}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Background="Transparent">
-                            <ItemsPresenter/>
-                        </ScrollViewer>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
 
     </Button.Resources>
