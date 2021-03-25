@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
         protected override bool IsContainedInParameterizedDeclaration(SyntaxNode node)
             => node.IsKind(SyntaxKind.LocalFunctionStatement) || node.IsKind(SyntaxKind.MethodDeclaration) ||
-            node.IsKind(SyntaxKind.ConstructorDeclaration) || node.IsKind(SyntaxKind.IndexerDeclaration) ||
-            node.IsKind(SyntaxKind.ParenthesizedLambdaExpression);
+            node.IsKind(SyntaxKind.ConstructorDeclaration) || node.IsKind(SyntaxKind.ParenthesizedLambdaExpression);
     }
 }

@@ -692,5 +692,49 @@ class TestClass
 }";
             await TestInRegularAndScriptAsync(code, expected, index: 2);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseInConstructor()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    public TestClass(int x, int y)
+    {
+        Math.Max([|x + y|], x * y);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    public TestClass(int x, int y, int val1)
+    {
+        Math.Max({|Rename:val1|}, x * y);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestLambdaCase()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    Func<int, int, int> mult = (x, y) => [|x * y|];
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    Func<int, int, int> mult = (x, y, v) => v;
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
     }
 }

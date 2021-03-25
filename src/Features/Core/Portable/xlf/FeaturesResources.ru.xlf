@@ -380,6 +380,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Извлечь метод</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_0">
+        <source>Extract method to invoke at all callsites for '{0}'</source>
+        <target state="new">Extract method to invoke at all callsites for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Extract_method_to_invoke_at_all_callsites_for_all_occurrences_of_0">
+        <source>Extract method to invoke at all callsites for all occurrences of '{0}'</source>
+        <target state="new">Extract method to invoke at all callsites for all occurrences of '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Failed_to_analyze_data_flow_for_0">
         <source>Failed to analyze data-flow for: {0}</source>
         <target state="translated">Не удалось проанализировать поток данных для: {0}</target>
@@ -550,29 +560,19 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Добавить локальный оператор</target>
         <note />
       </trans-unit>
-      <trans-unit id="Introduce_new_parameter_overload_for_0">
-        <source>Introduce new parameter overload for '{0}'</source>
-        <target state="new">Introduce new parameter overload for '{0}'</target>
+      <trans-unit id="Introduce_overload_with_new_parameter_for_0">
+        <source>Introduce overload with new parameter for '{0}'</source>
+        <target state="new">Introduce overload with new parameter for '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Introduce_new_parameter_overload_for_all_occurrences_of_0">
-        <source>Introduce new parameter overload for all occurrences of '{0}'</source>
-        <target state="new">Introduce new parameter overload for all occurrences of '{0}'</target>
+      <trans-unit id="Introduce_overload_with_new_parameter_for_all_occurrences_of_0">
+        <source>Introduce overload with new parameter for all occurrences of '{0}'</source>
+        <target state="new">Introduce overload with new parameter for all occurrences of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter">
         <source>Introduce parameter</source>
         <target state="new">Introduce parameter</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_parameter_and_extract_method_for_0">
-        <source>Introduce parameter and extract method for '{0}'</source>
-        <target state="new">Introduce parameter and extract method for '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Introduce_parameter_and_extract_method_for_all_occurrences_of_0">
-        <source>Introduce parameter and extract method for all occurrences of '{0}'</source>
-        <target state="new">Introduce parameter and extract method for all occurrences of '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_parameter_for_0">

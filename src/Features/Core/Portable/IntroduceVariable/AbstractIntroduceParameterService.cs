@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,6 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
@@ -44,278 +44,294 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
-            var action = await IntroduceParameterAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-            if (action != null)
-            {
-                context.RegisterRefactoring(action, textSpan);
-            }
-        }
-
-        public async Task<CodeAction?> IntroduceParameterAsync(
-            Document document, TextSpan textSpan, CancellationToken cancellationToken)
-        {
             var expression = await document.TryGetRelevantNodeAsync<TExpressionSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
             if (expression == null || CodeRefactoringHelpers.IsNodeUnderselected(expression, textSpan))
             {
-                return null;
+                return;
             }
 
-            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var expressionType = semanticDocument.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            var expressionType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
             if (expressionType is null or IErrorTypeSymbol)
             {
-                return null;
+                return;
             }
 
-            var actions = AddActions(semanticDocument, expression, cancellationToken);
-
-            if (actions.Length > 0)
+            var methodSymbol = (IMethodSymbol)semanticModel.GetRequiredEnclosingSymbol(expression.SpanStart, cancellationToken);
+            if (methodSymbol is null)
             {
-                return new CodeActionWithNestedActions(FeaturesResources.Introduce_parameter, actions, isInlinable: true);
+                return;
             }
 
-            return null;
+            var containingMethod = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), ascendOutOfTrivia: true);
+
+            if (containingMethod is null)
+            {
+                return;
+            }
+
+            var actions = await AddActionsAsync(document, expression, methodSymbol, containingMethod, cancellationToken).ConfigureAwait(false);
+
+            if (actions.Length == 0)
+            {
+                return;
+            }
+
+            var action = new CodeActionWithNestedActions(FeaturesResources.Introduce_parameter, actions, isInlinable: false);
+            context.RegisterRefactoring(action, textSpan);
         }
 
         /// <summary>
         /// Introduces a new parameter and refactors all the call sites
         /// </summary>
-        public async Task<Solution> IntroduceParameterAsync(SemanticDocument document, TExpressionSyntax expression,
-            bool allOccurrences, bool trampoline, bool overload, CancellationToken cancellationToken)
+        public async Task<Solution> IntroduceParameterAsync(Document document, TExpressionSyntax expression,
+            IMethodSymbol methodSymbol, SyntaxNode containingMethod, bool allOccurrences, bool trampoline, bool overload,
+            CancellationToken cancellationToken)
         {
-            var parameterName = GetNewParameterName(document, expression, cancellationToken);
+            var parameterName = await GetNewParameterNameAsync(document, expression, cancellationToken).ConfigureAwait(false);
 
-            // MethodSymbol not null here since we know we're contained in something containing parameters at this point
-            var methodSymbolInfo = (IMethodSymbol)document.SemanticModel.GetRequiredEnclosingSymbol(expression.SpanStart, cancellationToken);
-            var methodCallSites = await FindCallSitesAsync(document, methodSymbolInfo, cancellationToken).ConfigureAwait(false);
+            var methodCallSites = await FindCallSitesAsync(document, methodSymbol, cancellationToken).ConfigureAwait(false);
 
             if (trampoline || overload)
             {
                 return await RewriteSolutionWithNewMethodAsync(document,
-                expression, methodSymbolInfo, allOccurrences, parameterName, methodCallSites, trampoline, cancellationToken).ConfigureAwait(false);
+                    expression, methodSymbol, containingMethod, allOccurrences, parameterName, methodCallSites,
+                    trampoline, cancellationToken).ConfigureAwait(false);
             }
 
             return await RewriteSolutionAsync(document,
-                expression, methodCallSites, allOccurrences, parameterName, cancellationToken).ConfigureAwait(false);
+                expression, methodSymbol, containingMethod, methodCallSites, allOccurrences, parameterName,
+                cancellationToken).ConfigureAwait(false);
         }
 
-        protected static string GetNewParameterName(SemanticDocument document, TExpressionSyntax expression, CancellationToken cancellationToken)
+        private static async Task<string> GetNewParameterNameAsync(Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
-            if (ShouldRemoveVariableDeclaratorContainingExpression(document, expression, out var varDecl))
+            if (ShouldRemoveVariableDeclaratorContainingExpression(document, expression, out var varDeclName))
             {
-                return varDecl;
+                return varDeclName;
             }
 
-            var semanticFacts = document.Document.GetRequiredLanguageService<ISemanticFactsService>();
-            return semanticFacts.GenerateNameForExpression(document.SemanticModel, expression, capitalize: false, cancellationToken);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            return semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: false, cancellationToken);
         }
 
         protected static bool ShouldRemoveVariableDeclaratorContainingExpression(
-            SemanticDocument document, TExpressionSyntax expression, out string varDecl)
+            Document document, TExpressionSyntax expression, [NotNullWhen(true)] out string? varDeclName)
         {
-            var syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var expressionDecl = expression.GetRequiredParent().GetRequiredParent();
-            varDecl = "";
-
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var expressionDecl = expression?.Parent?.Parent;
             if (syntaxFacts.IsVariableDeclarator(expressionDecl))
             {
-                varDecl = syntaxFacts.GetIdentifierOfVariableDeclarator(expressionDecl).ValueText;
+                varDeclName = syntaxFacts.GetIdentifierOfVariableDeclarator(expressionDecl).ValueText;
                 return true;
             }
 
+            varDeclName = null;
             return false;
-        }
-
-        /// <summary>
-        /// Gets the method symbol the expression is enclosed within
-        /// </summary>
-        protected IMethodSymbol? GetMethodSymbolFromExpression(SemanticDocument semanticDocument,
-            TExpressionSyntax expression, CancellationToken cancellationToken)
-        {
-            var methodSymbol = (IMethodSymbol)semanticDocument.SemanticModel.GetRequiredEnclosingSymbol(expression.SpanStart, cancellationToken);
-            var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var methodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), ascendOutOfTrivia: true);
-            if (methodDeclaration is null)
-            {
-                return null;
-            }
-
-            return (IMethodSymbol)semanticDocument.SemanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken)!;
         }
 
         /// <summary>
         /// Locates all the call sites of the method that introduced the parameter
         /// </summary>
         /// <returns>Dictionary tying all the invocations to each corresponding document</returns>
-        protected static async Task<ImmutableDictionary<Document, List<TInvocationExpressionSyntax>>> FindCallSitesAsync(
-            SemanticDocument document, IMethodSymbol methodSymbol, CancellationToken cancellationToken)
+        protected static async Task<ImmutableDictionary<Document, ImmutableArray<TInvocationExpressionSyntax>>> FindCallSitesAsync(
+            Document document, IMethodSymbol methodSymbol, CancellationToken cancellationToken)
         {
-            var methodCallSites = new Dictionary<Document, List<TInvocationExpressionSyntax>>();
+            var methodCallSitesBuilder = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<TInvocationExpressionSyntax>>();
             var progress = new StreamingProgressCollector();
-
             await SymbolFinder.FindReferencesAsync(
-                methodSymbol, document.Document.Project.Solution, progress: progress,
+                methodSymbol, document.Project.Solution, progress: progress,
                 documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
             var referencedSymbols = progress.GetReferencedSymbols();
-            var referencedLocations = referencedSymbols.SelectMany(referencedSymbol => referencedSymbol.Locations).Distinct().ToImmutableArray()
-                .OrderByDescending(reference => reference.Location.SourceSpan.Start);
 
-            var list = new List<TInvocationExpressionSyntax>();
-            methodCallSites.Add(document.Document, list);
+            // Ordering by descending to sort invocations by starting span to account for nested invocations
+            var referencedLocations = referencedSymbols.SelectMany(referencedSymbol => referencedSymbol.Locations).Distinct()
+                .OrderByDescending(reference => reference.Location.SourceSpan.Start);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+            // Adding the original document to account for refactorings that do not have any invocations
+            methodCallSitesBuilder.Add(document, new ArrayBuilder<TInvocationExpressionSyntax>().ToImmutable());
+
             foreach (var refLocation in referencedLocations)
             {
-                if (!methodCallSites.TryGetValue(refLocation.Document, out var invocations))
+                // Does not support cross-language references currently
+                if (refLocation.Document.Project.Language == document.Project.Language)
                 {
-                    invocations = new List<TInvocationExpressionSyntax>();
-                    methodCallSites.Add(refLocation.Document, invocations);
+                    var invocation = refLocation.Location.FindNode(cancellationToken).GetRequiredParent();
+
+                    // Only adding items that are of type InvocationExpressionSyntax
+                    // TODO: in future, add annotation to items that aren't InvocationExpressionSyntax
+                    if (!methodCallSitesBuilder.ContainsKey(refLocation.Document))
+                    {
+                        var invocations = new ArrayBuilder<TInvocationExpressionSyntax>();
+                        if (syntaxFacts.IsInvocationExpression(invocation))
+                        {
+                            invocations.Add((TInvocationExpressionSyntax)invocation);
+                            methodCallSitesBuilder.Add(refLocation.Document, invocations.ToImmutable());
+                        }
+                    }
+                    else
+                    {
+                        if (syntaxFacts.IsInvocationExpression(invocation))
+                        {
+                            var invocations = methodCallSitesBuilder[refLocation.Document];
+                            invocations = invocations.Add((TInvocationExpressionSyntax)invocation);
+                            methodCallSitesBuilder[refLocation.Document] = invocations;
+                        }
+                    }
                 }
-
-                invocations.Add((TInvocationExpressionSyntax)refLocation.Location.FindNode(cancellationToken).GetRequiredParent());
             }
-
-            return methodCallSites.ToImmutableDictionary();
+            return methodCallSitesBuilder.ToImmutable();
         }
 
         private static SeparatedSyntaxList<SyntaxNode> AddArgumentToArgumentList(
             SeparatedSyntaxList<SyntaxNode> invocationArguments, SyntaxGenerator generator,
             SyntaxNode newArgumentExpression, int insertionIndex, string name, bool named)
         {
-            SyntaxNode argument;
-            if (named)
-            {
-                argument = generator.Argument(name, RefKind.None, newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation));
-            }
-            else
-            {
-                argument = generator.Argument(newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation));
-            }
+            var argument = named
+                ? generator.Argument(name, RefKind.None,
+                    newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation))
+                :
+                generator.Argument(newArgumentExpression.WithAdditionalAnnotations(Simplifier.Annotation));
 
             return invocationArguments.Insert(insertionIndex, argument);
         }
 
-        private static ImmutableArray<SyntaxNode> AddExpressionArgumentToArgumentList(
-            ImmutableArray<SyntaxNode> arguments, SyntaxNode expression, SyntaxGenerator generator)
-        {
-            var newArgument = generator.Argument(expression);
-            return arguments.Add(newArgument);
-        }
-
         /// <summary>
         /// Generates a method declaration containing a return expression of the highlighted expression
+        /// Example:
+        /// public void M(int x, int y)
+        /// {
+        ///     int f = x * y; // highlight this expression
+        /// }
+        /// 
+        /// ---------------------------------------------------->
+        /// 
+        /// public int M_f(int x, int y)
+        /// {
+        ///     return x * y;
+        /// }
+        /// 
+        /// public void M(int x, int y)
+        /// {
+        ///     int f = x * y;
+        /// }
         /// </summary>
-        private void GenerateNewMethod(SemanticDocument semanticDocument, TExpressionSyntax expression,
-            IMethodSymbol methodSymbol, string newMethodIdentifier, SyntaxEditor editor, CancellationToken cancellationToken)
+        private async Task GenerateNewMethodAsync(Document document, TExpressionSyntax expression,
+            IMethodSymbol methodSymbol, SyntaxNode containingMethod, string newMethodIdentifier, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var document = semanticDocument.Document;
-            var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), true)!;
-            var returnExpression = new List<SyntaxNode>
-            {
-                editor.Generator.ReturnStatement(expression.WithoutTrailingTrivia())
-            };
+            // Remove trailing trivia because it adds spaces to the beginning of the following statement
+            var newStatements = SpecializedCollections.SingletonEnumerable(editor.Generator.ReturnStatement(expression.WithoutTrailingTrivia()));
 
-            var typeSymbol = semanticDocument.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var typeSymbol = semanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType ?? semanticModel.Compilation.ObjectType;
             var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, name: newMethodIdentifier, returnType: typeSymbol);
 
-            var newMethodDeclaration = editor.Generator.MethodDeclaration(newMethod, returnExpression);
-            editor.InsertBefore(oldMethodDeclaration, newMethodDeclaration);
+            var newMethodDeclaration = editor.Generator.MethodDeclaration(newMethod, newStatements);
+            editor.InsertBefore(containingMethod, newMethodDeclaration);
         }
 
         /// <summary>
         /// Generates a method declaration containing a call to the method that introduced the parameter
-        /// </summary>
+        /// Example:
+        /// public void M(int x, int y)
+        /// {
+        ///     int f = x * y; // highlight this expression
+        /// }
         /// 
-        private void GenerateNewMethodOverload(SemanticDocument semanticDocument, TExpressionSyntax expression,
-            IMethodSymbol methodSymbol, SyntaxEditor editor)
+        /// ---------------------------------------------------->
+        /// 
+        /// public void M(int x, int y)
+        /// {
+        ///     M(x, y, x * y);
+        /// }
+        /// 
+        /// public void M(int x, int y)
+        /// {
+        ///     int f = x * y;
+        /// }
+        /// </summary>
+        private static void GenerateNewMethodOverload(TExpressionSyntax expression,
+            IMethodSymbol methodSymbol, SyntaxNode containingMethod, SyntaxEditor editor)
         {
-            var document = semanticDocument.Document;
-            var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
             var generator = editor.Generator;
-            var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), true)!;
             var arguments = generator.CreateArguments(methodSymbol.Parameters);
-            arguments = AddExpressionArgumentToArgumentList(arguments, expression.WithoutTrailingTrivia(), generator);
+
+            // Remove trailing trivia because it adds spaces to the beginning of the following statement
+            arguments = arguments.Add(generator.Argument(expression.WithoutTrailingTrivia()));
             var memberName = methodSymbol.IsGenericMethod
                 ? generator.GenericName(methodSymbol.Name, methodSymbol.TypeArguments)
                 : generator.IdentifierName(methodSymbol.Name);
 
             var invocation = generator.InvocationExpression(memberName, arguments);
-            List<SyntaxNode> invocationReturn;
+            var newStatements = SpecializedCollections.SingletonEnumerable(invocation);
 
-            if (methodSymbol.ReturnsVoid)
+            if (!methodSymbol.ReturnsVoid)
             {
-                invocationReturn = new List<SyntaxNode>
-                {
-                    invocation
-                };
-            }
-            else
-            {
-                invocationReturn = new List<SyntaxNode>
-                {
-                    generator.ReturnStatement(invocation)
-                };
+                newStatements = SpecializedCollections.SingletonEnumerable(generator.ReturnStatement(invocation));
             }
 
             var newMethod = CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol);
-            var newMethodDeclaration = generator.MethodDeclaration(newMethod, invocationReturn);
-            editor.InsertBefore(oldMethodDeclaration, newMethodDeclaration);
+            var newMethodDeclaration = generator.MethodDeclaration(newMethod, newStatements);
+            editor.InsertBefore(containingMethod, newMethodDeclaration);
         }
 
-        public static void UpdateExpressionInOriginalFunction(SemanticDocument semanticDocument,
+        public static async Task UpdateExpressionInOriginalFunctionAsync(Document document,
             TExpressionSyntax expression, SyntaxNode scope, string parameterName, SyntaxEditor editor,
             bool allOccurrences, CancellationToken cancellationToken)
         {
-            var generator = SyntaxGenerator.GetGenerator(semanticDocument.Document);
-            var matches = FindMatches(semanticDocument, expression, semanticDocument, scope, allOccurrences, cancellationToken);
-            var parameterNameSyntax = (TIdentifierNameSyntax)generator.IdentifierName(parameterName);
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var matches = await FindMatchesAsync(document, expression, scope, allOccurrences, cancellationToken).ConfigureAwait(false);
+            var replacement = (TIdentifierNameSyntax)generator.IdentifierName(parameterName);
 
-            // Parenthesize the variable, and go and replace anything we find with it.
-            // NOTE: we do not want elastic trivia as we want to just replace the existing code 
-            // as is, while preserving the trivia there.
-            var replacement = generator.AddParentheses(parameterNameSyntax, includeElasticTrivia: false);
-
-            var syntaxFacts = semanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             foreach (var match in matches)
             {
-                if (match.Equals(expression))
+                // Special case the removal of the originating expression to either remove the local declaration
+                // or to add a rename annotation
+                if (!match.Equals(expression))
                 {
-                    if (ShouldRemoveVariableDeclaratorContainingExpression(semanticDocument, expression, out var varDecl))
-                    {
-                        var localDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => syntaxFacts.IsLocalDeclarationStatement(node));
-                        if (localDeclaration is not null)
-                        {
-                            editor.RemoveNode(localDeclaration);
-                        }
-                    }
-                    else
-                    {
-                        parameterNameSyntax = (TIdentifierNameSyntax)generator.IdentifierName(generator.Identifier(parameterName).WithAdditionalAnnotations(RenameAnnotation.Create()));
-                        replacement = generator.AddParentheses(parameterNameSyntax, includeElasticTrivia: false);
-                        editor.ReplaceNode(match, replacement);
-                    }
+                    editor.ReplaceNode(match, replacement);
                 }
                 else
                 {
-                    editor.ReplaceNode(match, replacement);
+                    if (ShouldRemoveVariableDeclaratorContainingExpression(document, expression, out var varDeclName))
+                    {
+                        var localDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => syntaxFacts.IsLocalDeclarationStatement(node));
+                        Contract.ThrowIfNull(localDeclaration);
+                        editor.RemoveNode(localDeclaration);
+                    }
+                    else
+                    {
+                        // Getting the SyntaxToken and adding a rename annotation to the identifier
+                        replacement = (TIdentifierNameSyntax)generator.IdentifierName(generator.Identifier(parameterName)
+                            .WithAdditionalAnnotations(RenameAnnotation.Create()));
+                        editor.ReplaceNode(match, replacement);
+                    }
                 }
             }
         }
 
-        private static int GetInsertionIndex(SemanticDocument document, Compilation compilation,
-            ISyntaxFactsService syntaxFacts, SyntaxNode methodDeclaration, CancellationToken cancellationToken)
+        /// <summary>
+        /// Goes through the parameters of the original method to get the location that the parameter
+        /// and argument should be introduced
+        /// </summary>
+        private static int GetInsertionIndex(Compilation compilation, IMethodSymbol methodSymbol,
+            ISyntaxFactsService syntaxFacts, SyntaxNode methodDeclaration)
         {
             var parameterList = syntaxFacts.GetParameterList(methodDeclaration);
             Contract.ThrowIfNull(parameterList);
-            var symbol = document.SemanticModel.GetDeclaredSymbol(parameterList.GetRequiredParent(), cancellationToken);
-            Contract.ThrowIfNull(symbol);
-            var parameterSymbolList = ((IMethodSymbol)symbol).Parameters;
             var insertionIndex = 0;
 
-            foreach (var parameterSymbol in parameterSymbolList)
+            foreach (var parameterSymbol in methodSymbol.Parameters)
             {
-                if (!parameterSymbol.HasExplicitDefaultValue && !parameterSymbol.IsParams && !parameterSymbol.Type.Equals(compilation.GetTypeByMetadataName(typeof(CancellationToken)?.FullName!)))
+                // Want to skip optional parameters, params parameters, and CancellationToken since they should be at
+                // the end of the list.
+                if (!parameterSymbol.HasExplicitDefaultValue && !parameterSymbol.IsParams &&
+                        !parameterSymbol.Type.Equals(compilation.GetTypeByMetadataName(typeof(CancellationToken)?.FullName!)))
                 {
                     insertionIndex++;
                 }
@@ -325,19 +341,101 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         /// <summary>
-        /// Adds an argument which is an invocation of the newly created method to the callsites 
-        /// of the method invocations where a parameter was added
+        /// For the trampoline case, it goes through the invocations and adds an argument which is a 
+        /// call to the extracted method
+        /// Introduces a new method overload or new trampoline method
+        /// Updates the original method site with a newly introduced parameter
         /// </summary>
-        private static SyntaxNode GenerateNewInvocationExpressionForTrampoline(ISyntaxFactsService syntaxFacts,
-            SyntaxEditor editor, SyntaxNode currentInvocation, SyntaxNode invocationExpression,
-            string newMethodIdentifier, int insertionIndex)
+        private async Task<Solution> ModifyDocumentInvocationsTrampolineAndIntroduceParameterAsync(
+            Compilation compilation, Solution modifiedSolution, Document currentDocument, Document originalDocument,
+            ImmutableArray<TInvocationExpressionSyntax> invocations, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
+            bool allOccurrences, string parameterName, TExpressionSyntax expression, bool trampoline, CancellationToken cancellationToken)
         {
-            var invocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvocation);
-            var methodName = editor.Generator.IdentifierName(newMethodIdentifier);
-            var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-            var newMethodInvocation = editor.Generator.InvocationExpression(methodName, invocationArguments);
-            var allArguments = invocationArguments.Insert(insertionIndex, newMethodInvocation);
-            return editor.Generator.InvocationExpression(expressionFromInvocation, allArguments);
+            var generator = SyntaxGenerator.GetGenerator(currentDocument);
+            var semanticFacts = currentDocument.GetRequiredLanguageService<ISemanticFactsService>();
+            var invocationSemanticModel = await currentDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            var root = await currentDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var editor = new SyntaxEditor(root, generator);
+            var syntaxFacts = currentDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+            var insertionIndex = GetInsertionIndex(compilation, methodSymbol, syntaxFacts, containingMethod);
+            var newMethodIdentifier = methodSymbol.Name + "_" + parameterName;
+
+            if (trampoline)
+            {
+                foreach (var invocationExpression in invocations)
+                {
+                    editor.ReplaceNode(invocationExpression, (currentInvocation, _) =>
+                    {
+                        return GenerateNewInvocationExpressionForTrampoline(syntaxFacts, editor, currentInvocation,
+                            invocationExpression, newMethodIdentifier, insertionIndex);
+                    });
+                }
+            }
+
+            if (currentDocument.Id == originalDocument.Id)
+            {
+                if (trampoline)
+                {
+                    await GenerateNewMethodAsync(originalDocument, expression, methodSymbol, containingMethod, newMethodIdentifier,
+                        editor, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    GenerateNewMethodOverload(expression, methodSymbol, containingMethod, editor);
+                }
+
+                await UpdateExpressionInOriginalFunctionAsync(originalDocument, expression, containingMethod,
+                    parameterName, editor, allOccurrences, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await originalDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var parameterType = semanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType ?? semanticModel.Compilation.ObjectType;
+                var refKind = syntaxFacts.GetRefKindOfArgument(expression);
+                var parameter = generator.ParameterDeclaration(name: parameterName, type: generator.TypeExpression(parameterType), refKind: refKind);
+                editor.InsertParameter(containingMethod, insertionIndex, parameter);
+            }
+
+            return modifiedSolution.WithDocumentSyntaxRoot(originalDocument.Id, editor.GetChangedRoot());
+
+            // Adds an argument which is an invocation of the newly created method to the callsites 
+            // of the method invocations where a parameter was added.
+            // Example:
+            // public void M(int x, int y)
+            // {
+            //     int f = x * y; // highlight this expression
+            // }
+            // 
+            // public void M1()
+            // {
+            //     M(5, 6);
+            // }
+            //
+            // ---------------------------------------------------->
+            // 
+            // public int M_f(int x, int y)
+            // {
+            //     return x * y;
+            // }
+            // 
+            // public void M(int x, int y)
+            // {
+            //     int f = x * y;
+            // }
+            //
+            // public void M1()
+            // {
+            //     M(5, 6, M_f(5, 6)); // This is the generated invocation which is a new argument at the call site
+            // }
+            static TInvocationExpressionSyntax GenerateNewInvocationExpressionForTrampoline(ISyntaxFactsService syntaxFacts,
+                SyntaxEditor editor, SyntaxNode currentInvocation, TInvocationExpressionSyntax invocationExpression,
+                string newMethodIdentifier, int insertionIndex)
+            {
+                var invocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvocation);
+                var methodName = editor.Generator.IdentifierName(newMethodIdentifier);
+                var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
+                var newMethodInvocation = editor.Generator.InvocationExpression(methodName, invocationArguments);
+                var allArguments = invocationArguments.Insert(insertionIndex, newMethodInvocation);
+                return (TInvocationExpressionSyntax)editor.Generator.InvocationExpression(expressionFromInvocation, allArguments);
+            }
         }
 
         /// <summary>
@@ -345,63 +443,21 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// arguments and rewrites the call site with the updated expression as a new argument
         /// </summary>
         private async Task<Solution> RewriteSolutionWithNewMethodAsync(
-            SemanticDocument semanticDocument, TExpressionSyntax expression, IMethodSymbol methodSymbol,
-            bool allOccurrences, string parameterName,
-            ImmutableDictionary<Document, List<TInvocationExpressionSyntax>> callSites, bool trampoline,
+            Document originalDocument, TExpressionSyntax expression, IMethodSymbol methodSymbol,
+            SyntaxNode containingMethod, bool allOccurrences, string parameterName,
+            ImmutableDictionary<Document, ImmutableArray<TInvocationExpressionSyntax>> callSites, bool trampoline,
             CancellationToken cancellationToken)
         {
-            var firstCallSite = callSites.Keys.First();
-            var modifiedSolution = firstCallSite.Project.Solution;
-            var newMethodIdentifier = methodSymbol.Name + "_" + parameterName;
+            var modifiedSolution = originalDocument.Project.Solution;
 
-            foreach (var grouping in callSites.GroupBy(kvp => kvp.Key.Project))
+            foreach (var (project, projectCallSites) in callSites.GroupBy(kvp => kvp.Key.Project))
             {
-                var project = grouping.Key;
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                foreach (var (document, invocationExpressionList) in grouping)
+                foreach (var (document, invocationExpressionList) in projectCallSites)
                 {
-                    var generator = SyntaxGenerator.GetGenerator(document);
-                    var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-                    var invocationSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var editor = new SyntaxEditor(root, generator);
-                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var oldMethodDeclaration = expression.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), ascendOutOfTrivia: true)!;
-                    var insertionIndex = GetInsertionIndex(semanticDocument, compilation, syntaxFacts, oldMethodDeclaration, cancellationToken);
-
-                    if (trampoline)
-                    {
-                        foreach (var invocationExpression in invocationExpressionList)
-                        {
-                            editor.ReplaceNode(invocationExpression, (currentInvocation, _) =>
-                            {
-                                return GenerateNewInvocationExpressionForTrampoline(syntaxFacts, editor, currentInvocation, invocationExpression, newMethodIdentifier, insertionIndex);
-                            });
-                        }
-                    }
-
-                    if (document.Id == semanticDocument.Document.Id)
-                    {
-                        if (trampoline)
-                        {
-                            GenerateNewMethod(semanticDocument, expression, methodSymbol, newMethodIdentifier, editor, cancellationToken);
-                        }
-                        else
-                        {
-                            GenerateNewMethodOverload(semanticDocument, expression, methodSymbol, editor);
-                        }
-
-                        UpdateExpressionInOriginalFunction(semanticDocument, expression, oldMethodDeclaration, parameterName, editor, allOccurrences, cancellationToken);
-
-                        var parameterType = semanticDocument.SemanticModel.GetTypeInfo(expression, cancellationToken).Type ?? semanticDocument.SemanticModel.Compilation.ObjectType;
-                        var refKind = syntaxFacts.GetRefKindOfArgument(expression);
-                        var parameter = generator.ParameterDeclaration(name: parameterName, type: generator.TypeExpression(parameterType), refKind: refKind);
-                        editor.InsertParameter(oldMethodDeclaration, insertionIndex, parameter);
-                    }
-
-                    var newRoot = editor.GetChangedRoot();
-                    modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(firstCallSite.Id, newRoot);
+                    modifiedSolution = await ModifyDocumentInvocationsTrampolineAndIntroduceParameterAsync(compilation,
+                        modifiedSolution, document, originalDocument, invocationExpressionList, methodSymbol, containingMethod,
+                        allOccurrences, parameterName, expression, trampoline, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -409,101 +465,136 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         /// <summary>
+        /// This method iterates through the arguments at the invocation location and maps them back
+        /// to the identifiers in the expression to create a new expression as an argument
+        /// </summary>
+        private (TExpressionSyntax, bool) CreateNewArgumentExpression(SemanticModel invocationSemanticModel,
+            Document document, ISyntaxFactsService syntaxFacts, Dictionary<TIdentifierNameSyntax, IParameterSymbol> mappingDictionary,
+            SyntaxGenerator generator, TExpressionSyntax expression, TIdentifierNameSyntax variable,
+            SeparatedSyntaxList<SyntaxNode> invocationArguments, SeparatedSyntaxList<SyntaxNode> updatedInvocationArguments,
+            bool parameterIsNamed, CancellationToken cancellationToken)
+        {
+            if (mappingDictionary.TryGetValue(variable, out var mappedParameter))
+            {
+                var parameterMapped = false;
+                var oldNode = expression.GetCurrentNode(variable);
+                RoslynDebug.AssertNotNull(oldNode);
+                for (var i = 0; i < invocationArguments.ToArray().Length; i++)
+                {
+                    var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+                    var argumentParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, invocationArguments.ToArray()[i], cancellationToken);
+                    if (argumentParameter.Equals(mappedParameter, SymbolEqualityComparer.Default))
+                    {
+                        var updatedInvocationArgument = updatedInvocationArguments.ToArray()[i];
+                        var argumentExpression = syntaxFacts.GetExpressionOfArgument(updatedInvocationArgument);
+                        var parenthesizedArgumentExpression = generator.AddParentheses(argumentExpression, includeElasticTrivia: false);
+                        expression = expression.ReplaceNode(oldNode, parenthesizedArgumentExpression);
+                        parameterMapped = true;
+                        break;
+                    }
+                }
+
+                // This is special cased for optional parameters: if the invocation does not have an argument 
+                // corresponding to the optional parameter, then it generates an expression from the optional parameter
+                if (mappedParameter.HasExplicitDefaultValue && !parameterMapped)
+                {
+                    parameterIsNamed = true;
+                    var generatedExpression = GenerateExpressionFromOptionalParameter(mappedParameter);
+                    var parenthesizedGeneratedExpression = generator.AddParentheses(generatedExpression, includeElasticTrivia: false);
+                    expression = expression.ReplaceNode(oldNode, parenthesizedGeneratedExpression);
+                }
+            }
+
+            return (expression, parameterIsNamed);
+        }
+
+        /// <summary>
+        /// This method goes through all the invocation sites and adds a new argument with the expression to be added
+        /// It also introduces a parameter at the original method site
+        /// </summary>
+        private async Task<Solution> ModifyDocumentInvocationsAndIntroduceParameterAsync(Compilation compilation,
+            Document originalDocument, Document document, Solution modifiedSolution, IMethodSymbol methodSymbol,
+            SyntaxNode containingMethod, TExpressionSyntax expressionCopy, TExpressionSyntax expression,
+            bool allOccurrences, string parameterName,
+            ImmutableArray<TInvocationExpressionSyntax> invocations, CancellationToken cancellationToken)
+        {
+            var mappingDictionary = await MapExpressionToParametersAsync(originalDocument, expressionCopy, cancellationToken).ConfigureAwait(false);
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var editor = new SyntaxEditor(root, generator);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var insertionIndex = GetInsertionIndex(compilation, methodSymbol, syntaxFacts, containingMethod);
+
+            foreach (var invocationExpression in invocations)
+            {
+                var newArgumentExpression = expression;
+                var invocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
+                var variablesInExpression = expressionCopy.DescendantNodes().OfType<TIdentifierNameSyntax>();
+                var invocationSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                editor.ReplaceNode(invocationExpression, (currentInvo, _) =>
+                {
+                    var updatedInvocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvo);
+                    var parameterIsNamed = false;
+
+                    foreach (var variable in variablesInExpression)
+                    {
+                        (newArgumentExpression, parameterIsNamed) = CreateNewArgumentExpression(
+                            invocationSemanticModel, document, syntaxFacts, mappingDictionary, generator,
+                            newArgumentExpression, variable, invocationArguments, updatedInvocationArguments,
+                            parameterIsNamed, cancellationToken);
+                    }
+
+                    var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
+                    var allArguments = AddArgumentToArgumentList(updatedInvocationArguments, generator,
+                        newArgumentExpression.WithAdditionalAnnotations(Formatter.Annotation), insertionIndex, parameterName, parameterIsNamed);
+                    var newInvo = editor.Generator.InvocationExpression(expressionFromInvocation, allArguments);
+                    return newInvo;
+                });
+            }
+
+            if (document.Id == originalDocument.Id)
+            {
+                await UpdateExpressionInOriginalFunctionAsync(originalDocument, expressionCopy, containingMethod, parameterName, editor, allOccurrences, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await originalDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var parameterType = semanticModel.GetTypeInfo(expressionCopy, cancellationToken).Type ?? semanticModel.Compilation.ObjectType;
+                var refKind = syntaxFacts.GetRefKindOfArgument(expressionCopy);
+                var parameter = generator.ParameterDeclaration(name: parameterName, type: generator.TypeExpression(parameterType), refKind: refKind);
+                editor.InsertParameter(containingMethod, insertionIndex, parameter);
+            }
+
+            return modifiedSolution.WithDocumentSyntaxRoot(originalDocument.Id, editor.GetChangedRoot());
+        }
+
+        /// <summary>
         /// Goes through all of the invocations and replaces the expression with identifiers from the invocation 
         /// arguments and rewrites the call site with the updated expression as a new argument
         /// </summary>
-        private async Task<Solution> RewriteSolutionAsync(SemanticDocument semanticDocument,
-            TExpressionSyntax expression, ImmutableDictionary<Document, List<TInvocationExpressionSyntax>> callSites,
+        private async Task<Solution> RewriteSolutionAsync(Document originalDocument,
+            TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
+            ImmutableDictionary<Document, ImmutableArray<TInvocationExpressionSyntax>> callSites,
             bool allOccurrences, string parameterName, CancellationToken cancellationToken)
         {
             // Need a copy of the expression to use to find the original expression
             // Because it gets modified when tracking the nodes
             var expressionCopy = expression;
-            var mappingDictionary = MapExpressionToParameters(semanticDocument, expression, cancellationToken);
+            var mappingDictionary = await MapExpressionToParametersAsync(originalDocument, expression, cancellationToken).ConfigureAwait(false);
+
+            // Need to track the nodes in the expression so that they can be found later
             expression = expression.TrackNodes(mappingDictionary.Keys);
             var identifiers = expression.DescendantNodes().Where(node => node is TIdentifierNameSyntax);
 
-            var firstCallSite = callSites.Keys.First();
-            var modifiedSolution = firstCallSite.Project.Solution;
+            var modifiedSolution = originalDocument.Project.Solution;
 
-            foreach (var grouping in callSites.GroupBy(kvp => kvp.Key.Project))
+            foreach (var (project, projectCallSites) in callSites.GroupBy(kvp => kvp.Key.Project))
             {
-                var project = grouping.Key;
                 var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                foreach (var (document, invocationExpressionList) in grouping)
+                foreach (var (document, invocations) in projectCallSites)
                 {
-                    var generator = SyntaxGenerator.GetGenerator(document);
-                    var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-                    var invocationSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                    var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var editor = new SyntaxEditor(root, generator);
-                    var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var oldMethodDeclaration = expressionCopy.FirstAncestorOrSelf<SyntaxNode>(node => IsContainedInParameterizedDeclaration(node), ascendOutOfTrivia: true)!;
-                    var insertionIndex = GetInsertionIndex(semanticDocument, compilation, syntaxFacts, oldMethodDeclaration, cancellationToken);
-
-                    foreach (var invocationExpression in invocationExpressionList)
-                    {
-                        var newArgumentExpression = expression;
-                        var invocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
-                        var variablesInExpression = expressionCopy.DescendantNodes().OfType<TIdentifierNameSyntax>();
-
-                        editor.ReplaceNode(invocationExpression, (currentInvo, _) =>
-                        {
-                            var updatedInvocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvo);
-                            var parameterIsNamed = false;
-
-                            foreach (var variable in variablesInExpression)
-                            {
-                                if (mappingDictionary.TryGetValue(variable, out var mappedParameter))
-                                {
-                                    var parameterMapped = false;
-                                    var oldNode = newArgumentExpression.GetCurrentNode(variable);
-                                    RoslynDebug.AssertNotNull(oldNode);
-                                    for (var i = 0; i < invocationArguments.ToArray().Length; i++)
-                                    {
-                                        var argumentParameter = semanticFacts.FindParameterForArgument(invocationSemanticModel, invocationArguments.ToArray()[i], cancellationToken);
-                                        if (argumentParameter.Equals(mappedParameter, SymbolEqualityComparer.Default))
-                                        {
-                                            var updatedInvocationArgument = updatedInvocationArguments.ToArray()[i];
-                                            var argumentExpression = syntaxFacts.GetExpressionOfArgument(updatedInvocationArgument);
-                                            var parenthesizedArgumentExpression = generator.AddParentheses(argumentExpression, includeElasticTrivia: false);
-                                            newArgumentExpression = newArgumentExpression.ReplaceNode(oldNode, parenthesizedArgumentExpression);
-                                            parameterMapped = true;
-                                            break;
-                                        }
-                                    }
-
-                                    if (mappedParameter.HasExplicitDefaultValue && !parameterMapped)
-                                    {
-                                        parameterIsNamed = true;
-                                        var generatedExpression = GenerateExpressionFromOptionalParameter(mappedParameter);
-                                        var parenthesizedGeneratedExpression = generator.AddParentheses(generatedExpression, includeElasticTrivia: false);
-                                        newArgumentExpression = newArgumentExpression.ReplaceNode(oldNode, parenthesizedGeneratedExpression);
-                                    }
-                                }
-                            }
-
-                            var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
-                            var allArguments = AddArgumentToArgumentList(updatedInvocationArguments, generator,
-                                newArgumentExpression.WithAdditionalAnnotations(Formatter.Annotation), insertionIndex, parameterName, parameterIsNamed);
-                            var newInvo = editor.Generator.InvocationExpression(expressionFromInvocation, allArguments);
-                            return newInvo;
-                        });
-                    }
-
-                    if (document.Id == semanticDocument.Document.Id)
-                    {
-                        UpdateExpressionInOriginalFunction(semanticDocument, expressionCopy, oldMethodDeclaration, parameterName, editor, allOccurrences, cancellationToken);
-
-                        var parameterType = semanticDocument.SemanticModel.GetTypeInfo(expressionCopy, cancellationToken).Type ?? semanticDocument.SemanticModel.Compilation.ObjectType;
-                        var refKind = syntaxFacts.GetRefKindOfArgument(expressionCopy);
-                        var parameter = generator.ParameterDeclaration(name: parameterName, type: generator.TypeExpression(parameterType), refKind: refKind);
-                        editor.InsertParameter(oldMethodDeclaration, insertionIndex, parameter);
-                    }
-
-                    var newRoot = editor.GetChangedRoot();
-                    modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(firstCallSite.Id, newRoot);
+                    modifiedSolution = await ModifyDocumentInvocationsAndIntroduceParameterAsync(compilation,
+                        originalDocument, document, modifiedSolution, methodSymbol, containingMethod, expressionCopy,
+                        expression, allOccurrences, parameterName, invocations, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -513,12 +604,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// <summary>
         /// Ties the identifiers within the expression back to their associated parameter
         /// </summary>
-        public static Dictionary<TIdentifierNameSyntax, IParameterSymbol> MapExpressionToParameters(
-            SemanticDocument document, TExpressionSyntax expression, CancellationToken cancellationToken)
+        public static async Task<Dictionary<TIdentifierNameSyntax, IParameterSymbol>> MapExpressionToParametersAsync(
+            Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var nameToParameterDict = new Dictionary<TIdentifierNameSyntax, IParameterSymbol>();
             var variablesInExpression = expression.DescendantNodes().OfType<TIdentifierNameSyntax>();
-            var semanticModel = document.SemanticModel;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var variable in variablesInExpression)
             {
@@ -535,13 +626,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// <summary>
         /// Determines if the expression is contained within something that is "parameterized"
         /// </summary>
-        private static (bool isParameterized, bool hasOptionalParameter) ExpressionWithinParameterizedMethod(
-            SemanticDocument semanticDocument, TExpressionSyntax expression, CancellationToken cancellationToken)
+        private static async Task<(bool isParameterized, bool hasOptionalParameter)> ShouldExpressionDisplayCodeActionAsync(
+            Document document, TExpressionSyntax expression, IMethodSymbol methodSymbol,
+            CancellationToken cancellationToken)
         {
-            var methodSymbol = (IMethodSymbol)semanticDocument.SemanticModel.GetRequiredEnclosingSymbol(expression.SpanStart, cancellationToken);
-
             var variablesInExpression = expression.DescendantNodes().OfType<TIdentifierNameSyntax>();
-            var semanticModel = semanticDocument.SemanticModel;
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var hasOptionalParameter = false;
 
             foreach (var parameter in methodSymbol.Parameters)
@@ -568,69 +658,69 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return (methodSymbol != null && methodSymbol.GetParameters().Any(), hasOptionalParameter);
         }
 
-        private ImmutableArray<CodeAction> AddActions(SemanticDocument semanticDocument,
-            TExpressionSyntax expression, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<CodeAction>> AddActionsAsync(Document document,
+            TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
+            CancellationToken cancellationToken)
         {
             var actionsBuilder = new ArrayBuilder<CodeAction>();
-            var (isParameterized, hasOptionalParameter) = ExpressionWithinParameterizedMethod(semanticDocument, expression, cancellationToken);
+            var (isParameterized, hasOptionalParameter) = await ShouldExpressionDisplayCodeActionAsync(document, expression, methodSymbol, cancellationToken).ConfigureAwait(false);
             if (isParameterized)
             {
-                actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: false, trampoline: false, overload: false),
-                    c => IntroduceParameterAsync(semanticDocument, expression, false, false, false, cancellationToken)));
-                actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: true, trampoline: false, overload: false),
-                    c => IntroduceParameterAsync(semanticDocument, expression, true, false, false, cancellationToken)));
+                actionsBuilder.Add(CreateNewCodeAction(FeaturesResources.Introduce_parameter_for_0,
+                    document, expression, methodSymbol, containingMethod, allOccurrences: false, trampoline: false, overload: false, cancellationToken));
+                actionsBuilder.Add(CreateNewCodeAction(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0,
+                    document, expression, methodSymbol, containingMethod, allOccurrences: true, trampoline: false, overload: false, cancellationToken));
 
-                if (!hasOptionalParameter)
+                if (!hasOptionalParameter && methodSymbol.MethodKind is not MethodKind.Constructor)
                 {
-                    actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: false, trampoline: true, overload: false),
-                        c => IntroduceParameterAsync(semanticDocument, expression, false, true, false, cancellationToken)));
-                    actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: true, trampoline: true, overload: false),
-                        c => IntroduceParameterAsync(semanticDocument, expression, true, true, false, cancellationToken)));
-                    actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: false, trampoline: false, overload: true),
-                        c => IntroduceParameterAsync(semanticDocument, expression, false, false, true, cancellationToken)));
-                    actionsBuilder.Add(new MyCodeAction(CreateDisplayText(allOccurrences: true, trampoline: false, overload: true),
-                        c => IntroduceParameterAsync(semanticDocument, expression, true, false, true, cancellationToken)));
+                    actionsBuilder.Add(CreateNewCodeAction(
+                        FeaturesResources.Extract_method_to_invoke_at_all_callsites_for_0, document, expression,
+                        methodSymbol, containingMethod, allOccurrences: false, trampoline: true, overload: false, cancellationToken));
+                    actionsBuilder.Add(CreateNewCodeAction(
+                        FeaturesResources.Extract_method_to_invoke_at_all_callsites_for_all_occurrences_of_0, document,
+                        expression, methodSymbol, containingMethod, allOccurrences: true, trampoline: true, overload: false, cancellationToken));
+
+                    actionsBuilder.Add(CreateNewCodeAction(
+                        FeaturesResources.Introduce_overload_with_new_parameter_for_0, document,
+                        expression, methodSymbol, containingMethod, allOccurrences: false, trampoline: false, overload: true, cancellationToken));
+                    actionsBuilder.Add(CreateNewCodeAction(
+                         FeaturesResources.Introduce_overload_with_new_parameter_for_all_occurrences_of_0, document,
+                         expression, methodSymbol, containingMethod, allOccurrences: true, trampoline: false, overload: true, cancellationToken));
                 }
             }
 
             return actionsBuilder.ToImmutable();
-        }
 
-        private static string CreateDisplayText(bool allOccurrences, bool trampoline, bool overload)
-                => (allOccurrences, trampoline, overload) switch
-                {
-                    (true, true, false) => FeaturesResources.Extract_method_to_invoke_at_all_callsites_for_all_occurrences_of_0,
-                    (true, false, false) => FeaturesResources.Introduce_parameter_for_all_occurrences_of_0,
-                    (true, false, true) => FeaturesResources.Introduce_overload_with_new_parameter_for_all_occurrences_of_0,
-                    (false, true, false) => FeaturesResources.Extract_method_to_invoke_at_all_callsites_for_0,
-                    (false, false, true) => FeaturesResources.Introduce_overload_with_new_parameter_for_0,
-                    (false, false, false) => FeaturesResources.Introduce_parameter_for_0,
-                    _ => throw new System.NotImplementedException()
-                };
+            MyCodeAction CreateNewCodeAction(string actionName, Document document,
+                TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
+                bool allOccurrences, bool trampoline,
+                bool overload, CancellationToken cancellationToken)
+            {
+                return new MyCodeAction(actionName, c => IntroduceParameterAsync(
+                    document, expression, methodSymbol, containingMethod, allOccurrences, trampoline, overload, cancellationToken));
+            }
+        }
 
         /// <summary>
         /// Finds the matches of the expression within the same block
         /// </summary>
-        protected static ISet<TExpressionSyntax> FindMatches(SemanticDocument originalDocument,
-            TExpressionSyntax expressionInOriginal, SemanticDocument currentDocument, SyntaxNode withinNodeInCurrent,
+        protected static async Task<IEnumerable<TExpressionSyntax>> FindMatchesAsync(Document originalDocument,
+            TExpressionSyntax expressionInOriginal, SyntaxNode withinNodeInCurrent,
             bool allOccurrences, CancellationToken cancellationToken)
         {
-            var syntaxFacts = currentDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var originalSemanticModel = originalDocument.SemanticModel;
-            var currentSemanticModel = currentDocument.SemanticModel;
+            var syntaxFacts = originalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
+            var originalSemanticModel = await originalDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var result = new HashSet<TExpressionSyntax>();
             var matches = from nodeInCurrent in withinNodeInCurrent.DescendantNodesAndSelf().OfType<TExpressionSyntax>()
-                          where NodeMatchesExpression(originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent, allOccurrences, cancellationToken)
+                          where NodeMatchesExpression(originalSemanticModel, expressionInOriginal, nodeInCurrent, allOccurrences, cancellationToken)
                           select nodeInCurrent;
-            result.AddRange(matches.OfType<TExpressionSyntax>());
-
-            return result;
+            return matches;
         }
 
         private static bool NodeMatchesExpression(SemanticModel originalSemanticModel,
-            SemanticModel currentSemanticModel, TExpressionSyntax expressionInOriginal,
-            TExpressionSyntax nodeInCurrent, bool allOccurrences, CancellationToken cancellationToken)
+            TExpressionSyntax expressionInOriginal, TExpressionSyntax nodeInCurrent, bool allOccurrences,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (nodeInCurrent == expressionInOriginal)
@@ -658,12 +748,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 //  }
 
                 if (SemanticEquivalence.AreEquivalent(
-                    originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent))
+                    originalSemanticModel, originalSemanticModel, expressionInOriginal, nodeInCurrent))
                 {
                     var originalOperation = originalSemanticModel.GetOperation(expressionInOriginal, cancellationToken);
                     if (originalOperation != null && IsInstanceMemberReference(originalOperation))
                     {
-                        var currentOperation = currentSemanticModel.GetOperation(nodeInCurrent, cancellationToken);
+                        var currentOperation = originalSemanticModel.GetOperation(nodeInCurrent, cancellationToken);
                         return currentOperation != null && IsInstanceMemberReference(currentOperation);
                     }
 
