@@ -591,8 +591,7 @@ tryAgain:
             NameColonSyntax nameColon = null;
             ExpressionColonSyntax exprColon = null;
 
-            // If there is a colon but it's not preceeded by a valid expression, leave it out to parse it as a missing comma.
-            // For instance: `{ {}: {} }` results in two subpatterns devided by a missing comma.
+            // If there is a colon but it's not preceeded by a valid expression, leave it out to parse it as a missing comma, preserving C# 9.0 behavior.
             if (this.CurrentToken.Kind == SyntaxKind.ColonToken && ConvertPatternToExpressionIfPossible(pattern) is ExpressionSyntax expr)
             {
                 var colon = EatToken();

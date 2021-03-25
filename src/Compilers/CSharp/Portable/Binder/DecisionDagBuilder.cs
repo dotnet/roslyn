@@ -526,30 +526,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!recursive.Properties.IsDefault)
             {
+                BoundDagTemp currentInput = input;
                 // we have a "property" form
-                for (int i = 0; i < recursive.Properties.Length; i++)
+                foreach (var subPattern in recursive.Properties)
                 {
-                    var subPattern = recursive.Properties[i];
-                    Symbol? symbol = subPattern.Symbol;
                     BoundPattern pattern = subPattern.Pattern;
-                    BoundDagEvaluation evaluation;
-                    switch (symbol)
+                    foreach (Symbol symbol in subPattern.Symbols.NullToEmpty())
                     {
-                        case PropertySymbol property:
-                            evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(input, property));
-                            break;
-                        case FieldSymbol field:
-                            evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field, OriginalInput(input, field));
-                            break;
-                        default:
-                            RoslynDebug.Assert(recursive.HasAnyErrors);
-                            tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), input, hasErrors: true)));
-                            continue;
+                        BoundDagEvaluation evaluation;
+                        switch (symbol)
+                        {
+                            case PropertySymbol property:
+                                evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(currentInput, symbol));
+                                break;
+                            case FieldSymbol field:
+                                evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field,  OriginalInput(currentInput, symbol));
+                                break;
+                            default:
+                                RoslynDebug.Assert(recursive.HasAnyErrors);
+                                tests.Add(new Tests.One(new BoundDagTypeTest(recursive.Syntax, ErrorType(), currentInput, hasErrors: true)));
+                                continue;
+                        }
+
+                        tests.Add(new Tests.One(evaluation));
+                        currentInput = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().Type, evaluation);
                     }
 
-                    tests.Add(new Tests.One(evaluation));
-                    var element = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().Type, evaluation);
-                    tests.Add(MakeTestsAndBindings(element, pattern, bindings));
+                    tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));
                 }
             }
 

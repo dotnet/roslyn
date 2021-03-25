@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1164,41 +1165,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundSubpattern>.GetInstance(node.Subpatterns.Count);
             foreach (SubpatternSyntax p in node.Subpatterns)
             {
-                IdentifierNameSyntax? name = p.NameColon?.Name;
+                ExpressionSyntax? expr = p.NameColon is not null ? p.NameColon.Name : p.ExpressionColon?.Expression;
                 PatternSyntax pattern = p.Pattern;
-                Symbol? member = null;
+                ImmutableArray<Symbol> members;
                 TypeSymbol memberType;
-                if (name == null)
+                if (expr == null)
                 {
                     if (!hasErrors)
                         diagnostics.Add(ErrorCode.ERR_PropertyPatternNameMissing, pattern.Location, pattern);
 
                     memberType = CreateErrorType();
+                    members = default;
                     hasErrors = true;
                 }
                 else
                 {
-                    member = LookupMemberForPropertyPattern(inputType, name, diagnostics, ref hasErrors, out memberType);
+                    var memberBuilder = ArrayBuilder<Symbol>.GetInstance();
+                    LookupMemberForPropertyPattern(inputType, expr, memberBuilder, diagnostics, ref hasErrors, out memberType);
+                    members = memberBuilder.ToImmutableOrNull();
+                    builder.Free();
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, GetValEscape(memberType, inputValEscape), permitDesignations, hasErrors, diagnostics);
-                builder.Add(new BoundSubpattern(p, member, boundPattern));
+                builder.Add(new BoundSubpattern(p, members, boundPattern));
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        private Symbol? LookupMemberForPropertyPattern(
-            TypeSymbol inputType, IdentifierNameSyntax name, BindingDiagnosticBag diagnostics, ref bool hasErrors, out TypeSymbol memberType)
+        private void LookupMemberForPropertyPattern(
+            TypeSymbol inputType, ExpressionSyntax expr, ArrayBuilder<Symbol> builder, BindingDiagnosticBag diagnostics, ref bool hasErrors, out TypeSymbol memberType)
         {
-            Symbol? symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
-
+            Symbol? symbol;
+            switch (expr)
+            {
+                case IdentifierNameSyntax name:
+                    symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
+                    break;
+                case MemberAccessExpressionSyntax memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
+                    LookupMemberForPropertyPattern(inputType, memberAccess.Expression, builder, diagnostics, ref hasErrors, out memberType);
+                    symbol = BindPropertyPatternMember(memberType, memberAccess.Name, ref hasErrors, diagnostics);
+                    break;
+                default:
+                    symbol = null;
+                    hasErrors = true;
+                    break;
+            }
             if (inputType.IsErrorType() || hasErrors || symbol is null)
+            {
                 memberType = CreateErrorType();
+            }
             else
+            {
                 memberType = symbol.GetTypeOrReturnType().Type;
-
-            return symbol;
+                builder.Add(symbol);
+            }
         }
 
         private Symbol? BindPropertyPatternMember(

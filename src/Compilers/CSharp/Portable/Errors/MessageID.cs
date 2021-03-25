@@ -103,6 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureDiscards = MessageBase + 12688,
 
+        // PROTOTYPE(extended-property-patterns)
+        IDS_FeatureExtendedPropertyPatterns = MessageBase + 12800,
+
         IDS_FeatureDefaultTypeParameterConstraint = MessageBase + 12689,
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,
         IDS_FeatureExpressionBodiedMethod = MessageBase + 12691,
@@ -482,6 +485,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeaturePragma: // Checked in the directive parser.
                 case MessageID.IDS_FeatureSwitchOnBool: // Checked in the binder.
                     return LanguageVersion.CSharp2;
+
+                // PROTOTYPE(extended-property-patterns)
+                case MessageID.IDS_FeatureExtendedPropertyPatterns:
+                    return LanguageVersion.Preview;
 
                 // Special C# 2 feature: only a warning in C# 1.
                 case MessageID.IDS_FeatureModuleAttrLoc:
