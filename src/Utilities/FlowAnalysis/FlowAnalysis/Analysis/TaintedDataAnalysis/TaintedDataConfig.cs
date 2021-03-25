@@ -38,6 +38,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             = ImmutableDictionary.Create<SinkKind, ImmutableHashSet<SanitizerInfo>>();
 
         /// <summary>
+        /// Caches the results for <see cref="HasTaintArraySource(SinkKind)"/>.
+        /// </summary>
+        private static ImmutableDictionary<SinkKind, bool> s_sinkKindHasTaintArraySource
+            = ImmutableDictionary.Create<SinkKind, bool>();
+
+        /// <summary>
         /// <see cref="WellKnownTypeProvider"/> for this instance's <see cref="Compilation"/>.
         /// </summary>
         private WellKnownTypeProvider WellKnownTypeProvider { get; }
@@ -174,7 +180,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
         public static bool HasTaintArraySource(SinkKind sinkKind)
         {
-            return GetSourceInfos(sinkKind).Any(o => o.TaintConstantArray);
+            return ImmutableInterlocked.GetOrAdd(
+                ref s_sinkKindHasTaintArraySource,
+                sinkKind,
+                static sinkKind => GetSourceInfos(sinkKind).Any(static o => o.TaintConstantArray));
         }
 
         private TaintedDataSymbolMap<T> GetFromMap<T>(SinkKind sinkKind, ImmutableDictionary<SinkKind, Lazy<TaintedDataSymbolMap<T>>> map)

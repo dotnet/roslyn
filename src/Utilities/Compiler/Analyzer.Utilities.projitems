@@ -41,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeMetricsAnalysisContext.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\nuget\PerformanceSensitiveAnalyzers\PerformanceSensitiveAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AdditionalFileProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BoundedCacheWithFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Debug.cs" />
@@ -74,6 +75,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\OperationWrapperHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Lightup\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildItemOptionNames.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MSBuildPropertyOptionNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\SyntaxTreeCategorizedAnalyzerConfigOptions.cs" />
