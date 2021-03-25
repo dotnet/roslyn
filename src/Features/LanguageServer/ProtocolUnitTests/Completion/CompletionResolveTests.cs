@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
+using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -42,11 +43,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var serverCompletionItem = completionList.Items.FirstOrDefault(item => item.Label == "A");
             var completionResultId = ((CompletionResolveData)serverCompletionItem.Data).ResultId.Value;
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-
-            // Reconstruct the completion item in our view like a client would while maintaining data
-            var clientCompletionItem = await CreateCompletionItemAsync(
-                label: "A", kind: LSP.CompletionItemKind.Class, tags: tags, request: completionParams, document: document,
-                commitCharacters: CompletionRules.Default.DefaultCommitCharacters, insertText: "A", resultId: completionResultId).ConfigureAwait(false);
+            var clientCompletionItem = ConvertToClientCompletionItem(serverCompletionItem);
 
             var description = new ClassifiedTextElement(CreateClassifiedTextRunForClass("A"));
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
@@ -80,11 +77,7 @@ class B : A
             var serverCompletionItem = completionList.Items.FirstOrDefault(item => item.Label == "M()");
             var completionResultId = ((CompletionResolveData)serverCompletionItem.Data).ResultId.Value;
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-
-            // Reconstruct the completion item in our view like a client would while maintaining data
-            var clientCompletionItem = await CreateCompletionItemAsync(
-                label: "M()", kind: LSP.CompletionItemKind.Method, tags: tags, request: completionParams, document: document,
-                commitCharacters: CompletionRules.Default.DefaultCommitCharacters, resultId: completionResultId).ConfigureAwait(false);
+            var clientCompletionItem = ConvertToClientCompletionItem(serverCompletionItem);
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
 
             var results = (LSP.VSCompletionItem)await RunResolveCompletionItemAsync(
@@ -120,11 +113,7 @@ class B : A
             var serverCompletionItem = completionList.Items.FirstOrDefault(item => item.Label == "M()");
             var completionResultId = ((CompletionResolveData)serverCompletionItem.Data).ResultId.Value;
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-
-            // Reconstruct the completion item in our view like a client would while maintaining data
-            var clientCompletionItem = await CreateCompletionItemAsync(
-                label: "M()", kind: LSP.CompletionItemKind.Method, tags: tags, request: completionParams, document: document,
-                commitCharacters: CompletionRules.Default.DefaultCommitCharacters, resultId: completionResultId).ConfigureAwait(false);
+            var clientCompletionItem = ConvertToClientCompletionItem(serverCompletionItem);
 
             // Explicitly enable snippets. This allows us to set the cursor with $0. Currently only applies to C# in Razor docs.
             var clientCapabilities = new LSP.VSClientCapabilities
@@ -221,6 +210,13 @@ class B : A
             var clientCapabilities = new LSP.VSClientCapabilities { SupportsVisualStudioExtensions = true };
             return await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName,
                 completionParams, clientCapabilities, null, CancellationToken.None);
+        }
+
+        private static LSP.VSCompletionItem ConvertToClientCompletionItem(LSP.CompletionItem serverCompletionItem)
+        {
+            var serializedItem = JsonConvert.SerializeObject(serverCompletionItem);
+            var clientCompletionItem = JsonConvert.DeserializeObject<LSP.VSCompletionItem>(serializedItem);
+            return clientCompletionItem;
         }
 
         private class TestCaretOutOfScopeCompletionService : CompletionService

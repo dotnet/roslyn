@@ -33,25 +33,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionListCache = completionListCache;
         }
 
-        private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)
-        {
-            Contract.ThrowIfNull(request.Data);
-            var resolveData = ((JToken)request.Data).ToObject<CompletionResolveData>();
-            if (resolveData?.ResultId == null)
-            {
-                return null;
-            }
-
-            var cacheEntry = _completionListCache.GetCachedCompletionList(resolveData.ResultId.Value);
-            if (cacheEntry == null)
-            {
-                // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.
-                Logger.Log(FunctionId.LSP_CompletionListCacheMiss, KeyValueLogMessage.NoProperty);
-            }
-
-            return cacheEntry;
-        }
-
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
             => GetCompletionListCacheEntry(request)?.TextDocument;
 
@@ -60,6 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.Document;
             if (document == null)
             {
+                context.TraceInformation("No associated document found for the provided completion item.");
                 return completionItem;
             }
 
@@ -68,6 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (cacheEntry == null)
             {
                 // Don't have a cache associated with this completion item, cannot resolve.
+                context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
                 return completionItem;
             }
 
@@ -173,6 +156,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             };
 
             return textEdit;
+        }
+
+        private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)
+        {
+            Contract.ThrowIfNull(request.Data);
+            var resolveData = ((JToken)request.Data).ToObject<CompletionResolveData>();
+            if (resolveData?.ResultId == null)
+            {
+                Contract.Fail("Result id should always be provided when resolving a completion item we returned.");
+                return null;
+            }
+
+            var cacheEntry = _completionListCache.GetCachedCompletionList(resolveData.ResultId.Value);
+            if (cacheEntry == null)
+            {
+                // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.
+                Logger.Log(FunctionId.LSP_CompletionListCacheMiss, KeyValueLogMessage.NoProperty);
+            }
+
+            return cacheEntry;
         }
     }
 }
