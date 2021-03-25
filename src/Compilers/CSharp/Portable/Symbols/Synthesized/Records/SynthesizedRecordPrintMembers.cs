@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
-                ArrayBuilder<BoundStatement>? block = (printableMembers.IsEmpty && !ContainingType.IsRecordStruct) ? null : ArrayBuilder<BoundStatement>.GetInstance();
+                ArrayBuilder<BoundStatement> block;
                 BoundParameter builder = F.Parameter(this.Parameters[0]);
-                if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
+                if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() || ContainingType.IsRecordStruct)
                 {
                     if (printableMembers.IsEmpty)
                     {
@@ -129,14 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         F.CloseMethod(F.Return(F.Literal(false)));
                         return;
                     }
-                }
-                else if (ContainingType.IsRecordStruct)
-                {
-                    if (printableMembers.IsEmpty)
-                    {
-                        F.CloseMethod(F.Return(F.Literal(false)));
-                        return;
-                    }
+                    block = ArrayBuilder<BoundStatement>.GetInstance();
                 }
                 else
                 {
@@ -156,13 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else
                     {
+                        block = ArrayBuilder<BoundStatement>.GetInstance();
                         // if (base.PrintMembers(builder))
                         //     builder.Append(", ")
-                        block!.Add(F.If(basePrintCall, makeAppendString(F, builder, ", ")));
+                        block.Add(F.If(basePrintCall, makeAppendString(F, builder, ", ")));
                     }
                 }
 
-                Debug.Assert(!printableMembers.IsEmpty && block is object);
+                Debug.Assert(!printableMembers.IsEmpty);
 
                 for (var i = 0; i < printableMembers.Length; i++)
                 {

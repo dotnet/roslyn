@@ -3667,7 +3667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     printMembersMethod = (MethodSymbol)existingPrintMembersMethod;
-                    if ((this.IsSealed && this.BaseTypeNoUseSiteDiagnostics.IsObjectType()) || !isRecordClass)
+                    if (!isRecordClass || (this.IsSealed && this.BaseTypeNoUseSiteDiagnostics.IsObjectType()))
                     {
                         if (printMembersMethod.DeclaredAccessibility != Accessibility.Private)
                         {

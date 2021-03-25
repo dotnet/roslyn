@@ -5098,6 +5098,8 @@ record struct C1
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
+System.Console.Write("" - "");
+c1.M();
 
 record struct C1
 {
@@ -5106,12 +5108,21 @@ record struct C1
         builder.Append(""RAN"");
         return true;
     }
+
+    public void M()
+    {
+        var builder = new System.Text.StringBuilder();
+        if (PrintMembers(builder))
+        {
+            System.Console.Write(builder.ToString());
+        }
+    }
 }
 ";
 
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "C1 { RAN }");
+            CompileAndVerify(comp, expectedOutput: "C1 { RAN } - RAN");
         }
 
         [Fact]
