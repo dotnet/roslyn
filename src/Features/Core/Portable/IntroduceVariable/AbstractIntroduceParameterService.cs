@@ -373,6 +373,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
             }
 
+            // If you are at the original document, then also introduce the new method and introduce the parameter
             if (currentDocument.Id == originalDocument.Id)
             {
                 if (trampoline)
@@ -554,6 +555,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 });
             }
 
+            // If you are at the original document, then also introduce the new method and introduce the parameter
             if (document.Id == originalDocument.Id)
             {
                 await UpdateExpressionInOriginalFunctionAsync(originalDocument, expressionCopy, containingMethod, parameterName, editor, allOccurrences, cancellationToken).ConfigureAwait(false);
