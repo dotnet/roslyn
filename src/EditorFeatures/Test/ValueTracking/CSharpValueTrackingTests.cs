@@ -423,5 +423,67 @@ class Program
 
             await ValidateChildrenEmptyAsync(workspace, children);
         }
+
+        [Fact]
+        public async Task TestMethodTracking3()
+        {
+            var code =
+@"
+using System.Threading.Tasks;
+
+namespace N
+{
+    class C
+    {
+        public int Add(int x, int y)
+        {
+            x += y;
+            return x;
+        }
+
+        public Task<int> AddAsync(int x, int y) => Task.FromResult(Add(x,y));
+
+        public async Task<int> Double(int x)
+        {
+            x = await AddAsync(x, x);
+            return $$x;
+        }
+    }
+}";
+            //
+            //  |> return [|x|] [Code.cs:18]
+            //    |> x = await [|AddAsync(x, x)|] [Code.cs:17]
+            //      |> Task.FromResult(Add(x, y)) [Code.cs:13]
+            //        |> return x [Code.cs:11]
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var initialItems = await GetTrackedItemsAsync(workspace);
+            Assert.Equal(1, initialItems.Length);
+            ValidateItem(initialItems.Single(), 18, "x"); // |> return [|x|] [Code.cs:18]
+
+            var children = await ValidateChildrenAsync(
+                workspace,
+                initialItems.Single(),
+                childInfo: new[]
+                {
+                    (17, "AddAsync(x, x)") // |> x = await [|AddAsync(x, x)|] [Code.cs:17]
+                });
+
+            children = await ValidateChildrenAsync(
+                workspace,
+                children.Single(),
+                childInfo: new[]
+                {
+                    (13, "Task.FromResult(Add(x,y))") // |> Task.FromResult(Add(x, y))
+                });
+
+            // TODO: This doesn't work right now...
+            //children = await ValidateChildrenAsync(
+            //    workspace,
+            //    children.Single(),
+            //    childInfo: new[]
+            //    {
+            //        (11, "x") // |> return x [Code.cs:11]
+            //    });
+        }
     }
 }

@@ -84,6 +84,15 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 {
                     await AddItemsFromAssignmentAsync(document, node, progressCollector, cancellationToken).ConfigureAwait(false);
                 }
+                // Not on the left part of an assignment? Then just add an item with the statement
+                // and the symbol. It should be the top item, and children will find the sources
+                // of the value. A good example is a return statement, such as "return $$x",
+                // where $$ is the cursor position. The top item should have the return statement for
+                // context, and the remaining items should expand into the assignments of x
+                else
+                {
+                    await progressCollector.TryReportAsync(document.Project.Solution, node.GetLocation(), symbol, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
@@ -116,7 +125,9 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 case IParameterSymbol parameterSymbol:
                     {
-                        // The "output" is method calls, so track where this method is invoked for the parameter
+                        // The "output" is method calls, so track where this method is invoked for the parameter as 
+                        // well as assignments inside the method. Both contribute to the final values
+                        await TrackVariableSymbolAsync(previousTrackedItem.Symbol, previousTrackedItem.Document, progressCollector, cancellationToken).ConfigureAwait(false);
                         await TrackParameterSymbolAsync(parameterSymbol, previousTrackedItem.Document, progressCollector, cancellationToken).ConfigureAwait(false);
                     }
                     break;
@@ -177,15 +188,17 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     var node = location.FindNode(cancellationToken);
                     var sourceDoc = document.Project.Solution.GetRequiredDocument(location.SourceTree);
                     var syntaxFacts = sourceDoc.GetRequiredLanguageService<ISyntaxFactsService>();
-                    var returnStatements = node.DescendantNodesAndSelf().Where(n => syntaxFacts.IsReturnStatement(n));
+                    var returnStatements = node.DescendantNodesAndSelf().Where(n => syntaxFacts.IsReturnStatement(n)).ToImmutableArray();
                     var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                    foreach (var returnStatement in returnStatements)
+                    if (returnStatements.IsDefaultOrEmpty)
                     {
-                        var expression = syntaxFacts.GetExpressionOfReturnStatement(returnStatement);
+                        // If there are no return statements and the method has a return type, then the method body is an expression
+                        // and we're interested in parsing that expression
+                        var expression = node.DescendantNodesAndSelf().First(syntaxFacts.IsMethodBody);
                         if (expression is null)
                         {
-                            continue;
+                            return;
                         }
 
                         var operation = semanticModel.GetOperation(expression, cancellationToken);
@@ -195,6 +208,25 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         }
 
                         await TrackExpressionAsync(operation, sourceDoc, progressCollector, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        foreach (var returnStatement in returnStatements)
+                        {
+                            var expression = syntaxFacts.GetExpressionOfReturnStatement(returnStatement);
+                            if (expression is null)
+                            {
+                                continue;
+                            }
+
+                            var operation = semanticModel.GetOperation(expression, cancellationToken);
+                            if (operation is null)
+                            {
+                                continue;
+                            }
+
+                            await TrackExpressionAsync(operation, sourceDoc, progressCollector, cancellationToken).ConfigureAwait(false);
+                        }
                     }
                 }
             }
