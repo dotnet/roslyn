@@ -3509,7 +3509,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-
             if (isRecordClass)
             {
                 addCopyCtor(primaryAndCopyCtorAmbiguity);

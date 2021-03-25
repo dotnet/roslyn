@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Private :
                 DeclarationModifiers.Protected;
 
-            if (ContainingType.IsRecord && virtualPrintInBase() is object)
+            if (ContainingType.IsRecord && !ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType())
             {
                 result |= DeclarationModifiers.Override;
             }
@@ -47,18 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(modifiersAreValid(result));
 #endif
             return result;
-
-            MethodSymbol? virtualPrintInBase()
-            {
-                NamedTypeSymbol baseType = ContainingType.BaseTypeNoUseSiteDiagnostics;
-
-                if (!baseType.IsObjectType())
-                {
-                    return FindValidPrintMembersMethod(baseType, ContainingType.DeclaringCompilation);
-                }
-
-                return null;
-            }
 
 #if DEBUG
             bool modifiersAreValid(DeclarationModifiers modifiers)
@@ -133,14 +121,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    MethodSymbol? printMethod = FindValidPrintMembersMethod(ContainingType.BaseTypeNoUseSiteDiagnostics, DeclaringCompilation);
-                    if (printMethod is null)
+                    MethodSymbol? basePrintMethod = OverriddenMethod;
+                    if (basePrintMethod is null ||
+                        basePrintMethod.ReturnType.SpecialType != SpecialType.System_Boolean)
                     {
                         F.CloseMethod(F.ThrowNull()); // an error was reported in base checks already
                         return;
                     }
 
-                    var basePrintCall = F.Call(receiver: F.Base(ContainingType.BaseTypeNoUseSiteDiagnostics), printMethod, builder);
+                    var basePrintCall = F.Call(receiver: F.Base(ContainingType.BaseTypeNoUseSiteDiagnostics), basePrintMethod, builder);
                     if (printableMembers.IsEmpty)
                     {
                         // return base.PrintMembers(builder);
@@ -233,41 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return false;
             }
-        }
-
-        internal static MethodSymbol? FindValidPrintMembersMethod(TypeSymbol containingType, CSharpCompilation compilation)
-        {
-            if (containingType.IsObjectType())
-            {
-                return null;
-            }
-
-            MethodSymbol? candidate = null;
-            var stringBuilder = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Text_StringBuilder));
-
-            foreach (var member in containingType.GetMembers(WellKnownMemberNames.PrintMembersMethodName))
-            {
-                if (member is MethodSymbol { DeclaredAccessibility: Accessibility.Protected, IsStatic: false, ParameterCount: 1, Arity: 0 } method &&
-                    method.ParameterTypesWithAnnotations[0].Equals(stringBuilder, TypeCompareKind.AllIgnoreOptions))
-                {
-                    if (candidate is object)
-                    {
-                        // An ambiguity case, can come from metadata, treat as an error for simplicity.
-                        return null;
-                    }
-
-                    candidate = method;
-                }
-            }
-
-            if (candidate is null ||
-                !(containingType.IsSealed || candidate.IsOverride || candidate.IsVirtual) ||
-                candidate.ReturnType.SpecialType != SpecialType.System_Boolean)
-            {
-                return null;
-            }
-
-            return candidate;
         }
 
         internal static void VerifyOverridesPrintMembersFromBase(MethodSymbol overriding, BindingDiagnosticBag diagnostics)
