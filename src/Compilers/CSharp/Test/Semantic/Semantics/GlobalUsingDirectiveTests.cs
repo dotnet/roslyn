@@ -2971,7 +2971,7 @@ partial class C0 : C0000
 ";
             var comp2 = CreateCompilation(new[] { source2, source3, source4 }, parseOptions: TestOptions.RegularPreview);
 
-            Assert.Empty(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Empty(comp2.UsageOfUsingsRecordedInTrees);
 
             comp2.VerifyDiagnostics(
                 // (1000,1): hidden CS8019: Unnecessary using directive.
@@ -3003,7 +3003,7 @@ partial class C0 : C0000
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(60000, 20)
                 );
 
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
 
             var expected0 = new[]
             {
@@ -3045,13 +3045,13 @@ partial class C0 : C0000
             };
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics().Verify(expected2);
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
 
             comp2 = CreateCompilation(new[] { source2, source3, source4 }, parseOptions: TestOptions.RegularPreview);
 
@@ -3080,46 +3080,46 @@ partial class C0 : C0000
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(60000, 20)
                 );
 
-            Assert.Empty(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Empty(comp2.UsageOfUsingsRecordedInTrees);
 
             comp2 = CreateCompilation(new[] { source2, source3, source4 }, parseOptions: TestOptions.RegularPreview);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
-            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1] }, comp2.UsageOfUsingsRecorededInTrees);
+            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1] }, comp2.UsageOfUsingsRecordedInTrees);
             comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
-            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1] }, comp2.UsageOfUsingsRecorededInTrees);
+            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1] }, comp2.UsageOfUsingsRecordedInTrees);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics().Verify(expected2);
-            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1], comp2.SyntaxTrees[2] }, comp2.UsageOfUsingsRecorededInTrees);
+            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1], comp2.SyntaxTrees[2] }, comp2.UsageOfUsingsRecordedInTrees);
             comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics().Verify(expected2);
-            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1], comp2.SyntaxTrees[2] }, comp2.UsageOfUsingsRecorededInTrees);
+            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1], comp2.SyntaxTrees[2] }, comp2.UsageOfUsingsRecordedInTrees);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
             comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
 
             comp2 = CreateCompilation(new[] { source2, source3, source4 }, parseOptions: TestOptions.RegularPreview);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
-            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1] }, comp2.UsageOfUsingsRecorededInTrees);
+            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1] }, comp2.UsageOfUsingsRecordedInTrees);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics().Verify(expected2);
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
 
             comp2 = CreateCompilation(new[] { source2, source3, source4 }, parseOptions: TestOptions.RegularPreview);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
 
             comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics().Verify(expected2);
-            Assert.Null(comp2.UsageOfUsingsRecorededInTrees);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
         }
 
         [Fact]

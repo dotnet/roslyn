@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The set of trees for which enough analysis was performed in order to record usage of using directives.
         /// Once all trees are processed the value is set to null.
         /// </summary>
-        private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecorededInTrees = ImmutableHashSet<SyntaxTree>.Empty;
+        private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = ImmutableHashSet<SyntaxTree>.Empty;
 
         /// <summary>
         /// Nullable analysis data for methods, parameter default values, and attributes.
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecorededInTrees => Volatile.Read(ref _usageOfUsingsRecorededInTrees);
+        internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
 
         public override string Language
         {
@@ -2476,7 +2476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (filterTree is null)
             {
-                _usageOfUsingsRecorededInTrees = null;
+                _usageOfUsingsRecordedInTrees = null;
             }
         }
 
@@ -2812,7 +2812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportUnusedUsings = (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan) && ReportUnusedImportsInTree(tree);
             bool recordUsageOfUsingsInAllTrees = false;
 
-            if (reportUnusedUsings && UsageOfUsingsRecorededInTrees is not null)
+            if (reportUnusedUsings && UsageOfUsingsRecordedInTrees is not null)
             {
                 foreach (var singleDeclaration in ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).MergedDeclaration.Declarations)
                 {
@@ -2829,13 +2829,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (recordUsageOfUsingsInAllTrees && UsageOfUsingsRecorededInTrees?.IsEmpty == true)
+            if (recordUsageOfUsingsInAllTrees && UsageOfUsingsRecordedInTrees?.IsEmpty == true)
             {
                 Debug.Assert(reportUnusedUsings);
 
                 // Simply compile the world
                 compileMethodBodiesAndDocComments(filterTree: null, filterSpan: null, bindingDiagnostics, cancellationToken);
-                _usageOfUsingsRecorededInTrees = null;
+                _usageOfUsingsRecordedInTrees = null;
             }
             else
             {
@@ -2857,7 +2857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var otherTree in SyntaxTrees)
                     {
-                        var trackingSet = UsageOfUsingsRecorededInTrees;
+                        var trackingSet = UsageOfUsingsRecordedInTrees;
 
                         if (trackingSet is null)
                         {
@@ -2901,7 +2901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void registeredUsageOfUsingsInTree(SyntaxTree tree)
             {
-                var current = UsageOfUsingsRecorededInTrees;
+                var current = UsageOfUsingsRecordedInTrees;
 
                 while (true)
                 {
@@ -2919,11 +2919,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (updated.Count == SyntaxTrees.Length)
                     {
-                        _usageOfUsingsRecorededInTrees = null;
+                        _usageOfUsingsRecordedInTrees = null;
                         break;
                     }
 
-                    var recent = Interlocked.CompareExchange(ref _usageOfUsingsRecorededInTrees, updated, current);
+                    var recent = Interlocked.CompareExchange(ref _usageOfUsingsRecordedInTrees, updated, current);
 
                     if (recent == (object)current)
                     {
