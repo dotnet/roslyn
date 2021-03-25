@@ -63,6 +63,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
         private readonly ImmutableDictionary<string, string> _additionalGlobalProperties;
         private readonly ILogger? _msbuildLogger;
+        private readonly SemaphoreSlim _msbuildManagerLock;
+        private readonly MSB.Execution.BuildManager _msbuildManager;
         private MSB.Evaluation.ProjectCollection? _batchBuildProjectCollection;
         private MSBuildDiagnosticLogger? _batchBuildLogger;
         private bool _batchBuildStarted;
@@ -75,10 +77,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
         }
 
-        public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null)
+        public ProjectBuildManager(ImmutableDictionary<string, string> additionalGlobalProperties, ILogger? msbuildLogger = null, MSB.Execution.BuildManager? msbuildManager = null)
         {
             _additionalGlobalProperties = additionalGlobalProperties ?? ImmutableDictionary<string, string>.Empty;
             _msbuildLogger = msbuildLogger;
+            _msbuildManager = msbuildManager ?? MSB.Execution.BuildManager.DefaultBuildManager;
+            _msbuildManagerLock = msbuildManager != null ? new SemaphoreSlim(initialCount: 1) : s_buildManagerLock;
         }
 
         private ImmutableDictionary<string, string> AllGlobalProperties
@@ -178,7 +182,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                     : (new MSB.Framework.ILogger[] { _batchBuildLogger, _msbuildLogger })
             };
 
-            MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
+            _msbuildManager.BeginBuild(buildParameters);
 
             _batchBuildStarted = true;
         }
@@ -190,7 +194,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 throw new InvalidOperationException();
             }
 
-            MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
+            _msbuildManager.EndBuild();
 
             // unload project so collection will release global strings
             _batchBuildProjectCollection?.UnloadAllProjects();
@@ -246,12 +250,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         // this lock is static because we are using the default build manager, and there is only one per process
         private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
 
-        private static async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             // only allow one build to use the default build manager at a time
-            using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            using (await _msbuildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, requestData, cancellationToken).ConfigureAwait(false);
+                return await BuildAsync(_msbuildManager, requestData, cancellationToken).ConfigureAwait(false);
             }
         }
 

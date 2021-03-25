@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             _reporter = new DiagnosticReporter(this);
             _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(Services, _reporter);
-            _loader = new MSBuildProjectLoader(Services, _reporter, _projectFileLoaderRegistry, properties);
+            _loader = new MSBuildProjectLoader(Services, _reporter, _projectFileLoaderRegistry, properties, new MSB.Execution.BuildManager());
         }
 
         /// <summary>
