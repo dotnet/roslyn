@@ -1204,7 +1204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case MemberAccessExpressionSyntax { Name: IdentifierNameSyntax name } memberAccess when memberAccess.IsKind(SyntaxKind.SimpleMemberAccessExpression):
                     LookupMemberForPropertyPattern(inputType, memberAccess.Expression, builder, diagnostics, ref hasErrors, out memberType);
-                    symbol = BindPropertyPatternMember(memberType, name, ref hasErrors, diagnostics);
+                    symbol = BindPropertyPatternMember(memberType.StrippedType(), name, ref hasErrors, diagnostics);
                     break;
                 default:
                     symbol = null;

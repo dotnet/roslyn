@@ -531,16 +531,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var subPattern in recursive.Properties)
                 {
                     BoundPattern pattern = subPattern.Pattern;
+                    Symbol last = subPattern.Symbols[^1];
                     foreach (Symbol symbol in subPattern.Symbols)
                     {
                         BoundDagEvaluation evaluation;
                         switch (symbol)
                         {
                             case PropertySymbol property:
-                                evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(currentInput, symbol));
+                                evaluation = new BoundDagPropertyEvaluation(pattern.Syntax, property, OriginalInput(currentInput, property));
                                 break;
                             case FieldSymbol field:
-                                evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field,  OriginalInput(currentInput, symbol));
+                                evaluation = new BoundDagFieldEvaluation(pattern.Syntax, field,  OriginalInput(currentInput, field));
                                 break;
                             default:
                                 RoslynDebug.Assert(recursive.HasAnyErrors);
@@ -549,10 +550,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         tests.Add(new Tests.One(evaluation));
-                        currentInput = new BoundDagTemp(pattern.Syntax, symbol.GetTypeOrReturnType().Type, evaluation);
+                        TypeSymbol type = symbol.GetTypeOrReturnType().Type;
+                        currentInput = new BoundDagTemp(pattern.Syntax, type, evaluation);
 
-                        if (!ReferenceEquals(symbol, subPattern.Symbols[^1]))
-                            MakeCheckNotNull(currentInput, pattern.Syntax, isExplicitTest: false, tests);
+                        if (!ReferenceEquals(symbol, last))
+                        {
+                            currentInput = MakeConvertToType(currentInput, pattern.Syntax, type.StrippedType(), isExplicitTest: false, tests);
+                        }
                     }
 
                     tests.Add(MakeTestsAndBindings(currentInput, pattern, bindings));

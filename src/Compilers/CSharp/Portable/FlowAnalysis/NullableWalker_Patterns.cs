@@ -168,10 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             for (int i = 0, n = rp.Properties.Length; i < n; i++)
                             {
                                 BoundSubpattern item = rp.Properties[i];
-                                Symbol symbol = item.Symbol;
-                                if (symbol?.ContainingType.Equals(inputType, TypeCompareKind.AllIgnoreOptions) == true)
+                                foreach (Symbol symbol in item.Symbols)
                                 {
-                                    LearnFromAnyNullPatterns(GetOrCreateSlot(symbol, inputSlot), symbol.GetTypeOrReturnType().Type, item.Pattern);
+                                    if (symbol.ContainingType.Equals(inputType, TypeCompareKind.AllIgnoreOptions) == true)
+                                    {
+                                        LearnFromAnyNullPatterns(GetOrCreateSlot(symbol, inputSlot), symbol.GetTypeOrReturnType().Type, item.Pattern);
+                                    }
                                 }
                             }
                         }
