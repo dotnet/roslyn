@@ -114,7 +114,11 @@ class C
 }
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithPatternCombinators, options: TestOptions.ReleaseExe);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS8518: An expression of type 'C' can never match the provided pattern.
+                //         _ = new C() is { Prop1: null } and { Prop1.Prop2: null };
+                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new C() is { Prop1: null } and { Prop1.Prop2: null }").WithArguments("C").WithLocation(9, 13)
+                );
         }
 
         [Fact]
