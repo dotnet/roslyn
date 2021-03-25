@@ -1211,15 +1211,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                     break;
             }
+
             if (inputType.IsErrorType() || hasErrors || symbol is null)
-            {
                 memberType = CreateErrorType();
-            }
             else
-            {
                 memberType = symbol.GetTypeOrReturnType().Type;
-                builder.Add(symbol);
-            }
+
+            builder.AddIfNotNull(symbol);
         }
 
         private Symbol? BindPropertyPatternMember(

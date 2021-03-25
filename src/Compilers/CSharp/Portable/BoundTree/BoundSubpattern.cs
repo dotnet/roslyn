@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     partial class BoundSubpattern
     {
         internal BoundSubpattern(SyntaxNode syntax, Symbol? symbol, BoundPattern pattern, bool hasErrors = false)
-                : this(syntax, symbol is null ? default : ImmutableArray.Create(symbol), pattern, hasErrors)
+            : this(syntax, symbol is null ? default : ImmutableArray.Create(symbol), pattern, hasErrors)
         {
         }
 

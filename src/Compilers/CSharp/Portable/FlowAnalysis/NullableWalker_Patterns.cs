@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             for (int i = 0, n = rp.Properties.Length; i < n; i++)
                             {
                                 BoundSubpattern item = rp.Properties[i];
-                                foreach (Symbol symbol in item.Symbols)
+                                foreach (Symbol symbol in item.Symbols.NullToEmpty())
                                 {
                                     if (symbol.ContainingType.Equals(inputType, TypeCompareKind.AllIgnoreOptions) == true)
                                     {
