@@ -512,6 +512,27 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// <summary>
         /// This method goes through all the invocation sites and adds a new argument with the expression to be added
         /// It also introduces a parameter at the original method site
+        /// 
+        /// Example:
+        /// public void M(int x, int y)
+        /// {
+        ///     int f = x * y; // highlight this expression
+        /// }
+        /// 
+        /// public void M1()
+        /// {
+        ///     M(5, 6);
+        /// }
+        /// ---------------------------------------------------->
+        /// 
+        /// public void M(int x, int y, int f)
+        /// {
+        /// }
+        /// 
+        /// public void M1()
+        /// {
+        ///     M(5, 6, 5 * 6);
+        /// }
         /// </summary>
         private async Task<Solution> ModifyDocumentInvocationsAndIntroduceParameterAsync(Compilation compilation,
             Document originalDocument, Document document, Solution modifiedSolution, IMethodSymbol methodSymbol,
