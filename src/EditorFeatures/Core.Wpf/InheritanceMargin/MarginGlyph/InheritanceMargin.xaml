@@ -13,14 +13,15 @@
         <!-- The image shown in the menu item, mark this is non-shared to make sure each menu item has its own image -->
         <imaging:CrispImage x:Key="NonSharedIcon" x:Shared="False" Moniker="{Binding ImageMoniker}"/>
 
+        <!-- Style used to display a single target menu item -->
         <Style x:Key="TargetMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
             <Setter Property="Header" Value="{Binding  DisplayName}"/>
             <Setter Property="ToolTip" Value="{Binding ToolTip}"/>
-            <Setter Property="IsCheckable" Value="False"/>
         </Style>
 
         <!-- The key is referenced from the code behind -->
+        <!-- Style used to display a single member's information, it only pops up a menu contains targets' information -->
         <Style x:Key="SingleMemberContextMenuStyle" TargetType="{x:Type ContextMenu}">
             <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
             <Setter Property="ItemsSource" Value="{Binding Targets}"/>
@@ -35,36 +36,18 @@
             </Setter>
         </Style>
 
-        <Style x:Key="SingleMemberContextMenuStyle2" TargetType="{x:Type ContextMenu}">
-            <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ContextMenu}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <ItemsPresenter/>
-                        </ScrollViewer>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
+        <!-- Style used to display one member's information and pops up a submenu -->
         <Style x:Key="MemberMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
             <Setter Property="Header" Value="{Binding DisplayName}"/>
             <Setter Property="ToolTip" Value="{Binding ToolTip}"/>
-            <Setter Property="IsCheckable" Value="False"/>
-            <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}"/>
-
-            <Setter Property="ContextMenu">
-                <Setter.Value>
-                    <ContextMenu Style="{StaticResource SingleMemberContextMenuStyle2}"
-                                 ItemsSource="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}" />
-                </Setter.Value>
-            </Setter>
+            <Setter Property="ItemsSource" Value="{Binding Targets}"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
             <EventSetter Event="Click" Handler="MemberMenuItem_OnClick" />
         </Style>
 
         <!-- The key is referenced from the code behind -->
+        <!-- Style to show multiple members -->
         <Style x:Key="MultipleMembersContextMenuStyle" TargetType="ContextMenu">
             <Setter Property="ItemContainerStyle" Value="{StaticResource MemberMenuItemStyle}"/>
             <Setter Property="ItemsSource" Value="{Binding Members}"/>

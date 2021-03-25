@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         {
             if (e.OriginalSource is MenuItem menuItem && menuItem.ContextMenu != null)
             {
+                menuItem.IsSubmenuOpen = true;
+                menuItem.StaysOpenOnClick = true;
                 menuItem.ContextMenu.IsOpen = true;
                 e.Handled = true;
             }
