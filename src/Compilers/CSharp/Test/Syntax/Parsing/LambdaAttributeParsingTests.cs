@@ -244,9 +244,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string source = "[A] (ref x) => x";
             UsingExpression(source, TestOptions.RegularPreview,
-                    // (1,11): error CS1001: Identifier expected
-                    // [A] (ref x) => x
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 11));
+                // (1,11): error CS1001: Identifier expected
+                // [A] (ref x) => x
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 11));
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -280,6 +280,74 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "x");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void LambdaAttribute_06()
+        {
+            string source = "[A] ref x => x";
+            UsingExpression(source, TestOptions.RegularPreview,
+                // (1,1): error CS1073: Unexpected token 'ref'
+                // [A] ref x => x
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("ref").WithLocation(1, 1),
+                // (1,1): error CS1525: Invalid expression term '['
+                // [A] ref x => x
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 1));
+
+            N(SyntaxKind.ElementAccessExpression);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.BracketedArgumentList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void LambdaAttribute_07()
+        {
+            string source = "[A] in x => x";
+            UsingExpression(source, TestOptions.RegularPreview,
+                // (1,1): error CS1073: Unexpected token 'in'
+                // [A] in x => x
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("in").WithLocation(1, 1),
+                // (1,1): error CS1525: Invalid expression term '['
+                // [A] in x => x
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 1));
+
+            N(SyntaxKind.ElementAccessExpression);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                N(SyntaxKind.BracketedArgumentList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.Argument);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
                 }
             }
             EOF();
