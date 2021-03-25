@@ -5,7 +5,7 @@
         xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
         xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
         ToolTip="{Binding ToolTip}"
-        Focusable="False"
+        AutomationProperties.Name="{Binding AutomationName}"
         Click="Margin_OnClick">
 
     <Button.Resources>
@@ -19,7 +19,7 @@
             <Setter Property="ToolTip" Value="{Binding ToolTip}"/>
             <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
             <Setter Property="IsCheckable" Value="False"/>
-            <EventSetter Event="Click" Handler="TargetMenuItem_OnHandler"/>
+            <EventSetter Event="Click" Handler="TargetMenuItem_OnClick"/>
         </Style>
 
         <!-- The key is referenced from the code behind -->
@@ -39,7 +39,7 @@
             </Setter>
         </Style>
 
-        <!-- Style used to display one member's information and pops up a submenu -->
+        <!-- Style used to display one member's information and pops up a submenu show all the targets -->
         <Style x:Key="MemberMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
             <Setter Property="Header" Value="{Binding DisplayName}"/>

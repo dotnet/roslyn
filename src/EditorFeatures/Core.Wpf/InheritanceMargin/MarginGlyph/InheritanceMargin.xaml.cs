@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         private readonly Solution _solution;
 
         /// <summary>
-        /// Note: This name is also used in xaml file.
+        /// Note: This name is used in xaml file.
         /// </summary>
         private const string SingleMemberContextMenuStyle = nameof(SingleMemberContextMenuStyle);
 
         /// <summary>
-        /// Note: This name is also used in xaml file.
+        /// Note: This name is used in xaml file.
         /// </summary>
         private const string MultipleMembersContextMenuStyle = nameof(MultipleMembersContextMenuStyle);
 
@@ -52,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             MultipleMembersMarginViewModel viewModel)
         {
             var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, solution);
-
             // This is created in the xaml file.
             margin.DataContext = viewModel;
             var contextMenu = margin.ContextMenu!;
@@ -83,18 +82,18 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             }
         }
 
-        private void TargetMenuItem_OnHandler(object sender, RoutedEventArgs e)
+        private void TargetMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
             if (e.OriginalSource is MenuItem menuItem && menuItem.DataContext is TargetDisplayViewModel viewModel)
             {
                 _waitIndicator.Wait(
-                    title: $"Navigate to {viewModel.DisplayName}.",
-                    message: "Navigating...",
+                    title: EditorFeaturesResources.Navigating,
+                    message: EditorFeaturesResources.Navigating_to_definition,
                     allowCancel: true,
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
                         _solution,
-                        $"Navigate to {viewModel.DisplayName}.",
+                        string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayName),
                         _threadingContext,
                         _streamingFindUsagesPresenter,
                         context.CancellationToken)

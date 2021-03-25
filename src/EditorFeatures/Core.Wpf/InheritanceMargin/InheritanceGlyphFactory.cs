@@ -39,12 +39,22 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 if (membersOnLine.Length == 1)
                 {
                     var viewModel = new SingleMemberMarginViewModel(inheritanceMarginTag);
-                    return MarginGlyph.InheritanceMargin.CreateForSingleMember(_threadingContext, _streamingFindUsagesPresenter, _waitIndicator, solution ,viewModel);
+                    return MarginGlyph.InheritanceMargin.CreateForSingleMember(
+                        _threadingContext,
+                        _streamingFindUsagesPresenter,
+                        _waitIndicator,
+                        solution,
+                        viewModel);
                 }
                 else
                 {
                     var viewModel = new MultipleMembersMarginViewModel(inheritanceMarginTag);
-                    return MarginGlyph.InheritanceMargin.CreateForMultipleMembers(_threadingContext, _streamingFindUsagesPresenter, _waitIndicator, solution, viewModel);
+                    return MarginGlyph.InheritanceMargin.CreateForMultipleMembers(
+                        _threadingContext,
+                        _streamingFindUsagesPresenter,
+                        _waitIndicator,
+                        solution,
+                        viewModel);
                 }
             }
 

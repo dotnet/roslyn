@@ -180,4 +180,13 @@
   <data name="Interactive_host_process_platform" xml:space="preserve">
     <value>Interactive host process platform</value>
   </data>
+  <data name="Click_to_select_member" xml:space="preserve">
+    <value>Click to select member</value>
+  </data>
+  <data name="Click_to_view_all_inheritance_targets_for_0" xml:space="preserve">
+    <value>Click to view all inheritance targets for '{0}'</value>
+  </data>
+  <data name="Navigate_to_0" xml:space="preserve">
+    <value>Navigate to '{0}'</value>
+  </data>
 </root>

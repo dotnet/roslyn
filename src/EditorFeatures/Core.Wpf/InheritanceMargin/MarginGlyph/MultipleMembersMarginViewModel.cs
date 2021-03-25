@@ -7,18 +7,35 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 {
+    /// <summary>
+    /// View model used to show multiple members on the same line.
+    /// </summary>
     internal class MultipleMembersMarginViewModel
     {
-        public string ToolTip { get; }
-
+        /// <summary>
+        /// ImageMoniker used for the margin.
+        /// </summary>
         public ImageMoniker ImageMoniker { get; }
 
+        /// <summary>
+        /// Tooltip for the margin
+        /// </summary>
+        public string ToolTip { get; }
+
+        /// <summary>
+        /// Text used for automation.
+        /// </summary>
+        public string AutomationName { get; }
+
+        /// <summary>
+        /// All the members on this line.
+        /// </summary>
         public ImmutableArray<MemberDisplayViewModel> Members { get; }
 
         public MultipleMembersMarginViewModel(InheritanceMarginTag tag)
         {
-            // TODO: Move this to resources.
-            ToolTip = "Click to select member";
+            ToolTip = EditorFeaturesWpfResources.Click_to_select_member;
+            AutomationName = ToolTip;
             ImageMoniker = tag.Moniker;
             Members = tag.MembersOnLine.SelectAsArray(member => new MemberDisplayViewModel(member));
         }

@@ -285,7 +285,6 @@ interface {|target2:IBar2|} : IBar { }
                 itemOnLine3);
         }
 
-
         [Fact]
         public Task TestCSharpClassInheritsClass()
         {
@@ -358,7 +357,6 @@ public class Bar : Bar1
                             locationTag: "target1",
                             relationship: InheritanceRelationship.Implementing))));
         }
-
 
         [Fact]
         public Task TestCSharpMetadataInterface()

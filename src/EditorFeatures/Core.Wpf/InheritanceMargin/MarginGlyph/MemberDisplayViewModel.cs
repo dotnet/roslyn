@@ -9,23 +9,42 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 {
+    /// <summary>
+    /// View model used to display a member in MenuItem. Only used when there are multiple members on the same line.
+    /// </summary>
     internal class MemberDisplayViewModel
     {
+        /// <summary>
+        /// ImageMoniker for this member.
+        /// </summary>
         public ImageMoniker ImageMoniker { get; }
+
+        /// <summary>
+        /// Display content in the MenuItem.
+        /// </summary>
         public string DisplayName { get; }
+
+        /// <summary>
+        /// ToolTip for the MenuItem.
+        /// </summary>
         public string ToolTip { get; }
+
+        /// <summary>
+        /// Inheritance Targets for this member.
+        /// </summary>
         public ImmutableArray<TargetDisplayViewModel> Targets { get; }
+
+        /// <summary>
+        /// AutomationName for the MenuItem.
+        /// </summary>
         public string AutomationName { get; }
 
         public MemberDisplayViewModel(InheritanceMarginItem member)
         {
             ImageMoniker = member.Glyph.GetImageMoniker();
             DisplayName = member.DisplayName;
-
-            // TODO: Move this to resources.
-            ToolTip = $"Click to look for '{DisplayName}'";
+            ToolTip = string.Format(EditorFeaturesWpfResources.Click_to_view_all_inheritance_targets_for_0, member.DisplayName);
             AutomationName = ToolTip;
-
             Targets = member.TargetItems.SelectAsArray(item => new TargetDisplayViewModel(item));
         }
     }

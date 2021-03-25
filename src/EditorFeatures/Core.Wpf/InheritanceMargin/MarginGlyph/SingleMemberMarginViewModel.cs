@@ -7,20 +7,35 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 {
+    /// <summary>
+    /// View model used when there is only one member on the line to show the margin.
+    /// </summary>
     internal class SingleMemberMarginViewModel
     {
+        /// <summary>
+        /// ImageMoniker used for the margin.
+        /// </summary>
+        public ImageMoniker ImageMoniker { get; }
+
+        /// <summary>
+        /// Tooltip for the margin
+        /// </summary>
         public string ToolTip { get; }
 
-        public ImageMoniker ImageMoniker { get; }
+        /// <summary>
+        /// Text used for automation.
+        /// </summary>
+        public string AutomationName { get; }
 
         public ImmutableArray<TargetDisplayViewModel> Targets { get; }
 
         public SingleMemberMarginViewModel(InheritanceMarginTag tag)
         {
-            // TODO: Move this to resources.
-            ToolTip = "Click to select target";
             ImageMoniker = tag.Moniker;
             var member = tag.MembersOnLine[0];
+            var memberDisplayName = member.DisplayName;
+            ToolTip = string.Format(EditorFeaturesWpfResources.Click_to_view_all_inheritance_targets_for_0, memberDisplayName);
+            AutomationName = ToolTip;
             var targets = member.TargetItems;
             Targets = targets.SelectAsArray(item => new TargetDisplayViewModel(item));
         }
