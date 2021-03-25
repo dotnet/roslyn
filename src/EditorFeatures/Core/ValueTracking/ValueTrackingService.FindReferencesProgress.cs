@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 var syntaxRoot = await document.GetRequiredSyntaxRootAsync(_cancellationToken).ConfigureAwait(false);
                 var originalNode = syntaxRoot.FindNode(span);
 
-                if (originalNode is null)
+                if (originalNode is null || originalNode.Parent is null)
                 {
                     return;
                 }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return;
                 }
 
-                await TrackArgumentsAsync(objectCreationOperation.Arguments, document).ConfigureAwait(false);
+                await TrackArgumentsAsync(objectCreationOperation.Arguments, document, _valueTrackingProgressCollector, _cancellationToken).ConfigureAwait(false);
             }
 
             private async Task TrackMethodInvocationArgumentsAsync(ReferenceLocation referenceLocation)
@@ -134,36 +134,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return;
                 }
 
-                await TrackArgumentsAsync(invocationOperation.Arguments, document).ConfigureAwait(false);
-            }
-
-            private async Task TrackArgumentsAsync(ImmutableArray<IArgumentOperation> argumentOperations, Document document)
-            {
-                var collectorsAndArgumentMap = argumentOperations
-                    .Select(argument => (collector: CreateCollector(), argument))
-                    .ToImmutableArray();
-
-                var tasks = collectorsAndArgumentMap
-                    .Select(pair => TrackExpressionAsync(pair.argument.Value, document, pair.collector, _cancellationToken));
-
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-
-                var items = collectorsAndArgumentMap
-                    .Select(pair => pair.collector)
-                    .SelectMany(collector => collector.GetItems())
-                    .Reverse(); // ProgressCollector uses a Stack, and we want to maintain the order by arguments, so reverse
-
-                foreach (var item in items)
-                {
-                    _valueTrackingProgressCollector.Report(item);
-                }
-
-                ValueTrackingProgressCollector CreateCollector()
-                {
-                    var collector = new ValueTrackingProgressCollector();
-                    collector.Parent = _valueTrackingProgressCollector.Parent;
-                    return collector;
-                }
+                await TrackArgumentsAsync(invocationOperation.Arguments, document, _valueTrackingProgressCollector, _cancellationToken).ConfigureAwait(false);
             }
         }
     }

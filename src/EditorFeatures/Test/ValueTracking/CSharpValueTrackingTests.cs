@@ -453,7 +453,8 @@ namespace N
             //
             //  |> return [|x|] [Code.cs:18]
             //    |> x = await [|AddAsync(x, x)|] [Code.cs:17]
-            //      |> Task.FromResult(Add(x, y)) [Code.cs:13]
+            //      |> [|Task.FromResult|](Add(x, y)) [Code.cs:13]
+            //      |> Task.FromResult([|Add(x, y)|]) [Code.cs:13]
             //        |> return x [Code.cs:11]
             using var workspace = TestWorkspace.CreateCSharp(code);
             var initialItems = await GetTrackedItemsAsync(workspace);
@@ -473,17 +474,19 @@ namespace N
                 children.Single(),
                 childInfo: new[]
                 {
-                    (13, "Task.FromResult(Add(x,y))") // |> Task.FromResult(Add(x, y))
+                    (13, "Task.FromResult(Add(x,y))"), // |> [|Task.FromResult|](Add(x, y)) [Code.cs:13]
+                    (13, "Add(x,y)")  // |> Task.FromResult([|Add(x, y)|]) [Code.cs:13]
                 });
 
-            // TODO: This doesn't work right now...
-            //children = await ValidateChildrenAsync(
-            //    workspace,
-            //    children.Single(),
-            //    childInfo: new[]
-            //    {
-            //        (11, "x") // |> return x [Code.cs:11]
-            //    });
+            await ValidateChildrenEmptyAsync(workspace, children[0]);
+
+            children = await ValidateChildrenAsync(
+                workspace,
+                children[1],
+                childInfo: new[]
+                {
+                    (10, "x") // |> return x [Code.cs:10]
+                });
         }
     }
 }

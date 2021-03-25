@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -258,40 +259,12 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             {
                 foreach (var childOperation in expressionOperation.Children)
                 {
-                    await AddOperationAsync(childOperation).ConfigureAwait(false);
+                    await AddOperationAsync(childOperation, document, progressCollector, cancellationToken).ConfigureAwait(false);
                 }
             }
             else
             {
-                await AddOperationAsync(expressionOperation).ConfigureAwait(false);
-            }
-
-            async Task AddOperationAsync(IOperation operation)
-            {
-                var semanticModel = operation.SemanticModel;
-                if (semanticModel is null)
-                {
-                    return;
-                }
-
-                var symbolInfo = semanticModel.GetSymbolInfo(operation.Syntax, cancellationToken);
-                if (symbolInfo.Symbol is null)
-                {
-                    if (operation is ILiteralOperation literalOperation)
-                    {
-                        await progressCollector.TryReportAsync(document.Project.Solution,
-                            operation.Syntax.GetLocation(),
-                            literalOperation.Type,
-                            cancellationToken: cancellationToken).ConfigureAwait(false);
-                    }
-
-                    return;
-                }
-
-                await progressCollector.TryReportAsync(document.Project.Solution,
-                    operation.Syntax.GetLocation(),
-                    symbolInfo.Symbol,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                await AddOperationAsync(expressionOperation, document, progressCollector, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -308,6 +281,54 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             return (selectedSymbol, selectedNode);
         }
 
+        private static async Task AddOperationAsync(IOperation operation, Document document, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken)
+        {
+            var semanticModel = operation.SemanticModel;
+            if (semanticModel is null)
+            {
+                return;
+            }
+
+            var symbolInfo = semanticModel.GetSymbolInfo(operation.Syntax, cancellationToken);
+            if (symbolInfo.Symbol is null)
+            {
+                if (operation is ILiteralOperation { Type: not null } literalOperation)
+{
+                    await progressCollector.TryReportAsync(document.Project.Solution,
+                        operation.Syntax.GetLocation(),
+                        literalOperation.Type!,
+                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                }
+
+                return;
+            }
+
+            if (operation is IInvocationOperation invocationOperation)
+            {
+                // If the operation is an invocation, we want to find if invocations are part of the arguments as well 
+                // and make sure they are added
+                foreach (var argument in invocationOperation.Arguments)
+                {
+                    if (argument.Value is IInvocationOperation argumentInvocationOperation)
+                    {
+                        await AddOperationAsync(argumentInvocationOperation, document, progressCollector, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+            else if (operation is IReturnOperation returnOperation)
+            {
+                // For return operations we want to track
+                // the value returned in case it has invocations
+                // or other items that need to be handled special
+                await AddOperationAsync(returnOperation.ReturnedValue, document, progressCollector, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            await progressCollector.TryReportAsync(document.Project.Solution,
+                operation.Syntax.GetLocation(),
+                symbolInfo.Symbol,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
 
         private static async Task AddItemsFromAssignmentAsync(Document document, SyntaxNode lhsNode, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken)
         {
@@ -334,6 +355,35 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             var rhsOperation = assignmentOperation.Value;
             await TrackExpressionAsync(rhsOperation, document, progressCollector, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task TrackArgumentsAsync(ImmutableArray<IArgumentOperation> argumentOperations, Document document, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken)
+        {
+            var collectorsAndArgumentMap = argumentOperations
+                .Select(argument => (collector: CreateCollector(), argument))
+                .ToImmutableArray();
+
+            var tasks = collectorsAndArgumentMap
+                .Select(pair => TrackExpressionAsync(pair.argument.Value, document, pair.collector, cancellationToken));
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            var items = collectorsAndArgumentMap
+                .Select(pair => pair.collector)
+                .SelectMany(collector => collector.GetItems())
+                .Reverse(); // ProgressCollector uses a Stack, and we want to maintain the order by arguments, so reverse
+
+            foreach (var item in items)
+            {
+                progressCollector.Report(item);
+            }
+
+            ValueTrackingProgressCollector CreateCollector()
+            {
+                var collector = new ValueTrackingProgressCollector();
+                collector.Parent = progressCollector.Parent;
+                return collector;
+            }
         }
     }
 }
