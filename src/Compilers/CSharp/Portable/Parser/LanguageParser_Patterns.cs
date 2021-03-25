@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
