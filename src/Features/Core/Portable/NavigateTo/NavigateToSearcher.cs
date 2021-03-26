@@ -183,7 +183,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                                 await _callback.AddItemAsync(project, result, _cancellationToken).ConfigureAwait(false);
                             };
 
-
                         var task = _currentDocument != null
                             ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, onResultFound, _cancellationToken)
                             : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, onResultFound, _cancellationToken);
