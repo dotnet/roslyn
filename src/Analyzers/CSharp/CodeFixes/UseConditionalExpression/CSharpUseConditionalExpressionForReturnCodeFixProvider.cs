@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseConditionalExpressionForReturn), Shared]
     internal partial class CSharpUseConditionalExpressionForReturnCodeFixProvider
         : AbstractUseConditionalExpressionForReturnCodeFixProvider<StatementSyntax, IfStatementSyntax, ExpressionSyntax, ConditionalExpressionSyntax>
     {
