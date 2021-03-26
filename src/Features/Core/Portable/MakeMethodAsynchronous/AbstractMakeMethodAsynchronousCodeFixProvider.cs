@@ -101,9 +101,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 
             var makeAsyncService = document.GetRequiredLanguageService<IMakeMethodAsynchronousService>();
             var knownTaskTypes = new KnownTaskTypes(compilation);
-            var isAsyncReturnType = makeAsyncService.IsAsyncReturnType(methodSymbolOpt.ReturnType, knownTaskTypes);
 
-            if (NeedsRename(methodSymbolOpt, keepVoid, isEntryPoint, isAsyncReturnType))
+            if (NeedsRename(methodSymbolOpt, keepVoid, isEntryPoint, makeAsyncService, knownTaskTypes))
             {
                 return await RenameThenAddAsyncTokenAsync(
                     keepVoid, document, node, methodSymbolOpt, makeAsyncService, knownTaskTypes, cancellationToken).ConfigureAwait(false);
@@ -114,7 +113,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                     keepVoid, document, methodSymbolOpt, makeAsyncService, knownTaskTypes, node, cancellationToken).ConfigureAwait(false);
             }
 
-            static bool NeedsRename(IMethodSymbol methodSymbol, bool keepVoid, bool isEntryPoint, bool isAsyncReturnType)
+            static bool NeedsRename(IMethodSymbol methodSymbol, bool keepVoid, bool isEntryPoint, IMakeMethodAsynchronousService makeAsyncService, KnownTaskTypes knownTaskTypes)
             {
                 if (!methodSymbol.IsOrdinaryMethodOrLocalFunction())
                 {
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 }
                 else
                 {
-                    return !isAsyncReturnType;
+                    return !makeAsyncService.IsAsyncReturnType(methodSymbolOpt.ReturnType, knownTaskTypes);;
                 }
             }
         }
