@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private readonly bool _searchCurrentDocument;
         private readonly IImmutableSet<string> _kinds;
         private readonly Document? _currentDocument;
-        private readonly ProgressTracker _progress;
+        private readonly IStreamingProgressTracker _progress;
         private readonly CancellationToken _cancellationToken;
 
         public NavigateToSearcher(
@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _searchCurrentDocument = searchCurrentDocument;
             _kinds = kinds;
             _cancellationToken = cancellationToken;
-            _progress = new ProgressTracker((_, current, maximum) => callback.ReportProgress(current, maximum));
+            _progress = new StreamingProgressTracker((current, maximum) =>
+            {
+                callback.ReportProgress(current, maximum);
+                return new ValueTask();
+            });
 
             if (_searchCurrentDocument)
             {
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken);
                 using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
-                _progress.AddItems(_solution.Projects.Count());
+                await _progress.AddItemsAsync(_solution.Projects.Count()).ConfigureAwait(false);
 
                 await SearchAllProjectsAsync().ConfigureAwait(false);
             }
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
             finally
             {
-                _progress.ItemCompleted();
+                await _progress.ItemCompletedAsync().ConfigureAwait(false);
             }
         }
 
