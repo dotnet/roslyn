@@ -1854,8 +1854,8 @@ public class C
                   <Document><![CDATA[
 public class C
 {
-    public C(object Alice, object Bob) { }
-    public C(object ignored) { }
+    public C(int Alice, int Bob) { }
+    public C(string ignored) { }
 
     public void M()
     {
@@ -1871,71 +1871,6 @@ public class C
                 Else
                     Await state.AssertNoCompletionSession()
                 End If
-                state.SendTypeChars("A")
-                Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
-                state.SendTypeChars(":")
-                Assert.Contains("new C(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-            End Using
-        End Function
-
-        <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(28603, "https://github.com/dotnet/roslyn/issues/28603")>
-        Public Async Function TestImplicitObjectCreationExpression_WithSpace_EnumTypes(showCompletionInArgumentLists As Boolean) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-                  <Document><![CDATA[
-using System;
-public class C
-{
-    public C(DayOfWeek Alice, DayOfWeek Bob) { }
-    public C(DateTimeKind ignored) { }
-
-    public void M()
-    {
-        C c = new$$
-    }
-}]]></Document>, languageVersion:=LanguageVersion.CSharp9, showCompletionInArgumentLists:=showCompletionInArgumentLists)
-
-                state.SendTypeChars(" ")
-                Await state.AssertSelectedCompletionItem(displayText:="C", isHardSelected:=True)
-                state.SendTypeChars("(")
-
-                ' The use of enum types causes completion to trigger automatically, even when
-                ' showCompletionInArgumentLists is disabled.
-                Await state.AssertSignatureHelpSession()
-
-                state.SendTypeChars("A")
-                Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
-                state.SendTypeChars(":")
-                Assert.Contains("new C(Alice:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-            End Using
-        End Function
-
-        <WpfTheory, CombinatorialData>
-        <Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(28603, "https://github.com/dotnet/roslyn/issues/28603")>
-        Public Async Function TestImplicitObjectCreationExpression_WithSpace_EnumLikeTypes(showCompletionInArgumentLists As Boolean) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-                  <Document><![CDATA[
-public class C
-{
-    public C(int Alice, int Bob) { }
-    public C(string ignored) { }
-
-    public void M()
-    {
-        C c = new$$
-    }
-}]]></Document>, languageVersion:=LanguageVersion.CSharp9, showCompletionInArgumentLists:=showCompletionInArgumentLists)
-
-                state.SendTypeChars(" ")
-                Await state.AssertSelectedCompletionItem(displayText:="C", isHardSelected:=True)
-                state.SendTypeChars("(")
-
-                ' The use of enum-like types (int.MaxValue and string.Empty) causes completion to trigger automatically,
-                ' even when showCompletionInArgumentLists is disabled.
-                Await state.AssertSignatureHelpSession()
-
                 state.SendTypeChars("A")
                 Await state.AssertSelectedCompletionItem(displayText:="Alice:", isHardSelected:=True)
                 state.SendTypeChars(":")

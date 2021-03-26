@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                        .WithMatchPriority(MatchPriority.Preselect)
                                        .WithSelectionBehavior(CompletionItemSelectionBehavior.HardSelection);
 
+        private static readonly ImmutableHashSet<char> s_triggerCharacters = ImmutableHashSet.Create(' ', '[', '(', '~');
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EnumAndCompletionListTagCompletionProvider()
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
-        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create(' ', '[', '(', '~');
+        public override ImmutableHashSet<char> TriggerCharacters => s_triggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -128,6 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (enumType == null)
                 {
+                    if (context.Trigger.Kind == CompletionTriggerKind.Insertion && s_triggerCharacters.Contains(context.Trigger.Character))
+                    {
+                        // This completion provider understands static members of matching types, but doesn't
+                        // proactively trigger completion for them to avoid interfering with common typing patterns.
+                        return;
+                    }
+
                     // If this isn't an enum or marked with completionlist, also check if it contains static members of
                     // a matching type. These 'enum-like' types have similar characteristics to enum completion, but do
                     // not show the containing type as a separate item in completion.

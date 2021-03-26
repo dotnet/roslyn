@@ -1172,7 +1172,9 @@ readonly struct Goo
 ";
 
             await VerifyItemExistsAsync(markup + goo, "Goo.AMember", usePreviousCharAsTrigger: true);
-            await VerifyItemExistsAsync(markup + gooLike, "Goo.AMember", usePreviousCharAsTrigger: true);
+            await VerifyItemExistsAsync(markup + goo, "Goo.AMember", usePreviousCharAsTrigger: false);
+            await VerifyItemIsAbsentAsync(markup + gooLike, "Goo.AMember", usePreviousCharAsTrigger: true);
+            await VerifyItemExistsAsync(markup + gooLike, "Goo.AMember", usePreviousCharAsTrigger: false);
         }
 
         [Fact]
@@ -1207,7 +1209,9 @@ readonly struct Goo
 ";
 
             await VerifyItemExistsAsync(markup + goo, "Goo.AMember", usePreviousCharAsTrigger: true);
-            await VerifyItemExistsAsync(markup + gooLike, "Goo.AMember", usePreviousCharAsTrigger: true);
+            await VerifyItemExistsAsync(markup + goo, "Goo.AMember", usePreviousCharAsTrigger: false);
+            await VerifyItemIsAbsentAsync(markup + gooLike, "Goo.AMember", usePreviousCharAsTrigger: true);
+            await VerifyItemExistsAsync(markup + gooLike, "Goo.AMember", usePreviousCharAsTrigger: false);
         }
 
         [Fact]
@@ -1246,7 +1250,9 @@ readonly struct E
 ";
 
             await VerifyItemExistsAsync(e + markup, "E.A", usePreviousCharAsTrigger: true);
-            await VerifyItemExistsAsync(eLike + markup, "E.A", usePreviousCharAsTrigger: true);
+            await VerifyItemExistsAsync(e + markup, "E.A", usePreviousCharAsTrigger: false);
+            await VerifyItemIsAbsentAsync(eLike + markup, "E.A", usePreviousCharAsTrigger: true);
+            await VerifyItemExistsAsync(eLike + markup, "E.A", usePreviousCharAsTrigger: false);
         }
 
         [Theory]
@@ -1384,7 +1390,12 @@ class C
 }}
 ";
 
-            await VerifyItemExistsAsync(markup, $"{typeName}.A", usePreviousCharAsTrigger: true);
+            if (typeName == nameof(DayOfWeek))
+                await VerifyItemExistsAsync(markup, $"{typeName}.A", usePreviousCharAsTrigger: true);
+            else
+                await VerifyItemIsAbsentAsync(markup, $"{typeName}.A", usePreviousCharAsTrigger: true);
+
+            await VerifyItemExistsAsync(markup, $"{typeName}.A", usePreviousCharAsTrigger: false);
         }
 
         [Theory]
