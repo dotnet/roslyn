@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class AttributeTests_CallerInfoAttributes : WellKnownAttributesTestBase
     {
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute()
         {
             string source = @"
@@ -40,10 +40,10 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "123", verify: Verification.Skipped);
+            CompileAndVerify(compilation, expectedOutput: "123");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExpressionHasTrivia()
         {
             // PROTOTYPE(caller-expr): What should the expected output be?
@@ -72,10 +72,10 @@ class Program
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput:
 @"123 /* comment */ +
-               5", verify: Verification.Skipped);
+               5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_SwapArguments()
         {
             string source = @"
@@ -98,10 +98,10 @@ class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "124", verify: Verification.Skipped);
+            CompileAndVerify(compilation, expectedOutput: "124");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_DifferentAssembly()
         {
             string source = @"
@@ -130,10 +130,10 @@ public static class Program
 
             var compilation = CreateCompilation(source2, references: new[] { ref1 }, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "2 + 2", verify: Verification.Skipped);
+            CompileAndVerify(compilation, expectedOutput: "2 + 2");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_ThisParameter()
         {
             string source = @"
@@ -157,10 +157,10 @@ public static class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression", verify: Verification.Skipped);
+            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestGoodCallerArgumentExpressionAttribute_ExtensionMethod_NotThisParameter()
         {
             string source = @"
@@ -184,10 +184,10 @@ public static class Program
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2", verify: Verification.Skipped);
+            CompileAndVerify(compilation, expectedOutput: "myIntegerExpression * 2");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestIncorrectParameterNameInCallerArgumentExpressionAttribute()
         {
             string source = @"
@@ -214,10 +214,10 @@ class Program
                 //     static void Log([CallerArgumentExpression(pp)] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 22)
                 );
-            CompileAndVerify(compilation, expectedOutput: "<default>", verify: Verification.Skipped);
+            CompileAndVerify(compilation, expectedOutput: "<default>");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestCallerArgumentWithMemberNameAttributes()
         {
             string source = @"
@@ -244,10 +244,10 @@ class Program
                 //     static void Log(int p, [CallerArgumentExpression(p)] [CallerMemberName] string arg = "<default>")
                 Diagnostic(ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression, "CallerArgumentExpression").WithArguments("arg").WithLocation(12, 29)
                 );
-            CompileAndVerify(compilation, expectedOutput: "Main", verify: Verification.Skipped);
+            CompileAndVerify(compilation, expectedOutput: "Main");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithOptionalTargetParameter()
         {
             string source = @"
@@ -277,10 +277,10 @@ class Program
 @"target default value
 arg default value
 caller target value
-callerTargetExp", verify: Verification.Skipped);
+callerTargetExp");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithMultipleOptionalAttribute()
         {
             string source = @"
@@ -319,10 +319,10 @@ callerTargetExp
 target default value
 arg default value
 caller target value
-callerTargetExp", verify: Verification.Skipped);
+callerTargetExp");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestCallerArgumentExpressionWithDifferentParametersReferringToEachOther()
         {
             string source = @"
@@ -356,11 +356,11 @@ param1: param1_value, param2: ""param1_value""
 param1: param1_value, param2: ""param1_value""
 param1: ""param2_value"", param2: param2_value
 param1: param1_value, param2: param2_value
-param1: param1_value, param2: param2_value", verify: Verification.Skipped);
+param1: param1_value, param2: param2_value");
         }
 
         // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsCallerMember()
         {
             string source = @"
@@ -386,7 +386,7 @@ public static class C
         }
 
         // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsReferingToItself()
         {
             string source = @"
@@ -408,7 +408,7 @@ public static class C
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
-value", verify: Verification.Skipped);
+value");
         }
 
         [Fact]
