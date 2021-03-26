@@ -47,6 +47,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles
                 return true;
             }
 
+            if (symbol.IsExtern)
+            {
+                // Extern symbols are mainly P/Invoke and runtime invoke, probably requiring their name
+                // to match external definition exactly.
+                // Simply ignoring them.
+                return true;
+            }
+
             return false;
         }
     }

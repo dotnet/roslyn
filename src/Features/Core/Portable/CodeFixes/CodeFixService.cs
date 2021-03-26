@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         // Shared by project fixers and workspace fixers.
         private ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>> _fixerToFixableIdsMap = ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>>.Empty;
+        private readonly Lazy<ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata>> _lazyFixerToMetadataMap;
 
         private readonly Func<Workspace, ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>> _getFixerPriorityMap;
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>? _lazyFixerPriorityMap;
@@ -66,6 +67,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             _errorLoggers = loggers;
             _diagnosticService = diagnosticAnalyzerService;
+
+            _lazyFixerToMetadataMap = new(() => fixers.Where(service => service.IsValueCreated).ToImmutableDictionary(service => service.Value, service => service.Metadata));
             var fixersPerLanguageMap = fixers.ToPerLanguageMapWithMultipleLanguages();
             var configurationProvidersPerLanguageMap = configurationProviders.ToPerLanguageMapWithMultipleLanguages();
 
@@ -81,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _createProjectCodeFixProvider = new ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback(r => new ProjectCodeFixProvider(r));
             _fixAllProviderMap = ImmutableDictionary<object, FixAllProviderInfo?>.Empty;
         }
+
+        private ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata> FixerToMetadataMap => _lazyFixerToMetadataMap.Value;
 
         public async Task<FirstDiagnosticResult> GetMostSevereFixableDiagnosticAsync(
             Document document, TextSpan range, CancellationToken cancellationToken)
@@ -399,19 +404,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         getFixes: dxs =>
                         {
                             var fixerName = fixer.GetType().Name;
+                            FixerToMetadataMap.TryGetValue(fixer, out var fixerMetadata);
+
                             using (addOperationScope(fixerName))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixerName, cancellationToken))
                             {
                                 if (fixAllForInSpan)
                                 {
                                     var primaryDiagnostic = dxs.First();
-                                    return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, isBlocking,
+                                    return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata, isBlocking,
                                         ImmutableArray.Create(primaryDiagnostic), uniqueDiagosticToEquivalenceKeysMap,
                                         diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                 }
                                 else
                                 {
-                                    return GetCodeFixesAsync(document, span, fixer, isBlocking, dxs,
+                                    return GetCodeFixesAsync(document, span, fixer, fixerMetadata, isBlocking, dxs,
                                         uniqueDiagosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                 }
                             }
@@ -433,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private static async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
-            Document document, TextSpan span, CodeFixProvider fixer, bool isBlocking,
+            Document document, TextSpan span, CodeFixProvider fixer, CodeChangeProviderMetadata? fixerMetadata, bool isBlocking,
             ImmutableArray<Diagnostic> diagnostics,
             Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap,
             Dictionary<(Diagnostic diagnostic, string? equivalenceKey), CodeFixProvider> diagnosticAndEquivalenceKeyToFixersMap,
@@ -453,6 +460,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                         if (!applicableDiagnostics.IsEmpty)
                         {
+                            // Add the CodeFix Provider Name to the parent CodeAction's CustomTags.
+                            // Always add a name even in cases of 3rd party fixers that do not export
+                            // name metadata.
+                            action.AddCustomTag(fixerMetadata?.Name ?? fixer.GetTypeDisplayName());
+
                             fixes.Add(new CodeFix(document.Project, action, applicableDiagnostics));
                         }
                     }

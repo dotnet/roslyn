@@ -191,6 +191,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private PooledDictionary<MethodSymbol, Variables>? _nestedFunctionVariables;
 
+        private PooledDictionary<BoundExpression, ImmutableArray<(LocalState State, TypeWithState ResultType, bool EndReachable)>>? _conditionalInfoForConversionOpt;
+
+        /// <summary>
+        /// Map from a target-typed conditional expression (such as a target-typed conditional or switch) to the nullable state on each branch. This
+        /// is then used by VisitConversion to properly set the state before each branch when visiting a conversion applied to such a construct. These
+        /// states will be the state after visiting the underlying arm value, but before visiting the conversion on top of the arm value.
+        /// </summary>
+        private PooledDictionary<BoundExpression, ImmutableArray<(LocalState State, TypeWithState ResultType, bool EndReachable)>> ConditionalInfoForConversion
+            => _conditionalInfoForConversionOpt ??= PooledDictionary<BoundExpression, ImmutableArray<(LocalState, TypeWithState, bool)>>.GetInstance();
+
         /// <summary>
         /// True if we're analyzing speculative code. This turns off some initialization steps
         /// that would otherwise be taken.
@@ -357,6 +367,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodGroupReceiverMapOpt?.Free();
             _placeholderLocalsOpt?.Free();
             _variables.Free();
+            Debug.Assert(_conditionalInfoForConversionOpt is null or { Count: 0 });
+            _conditionalInfoForConversionOpt?.Free();
             base.Free();
         }
 
@@ -4357,7 +4369,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol? resultType;
-            if (node.HasErrors || node is BoundConditionalOperator { WasTargetTyped: true })
+            bool wasTargetTyped = node is BoundConditionalOperator { WasTargetTyped: true };
+            if (node.HasErrors || wasTargetTyped)
             {
                 resultType = null;
             }
@@ -4377,47 +4390,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref discardedUseSiteInfo);
             }
 
+
+            resultType ??= node.Type?.SetUnknownNullabilityForReferenceTypes();
+
             NullableFlowState resultState;
-            if (resultType is null)
+            if (!wasTargetTyped)
             {
-                resultType = node.Type?.SetUnknownNullabilityForReferenceTypes();
-                resultState = consequenceRValue.State.Join(alternativeRValue.State);
-
-                var resultTypeWithState = TypeWithState.Create(resultType, resultState);
-
-                if (consequence != originalConsequence)
+                if (resultType is null)
                 {
-                    TrackAnalyzedNullabilityThroughConversionGroup(resultTypeWithState, (BoundConversion)originalConsequence, consequence);
+                    // This can happen when we're inferring the return type of a lambda. For this case, we don't need to do any work,
+                    // the unconverted conditional operator can't contribute info. The conversion that should be on top of this
+                    // can add or remove nullability, and nested nodes aren't being publicly exposed by the semantic model.
+                    Debug.Assert(node is BoundUnconvertedConditionalOperator);
+                    Debug.Assert(_returnTypesOpt is not null);
+                    resultState = default;
                 }
-
-                if (alternative != originalAlternative)
+                else
                 {
-                    TrackAnalyzedNullabilityThroughConversionGroup(resultTypeWithState, (BoundConversion)originalAlternative, alternative);
+                    var resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
+
+                    TypeWithState convertedConsequenceResult = ConvertConditionalOperandOrSwitchExpressionArmResult(
+                        originalConsequence,
+                        consequence,
+                        consequenceConversion,
+                        resultTypeWithAnnotations,
+                        consequenceRValue,
+                        consequenceState,
+                        consequenceEndReachable);
+
+                    TypeWithState convertedAlternativeResult = ConvertConditionalOperandOrSwitchExpressionArmResult(
+                        originalAlternative,
+                        alternative,
+                        alternativeConversion,
+                        resultTypeWithAnnotations,
+                        alternativeRValue,
+                        alternativeState,
+                        alternativeEndReachable);
+
+                    resultState = convertedConsequenceResult.State.Join(convertedAlternativeResult.State);
                 }
             }
             else
             {
-                var resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
+                resultState = consequenceRValue.State.Join(alternativeRValue.State);
 
-                TypeWithState convertedConsequenceResult = convertResult(
-                    originalConsequence,
-                    consequence,
-                    consequenceConversion,
-                    resultTypeWithAnnotations,
-                    consequenceRValue,
-                    consequenceState,
-                    consequenceEndReachable);
-
-                TypeWithState convertedAlternativeResult = convertResult(
-                    originalAlternative,
-                    alternative,
-                    alternativeConversion,
-                    resultTypeWithAnnotations,
-                    alternativeRValue,
-                    alternativeState,
-                    alternativeEndReachable);
-
-                resultState = convertedConsequenceResult.State.Join(convertedAlternativeResult.State);
+                ConditionalInfoForConversion.Add(node, ImmutableArray.Create(
+                    (consequenceState, consequenceRValue, consequenceEndReachable),
+                    (alternativeState, alternativeRValue, alternativeEndReachable)));
             }
 
             SetResultType(node, TypeWithState.Create(resultType, resultState));
@@ -4443,50 +4462,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithAnnotations lValueType = VisitLvalueWithAnnotations(operand);
                 return (lValueType, ResultType);
             }
+        }
 
-            TypeWithState convertResult(
-                BoundExpression node,
-                BoundExpression operand,
-                Conversion conversion,
-                TypeWithAnnotations targetType,
-                TypeWithState operandType,
-                LocalState state,
-                bool isReachable)
+        private TypeWithState ConvertConditionalOperandOrSwitchExpressionArmResult(
+            BoundExpression node,
+            BoundExpression operand,
+            Conversion conversion,
+            TypeWithAnnotations targetType,
+            TypeWithState operandType,
+            LocalState state,
+            bool isReachable)
+        {
+            var savedState = this.State;
+            this.State = state;
+
+            bool previousDisabledDiagnostics = _disableDiagnostics;
+            // If the node is not reachable, then we're only visiting to get
+            // nullability information for the public API, and not to produce diagnostics.
+            // Disable diagnostics, and return default for the resulting state
+            // to indicate that warnings were suppressed.
+            if (!isReachable)
             {
-                var savedState = this.State;
-                this.State = state;
-
-                bool previousDisabledDiagnostics = _disableDiagnostics;
-                // If the node is not reachable, then we're only visiting to get
-                // nullability information for the public API, and not to produce diagnostics.
-                // Disable diagnostics, and return default for the resulting state
-                // to indicate that warnings were suppressed.
-                if (!isReachable)
-                {
-                    _disableDiagnostics = true;
-                }
-
-                var resultType = VisitConversion(
-                    GetConversionIfApplicable(node, operand),
-                    operand,
-                    conversion,
-                    targetType,
-                    operandType,
-                    checkConversion: true,
-                    fromExplicitCast: false,
-                    useLegacyWarnings: false,
-                    AssignmentKind.Assignment,
-                    reportTopLevelWarnings: false);
-
-                if (!isReachable)
-                {
-                    resultType = default;
-                    _disableDiagnostics = previousDisabledDiagnostics;
-                }
-                this.State = savedState;
-
-                return resultType;
+                _disableDiagnostics = true;
             }
+
+            var resultType = VisitConversion(
+                GetConversionIfApplicable(node, operand),
+                operand,
+                conversion,
+                targetType,
+                operandType,
+                checkConversion: true,
+                fromExplicitCast: false,
+                useLegacyWarnings: false,
+                AssignmentKind.Assignment,
+                reportTopLevelWarnings: false);
+
+            if (!isReachable)
+            {
+                resultType = default;
+                _disableDiagnostics = previousDisabledDiagnostics;
+            }
+            this.State = savedState;
+
+            return resultType;
         }
 
         private bool IsReachable()
@@ -5909,9 +5928,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return argument;
                 }
-                if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
+                if (argument is BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithInferredType }
+                             or BoundConditionalOperator { WasTargetTyped: true }
+                             or BoundConvertedSwitchExpression { WasTargetTyped: true })
                 {
-                    // 'out var' doesn't contribute to inference
+                    // target-typed contexts don't contribute to nullability
                     return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Oblivious, type: null);
                 }
                 return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.NullableAnnotation, argumentType.Type);
@@ -6647,7 +6668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             method = CheckMethodGroupReceiverNullability(group, parameters, method, conversion.IsExtensionMethod);
                         }
-                        if (reportRemainingWarnings)
+                        if (reportRemainingWarnings && invokeSignature != null)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(diagnosticLocationOpt, targetType, invokeSignature, method, conversion.IsExtensionMethod);
                         }
@@ -6660,6 +6681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             NamedTypeSymbol { TypeKind: TypeKind.Delegate, DelegateInvokeMethod: { Parameters: { } parameters } signature } => (signature, parameters),
                             FunctionPointerTypeSymbol { Signature: { Parameters: { } parameters } signature } => (signature, parameters),
+                            ErrorTypeSymbol => (null, ImmutableArray<ParameterSymbol>.Empty),
                             _ => throw ExceptionUtilities.UnexpectedValue(targetType)
                         };
 
@@ -6686,7 +6708,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
-                    return operandType;
+                    resultState = visitNestedTargetTypedConstructs();
+                    TrackAnalyzedNullabilityThroughConversionGroup(targetTypeWithNullability.ToTypeWithState(), conversionOpt, conversionOperand);
+                    break;
 
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
@@ -7012,6 +7036,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 annotation = default;
                 return false;
+            }
+
+            NullableFlowState visitNestedTargetTypedConstructs()
+            {
+                switch (conversionOperand)
+                {
+                    case BoundConditionalOperator { WasTargetTyped: true } conditional:
+                        {
+                            Debug.Assert(ConditionalInfoForConversion.ContainsKey(conditional));
+                            var info = ConditionalInfoForConversion[conditional];
+                            Debug.Assert(info.Length == 2);
+
+                            var consequence = conditional.Consequence;
+                            (BoundExpression consequenceOperand, Conversion consequenceConversion) = RemoveConversion(consequence, includeExplicitConversions: false);
+                            var consequenceRValue = ConvertConditionalOperandOrSwitchExpressionArmResult(consequence, consequenceOperand, consequenceConversion, targetTypeWithNullability, info[0].ResultType, info[0].State, info[0].EndReachable);
+                            var alternative = conditional.Alternative;
+                            (BoundExpression alternativeOperand, Conversion alternativeConversion) = RemoveConversion(alternative, includeExplicitConversions: false);
+                            var alternativeRValue = ConvertConditionalOperandOrSwitchExpressionArmResult(alternative, alternativeOperand, alternativeConversion, targetTypeWithNullability, info[1].ResultType, info[1].State, info[1].EndReachable);
+
+                            ConditionalInfoForConversion.Remove(conditional);
+
+                            return consequenceRValue.State.Join(alternativeRValue.State);
+                        }
+
+                    case BoundConvertedSwitchExpression { WasTargetTyped: true } @switch:
+                        {
+                            Debug.Assert(ConditionalInfoForConversion.ContainsKey(@switch));
+                            var info = ConditionalInfoForConversion[@switch];
+
+                            Debug.Assert(info.Length == @switch.SwitchArms.Length);
+
+                            var resultTypes = ArrayBuilder<TypeWithState>.GetInstance(info.Length);
+
+                            for (int i = 0; i < info.Length; i++)
+                            {
+                                var (state, armResultType, isReachable) = info[i];
+                                var arm = @switch.SwitchArms[i].Value;
+                                var (operand, conversion) = RemoveConversion(arm, includeExplicitConversions: false);
+                                resultTypes.Add(ConvertConditionalOperandOrSwitchExpressionArmResult(arm, operand, conversion, targetTypeWithNullability, armResultType, state, isReachable));
+                            }
+
+                            var resultState = BestTypeInferrer.GetNullableState(resultTypes);
+                            resultTypes.Free();
+                            ConditionalInfoForConversion.Remove(@switch);
+                            return resultState;
+                        }
+
+                    case BoundObjectCreationExpression { WasTargetTyped: true }:
+                    case BoundUnconvertedObjectCreationExpression:
+                        return NullableFlowState.NotNull;
+
+                    case BoundUnconvertedConditionalOperator:
+                    case BoundUnconvertedSwitchExpression:
+                        return operandType.State;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(conversionOperand.Kind);
+                }
             }
         }
 
@@ -9401,6 +9483,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitInterpolatedString(BoundInterpolatedString node)
         {
             var result = base.VisitInterpolatedString(node);
+            SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+            return result;
+        }
+
+        public override BoundNode? VisitUnconvertedInterpolatedString(BoundUnconvertedInterpolatedString node)
+        {
+            // This is only involved with unbound lambdas or when visiting the source of a converted tuple literal
+            var result = base.VisitUnconvertedInterpolatedString(node);
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
             return result;
         }

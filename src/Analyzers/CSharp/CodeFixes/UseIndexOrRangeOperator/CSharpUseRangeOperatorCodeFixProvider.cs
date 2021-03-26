@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     using static Helpers;
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseRangeOperator), Shared]
     internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]

@@ -53,9 +53,7 @@ using System.Collections.Generic;
                 "Delete [using D = System.Diagnostics;]@2",
                 "Delete [using System.Collections;]@33");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.using_directive),
-                Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -75,9 +73,7 @@ using System.Collections.Generic;
                 "Insert [using D = System.Diagnostics;]@2",
                 "Insert [using System.Collections;]@33");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "using D = System.Diagnostics;", CSharpFeaturesResources.using_directive),
-                Diagnostic(RudeEditKind.Insert, "using System.Collections;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -98,8 +94,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using System.Collections;]@29 -> [using X = System.Collections;]@29");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using X = System.Collections;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -120,8 +115,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using X1 = System.Collections;]@29 -> [using X2 = System.Collections;]@29");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using X2 = System.Collections;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -142,8 +136,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using System.Diagnostics;]@2 -> [using System;]@2");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "using System;", CSharpFeaturesResources.using_directive));
+            edits.VerifyRudeDiagnostics();
         }
 
         [Fact]
@@ -216,6 +209,172 @@ namespace N
             edits.VerifyEdits(
                 "Insert [using System.Collections;]@2",
                 "Delete [using System.Collections;]@22");
+        }
+
+        [Fact]
+        public void Using_Delete_ChangesCodeMeaning()
+        {
+            // This test specifically validates the scenario we _don't_ support, namely when inserting or deleting
+            // a using directive, if existing code changes in meaning as a result, we don't issue edits for that code.
+            // If this ever regresses then please buy a lottery ticket because the feature has magically fixed itself.
+            var src1 = @"
+using System.IO;
+using DirectoryInfo = N.C;
+
+namespace N
+{
+    public class C
+    {
+        public C(string a) { }
+        public FileAttributes Attributes { get; set; }
+    }
+
+    public class D
+    {
+        public void M()
+        {
+            var d = new DirectoryInfo(""aa"");
+            var x = directoryInfo.Attributes;
+        }
+    }
+}";
+            var src2 = @"
+using System.IO;
+
+namespace N
+{
+    public class C
+    {
+        public C(string a) { }
+        public FileAttributes Attributes { get; set; }
+    }
+
+    public class D
+    {
+        public void M()
+        {
+            var d = new DirectoryInfo(""aa"");
+            var x = directoryInfo.Attributes;
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits("Delete [using DirectoryInfo = N.C;]@20");
+
+            edits.VerifySemantics();
+        }
+
+        [Fact]
+        public void Using_Insert_ForNewCode()
+        {
+            // As distinct from the above, this test validates a real world scenario of inserting a using directive
+            // and changing code that utilizes the new directive to some effect.
+            var src1 = @"
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+    }
+}";
+            var src2 = @"
+using System;
+
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(""Hello World!"");
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("N.Program.Main")));
+        }
+
+        [Fact]
+        public void Using_Delete_ForOldCode()
+        {
+            var src1 = @"
+using System;
+
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(""Hello World!"");
+        }
+    }
+}";
+            var src2 = @"
+namespace N
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+        }
+    }
+}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("N.Program.Main")));
+        }
+
+        [Fact]
+        public void Using_Insert_CreatesAmbiguousCode()
+        {
+            // This test validates that we still issue edits for changed valid code, even when unchanged
+            // code has ambiguities after adding a using.
+            var src1 = @"
+using System.Threading;
+
+namespace N
+{
+    class C
+    {
+        void M()
+        {
+            // Timer exists in System.Threading and System.Timers
+            var t = new Timer(s => System.Console.WriteLine(s));
+        }
+    }
+}";
+            var src2 = @"
+using System.Threading;
+using System.Timers;
+
+namespace N
+{
+    class C
+    {
+        void M()
+        {
+            // Timer exists in System.Threading and System.Timers
+            var t = new Timer(s => System.Console.WriteLine(s));
+        }
+
+        void M2()
+        {
+             // TimersDescriptionAttribute only exists in System.Timers
+            System.Console.WriteLine(new TimersDescriptionAttribute(""""));
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.C.M2")));
         }
 
         #endregion

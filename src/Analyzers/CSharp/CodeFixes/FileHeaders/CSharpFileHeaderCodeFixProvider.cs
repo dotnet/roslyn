@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FileHeaders
     /// <summary>
     /// Implements a code fix for file header diagnostics.
     /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpFileHeaderCodeFixProvider))]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FileHeader)]
     [Shared]
     internal class CSharpFileHeaderCodeFixProvider : AbstractFileHeaderCodeFixProvider
     {

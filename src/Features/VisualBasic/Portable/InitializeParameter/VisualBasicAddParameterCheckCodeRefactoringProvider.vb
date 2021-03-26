@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddParameterCheckCodeRefactoringProvider)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.AddParameterCheck), [Shared]>
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.ChangeSignature)>
     Friend Class VisualBasicAddParameterCheckCodeRefactoringProvider
         Inherits AbstractAddParameterCheckCodeRefactoringProvider(Of
@@ -49,6 +49,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
         Protected Overrides Function PrefersThrowExpression(options As DocumentOptionSet) As Boolean
             ' No throw expression preference option is defined for VB because it doesn't support throw expressions.
             Return False
+        End Function
+
+        Protected Overrides Function EscapeResourceString(input As String) As String
+            Return input.Replace("""", """""")
         End Function
     End Class
 End Namespace

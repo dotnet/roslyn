@@ -1948,7 +1948,7 @@ namespace System.Runtime.CompilerServices
             var compilation = CreateCompilation(
                 new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
                 references,
-                options: compilationOptions ?? TestOptions.ReleaseDll,
+                options: compilationOptions,
                 targetFramework: targetFramework);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
         }
@@ -1966,7 +1966,7 @@ namespace System.Runtime.CompilerServices
             var compilation = CreateCompilation(
                 testSyntaxes,
                 references,
-                options: compilationOptions ?? TestOptions.ReleaseDll,
+                options: compilationOptions,
                 targetFramework: useLatestFrameworkReferences ? TargetFramework.Mscorlib46Extended : TargetFramework.Standard);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, additionalOperationTreeVerifier);
         }
@@ -2004,7 +2004,7 @@ namespace System.Runtime.CompilerServices
             var compilation = CreateCompilation(
                 new[] { Parse(testSrc, filename: "file.cs", options: parseOptions) },
                 references,
-                options: compilationOptions ?? TestOptions.ReleaseDll,
+                options: compilationOptions,
                 targetFramework: targetFramework);
             VerifyFlowGraphAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedFlowGraph, expectedDiagnostics);
         }
