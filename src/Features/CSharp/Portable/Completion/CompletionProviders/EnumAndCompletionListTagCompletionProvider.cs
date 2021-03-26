@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -114,14 +115,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 type = typeArg;
             }
 
+            var showTypeOnlyIfMembers = false;
+            INamedTypeSymbol? lazyEnclosingNamedType = null;
             var position = context.Position;
             if (type.TypeKind != TypeKind.Enum)
             {
                 var enumType = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
-                               TryGetCompletionListType(type, semanticModel.GetEnclosingNamedType(position, cancellationToken), semanticModel.Compilation);
+                               TryGetCompletionListType(type, GetEnclosingNamedType(), semanticModel.Compilation);
 
                 if (enumType == null)
-                    return;
+                {
+                    showTypeOnlyIfMembers = true;
+                    enumType = TryGetTypeWithStaticMembers(type);
+                    if (enumType == null)
+                    {
+                        return;
+                    }
+                }
 
                 type = enumType;
             }
@@ -142,13 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var symbol = alias ?? type;
             var sortText = symbol.Name;
 
-            context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                displayText,
-                displayTextSuffix: "",
-                symbols: ImmutableArray.Create(symbol),
-                rules: s_enumTypeRules,
-                contextPosition: position,
-                sortText: sortText));
+            var addedType = false;
+            if (!showTypeOnlyIfMembers)
+            {
+                AddTypeIfNotAdded();
+            }
 
             // And now all the accessible members of the enum.
             if (type.TypeKind == TypeKind.Enum)
@@ -173,6 +181,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         sortText: $"{sortText}_{index:0000}",
                         filterText: memberDisplayName));
                 }
+            }
+            else if (GetEnclosingNamedType() is { } enclosingNamedType)
+            {
+                // Build a list of the members with the same type as the target
+                foreach (var member in type.GetMembers())
+                {
+                    if (member is IFieldSymbol { IsStatic: true } field)
+                    {
+                        if (!SymbolEqualityComparer.Default.Equals(type, field.Type))
+                            continue;
+
+                        if (!field.IsAccessibleWithin(enclosingNamedType))
+                            continue;
+
+                        if (!field.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
+                            continue;
+
+                        AddTypeIfNotAdded();
+                        var memberDisplayName = $"{displayText}.{field.Name}";
+                        context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                            displayText: memberDisplayName,
+                            displayTextSuffix: "",
+                            symbols: ImmutableArray.Create<ISymbol>(field),
+                            rules: CompletionItemRules.Default,
+                            contextPosition: position,
+                            sortText: memberDisplayName,
+                            filterText: memberDisplayName));
+                    }
+                    else if (member is IPropertySymbol { IsStatic: true, IsIndexer: false } property)
+                    {
+                        if (!SymbolEqualityComparer.Default.Equals(type, property.Type))
+                            continue;
+
+                        if (!property.IsAccessibleWithin(enclosingNamedType))
+                            continue;
+
+                        if (!property.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
+                            continue;
+
+                        AddTypeIfNotAdded();
+                        var memberDisplayName = $"{displayText}.{property.Name}";
+                        context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                            displayText: memberDisplayName,
+                            displayTextSuffix: "",
+                            symbols: ImmutableArray.Create<ISymbol>(property),
+                            rules: CompletionItemRules.Default,
+                            contextPosition: position,
+                            sortText: memberDisplayName,
+                            filterText: memberDisplayName));
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            return;
+
+            // Local functions
+            INamedTypeSymbol? GetEnclosingNamedType()
+            {
+                return lazyEnclosingNamedType ??= semanticModel.GetEnclosingNamedType(position, cancellationToken);
+            }
+
+            void AddTypeIfNotAdded()
+            {
+                if (addedType)
+                    return;
+
+                addedType = true;
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                    displayText,
+                    displayTextSuffix: "",
+                    symbols: ImmutableArray.Create(symbol),
+                    rules: s_enumTypeRules,
+                    contextPosition: position,
+                    sortText: sortText));
             }
         }
 
@@ -247,6 +333,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return completionListType != null && completionListType.IsAccessibleWithin(within)
                 ? completionListType
                 : null;
+        }
+
+        private static INamedTypeSymbol? TryGetTypeWithStaticMembers(ITypeSymbol type)
+        {
+            if (type.TypeKind == TypeKind.Struct || type.TypeKind == TypeKind.Class)
+                return type as INamedTypeSymbol;
+
+            return null;
         }
     }
 }
