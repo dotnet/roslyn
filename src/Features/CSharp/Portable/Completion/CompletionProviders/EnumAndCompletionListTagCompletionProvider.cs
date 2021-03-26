@@ -115,17 +115,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 type = typeArg;
             }
 
-            var showTypeOnlyIfMembers = false;
-            INamedTypeSymbol? lazyEnclosingNamedType = null;
+            // When true, this completion provider shows both the type (e.g. DayOfWeek) and its qualified members (e.g.
+            // DayOfWeek.Friday). We set this to false for enum-like cases (static members of structs and classes) so we
+            // only show the qualified members in these cases.
+            var showType = true;
             var position = context.Position;
+            var enclosingNamedType = semanticModel.GetEnclosingNamedType(position, cancellationToken);
             if (type.TypeKind != TypeKind.Enum)
             {
                 var enumType = TryGetEnumTypeInEnumInitializer(semanticModel, token, type, cancellationToken) ??
-                               TryGetCompletionListType(type, GetEnclosingNamedType(), semanticModel.Compilation);
+                               TryGetCompletionListType(type, enclosingNamedType, semanticModel.Compilation);
 
                 if (enumType == null)
                 {
-                    showTypeOnlyIfMembers = true;
+                    // If this isn't an enum or marked with completionlist, also check if it contains static members of
+                    // a matching type. These 'enum-like' types have similar characteristics to enum completion, but do
+                    // not show the containing type as a separate item in completion.
+                    showType = false;
                     enumType = TryGetTypeWithStaticMembers(type);
                     if (enumType == null)
                     {
@@ -152,10 +158,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var symbol = alias ?? type;
             var sortText = symbol.Name;
 
-            var addedType = false;
-            if (!showTypeOnlyIfMembers)
+            if (showType)
             {
-                AddTypeIfNotAdded();
+                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                    displayText,
+                    displayTextSuffix: "",
+                    symbols: ImmutableArray.Create(symbol),
+                    rules: s_enumTypeRules,
+                    contextPosition: position,
+                    sortText: sortText));
             }
 
             // And now all the accessible members of the enum.
@@ -182,83 +193,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         filterText: memberDisplayName));
                 }
             }
-            else if (GetEnclosingNamedType() is { } enclosingNamedType)
+            else if (enclosingNamedType is not null)
             {
                 // Build a list of the members with the same type as the target
                 foreach (var member in type.GetMembers())
                 {
+                    ISymbol staticSymbol;
+                    ITypeSymbol symbolType;
                     if (member is IFieldSymbol { IsStatic: true } field)
                     {
-                        if (!SymbolEqualityComparer.Default.Equals(type, field.Type))
-                            continue;
-
-                        if (!field.IsAccessibleWithin(enclosingNamedType))
-                            continue;
-
-                        if (!field.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
-                            continue;
-
-                        AddTypeIfNotAdded();
-                        var memberDisplayName = $"{displayText}.{field.Name}";
-                        context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                            displayText: memberDisplayName,
-                            displayTextSuffix: "",
-                            symbols: ImmutableArray.Create<ISymbol>(field),
-                            rules: CompletionItemRules.Default,
-                            contextPosition: position,
-                            sortText: memberDisplayName,
-                            filterText: memberDisplayName));
+                        staticSymbol = field;
+                        symbolType = field.Type;
                     }
                     else if (member is IPropertySymbol { IsStatic: true, IsIndexer: false } property)
                     {
-                        if (!SymbolEqualityComparer.Default.Equals(type, property.Type))
-                            continue;
-
-                        if (!property.IsAccessibleWithin(enclosingNamedType))
-                            continue;
-
-                        if (!property.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
-                            continue;
-
-                        AddTypeIfNotAdded();
-                        var memberDisplayName = $"{displayText}.{property.Name}";
-                        context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                            displayText: memberDisplayName,
-                            displayTextSuffix: "",
-                            symbols: ImmutableArray.Create<ISymbol>(property),
-                            rules: CompletionItemRules.Default,
-                            contextPosition: position,
-                            sortText: memberDisplayName,
-                            filterText: memberDisplayName));
+                        staticSymbol = property;
+                        symbolType = property.Type;
                     }
                     else
                     {
+                        // Only fields and properties are supported for static member matching
                         continue;
                     }
+
+                    if (!SymbolEqualityComparer.Default.Equals(type, symbolType)
+                        || !staticSymbol.IsAccessibleWithin(enclosingNamedType)
+                        || !staticSymbol.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
+                    {
+                        continue;
+                    }
+
+                    var memberDisplayName = $"{displayText}.{staticSymbol.Name}";
+                    context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
+                        displayText: memberDisplayName,
+                        displayTextSuffix: "",
+                        symbols: ImmutableArray.Create(staticSymbol),
+                        rules: CompletionItemRules.Default,
+                        contextPosition: position,
+                        sortText: memberDisplayName,
+                        filterText: memberDisplayName));
                 }
-            }
-
-            return;
-
-            // Local functions
-            INamedTypeSymbol? GetEnclosingNamedType()
-            {
-                return lazyEnclosingNamedType ??= semanticModel.GetEnclosingNamedType(position, cancellationToken);
-            }
-
-            void AddTypeIfNotAdded()
-            {
-                if (addedType)
-                    return;
-
-                addedType = true;
-                context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                    displayText,
-                    displayTextSuffix: "",
-                    symbols: ImmutableArray.Create(symbol),
-                    rules: s_enumTypeRules,
-                    contextPosition: position,
-                    sortText: sortText));
             }
         }
 

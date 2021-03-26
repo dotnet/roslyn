@@ -48,7 +48,7 @@ readonly struct Colors
 ";
 
             await VerifyItemExistsAsync(markup + colors, "Colors");
-            await VerifyItemExistsAsync(markup + colorsLike, "Colors");
+            await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
         [Fact]
@@ -71,25 +71,9 @@ public enum Goo
 {
     Member
 }";
-            var referencedCode_EnumLike = @"
-[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
-public readonly struct Goo
-{
-    public static readonly Goo Member;
-}";
-
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Goo",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 1,
-                sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp);
-
-            await VerifyItemInEditorBrowsableContextsAsync(
-                markup: markup,
-                referencedCode: referencedCode_EnumLike,
                 item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
@@ -117,25 +101,9 @@ public enum Goo
 {
     Member
 }";
-            var referencedCode_EnumLike = @"
-[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-public readonly struct Goo
-{
-    public static readonly Goo Member;
-}";
-
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Goo",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 0,
-                sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp);
-
-            await VerifyItemInEditorBrowsableContextsAsync(
-                markup: markup,
-                referencedCode: referencedCode_EnumLike,
                 item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
@@ -163,13 +131,6 @@ public enum Goo
 {
     Member
 }";
-            var referencedCode_EnumLike = @"
-[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
-public enum Goo
-{
-    Member
-}";
-
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -183,26 +144,6 @@ public enum Goo
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
-                item: "Goo",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 1,
-                sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
-
-            await VerifyItemInEditorBrowsableContextsAsync(
-                markup: markup,
-                referencedCode: referencedCode_EnumLike,
-                item: "Goo",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 0,
-                sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
-
-            await VerifyItemInEditorBrowsableContextsAsync(
-                markup: markup,
-                referencedCode: referencedCode_EnumLike,
                 item: "Goo",
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
@@ -260,7 +201,11 @@ class Program
         yield return $$
     }}
 }}";
-            await VerifyItemExistsAsync(markup, typeName);
+
+            if (typeName == nameof(DayOfWeek))
+                await VerifyItemExistsAsync(markup, typeName);
+            else
+                await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
         [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
@@ -283,7 +228,11 @@ class Program
         }}
     }}
 }}";
-            await VerifyItemExistsAsync(markup, typeName);
+
+            if (typeName == nameof(DayOfWeek))
+                await VerifyItemExistsAsync(markup, typeName);
+            else
+                await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
         [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
@@ -304,7 +253,11 @@ class Program
         return $$
     }}
 }}";
-            await VerifyItemExistsAsync(markup, typeName);
+
+            if (typeName == nameof(DayOfWeek))
+                await VerifyItemExistsAsync(markup, typeName);
+            else
+                await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -322,7 +275,11 @@ class Program
         return _ => $$
     }}
 }}";
-            await VerifyItemExistsAsync(markup, typeName);
+
+            if (typeName == nameof(DayOfWeek))
+                await VerifyItemExistsAsync(markup, typeName);
+            else
+                await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -340,7 +297,11 @@ class Program
         return () => $$
     }}
 }}";
-            await VerifyItemExistsAsync(markup, typeName);
+
+            if (typeName == nameof(DayOfWeek))
+                await VerifyItemExistsAsync(markup, typeName);
+            else
+                await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -485,7 +446,11 @@ class Program
         return _ => $$
     }}
 }}";
-            await VerifyItemExistsAsync(markup, typeName);
+
+            if (typeName == nameof(DayOfWeek))
+                await VerifyItemExistsAsync(markup, typeName);
+            else
+                await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -504,7 +469,11 @@ class Program
         return () => $$
     }}
 }}";
-            await VerifyItemExistsAsync(markup, typeName);
+
+            if (typeName == nameof(DayOfWeek))
+                await VerifyItemExistsAsync(markup, typeName);
+            else
+                await VerifyItemIsAbsentAsync(markup, typeName);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -663,7 +632,11 @@ class Program
         D d=  $$
     }}
 }}";
-            await VerifyItemExistsAsync(markup, "D");
+
+            if (fullTypeName == "System.Globalization.DigitShapes")
+                await VerifyItemExistsAsync(markup, "D");
+            else
+                await VerifyItemIsAbsentAsync(markup, "D");
         }
 
         [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
@@ -686,7 +659,11 @@ class Program
 }}
 }}
 ";
-            await VerifyItemExistsAsync(markup, "D");
+
+            if (fullTypeName == "System.Globalization.DigitShapes")
+                await VerifyItemExistsAsync(markup, "D");
+            else
+                await VerifyItemIsAbsentAsync(markup, "D");
         }
 
         [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
@@ -713,7 +690,11 @@ class Program
 }}
 }}
 ";
-            await VerifyItemExistsAsync(markup, "D");
+
+            if (fullTypeName == "System.Globalization.DigitShapes")
+                await VerifyItemExistsAsync(markup, "D");
+            else
+                await VerifyItemIsAbsentAsync(markup, "D");
         }
 
         [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
@@ -775,7 +756,7 @@ readonly struct Colors
 ";
 
             await VerifyItemExistsAsync(markup + colors, "Colors");
-            await VerifyItemExistsAsync(markup + colorsLike, "Colors");
+            await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
         [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
@@ -806,7 +787,7 @@ readonly struct Colors
 ";
 
             await VerifyItemExistsAsync(markup + colors, "Colors");
-            await VerifyItemExistsAsync(markup + colorsLike, "Colors");
+            await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
