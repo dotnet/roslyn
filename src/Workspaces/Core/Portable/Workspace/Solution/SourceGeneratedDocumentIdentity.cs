@@ -49,8 +49,10 @@ namespace Microsoft.CodeAnalysis
             hashInput.AddRange(0, 0);
             hashInput.AddRange(Encoding.Unicode.GetBytes(hintName));
 
-            // The particular choice of crypto algorithm here is arbitrary and can be always changed as necessary.
-            var hash = System.Security.Cryptography.SHA256.Create().ComputeHash(hashInput.ToArray());
+            // The particular choice of crypto algorithm here is arbitrary and can be always changed as necessary. The only requirement
+            // is it must be collision resistant, and provide enough bits to fill a GUID.
+            using var crytpoAlgorithm = System.Security.Cryptography.SHA256.Create();
+            var hash = crytpoAlgorithm.ComputeHash(hashInput.ToArray());
             Array.Resize(ref hash, 16);
             var guid = new Guid(hash);
 
