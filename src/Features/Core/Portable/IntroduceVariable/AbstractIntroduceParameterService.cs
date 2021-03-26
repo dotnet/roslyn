@@ -552,12 +552,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// }
         /// </summary>
         private async Task<Solution> ModifyDocumentInvocationsAndIntroduceParameterAsync(Compilation compilation,
-            Document originalDocument, Document document, Solution modifiedSolution, IMethodSymbol methodSymbol,
+            Document originalDocument, Document document, Solution modifiedSolution,
+            Dictionary<TIdentifierNameSyntax, IParameterSymbol> mappingDictionary, IMethodSymbol methodSymbol,
             SyntaxNode containingMethod, TExpressionSyntax expressionCopy, TExpressionSyntax expression,
             bool allOccurrences, string parameterName,
             ImmutableArray<TInvocationExpressionSyntax> invocations, CancellationToken cancellationToken)
         {
-            var mappingDictionary = await MapExpressionToParametersAsync(originalDocument, expressionCopy, cancellationToken).ConfigureAwait(false);
             var generator = SyntaxGenerator.GetGenerator(document);
             var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // Need a copy of the expression to use to find the original expression
             // because it gets modified when tracking the nodes.
             var expressionCopy = expression;
-            var mappingDictionary = await MapExpressionToParametersAsync(originalDocument, expression, cancellationToken).ConfigureAwait(false);
+            var mappingDictionary = await MapExpressionToParametersAsync(originalDocument, expressionCopy, cancellationToken).ConfigureAwait(false);
 
             // Need to track the nodes in the expression so that they can be found later.
             expression = expression.TrackNodes(mappingDictionary.Keys);
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 foreach (var (document, invocations) in projectCallSites)
                 {
                     modifiedSolution = await ModifyDocumentInvocationsAndIntroduceParameterAsync(compilation,
-                        originalDocument, document, modifiedSolution, methodSymbol, containingMethod, expressionCopy,
+                        originalDocument, document, modifiedSolution, mappingDictionary, methodSymbol, containingMethod, expressionCopy,
                         expression, allOccurrences, parameterName, invocations, cancellationToken).ConfigureAwait(false);
                 }
             }
