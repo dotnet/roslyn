@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, solution);
             // This is created in the xaml file.
             margin.DataContext = viewModel;
-            var contextMenu = margin.ContextMenu!;
+            var contextMenu = margin.ContextMenu;
             contextMenu.DataContext = viewModel;
             contextMenu.Style = (Style)margin.FindResource(SingleMemberContextMenuStyle);
             return margin;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, solution);
             // This is created in the xaml file.
             margin.DataContext = viewModel;
-            var contextMenu = margin.ContextMenu!;
+            var contextMenu = margin.ContextMenu;
             contextMenu.DataContext = viewModel;
             contextMenu.Style = (Style)margin.FindResource(MultipleMembersContextMenuStyle);
             return margin;
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             {
                 _waitIndicator.Wait(
                     title: EditorFeaturesResources.Navigating,
-                    message: EditorFeaturesResources.Navigating_to_definition,
+                    message: string.Format(EditorFeaturesWpfResources.Navigate_to_0, viewModel.DisplayName) ,
                     allowCancel: true,
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
