@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         /// <summary>
-        /// Introduces a new parameter and refactors all the call sites
+        /// Introduces a new parameter and refactors all the call sites.
         /// </summary>
         public async Task<Solution> IntroduceParameterAsync(Document document, TExpressionSyntax expression,
             IMethodSymbol methodSymbol, SyntaxNode containingMethod, bool allOccurrences, bool trampoline, bool overload,
@@ -105,6 +105,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Gets the parameter name, if the expression's grandparent is a variable declarator then it just gets the
+        /// local declarations name. Otherwise, it generates a name based on the context of the expression.
+        /// </summary>
         private static async Task<string> GetNewParameterNameAsync(Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
             if (ShouldRemoveVariableDeclaratorContainingExpression(document, expression, out var varDeclName))
@@ -117,6 +121,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: false, cancellationToken);
         }
 
+        /// <summary>
+        /// Determines if the expression's grandparent is a variable declarator and if so,
+        /// returns the name
+        /// </summary>
         protected static bool ShouldRemoveVariableDeclaratorContainingExpression(
             Document document, TExpressionSyntax expression, [NotNullWhen(true)] out string? varDeclName)
         {
@@ -135,7 +143,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// <summary>
         /// Locates all the call sites of the method that introduced the parameter
         /// </summary>
-        /// <returns>Dictionary tying all the invocations to each corresponding document</returns>
         protected static async Task<ImmutableDictionary<Document, ImmutableArray<TInvocationExpressionSyntax>>> FindCallSitesAsync(
             Document document, IMethodSymbol methodSymbol, CancellationToken cancellationToken)
         {
@@ -186,6 +193,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return methodCallSitesBuilder.ToImmutable();
         }
 
+        /// <summary>
+        /// If the parameter is optional and the invocation does not specify the parameter, then
+        /// a named argument needs to be introduced.
+        /// </summary>
         private static SeparatedSyntaxList<SyntaxNode> AddArgumentToArgumentList(
             SeparatedSyntaxList<SyntaxNode> invocationArguments, SyntaxGenerator generator,
             SyntaxNode newArgumentExpression, int insertionIndex, string name, bool named)
@@ -200,7 +211,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         /// <summary>
-        /// Generates a method declaration containing a return expression of the highlighted expression
+        /// Generates a method declaration containing a return expression of the highlighted expression.
         /// Example:
         /// public void M(int x, int y)
         /// {
@@ -222,7 +233,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private static async Task GenerateNewMethodAsync(Document document, TExpressionSyntax expression,
             IMethodSymbol methodSymbol, SyntaxNode containingMethod, string newMethodIdentifier, SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            // Remove trailing trivia because it adds spaces to the beginning of the following statement
+            // Remove trailing trivia because it adds spaces to the beginning of the following statement.
             var newStatements = SpecializedCollections.SingletonEnumerable(editor.Generator.ReturnStatement(expression.WithoutTrailingTrivia()));
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -234,7 +245,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         /// <summary>
-        /// Generates a method declaration containing a call to the method that introduced the parameter
+        /// Generates a method declaration containing a call to the method that introduced the parameter.
         /// Example:
         /// public void M(int x, int y)
         /// {
@@ -259,7 +270,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var generator = editor.Generator;
             var arguments = generator.CreateArguments(methodSymbol.Parameters);
 
-            // Remove trailing trivia because it adds spaces to the beginning of the following statement
+            // Remove trailing trivia because it adds spaces to the beginning of the following statement.
             arguments = arguments.Add(generator.Argument(expression.WithoutTrailingTrivia()));
             var memberName = methodSymbol.IsGenericMethod
                 ? generator.GenericName(methodSymbol.Name, methodSymbol.TypeArguments)
@@ -278,6 +289,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             editor.InsertBefore(containingMethod, newMethodDeclaration);
         }
 
+        /// <summary>
+        /// Gets the matches of the expression and replaces them with the identifier.
+        /// Special case for the original matching expression, if its parent is a LocalDeclarationStatement then it can
+        /// be removed.
+        /// Otherwise, it needs to have a rename annotation added to it.
+        /// </summary>
         public static async Task UpdateExpressionInOriginalFunctionAsync(Document document,
             TExpressionSyntax expression, SyntaxNode scope, string parameterName, SyntaxEditor editor,
             bool allOccurrences, CancellationToken cancellationToken)
@@ -291,7 +308,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             foreach (var match in matches)
             {
                 // Special case the removal of the originating expression to either remove the local declaration
-                // or to add a rename annotation
+                // or to add a rename annotation.
                 if (!match.Equals(expression))
                 {
                     editor.ReplaceNode(match, replacement);
@@ -306,7 +323,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     }
                     else
                     {
-                        // Getting the SyntaxToken and adding a rename annotation to the identifier
+                        // Getting the SyntaxToken and adding a rename annotation to the identifier.
                         replacement = (TIdentifierNameSyntax)generator.IdentifierName(generator.Identifier(parameterName)
                             .WithAdditionalAnnotations(RenameAnnotation.Create()));
                         editor.ReplaceNode(match, replacement);
@@ -317,7 +334,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         /// <summary>
         /// Goes through the parameters of the original method to get the location that the parameter
-        /// and argument should be introduced
+        /// and argument should be introduced.
         /// </summary>
         private static int GetInsertionIndex(Compilation compilation, IMethodSymbol methodSymbol,
             ISyntaxFactsService syntaxFacts, SyntaxNode methodDeclaration)
@@ -342,9 +359,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         /// <summary>
         /// For the trampoline case, it goes through the invocations and adds an argument which is a 
-        /// call to the extracted method
-        /// Introduces a new method overload or new trampoline method
-        /// Updates the original method site with a newly introduced parameter
+        /// call to the extracted method.
+        /// Introduces a new method overload or new trampoline method.
+        /// Updates the original method site with a newly introduced parameter.
         /// </summary>
         private static async Task<Solution> ModifyDocumentInvocationsTrampolineAndIntroduceParameterAsync(
             Compilation compilation, Solution modifiedSolution, Document currentDocument, Document originalDocument,
@@ -373,7 +390,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
             }
 
-            // If you are at the original document, then also introduce the new method and introduce the parameter
+            // If you are at the original document, then also introduce the new method and introduce the parameter.
             if (currentDocument.Id == originalDocument.Id)
             {
                 if (trampoline)
@@ -397,7 +414,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             return modifiedSolution.WithDocumentSyntaxRoot(originalDocument.Id, editor.GetChangedRoot());
 
-            // Adds an argument which is an invocation of the newly created method to the callsites 
+            // Adds an argument which is an invocation of the newly created method to the callsites
             // of the method invocations where a parameter was added.
             // Example:
             // public void M(int x, int y)
@@ -441,7 +458,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         /// <summary>
         /// Goes through all of the invocations and replaces the expression with identifiers from the invocation 
-        /// arguments and rewrites the call site with the updated expression as a new argument
+        /// arguments and rewrites the call site with the updated expression as a new argument.
         /// </summary>
         private static async Task<Solution> RewriteSolutionWithNewMethodAsync(
             Document originalDocument, TExpressionSyntax expression, IMethodSymbol methodSymbol,
@@ -467,7 +484,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         /// <summary>
         /// This method iterates through the arguments at the invocation location and maps them back
-        /// to the identifiers in the expression to create a new expression as an argument
+        /// to the identifiers in the expression to create a new expression as an argument.
         /// </summary>
         private (TExpressionSyntax, bool) CreateNewArgumentExpression(SemanticModel invocationSemanticModel,
             Document document, ISyntaxFactsService syntaxFacts, Dictionary<TIdentifierNameSyntax, IParameterSymbol> mappingDictionary,
@@ -496,7 +513,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
 
                 // This is special cased for optional parameters: if the invocation does not have an argument 
-                // corresponding to the optional parameter, then it generates an expression from the optional parameter
+                // corresponding to the optional parameter, then it generates an expression from the optional parameter.
                 if (mappedParameter.HasExplicitDefaultValue && !parameterMapped)
                 {
                     parameterIsNamed = true;
@@ -510,8 +527,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         /// <summary>
-        /// This method goes through all the invocation sites and adds a new argument with the expression to be added
-        /// It also introduces a parameter at the original method site
+        /// This method goes through all the invocation sites and adds a new argument with the expression to be added.
+        /// It also introduces a parameter at the original method site.
         /// 
         /// Example:
         /// public void M(int x, int y)
@@ -576,14 +593,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 });
             }
 
-            // If you are at the original document, then also introduce the new method and introduce the parameter
+            // If you are at the original document, then also introduce the new method and introduce the parameter.
             if (document.Id == originalDocument.Id)
             {
-                await UpdateExpressionInOriginalFunctionAsync(originalDocument, expressionCopy, containingMethod, parameterName, editor, allOccurrences, cancellationToken).ConfigureAwait(false);
+                await UpdateExpressionInOriginalFunctionAsync(originalDocument, expressionCopy, containingMethod,
+                    parameterName, editor, allOccurrences, cancellationToken).ConfigureAwait(false);
                 var semanticModel = await originalDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var parameterType = semanticModel.GetTypeInfo(expressionCopy, cancellationToken).Type ?? semanticModel.Compilation.ObjectType;
+                var parameterType = semanticModel.GetTypeInfo(expressionCopy, cancellationToken).Type ??
+                    semanticModel.Compilation.ObjectType;
                 var refKind = syntaxFacts.GetRefKindOfArgument(expressionCopy);
-                var parameter = generator.ParameterDeclaration(name: parameterName, type: generator.TypeExpression(parameterType), refKind: refKind);
+                var parameter = generator.ParameterDeclaration(name: parameterName,
+                    type: generator.TypeExpression(parameterType), refKind: refKind);
                 editor.InsertParameter(containingMethod, insertionIndex, parameter);
             }
 
@@ -592,7 +612,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
         /// <summary>
         /// Goes through all of the invocations and replaces the expression with identifiers from the invocation 
-        /// arguments and rewrites the call site with the updated expression as a new argument
+        /// arguments and rewrites the call site with the updated expression as a new argument.
         /// </summary>
         private async Task<Solution> RewriteSolutionAsync(Document originalDocument,
             TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
@@ -600,11 +620,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             bool allOccurrences, string parameterName, CancellationToken cancellationToken)
         {
             // Need a copy of the expression to use to find the original expression
-            // Because it gets modified when tracking the nodes
+            // because it gets modified when tracking the nodes.
             var expressionCopy = expression;
             var mappingDictionary = await MapExpressionToParametersAsync(originalDocument, expression, cancellationToken).ConfigureAwait(false);
 
-            // Need to track the nodes in the expression so that they can be found later
+            // Need to track the nodes in the expression so that they can be found later.
             expression = expression.TrackNodes(mappingDictionary.Keys);
             var identifiers = expression.DescendantNodes().Where(node => node is TIdentifierNameSyntax);
 
@@ -625,7 +645,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         /// <summary>
-        /// Ties the identifiers within the expression back to their associated parameter
+        /// Ties the identifiers within the expression back to their associated parameter.
         /// </summary>
         public static async Task<Dictionary<TIdentifierNameSyntax, IParameterSymbol>> MapExpressionToParametersAsync(
             Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
@@ -647,7 +667,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         /// <summary>
-        /// Determines if the expression is contained within something that is "parameterized"
+        /// Determines if the expression is something that should have code actions displayed for it.
+        /// Depends upon the identifiers in the expression mapping back to parameters.
+        /// Does not handle params parameters.
         /// </summary>
         private static async Task<(bool isParameterized, bool hasOptionalParameter)> ShouldExpressionDisplayCodeActionAsync(
             Document document, TExpressionSyntax expression, IMethodSymbol methodSymbol,
@@ -681,6 +703,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             return (methodSymbol != null && methodSymbol.GetParameters().Any(), hasOptionalParameter);
         }
 
+        /// <summary>
+        /// Creates new code actions for each introduce parameter possibility.
+        /// Does not create actions for overloads/trampoline if there are optional parameters or if the methodSymbol
+        /// is a constructor.
+        /// </summary>
         private async Task<ImmutableArray<CodeAction>> AddActionsAsync(Document document,
             TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
             CancellationToken cancellationToken)
@@ -714,6 +741,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             return actionsBuilder.ToImmutable();
 
+            // Local function to create a code action with more ease
             MyCodeAction CreateNewCodeAction(string actionName, Document document,
                 TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
                 bool allOccurrences, bool trampoline,
@@ -725,7 +753,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         /// <summary>
-        /// Finds the matches of the expression within the same block
+        /// Finds the matches of the expression within the same block.
         /// </summary>
         protected static async Task<IEnumerable<TExpressionSyntax>> FindMatchesAsync(Document originalDocument,
             TExpressionSyntax expressionInOriginal, SyntaxNode withinNodeInCurrent,
