@@ -62,28 +62,30 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         internal async Task SearchAsync()
         {
+            var isFullyLoaded = true;
+
             try
             {
+                var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+                isFullyLoaded = await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false);
+
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken);
                 using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
                 await _progress.AddItemsAsync(_solution.Projects.Count()).ConfigureAwait(false);
-
-                await SearchAllProjectsAsync().ConfigureAwait(false);
+                await SearchAllProjectsAsync(isFullyLoaded).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
             }
             finally
             {
-                var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-                var isFullyLoaded = await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false);
                 // providing this extra information will make UI to show indication to users
                 // that result might not contain full data
                 _callback.Done(isFullyLoaded);
             }
         }
 
-        private async Task SearchAllProjectsAsync()
+        private async Task SearchAllProjectsAsync(bool isFullyLoaded)
         {
             var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
             var processedProjects = new HashSet<Project>();
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // Search the active project first.  That way we can deliver results that are
                 // closer in scope to the user quicker without forcing them to do something like
                 // NavToInCurrentDoc
-                await Task.Run(() => SearchAsync(activeProject, priorityDocs, seenItems), _cancellationToken).ConfigureAwait(false);
+                await Task.Run(() => SearchAsync(activeProject, priorityDocs, seenItems, isFullyLoaded), _cancellationToken).ConfigureAwait(false);
             }
 
             // Now, process all visible docs that were not from the active project.
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 // make sure we only process this project if we didn't already process it above.
                 if (processedProjects.Add(currentProject))
-                    tasks.Add(Task.Run(() => SearchAsync(currentProject, priorityDocs.ToImmutableArray(), seenItems), _cancellationToken));
+                    tasks.Add(Task.Run(() => SearchAsync(currentProject, priorityDocs.ToImmutableArray(), seenItems, isFullyLoaded), _cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 // make sure we only process this project if we didn't already process it above.
                 if (processedProjects.Add(currentProject))
-                    tasks.Add(Task.Run(() => SearchAsync(currentProject, ImmutableArray<Document>.Empty, seenItems), _cancellationToken));
+                    tasks.Add(Task.Run(() => SearchAsync(currentProject, ImmutableArray<Document>.Empty, seenItems, isFullyLoaded), _cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -139,11 +141,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private async Task SearchAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
-            HashSet<INavigateToSearchResult> seenItems)
+            HashSet<INavigateToSearchResult> seenItems,
+            bool isFullyLoaded)
         {
             try
             {
-                await SearchCoreAsync(project, priorityDocuments, seenItems).ConfigureAwait(false);
+                await SearchCoreAsync(project, priorityDocuments, seenItems, isFullyLoaded).ConfigureAwait(false);
             }
             finally
             {
@@ -154,7 +157,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private async Task SearchCoreAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
-            HashSet<INavigateToSearchResult> seenItems)
+            HashSet<INavigateToSearchResult> seenItems,
+            bool isFullyLoaded)
         {
             if (_searchCurrentDocument && _currentDocument?.Project != project)
                 return;
