@@ -96,13 +96,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
 
         public void RemoveInterface(object element)
             => throw Exceptions.ThrowEFail();
-
-        object EnvDTE.CodeStruct.Extender => throw new NotImplementedException();
-
-        bool EnvDTE.CodeStruct.IsDerivedFrom => throw new NotImplementedException();
-
-        object EnvDTE80.CodeStruct2.Extender => throw new NotImplementedException();
-
-        bool EnvDTE80.CodeStruct2.IsDerivedFrom => throw new NotImplementedException();
     }
 }

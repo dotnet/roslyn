@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
@@ -68,9 +67,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 return FileCodeModel.AddEnumMember(LookupNode(), name, value, position);
             });
         }
-
-        object EnvDTE.CodeEnum.Extender => throw new NotImplementedException();
-
-        bool EnvDTE.CodeEnum.IsDerivedFrom => throw new NotImplementedException();
     }
 }

@@ -2678,11 +2678,11 @@ class C
         End Sub
 
         Private Function GetExtensionMethodExtender(codeElement As EnvDTE80.CodeFunction2) As ICSExtensionMethodExtender
-            Return CType(codeElement.Extender(), ICSExtensionMethodExtender)
+            Return CType(codeElement.get_Extender(ExtenderNames.ExtensionMethod), ICSExtensionMethodExtender)
         End Function
 
         Private Function GetPartialMethodExtender(codeElement As EnvDTE80.CodeFunction2) As ICSPartialMethodExtender
-            Return CType(codeElement.Extender(), ICSPartialMethodExtender)
+            Return CType(codeElement.get_Extender(ExtenderNames.PartialMethod), ICSPartialMethodExtender)
         End Function
 
         Protected Overrides Function ExtensionMethodExtender_GetIsExtension(codeElement As EnvDTE80.CodeFunction2) As Boolean

@@ -160,9 +160,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 UpdateNodeAndReacquireNodeKey(FileCodeModel.UpdateType, value, trackKinds: false);
             }
         }
-
-        object EnvDTE80.CodeEvent.Extender => throw new NotImplementedException();
-
-        string EnvDTE80.CodeEvent.Prototype => throw new NotImplementedException();
     }
 }

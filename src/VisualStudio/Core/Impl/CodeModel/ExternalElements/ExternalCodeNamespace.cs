@@ -67,7 +67,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
 
         public void Remove(object element)
             => throw Exceptions.ThrowEFail();
-
-        object EnvDTE.CodeNamespace.Extender => throw new NotImplementedException();
     }
 }

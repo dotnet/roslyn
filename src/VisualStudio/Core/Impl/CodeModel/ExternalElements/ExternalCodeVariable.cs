@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -140,13 +139,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                     : false;
             }
         }
-
-        object EnvDTE.CodeVariable.Extender => throw new NotImplementedException();
-
-        string EnvDTE.CodeVariable.Prototype => throw new NotImplementedException();
-
-        object EnvDTE80.CodeVariable2.Extender => throw new NotImplementedException();
-
-        string EnvDTE80.CodeVariable2.Prototype => throw new NotImplementedException();
     }
 }

@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -15,9 +14,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Design;
 using Microsoft.VisualStudio.Shell.Interop;
-
-// This assembly is currently broken due to interop limitations. Force the runtime to reject it.
-[assembly: ReferenceAssembly]
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -157,14 +153,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 try
                 {
-                    throw new NotSupportedException();
-#if false
                     var frameworkProvider = new VsTargetFrameworkProvider(
                         (IVsFrameworkMultiTargeting)_serviceProvider.GetService(typeof(SVsFrameworkMultiTargeting)),
                         targetMoniker,
                         (IVsSmartOpenScope)_serviceProvider.GetService(typeof(SVsSmartOpenScope)));
                     return frameworkProvider.GetReflectionAssembly(new AssemblyName(assemblyName));
-#endif
                 }
                 catch (InvalidOperationException)
                 {

@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
@@ -218,13 +217,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             pBaseName = typeSymbol.BaseType.ToDisplayString(s_BaseNameFormat);
             return VSConstants.S_OK;
         }
-
-        object EnvDTE.CodeClass.Extender => throw new NotImplementedException();
-
-        bool EnvDTE.CodeClass.IsDerivedFrom => throw new NotImplementedException();
-
-        object EnvDTE80.CodeClass2.Extender => throw new NotImplementedException();
-
-        bool EnvDTE80.CodeClass2.IsDerivedFrom => throw new NotImplementedException();
     }
 }

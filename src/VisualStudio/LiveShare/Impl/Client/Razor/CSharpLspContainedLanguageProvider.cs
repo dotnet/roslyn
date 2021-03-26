@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 // This assembly is currently broken due to interop limitations. Force the runtime to reject it.
 [assembly: ReferenceAssembly]
 
-#if false
+#if false // PROTOTYPE: needs to be enabled
 
 using System;
 using System.ComponentModel.Composition;

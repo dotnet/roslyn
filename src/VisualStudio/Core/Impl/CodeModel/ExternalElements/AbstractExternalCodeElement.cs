@@ -7,17 +7,12 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-
-// This assembly is currently broken due to interop limitations. Force the runtime to reject it.
-[assembly: ReferenceAssembly]
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements
 {
@@ -299,10 +294,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
 
         public object get_Extender(string extenderName)
             => GetExtender(extenderName);
-
-        object EnvDTE.CodeElement.Extender => throw new NotImplementedException();
-
-        object EnvDTE80.CodeElement2.Extender => throw new NotImplementedException();
 
         public string ElementID
         {

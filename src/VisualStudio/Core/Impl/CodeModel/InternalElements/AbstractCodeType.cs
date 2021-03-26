@@ -243,9 +243,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 FileCodeModel.RemoveImplementedInterface(LookupNode(), element);
             });
         }
-
-        object EnvDTE.CodeType.Extender => throw new NotImplementedException();
-
-        bool EnvDTE.CodeType.IsDerivedFrom => throw new NotImplementedException();
     }
 }

@@ -147,9 +147,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         public new void Delete()
             => base.Delete();
-
-        object EnvDTE.CodeAttribute.Extender => throw new NotImplementedException();
-
-        object EnvDTE80.CodeAttribute2.Extender => throw new NotImplementedException();
     }
 }

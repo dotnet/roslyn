@@ -75,13 +75,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         #endregion
-
-        object EnvDTE.CodeInterface.Extender => throw new NotImplementedException();
-
-        bool EnvDTE.CodeInterface.IsDerivedFrom => throw new NotImplementedException();
-
-        object EnvDTE80.CodeInterface2.Extender => throw new NotImplementedException();
-
-        bool EnvDTE80.CodeInterface2.IsDerivedFrom => throw new NotImplementedException();
     }
 }

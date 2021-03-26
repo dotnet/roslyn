@@ -187,7 +187,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
             codeElement.Delete();
         }
-
-        object EnvDTE.CodeNamespace.Extender => throw new NotImplementedException();
     }
 }

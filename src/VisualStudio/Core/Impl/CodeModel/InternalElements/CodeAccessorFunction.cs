@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -294,13 +293,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             // TODO(DustinCa): Check VB
             throw Exceptions.ThrowEFail();
         }
-
-        object EnvDTE.CodeFunction.Extender => throw new NotImplementedException();
-
-        string EnvDTE.CodeFunction.Prototype => throw new NotImplementedException();
-
-        object EnvDTE80.CodeFunction2.Extender => throw new NotImplementedException();
-
-        string EnvDTE80.CodeFunction2.Prototype => throw new NotImplementedException();
     }
 }

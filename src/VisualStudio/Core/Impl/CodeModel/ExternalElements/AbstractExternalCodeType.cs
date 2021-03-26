@@ -4,9 +4,11 @@
 
 #nullable disable
 
-using System;
-using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -132,9 +134,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
 
         public void RemoveMember(object element)
             => throw Exceptions.ThrowEFail();
-
-        object EnvDTE.CodeType.Extender => throw new NotImplementedException();
-
-        bool EnvDTE.CodeType.IsDerivedFrom => throw new NotImplementedException();
     }
 }

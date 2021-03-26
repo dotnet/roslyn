@@ -431,7 +431,7 @@ End Namespace
 #End Region
 
         Private Function GetGenericExtender(codeElement As EnvDTE80.CodeInterface2) As IVBGenericExtender
-            Return CType(codeElement.Extender(), IVBGenericExtender)
+            Return CType(codeElement.get_Extender(ExtenderNames.VBGenericExtender), IVBGenericExtender)
         End Function
 
         Protected Overrides Function GenericNameExtender_GetBaseTypesCount(codeElement As EnvDTE80.CodeInterface2) As Integer

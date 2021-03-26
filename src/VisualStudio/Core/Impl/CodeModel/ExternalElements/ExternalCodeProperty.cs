@@ -174,13 +174,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                 throw Exceptions.ThrowEUnexpected();
             }
         }
-
-        object EnvDTE.CodeProperty.Extender => throw new NotImplementedException();
-
-        string EnvDTE.CodeProperty.Prototype => throw new NotImplementedException();
-
-        object EnvDTE80.CodeProperty2.Extender => throw new NotImplementedException();
-
-        string EnvDTE80.CodeProperty2.Prototype => throw new NotImplementedException();
     }
 }
