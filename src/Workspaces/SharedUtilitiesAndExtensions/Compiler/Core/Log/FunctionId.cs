@@ -512,5 +512,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         LSP_TimeInQueue = 484,
 
         Intellicode_UnknownIntent = 485,
+
+        LSP_CompletionListCacheMiss = 486,
     }
 }
