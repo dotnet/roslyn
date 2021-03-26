@@ -697,6 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (value)
                 {
                     var info = _moduleSymbol.Module.FindTargetAttribute(_handle, AttributeDescription.CallerArgumentExpressionAttribute);
+                    Debug.Assert(info.HasValue);
                     _moduleSymbol.Module.TryExtractStringValueFromAttribute(info.Handle, out var parameterName);
                     var parameters = ContainingSymbol.GetParameters();
                     for (int i = 0; i < parameters.Length; i++)
