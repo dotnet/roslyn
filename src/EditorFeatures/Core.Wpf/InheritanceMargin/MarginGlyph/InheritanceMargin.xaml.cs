@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         private readonly IThreadingContext _threadingContext;
         private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
         private readonly IWaitIndicator _waitIndicator;
-        private readonly Solution _solution;
+        private readonly Workspace _workspace;
 
         /// <summary>
         /// Note: This name is used in xaml file.
@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             IWaitIndicator waitIndicator,
-            Solution solution,
+            Workspace workspace,
             SingleMemberMarginViewModel viewModel)
         {
-            var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, solution);
+            var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, workspace);
             // This is created in the xaml file.
             margin.DataContext = viewModel;
             var contextMenu = margin.ContextMenu;
@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             IWaitIndicator waitIndicator,
-            Solution solution,
+            Workspace workspace,
             MultipleMembersMarginViewModel viewModel)
         {
-            var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, solution);
+            var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, workspace);
             // This is created in the xaml file.
             margin.DataContext = viewModel;
             var contextMenu = margin.ContextMenu;
@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             IWaitIndicator waitIndicator,
-            Solution solution)
+            Workspace workspace)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
-            _solution = solution;
+            _workspace = workspace;
             _waitIndicator = waitIndicator;
             InitializeComponent();
         }
@@ -92,12 +92,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
                     allowCancel: true,
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
-                        _solution,
+                        _workspace,
                         string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayName),
                         _threadingContext,
                         _streamingFindUsagesPresenter,
-                        context.CancellationToken)
-                );
+                        context.CancellationToken));
             }
         }
     }

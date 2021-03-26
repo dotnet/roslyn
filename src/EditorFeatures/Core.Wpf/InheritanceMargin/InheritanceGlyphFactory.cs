@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 var membersOnLine = inheritanceMarginTag.MembersOnLine;
                 Contract.ThrowIfTrue(membersOnLine.IsEmpty);
 
-                var solution = inheritanceMarginTag.Document.Project.Solution;
                 if (membersOnLine.Length == 1)
                 {
                     var viewModel = new SingleMemberMarginViewModel(inheritanceMarginTag);
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                         _threadingContext,
                         _streamingFindUsagesPresenter,
                         _waitIndicator,
-                        solution,
+                        inheritanceMarginTag.Workspace,
                         viewModel);
                 }
                 else
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                         _threadingContext,
                         _streamingFindUsagesPresenter,
                         _waitIndicator,
-                        solution,
+                        inheritanceMarginTag.Workspace,
                         viewModel);
                 }
             }
