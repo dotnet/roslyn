@@ -8631,6 +8631,36 @@ class C
         }
 
         [Fact]
+        public void Lambdas_ActiveStatementUpdate()
+        {
+            var src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        Func<int, int> f = (int a, int b) => <AS:0>a + b + 1</AS:0>;
+
+        <AS:1>f(2);</AS:1>
+    }
+}";
+            var src2 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        Func<int, int> f = (_, _) => <AS:0>10</AS:0>;
+
+        <AS:1>f(2);</AS:1>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
         public void Lambdas_ActiveStatementRemoved1()
         {
             var src1 = @"
