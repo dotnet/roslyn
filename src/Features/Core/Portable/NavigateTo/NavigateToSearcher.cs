@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 using (cacheService.EnableCaching(project.Id))
                 {
-                    var service = GetSearchService(project);
+                    var service = project.GetLanguageService<INavigateToSearchService>();
                     if (service != null)
                     {
                         var searchTask = _currentDocument != null
@@ -187,16 +187,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     }
                 }
             }
-        }
-
-        private static INavigateToSearchService? GetSearchService(Project project)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacySearchService = project.GetLanguageService<INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService>();
-            return legacySearchService != null
-                ? new WrappedNavigateToSearchService(legacySearchService)
-                : project.GetLanguageService<INavigateToSearchService>();
-#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }
