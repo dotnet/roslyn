@@ -7,9 +7,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Utilities;
@@ -63,20 +63,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns></returns>
         public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
-            => await _encService.StartDebuggingSessionAsync(solution, captureMatchingDocuments: true, cancellationToken).ConfigureAwait(false);
+            => await _encService.StartDebuggingSessionAsync(solution, DebuggerService.Instance, captureMatchingDocuments: true, cancellationToken).ConfigureAwait(false);
 
         public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
-            _encService.StartEditSession(DebuggerService.Instance, out _);
-
             var results = await _encService.EmitSolutionUpdateAsync(solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Ready)
             {
-                _encService.CommitSolutionUpdate();
+                _encService.CommitSolutionUpdate(out _);
             }
-
-            _encService.EndEditSession(out _);
 
             if (results.ModuleUpdates.Status == ManagedModuleUpdateStatus.Blocked)
             {
@@ -86,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Watch.Api
             var updates = results.ModuleUpdates.Updates.SelectAsArray(
                 update => new Update(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta));
 
-            var diagnostics = results.Diagnostics.SelectMany(d => d.Diagnostic).ToImmutableArray();
+            var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
 
             return (updates, diagnostics);
         }
