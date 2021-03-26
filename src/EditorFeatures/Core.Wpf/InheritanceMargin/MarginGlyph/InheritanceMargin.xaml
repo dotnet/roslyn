@@ -47,7 +47,6 @@
         <Style x:Key="TargetMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
             <Setter Property="Header" Value="{Binding  DisplayName}"/>
-            <Setter Property="ToolTip" Value="{Binding ToolTip}"/>
             <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
             <Setter Property="IsCheckable" Value="False"/>
             <EventSetter Event="Click" Handler="TargetMenuItem_OnClick"/>
@@ -113,7 +112,6 @@
         <Style x:Key="MemberMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
             <Setter Property="Header" Value="{Binding DisplayName}"/>
-            <Setter Property="ToolTip" Value="{Binding ToolTip}"/>
             <Setter Property="ItemsSource" Value="{Binding Targets}"/>
             <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
             <Setter Property="IsCheckable" Value="False"/>
@@ -212,4 +210,3 @@
         <ContextMenu/>
     </Button.ContextMenu>
 </Button>
-

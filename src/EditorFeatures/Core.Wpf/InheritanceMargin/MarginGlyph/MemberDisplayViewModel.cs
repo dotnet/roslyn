@@ -25,11 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public string DisplayName { get; }
 
         /// <summary>
-        /// ToolTip for the MenuItem.
-        /// </summary>
-        public string ToolTip { get; }
-
-        /// <summary>
         /// Inheritance Targets for this member.
         /// </summary>
         public ImmutableArray<TargetDisplayViewModel> Targets { get; }
@@ -43,8 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         {
             ImageMoniker = member.Glyph.GetImageMoniker();
             DisplayName = member.DisplayName;
-            ToolTip = string.Format(EditorFeaturesWpfResources.Click_to_view_all_inheritance_targets_for_0, member.DisplayName);
-            AutomationName = ToolTip;
+            AutomationName = member.DisplayName;
             Targets = member.TargetItems.SelectAsArray(item => new TargetDisplayViewModel(item));
         }
     }

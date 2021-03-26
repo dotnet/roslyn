@@ -29,11 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public ImageMoniker ImageMoniker { get; }
 
         /// <summary>
-        /// ToolTip for the MenuItem.
-        /// </summary>
-        public string ToolTip { get; }
-
-        /// <summary>
         /// AutomationName for the MenuItem.
         /// </summary>
         public string AutomationName { get; }
@@ -43,8 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             var targetName = target.DefinitionItem.DisplayParts.JoinText();
             DisplayName = targetName;
             ImageMoniker = InheritanceMarginHelpers.GetMoniker(target.RelationToMember);
-            ToolTip = string.Format(EditorFeaturesWpfResources.Navigate_to_0, targetName);
-            AutomationName = ToolTip;
+            AutomationName = string.Format(EditorFeaturesWpfResources.Navigate_to_0, targetName);;
             DefinitionItem = target.DefinitionItem;
         }
     }
