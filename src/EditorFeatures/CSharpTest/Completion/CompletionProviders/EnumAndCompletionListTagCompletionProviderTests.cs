@@ -2001,6 +2001,31 @@ public class Color
             await VerifyItemExistsAsync(markup, "Color.Red");
         }
 
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        public async Task TestEnumLikeTypeKinds(string typeKeyword)
+        {
+            var markup = $@"
+public {typeKeyword} Color
+{{
+    public static readonly Color Red;
+}}
+
+class C
+{{
+    public void M(Color color)
+    {{
+        M($$
+    }}
+}}
+";
+
+            await VerifyItemExistsAsync(markup, "Color.Red");
+        }
+
         #endregion
     }
 }
