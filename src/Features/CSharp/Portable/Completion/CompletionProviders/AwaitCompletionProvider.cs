@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -56,8 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var method = syntaxContext.TargetToken.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
             if (method is not null && !method.GetModifiers().Any(SyntaxKind.AsyncKeyword))
             {
+                var asyncService = document.GetRequiredLanguageService<IMakeMethodAsynchronousService>();
                 var symbol = semanticModel.GetDeclaredSymbol(method, cancellationToken) as IMethodSymbol;
-                if (symbol is not null && IsTask(symbol.ReturnType))
+                if (symbol is not null && asyncService.IsTaskLikeType(symbol.ReturnType, new KnownTaskTypes(semanticModel.Compilation)))
                 {
                     context.AddItem(GetCompletionItem(shouldMakeContainerAsync: true));
                     return;
@@ -65,10 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             context.AddItem(GetCompletionItem(shouldMakeContainerAsync: false));
-
-            // Local functions.
-            static bool IsTask(ITypeSymbol returnType)
-                => returnType.Name is "Task" or "ValueTask";
 
             static CompletionItem GetCompletionItem(bool shouldMakeContainerAsync)
                 => CommonCompletionItem.Create(

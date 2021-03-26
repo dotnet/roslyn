@@ -17,15 +17,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 {
-    internal abstract partial class AbstractMakeMethodAsynchronousCodeFixProvider : CodeFixProvider
+    internal abstract class AbstractMakeMethodAsynchronousCodeFixProvider : CodeFixProvider
     {
         protected abstract bool IsAsyncSupportingFunctionSyntax(SyntaxNode node);
 
-        protected abstract bool IsAsyncReturnType(ITypeSymbol type, KnownTypes knownTypes);
-
         protected abstract SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
-            KnownTypes knownTypes);
+            IMakeMethodAsynchronousService makeAsyncService, KnownTaskTypes knownTaskTypes);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -48,8 +46,8 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             // method if we convert it.  The last is optional.  It is only needed to know
             // if our member is already Task-Like, and that functionality recognizes
             // ValueTask if it is available, but does not care if it is not.
-            var knownTypes = new KnownTypes(compilation);
-            if (knownTypes._taskType == null || knownTypes._taskOfTType == null)
+            var knownTypes = new KnownTaskTypes(compilation);
+            if (knownTypes.Task == null || knownTypes.TaskOfT == null)
             {
                 return;
             }
@@ -100,20 +98,23 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbolOpt = semanticModel.GetDeclaredSymbol(node, cancellationToken) as IMethodSymbol;
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var knownTypes = new KnownTypes(compilation);
 
-            if (NeedsRename(this, methodSymbolOpt, keepVoid, isEntryPoint, in knownTypes))
+            var makeAsyncService = document.GetRequiredLanguageService<IMakeMethodAsynchronousService>();
+            var knownTaskTypes = new KnownTaskTypes(compilation);
+            var isAsyncReturnType = makeAsyncService.IsAsyncReturnType(methodSymbolOpt.ReturnType, knownTaskTypes);
+
+            if (NeedsRename(methodSymbolOpt, keepVoid, isEntryPoint, isAsyncReturnType))
             {
                 return await RenameThenAddAsyncTokenAsync(
-                    keepVoid, document, node, methodSymbolOpt, knownTypes, cancellationToken).ConfigureAwait(false);
+                    keepVoid, document, node, methodSymbolOpt, makeAsyncService, knownTaskTypes, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 return await AddAsyncTokenAsync(
-                    keepVoid, document, methodSymbolOpt, knownTypes, node, cancellationToken).ConfigureAwait(false);
+                    keepVoid, document, methodSymbolOpt, makeAsyncService, knownTaskTypes, node, cancellationToken).ConfigureAwait(false);
             }
 
-            static bool NeedsRename(AbstractMakeMethodAsynchronousCodeFixProvider @this, IMethodSymbol methodSymbol, bool keepVoid, bool isEntryPoint, in KnownTypes knownTypes)
+            static bool NeedsRename(IMethodSymbol methodSymbol, bool keepVoid, bool isEntryPoint, bool isAsyncReturnType)
             {
                 if (!methodSymbol.IsOrdinaryMethodOrLocalFunction())
                 {
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 }
                 else
                 {
-                    return !@this.IsAsyncReturnType(methodSymbol.ReturnType, knownTypes);
+                    return !isAsyncReturnType;
                 }
             }
         }
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             Document document,
             SyntaxNode node,
             IMethodSymbol methodSymbol,
-            KnownTypes knownTypes,
+            IMakeMethodAsynchronousService makeAsyncService, KnownTaskTypes knownTaskTypes,
             CancellationToken cancellationToken)
         {
             var name = methodSymbol.Name;
@@ -176,7 +177,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             {
                 var semanticModel = await newDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var newMethod = (IMethodSymbol)semanticModel.GetDeclaredSymbol(newNode, cancellationToken);
-                return await AddAsyncTokenAsync(keepVoid, newDocument, newMethod, knownTypes, newNode, cancellationToken).ConfigureAwait(false);
+                return await AddAsyncTokenAsync(keepVoid, newDocument, newMethod, makeAsyncService, knownTaskTypes, newNode, cancellationToken).ConfigureAwait(false);
             }
 
             return newSolution;
@@ -186,48 +187,17 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             bool keepVoid,
             Document document,
             IMethodSymbol methodSymbolOpt,
-            KnownTypes knownTypes,
+            IMakeMethodAsynchronousService makeAsyncService, KnownTaskTypes knownTaskTypes,
             SyntaxNode node,
             CancellationToken cancellationToken)
         {
-            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, knownTypes);
+            var newNode = AddAsyncTokenAndFixReturnType(keepVoid, methodSymbolOpt, node, makeAsyncService, knownTaskTypes);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(node, newNode);
 
             var newDocument = document.WithSyntaxRoot(newRoot);
             return newDocument.Project.Solution;
-        }
-
-        protected static bool IsTaskLike(ITypeSymbol returnType, KnownTypes knownTypes)
-        {
-            if (returnType.Equals(knownTypes._taskType))
-            {
-                return true;
-            }
-
-            if (returnType.Equals(knownTypes._valueTaskType))
-            {
-                return true;
-            }
-
-            if (returnType.OriginalDefinition.Equals(knownTypes._taskOfTType))
-            {
-                return true;
-            }
-
-            if (returnType.OriginalDefinition.Equals(knownTypes._valueTaskOfTTypeOpt))
-            {
-                return true;
-            }
-
-            if (returnType.IsErrorType())
-            {
-                return returnType.Name.Equals("Task") ||
-                       returnType.Name.Equals("ValueTask");
-            }
-
-            return false;
         }
 
         private class MyCodeAction : CodeAction.SolutionChangeAction
