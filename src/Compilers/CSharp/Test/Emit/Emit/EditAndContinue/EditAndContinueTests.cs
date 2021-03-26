@@ -11566,6 +11566,36 @@ class C
             // There should be no diagnostics from rude edits
             diff.EmitResult.Diagnostics.Verify();
 
+            diff.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0#1_0#1, <M>b__0#1_0#1}");
+
+            diff.VerifyIL("C.M",
+                @"
+{
+    // Code size       48 (0x30)
+    .maxstack  3
+    .locals init (System.Func<int, int, int> V_0) //x
+    IL_0000:  nop
+    IL_0001:  ldsfld     ""System.Func<int, int, int> C.<>c.<>9__0#1_0#1""
+    IL_0006:  dup
+    IL_0007:  brtrue.s   IL_0020
+    IL_0009:  pop
+    IL_000a:  ldsfld     ""C.<>c C.<>c.<>9""
+    IL_000f:  ldftn      ""int C.<>c.<M>b__0#1_0#1(int, int)""
+    IL_0015:  newobj     ""System.Func<int, int, int>..ctor(object, System.IntPtr)""
+    IL_001a:  dup
+    IL_001b:  stsfld     ""System.Func<int, int, int> C.<>c.<>9__0#1_0#1""
+    IL_0020:  stloc.0
+    IL_0021:  ldloc.0
+    IL_0022:  ldc.i4.1
+    IL_0023:  ldc.i4.2
+    IL_0024:  callvirt   ""int System.Func<int, int, int>.Invoke(int, int)""
+    IL_0029:  call       ""void System.Console.WriteLine(int)""
+    IL_002e:  nop
+    IL_002f:  ret
+}");
+
             diff.VerifyIL("C.<>c.<M>b__0#1_0#1(int, int)", @"
 {
     // Code size        3 (0x3)

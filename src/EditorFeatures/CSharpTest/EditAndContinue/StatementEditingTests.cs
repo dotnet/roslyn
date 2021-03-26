@@ -4979,6 +4979,17 @@ class Program
             GetTopEdits(edits).VerifyRudeDiagnostics();
         }
 
+        [Fact]
+        public void Lambda_Parameter_To_Discard3()
+        {
+            var src1 = "var x = new Func<int, int, int>((_, _) => 10);";
+            var src2 = "var x = new Func<int, int, int>((int a, int b) => a + b + 1);";
+
+            var edits = GetMethodEdits(src1, src2);
+
+            GetTopEdits(edits).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ChangingLambdaParameters, "(int a, int b)", "lambda"));
+        }
+
         #endregion
 
         #region Local Functions
