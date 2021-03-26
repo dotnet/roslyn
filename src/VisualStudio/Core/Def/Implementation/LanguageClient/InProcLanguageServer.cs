@@ -22,6 +22,7 @@ using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LogHub;
+using Microsoft.VisualStudio.RpcContracts.Logging;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -158,9 +159,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var service = serviceContainer.GetFullAccessServiceBroker();
 
             var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
-            var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
-
-            traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
+            var logOptions = new RpcContracts.Logging.LoggerOptions(new LoggingLevelSettings(SourceLevels.ActivityTracing | SourceLevels.Information));
+            var traceSource = await configuration.RegisterLogSourceAsync(logId, logOptions, cancellationToken).ConfigureAwait(false);
 
             // Associate this trace source with the jsonrpc conduit.  This ensures that we can associate logs we report
             // with our callers and the operations they are performing.
