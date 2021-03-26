@@ -192,7 +192,7 @@ class C
 
             if (scheduleInitialTrackingBeforeOpenDoc)
             {
-                await trackingSession.TrackActiveSpansAsync(CancellationToken.None);
+                await trackingSession.TrackActiveSpansAsync(solution, CancellationToken.None);
 
                 var spans1 = trackingSession.Test_GetTrackingSpans();
                 AssertEx.Equal(new[]
@@ -219,7 +219,7 @@ class C
 
             if (!scheduleInitialTrackingBeforeOpenDoc)
             {
-                await trackingSession.TrackActiveSpansAsync(CancellationToken.None);
+                await trackingSession.TrackActiveSpansAsync(solution, CancellationToken.None);
 
                 var spans5 = trackingSession.Test_GetTrackingSpans();
                 AssertEx.Equal(new[]

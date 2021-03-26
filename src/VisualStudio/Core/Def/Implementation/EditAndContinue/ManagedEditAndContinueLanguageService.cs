@@ -85,6 +85,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 return;
             }
 
+            var solution = _proxy.Workspace.CurrentSolution;
+
             try
             {
                 await _proxy.BreakStateEnteredAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
@@ -97,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
             // Start tracking after we entered break state so that break-state session is active.
             // This is potentially costly operation but entering break state is non-blocking so it should be ok to await.
-            await _activeStatementTrackingService.StartTrackingAsync(cancellationToken).ConfigureAwait(false);
+            await _activeStatementTrackingService.StartTrackingAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 
         public Task ExitBreakStateAsync(CancellationToken cancellationToken)

@@ -2908,13 +2908,6 @@ class C { int Y => 1; }
             // tracking span update triggered by the edit:
             var trackedActiveSpans2 = ImmutableArray.Create(activeSpan21, activeSpan22);
 
-            baseSpans = await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(document2.Id), CancellationToken.None);
-            AssertEx.Equal(new[]
-            {
-                (activeLineSpan11, ActiveStatementFlags.IsNonLeafFrame),
-                (activeLineSpan12, ActiveStatementFlags.IsLeafFrame)
-            }, baseSpans.Single());
-
             currentSpans = await service.GetAdjustedActiveStatementSpansAsync(document2, _ => new(trackedActiveSpans2), CancellationToken.None);
             AssertEx.Equal(new[]
             {

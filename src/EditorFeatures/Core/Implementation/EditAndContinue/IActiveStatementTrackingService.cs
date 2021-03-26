@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     internal interface IActiveStatementTrackingService : IWorkspaceService
     {
-        ValueTask StartTrackingAsync(CancellationToken cancellationToken);
+        ValueTask StartTrackingAsync(Solution solution, CancellationToken cancellationToken);
 
         void EndTracking();
 
