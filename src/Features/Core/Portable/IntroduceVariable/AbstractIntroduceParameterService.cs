@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         ///     int f = x * y;
         /// }
         /// </summary>
-        private async Task GenerateNewMethodAsync(Document document, TExpressionSyntax expression,
+        private static async Task GenerateNewMethodAsync(Document document, TExpressionSyntax expression,
             IMethodSymbol methodSymbol, SyntaxNode containingMethod, string newMethodIdentifier, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             // Remove trailing trivia because it adds spaces to the beginning of the following statement
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// Introduces a new method overload or new trampoline method
         /// Updates the original method site with a newly introduced parameter
         /// </summary>
-        private async Task<Solution> ModifyDocumentInvocationsTrampolineAndIntroduceParameterAsync(
+        private static async Task<Solution> ModifyDocumentInvocationsTrampolineAndIntroduceParameterAsync(
             Compilation compilation, Solution modifiedSolution, Document currentDocument, Document originalDocument,
             ImmutableArray<TInvocationExpressionSyntax> invocations, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
             bool allOccurrences, string parameterName, TExpressionSyntax expression, bool trampoline, CancellationToken cancellationToken)
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// Goes through all of the invocations and replaces the expression with identifiers from the invocation 
         /// arguments and rewrites the call site with the updated expression as a new argument
         /// </summary>
-        private async Task<Solution> RewriteSolutionWithNewMethodAsync(
+        private static async Task<Solution> RewriteSolutionWithNewMethodAsync(
             Document originalDocument, TExpressionSyntax expression, IMethodSymbol methodSymbol,
             SyntaxNode containingMethod, bool allOccurrences, string parameterName,
             ImmutableDictionary<Document, ImmutableArray<TInvocationExpressionSyntax>> callSites, bool trampoline,

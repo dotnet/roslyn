@@ -449,6 +449,76 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestExpressionBodiedMemberOverload()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y, int z) => [|x * y * z|];
+
+    void M1(int x, int y, int z)
+    {
+        int prod = M(z, y, x);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    private int M(int x, int y, int z)
+    {
+        return M(x, y, z, x * y * z);
+    }
+
+    int M(int x, int y, int z, int v) => {|Rename:v|};
+
+    void M1(int x, int y, int z)
+    {
+        int prod = M(z, y, x);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestExpressionBodiedMemberTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y, int z) => [|x * y * z|];
+
+    void M1(int x, int y, int z)
+    {
+        int prod = M(z, y, x);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    private int M_v(int x, int y, int z)
+    {
+        return x * y * z;
+    }
+
+    int M(int x, int y, int z, int v) => {|Rename:v|};
+
+    void M1(int x, int y, int z)
+    {
+        int prod = M(z, y, x, M_v(z, y, x));
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
         public async Task TestSimpleExpressionCaseWithRecursiveCall()
         {
             var code =
