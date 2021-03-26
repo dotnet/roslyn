@@ -6883,6 +6883,16 @@ public record C : B
                 //     protected override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "PrintMembers").WithArguments("C.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(4, 29)
                 );
+
+            var source2 = @"
+public record C : B;
+";
+            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS8871: 'C.PrintMembers(StringBuilder)' does not override expected method from 'B'.
+                // public record C : B;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(2, 15)
+                );
         }
 
         [Fact]

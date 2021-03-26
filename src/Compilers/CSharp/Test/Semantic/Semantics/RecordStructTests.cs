@@ -5126,6 +5126,33 @@ record struct C1
         }
 
         [Fact]
+        public void ToString_CallingSynthesizedPrintMembers()
+        {
+            var src = @"
+var c1 = new C1(1, 2, 3);
+System.Console.Write(c1.ToString());
+System.Console.Write("" - "");
+c1.M();
+
+record struct C1(int I, int I2, int I3)
+{
+    public void M()
+    {
+        var builder = new System.Text.StringBuilder();
+        if (PrintMembers(builder))
+        {
+            System.Console.Write(builder.ToString());
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { I = 1, I2 = 2, I3 = 3 } - I = 1, I2 = 2, I3 = 3");
+        }
+
+        [Fact]
         public void ToString_UserDefinedPrintMembers_WrongAccessibility()
         {
             var src = @"
