@@ -94,8 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return await base.GetChangeAsync(document, completionItem, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
             }
 
-            // MethodDeclarationSyntax, LocalFunctionStatementSyntax, AnonymousMethodExpressionSyntax, ParenthesizedLambdaExpressionSyntax, SimpleLambdaExpressionSyntax.
-
             var documentWithAsyncModifier = document.WithSyntaxRoot(root.ReplaceNode(declaration, AddAsyncModifier(document, declaration)));
             var formattedDocument = await Formatter.FormatAsync(documentWithAsyncModifier, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
