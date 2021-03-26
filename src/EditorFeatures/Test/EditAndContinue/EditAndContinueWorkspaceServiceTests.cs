@@ -2974,10 +2974,6 @@ class C { int Y => 1; }
             EnterBreakState(service, activeStatements);
             var editSession = service.Test_GetEditSession();
 
-            // change the source (valid edit):
-            workspace.ChangeDocument(documentId, sourceTextV2);
-            var document2 = workspace.CurrentSolution.GetDocument(documentId);
-
             var baseSpans = await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(documentId), CancellationToken.None);
 
             if (isOutOfSync)
@@ -2992,6 +2988,10 @@ class C { int Y => 1; }
                     (activeLineSpan12, ActiveStatementFlags.IsLeafFrame)
                 }, baseSpans.Single());
             }
+
+            // change the source (valid edit):
+            workspace.ChangeDocument(documentId, sourceTextV2);
+            var document2 = workspace.CurrentSolution.GetDocument(documentId);
 
             // no active statements due to syntax error or out-of-sync document:
             var currentSpans = await service.GetAdjustedActiveStatementSpansAsync(document2, s_noDocumentActiveSpans, CancellationToken.None);
