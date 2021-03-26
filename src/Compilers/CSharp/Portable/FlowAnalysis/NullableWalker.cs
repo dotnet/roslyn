@@ -4146,7 +4146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand, targetType), trackMembers: false, AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
-            TypeWithState resultType = GetNullCoalescingResultType(rightResult, TypeWithState.Create(targetType.Type, NullableFlowState.NotNull));
+            TypeWithState resultType = TypeWithState.Create(targetType.Type, rightResult.State);
             SetResultType(node, resultType);
             return null;
         }
@@ -4200,21 +4200,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftResultType = leftResult.Type;
             var rightResultType = rightResult.Type;
 
-            var resultTypeWithLeftState = node.OperatorResultKind switch
+            var (resultType, leftState) = node.OperatorResultKind switch
             {
-                BoundNullCoalescingOperatorResultKind.NoCommonType => TypeWithState.Create(node.Type, NullableFlowState.NotNull),
+                BoundNullCoalescingOperatorResultKind.NoCommonType => (node.Type, NullableFlowState.NotNull),
                 BoundNullCoalescingOperatorResultKind.LeftType => getLeftResultType(leftResultType!, rightResultType!),
                 BoundNullCoalescingOperatorResultKind.LeftUnwrappedType => getLeftResultType(leftResultType!.StrippedType(), rightResultType!),
                 BoundNullCoalescingOperatorResultKind.RightType => getResultStateWithRightType(leftResultType!, rightResultType!),
                 BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType => getResultStateWithRightType(leftResultType!.StrippedType(), rightResultType!),
-                BoundNullCoalescingOperatorResultKind.RightDynamicType => TypeWithState.Create(rightResultType!, NullableFlowState.NotNull),
+                BoundNullCoalescingOperatorResultKind.RightDynamicType => (rightResultType!, NullableFlowState.NotNull),
                 _ => throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind),
             };
 
-            SetResultType(node, GetNullCoalescingResultType(rightResult, resultTypeWithLeftState));
+            SetResultType(node, TypeWithState.Create(resultType, rightResult.State.Join(leftState)));
             return null;
 
-            TypeWithState getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
+            (TypeSymbol ResultType, NullableFlowState LeftState) getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
                 Debug.Assert(rightType is object);
                 // If there was an identity conversion between the two operands (in short, if there
@@ -4224,20 +4224,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false) is { Exists: true } conversion)
                 {
                     Debug.Assert(!conversion.IsUserDefined);
-                    return TypeWithState.Create(rightType, NullableFlowState.NotNull);
+                    return (rightType, NullableFlowState.NotNull);
                 }
 
                 conversion = GenerateConversionForConditionalOperator(node.RightOperand, rightType, leftType, reportMismatch: true);
                 Debug.Assert(!conversion.IsUserDefined);
-                return TypeWithState.Create(leftType, NullableFlowState.NotNull);
+                return (leftType, NullableFlowState.NotNull);
             }
 
-            TypeWithState getResultStateWithRightType(TypeSymbol leftType, TypeSymbol rightType)
+            (TypeSymbol ResultType, NullableFlowState LeftState) getResultStateWithRightType(TypeSymbol leftType, TypeSymbol rightType)
             {
                 var conversion = GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
                 if (conversion.IsUserDefined)
                 {
-                    return VisitConversion(
+                    var conversionResult = VisitConversion(
                         conversionOpt: null,
                         node.LeftOperand,
                         conversion,
@@ -4251,15 +4251,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AssignmentKind.Assignment,
                         reportTopLevelWarnings: false,
                         reportRemainingWarnings: false);
+                    Debug.Assert(conversionResult.Type is not null);
+                    return (conversionResult.Type!, conversionResult.State);
                 }
 
-                return TypeWithState.Create(rightType, NullableFlowState.NotNull);
+                return (rightType, NullableFlowState.NotNull);
             }
-        }
-
-        private static TypeWithState GetNullCoalescingResultType(TypeWithState rightResult, TypeWithState resultTypeWithLeftState)
-        {
-            return TypeWithState.Create(resultTypeWithLeftState.Type, rightResult.State.Join(resultTypeWithLeftState.State));
         }
 
         public override BoundNode? VisitConditionalAccess(BoundConditionalAccess node)
