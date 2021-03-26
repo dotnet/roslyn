@@ -16,59 +16,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
     /// <summary>
     /// The <see cref="AwaitCompletionProvider"/> adds async modifier if the return type is Task or ValueTask.
-    /// The tests here are only when it does NOT add async modifier.
-    /// Tests when it adds async modifier are in:
+    /// The tests here are only checking whether the completion item is provided or not.
+    /// Tests for checking adding async modifier are in:
     /// src/EditorFeatures/Test2/IntelliSense/CSharpCompletionCommandHandlerTests_AwaitCompletion.vb
     /// </summary>
     [Trait(Traits.Feature, Traits.Features.Completion)]
     public class AwaitKeywordRecommenderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType() => typeof(AwaitCompletionProvider);
-
-        // Copy from:
-        // https://github.com/dotnet/roslyn/blob/71130c8d2c59c36b8c098bc77b1b281efdd40071/src/EditorFeatures/CSharpTest2/Recommendations/RecommenderTests.cs#L198
-        private static string AddInsideMethod(string text, bool isAsync = false, string returnType = "void", bool topLevelStatement = false)
-        {
-            if (topLevelStatement)
-            {
-                return returnType switch
-                {
-                    "void" => text,
-                    "int" => text,
-                    _ => throw new ArgumentException("Unsupported return type", nameof(returnType)),
-                };
-            }
-            var builder = new StringBuilder();
-            if (isAsync && returnType != "void")
-            {
-                builder.AppendLine("using System.Threading.Tasks;");
-            }
-            builder.AppendLine("class C");
-            builder.AppendLine("{");
-            builder.Append("  ");
-            if (isAsync)
-            {
-                builder.Append("async ");
-                if (returnType == "void")
-                {
-                    builder.Append("Task");
-                }
-                else
-                {
-                    builder.Append($"Task<{returnType}>");
-                }
-            }
-            else
-            {
-                builder.Append(returnType);
-            }
-            builder.AppendLine(" F()");
-            builder.AppendLine("  {");
-            builder.Append("    ").Append(text);
-            builder.AppendLine("  }");
-            builder.Append("}");
-            return builder.ToString();
-        }
 
         private async Task VerifyAbsenceAsync(string code)
         {
@@ -95,94 +50,218 @@ class Program
 }");
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task TestStatementInMethod(bool isAsync, bool topLevelStatement)
+        [Fact]
+        public async Task TestStatementInMethod()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"$$", isAsync: isAsync, topLevelStatement: topLevelStatement), LanguageVersion.CSharp9);
+            await VerifyKeywordAsync(@"
+class C
+{
+  void F()
+  {
+    $$  }
+}", LanguageVersion.CSharp9);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task TestExpressionInAsyncMethod(bool topLevelStatement)
+        [Fact]
+        public async Task TestStatementInMethod_Async()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"var z = $$", isAsync: true, topLevelStatement: topLevelStatement), LanguageVersion.CSharp9);
+            await VerifyKeywordAsync(@"
+class C
+{
+  async Task F()
+  {
+    $$  }
+}", LanguageVersion.CSharp9);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task TestUsingStatement(bool topLevelStatement)
+        [Fact]
+        public async Task TestStatementInMethod_TopLevel()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"using $$", topLevelStatement: topLevelStatement), LanguageVersion.CSharp9);
+            await VerifyKeywordAsync("$$", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestExpressionInAsyncMethod()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+  async Task F()
+  {
+    var z = $$  }
+}
+", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestExpressionInAsyncMethod_TopLevel()
+        {
+            await VerifyKeywordAsync("var z = $$", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestUsingStatement()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+  async Task F()
+  {
+    using $$  }
+}", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestUsingStatement_TopLevel()
+        {
+            await VerifyAbsenceAsync("using $$", LanguageVersion.CSharp9);
         }
 
         [Fact]
         public async Task TestUsingDirective()
             => await VerifyAbsenceAsync("using $$");
 
-        [Theory]
-        [CombinatorialData]
-        public async Task TestForeachStatement(bool topLevelStatement)
+        [Fact]
+        public async Task TestForeachStatement()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"foreach $$", topLevelStatement: topLevelStatement), LanguageVersion.CSharp9);
+            await VerifyAbsenceAsync(@"
+class C
+{
+  async Task F()
+  {
+    foreach $$  }
+}", LanguageVersion.CSharp9);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task TestNotInQuery(bool topLevelStatement)
+        [Fact]
+        public async Task TestForeachStatement_TopLevel()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyAbsenceAsync("foreach $$", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestNotInQuery()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+  async Task F()
+  {
+    var z = from a in ""char""
+          select $$  }
+    }
+", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestNotInQuery_TopLevel()
+        {
+            await VerifyAbsenceAsync(
 @"var z = from a in ""char""
-          select $$", isAsync: true, topLevelStatement: topLevelStatement), LanguageVersion.CSharp9);
+          select $$", LanguageVersion.CSharp9);
         }
 
         [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-        [Theory]
-        [CombinatorialData]
-        public async Task TestInFinally(bool topLevelStatement)
+        [Fact]
+        public async Task TestInFinally()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"try { }
-finally { $$ }", isAsync: true, topLevelStatement: topLevelStatement), LanguageVersion.CSharp9);
+            await VerifyKeywordAsync(@"
+class C
+{
+  async Task F()
+  {
+    try { }
+finally { $$ }  }
+}", LanguageVersion.CSharp9);
         }
 
         [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
-        [Theory]
-        [CombinatorialData]
-        public async Task TestInCatch(bool topLevelStatement)
+        [Fact]
+        public async Task TestInFinally_TopLevel()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            await VerifyKeywordAsync(
 @"try { }
-catch { $$ }", isAsync: true, topLevelStatement: topLevelStatement), LanguageVersion.CSharp9);
+finally { $$ }", LanguageVersion.CSharp9);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task TestNotInLock(bool topLevelStatement)
+        [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
+        [Fact]
+        public async Task TestInCatch()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
-@"lock(this) { $$ }", isAsync: true, topLevelStatement: topLevelStatement), LanguageVersion.CSharp9);
+            await VerifyKeywordAsync(@"
+class C
+{
+  async Task F()
+  {
+    try { }
+catch { $$ }  }
+}", LanguageVersion.CSharp9);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task TestInAsyncLambdaInCatch(bool topLevelStatement)
+        [WorkItem(907052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/907052")]
+        [Fact]
+        public async Task TestInCatch_TopLevel()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
+            await VerifyKeywordAsync(
 @"try { }
-catch { var z = async () => $$ }", isAsync: true, topLevelStatement: topLevelStatement), LanguageVersion.CSharp9);
+catch { $$ }", LanguageVersion.CSharp9);
         }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task TestAwaitInLock(bool topLevelStatement)
+        [Fact]
+        public async Task TestNotInLock()
         {
-            await VerifyKeywordAsync(AddInsideMethod(
-@"lock($$", isAsync: true, topLevelStatement: topLevelStatement), LanguageVersion.CSharp9);
+            await VerifyAbsenceAsync(@"
+class C
+{
+  async Task F()
+  {
+    lock(this) { $$ }  }
+}", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestNotInLock_TopLevel()
+        {
+            await VerifyAbsenceAsync("lock (this) { $$ }", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestInAsyncLambdaInCatch()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+  async Task F()
+  {
+    try { }
+catch { var z = async () => $$ }  }
+}", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestInAsyncLambdaInCatch_TopLevel()
+        {
+            await VerifyKeywordAsync(
+@"try { }
+catch { var z = async () => $$ }", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestAwaitInLock()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+  async Task F()
+  {
+    lock($$  }
+}", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestAwaitInLock_TopLevel()
+        {
+            await VerifyKeywordAsync("lock($$", LanguageVersion.CSharp9);
         }
     }
 }
