@@ -2882,18 +2882,18 @@ class C { int Y => 1; }
             var baseSpans = await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(document1.Id), CancellationToken.None);
             AssertEx.Equal(new[]
             {
-                $"({activeLineSpan11}, IsNonLeafFrame)",
-                $"({activeLineSpan12}, IsLeafFrame)"
-            }, baseSpans.Single().Select(s => s.ToString()));
+               (activeLineSpan11, ActiveStatementFlags.IsNonLeafFrame),
+               (activeLineSpan12, ActiveStatementFlags.IsLeafFrame)
+            }, baseSpans.Single());
 
             var trackedActiveSpans1 = ImmutableArray.Create(activeSpan11, activeSpan12);
 
             var currentSpans = await service.GetAdjustedActiveStatementSpansAsync(document1, (_) => new(trackedActiveSpans1), CancellationToken.None);
             AssertEx.Equal(new[]
             {
-                $"({activeLineSpan11}, IsNonLeafFrame)",
-                $"({activeLineSpan12}, IsLeafFrame)"
-            }, currentSpans.Select(s => s.ToString()));
+                (activeLineSpan11, ActiveStatementFlags.IsNonLeafFrame),
+                (activeLineSpan12, ActiveStatementFlags.IsLeafFrame)
+            }, currentSpans);
 
             Assert.Equal(activeLineSpan11,
                 await service.GetCurrentActiveStatementPositionAsync(document1.Project.Solution, (_, _) => new(trackedActiveSpans1), activeInstruction1, CancellationToken.None));
@@ -2908,19 +2908,12 @@ class C { int Y => 1; }
             // tracking span update triggered by the edit:
             var trackedActiveSpans2 = ImmutableArray.Create(activeSpan21, activeSpan22);
 
-            baseSpans = await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(document2.Id), CancellationToken.None);
-            AssertEx.Equal(new[]
-            {
-                $"({activeLineSpan11}, IsNonLeafFrame)",
-                $"({activeLineSpan12}, IsLeafFrame)"
-            }, baseSpans.Single().Select(s => s.ToString()));
-
             currentSpans = await service.GetAdjustedActiveStatementSpansAsync(document2, _ => new(trackedActiveSpans2), CancellationToken.None);
             AssertEx.Equal(new[]
             {
-                $"({adjustedActiveLineSpan1}, IsNonLeafFrame)",
-                $"({adjustedActiveLineSpan2}, IsLeafFrame)"
-            }, currentSpans.Select(s => s.ToString()));
+                (adjustedActiveLineSpan1, ActiveStatementFlags.IsNonLeafFrame),
+                (adjustedActiveLineSpan2, ActiveStatementFlags.IsLeafFrame)
+            }, currentSpans);
 
             Assert.Equal(adjustedActiveLineSpan1,
                 await service.GetCurrentActiveStatementPositionAsync(workspace.CurrentSolution, (_, _) => new(trackedActiveSpans2), activeInstruction1, CancellationToken.None));
@@ -2981,10 +2974,6 @@ class C { int Y => 1; }
             EnterBreakState(service, activeStatements);
             var editSession = service.Test_GetEditSession();
 
-            // change the source (valid edit):
-            workspace.ChangeDocument(documentId, sourceTextV2);
-            var document2 = workspace.CurrentSolution.GetDocument(documentId);
-
             var baseSpans = await service.GetBaseActiveStatementSpansAsync(workspace.CurrentSolution, ImmutableArray.Create(documentId), CancellationToken.None);
 
             if (isOutOfSync)
@@ -2995,10 +2984,14 @@ class C { int Y => 1; }
             {
                 AssertEx.Equal(new[]
                 {
-                    $"({activeLineSpan11}, IsNonLeafFrame)",
-                    $"({activeLineSpan12}, IsLeafFrame)"
-                }, baseSpans.Single().Select(s => s.ToString()));
+                    (activeLineSpan11, ActiveStatementFlags.IsNonLeafFrame),
+                    (activeLineSpan12, ActiveStatementFlags.IsLeafFrame)
+                }, baseSpans.Single());
             }
+
+            // change the source (valid edit):
+            workspace.ChangeDocument(documentId, sourceTextV2);
+            var document2 = workspace.CurrentSolution.GetDocument(documentId);
 
             // no active statements due to syntax error or out-of-sync document:
             var currentSpans = await service.GetAdjustedActiveStatementSpansAsync(document2, s_noDocumentActiveSpans, CancellationToken.None);
@@ -3156,6 +3149,133 @@ class C { int Y => 1; }
             AssertEx.Equal(new[]
             {
                 "0x06000003 v1 | AS (9,14)-(9,18) δ=5"
+            }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
+
+            ExitBreakState();
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// - F5
+        /// - edit, but not apply the edits
+        /// - break
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task BreakInPresenceOfUnappliedChanges()
+        {
+            var markedSource1 =
+@"class Test
+{
+    static bool B() => true;
+    static void G() { while (B()); <AS:0>}</AS:0>
+
+    static void F()
+    {
+        <AS:1>G();</AS:1>
+    }
+}";
+
+            var markedSource2 =
+@"class Test
+{
+    static bool B() => true;
+    static void G() { while (B()); <AS:0>}</AS:0>
+
+    static void F()
+    {
+        B();
+        <AS:1>G();</AS:1>
+    }
+}";
+
+            var markedSource3 =
+@"class Test
+{
+    static bool B() => true;
+    static void G() { while (B()); <AS:0>}</AS:0>
+
+    static void F()
+    {
+        B();
+        B();
+        <AS:1>G();</AS:1>
+    }
+}";
+
+            var moduleId = EmitAndLoadLibraryToDebuggee(ActiveStatementsDescription.ClearTags(markedSource1));
+
+            using var workspace = CreateWorkspace();
+            var project = AddDefaultTestProject(workspace, ActiveStatementsDescription.ClearTags(markedSource2));
+            var documentId = project.DocumentIds.Single();
+            var solution = project.Solution;
+
+            var service = CreateEditAndContinueService();
+            var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+            // Update to snapshot 2, but don't apply
+
+            solution = solution.WithDocumentText(documentId, SourceText.From(ActiveStatementsDescription.ClearTags(markedSource2), Encoding.UTF8));
+
+            // EnC update F v2 -> v3
+
+            EnterBreakState(service, GetActiveStatementDebugInfos(
+                new[] { markedSource1 },
+                modules: new[] { moduleId, moduleId },
+                methodRowIds: new[] { 2, 3 },
+                methodVersions: new[] { 1, 1 },
+                flags: new[]
+                {
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame,    // G
+                    ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame, // F
+                }));
+
+            // check that the active statement is mapped correctly to snapshot v2:
+            var expectedSpanG1 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
+            var expectedSpanF1 = new LinePositionSpan(new LinePosition(8, 14), new LinePosition(8, 18));
+
+            var activeInstructionF1 = new ManagedInstructionId(new ManagedMethodId(moduleId, 0x06000003, version: 1), ilOffset: 0);
+            var span = await service.GetCurrentActiveStatementPositionAsync(solution, s_noSolutionActiveSpans, activeInstructionF1, CancellationToken.None);
+            Assert.Equal(expectedSpanF1, span);
+
+            var spans = (await service.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+            AssertEx.Equal(new[]
+            {
+                (expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame),
+                (expectedSpanF1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame)
+            }, spans);
+
+            solution = solution.WithDocumentText(documentId, SourceText.From(ActiveStatementsDescription.ClearTags(markedSource3), Encoding.UTF8));
+
+            // check that the active statement is mapped correctly to snapshot v3:
+            var expectedSpanG2 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
+            var expectedSpanF2 = new LinePositionSpan(new LinePosition(9, 14), new LinePosition(9, 18));
+
+            span = await service.GetCurrentActiveStatementPositionAsync(solution, s_noSolutionActiveSpans, activeInstructionF1, CancellationToken.None);
+            Assert.Equal(expectedSpanF2, span);
+
+            spans = (await service.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
+            AssertEx.Equal(new[]
+            {
+                (expectedSpanG2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsLeafFrame),
+                (expectedSpanF2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.IsNonLeafFrame)
+            }, spans);
+
+            // no rude edits:
+            var document1 = solution.GetDocument(documentId);
+            var diagnostics = await service.GetDocumentDiagnosticsAsync(document1, s_noDocumentActiveSpans, CancellationToken.None);
+            Assert.Empty(diagnostics);
+
+            var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(service, solution);
+            Assert.Empty(emitDiagnostics);
+            Assert.Equal(0x06000003, updates.Updates.Single().UpdatedMethods.Single());
+            Assert.Equal(ManagedModuleUpdateStatus.Ready, updates.Status);
+
+            CommitSolutionUpdate(service);
+
+            AssertEx.Equal(new[]
+            {
+                "0x06000003 v1 | AS (7,14)-(7,18) δ=2",
             }, InspectNonRemappableRegions(debuggingSession.NonRemappableRegions));
 
             ExitBreakState();
