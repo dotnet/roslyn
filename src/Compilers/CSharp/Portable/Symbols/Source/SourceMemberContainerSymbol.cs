@@ -3666,12 +3666,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var tmp = this.BaseTypeNoUseSiteDiagnostics;
                     while (tmp is not null)
                     {
-                        var method = tmp.GetSimpleNonTypeMembers(WellKnownMemberNames.ObjectToString)
-                            .OfType<MethodSymbol>()
-                            .SingleOrDefault(m => m.GetLeastOverriddenMethod(null) == objectToString);
+                        foreach (var member in tmp.GetSimpleNonTypeMembers(WellKnownMemberNames.ObjectToString))
+                        {
+                            if (member is not MethodSymbol method)
+                                continue;
 
-                        if (method is not null)
-                            return method;
+                            if (method.GetLeastOverriddenMethod(null) == objectToString)
+                                return method;
+                        }
 
                         tmp = tmp.BaseTypeNoUseSiteDiagnostics;
                     }
