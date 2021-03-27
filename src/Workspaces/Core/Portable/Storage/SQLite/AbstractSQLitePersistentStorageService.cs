@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
             catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException)
             {
-                Console.WriteLine($"TryInitializeLibrariesLazy: {e}");
                 StorageDatabaseLogger.LogException(e);
                 return false;
             }
