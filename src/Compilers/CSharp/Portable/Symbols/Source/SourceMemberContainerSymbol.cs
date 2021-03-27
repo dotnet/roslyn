@@ -3662,12 +3662,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 MethodSymbol? getBaseToStringMethod()
                 {
+                    var objectToString = this.ContainingAssembly.GetDeclaredSpecialTypeMember(SpecialMember.System_Object__ToString);
                     var tmp = this.BaseTypeNoUseSiteDiagnostics;
                     while (tmp is not null)
                     {
                         var method = tmp.GetSimpleNonTypeMembers(WellKnownMemberNames.ObjectToString)
                             .OfType<MethodSymbol>()
-                            .SingleOrDefault(m => m.ParameterCount == 0 && m.ReturnType.SpecialType == SpecialType.System_String);
+                            .SingleOrDefault(m => m.GetLeastOverriddenMethod(null) == objectToString);
 
                         if (method is not null)
                             return method;
