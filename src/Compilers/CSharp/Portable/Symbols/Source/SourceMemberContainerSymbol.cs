@@ -3653,7 +3653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var toStringMethod = (MethodSymbol)existingToStringMethod;
                     if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialType.System_String, diagnostics) && toStringMethod.IsSealed && !IsSealed)
                     {
-                        MessageID.IDS_FeatureSealedRecordToString.CheckFeatureAvailability(
+                        MessageID.IDS_FeatureSealedToStringInRecord.CheckFeatureAvailability(
                             diagnostics,
                             this.DeclaringCompilation,
                             toStringMethod.Locations[0]);

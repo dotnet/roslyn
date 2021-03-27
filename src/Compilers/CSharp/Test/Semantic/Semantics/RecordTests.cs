@@ -5908,9 +5908,9 @@ record C2 : C1;
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,35): error CS8652: The feature 'sealed record ToString' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,35): error CS8652: The feature 'sealed ToString in record' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public sealed override string ToString() => throw null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed record ToString").WithLocation(7, 35)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(7, 35)
                     );
             }
         }
@@ -7076,9 +7076,9 @@ record C1
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,35): error CS8652: The feature 'sealed record ToString' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,35): error CS8652: The feature 'sealed ToString in record' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public sealed override string ToString() => throw null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed record ToString").WithLocation(4, 35)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(4, 35)
                     );
             }
         }
@@ -15431,9 +15431,9 @@ record B(int X, int Y) : A
                     // (3,33): error CS0111: Type 'A' already defines a member called 'Equals' with the same parameter types
                     //     public sealed override bool Equals(object other) => false;
                     Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Equals").WithArguments("Equals", "A").WithLocation(3, 33),
-                    // (5,35): error CS8652: The feature 'sealed record ToString' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,35): error CS8652: The feature 'sealed ToString in record' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public sealed override string ToString() => null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed record ToString").WithLocation(5, 35),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(5, 35),
                     // (4,32): error CS8870: 'A.GetHashCode()' cannot be sealed because containing record is not sealed.
                     //     public sealed override int GetHashCode() => 0;
                     Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),

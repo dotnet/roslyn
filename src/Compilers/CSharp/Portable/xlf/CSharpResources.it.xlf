@@ -972,9 +972,9 @@
         <target state="translated">creazione di oggetti con tipo di destinazione</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureSealedRecordToString">
-        <source>sealed record ToString</source>
-        <target state="new">sealed record ToString</target>
+      <trans-unit id="IDS_FeatureSealedToStringInRecord">
+        <source>sealed ToString in record</source>
+        <target state="new">sealed ToString in record</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
