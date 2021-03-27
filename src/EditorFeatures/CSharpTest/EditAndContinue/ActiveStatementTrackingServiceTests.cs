@@ -5,17 +5,12 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
@@ -197,7 +192,7 @@ class C
 
             if (scheduleInitialTrackingBeforeOpenDoc)
             {
-                await trackingSession.TrackActiveSpansAsync().ConfigureAwait(false);
+                await trackingSession.TrackActiveSpansAsync(solution, CancellationToken.None);
 
                 var spans1 = trackingSession.Test_GetTrackingSpans();
                 AssertEx.Equal(new[]
@@ -206,25 +201,25 @@ class C
                     $"V0 →←@[20..25): IsLeafFrame"
                 }, spans1[document1.Id].Select(s => $"{s.Span}: {s.Flags}"));
 
-                var spans2 = await trackingSession.GetSpansAsync(document1, CancellationToken.None).ConfigureAwait(false);
+                var spans2 = await trackingSession.GetSpansAsync(document1, CancellationToken.None);
                 AssertEx.Equal(new[] { "[10..15)", "[20..25)" }, spans2.Select(s => s.ToString()));
 
-                var spans3 = await trackingSession.GetSpansAsync(document2, CancellationToken.None).ConfigureAwait(false);
+                var spans3 = await trackingSession.GetSpansAsync(document2, CancellationToken.None);
                 Assert.Empty(spans3);
             }
 
-            var spans4 = await trackingSession.GetAdjustedTrackingSpansAsync(document1, snapshot1, CancellationToken.None).ConfigureAwait(false);
+            var spans4 = await trackingSession.GetAdjustedTrackingSpansAsync(document1, snapshot1, CancellationToken.None);
             AssertEx.Equal(new[]
             {
                 $"V0 →←@[11..16): IsNonLeafFrame",
                 $"V0 →←@[21..26): IsLeafFrame"
             }, spans4.Select(s => $"{s.Span}: {s.Flags}"));
 
-            AssertEx.Empty(await trackingSession.GetAdjustedTrackingSpansAsync(document2, snapshot2, CancellationToken.None).ConfigureAwait(false));
+            AssertEx.Empty(await trackingSession.GetAdjustedTrackingSpansAsync(document2, snapshot2, CancellationToken.None));
 
             if (!scheduleInitialTrackingBeforeOpenDoc)
             {
-                await trackingSession.TrackActiveSpansAsync().ConfigureAwait(false);
+                await trackingSession.TrackActiveSpansAsync(solution, CancellationToken.None);
 
                 var spans5 = trackingSession.Test_GetTrackingSpans();
                 AssertEx.Equal(new[]
@@ -237,7 +232,7 @@ class C
             // we are not able to determine active statements in a document:
             encService.GetAdjustedActiveStatementSpansImpl = (_, _) => default;
 
-            var spans6 = await trackingSession.GetAdjustedTrackingSpansAsync(document1, snapshot1, CancellationToken.None).ConfigureAwait(false);
+            var spans6 = await trackingSession.GetAdjustedTrackingSpansAsync(document1, snapshot1, CancellationToken.None);
             AssertEx.Equal(new[]
             {
                 $"V0 →←@[11..16): IsNonLeafFrame",

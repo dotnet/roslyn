@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             Contract.ThrowIfNull(oldDeclaration.Parent);
             Contract.ThrowIfNull(newDeclaration.Parent);
-            var comparer = new SyntaxComparer(oldDeclaration.Parent, newDeclaration.Parent, new[] { oldDeclaration }, new[] { newDeclaration });
+            var comparer = new SyntaxComparer(oldDeclaration.Parent, newDeclaration.Parent, new[] { oldDeclaration }, new[] { newDeclaration }, compareStatementSyntax: false);
             return comparer.ComputeMatch(oldDeclaration.Parent, newDeclaration.Parent);
         }
 
@@ -2080,9 +2080,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
-                    case SyntaxKind.UsingDirective:
                     case SyntaxKind.NamespaceDeclaration:
                         ReportError(RudeEditKind.Insert);
+                        return;
+
+                    case SyntaxKind.UsingDirective:
+                        // We don't report rude edits for using directives though we also don't do any
+                        // special processing, so inserting a using directive that changes semantics in
+                        // unedited code will not issue edits for that code. Inserting a using directive
+                        // and then consunming it will result in edits for the changes code as per usual.
                         return;
 
                     case SyntaxKind.ClassDeclaration:
@@ -2149,11 +2155,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.ExternAliasDirective:
-                    case SyntaxKind.UsingDirective:
                     case SyntaxKind.NamespaceDeclaration:
                         // To allow removal of declarations we would need to update method bodies that 
                         // were previously binding to them but now are binding to another symbol that was previously hidden.
                         ReportError(RudeEditKind.Delete);
+                        return;
+
+                    case SyntaxKind.UsingDirective:
+                        // We don't report rude edits for using directives though we also don't do any
+                        // special processing, so deleting a using directive that changes semantics in
+                        // unedited code will not issue edits for that code. Deleting code and then doing
+                        // something like Remove Unused Usings will report edits for the changes code as
+                        // normal.
                         return;
 
                     case SyntaxKind.DestructorDeclaration:
@@ -2231,15 +2244,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                         return;
 
                     case SyntaxKind.UsingDirective:
-                        // Dev12 distinguishes using alias from using namespace and reports different errors for removing alias.
-                        // None of these changes are allowed anyways, so let's keep it simple.
-                        ReportError(RudeEditKind.Update);
+                        // We don't report rude edits for using directives though we also don't do any
+                        // special processing, so updating a using directive that changes semantics in
+                        // unedited code will not issue edits for that code.
                         return;
 
                     case SyntaxKind.NamespaceDeclaration:
                         ClassifyUpdate((NamespaceDeclarationSyntax)oldNode, (NamespaceDeclarationSyntax)newNode);
                         return;
-
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
