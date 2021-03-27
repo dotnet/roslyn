@@ -500,8 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             var semanticModel = _context.SemanticModel;
-            var container = (containerSymbol as ITypeSymbol) ?? semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
-            if (container == null)
+            if (containerSymbol is not ITypeSymbol container)
                 return ImmutableArray<ISymbol>.Empty;
 
             // In a case like `x?.Y` if we bind the type of `.Y` we will get a value type back (like `int`), and not
