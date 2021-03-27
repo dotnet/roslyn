@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#nullable enable
 
 using System.Linq;
 using System.Threading;
@@ -46,10 +46,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SignatureHelp
             AssertJsonEquals(expected, results);
         }
 
-        private static async Task<LSP.SignatureHelp> RunGetSignatureHelpAsync(TestLspServer testLspServer, LSP.Location caret)
+        private static async Task<LSP.SignatureHelp?> RunGetSignatureHelpAsync(TestLspServer testLspServer, LSP.Location caret)
         {
-            return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp>(LSP.Methods.TextDocumentSignatureHelpName,
-                           CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+            return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>(
+                LSP.Methods.TextDocumentSignatureHelpName,
+                CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
         }
 
         private static LSP.SignatureInformation CreateSignatureInformation(string methodLabal, string methodDocumentation, string parameterLabel, string parameterDocumentation)
