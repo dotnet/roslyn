@@ -80,8 +80,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return;
 
             // Finally, generate and process and source-generated docs.
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs, cancellationToken).ConfigureAwait(false);
+            stopWatch.Stop();
+
+            var generatedDocsSet = generatedDocs.ToSet<Document>();
+            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocsSet, cancellationToken).ConfigureAwait(false);
+
+            Console.WriteLine($"SG time: {project.Name}, count:{generatedDocsSet.Count} - {stopWatch.ElapsedMilliseconds}");
         }
 
         private static async Task ProcessDocumentsAsync(
