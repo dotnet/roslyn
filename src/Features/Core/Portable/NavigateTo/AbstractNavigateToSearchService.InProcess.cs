@@ -62,24 +62,56 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
-            var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
+            // Prioritize the active documents if we have any.
 
-            var containerMatcherOpt = patternContainerOpt != null
-                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainerOpt)
-                : null;
+            var allDocs = await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+            var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id)).ToSet();
+            var lowPriDocs = allDocs.Where(d => !highPriDocs.Contains(d)).ToSet();
 
-            using (nameMatcher)
-            using (containerMatcherOpt)
+            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
+            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, cancellationToken).ConfigureAwait(false);
+            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task ProcessDocumentsAsync(
+            Document searchDocument, string patternName, string patternContainerOpt, DeclaredSymbolInfoKindSet kinds,
+            Func<INavigateToSearchResult, Task> onResultFound, ISet<Document> documents, CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+
+            foreach (var document in documents)
             {
-                using var _1 = ArrayBuilder<PatternMatch>.GetInstance(out var nameMatches);
-                using var _2 = ArrayBuilder<PatternMatch>.GetInstance(out var containerMatches);
+                if (searchDocument != null && searchDocument != document)
+                    continue;
 
-                var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+                cancellationToken.ThrowIfCancellationRequested();
+                tasks.Add(Task.Run(async () =>
+                {
+                    var containerMatcherOpt = patternContainerOpt != null
+                        ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainerOpt)
+                        : null;
 
-                await ComputeSearchResultsAsync(
-                    project, priorityDocuments, searchDocument, nameMatcher, containerMatcherOpt,
-                    declaredSymbolInfoKindsSet, nameMatches, containerMatches, onResultFound, cancellationToken).ConfigureAwait(false);
+                    using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
+                    using var _1 = containerMatcherOpt;
+                    using var _2 = ArrayBuilder<PatternMatch>.GetInstance(out var nameMatches);
+                    using var _3 = ArrayBuilder<PatternMatch>.GetInstance(out var containerMatches);
+
+                    var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+
+                    foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
+                    {
+                        await AddResultIfMatchAsync(
+                            document, declaredSymbolInfo,
+                            nameMatcher, containerMatcherOpt,
+                            kinds,
+                            nameMatches, containerMatches,
+                            onResultFound, cancellationToken).ConfigureAwait(false);
+                    }
+                }, cancellationToken));
             }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static async Task ComputeSearchResultsAsync(
