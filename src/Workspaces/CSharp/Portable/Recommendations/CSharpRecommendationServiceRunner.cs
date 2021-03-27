@@ -273,9 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             //
             // Here "stringList.await" is thought of as the return type of a local function.
 
-            if (name.IsFoundUnder<LocalFunctionStatementSyntax>(d => d.ReturnType) ||
-                name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
-                name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type))
+            if (ShouldBeTreatedAsTypeInsteadOfExpression(name))
             {
                 var speculativeBinding = _context.SemanticModel.GetSpeculativeSymbolInfo(
                     name.SpanStart, name, SpeculativeBindingOption.BindAsExpression);
@@ -328,6 +326,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             return default;
+        }
+
+        private static bool ShouldBeTreatedAsTypeInsteadOfExpression(ExpressionSyntax name)
+        {
+            return name.IsFoundUnder<LocalFunctionStatementSyntax>(d => d.ReturnType) ||
+                   name.IsFoundUnder<LocalDeclarationStatementSyntax>(d => d.Declaration.Type) ||
+                   name.IsFoundUnder<FieldDeclarationSyntax>(d => d.Declaration.Type);
         }
 
         private RecommendedSymbols GetSymbolsOffOfExpression(ExpressionSyntax? originalExpression)
@@ -500,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             var semanticModel = _context.SemanticModel;
-            var container = semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
+            var container = GetContainerForUnnamedSymbols(semanticModel, originalExpression);
             if (container == null)
                 return ImmutableArray<ISymbol>.Empty;
 
@@ -515,6 +520,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             AddConversions(container, symbols);
 
             return symbols.ToImmutable();
+        }
+
+        private ITypeSymbol? GetContainerForUnnamedSymbols(SemanticModel semanticModel, ExpressionSyntax originalExpression)
+        {
+            return ShouldBeTreatedAsTypeInsteadOfExpression(originalExpression)
+                ? _context.SemanticModel.GetSpeculativeTypeInfo(originalExpression.SpanStart, originalExpression, SpeculativeBindingOption.BindAsExpression).Type
+                : semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
         }
 
         private void AddIndexers(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
