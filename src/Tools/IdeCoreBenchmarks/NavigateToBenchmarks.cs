@@ -89,6 +89,7 @@ namespace IdeCoreBenchmarks
             watch.Stop();
             var sum = result.Sum();
             Console.WriteLine($"Found {sum} results in {watch.ElapsedMilliseconds}");
+            Console.ReadLine();
         }
 
         private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)

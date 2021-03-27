@@ -62,16 +62,26 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
-            // Prioritize the active documents if we have any.
 
-            var allDocs = await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+            // Prioritize the active documents if we have any.
             var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id)).ToSet();
-            var lowPriDocs = allDocs.Where(d => !highPriDocs.Contains(d)).ToSet();
+
+            // Then process non-priority documents.
+            var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToSet();
 
             var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
             await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, cancellationToken).ConfigureAwait(false);
             await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+
+            // if the caller is only searching a single doc, and we already covered it above, don't bother computing
+            // source-generator docs.
+            if (searchDocument != null && (highPriDocs.Contains(searchDocument) || lowPriDocs.Contains(searchDocument)))
+                return;
+
+            // Finally, generate and process and source-generated docs.
+            var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task ProcessDocumentsAsync(
