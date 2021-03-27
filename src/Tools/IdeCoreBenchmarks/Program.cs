@@ -8,7 +8,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Running;
@@ -38,13 +37,10 @@ namespace IdeCoreBenchmarks
             return Path.Combine(Path.GetDirectoryName(sourceFilePath), @"..\..\..");
         }
 
-        private static async Task Main(string[] args)
+        private static void Main(string[] args)
         {
-            var b = new NavigateToBenchmarks();
-            b.Setup();
-            await b.RunNavigateTo();
-            //Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
-            //new BenchmarkSwitcher(typeof(Program).Assembly).Run(args);
+            Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
+            new BenchmarkSwitcher(typeof(Program).Assembly).Run(args);
         }
     }
 }

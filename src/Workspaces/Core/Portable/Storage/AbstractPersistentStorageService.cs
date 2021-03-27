@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.Storage
                 }
 
                 var storage = await CreatePersistentStorageAsync(solutionKey, workingFolder).ConfigureAwait(false);
-                Contract.ThrowIfTrue(storage is NoOpPersistentStorage);
                 Contract.ThrowIfNull(storage);
 
                 // Create and cache a new storage instance associated with this particular solution.
@@ -160,14 +159,12 @@ namespace Microsoft.CodeAnalysis.Storage
         private async ValueTask<IChecksummedPersistentStorage?> TryCreatePersistentStorageAsync(SolutionKey solutionKey, string workingFolderPath)
         {
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
-            Console.WriteLine("DB path: " + workingFolderPath);
             try
             {
                 return await TryOpenDatabaseAsync(solutionKey, workingFolderPath, databaseFilePath).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"TryCreatePersistentStorageAsync: {ex}");
                 StorageDatabaseLogger.LogException(ex);
 
                 if (ShouldDeleteDatabase(ex))
