@@ -401,7 +401,7 @@ C.M(""value"");
 public static class C
 {
     public static void M(
-        [CallerArgumentExpression(""p"")] string p = """")
+        [CallerArgumentExpression(""p"")] string p = ""<default>"")
     {
         Console.WriteLine(p);
     }
@@ -410,7 +410,7 @@ public static class C
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: @"
+            CompileAndVerify(compilation, expectedOutput: @"<default>
 value");
         }
 
