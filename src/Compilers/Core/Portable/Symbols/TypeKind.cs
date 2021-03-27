@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         Array = 1,
 
         /// <summary>
-        /// Type is a class.
+        /// Type is a class or a record.
         /// </summary>
         Class = 2,
 
