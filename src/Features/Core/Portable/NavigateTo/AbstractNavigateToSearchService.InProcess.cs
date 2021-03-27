@@ -96,71 +96,36 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     continue;
 
                 cancellationToken.ThrowIfCancellationRequested();
-                tasks.Add(Task.Run(async () =>
-                {
-                    var containerMatcherOpt = patternContainerOpt != null
-                        ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainerOpt)
-                        : null;
-
-                    using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
-                    using var _1 = containerMatcherOpt;
-                    using var _2 = ArrayBuilder<PatternMatch>.GetInstance(out var nameMatches);
-                    using var _3 = ArrayBuilder<PatternMatch>.GetInstance(out var containerMatches);
-
-                    var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-
-                    foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
-                    {
-                        await AddResultIfMatchAsync(
-                            document, declaredSymbolInfo,
-                            nameMatcher, containerMatcherOpt,
-                            kinds,
-                            nameMatches, containerMatches,
-                            onResultFound, cancellationToken).ConfigureAwait(false);
-                    }
-                }, cancellationToken));
+                tasks.Add(Task.Run(() =>
+                    ProcessDocumentAsync(document, patternName, patternContainerOpt, kinds, onResultFound, cancellationToken), cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        private static async Task ComputeSearchResultsAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument,
-            PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
-            DeclaredSymbolInfoKindSet kinds,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
+        private static async Task ProcessDocumentAsync(
+            Document document, string patternName, string patternContainerOpt, DeclaredSymbolInfoKindSet kinds,
             Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
-            // Prioritize the active documents if we have any.
-            var highPriDocs = priorityDocuments.WhereAsArray(d => project.ContainsDocument(d.Id));
+            var containerMatcherOpt = patternContainerOpt != null
+                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainerOpt)
+                : null;
 
-            var highPriDocsSet = highPriDocs.ToSet();
-            var lowPriDocs = (await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
-                              .Where(d => !highPriDocsSet.Contains(d));
+            using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
+            using var _1 = containerMatcherOpt;
+            using var _2 = ArrayBuilder<PatternMatch>.GetInstance(out var nameMatches);
+            using var _3 = ArrayBuilder<PatternMatch>.GetInstance(out var containerMatches);
 
-            var orderedDocs = highPriDocs.AddRange(lowPriDocs);
+            var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
 
-            Debug.Assert(priorityDocuments.All(d => project.ContainsDocument(d.Id)), "Priority docs included doc not from project.");
-            Debug.Assert(orderedDocs.Distinct().Length == orderedDocs.Length, "Ordered list contained a duplicate!");
-            Debug.Assert(project.Documents.All(d => orderedDocs.Contains(d)), "At least one document from the project was missing from the ordered list!");
-
-            foreach (var document in orderedDocs)
+            foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
             {
-                if (searchDocument != null && document != searchDocument)
-                    continue;
-
-                cancellationToken.ThrowIfCancellationRequested();
-                var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
-                {
-                    await AddResultIfMatchAsync(
-                        document, declaredSymbolInfo,
-                        nameMatcher, containerMatcherOpt,
-                        kinds,
-                        nameMatches, containerMatches,
-                        onResultFound, cancellationToken).ConfigureAwait(false);
-                }
+                await AddResultIfMatchAsync(
+                    document, declaredSymbolInfo,
+                    nameMatcher, containerMatcherOpt,
+                    kinds,
+                    nameMatches, containerMatches,
+                    onResultFound, cancellationToken).ConfigureAwait(false);
             }
         }
 
