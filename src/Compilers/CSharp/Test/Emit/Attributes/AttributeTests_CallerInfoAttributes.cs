@@ -31,7 +31,7 @@ class Program
         Log(123);
     }
     const string p = nameof(p);
-    static void Log(int p, [CallerArgumentExpression(p)] string arg = null)
+    static void Log(int p, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
     {
         Console.WriteLine(arg);
     }
@@ -61,7 +61,7 @@ class Program
         );
     }
     const string p = nameof(p);
-    static void Log(int p, [CallerArgumentExpression(p)] string arg = null)
+    static void Log(int p, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
     {
         Console.WriteLine(arg);
     }
@@ -89,16 +89,16 @@ class Program
         Log(q: 123, p: 124);
     }
     const string p = nameof(p);
-    static void Log(int p, int q, [CallerArgumentExpression(p)] string arg = null)
+    static void Log(int p, int q, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
     {
-        Console.WriteLine(arg);
+        Console.WriteLine($""{p}, {q}, {arg}"");
     }
 }
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, expectedOutput: "124");
+            CompileAndVerify(compilation, expectedOutput: "124, 123, 124");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -111,7 +111,7 @@ using System.Runtime.CompilerServices;
 public static class FromFirstAssembly
 {
     const string p = nameof(p);
-    public static void Log(int p, int q, [CallerArgumentExpression(p)] string arg = null)
+    public static void Log(int p, int q, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
     {
         Console.WriteLine(arg);
     }
@@ -148,7 +148,7 @@ public static class Program
         myIntegerExpression.M();
     }
     const string p = nameof(p);
-    public static void M(this int p, [CallerArgumentExpression(p)] string arg = null)
+    public static void M(this int p, [CallerArgumentExpression(p)] string arg = ""<default-arg>"")
     {
         Console.WriteLine(arg);
     }
@@ -175,7 +175,7 @@ public static class Program
         myIntegerExpression.M(myIntegerExpression * 2);
     }
     const string q = nameof(q);
-    public static void M(this int p, int q, [CallerArgumentExpression(q)] string arg = null)
+    public static void M(this int p, int q, [CallerArgumentExpression(q)] string arg = ""<default-arg>"")
     {
         Console.WriteLine(arg);
     }
@@ -372,8 +372,8 @@ C.M();
 public static class C
 {
     public static void M(
-        [CallerMemberName] string callerName = """",
-        [CallerArgumentExpression(""callerName"")] string argumentExp = """")
+        [CallerMemberName] string callerName = ""<default-caller-name>"",
+        [CallerArgumentExpression(""callerName"")] string argumentExp = ""<default-arg-expression>"")
     {
         Console.WriteLine(callerName);
         Console.WriteLine(argumentExp);
@@ -382,10 +382,12 @@ public static class C
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            CompileAndVerify(compilation, expectedOutput: "<Main>$");
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"<Main>$
+<default-arg-expression>");
         }
 
-        // PROTOTYPE(caller-expr): Should caller argument expression be given an argument that's compiler generated?
+        // PROTOTYPE(caller-expr): Should this have a warning?
         [ConditionalFact(typeof(CoreClrOnly))]
         public void TestArgumentExpressionIsReferingToItself()
         {
@@ -407,6 +409,7 @@ public static class C
 ";
 
             var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"
 value");
         }
