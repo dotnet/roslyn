@@ -491,16 +491,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // applicable to it as well.
             var unnamedSymbols = _context.IsNameOfContext || excludeInstance
                 ? default
-                : GetUnnamedSymbols(originalExpression);
+                : GetUnnamedSymbols(containerSymbol, originalExpression);
             return new RecommendedSymbols(namedSymbols, unnamedSymbols);
         }
 
-        private ImmutableArray<ISymbol> GetUnnamedSymbols(ExpressionSyntax originalExpression)
+        private ImmutableArray<ISymbol> GetUnnamedSymbols(ISymbol containerSymbol, ExpressionSyntax originalExpression)
         {
             using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             var semanticModel = _context.SemanticModel;
-            var container = semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
+            var container = (containerSymbol as ITypeSymbol) ?? semanticModel.GetTypeInfo(originalExpression, _cancellationToken).Type;
             if (container == null)
                 return ImmutableArray<ISymbol>.Empty;
 

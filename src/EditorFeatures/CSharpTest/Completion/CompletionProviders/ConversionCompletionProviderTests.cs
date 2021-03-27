@@ -147,12 +147,12 @@ public class Program
         [InlineData("c?.$$", true)]
         [InlineData("((C)c).$$", true)]
         [InlineData("(true ? c : c).$$", true)]
-        [InlineData("c.$$ var x=0;", false)]
+        [InlineData("c.$$ var x=0;", true)]
         public async Task ExplicitUserDefinedConversionDifferentExpressions(string expression, bool shouldSuggestConversion)
         {
             Func<string, string, Task> verifyFunc = shouldSuggestConversion
                 ? (markup, expectedItem) => VerifyItemExistsAsync(markup, expectedItem, displayTextPrefix: "(", displayTextSuffix: ")")
-                : (markup, expectedItem) => VerifyItemIsAbsentAsync(markup, expectedItem);
+                : (markup, expectedItem) => VerifyItemIsAbsentAsync(markup, expectedItem, displayTextPrefix: "(", displayTextSuffix: ")");
 
             await verifyFunc(@$"
 public class C
