@@ -39,6 +39,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle
         public UserControl SettingControl => this;
         public IWpfTableControl TableControl { get; }
 
+        public void OnClose()
+        {
+            _viewModel.ShutDown();
+        }
+
         public void Synchronize()
         {
             if (IsKeyboardFocusWithin)

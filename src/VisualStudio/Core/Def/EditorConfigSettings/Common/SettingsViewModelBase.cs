@@ -21,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
         private readonly IWpfTableControlProvider _controlProvider;
         private readonly TSnapshotFactory _snapshotFactory;
         private readonly ITableManager _tableManager;
+        private ITableEntriesSnapshot? _lastPublishedSnapshot;
 
         private List<ITableDataSink> TableSinks { get; } = new List<ITableDataSink>();
 
@@ -32,8 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
             _controlProvider = controlProvider;
             _data.RegisterViewModel(this);
             _tableManager = tableMangerProvider.GetTableManager(Identifier);
-            _ = _tableManager.AddSource(this);
             _snapshotFactory = CreateSnapshotFactory(_data);
+            _ = _tableManager.AddSource(this);
         }
 
         public abstract string Identifier { get; }
@@ -44,24 +45,27 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
         public string SourceTypeIdentifier => "EditorConfigSettings";
         public string? DisplayName => null;
 
-        public Task NotifyOfUpdateAsync()
+        public void NotifyOfUpdate()
         {
             _snapshotFactory.NotifyOfUpdate();
+            var snapshot = _snapshotFactory.GetCurrentSnapshot();
 
             // Notify the sinks. Generally, VS Table Control will request data 500ms after the last notification.
             foreach (var tableSink in TableSinks)
             {
                 // Notify that an update is available
-                tableSink.FactorySnapshotChanged(null);
+                tableSink.ReplaceSnapshot(snapshot, _lastPublishedSnapshot);
             }
 
-            return Task.CompletedTask;
+            _lastPublishedSnapshot = snapshot;
         }
 
         public IDisposable Subscribe(ITableDataSink sink)
         {
-            sink.AddFactory(_snapshotFactory);
             TableSinks.Add(sink);
+            _snapshotFactory.NotifyOfUpdate();
+            _lastPublishedSnapshot = _snapshotFactory.GetCurrentSnapshot();
+            sink.AddSnapshot(_lastPublishedSnapshot);
             return new RemoveSinkWhenDisposed(TableSinks, sink);
         }
 
@@ -77,6 +81,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
                     true,
                     initialColumnStates,
                     fixedColumns);
+        }
+
+        public void ShutDown()
+        {
+            _tableManager.RemoveSource(this);
         }
     }
 }

@@ -218,6 +218,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 _ = componentManager.FRevokeComponent(_componentId);
             }
 
+            _control?.OnClose();
+
             Dispose(true);
 
             base.OnClose();

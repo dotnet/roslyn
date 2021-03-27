@@ -22,42 +22,40 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         public CSharpCodeStyleSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace)
             : base(fileName, settingsUpdater, workspace)
         {
+            Update();
         }
 
-        protected override Task UpdateOptionsAsync(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions)
+        protected override void UpdateOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions)
         {
-            return Task.Run(() =>
-            {
-                var varSettings = GetVarCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(varSettings);
+            var varSettings = GetVarCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(varSettings);
 
-                var usingSettings = GetUsingsCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(usingSettings);
+            var usingSettings = GetUsingsCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(usingSettings);
 
-                var modifierSettings = GetModifierCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(modifierSettings);
+            var modifierSettings = GetModifierCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(modifierSettings);
 
-                var codeBlockSettings = GetCodeBlockCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(codeBlockSettings);
+            var codeBlockSettings = GetCodeBlockCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(codeBlockSettings);
 
-                var nullCheckingSettings = GetNullCheckingCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(nullCheckingSettings);
+            var nullCheckingSettings = GetNullCheckingCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(nullCheckingSettings);
 
-                var expressionSettings = GetExpressionCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(expressionSettings);
+            var expressionSettings = GetExpressionCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(expressionSettings);
 
-                var patternMatchingSettings = GetPatternMatchingCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(patternMatchingSettings);
+            var patternMatchingSettings = GetPatternMatchingCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(patternMatchingSettings);
 
-                var variableSettings = GetVariableCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(variableSettings);
+            var variableSettings = GetVariableCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(variableSettings);
 
-                var expressionBodySettings = GetExpressionBodyCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(expressionBodySettings);
+            var expressionBodySettings = GetExpressionBodyCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(expressionBodySettings);
 
-                var unusedValueSettings = GetUnusedValueCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(unusedValueSettings);
-            });
+            var unusedValueSettings = GetUnusedValueCodeStyleOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(unusedValueSettings);
         }
 
         private static IEnumerable<CodeStyleSetting> GetVarCodeStyleOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)

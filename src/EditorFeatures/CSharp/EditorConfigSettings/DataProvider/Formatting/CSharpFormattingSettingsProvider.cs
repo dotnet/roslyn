@@ -21,21 +21,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         public CSharpFormattingSettingsProvider(string filePath, OptionUpdater updaterService, Workspace workspace)
             : base(filePath, updaterService, workspace)
         {
+            Update();
         }
 
-        protected override Task UpdateOptionsAsync(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions)
+        protected override void UpdateOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions)
         {
-            return Task.Run(() =>
-            {
-                var spacingOptions = GetSpacingOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(spacingOptions.ToImmutableArray());
-                var newLineOptions = GetNewLineOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(newLineOptions.ToImmutableArray());
-                var indentationOptions = GetIndentationOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(indentationOptions.ToImmutableArray());
-                var wrappingOptions = GetWrappingOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(wrappingOptions.ToImmutableArray());
-            });
+            var spacingOptions = GetSpacingOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(spacingOptions.ToImmutableArray());
+            var newLineOptions = GetNewLineOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(newLineOptions.ToImmutableArray());
+            var indentationOptions = GetIndentationOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(indentationOptions.ToImmutableArray());
+            var wrappingOptions = GetWrappingOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(wrappingOptions.ToImmutableArray());
         }
 
         private static IEnumerable<FormattingSetting> GetSpacingOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updaterService)

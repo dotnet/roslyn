@@ -38,6 +38,11 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
         public UserControl SettingControl => this;
         public IWpfTableControl TableControl { get; }
 
+        public void OnClose()
+        {
+            _viewModel.ShutDown();
+        }
+
         public void Synchronize()
         {
             if (IsKeyboardFocusWithin)

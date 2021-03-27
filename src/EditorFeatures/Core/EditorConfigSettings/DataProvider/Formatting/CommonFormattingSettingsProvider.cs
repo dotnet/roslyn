@@ -17,15 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Format
         public CommonFormattingSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace)
             : base(fileName, settingsUpdater, workspace)
         {
+            Update();
         }
 
-        protected override Task UpdateOptionsAsync(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions)
+        protected override void UpdateOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions)
         {
-            return Task.Run(() =>
-            {
-                var defaultOptions = GetDefaultOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
-                AddRange(defaultOptions);
-            });
+            var defaultOptions = GetDefaultOptions(editorConfigOptions, visualStudioOptions, SettingsUpdater);
+            AddRange(defaultOptions);
         }
 
         private static IEnumerable<FormattingSetting> GetDefaultOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions, OptionUpdater updater)

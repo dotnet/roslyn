@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface ISettingsEditorViewModel
     {
-        Task NotifyOfUpdateAsync();
+        void NotifyOfUpdate();
         Task<IReadOnlyList<TextChange>?> GetChangesAsync();
     }
 }

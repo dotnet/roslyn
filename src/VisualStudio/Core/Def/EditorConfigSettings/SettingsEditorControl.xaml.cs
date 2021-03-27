@@ -48,5 +48,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 _codeStyleView.TableControl,
                 _analyzerSettingsView.TableControl,
             };
+
+        internal void OnClose()
+        {
+            _formattingView.OnClose();
+            _codeStyleView.OnClose();
+            _analyzerSettingsView.OnClose();
+        }
     }
 }

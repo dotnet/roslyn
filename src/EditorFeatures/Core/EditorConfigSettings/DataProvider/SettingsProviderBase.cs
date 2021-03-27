@@ -27,17 +27,16 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         protected readonly TOptionsUpdater SettingsUpdater;
         protected readonly Workspace Workspace;
 
-        protected abstract Task UpdateOptionsAsync(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions);
+        protected abstract void UpdateOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet visualStudioOptions);
 
         protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace)
         {
             FileName = fileName;
             SettingsUpdater = settingsUpdater;
             Workspace = workspace;
-            Update();
         }
 
-        private void Update()
+        protected void Update()
         {
             var givenFolder = new DirectoryInfo(FileName).Parent;
             var solution = Workspace.CurrentSolution;
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
             var project = projects.First();
             var configOptionsProvider = new WorkspaceAnalyzerConfigOptionsProvider(project.State);
             var options = configOptionsProvider.GetOptionsForSourcePath(givenFolder.FullName);
-            _ = UpdateOptionsAsync(options, Workspace.Options);
+            UpdateOptions(options, Workspace.Options);
         }
 
         public Task<IReadOnlyList<TextChange>?> GetChangedEditorConfigAsync()
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
                 _snapshot.AddRange(items);
             }
 
-            _ = _viewModel?.NotifyOfUpdateAsync();
+            _viewModel?.NotifyOfUpdate();
         }
 
         public void RegisterViewModel(ISettingsEditorViewModel viewModel)

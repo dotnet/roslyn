@@ -35,11 +35,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
 
             public Task<IReadOnlyList<TextChange>?> GetChangesAsync() => throw new NotImplementedException();
 
-            public Task NotifyOfUpdateAsync()
+            public void NotifyOfUpdate()
             {
                 Interlocked.Increment(ref _releaseCount);
                 _sync.Release();
-                return Task.CompletedTask;
             }
         }
     }

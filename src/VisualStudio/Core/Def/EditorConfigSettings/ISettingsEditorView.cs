@@ -12,5 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         UserControl SettingControl { get; }
         IWpfTableControl TableControl { get; }
         void Synchronize();
+        void OnClose();
     }
 }

@@ -24,21 +24,19 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider.Analyz
             : base(fileName, settingsUpdater, workspace)
         {
             _analyzerService = analyzerService;
+            Update();
         }
 
-        protected override Task UpdateOptionsAsync(AnalyzerConfigOptions editorConfigOptions, OptionSet _)
+        protected override void UpdateOptions(AnalyzerConfigOptions editorConfigOptions, OptionSet _)
         {
-            return Task.Run(() =>
+            var solution = Workspace.CurrentSolution;
+            var projects = solution.GetProjectsForPath(FileName);
+            var analyzerReferences = projects.SelectMany(p => p.AnalyzerReferences).DistinctBy(a => a.Id).ToImmutableArray();
+            foreach (var analyzerReference in analyzerReferences)
             {
-                var solution = Workspace.CurrentSolution;
-                var projects = solution.GetProjectsForPath(FileName);
-                var analyzerReferences = projects.SelectMany(p => p.AnalyzerReferences).DistinctBy(a => a.Id).ToImmutableArray();
-                foreach (var analyzerReference in analyzerReferences)
-                {
-                    var configSettings = GetSettings(analyzerReference, editorConfigOptions);
-                    AddRange(configSettings);
-                }
-            });
+                var configSettings = GetSettings(analyzerReference, editorConfigOptions);
+                AddRange(configSettings);
+            }
         }
 
         private IEnumerable<AnalyzerSetting> GetSettings(AnalyzerReference analyzerReference, AnalyzerConfigOptions editorConfigOptions)

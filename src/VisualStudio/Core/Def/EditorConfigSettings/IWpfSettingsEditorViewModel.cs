@@ -10,5 +10,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
     internal interface IWpfSettingsEditorViewModel : ISettingsEditorViewModel
     {
         IWpfTableControl4 GetTableControl();
+        void ShutDown();
     }
 }
