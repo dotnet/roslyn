@@ -497,12 +497,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         private ImmutableArray<ISymbol> GetUnnamedSymbols(ISymbol containerSymbol, ExpressionSyntax originalExpression)
         {
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
-
             var semanticModel = _context.SemanticModel;
-            if (containerSymbol is not ITypeSymbol container)
+            var container = containerSymbol.GetSymbolType();
+            if (container == null)
                 return ImmutableArray<ISymbol>.Empty;
 
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
             // In a case like `x?.Y` if we bind the type of `.Y` we will get a value type back (like `int`), and not
             // `int?`.  However, we want to think of the constructed type as that's the type of the overall expression
             // that will be casted.
