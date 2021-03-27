@@ -63,15 +63,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
 
+            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
             // Prioritize the active documents if we have any.
             var highPriDocs = priorityDocuments.Where(d => project.ContainsDocument(d.Id)).ToSet();
+            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, cancellationToken).ConfigureAwait(false);
 
             // Then process non-priority documents.
             var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToSet();
-
-            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
-
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, highPriDocs, cancellationToken).ConfigureAwait(false);
             await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
 
             // if the caller is only searching a single doc, and we already covered it above, don't bother computing
@@ -79,16 +78,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (searchDocument != null && (highPriDocs.Contains(searchDocument) || lowPriDocs.Contains(searchDocument)))
                 return;
 
-            // Finally, generate and process and source-generated docs.
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
+            // Finally, generate and process and source-generated docs.  this may take some time, so we always want to
+            // do this after the other documents.
             var generatedDocs = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-            stopWatch.Stop();
-
-            var generatedDocsSet = generatedDocs.ToSet<Document>();
-            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocsSet, cancellationToken).ConfigureAwait(false);
-
-            Console.WriteLine($"SG time: {project.Name}, count:{generatedDocsSet.Count} - {stopWatch.ElapsedMilliseconds}");
+            await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, generatedDocs.ToSet<Document>(), cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task ProcessDocumentsAsync(
