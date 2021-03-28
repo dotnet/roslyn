@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public uint ValEscape { get; }
         [DebuggerStepThrough]
@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public NamespaceSymbol NamespaceSymbol { get; }
 
@@ -1017,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundMethodGroup Operand { get; }
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedAddressOfOperator(this);
 
@@ -2324,7 +2324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDefaultLiteral(this);
 
@@ -2612,7 +2612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public ImmutableArray<BoundExpression> Arguments { get; }
 
@@ -4046,7 +4046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBaseReference(this);
 
@@ -5203,7 +5203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public BoundExpression? ReceiverOpt { get; }
 
@@ -5820,7 +5820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public ImmutableArray<BoundExpression> Arguments { get; }
 
@@ -5939,7 +5939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitTupleLiteral(this);
 
@@ -6562,7 +6562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public ImmutableArray<BoundExpression> Initializers { get; }
         [DebuggerStepThrough]
@@ -6991,7 +6991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LambdaSymbol Symbol { get; }
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public BoundBlock Body { get; }
 
@@ -7036,7 +7036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public UnboundLambdaState Data { get; }
 
@@ -7679,7 +7679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDiscardExpression(this);
 
@@ -7736,7 +7736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public Symbol VariableSymbol { get; }
 
@@ -7806,7 +7806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public new TypeSymbol Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitOutDeconstructVarPendingInference(this);
 
@@ -7899,7 +7899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Expression { get; }
 
-        public new TypeSymbol? Type => base.Type!;
+        public new TypeSymbol? Type => base.Type;
 
         public NullableAnnotation NullableAnnotation { get; }
         [DebuggerStepThrough]

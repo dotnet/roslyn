@@ -256,7 +256,7 @@
 
   <Node Name="BoundNamespaceExpression" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
 
     <Field Name="NamespaceSymbol" Type="NamespaceSymbol"/>
     <Field Name="AliasOpt" Type="AliasSymbol?"/>
@@ -1440,7 +1440,7 @@
 
   <AbstractNode Name="BoundMethodOrPropertyGroup" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
 
     <!--We wish to keep the left-hand-side of the member access in the method group even if the
     *instance* expression ought to be null. For example, if we have System.Console.WriteLine then
@@ -1845,7 +1845,7 @@
 
   <Node Name="BoundArrayInitialization" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
 
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
@@ -1964,7 +1964,7 @@
 
   <Node Name="UnboundLambda" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="Data" Type="UnboundLambdaState" Null="disallow"/>
     <!-- Track dependencies while binding body, etc. -->
     <Field Name="WithDependencies" Type="Boolean"/>
@@ -2124,7 +2124,7 @@
 
   <AbstractNode Name="VariablePendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <!-- A local symbol or a field symbol representing the variable -->
     <Field Name="VariableSymbol" Type="Symbol"/>
     <!-- A field receiver when VariableSymbol is a field -->
@@ -2140,7 +2140,7 @@
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
   <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
   </Node>
   
   <AbstractNode Name="BoundMethodBodyBase" Base="BoundNode">
