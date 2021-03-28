@@ -5,14 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using static Microsoft.CodeAnalysis.ProjectState;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
@@ -43,7 +46,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
             var projects = solution.GetProjectsForPath(FileName);
             var project = projects.First();
             var configOptionsProvider = new WorkspaceAnalyzerConfigOptionsProvider(project.State);
-            var options = configOptionsProvider.GetOptionsForSourcePath(givenFolder.FullName);
+            var workspaceOptions = configOptionsProvider.GetOptionsForSourcePath(givenFolder.FullName);
+            var result = project.GetAnalyzerConfigOptions();
+            var options = new CombinedAnalyzerConfigOptions(workspaceOptions, result!.Value);
             UpdateOptions(options, Workspace.Options);
         }
 
@@ -70,5 +75,42 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 
         public void RegisterViewModel(ISettingsEditorViewModel viewModel)
             => _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+
+        private sealed class CombinedAnalyzerConfigOptions : AnalyzerConfigOptions
+        {
+            private readonly AnalyzerConfigOptions _workspaceOptions;
+            private readonly AnalyzerConfigOptionsResult _result;
+
+            public CombinedAnalyzerConfigOptions(AnalyzerConfigOptions workspaceOptions, AnalyzerConfigOptionsResult result)
+            {
+                _workspaceOptions = workspaceOptions;
+                _result = result;
+            }
+
+            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+            {
+                if (_workspaceOptions.TryGetValue(key, out value))
+                {
+                    return true;
+                }
+
+                if (_result.AnalyzerOptions.TryGetValue(key, out value))
+                {
+                    return true;
+                }
+
+                var diagnosticKey = "dotnet_diagnostic.(?<key>.*).severity";
+                var match = Regex.Match(key, diagnosticKey);
+                if (match.Success && match.Groups["key"].Value is string isolatedKey &&
+                    _result.TreeOptions.TryGetValue(isolatedKey, out var severity))
+                {
+                    value = severity.ToEditorConfigString();
+                    return true;
+                }
+
+                value = null;
+                return false;
+            }
+        }
     }
 }
