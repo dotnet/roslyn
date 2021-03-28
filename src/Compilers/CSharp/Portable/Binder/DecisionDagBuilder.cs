@@ -183,15 +183,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             LabelSymbol whenTrueLabel,
             LabelSymbol whenFalseLabel)
         {
-            if (pattern is not BoundNegatedPattern p)
+            Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
+            if (pattern is not BoundNegatedPattern)
             {
-                return ImmutableArray.Create(MakeTestsForPattern(1, syntax, input, pattern, null, whenTrueLabel));
+                return ImmutableArray.Create(new StateForCase(1, syntax, tests, bindings, null, whenTrueLabel));
             }
 
-            Tests tests = MakeAndSimplifyTestsAndBindings(input, p.Negated, out ImmutableArray<BoundPatternBinding> bindings);
             return ImmutableArray.Create(
-                new StateForCase(1, syntax, tests, bindings, null, whenFalseLabel),
-                new StateForCase(2, syntax, Tests.True.Instance, ImmutableArray<BoundPatternBinding>.Empty, null, whenTrueLabel));
+                new StateForCase(1, syntax, tests, ImmutableArray<BoundPatternBinding>.Empty, null, whenTrueLabel),
+                new StateForCase(2, syntax, Tests.True.Instance, bindings, null, whenFalseLabel));
         }
 
         private Tests MakeAndSimplifyTestsAndBindings(
