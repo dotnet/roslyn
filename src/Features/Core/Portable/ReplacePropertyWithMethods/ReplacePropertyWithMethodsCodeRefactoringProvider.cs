@@ -25,7 +25,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
-       Name = nameof(ReplacePropertyWithMethodsCodeRefactoringProvider)), Shared]
+       Name = PredefinedCodeRefactoringProviderNames.ReplacePropertyWithMethods), Shared]
     internal class ReplacePropertyWithMethodsCodeRefactoringProvider : CodeRefactoringProvider
     {
         private const string GetPrefix = "Get";

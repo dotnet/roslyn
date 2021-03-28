@@ -1350,14 +1350,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (m.Kind)
                 {
                     case SymbolKind.Field:
-                        var field = (FieldSymbol)m;
-                        yield return field.TupleUnderlyingField ?? field;
+                        if (m is TupleErrorFieldSymbol)
+                        {
+                            break;
+                        }
+
+                        yield return (FieldSymbol)m;
                         break;
                     case SymbolKind.Event:
                         FieldSymbol? associatedField = ((EventSymbol)m).AssociatedField;
                         if ((object?)associatedField != null)
                         {
-                            yield return associatedField.TupleUnderlyingField ?? associatedField;
+                            yield return associatedField;
                         }
                         break;
                 }
@@ -1497,13 +1501,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Volatile.Read(ref _lazyMembersAndInitializers)?.NonTypeMembers.Contains(m => m == (object)member) == true)
             {
                 return;
-            }
-
-            if (member is FieldSymbol && this.IsTupleType)
-            {
-                Debug.Assert(forDiagnostics);
-                return; // There are dangling tuple elements, probably related to https://github.com/dotnet/roslyn/issues/43597
-                        // and will be addressed by a pending PR https://github.com/dotnet/roslyn/pull/44231.
             }
 
             Debug.Assert(false, "Premature symbol exposure.");
@@ -3650,7 +3647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     var toStringMethod = (MethodSymbol)existingToStringMethod;
-                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialType.System_String, diagnostics) && toStringMethod.IsSealed && !IsSealed)
+                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialMember.System_Object__ToString, diagnostics) && toStringMethod.IsSealed && !IsSealed)
                     {
                         diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, toStringMethod.Locations[0], toStringMethod);
                     }
@@ -3755,7 +3752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     getHashCode = (MethodSymbol)existingHashCodeMethod;
-                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(getHashCode, SpecialType.System_Int32, diagnostics) && getHashCode.IsSealed && !IsSealed)
+                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(getHashCode, SpecialMember.System_Object__GetHashCode, diagnostics) && getHashCode.IsSealed && !IsSealed)
                     {
                         diagnostics.Add(ErrorCode.ERR_SealedAPIInRecord, getHashCode.Locations[0], getHashCode);
                     }
