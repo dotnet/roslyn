@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     internal class CodeRefactoringService : ICodeRefactoringService
     {
         private readonly Lazy<ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>> _lazyLanguageToProvidersMap;
+        private readonly Lazy<ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata>> _lazyRefactoringToMetadataMap;
         private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CodeRefactoringProvider>>> _projectRefactoringsMap
              = new();
 
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             .Select(grp => new KeyValuePair<string, Lazy<ImmutableArray<CodeRefactoringProvider>>>(
                                 grp.Key,
                                 new Lazy<ImmutableArray<CodeRefactoringProvider>>(() => ExtensionOrderer.Order(grp).Select(lz => lz.Value).ToImmutableArray())))));
+            _lazyRefactoringToMetadataMap = new(() => providers.Where(provider => provider.IsValueCreated).ToImmutableDictionary(provider => provider.Value, provider => provider.Metadata));
         }
 
         private static IEnumerable<Lazy<CodeRefactoringProvider, OrderableLanguageMetadata>> DistributeLanguages(IEnumerable<Lazy<CodeRefactoringProvider, CodeChangeProviderMetadata>> providers)
@@ -65,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
         private ImmutableDictionary<string, Lazy<ImmutableArray<CodeRefactoringProvider>>> LanguageToProvidersMap
             => _lazyLanguageToProvidersMap.Value;
+
+        private ImmutableDictionary<CodeRefactoringProvider, CodeChangeProviderMetadata> RefactoringToMetadataMap
+            => _lazyRefactoringToMetadataMap.Value;
 
         private ConcatImmutableArray<CodeRefactoringProvider> GetProviders(Document document)
         {
@@ -87,9 +93,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             foreach (var provider in GetProviders(document))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
 
                 var refactoring = await GetRefactoringFromProviderAsync(
-                    document, state, provider, extensionManager, isBlocking: false, cancellationToken).ConfigureAwait(false);
+                    document, state, provider, providerMetadata, extensionManager, isBlocking: false, cancellationToken).ConfigureAwait(false);
 
                 if (refactoring != null)
                 {
@@ -131,10 +138,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         () =>
                         {
                             var providerName = provider.GetType().Name;
+                            RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
+
                             using (addOperationScope(providerName))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             {
-                                return GetRefactoringFromProviderAsync(document, state, provider, extensionManager, isBlocking, cancellationToken);
+                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata, extensionManager, isBlocking, cancellationToken);
                             }
                         },
                         cancellationToken));
@@ -149,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document,
             TextSpan state,
             CodeRefactoringProvider provider,
+            CodeChangeProviderMetadata? providerMetadata,
             IExtensionManager extensionManager,
             bool isBlocking,
             CancellationToken cancellationToken)
@@ -170,6 +180,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                         // Serialize access for thread safety - we don't know what thread the refactoring provider will call this delegate from.
                         lock (actions)
                         {
+                            // Add the Refactoring Provider Name to the parent CodeAction's CustomTags.
+                            // Always add a name even in cases of 3rd party refactorings that do not export
+                            // name metadata.
+                            action.AddCustomTag(providerMetadata?.Name ?? provider.GetTypeDisplayName());
+
                             actions.Add((action, applicableToSpan));
                         }
                     },
