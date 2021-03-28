@@ -109,17 +109,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, diagnostics);
-            return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
+            return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel, whenFalseLabel);
         }
 
-        private BoundDecisionDag CreateDecisionDagForIsPattern(
-            SyntaxNode syntax,
+        private BoundDecisionDag CreateDecisionDagForIsPattern(SyntaxNode syntax,
             BoundExpression inputExpression,
             BoundPattern pattern,
-            LabelSymbol whenTrueLabel)
+            LabelSymbol whenTrueLabel,
+            LabelSymbol whenFalseLabel)
         {
             var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
-            return MakeBoundDecisionDag(syntax, ImmutableArray.Create(MakeTestsForPattern(index: 1, pattern.Syntax, rootIdentifier, pattern, whenClause: null, whenTrueLabel)));
+            return MakeBoundDecisionDag(syntax, MakeTestsForIsPattern(pattern.Syntax, rootIdentifier, pattern, whenTrueLabel, whenFalseLabel));
         }
 
         private BoundDecisionDag CreateDecisionDagForSwitchStatement(
@@ -174,6 +174,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
             return new StateForCase(index, syntax, tests, bindings, whenClause, label);
+        }
+
+        private ImmutableArray<StateForCase> MakeTestsForIsPattern(
+            SyntaxNode syntax,
+            BoundDagTemp input,
+            BoundPattern pattern,
+            LabelSymbol whenTrueLabel,
+            LabelSymbol whenFalseLabel)
+        {
+            if (pattern is not BoundNegatedPattern p)
+            {
+                return ImmutableArray.Create(MakeTestsForPattern(1, syntax, input, pattern, null, whenTrueLabel));
+            }
+
+            Tests tests = MakeAndSimplifyTestsAndBindings(input, p.Negated, out ImmutableArray<BoundPatternBinding> bindings);
+            return ImmutableArray.Create(
+                new StateForCase(1, syntax, tests, bindings, null, whenFalseLabel),
+                new StateForCase(2, syntax, Tests.True.Instance, ImmutableArray<BoundPatternBinding>.Empty, null, whenTrueLabel));
         }
 
         private Tests MakeAndSimplifyTestsAndBindings(

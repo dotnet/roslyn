@@ -962,8 +962,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             VisitRvalue(node.Expression);
 
-            bool negated = node.Pattern.IsNegated(out var pattern);
-            Debug.Assert(negated == node.IsNegated);
+            BoundPattern pattern = node.Pattern;
+            bool negated = false;
+            while (pattern is BoundNegatedPattern p)
+            {
+                negated = !negated;
+                pattern = p.Negated;
+            }
 
             VisitPattern(pattern);
             var reachableLabels = node.DecisionDag.ReachableLabels;

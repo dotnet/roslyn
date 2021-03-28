@@ -7347,13 +7347,13 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""10"" endColumn=""11"" document=""1"" />
-        <entry offset=""0xf"" startLine=""8"" startColumn=""22"" endLine=""8"" endColumn=""36"" document=""1"" />
-        <entry offset=""0x22"" startLine=""9"" startColumn=""18"" endLine=""9"" endColumn=""30"" document=""1"" />
-        <entry offset=""0x28"" hidden=""true"" document=""1"" />
+        <entry offset=""0x11"" startLine=""8"" startColumn=""22"" endLine=""8"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x24"" startLine=""9"" startColumn=""18"" endLine=""9"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x2a"" hidden=""true"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2a"">
-        <scope startOffset=""0xf"" endOffset=""0x22"">
-          <local name=""i"" il_index=""0"" il_start=""0xf"" il_end=""0x22"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x2c"">
+        <scope startOffset=""0x11"" endOffset=""0x24"">
+          <local name=""i"" il_index=""0"" il_start=""0x11"" il_end=""0x24"" attributes=""0"" />
         </scope>
       </scope>
     </method>

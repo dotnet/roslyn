@@ -6291,19 +6291,18 @@ class C
             var verifier = CompileAndVerify(source, expectedOutput: "42");
             verifier.VerifyIL("C.M",
 @"{
-  // Code size       20 (0x14)
+  // Code size       18 (0x12)
   .maxstack  1
   .locals init (C V_0) //c1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldarg.0
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0008
-  IL_0007:  ret
-  IL_0008:  ldloc.0
-  IL_0009:  ldfld      ""int C.F""
-  IL_000e:  call       ""void System.Console.WriteLine(int)""
-  IL_0013:  ret
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brtrue.s   IL_0006
+  IL_0005:  ret
+  IL_0006:  ldloc.0
+  IL_0007:  ldfld      ""int C.F""
+  IL_000c:  call       ""void System.Console.WriteLine(int)""
+  IL_0011:  ret
 }");
         }
 
@@ -6329,24 +6328,24 @@ class C
 }}";
             var verifier = CompileAndVerify(source, expectedOutput: "42");
             verifier.VerifyIL("C.M",
-@"{
-  // Code size       30 (0x1e)
+@"
+{
+  // Code size       28 (0x1c)
   .maxstack  2
   .locals init (C V_0) //c1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0011
-  IL_0003:  ldarg.0
-  IL_0004:  ldfld      ""int C.F""
-  IL_0009:  ldc.i4.s   42
-  IL_000b:  bne.un.s   IL_0011
-  IL_000d:  ldarg.0
-  IL_000e:  stloc.0
-  IL_000f:  br.s       IL_0012
-  IL_0011:  ret
-  IL_0012:  ldloc.0
-  IL_0013:  ldfld      ""int C.F""
-  IL_0018:  call       ""void System.Console.WriteLine(int)""
-  IL_001d:  ret
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_000f
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""int C.F""
+  IL_000b:  ldc.i4.s   42
+  IL_000d:  beq.s      IL_0010
+  IL_000f:  ret
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      ""int C.F""
+  IL_0016:  call       ""void System.Console.WriteLine(int)""
+  IL_001b:  ret
 }");
         }
 
@@ -6381,12 +6380,12 @@ class C
   .locals init (C V_0, //c1
                 object V_1) //f
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000e
-  IL_0003:  ldarg.0
-  IL_0004:  ldfld      ""object C.F""
-  IL_0009:  stloc.1
-  IL_000a:  ldarg.0
-  IL_000b:  stloc.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_000e
+  IL_0005:  ldloc.0
+  IL_0006:  ldfld      ""object C.F""
+  IL_000b:  stloc.1
   IL_000c:  br.s       IL_000f
   IL_000e:  ret
   IL_000f:  ldloc.1
@@ -6400,8 +6399,7 @@ class C
 
         [Theory]
         [InlineData("!(o is (41 or 42))")]
-        [InlineData("o is not (41 or 42)")]
-        public void IsNot_11(string pattern)
+        public void IsNot_11a(string pattern)
         {
             var source =
 $@"using static System.Console;
@@ -6450,6 +6448,57 @@ class C
 }");
         }
 
+        [Theory]
+        [InlineData("o is not (41 or 42)")]
+        public void IsNot_11b(string pattern)
+        {
+            var source =
+                $@"using static System.Console;
+class C
+{{
+    static void Main()
+    {{
+        object o = 42;
+        M(o);
+    }}
+    static void M(object o)
+    {{
+        if ({pattern}) return;
+        WriteLine(o);
+    }}
+}}";
+            var verifier = CompileAndVerify(source, expectedOutput: "42");
+            verifier.VerifyIL("C.M",
+                @"{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (int V_0,
+                bool V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""int""
+  IL_0006:  brfalse.s  IL_0016
+  IL_0008:  ldarg.0
+  IL_0009:  unbox.any  ""int""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.s   41
+  IL_0012:  sub
+  IL_0013:  ldc.i4.1
+  IL_0014:  ble.un.s   IL_001a
+  IL_0016:  ldc.i4.1
+  IL_0017:  stloc.1
+  IL_0018:  br.s       IL_001c
+  IL_001a:  ldc.i4.0
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  brfalse.s  IL_0020
+  IL_001f:  ret
+  IL_0020:  ldarg.0
+  IL_0021:  call       ""void System.Console.WriteLine(object)""
+  IL_0026:  ret
+}");
+        }
+
         [Fact]
         [WorkItem(49262, "https://github.com/dotnet/roslyn/issues/49262")]
         public void IsNot_12()
@@ -6484,7 +6533,7 @@ class C
                 //         if (s is not string t) return;
                 Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "s is not string t").WithLocation(17, 13));
             var verifier = CompileAndVerify(source, expectedOutput: "");
-            var expectedIL =
+            string expectedIL =
 @"{
   // Code size        1 (0x1)
   .maxstack  1
@@ -6574,32 +6623,35 @@ class C
 42");
             verifier.VerifyIL("C.M",
 @"{
-  // Code size       57 (0x39)
+  // Code size       59 (0x3b)
   .maxstack  1
   .locals init (C V_0, //c1
-                C V_1) //c2
+                C V_1, //c2
+                C V_2)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0021
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""object C.P.get""
-  IL_0009:  isinst     ""C""
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  brfalse.s  IL_0021
-  IL_0012:  ldarg.0
-  IL_0013:  callvirt   ""object C.Q.get""
-  IL_0018:  isinst     ""C""
-  IL_001d:  stloc.1
-  IL_001e:  ldloc.1
-  IL_001f:  brtrue.s   IL_0022
-  IL_0021:  ret
-  IL_0022:  ldloc.0
-  IL_0023:  ldfld      ""object C.F""
-  IL_0028:  call       ""void System.Console.WriteLine(object)""
-  IL_002d:  ldloc.1
-  IL_002e:  ldfld      ""object C.F""
-  IL_0033:  call       ""void System.Console.WriteLine(object)""
-  IL_0038:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloc.2
+  IL_0003:  brfalse.s  IL_0023
+  IL_0005:  ldloc.2
+  IL_0006:  callvirt   ""object C.P.get""
+  IL_000b:  isinst     ""C""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  brfalse.s  IL_0023
+  IL_0014:  ldloc.2
+  IL_0015:  callvirt   ""object C.Q.get""
+  IL_001a:  isinst     ""C""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0024
+  IL_0023:  ret
+  IL_0024:  ldloc.0
+  IL_0025:  ldfld      ""object C.F""
+  IL_002a:  call       ""void System.Console.WriteLine(object)""
+  IL_002f:  ldloc.1
+  IL_0030:  ldfld      ""object C.F""
+  IL_0035:  call       ""void System.Console.WriteLine(object)""
+  IL_003a:  ret
 }");
         }
 
@@ -6630,29 +6682,32 @@ class C
 42");
             verifier.VerifyIL("C.M",
 @"{
-  // Code size       46 (0x2e)
+  // Code size       48 (0x30)
   .maxstack  1
   .locals init (C V_0, //c1
-                C V_1) //c2
+                C V_1, //c2
+                C V_2)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0016
-  IL_0003:  ldarg.0
-  IL_0004:  callvirt   ""object C.P.get""
-  IL_0009:  isinst     ""C""
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  brfalse.s  IL_0016
-  IL_0012:  ldloc.0
-  IL_0013:  stloc.1
-  IL_0014:  br.s       IL_0017
-  IL_0016:  ret
-  IL_0017:  ldloc.0
-  IL_0018:  ldfld      ""object C.F""
-  IL_001d:  call       ""void System.Console.WriteLine(object)""
-  IL_0022:  ldloc.1
-  IL_0023:  ldfld      ""object C.F""
-  IL_0028:  call       ""void System.Console.WriteLine(object)""
-  IL_002d:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloc.2
+  IL_0003:  brfalse.s  IL_0018
+  IL_0005:  ldloc.2
+  IL_0006:  callvirt   ""object C.P.get""
+  IL_000b:  isinst     ""C""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  brfalse.s  IL_0018
+  IL_0014:  ldloc.0
+  IL_0015:  stloc.1
+  IL_0016:  br.s       IL_0019
+  IL_0018:  ret
+  IL_0019:  ldloc.0
+  IL_001a:  ldfld      ""object C.F""
+  IL_001f:  call       ""void System.Console.WriteLine(object)""
+  IL_0024:  ldloc.1
+  IL_0025:  ldfld      ""object C.F""
+  IL_002a:  call       ""void System.Console.WriteLine(object)""
+  IL_002f:  ret
 }");
         }
 

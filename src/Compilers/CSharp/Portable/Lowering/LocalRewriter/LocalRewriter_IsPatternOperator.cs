@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            bool negated = node.IsNegated;
             BoundExpression result;
 
             if (canProduceLinearSequence(node.DecisionDag.RootNode, whenTrueLabel: node.WhenTrueLabel, whenFalseLabel: node.WhenFalseLabel))
@@ -28,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If we can build a linear test sequence with the whenTrue and whenFalse labels swapped, then negate the
                 // result.  This would typically arise when the source contains `e is not pattern`.
-                negated = !negated;
                 var isPatternRewriter = new IsPatternExpressionLinearLocalRewriter(node, this);
                 result = isPatternRewriter.LowerIsPatternAsLinearTestSequence(node, whenTrueLabel: node.WhenFalseLabel, whenFalseLabel: node.WhenTrueLabel);
+                result = this._factory.Not(result);
                 isPatternRewriter.Free();
             }
             else
@@ -41,10 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isPatternRewriter.Free();
             }
 
-            if (negated)
-            {
-                result = this._factory.Not(result);
-            }
             return result;
 
             // Can the given decision dag node, and its successors, be generated as a sequence of
