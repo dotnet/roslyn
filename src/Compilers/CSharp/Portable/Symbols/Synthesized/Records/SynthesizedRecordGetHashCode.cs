@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _equalityContract = equalityContract;
         }
 
-        public override TypeWithAnnotations ReturnTypeWithAnnotations => TypeWithAnnotations.Create(
-            isNullableEnabled: true,
-            ContainingType.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32));
+        protected override SpecialMember OverriddenSpecialMember => SpecialMember.System_Object__GetHashCode;
 
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {

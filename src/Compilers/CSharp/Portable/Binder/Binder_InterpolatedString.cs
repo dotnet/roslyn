@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(isResultConstant == (resultConstant != null));
-            return new BoundInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
+            return new BoundUnconvertedInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
         }
     }
 }

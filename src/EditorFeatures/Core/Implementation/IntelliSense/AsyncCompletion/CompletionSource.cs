@@ -267,9 +267,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 roslynTrigger = new CompletionTrigger(CompletionTriggerKind.Snippets);
             }
 
-            var disallowAddingImports = _isDebuggerTextView ||
-                document.Project.Solution.Workspace.Services.GetRequiredService<IDebuggingWorkspaceService>().CurrentDebuggingState != DebuggingState.Design;
-
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var options = documentOptions
                 .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, isExpanded);
@@ -278,12 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 options = options
                     .WithChangedOption(CompletionControllerOptions.FilterOutOfScopeLocals, false)
-                    .WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, false);
-            }
-
-            if (disallowAddingImports)
-            {
-                options = options
+                    .WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, false)
                     .WithChangedOption(CompletionServiceOptions.DisallowAddingImports, true);
             }
 
@@ -329,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // It's OK to overwrite this value when expanded items are requested.
                 session.Properties[CompletionListSpan] = completionList.Span;
 
-                if (disallowAddingImports)
+                if (_isDebuggerTextView)
                 {
                     session.Properties[DisallowAddingImports] = true;
                 }
