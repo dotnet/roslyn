@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             var descriptionBuilder = new List<TaggedText>(info.Description);
             if (info.Symbol != null)
             {
-                var description = await info.Symbol.GetDescriptionAsync(document, position, cancellationToken).ConfigureAwait(false);
+                var description = await info.Symbol.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
                 if (description.Any())
                 {
                     if (descriptionBuilder.Any())

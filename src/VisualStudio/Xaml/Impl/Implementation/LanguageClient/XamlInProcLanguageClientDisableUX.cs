@@ -56,7 +56,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             var experimentationService = Workspace.Services.GetRequiredService<IExperimentationService>();
             var isLspExperimentEnabled = experimentationService.IsExperimentEnabled(StringConstants.EnableLspIntelliSense);
 
-            return isLspExperimentEnabled ? XamlCapabilities.None : XamlCapabilities.Current;
+            var capabilities = isLspExperimentEnabled ? XamlCapabilities.None : XamlCapabilities.Current;
+
+            // Only turn on CodeAction support for client scenarios. Hosts will get non-LSP lightbulbs automatically.
+            capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor } };
+            capabilities.CodeActionsResolveProvider = true;
+
+            return capabilities;
         }
     }
 }

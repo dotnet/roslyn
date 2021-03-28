@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return completionItem;
             }
 
-            var description = await symbol.GetDescriptionAsync(document, offset, cancellationToken).ConfigureAwait(false);
+            var description = await symbol.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
 
             var vsCompletionItem = CloneVSCompletionItem(completionItem);
             vsCompletionItem.Description = new ClassifiedTextElement(description.Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));

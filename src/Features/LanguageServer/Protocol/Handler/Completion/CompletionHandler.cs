@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(request.Context, document, position, cancellationToken).ConfigureAwait(false);
 
             var list = await completionService.GetCompletionsAsync(document, position, completionTrigger, options: completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (list == null || list.Items.IsEmpty)
+            if (list == null || list.Items.IsEmpty || cancellationToken.IsCancellationRequested)
             {
                 return null;
             }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var commitCharactersRuleCache = new Dictionary<ImmutableArray<CharacterSetModificationRule>, ImmutableArray<string>>();
 
             // Cache the completion list so we can avoid recomputation in the resolve handler
-            var resultId = await _completionListCache.UpdateCacheAsync(list, cancellationToken).ConfigureAwait(false);
+            var resultId = _completionListCache.UpdateCache(request.TextDocument, list);
 
             // Feature flag to enable the return of TextEdits instead of InsertTexts (will increase payload size).
             // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
@@ -131,11 +131,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 lspCompletionItems.Add(lspCompletionItem);
             }
 
-            return new LSP.VSCompletionList
+            var completionList = new LSP.VSCompletionList
             {
                 Items = lspCompletionItems.ToArray(),
                 SuggestionMode = list.SuggestionModeItem != null,
             };
+            var optimizedCompletionList = new LSP.OptimizedVSCompletionList(completionList);
+            return optimizedCompletionList;
 
             // Local functions
             bool IsValidTriggerCharacterForDocument(Document document, char triggerCharacter)
@@ -223,10 +225,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     Kind = GetCompletionKind(item.Tags),
                     Data = new CompletionResolveData
                     {
-                        TextDocument = request.TextDocument,
-                        Position = request.Position,
-                        DisplayText = item.DisplayText,
-                        CompletionTrigger = completionTrigger,
                         ResultId = resultId,
                     },
                     Preselect = item.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection,
