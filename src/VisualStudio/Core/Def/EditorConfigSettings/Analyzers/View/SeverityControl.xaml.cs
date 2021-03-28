@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -23,18 +24,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
         public SeverityControl(AnalyzerSetting setting)
         {
             InitializeComponent();
-            var refactoring = CreateItemElement(KnownMonikers.None, ServicesVSResources.Disabled);
-            var suggestion = CreateItemElement(KnownMonikers.StatusInformation, ServicesVSResources.Suggestion);
-            var warning = CreateItemElement(KnownMonikers.StatusWarning, ServicesVSResources.Warning);
-            var error = CreateItemElement(KnownMonikers.StatusError, ServicesVSResources.Error);
             _comboBox = new ComboBox()
             {
                 ItemsSource = new[]
                 {
-                    refactoring,
-                    suggestion,
-                    warning,
-                    error
+                    ServicesVSResources.Disabled,
+                    ServicesVSResources.Suggestion,
+                    ServicesVSResources.Warning,
+                    ServicesVSResources.Error
                 }
             };
 
@@ -64,57 +61,19 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            switch (_comboBox.SelectedIndex)
+            var severity = _comboBox.SelectedIndex switch
             {
-                case 0:
-                    _setting.ChangeSeverity(DiagnosticSeverity.Hidden);
-                    return;
-                case 1:
-                    _setting.ChangeSeverity(DiagnosticSeverity.Info);
-                    return;
-                case 2:
-                    _setting.ChangeSeverity(DiagnosticSeverity.Warning);
-                    return;
-                case 3:
-                    _setting.ChangeSeverity(DiagnosticSeverity.Error);
-                    return;
-                default: return;
-            }
-        }
-
-        private static FrameworkElement CreateItemElement(ImageMoniker imageMoniker, string text)
-        {
-            var stackPanel = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Stretch
+                0 => DiagnosticSeverity.Hidden,
+                1 => DiagnosticSeverity.Info,
+                2 => DiagnosticSeverity.Warning,
+                3 => DiagnosticSeverity.Error,
+                _ => throw new InvalidOperationException(),
             };
 
-            var block = new TextBlock
+            if (_setting.Severity != severity)
             {
-                VerticalAlignment = VerticalAlignment.Center,
-                Text = text
-            };
-
-            if (!imageMoniker.IsNullImage())
-            {
-                // If we have an image and text, then create some space between them.
-                block.Margin = new Thickness(5.0, 0.0, 0.0, 0.0);
-
-                var image = new CrispImage
-                {
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Moniker = imageMoniker
-                };
-                image.Width = image.Height = 16.0;
-
-                _ = stackPanel.Children.Add(image);
+                _setting.ChangeSeverity(severity);
             }
-
-            // Always add the textblock last so it can follow the image.
-            _ = stackPanel.Children.Add(block);
-
-            return stackPanel;
         }
     }
 }
