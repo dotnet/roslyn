@@ -1,7 +1,7 @@
 Deterministic Inputs
 ====================
 
-The C# and VB compilers are fully determinstic when the `/deterministic` option is specified (this is the default in the .NET SDK). This means that the "same inputs" will cause the compilers to produce the "same outputs" with byte for byte equivalence. 
+The C# and VB compilers are fully determinstic when the `/deterministic` option is specified (this is the default in the .NET SDK). This means that the "same inputs" will cause the compilers to produce the "same outputs" byte for byte. 
 
 The following are considered inputs to the compiler for the purpose of determinism:
 
