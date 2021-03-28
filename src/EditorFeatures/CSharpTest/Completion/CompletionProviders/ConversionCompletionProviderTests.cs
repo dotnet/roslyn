@@ -1564,5 +1564,42 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp,
                 hideAdvancedMembers: true);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionNullForgivingOperatorHandling()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+#nullable enable
+
+public class C {
+    public static explicit operator int(C c) => 0;
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        C? c = null;
+        var i = c!.$$
+    }
+}
+", "int", @"
+#nullable enable
+
+public class C {
+    public static explicit operator int(C c) => 0;
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        C? c = null;
+        var i = ((int)c!)$$
+    }
+}
+");
+        }
     }
 }
