@@ -6328,8 +6328,7 @@ class C
 }}";
             var verifier = CompileAndVerify(source, expectedOutput: "42");
             verifier.VerifyIL("C.M",
-@"
-{
+@"{
   // Code size       28 (0x1c)
   .maxstack  2
   .locals init (C V_0) //c1
@@ -6533,7 +6532,7 @@ class C
                 //         if (s is not string t) return;
                 Diagnostic(ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern, "s is not string t").WithLocation(17, 13));
             var verifier = CompileAndVerify(source, expectedOutput: "");
-            string expectedIL =
+            var expectedIL =
 @"{
   // Code size        1 (0x1)
   .maxstack  1
