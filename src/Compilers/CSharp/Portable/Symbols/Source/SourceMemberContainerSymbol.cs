@@ -3642,10 +3642,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
                 {
                     var baseToStringMethod = getBaseToStringMethod();
-                    if (baseToStringMethod is null || !baseToStringMethod.IsSealed)
+                    switch (baseToStringMethod)
                     {
-                        var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
-                        members.Add(toStringMethod);
+                        case null:
+                        case { IsSealed: false }:
+                            var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
+                            members.Add(toStringMethod);
+                            break;
+                        case { IsSealed: true }:
+                            if (!this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord))
+                            {
+                                diagnostics.Add(ErrorCode.ERR_InheritingFromRecordWithSealedToString, this.Locations[0]);
+                            }
+                            break;
                     }
                 }
                 else
