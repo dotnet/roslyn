@@ -60,7 +60,7 @@ End Class
             Dim code = "
 Public Class S
     Public Shared Function Create() As S
-        Dim [|result As S = New S()|]
+        Dim result As S = New S()
         return result
     End Function
 End Class
