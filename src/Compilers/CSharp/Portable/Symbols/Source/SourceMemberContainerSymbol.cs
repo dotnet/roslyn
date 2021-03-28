@@ -3662,7 +3662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 MethodSymbol? getBaseToStringMethod()
                 {
-                    var objectToString = this.ContainingAssembly.GetDeclaredSpecialTypeMember(SpecialMember.System_Object__ToString);
+                    var objectToString = this.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Object__ToString);
                     var tmp = this.BaseTypeNoUseSiteDiagnostics;
                     while (tmp is not null)
                     {
