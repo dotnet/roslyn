@@ -61,5 +61,15 @@ End Class",
 
             RoundTripUtil.VerifyRoundTrip(original);
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void OptimizationLevel_ParsePdbSerializedString(OptimizationLevel optimization, bool debugPlus)
+        {
+            var data = OptimizationLevelFacts.ToPdbSerializedString(optimization, debugPlus);
+            Assert.True(OptimizationLevelFacts.TryParsePdbSerializedString(data, out var optimization2, out var debugPlus2));
+            Assert.Equal(optimization, optimization2);
+            Assert.Equal(debugPlus, debugPlus2);
+        }
     }
 }

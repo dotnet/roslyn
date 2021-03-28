@@ -114,10 +114,17 @@ class Library
         {
             var list = new List<object?[]>();
 
-            Add("hw.cs /target:exe /debug:embedded", "test.exe", null);
-            Add("lib1.cs /target:library /debug:embedded", "test.dll", null);
+            PermutateOptimizations("hw.cs /target:exe /debug:embedded", "test.exe", null);
+            PermutateOptimizations("lib1.cs /target:library /debug:embedded", "test.dll", null);
 
             return list;
+
+            void PermutateOptimizations(string commandLine, string peFileName, string? pdbFileName)
+            {
+                Add(commandLine + " /optimize+", peFileName, pdbFileName);
+                Add(commandLine + " /debug+", peFileName, pdbFileName);
+                Add(commandLine + " /optimize+ /debug+", peFileName, pdbFileName);
+            }
 
             void Add(string commandLine, string peFileName, string? pdbFileName)
             {
