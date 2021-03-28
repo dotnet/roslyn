@@ -6452,7 +6452,7 @@ class C
         public void IsNot_11b(string pattern)
         {
             var source =
-                $@"using static System.Console;
+$@"using static System.Console;
 class C
 {{
     static void Main()
@@ -6468,7 +6468,7 @@ class C
 }}";
             var verifier = CompileAndVerify(source, expectedOutput: "42");
             verifier.VerifyIL("C.M",
-                @"{
+@"{
   // Code size       39 (0x27)
   .maxstack  2
   .locals init (int V_0,
