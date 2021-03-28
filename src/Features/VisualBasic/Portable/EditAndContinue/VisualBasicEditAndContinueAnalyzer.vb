@@ -2081,9 +2081,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private Sub ClassifyInsert(node As SyntaxNode)
                 Select Case node.Kind
                     Case SyntaxKind.OptionStatement,
-                         SyntaxKind.ImportsStatement,
                          SyntaxKind.NamespaceBlock
                         ReportError(RudeEditKind.Insert)
+                        Return
+
+                    Case SyntaxKind.ImportsStatement
+                        ' We don't report rude edits for new imports, though note we don't currently report edits
+                        ' for semantic changes they cause either
                         Return
 
                     Case SyntaxKind.ClassBlock,
@@ -2160,10 +2164,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Private Sub ClassifyDelete(oldNode As SyntaxNode)
                 Select Case oldNode.Kind
                     Case SyntaxKind.OptionStatement,
-                         SyntaxKind.ImportsStatement,
                          SyntaxKind.NamespaceBlock,
                          SyntaxKind.AttributesStatement
                         ReportError(RudeEditKind.Delete)
+                        Return
+
+                    Case SyntaxKind.ImportsStatement
+                        ' We don't report rude edits for deleting imports, though note we don't currently report edits
+                        ' for semantic changes they cause either
                         Return
 
                     Case SyntaxKind.ClassBlock,
@@ -2251,7 +2259,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         Return
 
                     Case SyntaxKind.ImportsStatement
-                        ReportError(RudeEditKind.Update)
+                        ' We don't report rude edits for updating imports, though note we don't currently report edits
+                        ' for semantic changes they cause either
                         Return
 
                     Case SyntaxKind.NamespaceBlock
