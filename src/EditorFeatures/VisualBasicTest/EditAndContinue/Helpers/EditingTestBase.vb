@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             tree1.GetDiagnostics().Verify()
             tree2.GetDiagnostics().Verify()
 
-            Dim match = TopSyntaxComparer.Instance.ComputeMatch(tree1.GetRoot(), tree2.GetRoot())
+            Dim match = SyntaxComparer.TopLevel.ComputeMatch(tree1.GetRoot(), tree2.GetRoot())
             Return match.GetTreeEdits()
         End Function
 
