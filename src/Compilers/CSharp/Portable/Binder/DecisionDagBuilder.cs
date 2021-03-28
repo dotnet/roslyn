@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LabelSymbol whenFalseLabel)
         {
             Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
-            if (pattern is not BoundNegatedPattern)
+            if (pattern.Kind != BoundKind.NegatedPattern)
             {
                 return ImmutableArray.Create(new StateForCase(1, syntax, tests, bindings, null, whenTrueLabel));
             }
