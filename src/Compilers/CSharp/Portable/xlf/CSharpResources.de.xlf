@@ -972,6 +972,11 @@
         <target state="translated">Objekterstellung mit Zieltyp</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAbstractMembersInInterfaces">
+        <source>static abstract members in interfaces</source>
+        <target state="new">static abstract members in interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">Die Assembly "{0}" mit dem Typ "{1}" verweist auf das .NET Framework. Dies wird nicht unterstützt.</target>
@@ -3452,8 +3457,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticNotVirtual">
-        <source>A static member '{0}' cannot be marked as override, virtual, or abstract</source>
-        <target state="translated">Ein statischer Member "{0}" kann nicht als "override" , "virtual" oder "abstract" markiert werden.</target>
+        <source>A static member cannot be marked as '{0}'</source>
+        <target state="needs-review-translation">Ein statischer Member "{0}" kann nicht als "override" , "virtual" oder "abstract" markiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNew">

@@ -972,6 +972,11 @@
         <target state="translated">대상으로 형식화된 개체 만들기</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAbstractMembersInInterfaces">
+        <source>static abstract members in interfaces</source>
+        <target state="new">static abstract members in interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">'{1}' 형식을 포함하는 '{0}' 어셈블리가 지원되지 않는 .NET Framework를 참조합니다.</target>
@@ -3451,8 +3456,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticNotVirtual">
-        <source>A static member '{0}' cannot be marked as override, virtual, or abstract</source>
-        <target state="translated">'{0}' 정적 멤버는 override, virtual 또는 abstract로 표시할 수 없습니다.</target>
+        <source>A static member cannot be marked as '{0}'</source>
+        <target state="needs-review-translation">'{0}' 정적 멤버는 override, virtual 또는 abstract로 표시할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNew">

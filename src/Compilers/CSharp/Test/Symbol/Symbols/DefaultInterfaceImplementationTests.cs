@@ -3257,21 +3257,18 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (4,22): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (4,16): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int P1 => 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1").WithArguments("default interface implementation", "8.0").WithLocation(4, 22),
-                // (5,21): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "P1").WithArguments("default interface implementation", "8.0").WithLocation(4, 16),
+                // (5,16): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int P3 { get => 3; }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(5, 21),
-                // (6,21): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "P3").WithArguments("default interface implementation", "8.0").WithLocation(5, 16),
+                // (6,16): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int P5 { set => System.Console.WriteLine(5); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(6, 21),
-                // (7,21): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "P5").WithArguments("default interface implementation", "8.0").WithLocation(6, 16),
+                // (7,16): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(7, 21),
-                // (7,38): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     static int P7 { get { return 7;} set {} }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(7, 38)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "P7").WithArguments("default interface implementation", "8.0").WithLocation(7, 16)
                 );
 
             var derived = compilation1.SourceModule.GlobalNamespace.GetTypeMember("Test1");
@@ -5833,12 +5830,9 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         add {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(6, 9),
-                // (7,9): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         remove {} 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(7, 9)
+                // (4,32): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     static event System.Action E7 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "E7").WithArguments("default interface implementation", "8.0").WithLocation(4, 32)
                 );
 
             var derived = compilation1.GlobalNamespace.GetTypeMember("Test1");
@@ -7012,15 +7006,15 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (10,24): error CS0238: 'I1.M3()' cannot be sealed because it is not an override
+                // (10,24): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static void M3() 
-                Diagnostic(ErrorCode.ERR_SealedNonOverride, "M3").WithArguments("I1.M3()").WithLocation(10, 24),
-                // (6,25): error CS0112: A static member 'I1.M2()' cannot be marked as override, virtual, or abstract
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M3").WithArguments("sealed", "9.0", "preview").WithLocation(10, 24),
+                // (6,25): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static void M2() 
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M2").WithArguments("I1.M2()").WithLocation(6, 25),
-                // (4,26): error CS0112: A static member 'I1.M1()' cannot be marked as override, virtual, or abstract
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M2").WithArguments("virtual").WithLocation(6, 25),
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M1(); 
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M1").WithArguments("I1.M1()").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "9.0", "preview").WithLocation(4, 26),
                 // (21,13): error CS0539: 'Test1.M4()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I1.M4() {}
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M4").WithArguments("Test1.M4()").WithLocation(21, 13),
@@ -7053,8 +7047,8 @@ class Test2 : I1
             var m2 = i1.GetMember<MethodSymbol>("M2");
 
             Assert.False(m2.IsAbstract);
-            Assert.True(m2.IsVirtual);
-            Assert.True(m2.IsMetadataVirtual());
+            Assert.False(m2.IsVirtual);
+            Assert.False(m2.IsMetadataVirtual());
             Assert.False(m2.IsSealed);
             Assert.True(m2.IsStatic);
             Assert.False(m2.IsExtern);
@@ -7068,7 +7062,7 @@ class Test2 : I1
             Assert.False(m3.IsAbstract);
             Assert.False(m3.IsVirtual);
             Assert.False(m3.IsMetadataVirtual());
-            Assert.True(m3.IsSealed);
+            Assert.False(m3.IsSealed);
             Assert.True(m3.IsStatic);
             Assert.False(m3.IsExtern);
             Assert.False(m3.IsAsync);
@@ -8610,9 +8604,9 @@ class Test2 : I1
                 // (5,27): error CS0621: 'I1.M2()': virtual or abstract members cannot be private
                 //     abstract private void M2() {} 
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "M2").WithArguments("I1.M2()").WithLocation(5, 27),
-                // (6,26): error CS0112: A static member 'I1.M3()' cannot be marked as override, virtual, or abstract
+                // (6,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static void M3() {} 
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "M3").WithArguments("I1.M3()").WithLocation(6, 26),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M3").WithArguments("abstract", "9.0", "preview").WithLocation(6, 26),
                 // (11,15): error CS0535: 'Test1' does not implement interface member 'I1.M2()'
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M2()").WithLocation(11, 15),
@@ -11293,9 +11287,6 @@ public interface I1
                 // (9,16): error CS8503: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     static int P06 {get;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P06").WithArguments("static", "7.3", "8.0").WithLocation(9, 16),
-                // (9,21): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     static int P06 {get;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(9, 21),
                 // (10,17): error CS8503: The modifier 'virtual' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     virtual int P07 {set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P07").WithArguments("virtual", "7.3", "8.0").WithLocation(10, 17),
@@ -12067,15 +12058,15 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
 
             compilation1.VerifyDiagnostics(
-                // (4,25): error CS0112: A static member 'I1.P1' cannot be marked as override, virtual, or abstract
+                // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static int P1 {get;} 
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P1").WithArguments("I1.P1").WithLocation(4, 25),
-                // (6,24): error CS0112: A static member 'I1.P2' cannot be marked as override, virtual, or abstract
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("abstract", "9.0", "preview").WithLocation(4, 25),
+                // (6,24): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static int P2 {set {}} 
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P2").WithArguments("I1.P2").WithLocation(6, 24),
-                // (8,23): error CS0238: 'I1.P3' cannot be sealed because it is not an override
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P2").WithArguments("virtual").WithLocation(6, 24),
+                // (8,23): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static int P3 => 0; 
-                Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 23),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P3").WithArguments("sealed", "9.0", "preview").WithLocation(8, 23),
                 // (15,12): error CS0539: 'Test1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.P1 => 0;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("Test1.P1").WithLocation(15, 12),
@@ -12119,7 +12110,7 @@ class Test2 : I1
             var p2set = p2.SetMethod;
 
             Assert.False(p2.IsAbstract);
-            Assert.True(p2.IsVirtual);
+            Assert.False(p2.IsVirtual);
             Assert.False(p2.IsSealed);
             Assert.True(p2.IsStatic);
             Assert.False(p2.IsExtern);
@@ -12128,8 +12119,8 @@ class Test2 : I1
             Assert.Null(test1.FindImplementationForInterfaceMember(p2));
 
             Assert.False(p2set.IsAbstract);
-            Assert.True(p2set.IsVirtual);
-            Assert.True(p2set.IsMetadataVirtual());
+            Assert.False(p2set.IsVirtual);
+            Assert.False(p2set.IsMetadataVirtual());
             Assert.False(p2set.IsSealed);
             Assert.True(p2set.IsStatic);
             Assert.False(p2set.IsExtern);
@@ -12143,7 +12134,7 @@ class Test2 : I1
 
             Assert.False(p3.IsAbstract);
             Assert.False(p3.IsVirtual);
-            Assert.True(p3.IsSealed);
+            Assert.False(p3.IsSealed);
             Assert.True(p3.IsStatic);
             Assert.False(p3.IsExtern);
             Assert.False(p3.IsOverride);
@@ -12153,7 +12144,7 @@ class Test2 : I1
             Assert.False(p3get.IsAbstract);
             Assert.False(p3get.IsVirtual);
             Assert.False(p3get.IsMetadataVirtual());
-            Assert.True(p3get.IsSealed);
+            Assert.False(p3get.IsSealed);
             Assert.True(p3get.IsStatic);
             Assert.False(p3get.IsExtern);
             Assert.False(p3get.IsAsync);
@@ -14702,19 +14693,19 @@ class Test2 : I1, I2, I3, I4, I5
             ValidatePropertyModifiers_18(source1,
                 // (4,22): error CS0500: 'I1.P1.get' cannot declare a body because it is marked abstract
                 //     abstract int P1 {get => 0; set => throw null;} 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.P1.get"),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.P1.get").WithLocation(4, 22),
                 // (4,32): error CS0500: 'I1.P1.set' cannot declare a body because it is marked abstract
                 //     abstract int P1 {get => 0; set => throw null;} 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I1.P1.set"),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I1.P1.set").WithLocation(4, 32),
                 // (8,26): error CS0621: 'I2.P2': virtual or abstract members cannot be private
                 //     abstract private int P2 => 0; 
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "P2").WithArguments("I2.P2").WithLocation(8, 26),
                 // (8,32): error CS0500: 'I2.P2.get' cannot declare a body because it is marked abstract
                 //     abstract private int P2 => 0; 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "0").WithArguments("I2.P2.get").WithLocation(8, 32),
-                // (16,25): error CS0112: A static member 'I4.P4' cannot be marked as override, virtual, or abstract
+                // (16,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static int P4 { get {throw null;} set {throw null;}}
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P4").WithArguments("I4.P4").WithLocation(16, 25),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P4").WithArguments("abstract", "9.0", "preview").WithLocation(16, 25),
                 // (16,30): error CS0500: 'I4.P4.get' cannot declare a body because it is marked abstract
                 //     abstract static int P4 { get {throw null;} set {throw null;}}
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I4.P4.get").WithLocation(16, 30),
@@ -24102,9 +24093,9 @@ public interface I1
                 // (8,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     private event System.Action P05 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(8, 38),
-                // (9,37): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                // (9,32): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     static event System.Action P06 {add{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(9, 37),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "P06").WithArguments("default interface implementation", "8.0").WithLocation(9, 32),
                 // (10,38): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     virtual event System.Action P07 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(10, 38),
@@ -24901,15 +24892,15 @@ class Test2 : I1
                 // (8,54): error CS0073: An add or remove accessor must have a body
                 //     sealed static event System.Action P3 {add; remove;}
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 54),
-                // (6,40): error CS0112: A static member 'I1.P2' cannot be marked as override, virtual, or abstract
+                // (6,40): error CS0112: A static member cannot be marked as 'virtual'
                 //     virtual static event System.Action P2 {add {} remove{}} 
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P2").WithArguments("I1.P2").WithLocation(6, 40),
-                // (8,39): error CS0238: 'I1.P3' cannot be sealed because it is not an override
+                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P2").WithArguments("virtual").WithLocation(6, 40),
+                // (8,39): error CS8703: The modifier 'sealed' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     sealed static event System.Action P3 {add; remove;}
-                Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 39),
-                // (4,41): error CS0112: A static member 'I1.P1' cannot be marked as override, virtual, or abstract
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P3").WithArguments("sealed", "9.0", "preview").WithLocation(8, 39),
+                // (4,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static event System.Action P1; 
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P1").WithArguments("I1.P1").WithLocation(4, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("abstract", "9.0", "preview").WithLocation(4, 41),
                 // (13,28): error CS0539: 'Test1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     event System.Action I1.P1 {add {} remove{}} 
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("Test1.P1").WithLocation(13, 28),
@@ -24953,7 +24944,7 @@ class Test2 : I1
             var p2 = i1.GetMember<EventSymbol>("P2");
 
             Assert.False(p2.IsAbstract);
-            Assert.True(p2.IsVirtual);
+            Assert.False(p2.IsVirtual);
             Assert.False(p2.IsSealed);
             Assert.True(p2.IsStatic);
             Assert.False(p2.IsExtern);
@@ -24966,8 +24957,8 @@ class Test2 : I1
             void ValidateAccessor2(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
-                Assert.True(accessor.IsVirtual);
-                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsVirtual);
+                Assert.False(accessor.IsMetadataVirtual());
                 Assert.False(accessor.IsSealed);
                 Assert.True(accessor.IsStatic);
                 Assert.False(accessor.IsExtern);
@@ -24981,7 +24972,7 @@ class Test2 : I1
 
             Assert.False(p3.IsAbstract);
             Assert.False(p3.IsVirtual);
-            Assert.True(p3.IsSealed);
+            Assert.False(p3.IsSealed);
             Assert.True(p3.IsStatic);
             Assert.False(p3.IsExtern);
             Assert.False(p3.IsOverride);
@@ -24995,7 +24986,7 @@ class Test2 : I1
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
                 Assert.False(accessor.IsMetadataVirtual());
-                Assert.True(accessor.IsSealed);
+                Assert.False(accessor.IsSealed);
                 Assert.True(accessor.IsStatic);
                 Assert.False(accessor.IsExtern);
                 Assert.False(accessor.IsAsync);
@@ -27055,12 +27046,9 @@ class Test2 : I1, I2, I3, I4, I5
                 // (20,39): error CS8703: The modifier 'extern' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P5").WithArguments("extern", "7.3", "8.0").WithLocation(20, 39),
-                // (26,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         add => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "add").WithArguments("default interface implementation", "8.0").WithLocation(26, 9),
-                // (27,9): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         remove => throw null;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(27, 9),
+                // (24,32): error CS8370: Feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //     static event System.Action P6
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "P6").WithArguments("default interface implementation", "8.0").WithLocation(24, 32),
                 // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 40),
@@ -27379,9 +27367,9 @@ class Test2 : I1, I2, I3, I4, I5
                 // (16,44): error CS8712: 'I4.P4': abstract event cannot use event accessor syntax
                 //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I4.P4").WithLocation(16, 44),
-                // (16,41): error CS0112: A static member 'I4.P4' cannot be marked as override, virtual, or abstract
+                // (16,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 9.0. Please use language version 'preview' or greater.
                 //     abstract static event System.Action P4 { add {throw null;} remove {throw null;}}
-                Diagnostic(ErrorCode.ERR_StaticNotVirtual, "P4").WithArguments("I4.P4").WithLocation(16, 41),
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P4").WithArguments("abstract", "9.0", "preview").WithLocation(16, 41),
                 // (20,41): error CS0106: The modifier 'override' is not valid for this item
                 //     override sealed event System.Action P5 { add {throw null;} remove {throw null;}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("override").WithLocation(20, 41),
@@ -39260,48 +39248,24 @@ class Test2 : I1
                 // (4,16): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     static int F1 {get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 16),
-                // (4,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     static int F1 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(4, 20),
-                // (4,25): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     static int F1 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(4, 25),
                 // (5,23): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     public static int F2 {get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 23),
                 // (5,23): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     public static int F2 {get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 23),
-                // (5,27): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     public static int F2 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(5, 27),
-                // (5,32): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     public static int F2 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(5, 32),
                 // (6,25): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     internal static int F3 {get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 25),
                 // (6,25): error CS8703: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     internal static int F3 {get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 25),
-                // (6,29): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     internal static int F3 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(6, 29),
-                // (6,34): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     internal static int F3 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(6, 34),
                 // (7,24): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     private static int F4 {get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F4").WithArguments("static", "7.3", "8.0").WithLocation(7, 24),
                 // (7,24): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     private static int F4 {get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 24),
-                // (7,28): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     private static int F4 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(7, 28),
-                // (7,33): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     private static int F4 {get; set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(7, 33),
                 // (9,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
@@ -39437,36 +39401,24 @@ class Test2 : I1
                 // (4,16): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     static int F1 {get;} = 1;
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 16),
-                // (4,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     static int F1 {get;} = 1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(4, 20),
                 // (5,23): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     public static int F2 {get;} = 2;
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 23),
                 // (5,23): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     public static int F2 {get;} = 2;
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 23),
-                // (5,27): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     public static int F2 {get;} = 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(5, 27),
                 // (6,25): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     internal static int F3 {get;} = 3;
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 25),
                 // (6,25): error CS8703: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     internal static int F3 {get;} = 3;
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 25),
-                // (6,29): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     internal static int F3 {get;} = 3;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(6, 29),
                 // (7,24): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     private static int F4 {get;} = 4;
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F4").WithArguments("static", "7.3", "8.0").WithLocation(7, 24),
                 // (7,24): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     private static int F4 {get;} = 4;
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 24),
-                // (7,28): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     private static int F4 {get;} = 4;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(7, 28),
                 // (9,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
@@ -39588,45 +39540,27 @@ class Test2 : I1
                 // (4,16): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     static int F1 {get; private set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F1").WithArguments("static", "7.3", "8.0").WithLocation(4, 16),
-                // (4,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     static int F1 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(4, 20),
                 // (4,33): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     static int F1 {get; private set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "set").WithArguments("private", "7.3", "8.0").WithLocation(4, 33),
-                // (4,33): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     static int F1 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(4, 33),
                 // (5,23): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     public static int F2 {get; private set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F2").WithArguments("static", "7.3", "8.0").WithLocation(5, 23),
                 // (5,23): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     public static int F2 {get; private set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F2").WithArguments("public", "7.3", "8.0").WithLocation(5, 23),
-                // (5,27): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(5, 27),
                 // (5,40): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     public static int F2 {get; private set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "set").WithArguments("private", "7.3", "8.0").WithLocation(5, 40),
-                // (5,40): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(5, 40),
                 // (6,25): error CS8703: The modifier 'static' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     internal static int F3 {get; private set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F3").WithArguments("static", "7.3", "8.0").WithLocation(6, 25),
                 // (6,25): error CS8703: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     internal static int F3 {get; private set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F3").WithArguments("internal", "7.3", "8.0").WithLocation(6, 25),
-                // (6,29): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "get").WithArguments("default interface implementation", "8.0").WithLocation(6, 29),
                 // (6,42): error CS8703: The modifier 'private' is not valid for this item in C# 7.3. Please use language version '8.0' or greater.
                 //     internal static int F3 {get; private set;}
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "set").WithArguments("private", "7.3", "8.0").WithLocation(6, 42),
-                // (6,42): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "set").WithArguments("default interface implementation", "8.0").WithLocation(6, 42),
                 // (8,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
                 //     public class TestHelper
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(8, 18)

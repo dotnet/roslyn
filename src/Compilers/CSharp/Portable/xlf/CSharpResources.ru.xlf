@@ -972,6 +972,11 @@
         <target state="translated">создание объекта с типом целевого объекта</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureStaticAbstractMembersInInterfaces">
+        <source>static abstract members in interfaces</source>
+        <target state="new">static abstract members in interfaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">Сборка "{0}", содержащая тип "{1}", ссылается на платформу .NET Framework, которая не поддерживается.</target>
@@ -3452,8 +3457,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticNotVirtual">
-        <source>A static member '{0}' cannot be marked as override, virtual, or abstract</source>
-        <target state="translated">Статический член "{0}" не может быть помечен как override, virtual или abstract.</target>
+        <source>A static member cannot be marked as '{0}'</source>
+        <target state="needs-review-translation">Статический член "{0}" не может быть помечен как override, virtual или abstract.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNew">
