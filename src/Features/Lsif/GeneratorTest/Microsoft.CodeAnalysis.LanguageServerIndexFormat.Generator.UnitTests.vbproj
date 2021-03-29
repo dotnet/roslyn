@@ -45,6 +45,10 @@
     <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Manual exclusions for obsolete interop assemblies -->
+    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" NoWarn="NU1605" />
+  </ItemGroup>
+  <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities" />
     <Import Include="Xunit" />
   </ItemGroup>
