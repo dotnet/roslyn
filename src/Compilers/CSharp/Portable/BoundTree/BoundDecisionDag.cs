@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundTestDecisionDagNode p:
                     return p.Update(p.Test, replacement(p.WhenTrue), replacement(p.WhenFalse));
                 case BoundWhenDecisionDagNode p:
-                    return p.Update(p.Bindings, p.WhenExpression, replacement(p.WhenTrue), (p.WhenFalse != null) ? replacement(p.WhenFalse) : null);
+                    return p.Update(p.Bindings, p.WhenExpression, replacement(p.WhenTrue), (p.WhenFalse != null) ? replacement(p.WhenFalse) : null, p.Required);
                 case BoundLeafDecisionDagNode p:
                     return p;
                 default:

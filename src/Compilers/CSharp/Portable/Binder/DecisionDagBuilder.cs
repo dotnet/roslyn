@@ -185,14 +185,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (pattern.Kind != BoundKind.NegatedPattern)
             {
                 Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
-                return ImmutableArray.Create(new StateForCase(1, syntax, tests, bindings, null, whenTrueLabel));
+                return ImmutableArray.Create(new StateForCase(1, syntax, tests, bindings, whenClause: null, whenTrueLabel));
             }
             else
             {
                 Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
                 return ImmutableArray.Create(
-                    new StateForCase(1, syntax, tests, ImmutableArray<BoundPatternBinding>.Empty, null, whenTrueLabel),
-                    new StateForCase(2, syntax, Tests.True.Instance, bindings, null, _defaultLabel));
+                    new StateForCase(1, syntax, tests, ImmutableArray<BoundPatternBinding>.Empty, whenClause: null, whenTrueLabel),
+                    new StateForCase(2, syntax, Tests.True.Instance, bindings, whenClause: null, _defaultLabel, required: true));
             }
         }
 
@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (first.IsFullyMatched)
                     {
                         // there is no when clause we need to evaluate
-                        state.Dag = finalState(first.Syntax, first.CaseLabel, first.Bindings);
+                        state.Dag = finalState(first);
                     }
                     else
                     {
@@ -872,16 +872,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         RoslynDebug.Assert(state.FalseBranch is { });
 
                         // The final state here does not need bindings, as they will be performed before evaluating the when clause (see below)
-                        BoundDecisionDagNode whenTrue = finalState(first.Syntax, first.CaseLabel, default);
+                        BoundDecisionDagNode whenTrue = finalState(first, performBindings: false);
                         BoundDecisionDagNode? whenFalse = state.FalseBranch.Dag;
                         RoslynDebug.Assert(whenFalse is { });
-                        state.Dag = uniqifyDagNode(new BoundWhenDecisionDagNode(first.Syntax, first.Bindings, first.WhenClause, whenTrue, whenFalse));
+                        state.Dag = uniqifyDagNode(new BoundWhenDecisionDagNode(first.Syntax, first.Bindings, first.WhenClause, whenTrue, whenFalse, required: false));
                     }
 
-                    BoundDecisionDagNode finalState(SyntaxNode syntax, LabelSymbol label, ImmutableArray<BoundPatternBinding> bindings)
+                    BoundDecisionDagNode finalState(StateForCase state, bool performBindings = true)
                     {
-                        BoundDecisionDagNode final = uniqifyDagNode(new BoundLeafDecisionDagNode(syntax, label));
-                        return bindings.IsDefaultOrEmpty ? final : uniqifyDagNode(new BoundWhenDecisionDagNode(syntax, bindings, null, final, null));
+                        BoundDecisionDagNode final = uniqifyDagNode(new BoundLeafDecisionDagNode(state.Syntax, state.CaseLabel));
+                        return !performBindings || state.Bindings.IsDefaultOrEmpty ? final : uniqifyDagNode(new BoundWhenDecisionDagNode(state.Syntax, state.Bindings, null, final, null, state.Required));
                     }
                 }
                 else
@@ -1043,9 +1043,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     builder.Add(new StateForCase(
-                        Index: stateForCase.Index, Syntax: stateForCase.Syntax,
-                        RemainingTests: remainingTests,
-                        Bindings: stateForCase.Bindings, WhenClause: stateForCase.WhenClause, CaseLabel: stateForCase.CaseLabel));
+                        stateForCase.Index, stateForCase.Syntax,
+                        remainingTests,
+                        stateForCase.Bindings, stateForCase.WhenClause, stateForCase.CaseLabel, stateForCase.Required));
                 }
             }
 
@@ -1594,20 +1594,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly ImmutableArray<BoundPatternBinding> Bindings;
             public readonly BoundExpression? WhenClause;
             public readonly LabelSymbol CaseLabel;
+            public readonly bool Required;
             public StateForCase(
-                int Index,
-                SyntaxNode Syntax,
-                Tests RemainingTests,
-                ImmutableArray<BoundPatternBinding> Bindings,
-                BoundExpression? WhenClause,
-                LabelSymbol CaseLabel)
+                int index,
+                SyntaxNode syntax,
+                Tests remainingTests,
+                ImmutableArray<BoundPatternBinding> bindings,
+                BoundExpression? whenClause,
+                LabelSymbol caseLabel,
+                bool required = false)
             {
-                this.Index = Index;
-                this.Syntax = Syntax;
-                this.RemainingTests = RemainingTests;
-                this.Bindings = Bindings;
-                this.WhenClause = WhenClause;
-                this.CaseLabel = CaseLabel;
+                this.Index = index;
+                this.Syntax = syntax;
+                this.RemainingTests = remainingTests;
+                this.Bindings = bindings;
+                this.WhenClause = whenClause;
+                this.CaseLabel = caseLabel;
+                this.Required = required;
             }
 
             /// <summary>

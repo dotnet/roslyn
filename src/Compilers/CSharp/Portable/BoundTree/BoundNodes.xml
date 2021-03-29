@@ -1371,6 +1371,10 @@
     <Field Name="WhenExpression" Type="BoundExpression?"/>
     <Field Name="WhenTrue" Type="BoundDecisionDagNode" Null="disallow"/>
     <Field Name="WhenFalse" Type="BoundDecisionDagNode?"/>
+    <!--
+    Required is true when bindings are used in the opposite branch and cannot be optimized away.
+    -->
+    <Field Name="Required" Type="bool"/>
   </Node>
   <!-- This node is used to indicate a point in the decision dag where the decision has been completed. -->
   <Node Name="BoundLeafDecisionDagNode" Base="BoundDecisionDagNode">
