@@ -506,8 +506,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
         private ImmutableArray<ISymbol> GetUnnamedSymbols(ExpressionSyntax originalExpression)
         {
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
-
             var semanticModel = _context.SemanticModel;
             var container = GetContainerForUnnamedSymbols(semanticModel, originalExpression);
             if (container == null)
@@ -518,6 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // that will be casted.
             if (originalExpression.GetRootConditionalAccessExpression() != null)
                 container = TryMakeNullable(semanticModel.Compilation, container);
+
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             AddIndexers(container, symbols);
             AddOperators(container, symbols);
