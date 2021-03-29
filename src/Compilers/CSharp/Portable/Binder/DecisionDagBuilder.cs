@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LabelSymbol whenFalseLabel)
         {
             var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
-            return MakeBoundDecisionDag(syntax, MakeTestsForIsPattern(pattern.Syntax, rootIdentifier, pattern, whenTrueLabel, whenFalseLabel));
+            return MakeBoundDecisionDag(syntax, MakeTestsForIsPattern(pattern.Syntax, rootIdentifier, pattern, whenTrueLabel));
         }
 
         private BoundDecisionDag CreateDecisionDagForSwitchStatement(
@@ -180,18 +180,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundDagTemp input,
             BoundPattern pattern,
-            LabelSymbol whenTrueLabel,
-            LabelSymbol whenFalseLabel)
+            LabelSymbol whenTrueLabel)
         {
-            Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
             if (pattern.Kind != BoundKind.NegatedPattern)
             {
+                Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
                 return ImmutableArray.Create(new StateForCase(1, syntax, tests, bindings, null, whenTrueLabel));
             }
-
-            return ImmutableArray.Create(
-                new StateForCase(1, syntax, tests, ImmutableArray<BoundPatternBinding>.Empty, null, whenTrueLabel),
-                new StateForCase(2, syntax, Tests.True.Instance, bindings, null, whenFalseLabel));
+            else
+            {
+                Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
+                return ImmutableArray.Create(
+                    new StateForCase(1, syntax, tests, ImmutableArray<BoundPatternBinding>.Empty, null, whenTrueLabel),
+                    new StateForCase(2, syntax, Tests.True.Instance, bindings, null, _defaultLabel));
+            }
         }
 
         private Tests MakeAndSimplifyTestsAndBindings(
