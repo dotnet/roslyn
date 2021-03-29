@@ -3668,6 +3668,12 @@ sealed abstract record C2 : C1;
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool PrintMembers ( class [mscorlib]System.Text.StringBuilder builder ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
@@ -3877,6 +3883,12 @@ public class Program
     .property instance class [mscorlib]System.Type EqualityContract()
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool PrintMembers ( class [mscorlib]System.Text.StringBuilder builder ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
     }
 } // end of class A
 ";
@@ -4096,6 +4108,12 @@ public class Program
     .property instance class [mscorlib]System.Type EqualityContract()
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool PrintMembers ( class [mscorlib]System.Text.StringBuilder builder ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
     }
 } // end of class A
 ";
@@ -4612,6 +4630,12 @@ record D(int X) : C(X)
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
     }
+
+    .method family hidebysig newslot virtual instance bool PrintMembers ( class [mscorlib]System.Text.StringBuilder builder ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
 } // end of class A
 ";
             var source = @"
@@ -4708,6 +4732,12 @@ public record B : A {
     .property instance class [mscorlib]System.Type EqualityContract()
     {
         .get instance class [mscorlib]System.Type A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool PrintMembers ( class [mscorlib]System.Text.StringBuilder builder ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
     }
 } // end of class A
 ";
@@ -4925,6 +4955,7 @@ public record C : B {
         [Fact, WorkItem(47093, "https://github.com/dotnet/roslyn/issues/47093")]
         public void ToString_TopLevelRecord_Empty()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -5151,6 +5182,7 @@ record C2 : C1
         [Fact]
         public void ToString_TopLevelRecord_MissingStringBuilder()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1;
 ";
@@ -5173,6 +5205,7 @@ record C1;
         [Fact]
         public void ToString_TopLevelRecord_MissingStringBuilderCtor()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1;
 ";
@@ -5189,6 +5222,7 @@ record C1;
         [Fact]
         public void ToString_TopLevelRecord_MissingStringBuilderAppendString()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1;
 ";
@@ -5205,6 +5239,7 @@ record C1;
         [Fact]
         public void ToString_TopLevelRecord_OneProperty_MissingStringBuilderAppendString()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1(int P);
 ";
@@ -5271,6 +5306,7 @@ sealed record C2(int I1, int I2) : C1(I1);
         [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
         public void ToString_RecordWithIndexer()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1(42);
 System.Console.Write(c1.ToString());
@@ -5313,6 +5349,7 @@ record C1(int I1)
         [Fact, WorkItem(47672, "https://github.com/dotnet/roslyn/issues/47672")]
         public void ToString_PrivateGetter()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -5324,7 +5361,7 @@ record C1
 ";
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "C1 { P1 = 43 }", verify: Verification.Skipped /* init-only */);
+            CompileAndVerify(comp, expectedOutput: "C1 { P1 = 43 }");
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5396,6 +5433,9 @@ record C2: Error;
                 // (2,8): error CS0115: 'C2.GetHashCode()': no suitable method found to override
                 // record C2: Error;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'C2.PrintMembers(StringBuilder)': no suitable method found to override
+                // record C2: Error;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,12): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 // record C2: Error;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(2, 12)
@@ -5425,7 +5465,10 @@ record R : R;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.Equals(object?)").WithLocation(2, 8),
                 // (2,8): error CS0115: 'R.GetHashCode()': no suitable method found to override
                 // record R : R;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.GetHashCode()").WithLocation(2, 8)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'R.PrintMembers(StringBuilder)': no suitable method found to override
+                // record R : R;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "R").WithArguments("R.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8)
                 );
         }
 
@@ -5475,7 +5518,7 @@ record C1
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }");
 
             var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
             Assert.Equal(Accessibility.Protected, print.DeclaredAccessibility);
@@ -5521,6 +5564,7 @@ record C1
         [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_ConstrainedValueType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1<int>() { field = 42 };
 System.Console.Write(c1.ToString());
@@ -5533,7 +5577,7 @@ record C1<T> where T : struct
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }", verify: Verification.Skipped /* init-only */);
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }");
 
             v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
@@ -5563,6 +5607,7 @@ record C1<T> where T : struct
         [Fact, WorkItem(47092, "https://github.com/dotnet/roslyn/issues/47092")]
         public void ToString_TopLevelRecord_OneField_ReferenceType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1() { field = ""hello"" };
 System.Console.Write(c1.ToString());
@@ -5575,7 +5620,7 @@ record C1
 
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
-            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = hello }", verify: Verification.Skipped /* init-only */);
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = hello }");
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
@@ -5669,6 +5714,7 @@ record C1
         [Fact]
         public void ToString_TopLevelRecord_TwoFields_ReferenceType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1() { field1 = ""hi"", field2 = null };
 System.Console.Write(c1.ToString());
@@ -5704,7 +5750,7 @@ record C1
                 //     private protected string field7;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field7").WithArguments("C1.field7", "null").WithLocation(14, 30)
                 );
-            var v = CompileAndVerify(comp, expectedOutput: "C1 { field1 = hi, field2 =  }", verify: Verification.Skipped /* init-only */);
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field1 = hi, field2 =  }");
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
@@ -6244,12 +6290,9 @@ public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0108: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. Use the new keyword if hiding was intended.
+                // (2,15): error CS0506: 'B.PrintMembers(StringBuilder)': cannot override inherited member 'A.PrintMembers(StringBuilder)' because it is not marked virtual, abstract, or override
                 // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewRequired, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
-                // (2,19): error CS8864: Records may only inherit from object or another record
-                // public record B : A {
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15)
                 );
         }
 
@@ -6319,9 +6362,9 @@ public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (2,19): error CS8864: Records may only inherit from object or another record
+                // (2,15): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15)
                 );
         }
 
@@ -6391,12 +6434,81 @@ public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
+                // (2,15): error CS0508: 'B.PrintMembers(StringBuilder)': return type must be 'int' to match overridden member 'A.PrintMembers(StringBuilder)'
                 // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
-                // (2,19): error CS8864: Records may only inherit from object or another record
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)", "int").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void EqualityContract_BadBase_ReturnsInt()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit A
+    extends System.Object
+{
+    .method public hidebysig specialname newslot virtual instance class A '" + WellKnownMemberNames.CloneMethodName + @"' () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance bool Equals ( object other ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig virtual instance int32 GetHashCode () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public newslot virtual instance bool Equals ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig specialname rtspecialname instance void .ctor ( class A '' ) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method family hidebysig newslot virtual instance int32 get_EqualityContract () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .property instance int32 EqualityContract()
+    {
+        .get instance int32 A::get_EqualityContract()
+    }
+
+    .method family hidebysig newslot virtual instance bool '" + WellKnownMemberNames.PrintMembersMethodName + @"' (class [mscorlib]System.Text.StringBuilder builder) cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            var source = @"
+public record B : A {
+}";
+            var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS1715: 'B.EqualityContract': type must be 'int' to match overridden member 'A.EqualityContract'
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_CantChangeTypeOnOverride, "B").WithArguments("B.EqualityContract", "A.EqualityContract", "int").WithLocation(2, 15)
                 );
         }
 
@@ -6471,14 +6583,7 @@ public record B : A {
 public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
-            comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
-                // (2,19): error CS8864: Records may only inherit from object or another record
-                // public record B : A {
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6541,9 +6646,9 @@ public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (2,19): error CS8864: Records may only inherit from object or another record
+                // (2,15): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
                 // public record B : A {
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15)
                 );
         }
 
@@ -6624,14 +6729,7 @@ public record B : A {
 public record B : A {
 }";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
-            comp.VerifyEmitDiagnostics(
-                // (2,15): warning CS0114: 'B.PrintMembers(StringBuilder)' hides inherited member 'A.PrintMembers(StringBuilder)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
-                // public record B : A {
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)", "A.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 15),
-                // (2,19): error CS8864: Records may only inherit from object or another record
-                // public record B : A {
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(2, 19)
-                );
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -6781,12 +6879,19 @@ public record C : B
 ";
             var comp = CreateCompilationWithIL(new[] { source, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyEmitDiagnostics(
-                // (2,19): error CS8864: Records may only inherit from object or another record
-                // public record C : B
-                Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(2, 19),
                 // (4,29): error CS8871: 'C.PrintMembers(StringBuilder)' does not override expected method from 'B'.
                 //     protected override bool PrintMembers(System.Text.StringBuilder builder) => throw null;
                 Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "PrintMembers").WithArguments("C.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(4, 29)
+                );
+
+            var source2 = @"
+public record C : B;
+";
+            comp = CreateCompilationWithIL(new[] { source2, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (2,15): error CS8871: 'C.PrintMembers(StringBuilder)' does not override expected method from 'B'.
+                // public record C : B;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideBaseMethod, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)", "B").WithLocation(2, 15)
                 );
         }
 
@@ -7027,6 +7132,7 @@ public record B : A {
         [Fact]
         public void ToString_TopLevelRecord_UserDefinedToString()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -7048,6 +7154,7 @@ record C1
         [Fact]
         public void ToString_TopLevelRecord_UserDefinedToString_Sealed()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7080,6 +7187,7 @@ sealed record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_WithNullableStringBuilder()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record C1
@@ -7095,6 +7203,7 @@ record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_ErrorReturnType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7113,6 +7222,7 @@ record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_WrongReturnType()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7201,6 +7311,7 @@ sealed record C
         [Fact]
         public void ToString_UserDefinedPrintMembers()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new C1();
 System.Console.Write(c1.ToString());
@@ -7223,6 +7334,7 @@ record C1
         [Fact]
         public void ToString_UserDefinedPrintMembers_WrongAccessibility()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record C1
 {
@@ -7290,6 +7402,7 @@ record C1 : B
         [Fact]
         public void ToString_UserDefinedPrintMembers_New()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record B;
 record C1 : B
@@ -10656,6 +10769,9 @@ End Class
                 // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
+                // (1,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
                 // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
@@ -10724,6 +10840,9 @@ End Class
                 // (1,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(1, 8),
+                // (1,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
+                // record B(object P, object Q) : A
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
                 // (1,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(1, 8),
@@ -10736,7 +10855,7 @@ End Class
                 // (1,32): error CS8864: Records may only inherit from object or another record
                 // record B(object P, object Q) : A
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "A").WithLocation(1, 32)
-            );
+                );
 
             var actualMembers = GetProperties(compB, "B").ToTestDisplayStrings();
             AssertEx.Equal(new[] { "System.Type B.EqualityContract { get; }" }, actualMembers);
@@ -10811,6 +10930,9 @@ End Class
                 // (1,8): error CS0115: 'C.Equals(B?)': no suitable method found to override
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(B?)").WithLocation(1, 8),
+                // (1,8): error CS0115: 'C.PrintMembers(StringBuilder)': no suitable method found to override
+                // record C(object P, object Q, object R) : B
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
                 // (1,8): error CS7036: There is no argument given that corresponds to the required formal parameter 'b' of 'B.B(B)'
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("b", "B.B(B)").WithLocation(1, 8),
@@ -10823,7 +10945,7 @@ End Class
                 // (1,42): error CS8864: Records may only inherit from object or another record
                 // record C(object P, object Q, object R) : B
                 Diagnostic(ErrorCode.ERR_BadRecordBase, "B").WithLocation(1, 42)
-            );
+                );
 
             var actualMembers = GetProperties(compB, "C").ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -13041,6 +13163,9 @@ record C(int j) : B(3, 4)
                 // (2,8): error CS0115: 'C.Equals(object?)': no suitable method found to override
                 // record C(int j) : B(3, 4);
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.Equals(object?)").WithLocation(2, 8),
+                // (2,8): error CS0115: 'C.PrintMembers(StringBuilder)': no suitable method found to override
+                // record C(int j) : B(3, 4);
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C").WithArguments("C.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,19): error CS0122: 'B' is inaccessible due to its protection level
                 // record C(int j) : B(3, 4);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B").WithArguments("B").WithLocation(2, 19),
@@ -23894,15 +24019,18 @@ record B : A<int>, System.IEquatable<B>;
                 // (1,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(1, 8),
-                // (1,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
-                // record A<T> : System.IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(1, 8),
                 // (1,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(1, 8),
                 // (1,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(1, 8),
+                // (1,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(1, 8),
+                // (1,8): error CS0115: 'A<T>.PrintMembers(StringBuilder)': no suitable method found to override
+                // record A<T> : System.IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(1, 8),
                 // (1,22): error CS0234: The type or namespace name 'IEquatable<>' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // record A<T> : System.IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IEquatable<A<T>>").WithArguments("IEquatable<>", "System").WithLocation(1, 22),
@@ -23980,15 +24108,18 @@ record B : A<int>, IEquatable<B>;
                 // (2,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
-                // record A<T> : IEquatable<A<T>>;
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
                 // (2,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(2, 8),
                 // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.PrintMembers(StringBuilder)': no suitable method found to override
+                // record A<T> : IEquatable<A<T>>;
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (2,15): error CS0246: The type or namespace name 'IEquatable<>' could not be found (are you missing a using directive or an assembly reference?)
                 // record A<T> : IEquatable<A<T>>;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IEquatable<A<T>>").WithArguments("IEquatable<>").WithLocation(2, 15),
@@ -25311,15 +25442,18 @@ record B<T> : A<B<T>> {
                 // (2,8): error CS0115: 'A<T>.ToString()': no suitable method found to override
                 // record A<T> : B<A<T>> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.ToString()").WithLocation(2, 8),
-                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
-                // record A<T> : B<A<T>> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
                 // (2,8): error CS0115: 'A<T>.EqualityContract': no suitable method found to override
                 // record A<T> : B<A<T>> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.EqualityContract").WithLocation(2, 8),
                 // (2,8): error CS0115: 'A<T>.Equals(object?)': no suitable method found to override
                 // record A<T> : B<A<T>> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.Equals(object?)").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.GetHashCode()': no suitable method found to override
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.GetHashCode()").WithLocation(2, 8),
+                // (2,8): error CS0115: 'A<T>.PrintMembers(StringBuilder)': no suitable method found to override
+                // record A<T> : B<A<T>> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "A").WithArguments("A<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(2, 8),
                 // (3,8): error CS0115: 'B<T>.EqualityContract': no suitable method found to override
                 // record B<T> : A<B<T>> {
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.EqualityContract").WithLocation(3, 8),
@@ -25329,6 +25463,9 @@ record B<T> : A<B<T>> {
                 // (3,8): error CS0115: 'B<T>.GetHashCode()': no suitable method found to override
                 // record B<T> : A<B<T>> {
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.GetHashCode()").WithLocation(3, 8),
+                // (3,8): error CS0115: 'B<T>.PrintMembers(StringBuilder)': no suitable method found to override
+                // record B<T> : A<B<T>> {
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
                 // (3,8): error CS0115: 'B<T>.ToString()': no suitable method found to override
                 // record B<T> : A<B<T>> {
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B<T>.ToString()").WithLocation(3, 8)
@@ -25381,9 +25518,6 @@ public partial record C3 : Base<(int a, int b)> { }
                 // (3,23): error CS0263: Partial declarations of 'C1' must not specify different base classes
                 // public partial record C1 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_PartialMultipleBases, "C1").WithArguments("C1").WithLocation(3, 23),
-                // (5,23): error CS0115: 'C2.GetHashCode()': no suitable method found to override
-                // public partial record C2 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(5, 23),
                 // (5,23): error CS0115: 'C2.ToString()': no suitable method found to override
                 // public partial record C2 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.ToString()").WithLocation(5, 23),
@@ -25393,18 +25527,27 @@ public partial record C3 : Base<(int a, int b)> { }
                 // (5,23): error CS0115: 'C2.Equals(object?)': no suitable method found to override
                 // public partial record C2 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.Equals(object?)").WithLocation(5, 23),
+                // (5,23): error CS0115: 'C2.GetHashCode()': no suitable method found to override
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.GetHashCode()").WithLocation(5, 23),
+                // (5,23): error CS0115: 'C2.PrintMembers(StringBuilder)': no suitable method found to override
+                // public partial record C2 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C2").WithArguments("C2.PrintMembers(System.Text.StringBuilder)").WithLocation(5, 23),
                 // (3,23): error CS0115: 'C1.ToString()': no suitable method found to override
                 // public partial record C1 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.ToString()").WithLocation(3, 23),
-                // (3,23): error CS0115: 'C1.GetHashCode()': no suitable method found to override
-                // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.GetHashCode()").WithLocation(3, 23),
                 // (3,23): error CS0115: 'C1.EqualityContract': no suitable method found to override
                 // public partial record C1 : Base<(int a, int b)> { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.EqualityContract").WithLocation(3, 23),
                 // (3,23): error CS0115: 'C1.Equals(object?)': no suitable method found to override
                 // public partial record C1 : Base<(int a, int b)> { }
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.Equals(object?)").WithLocation(3, 23)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.Equals(object?)").WithLocation(3, 23),
+                // (3,23): error CS0115: 'C1.GetHashCode()': no suitable method found to override
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.GetHashCode()").WithLocation(3, 23),
+                // (3,23): error CS0115: 'C1.PrintMembers(StringBuilder)': no suitable method found to override
+                // public partial record C1 : Base<(int a, int b)> { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "C1").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 23)
                 );
         }
 
@@ -27529,6 +27672,7 @@ record C1(int I1)
         [WorkItem(47867, "https://github.com/dotnet/roslyn/issues/47867")]
         public void ToString_NestedRecord()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 var c1 = new Outer.C1(42);
 System.Console.Write(c1.ToString());

@@ -1081,7 +1081,7 @@ record C
                 "System.String! C.Y { get; init; }",
                 "System.String! C.Y.get",
                 "void C.Y.init",
-                "System.String C.ToString()",
+                "System.String! C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder! builder)",
                 "System.Boolean C.operator !=(C? r1, C? r2)",
                 "System.Boolean C.operator ==(C? r1, C? r2)",
@@ -1315,6 +1315,9 @@ enum G : C { }";
                 // (3,8): error CS0115: 'B.Equals(A?)': no suitable method found to override
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.Equals(A?)").WithLocation(3, 8),
+                // (3,8): error CS0115: 'B.PrintMembers(StringBuilder)': no suitable method found to override
+                // record B : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "B").WithArguments("B.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
                 // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record B : A { }
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "B").WithArguments("A").WithLocation(3, 8),
@@ -1368,6 +1371,9 @@ enum H : C { }
                 // (3,8): error CS0115: 'E.Equals(A?)': no suitable method found to override
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.Equals(A?)").WithLocation(3, 8),
+                // (3,8): error CS0115: 'E.PrintMembers(StringBuilder)': no suitable method found to override
+                // record E : A { }
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "E").WithArguments("E.PrintMembers(System.Text.StringBuilder)").WithLocation(3, 8),
                 // (3,8): error CS8867: No accessible copy constructor found in base type 'A'.
                 // record E : A { }
                 Diagnostic(ErrorCode.ERR_NoCopyConstructorInBaseType, "E").WithArguments("A").WithLocation(3, 8),

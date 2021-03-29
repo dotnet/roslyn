@@ -757,6 +757,8 @@ public record struct S2 : I
 
             AssertEx.Equal(new[] {
                 "System.Int32 S.M(System.String s)",
+                "System.String S.ToString()",
+                "System.Boolean S.PrintMembers(System.Text.StringBuilder builder)",
                 "System.Boolean S.op_Inequality(S r1, S r2)",
                 "System.Boolean S.op_Equality(S r1, S r2)",
                 "System.Int32 S.GetHashCode()",
@@ -868,7 +870,7 @@ public record struct S
     public int Property { get; set; } = 43;
 }
 ";
-            // PROTOTYPE(record-structs): this will be allowed in C# 10
+            // PROTOTYPE(record-structs): this will be allowed in C# 10, or we need to improve the message
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (4,16): error CS0573: 'S': cannot have instance property or field initializers in structs
@@ -1054,6 +1056,8 @@ public partial record struct C
                 "X",
                 "M",
                 "M",
+                "ToString",
+                "PrintMembers",
                 "op_Inequality",
                 "op_Equality",
                 "GetHashCode",
@@ -1708,6 +1712,8 @@ record struct C(int X, int X)
                 "get_X",
                 "set_X",
                 "X",
+                "ToString",
+                "PrintMembers",
                 "op_Inequality",
                 "op_Equality",
                 "GetHashCode",
@@ -1756,6 +1762,8 @@ record struct C(int X, int Y)
                 "void C.set_X()",
                 "System.Int32 C.get_Y(System.Int32 value)",
                 "System.Int32 C.set_Y(System.Int32 value)",
+                "System.String C.ToString()",
+                "System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
                 "System.Boolean C.op_Inequality(C r1, C r2)",
                 "System.Boolean C.op_Equality(C r1, C r2)",
                 "System.Int32 C.GetHashCode()",
@@ -1909,6 +1917,7 @@ namespace System
     {
         public virtual bool Equals(object x) => throw null;
         public virtual int GetHashCode() => throw null;
+        public virtual string ToString() => throw null;
     }
     public class Exception { }
     public class ValueType
@@ -1916,6 +1925,7 @@ namespace System
         public bool X { get; set; }
     }
     public class Attribute { }
+    public class String { }
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
@@ -1927,6 +1937,14 @@ namespace System.Collections.Generic
     {
         public static EqualityComparer<T> Default => throw null;
         public abstract int GetHashCode(T t);
+    }
+}
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
     }
 }
 ";
@@ -1991,6 +2009,7 @@ namespace System
     {
         public virtual bool Equals(object x) => throw null;
         public virtual int GetHashCode() => throw null;
+        public virtual string ToString() => throw null;
     }
     public class Exception { }
     public class ValueType
@@ -1998,6 +2017,7 @@ namespace System
         public static bool X { get; set; }
     }
     public class Attribute { }
+    public class String { }
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
@@ -2009,6 +2029,14 @@ namespace System.Collections.Generic
     {
         public static EqualityComparer<T> Default => throw null;
         public abstract int GetHashCode(T t);
+    }
+}
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
     }
 }
 ";
@@ -3801,6 +3829,9 @@ record struct A
                 // (2,15): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 // record struct A
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 15),
+                // (2,15): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                // record struct A
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.Boolean").WithLocation(2, 15),
                 // (4,12): error CS0518: Predefined type 'System.Boolean' is not defined or imported
                 //     public bool Equals(A other)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(4, 12),
@@ -3837,12 +3868,15 @@ record struct A
         public void RecordEquals_RecordEqualsInValueType()
         {
             var src = @"
+public record struct A;
+
 namespace System
 {
     public class Object
     {
         public virtual bool Equals(object x) => throw null;
         public virtual int GetHashCode() => throw null;
+        public virtual string ToString() => throw null;
     }
     public class Exception { }
     public class ValueType
@@ -3850,6 +3884,7 @@ namespace System
         public bool Equals(A x) => throw null;
     }
     public class Attribute { }
+    public class String { }
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
@@ -3863,7 +3898,14 @@ namespace System.Collections.Generic
         public abstract int GetHashCode(T t);
     }
 }
-public record struct A;
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
+    }
+}
 ";
             var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
 
@@ -4078,11 +4120,14 @@ record struct A
         public void GetHashCode_GetHashCodeInValueType()
         {
             var src = @"
+public record struct A;
+
 namespace System
 {
     public class Object
     {
         public virtual bool Equals(object x) => throw null;
+        public virtual string ToString() => throw null;
     }
     public class Exception { }
     public class ValueType
@@ -4090,6 +4135,7 @@ namespace System
         public virtual int GetHashCode() => throw null;
     }
     public class Attribute { }
+    public class String { }
     public struct Void { }
     public struct Boolean { }
     public struct Int32 { }
@@ -4103,16 +4149,23 @@ namespace System.Collections.Generic
         public abstract int GetHashCode(T t);
     }
 }
-public record struct A;
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(string s) => null;
+        public StringBuilder Append(object s) => null;
+    }
+}
 ";
             var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
 
             comp.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (27,22): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
+                // (2,22): error CS8869: 'A.GetHashCode()' does not override expected method from 'object'.
                 // public record struct A;
-                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "A").WithArguments("A.GetHashCode()").WithLocation(27, 22)
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "A").WithArguments("A.GetHashCode()").WithLocation(2, 22)
                 );
         }
 
@@ -4120,63 +4173,29 @@ public record struct A;
         public void GetHashCode_MissingEqualityComparer_EmptyRecord()
         {
             var src = @"
-namespace System
-{
-    public class Object
-    {
-        public virtual bool Equals(object x) => throw null;
-        public virtual int GetHashCode() => throw null;
-    }
-    public class Exception { }
-    public class ValueType { }
-    public class Attribute { }
-    public struct Void { }
-    public struct Boolean { }
-    public struct Int32 { }
-    public interface IEquatable<T> { }
-}
 public record struct A;
 ";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
-
-            comp.VerifyEmitDiagnostics(
-                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
-                );
+            var comp = CreateCompilation(src);
+            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_EqualityComparer_T);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
         public void GetHashCode_MissingEqualityComparer_NonEmptyRecord()
         {
             var src = @"
-namespace System
-{
-    public class Object
-    {
-        public virtual bool Equals(object x) => throw null;
-        public virtual int GetHashCode() => throw null;
-    }
-    public class Exception { }
-    public class ValueType { }
-    public class Attribute { }
-    public struct Void { }
-    public struct Boolean { }
-    public struct Int32 { }
-    public interface IEquatable<T> { }
-}
 public record struct A(int I);
 ";
-            var comp = CreateEmptyCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(src);
+            comp.MakeTypeMissing(WellKnownType.System_Collections_Generic_EqualityComparer_T);
 
             comp.VerifyEmitDiagnostics(
-                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
-                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (17,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.GetHashCode'
+                // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.GetHashCode'
                 // public record struct A(int I);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "public record struct A(int I);").WithArguments("System.Collections.Generic.EqualityComparer`1", "GetHashCode").WithLocation(17, 1),
-                // (17,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.get_Default'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "public record struct A(int I);").WithArguments("System.Collections.Generic.EqualityComparer`1", "GetHashCode").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Collections.Generic.EqualityComparer`1.get_Default'
                 // public record struct A(int I);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "public record struct A(int I);").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(17, 1)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "public record struct A(int I);").WithArguments("System.Collections.Generic.EqualityComparer`1", "get_Default").WithLocation(2, 1)
                 );
         }
 
@@ -4442,6 +4461,734 @@ public record struct RecordB();
             var b = comp.GlobalNamespace.GetTypeMember("RecordB");
             AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB r1, RecordB r2)" },
                 b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void ToString_NestedRecord()
+        {
+            var src = @"
+var c1 = new Outer.C1(42);
+System.Console.Write(c1.ToString());
+
+public class Outer
+{
+    public record struct C1(int I1);
+}
+";
+
+            var compDebug = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var compRelease = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compDebug, expectedOutput: "C1 { I1 = 42 }");
+            compDebug.VerifyEmitDiagnostics();
+
+            CompileAndVerify(compRelease, expectedOutput: "C1 { I1 = 42 }");
+            compRelease.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_Empty()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+
+record struct C1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { }");
+
+            var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal(Accessibility.Private, print.DeclaredAccessibility);
+            Assert.False(print.IsOverride);
+            Assert.False(print.IsVirtual);
+            Assert.False(print.IsAbstract);
+            Assert.False(print.IsSealed);
+            Assert.True(print.IsImplicitlyDeclared);
+
+            var toString = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.ObjectToString);
+            Assert.Equal(Accessibility.Public, toString.DeclaredAccessibility);
+            Assert.True(toString.IsOverride);
+            Assert.False(toString.IsVirtual);
+            Assert.False(toString.IsAbstract);
+            Assert.False(toString.IsSealed);
+            Assert.True(toString.IsImplicitlyDeclared);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  ret
+}
+");
+            v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
+{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (System.Text.StringBuilder V_0)
+  IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldstr      ""C1""
+  IL_000c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0011:  pop
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      "" { ""
+  IL_0018:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_001d:  pop
+  IL_001e:  ldarg.0
+  IL_001f:  ldloc.0
+  IL_0020:  call       ""bool C1.PrintMembers(System.Text.StringBuilder)""
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_MissingStringBuilder()
+        {
+            var src = @"
+record struct C1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.MakeTypeMissing(WellKnownType.System_Text_StringBuilder);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0518: Predefined type 'System.Text.StringBuilder' is not defined or imported
+                // record struct C1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "record struct C1;").WithArguments("System.Text.StringBuilder").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder..ctor'
+                // record struct C1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record struct C1;").WithArguments("System.Text.StringBuilder", ".ctor").WithLocation(2, 1),
+                // (2,15): error CS0518: Predefined type 'System.Text.StringBuilder' is not defined or imported
+                // record struct C1;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C1").WithArguments("System.Text.StringBuilder").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_MissingStringBuilderCtor()
+        {
+            var src = @"
+record struct C1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__ctor);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder..ctor'
+                // record struct C1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record struct C1;").WithArguments("System.Text.StringBuilder", ".ctor").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_MissingStringBuilderAppendString()
+        {
+            var src = @"
+record struct C1;
+";
+
+            var comp = CreateCompilation(src);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendString);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
+                // record struct C1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record struct C1;").WithArguments("System.Text.StringBuilder", "Append").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_OneProperty_MissingStringBuilderAppendString()
+        {
+            var src = @"
+record struct C1(int P);
+";
+
+            var comp = CreateCompilation(src);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_StringBuilder__AppendString);
+            comp.VerifyEmitDiagnostics(
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
+                // record struct C1(int P);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record struct C1(int P);").WithArguments("System.Text.StringBuilder", "Append").WithLocation(2, 1),
+                // (2,1): error CS0656: Missing compiler required member 'System.Text.StringBuilder.Append'
+                // record struct C1(int P);
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "record struct C1(int P);").WithArguments("System.Text.StringBuilder", "Append").WithLocation(2, 1)
+                );
+        }
+
+        [Fact]
+        public void ToString_RecordWithIndexer()
+        {
+            var src = @"
+var c1 = new C1(42);
+System.Console.Write(c1.ToString());
+
+record struct C1(int I1)
+{
+    private int field = 44;
+    public int this[int i] => 0;
+    public int PropertyWithoutGetter { set { } }
+    public int P2 { get => 43; }
+    public event System.Action a = null;
+
+    private int field1 = 100;
+    internal int field2 = 100;
+
+    private int Property1 { get; set; } = 100;
+    internal int Property2 { get; set; } = 100;
+}
+";
+
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, expectedOutput: "C1 { I1 = 42, P2 = 43 }");
+            comp.VerifyEmitDiagnostics(
+                // (7,17): warning CS0414: The field 'C1.field' is assigned but its value is never used
+                //     private int field = 44;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field").WithArguments("C1.field").WithLocation(7, 17),
+                // (11,32): warning CS0414: The field 'C1.a' is assigned but its value is never used
+                //     public event System.Action a = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C1.a").WithLocation(11, 32),
+                // (13,17): warning CS0414: The field 'C1.field1' is assigned but its value is never used
+                //     private int field1 = 100;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field1").WithArguments("C1.field1").WithLocation(13, 17)
+                );
+        }
+
+        [Fact]
+        public void ToString_PrivateGetter()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+
+record struct C1
+{
+    public int P1 { private get => 43; set => throw null; }
+}
+";
+
+            var comp = CreateCompilation(src);
+            CompileAndVerify(comp, expectedOutput: "C1 { P1 = 43 }");
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_OneField_ValueType()
+        {
+            var src = @"
+var c1 = new C1() { field = 42 };
+System.Console.Write(c1.ToString());
+
+record struct C1
+{
+    public int field;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }");
+
+            var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal(Accessibility.Private, print.DeclaredAccessibility);
+            Assert.False(print.IsOverride);
+            Assert.False(print.IsVirtual);
+            Assert.False(print.IsAbstract);
+            Assert.False(print.IsSealed);
+            Assert.True(print.IsImplicitlyDeclared);
+
+            var toString = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.ObjectToString);
+            Assert.Equal(Accessibility.Public, toString.DeclaredAccessibility);
+            Assert.True(toString.IsOverride);
+            Assert.False(toString.IsVirtual);
+            Assert.False(toString.IsAbstract);
+            Assert.False(toString.IsSealed);
+            Assert.True(toString.IsImplicitlyDeclared);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldflda     ""int C1.field""
+  IL_001f:  constrained. ""int""
+  IL_0025:  callvirt   ""string object.ToString()""
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_002f:  pop
+  IL_0030:  ldc.i4.1
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_OneField_ConstrainedValueType()
+        {
+            var src = @"
+var c1 = new C1<int>() { field = 42 };
+System.Console.Write(c1.ToString());
+
+record struct C1<T> where T : struct
+{
+    public T field;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = 42 }");
+
+            v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldflda     ""T C1<T>.field""
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""string object.ToString()""
+  IL_002a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_002f:  pop
+  IL_0030:  ldc.i4.1
+  IL_0031:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_OneField_ReferenceType()
+        {
+            var src = @"
+var c1 = new C1() { field = ""hello"" };
+System.Console.Write(c1.ToString());
+
+record struct C1
+{
+    public string field;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { field = hello }");
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""field""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  ldfld      ""string C1.field""
+  IL_001f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0024:  pop
+  IL_0025:  ldc.i4.1
+  IL_0026:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_TwoFields_ReferenceType()
+        {
+            var src = @"
+var c1 = new C1(42) { field1 = ""hi"", field2 = null };
+System.Console.Write(c1.ToString());
+
+record struct C1(int I)
+{
+    public string field1 = null;
+    public string field2 = null;
+
+    private string field3 = null;
+    internal string field4 = null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (10,20): warning CS0414: The field 'C1.field3' is assigned but its value is never used
+                //     private string field3 = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "field3").WithArguments("C1.field3").WithLocation(10, 20)
+                );
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { I = 42, field1 = hi, field2 =  }");
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size      151 (0x97)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""I""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  call       ""readonly int C1.I.get""
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  constrained. ""int""
+  IL_0028:  callvirt   ""string object.ToString()""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldarg.1
+  IL_0034:  ldstr      "", ""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldarg.1
+  IL_0040:  ldstr      ""field1""
+  IL_0045:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_004a:  pop
+  IL_004b:  ldarg.1
+  IL_004c:  ldstr      "" = ""
+  IL_0051:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0056:  pop
+  IL_0057:  ldarg.1
+  IL_0058:  ldarg.0
+  IL_0059:  ldfld      ""string C1.field1""
+  IL_005e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0063:  pop
+  IL_0064:  ldarg.1
+  IL_0065:  ldstr      "", ""
+  IL_006a:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_006f:  pop
+  IL_0070:  ldarg.1
+  IL_0071:  ldstr      ""field2""
+  IL_0076:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_007b:  pop
+  IL_007c:  ldarg.1
+  IL_007d:  ldstr      "" = ""
+  IL_0082:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0087:  pop
+  IL_0088:  ldarg.1
+  IL_0089:  ldarg.0
+  IL_008a:  ldfld      ""string C1.field2""
+  IL_008f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0094:  pop
+  IL_0095:  ldc.i4.1
+  IL_0096:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_Readonly()
+        {
+            var src = @"
+var c1 = new C1(42);
+System.Console.Write(c1.ToString());
+
+readonly record struct C1(int I);
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var v = CompileAndVerify(comp, expectedOutput: "C1 { I = 42 }", verify: Verification.Skipped /* init-only */);
+
+            v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
+{
+  // Code size       53 (0x35)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""I""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldstr      "" = ""
+  IL_0012:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0017:  pop
+  IL_0018:  ldarg.1
+  IL_0019:  ldarg.0
+  IL_001a:  call       ""int C1.I.get""
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  constrained. ""int""
+  IL_0028:  callvirt   ""string object.ToString()""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldc.i4.1
+  IL_0034:  ret
+}
+");
+            v.VerifyIL("C1." + WellKnownMemberNames.ObjectToString, @"
+{
+  // Code size       70 (0x46)
+  .maxstack  2
+  .locals init (System.Text.StringBuilder V_0)
+  IL_0000:  newobj     ""System.Text.StringBuilder..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldstr      ""C1""
+  IL_000c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0011:  pop
+  IL_0012:  ldloc.0
+  IL_0013:  ldstr      "" { ""
+  IL_0018:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_001d:  pop
+  IL_001e:  ldarg.0
+  IL_001f:  ldloc.0
+  IL_0020:  call       ""bool C1.PrintMembers(System.Text.StringBuilder)""
+  IL_0025:  brfalse.s  IL_0033
+  IL_0027:  ldloc.0
+  IL_0028:  ldstr      "" ""
+  IL_002d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0032:  pop
+  IL_0033:  ldloc.0
+  IL_0034:  ldstr      ""}""
+  IL_0039:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_003e:  pop
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string object.ToString()""
+  IL_0045:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_UserDefinedToString()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+
+record struct C1
+{
+    public override string ToString() => ""RAN"";
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN");
+
+            var print = comp.GetMember<MethodSymbol>("C1." + WellKnownMemberNames.PrintMembersMethodName);
+            Assert.Equal("System.Boolean C1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)", print.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_UserDefinedToString_New()
+        {
+            var src = @"
+record struct C1
+{
+    public new string ToString() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,23): error CS8869: 'C1.ToString()' does not override expected method from 'object'.
+                //     public new string ToString() => throw null;
+                Diagnostic(ErrorCode.ERR_DoesNotOverrideMethodFromObject, "ToString").WithArguments("C1.ToString()").WithLocation(4, 23)
+                );
+        }
+
+        [Fact]
+        public void ToString_TopLevelRecord_UserDefinedToString_Sealed()
+        {
+            var src = @"
+record struct C1
+{
+    public sealed override string ToString() => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,35): error CS0106: The modifier 'sealed' is not valid for this item
+                //     public sealed override string ToString() => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "ToString").WithArguments("sealed").WithLocation(4, 35)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_WithNullableStringBuilder()
+        {
+            var src = @"
+#nullable enable
+record struct C1
+{
+    private bool PrintMembers(System.Text.StringBuilder? builder) => throw null!;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_ErrorReturnType()
+        {
+            var src = @"
+record struct C1
+{
+    private Error PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,13): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
+                //     private Error PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(4, 13)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_WrongReturnType()
+        {
+            var src = @"
+record struct C1
+{
+    private int PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,17): error CS8874: Record member 'C1.PrintMembers(StringBuilder)' must return 'bool'.
+                //     private int PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_SignatureMismatchInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)", "bool").WithLocation(4, 17)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers()
+        {
+            var src = @"
+var c1 = new C1();
+System.Console.Write(c1.ToString());
+System.Console.Write("" - "");
+c1.M();
+
+record struct C1
+{
+    private bool PrintMembers(System.Text.StringBuilder builder)
+    {
+        builder.Append(""RAN"");
+        return true;
+    }
+
+    public void M()
+    {
+        var builder = new System.Text.StringBuilder();
+        if (PrintMembers(builder))
+        {
+            System.Console.Write(builder.ToString());
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { RAN } - RAN");
+        }
+
+        [Fact]
+        public void ToString_CallingSynthesizedPrintMembers()
+        {
+            var src = @"
+var c1 = new C1(1, 2, 3);
+System.Console.Write(c1.ToString());
+System.Console.Write("" - "");
+c1.M();
+
+record struct C1(int I, int I2, int I3)
+{
+    public void M()
+    {
+        var builder = new System.Text.StringBuilder();
+        if (PrintMembers(builder))
+        {
+            System.Console.Write(builder.ToString());
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1 { I = 1, I2 = 2, I3 = 3 } - I = 1, I2 = 2, I3 = 3");
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_WrongAccessibility()
+        {
+            var src = @"
+var c = new C1();
+System.Console.Write(c.ToString());
+
+record struct C1
+{
+    internal bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (7,19): error CS8879: Record member 'C1.PrintMembers(StringBuilder)' must be private.
+                //     internal bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_NonPrivateAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
+        public void ToString_UserDefinedPrintMembers_Static()
+        {
+            var src = @"
+record struct C1
+{
+    static private bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+}
+";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,25): error CS8877: Record member 'C1.PrintMembers(StringBuilder)' may not be static.
+                //     static private bool PrintMembers(System.Text.StringBuilder builder) => throw null;
+                Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 25)
+                );
         }
     }
 }
