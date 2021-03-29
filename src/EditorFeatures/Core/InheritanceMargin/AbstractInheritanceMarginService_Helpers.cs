@@ -50,8 +50,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 solution,
                 includeHiddenLocations: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
+            var containingSymbolName =
+                targetSymbol.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
-            return new InheritanceTargetItem(inheritanceRelationship, definition);
+            return new InheritanceTargetItem(
+                inheritanceRelationship,
+                definition,
+                targetSymbol.GetGlyph(),
+                containingSymbolName);
         }
 
         private static async Task<InheritanceMarginItem> CreateInheritanceMemberInfoForMemberAsync(

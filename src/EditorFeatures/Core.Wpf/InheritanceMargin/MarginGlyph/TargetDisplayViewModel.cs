@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -19,12 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public DefinitionItem DefinitionItem { get; }
 
         /// <summary>
-        /// Display name for the target.
+        /// Display content for the target.
         /// </summary>
-        public string DisplayName { get; }
+        public string DisplayContent { get; }
 
         /// <summary>
-        /// ImageMoniker indicate the relationship to the original member.
+        /// ImageMoniker shown before the display name.
         /// </summary>
         public ImageMoniker ImageMoniker { get; }
 
@@ -36,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public TargetDisplayViewModel(InheritanceTargetItem target)
         {
             var targetName = target.DefinitionItem.DisplayParts.JoinText();
-            DisplayName = targetName;
-            ImageMoniker = InheritanceMarginHelpers.GetMoniker(target.RelationToMember);
-            AutomationName = string.Format(EditorFeaturesWpfResources.Navigate_to_0, targetName);;
+            DisplayContent = string.Format(EditorFeaturesWpfResources._0_in_1, targetName, target.DisplayNameForContainingType);
+            ImageMoniker = target.Glyph.GetImageMoniker();
+            AutomationName = DisplayContent;
             DefinitionItem = target.DefinitionItem;
         }
     }

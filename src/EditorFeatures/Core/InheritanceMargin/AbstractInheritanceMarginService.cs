@@ -169,16 +169,5 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 builder.AddIfNotNull(item);
             }
         }
-
-        /// <summary>
-        /// A set of widely used TypeSymbols that we don't want to show in margin
-        /// </summary>
-        private static bool IsUnwantedBaseType(ITypeSymbol symbol)
-        {
-            var specialType = symbol.SpecialType;
-            return specialType == SpecialType.System_Object
-                || specialType == SpecialType.System_ValueType
-                || specialType == SpecialType.System_Enum;
-        }
     }
 }

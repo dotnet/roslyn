@@ -46,7 +46,7 @@
         <!-- Style used to display a single target menu item -->
         <Style x:Key="TargetMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
-            <Setter Property="Header" Value="{Binding  DisplayName}"/>
+            <Setter Property="Header" Value="{Binding  DisplayContent}"/>
             <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
             <Setter Property="IsCheckable" Value="False"/>
             <EventSetter Event="Click" Handler="TargetMenuItem_OnClick"/>

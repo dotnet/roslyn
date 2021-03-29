@@ -12,11 +12,6 @@
         <target state="new">Click to select member</target>
         <note />
       </trans-unit>
-      <trans-unit id="Click_to_view_all_inheritance_targets_for_0">
-        <source>Click to view all inheritance targets for '{0}'</source>
-        <target state="new">Click to view all inheritance targets for '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Copying_selection_to_Interactive_Window">
         <source>Copying selection to Interactive Window.</source>
         <target state="new">Copying selection to Interactive Window.</target>
@@ -120,6 +115,16 @@
       <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
         <source>The references command is not supported in this Interactive Window implementation.</source>
         <target state="new">The references command is not supported in this Interactive Window implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_in_1">
+        <source>'0' (in '{1}')</source>
+        <target state="new">'0' (in '{1}')</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_is_inherited">
+        <source>'{0}' is inherited</source>
+        <target state="new">'{0}' is inherited</target>
         <note />
       </trans-unit>
     </body>

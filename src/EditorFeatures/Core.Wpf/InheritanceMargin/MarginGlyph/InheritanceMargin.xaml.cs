@@ -88,12 +88,12 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             {
                 _waitIndicator.Wait(
                     title: EditorFeaturesResources.Navigating,
-                    message: string.Format(EditorFeaturesWpfResources.Navigate_to_0, viewModel.DisplayName) ,
+                    message: string.Format(EditorFeaturesWpfResources.Navigate_to_0, viewModel.DisplayContent),
                     allowCancel: true,
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
                         _workspace,
-                        string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayName),
+                        string.Format(EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
                         _threadingContext,
                         _streamingFindUsagesPresenter,
                         context.CancellationToken));

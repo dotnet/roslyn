@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public ImageMoniker ImageMoniker { get; }
 
         /// <summary>
-        /// Tooltip for the margin
+        /// Tooltip for the margin.
         /// </summary>
         public string ToolTip { get; }
 
@@ -34,7 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             ImageMoniker = tag.Moniker;
             var member = tag.MembersOnLine[0];
             var memberDisplayName = member.DisplayName;
-            ToolTip = string.Format(EditorFeaturesWpfResources.Click_to_view_all_inheritance_targets_for_0, memberDisplayName);
+
+            // Short-cuts information should be added to this string when the short-cuts are finalized.
+            ToolTip = string.Format(EditorFeaturesWpfResources._0_is_inherited, memberDisplayName);
             AutomationName = ToolTip;
             var targets = member.TargetItems;
             Targets = targets.SelectAsArray(item => new TargetDisplayViewModel(item));
