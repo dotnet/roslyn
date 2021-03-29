@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2821,7 +2822,7 @@ global using C4;
 global using C6;
 #line 4000
 using C5;
-#line 4000
+#line 5000
 using C7;
 
 class C1
@@ -2889,6 +2890,236 @@ namespace C7 { class C77 {} }
 
             comp2 = CreateCompilation(source2 + source3, parseOptions: TestOptions.RegularPreview);
             comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected1);
+        }
+
+        [Fact]
+        public void UnusedGlobalUsingNamespace_02()
+        {
+            var source2 = @"
+#line 1000
+global using N2;
+#line 2000
+global using N3;
+#line 3000
+global using N10;
+
+class C2
+{
+    void M()
+    {
+        new C1010();
+#line 10000
+        new C10000();
+    }
+}
+
+#line 40000
+partial class C0 : C0000
+{
+}
+";
+            var source3 = @"
+#line 4000
+using N5;
+#line 5000
+using N7;
+
+class C3
+{
+    void M()
+    {
+        new C33();
+        new C77();
+#line 20000
+        new C20000();
+    }
+}
+
+namespace N2 {}
+namespace N3 { class C33 {} }
+namespace N5 {}
+namespace N7 { class C77 {} }
+namespace N8 {}
+namespace N9 { class C99 {} }
+namespace N10 { class C1010 {} }
+
+#line 50000
+partial class C0 : C0000
+{
+}
+";
+            var source4 = @"
+#line 6000
+using N8;
+#line 7000
+using N9;
+
+class C4
+{
+    void M()
+    {
+        new C99();
+#line 30000
+        new C30000();
+    }
+}
+
+#line 60000
+partial class C0 : C0000
+{
+}
+";
+            var comp2 = CreateCompilation(new[] { source2, source3, source4 }, parseOptions: TestOptions.RegularPreview);
+
+            Assert.Empty(comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2.VerifyDiagnostics(
+                // (1000,1): hidden CS8019: Unnecessary using directive.
+                // global using N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using N2;").WithLocation(1000, 1),
+                // (4000,1): hidden CS8019: Unnecessary using directive.
+                // using N5;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N5;").WithLocation(4000, 1),
+                // (6000,1): hidden CS8019: Unnecessary using directive.
+                // using N8;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N8;").WithLocation(6000, 1),
+                // (10000,13): error CS0246: The type or namespace name 'C10000' could not be found (are you missing a using directive or an assembly reference?)
+                //         new C10000();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C10000").WithArguments("C10000").WithLocation(10000, 13),
+                // (20000,13): error CS0246: The type or namespace name 'C20000' could not be found (are you missing a using directive or an assembly reference?)
+                //         new C20000();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C20000").WithArguments("C20000").WithLocation(20000, 13),
+                // (30000,13): error CS0246: The type or namespace name 'C30000' could not be found (are you missing a using directive or an assembly reference?)
+                //         new C30000();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C30000").WithArguments("C30000").WithLocation(30000, 13),
+                // (40000,20): error CS0246: The type or namespace name 'C0000' could not be found (are you missing a using directive or an assembly reference?)
+                // partial class C0 : C0000
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(40000, 20),
+                // (50000,20): error CS0246: The type or namespace name 'C0000' could not be found (are you missing a using directive or an assembly reference?)
+                // partial class C0 : C0000
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(50000, 20),
+                // (60000,20): error CS0246: The type or namespace name 'C0000' could not be found (are you missing a using directive or an assembly reference?)
+                // partial class C0 : C0000
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(60000, 20)
+                );
+
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
+
+            var expected0 = new[]
+            {
+                // (1000,1): hidden CS8019: Unnecessary using directive.
+                // global using N2;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using N2;").WithLocation(1000, 1),
+                // (10000,13): error CS0246: The type or namespace name 'C10000' could not be found (are you missing a using directive or an assembly reference?)
+                //         new C10000();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C10000").WithArguments("C10000").WithLocation(10000, 13),
+                // (40000,20): error CS0246: The type or namespace name 'C0000' could not be found (are you missing a using directive or an assembly reference?)
+                // partial class C0 : C0000
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(40000, 20)
+            };
+
+            var expected1 = new[]
+            {
+                // (4000,1): hidden CS8019: Unnecessary using directive.
+                // using N5;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N5;").WithLocation(4000, 1),
+                // (20000,13): error CS0246: The type or namespace name 'C20000' could not be found (are you missing a using directive or an assembly reference?)
+                //         new C20000();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C20000").WithArguments("C20000").WithLocation(20000, 13),
+                // (50000,20): error CS0246: The type or namespace name 'C0000' could not be found (are you missing a using directive or an assembly reference?)
+                // partial class C0 : C0000
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(50000, 20)
+            };
+
+            var expected2 = new[]
+            {
+                // (6000,1): hidden CS8019: Unnecessary using directive.
+                // using N8;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using N8;").WithLocation(6000, 1),
+                // (30000,13): error CS0246: The type or namespace name 'C30000' could not be found (are you missing a using directive or an assembly reference?)
+                //         new C30000();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C30000").WithArguments("C30000").WithLocation(30000, 13),
+                // (60000,20): error CS0246: The type or namespace name 'C0000' could not be found (are you missing a using directive or an assembly reference?)
+                // partial class C0 : C0000
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(60000, 20)
+            };
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics().Verify(expected2);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2 = CreateCompilation(new[] { source2, source3, source4 }, parseOptions: TestOptions.RegularPreview);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics(TextSpan.FromBounds(20, comp2.SyntaxTrees[0].Length - 1)).Verify(
+                // (10000,13): error CS0246: The type or namespace name 'C10000' could not be found (are you missing a using directive or an assembly reference?)
+                //         new C10000();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C10000").WithArguments("C10000").WithLocation(10000, 13),
+                // (40000,20): error CS0246: The type or namespace name 'C0000' could not be found (are you missing a using directive or an assembly reference?)
+                // partial class C0 : C0000
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(40000, 20)
+                );
+            comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics(TextSpan.FromBounds(20, comp2.SyntaxTrees[1].Length - 1)).Verify(
+                // (20000,13): error CS0246: The type or namespace name 'C20000' could not be found (are you missing a using directive or an assembly reference?)
+                //         new C20000();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C20000").WithArguments("C20000").WithLocation(20000, 13),
+                // (50000,20): error CS0246: The type or namespace name 'C0000' could not be found (are you missing a using directive or an assembly reference?)
+                // partial class C0 : C0000
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(50000, 20)
+                );
+            comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics(TextSpan.FromBounds(20, comp2.SyntaxTrees[2].Length - 1)).Verify(
+                // (30000,13): error CS0246: The type or namespace name 'C30000' could not be found (are you missing a using directive or an assembly reference?)
+                //         new C30000();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C30000").WithArguments("C30000").WithLocation(30000, 13),
+                // (60000,20): error CS0246: The type or namespace name 'C0000' could not be found (are you missing a using directive or an assembly reference?)
+                // partial class C0 : C0000
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C0000").WithArguments("C0000").WithLocation(60000, 20)
+                );
+
+            Assert.Empty(comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2 = CreateCompilation(new[] { source2, source3, source4 }, parseOptions: TestOptions.RegularPreview);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
+            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1] }, comp2.UsageOfUsingsRecordedInTrees);
+            comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
+            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1] }, comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics().Verify(expected2);
+            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1], comp2.SyntaxTrees[2] }, comp2.UsageOfUsingsRecordedInTrees);
+            comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics().Verify(expected2);
+            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1], comp2.SyntaxTrees[2] }, comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
+            comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2 = CreateCompilation(new[] { source2, source3, source4 }, parseOptions: TestOptions.RegularPreview);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
+            AssertEx.SetEqual(new[] { comp2.SyntaxTrees[1] }, comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics().Verify(expected2);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2 = CreateCompilation(new[] { source2, source3, source4 }, parseOptions: TestOptions.RegularPreview);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
+
+            comp2.GetSemanticModel(comp2.SyntaxTrees[2]).GetDiagnostics().Verify(expected2);
+            Assert.Null(comp2.UsageOfUsingsRecordedInTrees);
         }
 
         [Fact]
