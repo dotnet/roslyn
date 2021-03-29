@@ -8,13 +8,12 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace Microsoft.CodeAnalysis.Editor.Tags
+namespace Microsoft.CodeAnalysis.Editor.Tags.Implementation
 {
     /// <summary>
     /// Extensibility point for hosts to display <see cref="ImageMoniker"/>s for items with Tags.
     /// </summary>
-    [Obsolete("This type has moved to Microsoft.CodeAnalysis.EditorFeatures.Wpf", error: true)]
-    public interface IImageMonikerService
+    internal interface IImageMonikerService
     {
         bool TryGetImageMoniker(ImmutableArray<string> tags, out ImageMoniker imageMoniker);
     }

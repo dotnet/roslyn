@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace Microsoft.CodeAnalysis.Editor.Tags
+namespace Microsoft.CodeAnalysis.Editor.Tags.Implementation
 {
     [ExportImageMonikerService(Name = Name)]
     internal class DefaultImageMonikerService : IImageMonikerService

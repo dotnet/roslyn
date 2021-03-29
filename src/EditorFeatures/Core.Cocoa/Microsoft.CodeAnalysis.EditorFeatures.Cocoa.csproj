@@ -17,6 +17,7 @@
     <Compile Include="..\Core.Wpf\SignatureHelp\**\*.cs" LinkBase="SignatureHelp" />
     <Compile Include="..\Core.Wpf\Suggestions\**\*.cs" LinkBase="Suggestions" />
     <Compile Include="..\Core.Wpf\IDebuggerTextView2.cs" Link="IDebuggerTextView2.cs" />
+    <Compile Include="..\Core.Wpf\Tags\IImageMonikerService.cs" LinkBase="Tags" />
   </ItemGroup>
 
   <ItemGroup>

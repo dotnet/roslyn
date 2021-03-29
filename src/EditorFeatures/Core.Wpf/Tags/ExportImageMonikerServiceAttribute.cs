@@ -7,7 +7,7 @@
 using System;
 using System.ComponentModel.Composition;
 
-namespace Microsoft.CodeAnalysis.Editor.Tags
+namespace Microsoft.CodeAnalysis.Editor.Tags.Implementation
 {
     /// <summary>
     /// Use this attribute to declare an <see cref="IImageMonikerService"/> implementation 
@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tags
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    [Obsolete("This type has moved to Microsoft.CodeAnalysis.EditorFeatures.Wpf", error: true)]
-    public sealed class ExportImageMonikerServiceAttribute : ExportAttribute
+    internal sealed class ExportImageMonikerServiceAttribute : ExportAttribute
     {
         /// <summary>
         /// The name of the <see cref="IImageMonikerService"/>.  
