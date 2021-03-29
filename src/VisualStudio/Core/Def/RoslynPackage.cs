@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.ColorSchemes;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute;
@@ -136,6 +137,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
 
             TrackBulkFileOperations();
+
+            var settingsEditorFactory = _componentModel.GetService<SettingsEditorFactory>();
+            RegisterEditorFactory(settingsEditorFactory);
         }
 
         private void InitializeColors()
