@@ -28,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         public const string Extension = ".editorconfig";
 
         private readonly ISettingsAggregator _settingsDataProviderFactory;
+        private readonly VisualStudioWorkspace _workspace;
         private readonly IWpfTableControlProvider _controlProvider;
         private readonly ITableManagerProvider _tableMangerProvider;
         private readonly IVsEditorAdaptersFactoryService _vsEditorAdaptersFactoryService;
@@ -43,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                                      IThreadingContext threadingContext)
         {
             _settingsDataProviderFactory = workspace.Services.GetRequiredService<ISettingsAggregator>();
+            _workspace = workspace;
             _controlProvider = controlProvider;
             _tableMangerProvider = tableMangerProvider;
             _vsEditorAdaptersFactoryService = vsEditorAdaptersFactoryService;
@@ -128,7 +130,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                                                    _controlProvider,
                                                    _tableMangerProvider,
                                                    pszMkDocument,
-                                                   textBuffer);
+                                                   textBuffer,
+                                                   _workspace);
             ppunkDocView = Marshal.GetIUnknownForObject(newEditor);
             ppunkDocData = Marshal.GetIUnknownForObject(textBuffer);
             pbstrEditorCaption = "";

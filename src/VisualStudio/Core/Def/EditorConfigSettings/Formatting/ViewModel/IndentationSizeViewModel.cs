@@ -35,7 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
         public bool IsSupported(OptionKey2 key) => _key == key;
     }
 
-    // TODO(jmarolf): do not do this thing
     internal enum IndentationSizeSetting
     {
         _1,

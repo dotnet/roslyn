@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
 {
@@ -24,6 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         private readonly ISettingsEditorView _analyzerSettingsView;
         private readonly Workspace _workspace;
         private readonly string _filepath;
+        private readonly IThreadingContext _threadingContext;
         private readonly EditorTextUpdater _textUpdater;
 
         public static string Formatting => ServicesVSResources.Formatting;
@@ -35,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                                      ISettingsEditorView analyzerSettingsView,
                                      Workspace workspace,
                                      string filepath,
+                                     IThreadingContext threadingContext,
                                      IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
                                      IVsTextLines textLines)
         {
@@ -42,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             DataContext = this;
             _workspace = workspace;
             _filepath = filepath;
+            _threadingContext = threadingContext;
             _textUpdater = new EditorTextUpdater(editorAdaptersFactoryService, textLines);
             _formattingView = formattingView;
             FormattingTab.Content = _formattingView.SettingControl;
@@ -66,11 +70,14 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 return;
             }
 
-            var originalText = analyzerConfigDocument.GetTextSynchronously(default);
-            var updatedText = _formattingView.UpdateEditorConfig(originalText);
-            updatedText = _codeStyleView.UpdateEditorConfig(updatedText);
-            updatedText = _analyzerSettingsView.UpdateEditorConfig(updatedText);
-            _textUpdater.UpdateText(updatedText.GetTextChanges(originalText))
+            _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                var originalText = await analyzerConfigDocument.GetTextAsync(default).ConfigureAwait(false);
+                var updatedText = await _formattingView.UpdateEditorConfigAsync(originalText).ConfigureAwait(false);
+                updatedText = await _codeStyleView.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
+                updatedText = await _analyzerSettingsView.UpdateEditorConfigAsync(updatedText).ConfigureAwait(false);
+                _textUpdater.UpdateText(updatedText.GetTextChanges(originalText));
+            });
         }
 
         internal IWpfTableControl[] GetTableControls()

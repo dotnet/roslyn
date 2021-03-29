@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var index = _comboBox.SelectedIndex;
-            if (_descriptions.Length < index && index >= 0)
+            if (index < _descriptions.Length && index >= 0)
             {
                 _model.ChangeProperty(_descriptions[index]);
             }

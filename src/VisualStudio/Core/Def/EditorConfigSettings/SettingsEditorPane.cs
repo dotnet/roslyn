@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -37,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
         private readonly ITableManagerProvider _tableMangerProvider;
         private readonly string _fileName;
         private readonly IVsTextLines _textBuffer;
+        private readonly Workspace _workspace;
         private uint _componentId;
         private IOleUndoManager? _undoManager;
         private SettingsEditorControl? _control;
@@ -47,7 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                                   IWpfTableControlProvider controlProvider,
                                   ITableManagerProvider tableMangerProvider,
                                   string fileName,
-                                  IVsTextLines textBuffer)
+                                  IVsTextLines textBuffer,
+                                  Workspace workspace)
             : base(null)
         {
             _vsEditorAdaptersFactoryService = vsEditorAdaptersFactoryService;
@@ -57,6 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             _tableMangerProvider = tableMangerProvider;
             _fileName = fileName;
             _textBuffer = textBuffer;
+            _workspace = workspace;
         }
 
         protected override void Initialize()
@@ -94,7 +98,12 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
             _control = new SettingsEditorControl(
                 GetFormattingView(),
                 GetCodeStyleView(),
-                GetAnalyzerView());
+                GetAnalyzerView(),
+                _workspace,
+                _fileName,
+                _threadingContext,
+                _vsEditorAdaptersFactoryService,
+                _textBuffer);
             Content = _control;
 
             RegisterIndependentView(true);
@@ -114,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                     throw new InvalidOperationException("Unable to get formatter settings");
                 }
                 var viewModel = new FormattingViewModel(dataProvider, _controlProvider, _tableMangerProvider);
-                return new FormattingSettingsView(_textBuffer, _vsEditorAdaptersFactoryService, _threadingContext, viewModel);
+                return new FormattingSettingsView(viewModel);
             }
 
             ISettingsEditorView GetCodeStyleView()
@@ -125,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                     throw new InvalidOperationException("Unable to get code style settings");
                 }
                 var viewModel = new CodeStyleSettingsViewModel(dataProvider, _controlProvider, _tableMangerProvider);
-                return new CodeStyleSettingsView(_textBuffer, _vsEditorAdaptersFactoryService, _threadingContext, viewModel);
+                return new CodeStyleSettingsView(viewModel);
             }
 
             ISettingsEditorView GetAnalyzerView()
@@ -137,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
                 }
 
                 var viewModel = new AnalyzerSettingsViewModel(dataProvider, _controlProvider, _tableMangerProvider);
-                return new AnalyzerSettingsView(_textBuffer, _vsEditorAdaptersFactoryService, _threadingContext, viewModel);
+                return new AnalyzerSettingsView(viewModel);
             }
         }
 

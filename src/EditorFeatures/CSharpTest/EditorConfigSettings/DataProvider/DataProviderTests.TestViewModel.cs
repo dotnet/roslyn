@@ -14,31 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
     {
         private class TestViewModel : ISettingsEditorViewModel
         {
-            private readonly int _expectedNumberOfTimesCalled;
-            private int _releaseCount;
-            private readonly SemaphoreSlim _sync;
+            public void NotifyOfUpdate() { }
 
-            public TestViewModel(int expectedNumberOfTimesCalled)
+            Task<SourceText> ISettingsEditorViewModel.UpdateEditorConfigAsync(SourceText sourceText)
             {
-                _sync = new SemaphoreSlim(expectedNumberOfTimesCalled);
-                _expectedNumberOfTimesCalled = expectedNumberOfTimesCalled;
-                _releaseCount = 0;
-            }
-
-            public async Task WaitForComplete()
-            {
-                do
-                {
-                    await _sync.WaitAsync().ConfigureAwait(false);
-                } while (_releaseCount != _expectedNumberOfTimesCalled);
-            }
-
-            public Task<IReadOnlyList<TextChange>?> GetChangesAsync() => throw new NotImplementedException();
-
-            public void NotifyOfUpdate()
-            {
-                Interlocked.Increment(ref _releaseCount);
-                _sync.Release();
+                throw new NotImplementedException();
             }
         }
     }

@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
@@ -22,17 +20,14 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
         private const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
         private const string SeveritySuffix = ".severity";
 
-        public static async Task<SourceText?> TryUpdateAnalyzerConfigDocumentAsync(AnalyzerConfigDocument analyzerConfigDocument,
-                                                                                   IReadOnlyList<(AnalyzerSetting option, DiagnosticSeverity value)> settingsToUpdate,
-                                                                                   CancellationToken token)
+        public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
+                                                                  string filePath,
+                                                                  IReadOnlyList<(AnalyzerSetting option, DiagnosticSeverity value)> settingsToUpdate)
         {
-            if (analyzerConfigDocument is null)
-                throw new ArgumentNullException(nameof(analyzerConfigDocument));
+            if (originalText is null)
+                return null;
             if (settingsToUpdate is null)
-                throw new ArgumentNullException(nameof(settingsToUpdate));
-
-            var originalText = await analyzerConfigDocument.GetTextAsync(token).ConfigureAwait(false);
-            var filePath = analyzerConfigDocument.FilePath;
+                return null;
             if (filePath is null)
                 return null;
 
@@ -49,32 +44,28 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             }
         }
 
-        public static async Task<SourceText?> TryUpdateAnalyzerConfigDocumentAsync(AnalyzerConfigDocument analyzerConfigDocument,
-                                                                                   IReadOnlyList<(IOption2 option, object value)> settingsToUpdate,
-                                                                                   CancellationToken token)
+        public static SourceText? TryUpdateAnalyzerConfigDocument(SourceText originalText,
+                                                                  string filePath,
+                                                                  OptionSet optionSet,
+                                                                  IReadOnlyList<(IOption2 option, object value)> settingsToUpdate)
         {
-            if (analyzerConfigDocument is null)
-                throw new ArgumentNullException(nameof(analyzerConfigDocument));
+            if (originalText is null)
+                return null;
             if (settingsToUpdate is null)
-                throw new ArgumentNullException(nameof(settingsToUpdate));
-
-            var originalText = await analyzerConfigDocument.GetTextAsync(token).ConfigureAwait(false);
-            var filePath = analyzerConfigDocument.FilePath;
+                return null;
             if (filePath is null)
                 return null;
 
-            var optionSet = analyzerConfigDocument.Project.Solution.Workspace.Options;
             var updatedText = originalText;
-            var settings = settingsToUpdate.Select(x => TryGetOptionValueAndLanguage(x.option, x.value, analyzerConfigDocument))
+            var settings = settingsToUpdate.Select(x => TryGetOptionValueAndLanguage(x.option, x.value, optionSet))
                                            .Where(x => x.success)
                                            .Select(x => (x.option, x.value, x.language))
                                            .ToList();
 
             return TryUpdateAnalyzerConfigDocument(originalText, filePath, settings);
 
-            static (bool success, string option, string value, Language language) TryGetOptionValueAndLanguage(IOption2 option, object value, AnalyzerConfigDocument document)
+            static (bool success, string option, string value, Language language) TryGetOptionValueAndLanguage(IOption2 option, object value, OptionSet optionSet)
             {
-                var optionSet = document.Project.Solution.Workspace.Options;
                 if (option.StorageLocations.FirstOrDefault(x => x is IEditorConfigStorageLocation2) is not IEditorConfigStorageLocation2 storageLocation)
                 {
                     return (false, null!, null!, default);
@@ -82,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
 
                 var optionName = storageLocation.KeyName;
                 var optionValue = storageLocation.GetEditorConfigStringValue(value, optionSet);
-                if (value is ICodeStyleOption codeStyleOption)
+                if (value is ICodeStyleOption codeStyleOption && !optionValue.Contains(':'))
                 {
                     var severity = codeStyleOption.Notification switch
                     {
@@ -95,20 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                     optionValue = $"{optionValue}:{severity}";
                 }
 
-                Language language = default;
-                if (option.IsPerLanguage)
-                {
-                    language = Language.CSharp | Language.VisualBasic;
-                }
-                else if (document.Project.Language.Equals(LanguageNames.CSharp, StringComparison.Ordinal))
-                {
-                    language = Language.CSharp;
-                }
-                else if (document.Project.Language.Equals(LanguageNames.VisualBasic, StringComparison.Ordinal))
-                {
-                    language = Language.VisualBasic;
-                }
-
+                var language = option.IsPerLanguage ? Language.CSharp | Language.VisualBasic : Language.CSharp;
                 return (true, optionName, optionValue, language);
             }
         }

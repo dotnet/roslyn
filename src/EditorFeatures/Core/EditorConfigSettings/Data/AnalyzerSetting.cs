@@ -50,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
             if (severity == Severity)
                 return;
 
+            Severity = severity;
             _ = _settingsUpdater.QueueUpdateAsync(this, severity);
         }
     }

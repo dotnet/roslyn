@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
     {
         void RegisterViewModel(ISettingsEditorViewModel model);
         ImmutableArray<TData> GetCurrentDataSnapshot();
-        Task<IReadOnlyList<TextChange>?> GetChangedEditorConfigAsync();
+        Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText);
     }
 }

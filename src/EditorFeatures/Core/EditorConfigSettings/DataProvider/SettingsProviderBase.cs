@@ -52,8 +52,16 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
             UpdateOptions(options, Workspace.Options);
         }
 
-        public Task<IReadOnlyList<TextChange>?> GetChangedEditorConfigAsync()
-            => SettingsUpdater.GetChangedEditorConfigAsync(default);
+        public async Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText)
+        {
+            if (!await SettingsUpdater.HasAnyChangesAsync().ConfigureAwait(false))
+            {
+                return sourceText;
+            }
+
+            var text = await SettingsUpdater.GetChangedEditorConfigAsync(sourceText, default).ConfigureAwait(false);
+            return text is not null ? text : sourceText;
+        }
 
         public ImmutableArray<TData> GetCurrentDataSnapshot()
         {

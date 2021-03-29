@@ -74,13 +74,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public async Task TestGettingAnalyzerSettingsProviderWorkspaceServiceAsync()
+        public void TestGettingAnalyzerSettingsProviderWorkspaceServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<AnalyzerSetting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
-            var model = new TestViewModel(expectedNumberOfTimesCalled: 1);
+            var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
-            await model.WaitForComplete();
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
             var result = Assert.Single(dataSnapShot);
             Assert.Equal("MyDiagnostic", result.Id);
@@ -91,49 +90,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Da
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public async Task TestGettingCodeStyleSettingProviderWorkspaceServiceAsync()
+        public void TestGettingCodeStyleSettingProviderWorkspaceServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<CodeStyleSetting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
-            var model = new TestViewModel(expectedNumberOfTimesCalled: 8);
+            var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
-            await model.WaitForComplete();
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
             Assert.Equal(26, dataSnapShot.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public async Task TestGettingCodeStyleSettingsProviderLanguageServiceAsync()
+        public void TestGettingCodeStyleSettingsProviderLanguageServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<CodeStyleSetting>(LanguageNames.CSharp);
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
-            var model = new TestViewModel(expectedNumberOfTimesCalled: 10);
+            var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
-            await model.WaitForComplete();
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
             Assert.Equal(29, dataSnapShot.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public async Task TestGettingFormattingSettingProviderWorkspaceServiceAsync()
+        public void TestGettingFormattingSettingProviderWorkspaceServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromWorkspace<FormattingSetting>();
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
-            var model = new TestViewModel(expectedNumberOfTimesCalled: 1);
+            var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
-            await model.WaitForComplete();
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
             Assert.Equal(5, dataSnapShot.Length);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public async Task TestGettingFormattingSettingProviderLanguageServiceAsync()
+        public void TestGettingFormattingSettingProviderLanguageServiceAsync()
         {
             var settingsProviderFactory = GettingSettingsProviderFactoryFromLanguageService<FormattingSetting>(LanguageNames.CSharp);
             var settingsProvider = settingsProviderFactory.GetForFile("/a/b/config");
-            var model = new TestViewModel(expectedNumberOfTimesCalled: 4);
+            var model = new TestViewModel();
             settingsProvider.RegisterViewModel(model);
-            await model.WaitForComplete();
             var dataSnapShot = settingsProvider.GetCurrentDataSnapshot();
             Assert.Equal(47, dataSnapShot.Length);
         }

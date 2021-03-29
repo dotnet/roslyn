@@ -69,9 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
             return new RemoveSinkWhenDisposed(TableSinks, sink);
         }
 
-        public Task<IReadOnlyList<TextChange>?> GetChangesAsync()
-            => _data.GetChangedEditorConfigAsync();
-
         public IWpfTableControl4 GetTableControl()
         {
             var initialColumnStates = GetInitialColumnStates();
@@ -83,9 +80,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
                     fixedColumns);
         }
 
-        public void ShutDown()
-        {
-            _tableManager.RemoveSource(this);
-        }
+        public void ShutDown() => _ = _tableManager.RemoveSource(this);
+
+        public Task<SourceText> UpdateEditorConfigAsync(SourceText sourceText) => _data.GetChangedEditorConfigAsync(sourceText);
     }
 }

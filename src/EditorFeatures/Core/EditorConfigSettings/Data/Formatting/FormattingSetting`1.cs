@@ -14,10 +14,26 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
     {
         public override bool IsDefinedInEditorConfig => _options.TryGetEditorConfigOption<T>(_option, out _);
 
+        private bool _isValueSet;
+        private T? _value;
         public T Value
         {
+            private set
+            {
+                if (!_isValueSet)
+                {
+                    _isValueSet = true;
+                }
+
+                _value = value;
+            }
             get
             {
+                if (_value is not null && _isValueSet)
+                {
+                    return _value;
+                }
+
                 if (_options.TryGetEditorConfigOption(_option, out T? value) &&
                     value is not null)
                 {
@@ -51,6 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
 
         public override void SetValue(object value)
         {
+            Value = (T)value;
             _ = Updater.QueueUpdateAsync(_option, value);
         }
 

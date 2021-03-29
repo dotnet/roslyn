@@ -15,15 +15,15 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
     {
         private readonly List<(TOption option, TValue value)> _queue = new();
         private readonly SemaphoreSlim _guard = new(1);
-        private readonly Workspace _workspace;
-        private readonly string _editorconfigPath;
+        protected readonly Workspace Workspace;
+        protected readonly string EditorconfigPath;
 
-        protected abstract Task<SourceText?> GetNewTextAsync(AnalyzerConfigDocument analyzerConfigDocument, IReadOnlyList<(TOption option, TValue value)> settingsToUpdate, CancellationToken token);
+        protected abstract SourceText? GetNewText(SourceText analyzerConfigDocument, IReadOnlyList<(TOption option, TValue value)> settingsToUpdate, CancellationToken token);
 
         protected SettingsUpdaterBase(Workspace workspace, string editorconfigPath)
         {
-            _workspace = workspace;
-            _editorconfigPath = editorconfigPath;
+            Workspace = workspace;
+            EditorconfigPath = editorconfigPath;
         }
 
         public async Task<bool> QueueUpdateAsync(TOption setting, TValue value)
@@ -36,20 +36,15 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
             return true;
         }
 
-        public async Task<IReadOnlyList<TextChange>?> GetChangedEditorConfigAsync(CancellationToken token)
+        public async Task<SourceText?> GetChangedEditorConfigAsync(AnalyzerConfigDocument analyzerConfigDocument, CancellationToken token)
         {
-            var solution = _workspace.CurrentSolution;
-            var analyzerConfigDocument = solution.Projects
-                .SelectMany(p => p.AnalyzerConfigDocuments)
-                .FirstOrDefault(d => d.FilePath == _editorconfigPath);
-
             if (analyzerConfigDocument is null)
                 return null;
 
             var originalText = await analyzerConfigDocument.GetTextAsync(token).ConfigureAwait(false);
             using (await _guard.DisposableWaitAsync(token).ConfigureAwait(false))
             {
-                var newText = await GetNewTextAsync(analyzerConfigDocument, _queue, token).ConfigureAwait(false);
+                var newText = GetNewText(originalText, _queue, token);
                 if (newText is null || newText.Equals(originalText))
                 {
                     _queue.Clear();
@@ -58,8 +53,50 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
                 else
                 {
                     _queue.Clear();
-                    return newText.GetTextChanges(originalText);
+                    return newText;
                 }
+            }
+        }
+
+        public async Task<IReadOnlyList<TextChange>?> GetChangedEditorConfigAsync(CancellationToken token)
+        {
+            var solution = Workspace.CurrentSolution;
+            var analyzerConfigDocument = solution.Projects
+                .SelectMany(p => p.AnalyzerConfigDocuments)
+                .FirstOrDefault(d => d.FilePath == EditorconfigPath);
+            var newText = await GetChangedEditorConfigAsync(analyzerConfigDocument, token).ConfigureAwait(false);
+            if (newText is null)
+            {
+                return null;
+            }
+
+            var originalText = await analyzerConfigDocument.GetTextAsync(token).ConfigureAwait(false);
+            return newText.GetTextChanges(originalText);
+        }
+
+        public async Task<SourceText?> GetChangedEditorConfigAsync(SourceText originalText, CancellationToken token)
+        {
+            using (await _guard.DisposableWaitAsync(token).ConfigureAwait(false))
+            {
+                var newText = GetNewText(originalText, _queue, token);
+                if (newText is null || newText.Equals(originalText))
+                {
+                    _queue.Clear();
+                    return null;
+                }
+                else
+                {
+                    _queue.Clear();
+                    return newText;
+                }
+            }
+        }
+
+        public async Task<bool> HasAnyChangesAsync()
+        {
+            using (await _guard.DisposableWaitAsync().ConfigureAwait(false))
+            {
+                return _queue.Any();
             }
         }
     }

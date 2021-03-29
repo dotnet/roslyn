@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
@@ -17,8 +16,6 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
-using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -58,7 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var analyzerConfigDocument = CreateAnalyzerConfigDocument(workspace, initialEditorConfig);
-            var result = await SettingsUpdateHelper.TryUpdateAnalyzerConfigDocumentAsync(analyzerConfigDocument, options, default);
+            var sourcetext = await analyzerConfigDocument.GetTextAsync(default);
+            var result = SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(sourcetext, analyzerConfigDocument.FilePath!, workspace.Options, options);
             Assert.Equal(updatedEditorConfig, result?.ToString());
         }
 
@@ -66,7 +64,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();
             var analyzerConfigDocument = CreateAnalyzerConfigDocument(workspace, initialEditorConfig);
-            var result = await SettingsUpdateHelper.TryUpdateAnalyzerConfigDocumentAsync(analyzerConfigDocument, options, default);
+            var sourcetext = await analyzerConfigDocument.GetTextAsync(default);
+            var result = SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(sourcetext, analyzerConfigDocument.FilePath!, options);
             Assert.Equal(updatedEditorConfig, result?.ToString());
         }
 

@@ -57,13 +57,13 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
             switch (newValue)
             {
                 case NewLineSetting.Newline:
-                    _setting.SetValue("lf");
+                    _setting.SetValue("\n");
                     break;
                 case NewLineSetting.CarrageReturn:
-                    _setting.SetValue("cr");
+                    _setting.SetValue("\r");
                     break;
                 case NewLineSetting.CarrageReturnNewline:
-                    _setting.SetValue("crlf");
+                    _setting.SetValue("\r\n");
                     break;
                 case NewLineSetting.NotSet:
                 default:
@@ -75,9 +75,9 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Formattin
         {
             return _setting.GetValue() switch
             {
-                "lf" => NewLineSetting.Newline,
-                "cr" => NewLineSetting.CarrageReturn,
-                "crlf" => NewLineSetting.CarrageReturnNewline,
+                "\n" => NewLineSetting.Newline,
+                "\r" => NewLineSetting.CarrageReturn,
+                "\r\n" => NewLineSetting.CarrageReturnNewline,
                 _ => NewLineSetting.NotSet,
             };
         }

@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater
         {
         }
 
-        protected override Task<SourceText?> GetNewTextAsync(AnalyzerConfigDocument analyzerConfigDocument,
-                                                             IReadOnlyList<(AnalyzerSetting option, DiagnosticSeverity value)> settingsToUpdate,
-                                                             CancellationToken token)
-            => SettingsUpdateHelper.TryUpdateAnalyzerConfigDocumentAsync(analyzerConfigDocument, settingsToUpdate, token);
+        protected override SourceText? GetNewText(SourceText sourceText,
+                                                  IReadOnlyList<(AnalyzerSetting option, DiagnosticSeverity value)> settingsToUpdate,
+                                                  CancellationToken token)
+            => SettingsUpdateHelper.TryUpdateAnalyzerConfigDocument(sourceText, EditorconfigPath, settingsToUpdate);
     }
 }
