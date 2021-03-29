@@ -109,14 +109,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             var builder = new DecisionDagBuilder(compilation, defaultLabel: whenFalseLabel, diagnostics);
-            return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel, whenFalseLabel);
+            return builder.CreateDecisionDagForIsPattern(syntax, inputExpression, pattern, whenTrueLabel);
         }
 
         private BoundDecisionDag CreateDecisionDagForIsPattern(SyntaxNode syntax,
             BoundExpression inputExpression,
             BoundPattern pattern,
-            LabelSymbol whenTrueLabel,
-            LabelSymbol whenFalseLabel)
+            LabelSymbol whenTrueLabel)
         {
             var rootIdentifier = BoundDagTemp.ForOriginalInput(inputExpression);
             return MakeBoundDecisionDag(syntax, MakeTestsForIsPattern(pattern.Syntax, rootIdentifier, pattern, whenTrueLabel));
@@ -182,14 +181,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPattern pattern,
             LabelSymbol whenTrueLabel)
         {
+            Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
             if (pattern.Kind != BoundKind.NegatedPattern)
             {
-                Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
                 return ImmutableArray.Create(new StateForCase(1, syntax, tests, bindings, whenClause: null, whenTrueLabel));
             }
             else
             {
-                Tests tests = MakeAndSimplifyTestsAndBindings(input, pattern, out ImmutableArray<BoundPatternBinding> bindings);
                 return ImmutableArray.Create(
                     new StateForCase(1, syntax, tests, ImmutableArray<BoundPatternBinding>.Empty, whenClause: null, whenTrueLabel),
                     new StateForCase(2, syntax, Tests.True.Instance, bindings, whenClause: null, _defaultLabel, required: true));
