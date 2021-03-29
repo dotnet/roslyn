@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     internal interface IRemoteNavigateToSearchService
     {
         ValueTask SearchDocumentAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, bool isFullyLoaded, CancellationToken cancellationToken);
 
         ValueTask SearchProjectAsync(
-            PinnedSolutionInfo solutionInfo, ProjectId projectId, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+            PinnedSolutionInfo solutionInfo, ProjectId projectId, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, bool isFullyLoaded, CancellationToken cancellationToken);
 
         public interface ICallback
         {

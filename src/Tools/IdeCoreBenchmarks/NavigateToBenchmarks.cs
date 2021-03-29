@@ -99,7 +99,7 @@ namespace IdeCoreBenchmarks
                 {
                     Interlocked.Increment(ref count);
                     return Task.CompletedTask;
-                }, CancellationToken.None);
+                }, isFullyLoaded: true, CancellationToken.None);
 
             return count;
         }

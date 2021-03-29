@@ -40,25 +40,25 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public static Task SearchProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
-                project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, onResultFound, cancellationToken);
+                project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, onResultFound, isFullyLoaded, cancellationToken);
         }
 
         public static Task SearchDocumentInCurrentProcessAsync(
             Document document, string searchPattern, IImmutableSet<string> kinds,
-            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
                 document.Project, priorityDocuments: ImmutableArray<Document>.Empty,
-                document, searchPattern, kinds, onResultFound, cancellationToken);
+                document, searchPattern, kinds, onResultFound, isFullyLoaded, cancellationToken);
         }
 
         private static async Task FindSearchResultsAsync(
             Project project, ImmutableArray<Document> priorityDocuments,
             Document searchDocument, string pattern, IImmutableSet<string> kinds,
-            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
@@ -72,6 +72,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // Then process non-priority documents.
             var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToSet();
             await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
+
+            // Don't bother checking generated documents during solution load.  It's slow and requires generating
+            // compilations, and the user will already get a message saying the search is only showing partial results.
+            if (!isFullyLoaded)
+                return;
 
             // if the caller is only searching a single doc, and we already covered it above, don't bother computing
             // source-generator docs.
