@@ -142,7 +142,7 @@
     <!--✔--><MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
     <MicrosoftVisualStudioLanguageServerProtocolVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolVersion>
     <MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>$(MicrosoftVisualStudioLanguageServerProtocolPackagesVersion)</MicrosoftVisualStudioLanguageServerProtocolExtensionsVersion>
-    <!--🔼--><MicrosoftVisualStudioLanguageServerClientVersion>16.9.150</MicrosoftVisualStudioLanguageServerClientVersion>
+    <!--✔--><MicrosoftVisualStudioLanguageServerClientVersion>17.0.4-g980ac31d44</MicrosoftVisualStudioLanguageServerClientVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <!--✔--><MicrosoftVisualStudioLiveShareVersion>2.0.1</MicrosoftVisualStudioLiveShareVersion>
     <!--✔--><MicrosoftVisualStudioLiveShareLanguageServicesVersion>3.0.1</MicrosoftVisualStudioLiveShareLanguageServicesVersion>
@@ -273,7 +273,7 @@
       create a test insertion in Visual Studio to validate.
     -->
     <NewtonsoftJsonVersion>12.0.2</NewtonsoftJsonVersion>
-    <StreamJsonRpcVersion>2.7.67</StreamJsonRpcVersion>
+    <StreamJsonRpcVersion>2.7.70</StreamJsonRpcVersion>
     <!--
       When updating the S.C.I or S.R.M version please let the MSBuild team know in advance so they
       can update to the same version. Version changes require a VS test insertion for validation.
