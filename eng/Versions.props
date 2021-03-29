@@ -149,6 +149,7 @@
     <!--✔--><MicrosoftVisualStudioLiveShareLanguageServicesVersion>3.0.1</MicrosoftVisualStudioLiveShareLanguageServicesVersion>
     <!--✔--><MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>2.0.3389</MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>
     <!--✔--><MicrosoftVisualStudioLiveShareWebEditorsVersion>3.0.7</MicrosoftVisualStudioLiveShareWebEditorsVersion>
+    <MicrosoftVisualStudioLogHubVersion>16.9.1043</MicrosoftVisualStudioLogHubVersion>
     <!--❌--><MicrosoftVisualStudioOLEInteropVersion>17.0.0-preview-1-31122-174</MicrosoftVisualStudioOLEInteropVersion>
     <MicrosoftVisualStudioPlatformVSEditorVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioPlatformVSEditorVersion>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
