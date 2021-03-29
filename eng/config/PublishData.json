@@ -1,7 +1,8 @@
 {
   "feeds": {
-      "vssdk": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json",
-      "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json"
+    "dotnet-tools": "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json",
+    "vssdk": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json",
+    "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json"
   },
   "packages": {
     "default": {
@@ -115,6 +116,62 @@
       "Microsoft.CodeAnalysis.Remote.Workspaces": "arcade",
       "Microsoft.VisualStudio.LanguageServices.LiveShare": "arcade",
       "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "arcade"
+    },
+    "manual": {
+      "Microsoft.CodeAnalysis": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Common": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Compilers": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Scripting": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Scripting.Common": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Workspaces.Common": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Workspaces.MSBuild": "dotnet-tools",
+      "Microsoft.CodeAnalysis.CSharp": "dotnet-tools",
+      "Microsoft.CodeAnalysis.CSharp.CodeStyle": "dotnet-tools",
+      "Microsoft.CodeAnalysis.CSharp.Features": "dotnet-tools",
+      "Microsoft.CodeAnalysis.CSharp.Scripting": "dotnet-tools",
+      "Microsoft.CodeAnalysis.CSharp.Workspaces": "dotnet-tools",
+      "Microsoft.CodeAnalysis.VisualBasic": "dotnet-tools",
+      "Microsoft.CodeAnalysis.VisualBasic.CodeStyle": "dotnet-tools",
+      "Microsoft.CodeAnalysis.VisualBasic.Features": "dotnet-tools",
+      "Microsoft.CodeAnalysis.VisualBasic.Workspaces": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Build.Tasks": "dotnet-tools",
+      "Microsoft.Net.Compilers": "dotnet-tools",
+      "Microsoft.Net.Compilers.Toolset": "dotnet-tools",
+      "Microsoft.NETCore.Compilers": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Debugging": "dotnet-tools",
+      "Microsoft.CodeAnalysis.PooledObjects": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Collections": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Features": "dotnet-tools",
+
+      "Microsoft.CodeAnalysis.EditorFeatures": "vssdk",
+      "Microsoft.CodeAnalysis.EditorFeatures.Common": "vssdk",
+      "Microsoft.CodeAnalysis.EditorFeatures.Text": "vssdk",
+      "Microsoft.VisualStudio.LanguageServices": "vssdk",
+      "Microsoft.CodeAnalysis.CSharp.EditorFeatures": "vssdk",
+      "Microsoft.CodeAnalysis.InteractiveHost": "vssdk",
+      "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures": "vssdk",
+      "Microsoft.CodeAnalysis.EditorFeatures.Wpf": "vssdk",
+      "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
+
+      "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.Protocol": "vs-impl",
+      "Microsoft.CodeAnalysis.Lsif.Generator": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Apex": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.CodeLens": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Debugger": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.FSharp": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Razor": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch": "vs-impl",
+      "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "vs-impl",
+      "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
+      "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
+      "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
+      "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "vs-impl"
     }
   },
   "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
@@ -173,7 +230,7 @@
     "release/dev17.0-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "4.0.*",
-      "packageFeeds": "default",
+      "packageFeeds": "manual",
       "channels": [ ],
       "vsBranch": "feature/d17initial",
       "vsMajorVersion": 17
