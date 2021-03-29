@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
             var configOptionsProvider = new WorkspaceAnalyzerConfigOptionsProvider(project.State);
             var workspaceOptions = configOptionsProvider.GetOptionsForSourcePath(givenFolder.FullName);
             var result = project.GetAnalyzerConfigOptions();
-            var options = new CombinedAnalyzerConfigOptions(workspaceOptions, result!.Value);
+            var options = new CombinedAnalyzerConfigOptions(workspaceOptions, result);
             UpdateOptions(options, Workspace.Options);
         }
 
@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
         private sealed class CombinedAnalyzerConfigOptions : AnalyzerConfigOptions
         {
             private readonly AnalyzerConfigOptions _workspaceOptions;
-            private readonly AnalyzerConfigOptionsResult _result;
+            private readonly AnalyzerConfigOptionsResult? _result;
 
-            public CombinedAnalyzerConfigOptions(AnalyzerConfigOptions workspaceOptions, AnalyzerConfigOptionsResult result)
+            public CombinedAnalyzerConfigOptions(AnalyzerConfigOptions workspaceOptions, AnalyzerConfigOptionsResult? result)
             {
                 _workspaceOptions = workspaceOptions;
                 _result = result;
@@ -94,7 +94,13 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
                     return true;
                 }
 
-                if (_result.AnalyzerOptions.TryGetValue(key, out value))
+                if (!_result.HasValue)
+                {
+                    value = null;
+                    return false;
+                }
+
+                if (_result.Value.AnalyzerOptions.TryGetValue(key, out value))
                 {
                     return true;
                 }
@@ -102,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
                 var diagnosticKey = "dotnet_diagnostic.(?<key>.*).severity";
                 var match = Regex.Match(key, diagnosticKey);
                 if (match.Success && match.Groups["key"].Value is string isolatedKey &&
-                    _result.TreeOptions.TryGetValue(isolatedKey, out var severity))
+                    _result.Value.TreeOptions.TryGetValue(isolatedKey, out var severity))
                 {
                     value = severity.ToEditorConfigString();
                     return true;
