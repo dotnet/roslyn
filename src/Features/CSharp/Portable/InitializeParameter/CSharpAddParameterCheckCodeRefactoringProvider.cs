@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpAddParameterCheckCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.AddParameterCheck), Shared]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.ChangeSignature)]
     internal class CSharpAddParameterCheckCodeRefactoringProvider :
         AbstractAddParameterCheckCodeRefactoringProvider<
@@ -58,5 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
 
         protected override bool PrefersThrowExpression(DocumentOptionSet options)
             => options.GetOption(CSharpCodeStyleOptions.PreferThrowExpression).Value;
+
+        protected override string EscapeResourceString(string input)
+            => input.Replace("\\", "\\\\").Replace("\"", "\\\"");
     }
 }

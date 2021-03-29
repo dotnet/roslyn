@@ -85,10 +85,11 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var text = literalExpression.GetFirstToken().Text;
+            var valueText = literalExpression.GetFirstToken().ValueText;
             var newNode = generator.InterpolatedStringText(
                 generator.InterpolatedStringTextToken(
-                    GetTextWithoutQuotes(text.Replace("{", "{{").Replace("}", "}}"),
-                    isVerbatim)));
+                    GetTextWithoutQuotes(text.Replace("{", "{{").Replace("}", "}}"), isVerbatim),
+                    valueText));
 
             return generator.InterpolatedStringExpression(
                 generator.CreateInterpolatedStringStartToken(isVerbatim),

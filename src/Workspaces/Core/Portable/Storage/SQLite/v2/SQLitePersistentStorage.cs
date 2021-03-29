@@ -89,13 +89,19 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
         public override void Dispose()
         {
+            var task = DisposeAsync().AsTask();
+            task.Wait();
+        }
+
+        public override async ValueTask DisposeAsync()
+        {
             try
             {
                 // Flush all pending writes so that all data our features wanted written are definitely
                 // persisted to the DB.
                 try
                 {
-                    FlushWritesOnClose();
+                    await FlushWritesOnCloseAsync().ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {

@@ -21,8 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         public static ImmutableArray<ReferenceInfo> ReadReferences(
             ImmutableArray<ReferenceInfo> projectReferences,
-            string projectAssetsFilePath,
-            string targetFrameworkMoniker)
+            string projectAssetsFilePath)
         {
             if (!File.Exists(projectAssetsFilePath))
             {
@@ -48,7 +47,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             }
 
             if (projectAssets.Targets is null ||
-                !projectAssets.Targets.TryGetValue(targetFrameworkMoniker, out var target))
+                projectAssets.Targets.Count == 0)
+            {
+                return ImmutableArray<ReferenceInfo>.Empty;
+            }
+
+            if (projectAssets.Libraries is null ||
+                projectAssets.Libraries.Count == 0)
             {
                 return ImmutableArray<ReferenceInfo>.Empty;
             }
@@ -60,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             autoReferences ??= ImmutableHashSet<string>.Empty;
 
             var references = projectReferences
-                .Select(projectReference => BuildReference(projectAssets, target, projectReference, autoReferences))
+                .Select(projectReference => BuildReference(projectAssets, projectReference, autoReferences))
                 .WhereNotNull()
                 .ToImmutableArray();
 
@@ -69,7 +74,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
 
         private static ReferenceInfo? BuildReference(
             ProjectAssetsFile projectAssets,
-            Dictionary<string, ProjectAssetsTargetLibrary> target,
             ReferenceInfo referenceInfo,
             ImmutableHashSet<string> autoReferences)
         {
@@ -82,61 +86,65 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
                 return null;
             }
 
-            return BuildReference(projectAssets, target, referenceName, referenceInfo.TreatAsUsed);
+            return BuildReference(projectAssets, referenceName, referenceInfo.TreatAsUsed);
         }
 
         private static ReferenceInfo? BuildReference(
             ProjectAssetsFile projectAssets,
-            Dictionary<string, ProjectAssetsTargetLibrary> target,
-            string dependency,
+            string referenceName,
             bool treatAsUsed)
         {
-            var key = target.Keys.FirstOrDefault(library => library.Split('/')[0] == dependency);
-            if (key is null)
-            {
-                return null;
-            }
-
-            return BuildReference(projectAssets, target, dependency, treatAsUsed, key, target[key]);
-        }
-
-        private static ReferenceInfo? BuildReference(
-            ProjectAssetsFile projectAssets,
-            Dictionary<string, ProjectAssetsTargetLibrary> target,
-            string referenceName,
-            bool treatAsUsed,
-            string key,
-            ProjectAssetsTargetLibrary targetLibrary)
-        {
-            if (projectAssets.Libraries is null ||
-                !projectAssets.Libraries.TryGetValue(key, out var library))
-            {
-                return null;
-            }
-
-            var type = targetLibrary.Type switch
-            {
-                "package" => ReferenceType.Package,
-                "project" => ReferenceType.Project,
-                _ => ReferenceType.Assembly
-            };
-
-            var dependencies = targetLibrary.Dependencies != null
-                ? targetLibrary.Dependencies.Keys
-                    .Select(dependency => BuildReference(projectAssets, target, dependency, treatAsUsed: false))
-                    .WhereNotNull()
-                    .ToImmutableArray()
-                : ImmutableArray<ReferenceInfo>.Empty;
+            var dependencyNames = new HashSet<string>();
+            var compilationAssemblies = ImmutableArray.CreateBuilder<string>();
+            var referenceType = ReferenceType.Unknown;
 
             var packagesPath = projectAssets.Project?.Restore?.PackagesPath ?? string.Empty;
-            var compilationAssemblies = targetLibrary.Compile != null
-                ? targetLibrary.Compile.Keys
-                    .Where(assemblyPath => !assemblyPath.EndsWith(NuGetEmptyFileName))
-                    .Select(assemblyPath => Path.GetFullPath(Path.Combine(packagesPath, library.Path, assemblyPath)))
-                    .ToImmutableArray()
-                : ImmutableArray<string>.Empty;
 
-            return new ReferenceInfo(type, referenceName, treatAsUsed, compilationAssemblies, dependencies);
+            RoslynDebug.AssertNotNull(projectAssets.Targets);
+            RoslynDebug.AssertNotNull(projectAssets.Libraries);
+
+            foreach (var target in projectAssets.Targets.Values)
+            {
+                var key = target.Keys.FirstOrDefault(library => library.Split('/')[0] == referenceName);
+                if (key is null ||
+                    !projectAssets.Libraries.TryGetValue(key, out var library))
+                {
+                    continue;
+                }
+
+                var targetLibrary = target[key];
+
+                referenceType = targetLibrary.Type switch
+                {
+                    "package" => ReferenceType.Package,
+                    "project" => ReferenceType.Project,
+                    _ => ReferenceType.Assembly
+                };
+
+                if (targetLibrary.Dependencies != null)
+                {
+                    dependencyNames.AddRange(targetLibrary.Dependencies.Keys);
+                }
+
+                if (targetLibrary.Compile != null)
+                {
+                    compilationAssemblies.AddRange(targetLibrary.Compile.Keys
+                        .Where(assemblyPath => !assemblyPath.EndsWith(NuGetEmptyFileName))
+                        .Select(assemblyPath => Path.GetFullPath(Path.Combine(packagesPath, library.Path, assemblyPath))));
+                }
+            }
+
+            if (referenceType == ReferenceType.Unknown)
+            {
+                return null;
+            }
+
+            var dependencies = dependencyNames
+                .Select(dependency => BuildReference(projectAssets, dependency, treatAsUsed: false))
+                .WhereNotNull()
+                .ToImmutableArray();
+
+            return new ReferenceInfo(referenceType, referenceName, treatAsUsed, compilationAssemblies.ToImmutable(), dependencies);
         }
     }
 }

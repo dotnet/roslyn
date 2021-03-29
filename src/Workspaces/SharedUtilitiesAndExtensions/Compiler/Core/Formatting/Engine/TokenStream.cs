@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly SegmentedList<SyntaxToken> _tokens;
 
         // caches original trivia info to improve perf
-        private readonly TriviaData[] _cachedOriginalTriviaInfo;
+        private readonly SegmentedArray<TriviaData> _cachedOriginalTriviaInfo;
 
         // formatting engine can be used either with syntax tree or without
         // this will reconstruct information that reside in syntax tree from root node
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 Debug.Assert(this.TokenCount > 0);
 
                 // initialize trivia related info
-                _cachedOriginalTriviaInfo = new TriviaData[this.TokenCount - 1];
+                _cachedOriginalTriviaInfo = new SegmentedArray<TriviaData>(this.TokenCount - 1);
 
                 // Func Cache
                 _getTriviaData = this.GetTriviaData;
