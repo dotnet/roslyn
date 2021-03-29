@@ -50,8 +50,11 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 solution,
                 includeHiddenLocations: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
-            var containingSymbolName =
-                targetSymbol.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+
+            var containingSymbol = targetSymbol.ContainingSymbol;
+            var containingSymbolName = containingSymbol is INamespaceSymbol { IsGlobalNamespace: true }
+                ? FeaturesResources.Global_Namespace
+                : containingSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
             return new InheritanceTargetItem(
                 inheritanceRelationship,

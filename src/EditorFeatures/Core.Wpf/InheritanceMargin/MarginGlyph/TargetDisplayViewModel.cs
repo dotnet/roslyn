@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public TargetDisplayViewModel(InheritanceTargetItem target)
         {
             var targetName = target.DefinitionItem.DisplayParts.JoinText();
-            DisplayContent = string.Format(
-                EditorFeaturesWpfResources._0_in_1,
-                targetName,
-                target.DisplayNameForContainingType ?? FeaturesResources.Global_Namespace);
+            DisplayContent = string.Format(EditorFeaturesWpfResources._0_in_1, targetName, target.DisplayNameForContainingType);
             ImageMoniker = target.Glyph.GetImageMoniker();
             AutomationName = DisplayContent;
             DefinitionItem = target.DefinitionItem;
