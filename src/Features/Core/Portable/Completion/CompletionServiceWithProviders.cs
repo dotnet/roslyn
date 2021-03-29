@@ -299,9 +299,9 @@ namespace Microsoft.CodeAnalysis.Completion
             // This allows a provider to be textually triggered but later decide to be an augmenting provider based on deeper syntactic analysis.
 
             var additionalAugmentingProviders = new List<CompletionProvider>();
-            foreach (var provider in triggeredProviders)
+            if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
-                if (trigger.Kind == CompletionTriggerKind.Insertion)
+                foreach (var provider in triggeredProviders)
                 {
                     if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
                     {

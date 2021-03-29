@@ -16,37 +16,42 @@ namespace Microsoft.CodeAnalysis
         public ISourceGenerator SourceGenerator { get; }
 
         public static SourceGeneratedDocumentState Create(
-            GeneratedSourceResult generatedSourceResult,
+            string hintName,
+            SourceText generatedSourceText,
+            SyntaxTree generatedSyntaxTree,
             DocumentId documentId,
             ISourceGenerator sourceGenerator,
             HostLanguageServices languageServices,
-            SolutionServices solutionServices)
+            SolutionServices solutionServices,
+            CancellationToken cancellationToken)
         {
-            var textAndVersion = TextAndVersion.Create(generatedSourceResult.SourceText, VersionStamp.Create());
+            var options = generatedSyntaxTree.Options;
+            var filePath = generatedSyntaxTree.FilePath;
+
+            var textAndVersion = TextAndVersion.Create(generatedSourceText, VersionStamp.Create());
             ValueSource<TextAndVersion> textSource = new ConstantValueSource<TextAndVersion>(textAndVersion);
 
-            var tree = generatedSourceResult.SyntaxTree;
-
-            // Since the tree is coming directly from the generator, this tree is strongly held so GetRoot() doesn't need a CancellationToken.
-            var root = tree.GetRoot(CancellationToken.None);
+            var root = generatedSyntaxTree.GetRoot(cancellationToken);
             Contract.ThrowIfNull(languageServices.SyntaxTreeFactory, "We should not have a generated syntax tree for a language that doesn't support trees.");
 
             if (languageServices.SyntaxTreeFactory.CanCreateRecoverableTree(root))
             {
-                // We will only create recoverable text if we can create a recoverable tree; if we created a recoverable text
-                // but not a new tree, it would mean tree.GetText() could still potentially return the non-recoverable text,
-                // but asking the document directly for it's text would give a recoverable text with a different object identity.
+                // We will only create recoverable text if we can create a recoverable tree; if we created a
+                // recoverable text but not a new tree, it would mean tree.GetText() could still potentially return
+                // the non-recoverable text, but asking the document directly for it's text would give a recoverable
+                // text with a different object identity.
                 textSource = CreateRecoverableText(textAndVersion, solutionServices);
-                tree = languageServices.SyntaxTreeFactory.CreateRecoverableTree(
+
+                generatedSyntaxTree = languageServices.SyntaxTreeFactory.CreateRecoverableTree(
                     documentId.ProjectId,
-                    filePath: tree.FilePath,
-                    tree.Options,
+                    filePath: generatedSyntaxTree.FilePath,
+                    options,
                     textSource,
-                    generatedSourceResult.SourceText.Encoding,
+                    generatedSourceText.Encoding,
                     root);
             }
 
-            var treeAndVersion = TreeAndVersion.Create(tree, textAndVersion.Version);
+            var treeAndVersion = TreeAndVersion.Create(generatedSyntaxTree, textAndVersion.Version);
 
             return new SourceGeneratedDocumentState(
                 languageServices,
@@ -54,18 +59,18 @@ namespace Microsoft.CodeAnalysis
                 documentServiceProvider: null,
                 new DocumentInfo.DocumentAttributes(
                     documentId,
-                    name: generatedSourceResult.HintName,
+                    name: hintName,
                     folders: SpecializedCollections.EmptyReadOnlyList<string>(),
-                    tree.Options.Kind,
-                    filePath: tree.FilePath,
+                    options.Kind,
+                    filePath: filePath,
                     isGenerated: true,
                     designTimeOnly: false),
-                tree.Options,
+                options,
                 sourceText: null, // don't strongly hold the text
                 textSource,
                 treeAndVersion,
                 sourceGenerator,
-                generatedSourceResult.HintName);
+                hintName);
         }
 
         private SourceGeneratedDocumentState(
@@ -106,6 +111,27 @@ namespace Microsoft.CodeAnalysis
         protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
         {
             throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
+        }
+
+        public SourceGeneratedDocumentState WithUpdatedGeneratedContent(SourceText sourceText, SyntaxTree lazySyntaxTree, ParseOptions parseOptions, CancellationToken cancellationToken)
+        {
+            if (TryGetText(out var existingText) &&
+                Checksum.From(existingText.GetChecksum()) == Checksum.From(sourceText.GetChecksum()) &&
+                SyntaxTree.Options.Equals(parseOptions))
+            {
+                // We can reuse this instance directly
+                return this;
+            }
+
+            return SourceGeneratedDocumentState.Create(
+                this.HintName,
+                sourceText,
+                lazySyntaxTree,
+                this.Id,
+                this.SourceGenerator,
+                this.LanguageServices,
+                this.solutionServices,
+                cancellationToken);
         }
     }
 }

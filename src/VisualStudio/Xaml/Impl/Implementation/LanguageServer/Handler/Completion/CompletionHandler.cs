@@ -109,43 +109,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             {
                 case XamlCompletionKind.Element:
                 case XamlCompletionKind.ElementName:
+                    return CompletionItemKind.Element;
                 case XamlCompletionKind.EndTag:
-                    return CompletionItemKind.Class;
+                    return CompletionItemKind.CloseElement;
                 case XamlCompletionKind.Attribute:
                 case XamlCompletionKind.AttachedPropertyValue:
-                case XamlCompletionKind.PropertyElement:
-                case XamlCompletionKind.MarkupExtensionParameter:
                 case XamlCompletionKind.ConditionalArgument:
+                case XamlCompletionKind.DataBoundProperty:
+                case XamlCompletionKind.MarkupExtensionParameter:
+                case XamlCompletionKind.PropertyElement:
                     return CompletionItemKind.Property;
+                case XamlCompletionKind.ConditionValue:
                 case XamlCompletionKind.MarkupExtensionValue:
                 case XamlCompletionKind.PropertyValue:
-                case XamlCompletionKind.NamespaceValue:
-                case XamlCompletionKind.ConditionValue:
                 case XamlCompletionKind.Value:
                     return CompletionItemKind.Value;
                 case XamlCompletionKind.Event:
                 case XamlCompletionKind.EventHandlerDescription:
                     return CompletionItemKind.Event;
-                case XamlCompletionKind.MarkupExtensionClass:
-                    return CompletionItemKind.Method;
+                case XamlCompletionKind.NamespaceValue:
                 case XamlCompletionKind.Prefix:
-                    return CompletionItemKind.Constant;
+                    return CompletionItemKind.Namespace;
+                case XamlCompletionKind.AttachedPropertyTypePrefix:
+                case XamlCompletionKind.MarkupExtensionClass:
                 case XamlCompletionKind.Type:
                 case XamlCompletionKind.TypePrefix:
-                case XamlCompletionKind.AttachedPropertyTypePrefix:
-                    return CompletionItemKind.TypeParameter;
+                    return CompletionItemKind.Class;
                 case XamlCompletionKind.LocalResource:
-                    return CompletionItemKind.Reference;
+                    return CompletionItemKind.LocalResource;
                 case XamlCompletionKind.SystemResource:
-                    return CompletionItemKind.Reference;
+                    return CompletionItemKind.SystemResource;
                 case XamlCompletionKind.CData:
                 case XamlCompletionKind.Comment:
                 case XamlCompletionKind.ProcessingInstruction:
                 case XamlCompletionKind.RegionStart:
                 case XamlCompletionKind.RegionEnd:
                     return CompletionItemKind.Keyword;
-                case XamlCompletionKind.DataBoundProperty:
-                    return CompletionItemKind.Variable;
                 case XamlCompletionKind.Snippet:
                     return CompletionItemKind.Snippet;
                 default:

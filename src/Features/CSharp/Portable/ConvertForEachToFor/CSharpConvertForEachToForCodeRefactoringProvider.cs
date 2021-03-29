@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertForEachToForCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertForEachToFor), Shared]
     internal sealed class CSharpConvertForEachToForCodeRefactoringProvider :
         AbstractConvertForEachToForCodeRefactoringProvider<StatementSyntax, ForEachStatementSyntax>
     {

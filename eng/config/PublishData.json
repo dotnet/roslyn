@@ -170,6 +170,14 @@
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
+    "release/dev17.0-vs-deps": {
+      "nugetKind": ["Shipping", "NonShipping"],
+      "version": "4.0.*",
+      "packageFeeds": "default",
+      "channels": [ ],
+      "vsBranch": "feature/d17initial",
+      "vsMajorVersion": 17
+    },
     "main": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.10.*",

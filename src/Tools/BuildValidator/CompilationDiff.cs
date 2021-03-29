@@ -125,15 +125,16 @@ namespace BuildValidator
 
         public static unsafe CompilationDiff Create(
             AssemblyInfo assemblyInfo,
-            CompilationOptionsReader optionsReader,
-            Compilation producedCompilation,
+            CompilationFactory compilationFactory,
+            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableArray<MetadataReference> metadataReferences,
             ILogger logger)
         {
             using var rebuildPeStream = new MemoryStream();
-            var emitResult = BuildConstructor.Emit(
+            var rebuildCompilation = compilationFactory.CreateCompilation(syntaxTrees, metadataReferences);
+            var emitResult = compilationFactory.Emit(
                 rebuildPeStream,
-                optionsReader,
-                producedCompilation,
+                rebuildCompilation,
                 CancellationToken.None);
 
             if (!emitResult.Success)
@@ -164,7 +165,7 @@ namespace BuildValidator
                         RebuildResult.BinaryDifference,
                         originalPortableExecutableBytes: originalBytes,
                         rebuildPortableExecutableBytes: rebuildBytes,
-                        rebuildCompilation: producedCompilation);
+                        rebuildCompilation: rebuildCompilation);
                 }
             }
         }
