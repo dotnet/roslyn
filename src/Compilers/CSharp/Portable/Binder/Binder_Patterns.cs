@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Compilation, pattern.Syntax, expression, pattern, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, diagnostics);
             if (!hasErrors && !decisionDag.ReachableLabels.Contains(whenTrueLabel))
             {
+                Debug.Assert(expression.Type is object);
                 diagnostics.Add(ErrorCode.ERR_IsPatternImpossible, node.Location, expression.Type);
                 hasErrors = true;
             }
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundTypePattern _:
                     case BoundNegatedPattern _:
                     case BoundBinaryPattern _:
+                        Debug.Assert(expression.Type is object);
                         diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
                         break;
                     case BoundDiscardPattern _:
