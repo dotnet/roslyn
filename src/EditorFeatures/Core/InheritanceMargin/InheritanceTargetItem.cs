@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly Glyph Glyph;
 
         /// <summary>
-        /// The name for containing type of this target.
+        /// The name for containing type of this target. Empty if it is global namespace.
         /// </summary>
         public readonly string DisplayNameForContainingType;
 
