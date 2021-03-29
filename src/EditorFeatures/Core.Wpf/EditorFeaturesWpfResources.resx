@@ -190,6 +190,6 @@
     <value>Navigate to '{0}'</value>
   </data>
   <data name="_0_in_1" xml:space="preserve">
-    <value>'0' (in '{1}')</value>
+    <value>'{0}' in '{1}'</value>
   </data>
 </root>

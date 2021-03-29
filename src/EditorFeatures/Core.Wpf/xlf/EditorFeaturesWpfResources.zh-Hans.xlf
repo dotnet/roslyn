@@ -118,8 +118,8 @@
         <note />
       </trans-unit>
       <trans-unit id="_0_in_1">
-        <source>'0' (in '{1}')</source>
-        <target state="new">'0' (in '{1}')</target>
+        <source>'{0}' in '{1}'</source>
+        <target state="new">'{0}' in '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_inherited">
