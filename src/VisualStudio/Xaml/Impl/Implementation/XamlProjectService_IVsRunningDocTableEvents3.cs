@@ -49,7 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         {
             if (dwReadLocksRemaining == 0 && dwEditLocksRemaining == 0)
             {
-                OnDocumentClosed(docCookie);
+                var docInfo = _rdt.GetDocumentInfo(docCookie);
+                OnDocumentClosed(docInfo.Moniker);
             }
 
             return VSConstants.S_OK;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
@@ -20,11 +18,11 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         public readonly SolutionKey Solution;
 
         public readonly ProjectId Id;
-        public readonly string FilePath;
+        public readonly string? FilePath;
         public readonly string Name;
         public readonly Checksum ParseOptionsChecksum;
 
-        public ProjectKey(SolutionKey solution, ProjectId id, string filePath, string name, Checksum parseOptionsChecksum)
+        public ProjectKey(SolutionKey solution, ProjectId id, string? filePath, string name, Checksum parseOptionsChecksum)
         {
             Solution = solution;
             Id = id;
@@ -37,7 +35,10 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
             => ToProjectKey(project.Solution.State, project.State);
 
         public static ProjectKey ToProjectKey(SolutionState solutionState, ProjectState projectState)
-            => new(SolutionKey.ToSolutionKey(solutionState), projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
+            => ToProjectKey(SolutionKey.ToSolutionKey(solutionState), projectState);
+
+        public static ProjectKey ToProjectKey(SolutionKey solutionKey, ProjectState projectState)
+            => new(solutionKey, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
 
         public SerializableProjectKey Dehydrate()
             => new(Solution.Dehydrate(), Id, FilePath, Name, ParseOptionsChecksum);
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         public readonly ProjectId Id;
 
         [DataMember(Order = 2)]
-        public readonly string FilePath;
+        public readonly string? FilePath;
 
         [DataMember(Order = 3)]
         public readonly string Name;
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         [DataMember(Order = 4)]
         public readonly Checksum ParseOptionsChecksum;
 
-        public SerializableProjectKey(SerializableSolutionKey solution, ProjectId id, string filePath, string name, Checksum parseOptionsChecksum)
+        public SerializableProjectKey(SerializableSolutionKey solution, ProjectId id, string? filePath, string name, Checksum parseOptionsChecksum)
         {
             Solution = solution;
             Id = id;

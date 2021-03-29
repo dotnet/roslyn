@@ -51,13 +51,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
         private readonly Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
-        /// <summary>
-        /// A document id is added whenever a diagnostic is reported while in run mode.
-        /// These diagnostics are cleared as soon as we enter break mode or the debugging session terminates.
-        /// </summary>
-        private readonly HashSet<DocumentId> _documentsWithReportedDiagnosticsDuringRunMode;
-        private readonly object _documentsWithReportedDiagnosticsDuringRunModeGuard = new();
-
         private DebuggingSession? _debuggingSession;
         private EditSession? _editSession;
 
@@ -67,7 +60,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
-            _documentsWithReportedDiagnosticsDuringRunMode = new HashSet<DocumentId>();
             _compilationOutputsProvider = testCompilationOutputsProvider ?? GetCompilationOutputs;
             _reportTelemetry = testReportTelemetry ?? ReportTelemetry;
         }
@@ -84,41 +76,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return new CompilationOutputFilesWithImplicitPdbPath(project.CompilationOutputInfo.AssemblyPath);
         }
 
-        public void OnSourceFileUpdated(Document document)
+        public async ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
         {
             var debuggingSession = _debuggingSession;
             if (debuggingSession != null)
             {
-                // fire and forget
-                _ = Task.Run(() => debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, debuggingSession.CancellationToken));
+                using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(debuggingSession.CancellationToken, cancellationToken);
+                await debuggingSession.LastCommittedSolution.OnSourceFileUpdatedAsync(document, linkedTokenSource.Token).ConfigureAwait(false);
             }
         }
 
-        public async ValueTask StartDebuggingSessionAsync(Solution solution, bool captureMatchingDocuments, CancellationToken cancellationToken)
+        public async ValueTask StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, CancellationToken cancellationToken)
         {
             var initialDocumentStates =
                 captureMatchingDocuments ? await CommittedSolution.GetMatchingDocumentsAsync(solution, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false) :
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
 
-            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(solution, _compilationOutputsProvider, initialDocumentStates), null);
+            var previousSession = Interlocked.CompareExchange(ref _debuggingSession, new DebuggingSession(solution, debuggerService, _compilationOutputsProvider, initialDocumentStates), null);
             Contract.ThrowIfFalse(previousSession == null, "New debugging session can't be started until the existing one has ended.");
+
+            StartEditSession(inBreakState: false);
         }
 
-        public void StartEditSession(IManagedEditAndContinueDebuggerService debuggerService, out ImmutableArray<DocumentId> documentsToReanalyze)
+        private void StartEditSession(bool inBreakState)
         {
             var debuggingSession = _debuggingSession;
             Contract.ThrowIfNull(debuggingSession, "Edit session can only be started during debugging session");
 
-            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, debuggerService);
+            var newSession = new EditSession(debuggingSession, _editSessionTelemetry, inBreakState);
 
             var previousSession = Interlocked.CompareExchange(ref _editSession, newSession, null);
             Contract.ThrowIfFalse(previousSession == null, "New edit session can't be started until the existing one has ended.");
-
-            // clear diagnostics reported during run mode:
-            ClearReportedRunModeDiagnostics(out documentsToReanalyze);
         }
 
-        public void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        private void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             // first, publish null session:
             var session = Interlocked.Exchange(ref _editSession, null);
@@ -130,13 +121,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             // clear all reported rude edits:
             documentsToReanalyze = session.GetDocumentsWithReportedDiagnostics();
 
-            _debuggingSessionTelemetry.LogEditSession(_editSessionTelemetry.GetDataAndClear());
+            // TODO: report a separate telemetry data for hot reload sessions to preserve the semantics of the current telemetry data
+            if (session.InBreakState)
+            {
+                _debuggingSessionTelemetry.LogEditSession(_editSessionTelemetry.GetDataAndClear());
+            }
 
             session.Dispose();
         }
 
         public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
+            EndEditSession(out documentsToReanalyze);
+
             var debuggingSession = Interlocked.Exchange(ref _debuggingSession, null);
             Contract.ThrowIfNull(debuggingSession, "Debugging session has not started.");
 
@@ -145,10 +142,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             _reportTelemetry(_debuggingSessionTelemetry.GetDataAndClear());
 
-            // clear diagnostics reported during run mode:
-            ClearReportedRunModeDiagnostics(out documentsToReanalyze);
-
             debuggingSession.Dispose();
+        }
+
+        public void BreakStateEntered(out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            // Document analyses must be recalculated to account for active statements.
+            EndEditSession(out documentsToReanalyze);
+            StartEditSession(inBreakState: true);
         }
 
         internal static bool SupportsEditAndContinue(Project project)
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 // Do not analyze documents (and report diagnostics) of projects that have not been built.
                 // Allow user to make any changes in these documents, they won't be applied within the current debugging session.
-                // Do not report the file read error - it might be an intermittent issue. The error will be reported when the 
+                // Do not report the file read error - it might be an intermittent issue. The error will be reported when the
                 // change is attempted to be applied.
                 var (mvid, _) = await debuggingSession.GetProjectModuleIdAsync(project, cancellationToken).ConfigureAwait(false);
                 if (mvid == Guid.Empty)
@@ -201,29 +202,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
-                // The document has not changed while the application is running since the last changes were committed:
                 var editSession = _editSession;
-
-                if (editSession == null)
-                {
-                    if (document == oldDocument)
-                    {
-                        return ImmutableArray<Diagnostic>.Empty;
-                    }
-
-                    // Any changes made in loaded, built projects outside of edit session are rude edits (the application is running):
-                    var newSyntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                    Contract.ThrowIfNull(newSyntaxTree);
-
-                    var changedSpans = await GetChangedSpansAsync(oldDocument, newSyntaxTree, cancellationToken).ConfigureAwait(false);
-                    return GetRunModeDocumentDiagnostics(document, newSyntaxTree, changedSpans);
-                }
+                Contract.ThrowIfNull(editSession);
 
                 var oldProject = oldDocument?.Project ?? debuggingSession.LastCommittedSolution.GetProject(project.Id);
                 if (oldProject == null)
                 {
                     // TODO https://github.com/dotnet/roslyn/issues/1204:
-                    // Project deleted (shouldn't happen since Project System does not allow removing projects while debugging) or 
+                    // Project deleted (shouldn't happen since Project System does not allow removing projects while debugging) or
                     // was not loaded when the debugging session started.
                     return ImmutableArray<Diagnostic>.Empty;
                 }
@@ -238,7 +224,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     if (debuggingSession.AddModulePreparedForUpdate(mvid))
                     {
                         // fire and forget:
-                        _ = Task.Run(() => editSession.DebuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
+                        _ = Task.Run(() => debuggingSession.DebuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
                     }
                 }
 
@@ -261,118 +247,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private static async Task<IEnumerable<TextSpan>> GetChangedSpansAsync(Document? oldDocument, SyntaxTree newSyntaxTree, CancellationToken cancellationToken)
-        {
-            if (oldDocument != null)
-            {
-                var oldSyntaxTree = await oldDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                Contract.ThrowIfNull(oldSyntaxTree);
-
-                return GetSpansInNewDocument(await GetDocumentTextChangesAsync(oldSyntaxTree, newSyntaxTree, cancellationToken).ConfigureAwait(false));
-            }
-
-            var newRoot = await newSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            return SpecializedCollections.SingletonEnumerable(newRoot.FullSpan);
-        }
-
-        private ImmutableArray<Diagnostic> GetRunModeDocumentDiagnostics(Document newDocument, SyntaxTree newSyntaxTree, IEnumerable<TextSpan> changedSpans)
-        {
-            if (!changedSpans.Any())
-            {
-                return ImmutableArray<Diagnostic>.Empty;
-            }
-
-            lock (_documentsWithReportedDiagnosticsDuringRunModeGuard)
-            {
-                _documentsWithReportedDiagnosticsDuringRunMode.Add(newDocument.Id);
-            }
-
-            var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ChangesNotAppliedWhileRunning);
-            var args = new[] { newDocument.Project.Name };
-            return changedSpans.SelectAsArray(span => Diagnostic.Create(descriptor, Location.Create(newSyntaxTree, span), args));
-        }
-
-        // internal for testing
-        internal static async Task<IList<TextChange>> GetDocumentTextChangesAsync(SyntaxTree oldSyntaxTree, SyntaxTree newSyntaxTree, CancellationToken cancellationToken)
-        {
-            var list = newSyntaxTree.GetChanges(oldSyntaxTree);
-            if (list.Count != 0)
-            {
-                return list;
-            }
-
-            var oldText = await oldSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newText = await newSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (oldText.ContentEquals(newText))
-            {
-                return Array.Empty<TextChange>();
-            }
-
-            var roList = newText.GetTextChanges(oldText);
-            if (roList.Count != 0)
-            {
-                return roList.ToArray();
-            }
-
-            return Array.Empty<TextChange>();
-        }
-
-        // internal for testing
-        internal static IEnumerable<TextSpan> GetSpansInNewDocument(IEnumerable<TextChange> changes)
-        {
-            var oldPosition = 0;
-            var newPosition = 0;
-            foreach (var change in changes)
-            {
-                if (change.Span.Start < oldPosition)
-                {
-                    Debug.Fail("Text changes not ordered");
-                    yield break;
-                }
-
-                RoslynDebug.Assert(change.NewText is object);
-                if (change.Span.Length == 0 && change.NewText.Length == 0)
-                {
-                    continue;
-                }
-
-                // skip unchanged text:
-                newPosition += change.Span.Start - oldPosition;
-
-                yield return new TextSpan(newPosition, change.NewText.Length);
-
-                // apply change:
-                oldPosition = change.Span.End;
-                newPosition += change.NewText.Length;
-            }
-        }
-
-        private void ClearReportedRunModeDiagnostics(out ImmutableArray<DocumentId> documentsToReanalyze)
-        {
-            // clear diagnostics reported during run mode:
-            lock (_documentsWithReportedDiagnosticsDuringRunModeGuard)
-            {
-                documentsToReanalyze = _documentsWithReportedDiagnosticsDuringRunMode.ToImmutableArray();
-                _documentsWithReportedDiagnosticsDuringRunMode.Clear();
-            }
-        }
-
         /// <summary>
-        /// Determine whether the updates made to projects containing the specified file (or all projects that are built, 
+        /// Determine whether the updates made to projects containing the specified file (or all projects that are built,
         /// if <paramref name="sourceFilePath"/> is null) are ready to be applied and the debugger should attempt to apply
         /// them on "continue".
         /// </summary>
         /// <returns>
-        /// Returns <see cref="ManagedModuleUpdateStatus.Blocked"/> if there are rude edits or other errors 
-        /// that block the application of the updates. Might return <see cref="ManagedModuleUpdateStatus.Ready"/> even if there are 
-        /// errors in the code that will block the application of the updates. E.g. emit diagnostics can't be determined until 
+        /// Returns <see cref="ManagedModuleUpdateStatus.Blocked"/> if there are rude edits or other errors
+        /// that block the application of the updates. Might return <see cref="ManagedModuleUpdateStatus.Ready"/> even if there are
+        /// errors in the code that will block the application of the updates. E.g. emit diagnostics can't be determined until
         /// emit is actually performed. Therefore, this method only serves as an optimization to avoid unnecessary emit attempts,
         /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
         /// the update is valid or not.
         /// </returns>
         public ValueTask<bool> HasChangesAsync(Solution solution, SolutionActiveStatementSpanProvider solutionActiveStatementSpanProvider, string? sourceFilePath, CancellationToken cancellationToken)
         {
-            // GetStatusAsync is called outside of edit session when the debugger is determining 
+            // GetStatusAsync is called outside of edit session when the debugger is determining
             // whether a source file checksum matches the one in PDB.
             // The debugger expects no changes in this case.
             var editSession = _editSession;
@@ -403,17 +293,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             // Note that we may return empty deltas if all updates have been deferred.
             // The debugger will still call commit or discard on the update batch.
-            return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics);
+            return new EmitSolutionUpdateResults(solutionUpdate.ModuleUpdates, solutionUpdate.Diagnostics, solutionUpdate.DocumentsWithRudeEdits);
         }
 
-        public void CommitSolutionUpdate()
+        public void CommitSolutionUpdate(out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var editSession = _editSession;
             Contract.ThrowIfNull(editSession);
 
             var pendingUpdate = editSession.RetrievePendingUpdate();
             editSession.DebuggingSession.CommitSolutionUpdate(pendingUpdate);
-            editSession.ChangesApplied();
+
+            // restart edit session with no active statements (switching to run mode):
+            EndEditSession(out documentsToReanalyze);
+            StartEditSession(inBreakState: false);
         }
 
         public void DiscardSolutionUpdate()
@@ -431,7 +324,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async ValueTask<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
-            if (editSession == null)
+            if (editSession == null || !editSession.InBreakState)
             {
                 return default;
             }
@@ -464,7 +357,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         public async ValueTask<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>> GetAdjustedActiveStatementSpansAsync(Document document, DocumentActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
         {
             var editSession = _editSession;
-            if (editSession == null)
+            if (editSession == null || !editSession.InBreakState)
             {
                 return default;
             }
@@ -495,10 +388,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             try
             {
-                // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so. 
+                // It is allowed to call this method before entering or after exiting break mode. In fact, the VS debugger does so.
                 // We return null since there the concept of active statement only makes sense during break mode.
                 var editSession = _editSession;
-                if (editSession == null)
+                if (editSession == null || !editSession.InBreakState)
                 {
                     return null;
                 }
@@ -548,7 +441,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// If the debugger determines we can remap active statements, the application of changes proceeds.
         /// </summary>
         /// <returns>
-        /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement 
+        /// True if the instruction is located within an exception region, false if it is not, null if the instruction isn't an active statement
         /// or the exception regions can't be determined.
         /// </returns>
         public async ValueTask<bool?> IsActiveStatementInExceptionRegionAsync(Solution solution, ManagedInstructionId instructionId, CancellationToken cancellationToken)
@@ -556,12 +449,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             try
             {
                 var editSession = _editSession;
-                if (editSession == null)
+                if (editSession == null || !editSession.InBreakState)
                 {
                     return null;
                 }
 
-                // This method is only called when the EnC is about to apply changes, at which point all active statements and 
+                // This method is only called when the EnC is about to apply changes, at which point all active statements and
                 // their exception regions will be needed. Hence it's not necessary to scope this query down to just the instruction
                 // the debugger is interested at this point while not calculating the others.
 
