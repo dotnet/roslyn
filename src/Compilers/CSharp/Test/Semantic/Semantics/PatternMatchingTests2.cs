@@ -2872,20 +2872,18 @@ class F
                 switch (i)
                 {
                     case 0:
-                    case 7:
                         checkType(expr, null, "C", ConversionKind.SwitchExpression);
                         checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
                         checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
                         checkType(expr.Arms[2].Expression, null, "C", ConversionKind.ImplicitThrow);
                         break;
                     case 1:
-                        checkType(expr, null, "?", ConversionKind.Identity);
+                        checkType(expr, "?", "?", ConversionKind.Identity);
                         checkType(expr.Arms[0].Expression, "A", "?", ConversionKind.NoConversion);
                         checkType(expr.Arms[1].Expression, "B", "?", ConversionKind.NoConversion);
                         checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
                         break;
                     case 2:
-                    case 8:
                         checkType(expr, null, "D", ConversionKind.SwitchExpression);
                         checkType(expr.Arms[0].Expression, "A", "D", ConversionKind.ImplicitUserDefined);
                         checkType(expr.Arms[1].Expression, "B", "D", ConversionKind.ImplicitUserDefined);
@@ -2893,12 +2891,6 @@ class F
                         break;
                     case 3:
                         checkType(expr, "?", "D", ConversionKind.NoConversion);
-                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
-                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
-                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
-                        break;
-                    case 9:
-                        checkType(expr, null, "?", ConversionKind.Identity);
                         checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
                         checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
                         checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
@@ -2926,11 +2918,38 @@ class F
                         checkType(expr.Arms[3].Expression, null, "C", ConversionKind.ImplicitThrow);
                         break;
                     case 6:
-                    case 12:
                         checkType(expr, "System.Int32", "D", ConversionKind.SwitchExpression);
                         checkType(expr.Arms[0].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
                         checkType(expr.Arms[1].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
                         checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        break;
+                    case 7:
+                        checkType(expr, null, null, ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[1].Expression, "B", "C", ConversionKind.ImplicitReference);
+                        checkType(expr.Arms[2].Expression, null, "C", ConversionKind.ImplicitThrow);
+                        checkType((CastExpressionSyntax)expr.Parent.Parent, "C", "C", ConversionKind.Identity);
+                        break;
+                    case 8:
+                        checkType(expr, null, null, ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "A", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "B", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        checkType((CastExpressionSyntax)expr.Parent.Parent, "D", "D", ConversionKind.Identity);
+                        break;
+                    case 9:
+                        checkType(expr, "?", "?", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "E", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[1].Expression, "F", "?", ConversionKind.NoConversion);
+                        checkType(expr.Arms[2].Expression, null, "?", ConversionKind.ImplicitThrow);
+                        checkType((CastExpressionSyntax)expr.Parent.Parent, "D", "D", ConversionKind.Identity);
+                        break;
+                    case 12:
+                        checkType(expr, "System.Int32", "System.Int32", ConversionKind.Identity);
+                        checkType(expr.Arms[0].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[1].Expression, "System.Int32", "D", ConversionKind.ImplicitUserDefined);
+                        checkType(expr.Arms[2].Expression, null, "D", ConversionKind.ImplicitThrow);
+                        checkType((CastExpressionSyntax)expr.Parent.Parent, "D", "D", ConversionKind.Identity);
                         break;
                     default:
                         Assert.False(true);

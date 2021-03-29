@@ -825,21 +825,15 @@ namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
                 generator.ObjectCreationExpression(structType, arguments));
 
             members.Add(CodeGenerationSymbolFactory.CreateConversionSymbol(
-                attributes: default,
-                Accessibility.Public,
-                DeclarationModifiers.Static,
                 tupleType,
                 CodeGenerationSymbolFactory.CreateParameterSymbol(structType, ValueName),
                 isImplicit: true,
-                ImmutableArray.Create(convertToTupleStatement)));
+                statements: ImmutableArray.Create(convertToTupleStatement)));
             members.Add(CodeGenerationSymbolFactory.CreateConversionSymbol(
-                attributes: default,
-                Accessibility.Public,
-                DeclarationModifiers.Static,
                 structType,
                 CodeGenerationSymbolFactory.CreateParameterSymbol(tupleType, ValueName),
                 isImplicit: true,
-                ImmutableArray.Create(convertToStructStatement)));
+                statements: ImmutableArray.Create(convertToStructStatement)));
         }
 
         private static INamedTypeSymbol CreateNamedType(

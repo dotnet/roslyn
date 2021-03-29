@@ -5042,5 +5042,21 @@ public class C
             AssertEx.Equal("System.String?", model.GetTypeInfo(assignmentsInLambda[0].Right).Type.ToTestDisplayString(includeNonNullable: true));
             AssertEx.Equal("System.String!", model.GetTypeInfo(assignmentsInLambda[2].Right).Type.ToTestDisplayString(includeNonNullable: true));
         }
+
+        [Fact]
+        public void FreshSemanticModelDoesNotCacheSwitchExpressionInput()
+        {
+            var comp = CreateCompilation(@"string s = """" switch { _ => string.Empty };", options: WithNullableEnable(TestOptions.ReleaseExe));
+
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            var switchExpressionInput = tree.GetRoot().DescendantNodes().OfType<SwitchExpressionSyntax>().Single().GoverningExpression;
+
+            var model = comp.GetSemanticModel(tree);
+            AssertEx.Equal("System.String!", model.GetTypeInfo(switchExpressionInput).Type.ToTestDisplayString(includeNonNullable: true));
+
+            // New model should be able to get info, including nullability, without issue
+            model = comp.GetSemanticModel(tree);
+            AssertEx.Equal("System.String!", model.GetTypeInfo(switchExpressionInput).Type.ToTestDisplayString(includeNonNullable: true));
+        }
     }
 }

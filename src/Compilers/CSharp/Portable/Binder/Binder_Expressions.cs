@@ -374,6 +374,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = BindObjectCreationForErrorRecovery(expr, diagnostics);
                     }
                     break;
+                case BoundUnconvertedInterpolatedString unconvertedInterpolatedString:
+                    {
+                        // We determine the best method of emitting as a string (either via Concat, Format, or the builder pattern)
+                        // during lowering, and it's not part of the publicly-visible API, unlike conversion to a builder type.
+                        result = new BoundInterpolatedString(
+                            unconvertedInterpolatedString.Syntax,
+                            unconvertedInterpolatedString.Parts,
+                            unconvertedInterpolatedString.ConstantValue,
+                            unconvertedInterpolatedString.Type,
+                            unconvertedInterpolatedString.HasErrors);
+                    }
+                    break;
                 default:
                     result = expression;
                     break;
@@ -760,10 +772,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, BindingDiagnosticBag diagnostics)
+#nullable enable
+        internal virtual BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, uint switchGoverningValEscape, BindingDiagnosticBag diagnostics)
         {
-            return this.Next.BindSwitchExpressionArm(node, diagnostics);
+            return this.NextRequired.BindSwitchExpressionArm(node, switchGoverningType, switchGoverningValEscape, diagnostics);
         }
+#nullable disable
 
         private BoundExpression BindRefExpression(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
 using System.Xml;
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             private static readonly TaggedText s_spacePart = new(TextTags.Space, " ");
             private static readonly TaggedText s_newlinePart = new(TextTags.LineBreak, "\r\n");
 
-            internal readonly List<TaggedText> Builder = new();
+            internal readonly ImmutableArray<TaggedText>.Builder Builder = ImmutableArray.CreateBuilder<TaggedText>();
 
             /// <summary>
             /// Defines the containing lists for the current formatting state. The last item in the list is the
@@ -281,11 +282,11 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             return state.GetText();
         }
 
-        public IEnumerable<TaggedText> Format(string rawXmlText, ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format, CancellationToken cancellationToken)
+        public ImmutableArray<TaggedText> Format(string rawXmlText, ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format, CancellationToken cancellationToken)
         {
             if (rawXmlText is null)
             {
-                return SpecializedCollections.EmptyEnumerable<TaggedText>();
+                return ImmutableArray<TaggedText>.Empty;
             }
             //symbol = symbol.OriginalDefinition;
 
@@ -299,7 +300,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             AppendTextFromNode(state, summaryElement, state.SemanticModel.Compilation);
 
-            return state.Builder;
+            return state.Builder.ToImmutable();
         }
 
         private static void AppendTextFromNode(FormatterState state, XNode node, Compilation compilation)

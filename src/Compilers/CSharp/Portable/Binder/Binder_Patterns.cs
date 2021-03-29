@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -278,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression convertedExpression = ConvertPatternExpression(
                 inputType, patternExpression, expression, out constantValueOpt, hasErrors, diagnostics);
 
-            ConstantValueUtils.CheckLangVersionForConstantValue(expression, diagnostics);
+            ConstantValueUtils.CheckLangVersionForConstantValue(convertedExpression, diagnostics);
 
             if (!convertedExpression.HasErrors && !hasErrors)
             {
@@ -617,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type.IsRefLikeType ? possibleValEscape : Binder.ExternalScope;
         }
 
-        TypeWithAnnotations BindRecursivePatternType(
+        private TypeWithAnnotations BindRecursivePatternType(
             TypeSyntax? typeSyntax,
             TypeSymbol inputType,
             BindingDiagnosticBag diagnostics,
@@ -1132,7 +1131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        ImmutableArray<BoundSubpattern> BindPropertyPatternClause(
+        private ImmutableArray<BoundSubpattern> BindPropertyPatternClause(
             PropertyPatternClauseSyntax node,
             TypeSymbol inputType,
             uint inputValEscape,
@@ -1172,10 +1171,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Symbol? symbol = BindPropertyPatternMember(inputType, name, ref hasErrors, diagnostics);
 
-            if (inputType.IsErrorType() || hasErrors || symbol is null)
-                memberType = CreateErrorType();
-            else
-                memberType = symbol.GetTypeOrReturnType().Type;
+            memberType = symbol switch
+            {
+                FieldSymbol field => field.Type,
+                PropertySymbol property => property.Type,
+                _ => CreateErrorType()
+            };
 
             return symbol;
         }

@@ -1783,14 +1783,13 @@ class A
 
         [WorkItem(46423, "https://github.com/dotnet/roslyn/issues/46423")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DoNotCrashWhenTypeCantBeDetermined()
+        public async Task RemoveUnneededTargetTypedCast()
         {
-            var source =
-@"
+            await VerifyCS.VerifyCodeFixAsync(@"
 class Other
 {
     public short GetScopeIdForTelemetry(FixAllScope scope)
-        => (short)(scope switch
+        => [|(short)|](scope switch
         {
             FixAllScope.Document => 1,
             FixAllScope.Project => 2,
@@ -1805,9 +1804,28 @@ class Other
         Solution,
         Other
     }
-}";
+}",
+@"
+class Other
+{
+    public short GetScopeIdForTelemetry(FixAllScope scope)
+        => scope switch
+        {
+            FixAllScope.Document => 1,
+            FixAllScope.Project => 2,
+            FixAllScope.Solution => 3,
+            _ => 4,
+        };
 
-            await VerifyCS.VerifyCodeFixAsync(source, source);
+    public enum FixAllScope
+    {
+        Document,
+        Project,
+        Solution,
+        Other
+    }
+}"
+);
         }
 
         [WorkItem(545777, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545777")]
