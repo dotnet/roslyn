@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         /// <summary>
         /// Display content in the MenuItem.
         /// </summary>
-        public string DisplayName { get; }
+        public string DisplayContent { get; }
 
         /// <summary>
         /// Inheritance Targets for this member.
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public MemberDisplayViewModel(InheritanceMarginItem member)
         {
             ImageMoniker = member.Glyph.GetImageMoniker();
-            DisplayName = member.DisplayName;
+            DisplayContent = member.DisplayName;
             AutomationName = member.DisplayName;
             Targets = member.TargetItems.SelectAsArray(item => new TargetDisplayViewModel(item));
         }

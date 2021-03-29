@@ -35,6 +35,7 @@
                         BorderThickness="1">
                 </Border>
                 <ScrollViewer CanContentScroll="true"
+                              VerticalScrollBarVisibility="Auto"
                               Margin="3"
                               Style="{DynamicResource {ComponentResourceKey TypeInTargetAssembly={x:Type FrameworkElement}, ResourceId=MenuScrollViewer}}">
                     <ItemsPresenter KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Cycle"
@@ -111,7 +112,7 @@
         <!-- Style used to display one member's information and pops up a submenu show all the targets -->
         <Style x:Key="MemberMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
-            <Setter Property="Header" Value="{Binding DisplayName}"/>
+            <Setter Property="Header" Value="{Binding DisplayContent}"/>
             <Setter Property="ItemsSource" Value="{Binding Targets}"/>
             <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
             <Setter Property="IsCheckable" Value="False"/>
