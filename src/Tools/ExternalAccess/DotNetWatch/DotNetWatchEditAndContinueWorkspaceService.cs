@@ -43,18 +43,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch
         public ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
             => _workspaceService.OnSourceFileUpdatedAsync(document, cancellationToken);
 
-        public void CommitSolutionUpdate() => _workspaceService.CommitSolutionUpdate();
+        public void CommitSolutionUpdate() => _workspaceService.CommitSolutionUpdate(out _);
 
         public void DiscardSolutionUpdate() => _workspaceService.DiscardSolutionUpdate();
 
         public void EndDebuggingSession() => _workspaceService.EndDebuggingSession(out _);
 
         public void StartDebuggingSession(Solution solution)
-            => _workspaceService.StartDebuggingSessionAsync(solution, captureMatchingDocuments: false, CancellationToken.None).GetAwaiter().GetResult();
+            => _workspaceService.StartDebuggingSessionAsync(solution, StubManagedEditAndContinueDebuggerService.Instance, captureMatchingDocuments: false, CancellationToken.None).GetAwaiter().GetResult();
 
-        public void StartEditSession() => _workspaceService.StartEditSession(StubManagedEditAndContinueDebuggerService.Instance, out _);
+        public void StartEditSession() { }
 
-        public void EndEditSession() => _workspaceService.EndEditSession(out _);
+        public void EndEditSession() { }
 
         public async ValueTask<DotNetWatchManagedModuleUpdatesWrapper> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
         {
