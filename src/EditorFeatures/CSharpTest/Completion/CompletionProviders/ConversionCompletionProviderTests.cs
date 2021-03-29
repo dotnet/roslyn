@@ -1563,5 +1563,95 @@ namespace N
                 referencedLanguage: LanguageNames.CSharp,
                 hideAdvancedMembers: true);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionOfNullableStructAccessViaNullcondionalOffersLiftedConversion()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+public struct S {
+    public static explicit operator int(S s) => 0;
+}
+public class Program
+{
+    public static void Main()
+    {
+        S? s = null;
+        var i = ((S?)s)?.$$
+    }
+}
+", "int?", @"
+public struct S {
+    public static explicit operator int(S s) => 0;
+}
+public class Program
+{
+    public static void Main()
+    {
+        S? s = null;
+        var i = ((int?)((S?)s))?$$
+    }
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionOfPropertyNamedLikeItsTypeIsHandled()
+        {
+            await VerifyCustomCommitProviderAsync(@"
+public struct S {
+    public static explicit operator int(S s) => 0;
+}
+public class C {
+    public S S { get; }
+}
+public class Program
+{
+    public static void Main()
+    {
+        var c = new C();
+        var i = c.S.$$
+    }
+}
+", "int", @"
+public struct S {
+    public static explicit operator int(S s) => 0;
+}
+public class C {
+    public S S { get; }
+}
+public class Program
+{
+    public static void Main()
+    {
+        var c = new C();
+        var i = ((int)c.S)$$
+    }
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
+        public async Task ExplicitUserDefinedConversionOfDerefenrencedPointerIsNotOffered()
+        {
+            await VerifyNoItemsExistAsync(@"
+public struct S {
+    public static explicit operator int(S s) => 0;
+}
+public class Program
+{
+    public static void Main()
+    {
+        unsafe{
+            var s = new S();
+            S* p = &s;
+            var i = p->$$;
+        }
+    }
+}
+");
+        }
     }
 }
