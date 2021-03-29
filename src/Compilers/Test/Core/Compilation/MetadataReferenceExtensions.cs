@@ -16,16 +16,49 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public static class MetadataReferenceExtensions
     {
         public static Guid GetModuleVersionId(this MetadataReference metadataReference)
-            => metadataReference is PortableExecutableReference peReference
-                ? peReference.GetModuleVersionId()
-                : throw new InvalidOperationException();
+            => GetManifestModuleMetadata(metadataReference).GetModuleVersionId();
 
         public static Guid GetModuleVersionId(this PortableExecutableReference peReference)
         {
-            if (peReference.GetMetadata() is AssemblyMetadata assemblyMetadata &&
-                assemblyMetadata.GetModules() is { Length: 1 } modules)
+            switch (peReference.GetMetadata())
             {
-                return modules[0].GetModuleVersionId();
+                case AssemblyMetadata assemblyMetadata:
+                    {
+                        if (assemblyMetadata.GetModules() is { Length: 1 } modules)
+                        {
+                            return modules[0].GetModuleVersionId();
+                        }
+                    }
+                    break;
+                case ModuleMetadata moduleMetadata:
+                    return moduleMetadata.GetModuleVersionId();
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        public static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)
+            => reference.GetManifestModuleMetadata().MetadataReader.ReadAssemblyIdentityOrThrow();
+
+        public static ModuleMetadata GetManifestModuleMetadata(this MetadataReference reference)
+            => reference is PortableExecutableReference peReference
+                ? peReference.GetManifestModuleMetadata()
+            : throw new InvalidOperationException();
+
+        public static ModuleMetadata GetManifestModuleMetadata(this PortableExecutableReference peReference)
+        {
+            switch (peReference.GetMetadata())
+            {
+                case AssemblyMetadata assemblyMetadata:
+                    {
+                        if (assemblyMetadata.GetModules() is { Length: 1 } modules)
+                        {
+                            return modules[0];
+                        }
+                    }
+                    break;
+                case ModuleMetadata moduleMetadata:
+                    return moduleMetadata;
             }
 
             throw new InvalidOperationException();
