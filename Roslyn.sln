@@ -483,7 +483,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Microsoft.CodeAnalysis.Coll
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Collections.Package", "src\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.Package.csproj", "{0C2E1633-1462-4712-88F4-A0C945BAD3A8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebuild", "src\Compilers\Core\Rebuild\Microsoft.CodeAnalysis.Rebuild.csproj", "{B7D29559-4360-434A-B9B9-2C0612287999}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild", "src\Compilers\Core\Rebuild\Microsoft.CodeAnalysis.Rebuild.csproj", "{B7D29559-4360-434A-B9B9-2C0612287999}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild.UnitTests", "src\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj", "{21B49277-E55A-45EF-8818-744BCD6CB732}"
 EndProject
