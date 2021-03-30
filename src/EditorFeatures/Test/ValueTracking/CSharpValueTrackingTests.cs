@@ -251,7 +251,6 @@ class Other
                     17 // |> c.SetS(s); [Code.cs:17]
                 });
 
-
             items = await ValidateChildrenAsync(
                 workspace,
                 items.Single(),
@@ -369,7 +368,6 @@ class Program
                 {
                     23 // |> c.SetS(s); [Code.cs:23]
                 });
-
 
             items = await ValidateChildrenAsync(
                 workspace,

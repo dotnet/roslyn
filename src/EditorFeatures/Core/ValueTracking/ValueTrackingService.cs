@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             if (symbolInfo.Symbol is null)
             {
                 if (operation is ILiteralOperation { Type: not null } literalOperation)
-{
+                {
                     await progressCollector.TryReportAsync(document.Project.Solution,
                         operation.Syntax.GetLocation(),
                         literalOperation.Type!,
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     }
                 }
             }
-            else if (operation is IReturnOperation returnOperation)
+            else if (operation is IReturnOperation { ReturnedValue: not null } returnOperation)
             {
                 // For return operations we want to track
                 // the value returned in case it has invocations
