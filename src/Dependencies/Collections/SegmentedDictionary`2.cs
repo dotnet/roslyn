@@ -318,7 +318,12 @@ namespace Microsoft.CodeAnalysis.Collections
                 var comparer = _comparer;
                 if (comparer == null)
                 {
+#if NETCOREAPP
                     var hashCode = (uint)key.GetHashCode();
+#else
+                    // Avoid boxing enum types on .NET Framework
+                    var hashCode = (uint)EqualityComparer<TKey>.Default.GetHashCode(key);
+#endif
                     var i = GetBucket(hashCode);
                     var entries = _entries;
                     uint collisionCount = 0;
@@ -462,7 +467,12 @@ ReturnNotFound:
             Debug.Assert(entries.Length > 0, "expected entries to be non-empty");
 
             var comparer = _comparer;
+#if NETCOREAPP
             var hashCode = (uint)((comparer == null) ? key.GetHashCode() : comparer.GetHashCode(key));
+#else
+            // Avoid boxing enum types on .NET Framework
+            var hashCode = (uint)((comparer == null) ? EqualityComparer<TKey>.Default.GetHashCode(key) : comparer.GetHashCode(key));
+#endif
 
             uint collisionCount = 0;
             ref var bucket = ref GetBucket(hashCode);
@@ -666,7 +676,12 @@ ReturnNotFound:
             {
                 Debug.Assert(_entries.Length > 0, "entries should be non-empty");
                 uint collisionCount = 0;
+#if NETCOREAPP
                 var hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
+#else
+                // Avoid boxing enum types on .NET Framework
+                var hashCode = (uint)(_comparer?.GetHashCode(key) ?? EqualityComparer<TKey>.Default.GetHashCode(key));
+#endif
                 ref var bucket = ref GetBucket(hashCode);
                 var entries = _entries;
                 var last = -1;
@@ -738,7 +753,12 @@ ReturnNotFound:
             {
                 Debug.Assert(_entries.Length > 0, "entries should be non-empty");
                 uint collisionCount = 0;
+#if NETCOREAPP
                 var hashCode = (uint)(_comparer?.GetHashCode(key) ?? key.GetHashCode());
+#else
+                // Avoid boxing enum types on .NET Framework
+                var hashCode = (uint)(_comparer?.GetHashCode(key) ?? EqualityComparer<TKey>.Default.GetHashCode(key));
+#endif
                 ref var bucket = ref GetBucket(hashCode);
                 var entries = _entries;
                 var last = -1;
