@@ -6,19 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.PortableExecutable;
-using System.Text;
+using System.Runtime.InteropServices;
 using System.Threading;
-using BuildValidator;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -27,10 +17,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
     public sealed partial class RebuildCommandLineTests : CSharpTestBase
     {
-        internal const string ClientDirectory = @"q:\compiler";
-        internal const string WorkingDirectory = @"q:\rebuild";
-        internal const string SdkDirectory = @"q:\sdk";
-        internal const string OutputDirectory = @"q:\output";
+        internal static string RootDirectory => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"q:\" : "/";
+        internal static string ClientDirectory => Path.Combine(RootDirectory, "compiler");
+        internal static string WorkingDirectory => Path.Combine(RootDirectory, "rebuild");
+        internal static string SdkDirectory => Path.Combine(RootDirectory, "sdk");
+        internal static string OutputDirectory => Path.Combine(RootDirectory, "output");
 
         internal static BuildPaths StandardBuildPaths => new BuildPaths(ClientDirectory, WorkingDirectory, SdkDirectory, tempDir: null);
 
