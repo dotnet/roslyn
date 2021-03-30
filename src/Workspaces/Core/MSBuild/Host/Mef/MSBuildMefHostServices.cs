@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 {
     public static class MSBuildMefHostServices
     {
-        private static MefHostServices s_defaultServices;
+        internal static MefHostServices s_defaultServices;
         public static MefHostServices DefaultServices
         {
             get
