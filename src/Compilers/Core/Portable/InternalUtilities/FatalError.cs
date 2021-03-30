@@ -7,6 +7,11 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
+#if NET20
+// Some APIs referenced by documentation comments are not available on .NET Framework 2.0.
+#pragma warning disable CS1574 // XML comment has cref attribute that could not be resolved
+#endif
+
 #if COMPILERCORE
 namespace Microsoft.CodeAnalysis
 #else
