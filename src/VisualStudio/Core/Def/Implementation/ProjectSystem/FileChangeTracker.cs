@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 try
                 {
-                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, _fileChangeFlags, this).ConfigureAwait(false);
+                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, _fileChangeFlags, this, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (ReportException(e))
                 {

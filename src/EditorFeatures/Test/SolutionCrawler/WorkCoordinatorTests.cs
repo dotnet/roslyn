@@ -1624,7 +1624,7 @@ class C
                     this.RunningEvent.Set();
 
                     // Wait until unblocked
-                    this.BlockEvent.Wait();
+                    this.BlockEvent.Wait(cancellationToken);
                 }
 
                 if (WaitForCancellation && !RunningEvent.IsSet)

@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     {
                         await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
-                    }).CompletesAsyncOperation(asyncToken);
+                    }, cancellationToken).CompletesAsyncOperation(asyncToken);
                 }
                 else
                 {

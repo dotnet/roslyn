@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal async Task<BuildResponse> SendAsync(BuildRequest request, CancellationToken cancellationToken = default)
         {
             using var client = await BuildServerConnection.TryConnectToServerAsync(PipeName, Timeout.Infinite, Logger, cancellationToken).ConfigureAwait(false);
-            await request.WriteAsync(client).ConfigureAwait(false);
-            return await BuildResponse.ReadAsync(client).ConfigureAwait(false);
+            await request.WriteAsync(client, cancellationToken).ConfigureAwait(false);
+            return await BuildResponse.ReadAsync(client, cancellationToken).ConfigureAwait(false);
         }
 
         internal async Task<int> SendShutdownAsync(CancellationToken cancellationToken = default)

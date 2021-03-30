@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis
 
                             if (generatorDriver != null)
                             {
-                                generatorDriver = generatorDriver.RunGenerators(compilationWithoutGeneratedFiles);
+                                generatorDriver = generatorDriver.RunGenerators(compilationWithoutGeneratedFiles, cancellationToken);
 
                                 foreach (var generatorResult in generatorDriver.GetRunResult().Results)
                                 {

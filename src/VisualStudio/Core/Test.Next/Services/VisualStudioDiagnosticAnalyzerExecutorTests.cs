@@ -227,9 +227,7 @@ End Class";
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
 
-            var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
-                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
+            var analyzerDriver = (await project.GetCompilationAsync(cancellationToken)).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(), new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution), cancellationToken: cancellationToken);
 
             var result = await executor.AnalyzeProjectAsync(project, analyzerDriver, forceExecuteAllAnalyzers: true, logPerformanceInfo: false,
                 getTelemetryInfo: false, cancellationToken);
