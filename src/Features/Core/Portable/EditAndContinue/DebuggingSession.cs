@@ -32,17 +32,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// MVIDs read from the assembly built for given project id.
         /// </summary>
-        private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds;
+        private readonly Dictionary<ProjectId, (Guid Mvid, Diagnostic Error)> _projectModuleIds = new();
         private readonly object _projectModuleIdsGuard = new();
 
         /// <summary>
         /// The current baseline for given project id.
         /// The baseline is updated when changes are committed at the end of edit session.
-        /// The backing module readers of some baselines need to be kept alive -- store them in
-        /// <see cref="_lazyBaselineModuleReaders"/> and dispose them at the end of the debugging session
+        /// The backing module readers of initial baselines need to be kept alive -- store them in
+        /// <see cref="_initialBaselineModuleReaders"/> and dispose them at the end of the debugging session.
         /// </summary>
-        private readonly Dictionary<ProjectId, EmitBaseline> _projectEmitBaselines;
-        private List<IDisposable>? _lazyBaselineModuleReaders;
+        /// <remarks>
+        /// The baseline of each updated project is linked to its initial baseline that reads from the on-disk metadata and PDB.
+        /// Therefore once an initial baseline is created it needs to be kept alive till the end of the debugging session,
+        /// even whne it's replaced in <see cref="_projectEmitBaselines"/> by a newer baseline.
+        /// </remarks>
+        private readonly Dictionary<ProjectId, EmitBaseline> _projectEmitBaselines = new();
+        private readonly List<IDisposable> _initialBaselineModuleReaders = new();
         private readonly object _projectEmitBaselinesGuard = new();
 
         // Maps active statement instructions reported by the debugger to their latest spans that might not yet have been applied
@@ -80,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         //
         internal ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> NonRemappableRegions { get; private set; }
 
-        private readonly HashSet<Guid> _modulesPreparedForUpdate;
+        private readonly HashSet<Guid> _modulesPreparedForUpdate = new();
         private readonly object _modulesPreparedForUpdateGuard = new();
 
         /// <summary>
@@ -99,9 +104,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates)
         {
             _compilationOutputsProvider = compilationOutputsProvider;
-            _projectModuleIds = new Dictionary<ProjectId, (Guid, Diagnostic)>();
-            _projectEmitBaselines = new Dictionary<ProjectId, EmitBaseline>();
-            _modulesPreparedForUpdate = new HashSet<Guid>();
 
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             lock (_projectEmitBaselinesGuard)
             {
-                return _projectEmitBaselines[id];
+                return _projectEmitBaselines![id];
             }
         }
 
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             lock (_projectEmitBaselinesGuard)
             {
-                return _lazyBaselineModuleReaders.ToImmutableArrayOrEmpty();
+                return _initialBaselineModuleReaders.ToImmutableArrayOrEmpty();
             }
         }
 
@@ -184,12 +186,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 foreach (var (projectId, baseline) in update.EmitBaselines)
                 {
                     _projectEmitBaselines[projectId] = baseline;
-                }
-
-                if (!update.ModuleReaders.IsEmpty)
-                {
-                    _lazyBaselineModuleReaders ??= new List<IDisposable>();
-                    _lazyBaselineModuleReaders.AddRange(update.ModuleReaders);
                 }
             }
 
@@ -249,11 +245,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// Get <see cref="EmitBaseline"/> for given project.
         /// </summary>
         /// <returns>True unless the project outputs can't be read.</returns>
-        public bool TryGetOrCreateEmitBaseline(
-            Project project,
-            ArrayBuilder<IDisposable> readers,
-            out ImmutableArray<Diagnostic> diagnostics,
-            [NotNullWhen(true)] out EmitBaseline? baseline)
+        public bool TryGetOrCreateEmitBaseline(Project project, out ImmutableArray<Diagnostic> diagnostics, [NotNullWhen(true)] out EmitBaseline? baseline)
         {
             lock (_projectEmitBaselinesGuard)
             {
@@ -282,10 +274,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 _projectEmitBaselines[project.Id] = newBaseline;
+
+                _initialBaselineModuleReaders.Add(metadataReaderProvider);
+                _initialBaselineModuleReaders.Add(debugInfoReaderProvider);
             }
 
-            readers.Add(metadataReaderProvider);
-            readers.Add(debugInfoReaderProvider);
             baseline = newBaseline;
             return true;
         }
