@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.RpcContracts.Caching;
+using Nerdbank.Streams;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Storage
@@ -169,10 +170,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
                 pipe.Reader.AdvanceTo(readResult.Buffer.Start, readResult.Buffer.End);
 
                 if (readResult.IsCompleted)
-                    break;
+                    return readResult.Buffer.AsStream();
             }
-
-            return pipe.Reader.AsStream();
         }
 
         public sealed override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
