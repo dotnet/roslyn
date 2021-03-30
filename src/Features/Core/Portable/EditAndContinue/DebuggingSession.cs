@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             lock (_projectEmitBaselinesGuard)
             {
-                return _projectEmitBaselines![id];
+                return _projectEmitBaselines[id];
             }
         }
 
