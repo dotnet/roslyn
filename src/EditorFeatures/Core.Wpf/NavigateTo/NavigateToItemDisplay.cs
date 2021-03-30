@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -18,12 +17,9 @@ using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-// This assembly is currently broken due to interop limitations. Force the runtime to reject it.
-[assembly: ReferenceAssembly]
-
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    internal sealed class NavigateToItemDisplay : INavigateToItemDisplay2 // PROTOTYPE: needs to be INavigateToItemDisplay3
+    internal sealed class NavigateToItemDisplay : INavigateToItemDisplay3
     {
         private readonly INavigateToSearchResult _searchResult;
         private ReadOnlyCollection<DescriptionItem> _descriptionItems;
@@ -143,16 +139,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
         public ImageMoniker GlyphMoniker => _searchResult.NavigableItem.Glyph.GetImageMoniker();
 
-#pragma warning disable IDE0060 // Remove unused parameter
         public IReadOnlyList<Span> GetNameMatchRuns(string searchValue)
-#pragma warning restore IDE0060 // Remove unused parameter
             => _searchResult.NameMatchSpans.NullToEmpty().SelectAsArray(ts => ts.ToSpan());
 
-#pragma warning disable IDE0060 // Remove unused parameter
-#pragma warning disable CA1822 // Mark members as static
         public IReadOnlyList<Span> GetAdditionalInformationMatchRuns(string searchValue)
-#pragma warning restore CA1822 // Mark members as static
-#pragma warning restore IDE0060 // Remove unused parameter
             => SpecializedCollections.EmptyReadOnlyList<Span>();
     }
 }
