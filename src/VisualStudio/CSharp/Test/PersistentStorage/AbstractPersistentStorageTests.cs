@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _persistentFolderRoot.Dispose();
         }
 
-        protected string GetData1(Size size)
+        private string GetData1(Size size)
             => size == Size.Small ? SmallData1 : size == Size.Medium ? MediumData1 : LargeData1;
 
         private string GetData2(Size size)
             => size == Size.Small ? SmallData2 : size == Size.Medium ? MediumData2 : LargeData2;
 
-        private protected Checksum? GetChecksum1(bool withChecksum)
+        private Checksum? GetChecksum1(bool withChecksum)
             => withChecksum ? s_checksum1 : null;
 
         private Checksum? GetChecksum2(bool withChecksum)
@@ -784,6 +784,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var locationService = workspace.Services.GetRequiredService<IPersistentStorageLocationService>();
             var location = locationService.TryGetStorageLocation(workspace.CurrentSolution);
             Assert.False(location?.StartsWith("/") ?? false);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task PersistentService_ReadByteTwice(Size size, bool withChecksum)
+        {
+            var solution = CreateOrOpenSolution();
+            var streamName1 = "PersistentService_ReadByteTwice";
+
+            await using (var storage = await GetStorageAsync(solution))
+            {
+                Assert.True(await storage.WriteStreamAsync(streamName1, EncodeString(GetData1(size)), GetChecksum1(withChecksum)));
+            }
+
+            await using (var storage = await GetStorageAsync(solution))
+            {
+                using var stream = await storage.ReadStreamAsync(streamName1, GetChecksum1(withChecksum));
+                stream.ReadByte();
+                stream.ReadByte();
+            }
         }
 
         [PartNotDiscoverable]
