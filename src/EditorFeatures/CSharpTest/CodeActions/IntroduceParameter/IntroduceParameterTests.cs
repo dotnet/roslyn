@@ -6,8 +6,10 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -87,6 +89,42 @@ class TestClass
 {
     void M(int x, int y, int z, int m)
     {
+    }
+
+    void M1(int x, int y, int z) 
+    {
+        M(z, x, z, z * z * z);
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestLocalDeclarationMultipleDeclarators()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z)
+    {
+        int m = [|x * z * z|], y = 0;
+    }
+
+    void M1(int x, int y, int z) 
+    {
+        M(z, x, z);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    void M(int x, int y, int z, int v)
+    {
+        int m = {|Rename:v|}, y = 0;
     }
 
     void M1(int x, int y, int z) 
@@ -375,8 +413,7 @@ class TestClass
         M(z, y, x, M_m(z, y, x));
     }
 }";
-
-            await TestInRegularAndScriptAsync(code, expected, index: 3);
+            await TestInRegularAndScriptAsync(code, expected, index: 3, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -789,7 +826,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestLambdaCase()
+        public async Task TestLambdaCaseNormal()
         {
             var code =
 @"using System;
@@ -802,9 +839,48 @@ class TestClass
 @"using System;
 class TestClass
 {
-    Func<int, int, int> mult = (x, y, v) => v;
+    Func<int, int, int> mult = (x, y, int v) => v;
 }";
             await TestInRegularAndScriptAsync(code, expected, index: 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestLambdaCaseTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    Func<int, int, int> mult = (x, y) => [|x * y|];
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    Func<int, int, int>
+    Func<int, int, int> mult = (x, y, int v) => v;
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestLambdaCaseOverload()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    Func<int, int, int> mult = (x, y) => [|x * y|];
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    Func<int, int, int> mult = (x, y, int v) => v;
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 4);
         }
     }
 }
