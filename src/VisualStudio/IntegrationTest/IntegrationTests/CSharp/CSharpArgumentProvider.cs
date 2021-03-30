@@ -58,6 +58,29 @@ public class Test
         }
 
         [WpfFact]
+        public void TabTabCompleteObjectEquals()
+        {
+            SetUpEditor(@"
+public class Test
+{
+    public void Method()
+    {
+        $$
+    }
+}
+");
+
+            VisualStudio.Editor.SendKeys("object.Equ");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("object.Equals(null$$)", assertCaretPosition: true);
+        }
+
+        [WpfFact]
         public void TabTabBeforeSemicolon()
         {
             SetUpEditor(@"

@@ -495,17 +495,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 iEndIndex = endIndex
             };
 
+            if (TryInsertArgumentCompletionSnippet(triggerSpan, dataBufferSpan, expansion, textSpan, cancellationToken))
+            {
+                Debug.Assert(_state.IsFullMethodCallSnippet);
+                return true;
+            }
+
             if (expansion.InsertExpansion(textSpan, textSpan, this, LanguageServiceGuid, out _state._expansionSession) == VSConstants.S_OK)
             {
                 // This expansion is not derived from a symbol, so make sure the state isn't tracking any symbol
                 // information
                 Debug.Assert(!_state.IsFullMethodCallSnippet);
-                return true;
-            }
-
-            if (TryInsertArgumentCompletionSnippet(triggerSpan, dataBufferSpan, expansion, textSpan, cancellationToken))
-            {
-                Debug.Assert(_state.IsFullMethodCallSnippet);
                 return true;
             }
 
