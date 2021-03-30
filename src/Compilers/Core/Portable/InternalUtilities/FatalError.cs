@@ -79,11 +79,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             => exception is OperationCanceledException && cancellationToken.IsCancellationRequested;
 
         /// <summary>
-        /// Use in an exception filter to report a fatal error. 
-        /// Unless the exception is <see cref="OperationCanceledException"/> 
-        /// it calls <see cref="Handler"/>. The exception is passed through (the method returns false).
+        /// Use in an exception filter to report a fatal error without catching the exception.
+        /// Calls <see cref="Handler"/> unless the operation has been cancelled.
         /// </summary>
-        /// <returns>False to avoid catching the exception.</returns>
+        /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
         public static bool ReportAndPropagateUnlessCanceled(Exception exception)
         {
@@ -96,11 +95,16 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// Use in an exception filter to report a fatal error. 
-        /// Calls <see cref="Handler"/> unless the operation has been cancelled. 
-        /// The exception is passed through (the method returns false).
+        /// Use in an exception filter to report a fatal error without catching the exception.
+        /// Calls <see cref="Handler"/> unless the operation has been cancelled at the request of a caller.
         /// </summary>
-        /// <returns>False to avoid catching the exception.</returns>
+        /// <remarks>
+        /// Unexpected cancellation, i.e. an <see cref="OperationCanceledException"/> which occurs without
+        /// <paramref name="cancellationToken"/> requesting cancellation, is treated as a fatal error by this method.
+        /// </remarks>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> which will have
+        /// <see cref="CancellationToken.IsCancellationRequested"/> set if cancellation is expected.</param>
+        /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
         public static bool ReportAndPropagateUnlessCanceled(Exception exception, CancellationToken cancellationToken)
         {
@@ -113,11 +117,11 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// Use in an exception filter to report a non-fatal error. 
-        /// Unless the exception is <see cref="OperationCanceledException"/> 
-        /// it calls <see cref="NonFatalHandler"/>. The exception isn't passed through (the method returns true).
+        /// Use in an exception filter to report a non-fatal error (by calling <see cref="NonFatalHandler"/>) and catch
+        /// the exception, unless the operation was cancelled.
         /// </summary>
-        /// <returns>True to catch the exception.</returns>
+        /// <returns><see langword="true"/> to catch the exception if the non-fatal error was reported; otherwise,
+        /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
         [DebuggerHidden]
         public static bool ReportAndCatchUnlessCanceled(Exception exception)
         {
@@ -130,11 +134,18 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// Use in an exception filter to report a non-fatal error. 
-        /// Calls <see cref="NonFatalHandler"/> unless the operation has been cancelled. 
-        /// The exception isn't passed through (the method returns true).
+        /// Use in an exception filter to report a non-fatal error (by calling <see cref="NonFatalHandler"/>) and catch
+        /// the exception, unless the operation was cancelled at the request of a caller.
         /// </summary>
-        /// <returns>True to catch the exception.</returns>
+        /// <remarks>
+        /// Unexpected cancellation, i.e. an <see cref="OperationCanceledException"/> which occurs without
+        /// <paramref name="cancellationToken"/> requesting cancellation, is treated as a non-fatal error by this
+        /// method.
+        /// </remarks>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> which will have
+        /// <see cref="CancellationToken.IsCancellationRequested"/> set if cancellation is expected.</param>
+        /// <returns><see langword="true"/> to catch the exception if the non-fatal error was reported; otherwise,
+        /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
         [DebuggerHidden]
         public static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken cancellationToken)
         {
@@ -147,10 +158,10 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
-        /// Use in an exception filter to report a fatal error.
-        /// Calls <see cref="Handler"/> and passes the exception through (the method returns false).
+        /// Use in an exception filter to report a fatal error without catching the exception.
+        /// The error is reported by calling <see cref="Handler"/>.
         /// </summary>
-        /// <returns>False to avoid catching the exception.</returns>
+        /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
         public static bool ReportAndPropagate(Exception exception)
         {
