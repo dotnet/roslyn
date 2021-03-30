@@ -67,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
 
             var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
-            var changes = formattingService.GetFormattingChangesOnPasteAsync(document, span, cancellationToken).WaitAndGetResult(cancellationToken);
+            var changes = formattingService.GetFormattingChangesOnPasteAsync(
+                document, span, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
             if (changes.Count == 0)
             {
                 return;

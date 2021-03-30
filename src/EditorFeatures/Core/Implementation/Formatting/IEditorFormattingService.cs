@@ -25,39 +25,30 @@ namespace Microsoft.CodeAnalysis.Editor
         bool SupportsFormattingOnTypedCharacter(Document document, char ch);
 
         /// <summary>
-        /// Returns the text changes necessary to format the document.  If "textSpan" is provided,
-        /// only the text changes necessary to format that span are needed.
-        /// </summary>
-        Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Returns the text changes necessary to format the document with custom document options.
+        /// Returns the text changes necessary to format the document using optional custom document options.
         /// If "textSpan" is provided, only the text changes necessary to format that span are needed.
         /// </summary>
-        Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet documentOptions, CancellationToken cancellationToken);
+        Task<IList<TextChange>> GetFormattingChangesAsync(Document document, TextSpan? textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Returns the text changes necessary to format the document on paste operation.
+        /// Returns the text changes necessary to format the document on paste operation using
+        /// optional custom document options.
         /// </summary>
-        Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+        Task<IList<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, DocumentOptionSet? documentOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the text changes necessary to format the document after the user enters a 
-        /// character.  The position provided is the position of the caret in the document after
-        /// the character been inserted into the document.
+        /// character using optional custom document options.  The position provided is the
+        /// position of the caret in the document after the character been inserted into the
+        /// document.
         /// </summary>
-        Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int position, CancellationToken cancellationToken);
+        Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Returns the text changes necessary to format the document after the user enters a 
-        /// character using custom document options.  The position provided is the position of
-        /// the caret in the document after the character been inserted into the document.
+        /// Returns the text changes necessary to format the document after the user enters a Return
+        /// using optional custom document options. The position provided is the position of the caret
+        /// in the document after Return.
         /// </summary>
-        Task<IList<TextChange>?> GetFormattingChangesAsync(Document document, char typedChar, int position, DocumentOptionSet documentOptions, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Returns the text changes necessary to format the document after the user enters a Return.
-        /// The position provided is the position of the caret in the document after Return.</summary>
-        Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<IList<TextChange>?> GetFormattingChangesOnReturnAsync(Document document, int position, DocumentOptionSet? documentOptions, CancellationToken cancellationToken);
     }
 }

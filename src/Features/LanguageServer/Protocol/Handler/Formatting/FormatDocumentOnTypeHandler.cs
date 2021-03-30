@@ -84,8 +84,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             int position,
             DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
-            // We don't need to pass in options here since C#/VB always returns no text changes for this case.
-            => formattingService.GetFormattingChangesOnReturnAsync(document, position, cancellationToken);
+            => formattingService.GetFormattingChangesOnReturnAsync(document, position, documentOptions, cancellationToken);
 
         protected virtual Task<IList<TextChange>?> GetFormattingChangesAsync(
             IEditorFormattingService formattingService,

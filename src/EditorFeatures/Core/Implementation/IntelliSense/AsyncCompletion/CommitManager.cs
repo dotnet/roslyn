@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     if (formattingService != null)
                     {
                         var changes = formattingService.GetFormattingChangesAsync(
-                            document, spanToFormat.Span.ToTextSpan(), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                            document, spanToFormat.Span.ToTextSpan(), documentOptions: null, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                         document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
                     }
                 }
