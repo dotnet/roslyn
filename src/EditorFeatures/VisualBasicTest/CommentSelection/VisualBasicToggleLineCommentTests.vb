@@ -27,7 +27,7 @@ End Class
             Dim expected =
 <code>
 Class A
-[|    'Function M()
+    [|'Function M()
     '    Dim a = 1
 
     'End Function|]
@@ -51,7 +51,7 @@ End Class
             Dim expected =
 <code>
 Class A
-[|    Function M()
+    [|Function M()
         Dim a = 1
 
     End Function|]
@@ -76,7 +76,7 @@ End Class
             {
 <code>
 Class A
-[|    'Function M()
+    [|'Function M()
     '    Dim a = 1
 
     'End Function|]
@@ -84,7 +84,7 @@ End Class
 </code>.Value,
 <code>
 Class A
-[|    Function M()
+    [|Function M()
         Dim a = 1
 
     End Function|]

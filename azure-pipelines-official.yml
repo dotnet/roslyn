@@ -27,7 +27,7 @@ variables:
     - name: _DevDivDropAccessToken
       value: $(System.AccessToken)
   # If the pipeline is running in dnceng:
-  # Get access token with $dn-bot-devdiv-drop-rw-code-rw from DotNet-VSTS-Infra-Access
+  # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
   # Get $dotnetfeed-storage-access-key-1 from DotNet-Blob-Feed
   # Get $microsoft-symbol-server-pat and $symweb-symbol-server-pat from DotNet-Symbol-Server-Pats
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
@@ -36,6 +36,7 @@ variables:
     - group: DotNet-Symbol-Server-Pats
     - group: DotNet-Versions-Publish
     - group: DotNet-VSTS-Infra-Access
+    - group: DotNet-DevDiv-Insertion-Workflow-Variables
     - name: _DevDivDropAccessToken
       value: $(dn-bot-devdiv-drop-rw-code-rw)
 
@@ -99,18 +100,20 @@ stages:
       condition: and(succeeded(), ne(variables['PRNumber'], 'default'))
 
     - task: tagBuildOrRelease@0
-      displayName: Tag master validation build
+      displayName: Tag main validation build
       inputs:
         type: 'Build'
         tags: |
-          MasterValidationBuild
-      condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
+          MainValidationBuild
+      condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
     - task: PowerShell@2
-      displayName: Merge master-vs-deps into source branch
+      displayName: Merge main-vs-deps into source branch
       inputs:
         filePath: 'scripts\merge-vs-deps.ps1'
-      condition: and(succeeded(), eq(variables['SourceBranchName'], 'master'))
+        ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+          arguments: '-accessToken $(dn-bot-dnceng-build-rw-code-rw)'
+      condition: and(succeeded(), eq(variables['SourceBranchName'], 'main'))
 
     - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)"
       displayName: Setting VisualStudio.DropName variable
@@ -180,7 +183,7 @@ stages:
       displayName: Publish Assets
       inputs:
         filePath: 'eng\publish-assets.ps1'
-        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)" -gitHubUserName $(Roslyn.GitHubUserName) -gitHubToken $(AccessToken-dotnet-build-bot-public-repo) -gitHubEmail $(Roslyn.GitHubEmail)'
+        arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
       condition: and(succeeded(), eq(variables['PRNumber'], 'default'))
 
     # Publish OptProf configuration files
@@ -329,8 +332,7 @@ stages:
         - SetValidateDependency
       # Enable SDL validation, passing through values from the 'DotNet-Roslyn-SDLValidation-Params' group.
       SDLValidationParameters:
-        # Disable SDL because of https://github.com/dotnet/core-eng/issues/11902
-        enable: false
+        enable: true
         params: >-
           -SourceToolsList @("policheck","credscan")
           -TsaInstanceURL $(_TsaInstanceURL)

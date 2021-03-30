@@ -235,7 +235,7 @@
     <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
   </data>
   <data name="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable" xml:space="preserve">
-    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable</value>
+    <value>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</value>
     <comment>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</comment>
   </data>
   <data name="Deconstruct_variable_declaration" xml:space="preserve">

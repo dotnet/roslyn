@@ -52,16 +52,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             {
                 return ImmutableArray.Create(
                     new ColumnState2(UnusedReferencesColumnDefinitions.SolutionName, isVisible: false, width: 200, sortPriority: 0, descendingSort: false, groupingPriority: 1),
-                    new ColumnState2(UnusedReferencesColumnDefinitions.ProjectName, isVisible: false, width: 200, sortPriority: 0, descendingSort: false, groupingPriority: 2),
-                    new ColumnState2(UnusedReferencesColumnDefinitions.ReferenceType, isVisible: false, width: 200, sortPriority: 0, descendingSort: false, groupingPriority: 3),
-                    new ColumnState(UnusedReferencesColumnDefinitions.ReferenceName, isVisible: true, width: 300, sortPriority: 0, descendingSort: false),
-                    new ColumnState(UnusedReferencesColumnDefinitions.UpdateAction, isVisible: true, width: 100, sortPriority: 0, descendingSort: false));
+                    new ColumnState2(UnusedReferencesColumnDefinitions.ProjectName, isVisible: false, width: 200, sortPriority: 1, descendingSort: false, groupingPriority: 2),
+                    new ColumnState2(UnusedReferencesColumnDefinitions.ReferenceType, isVisible: false, width: 200, sortPriority: 2, descendingSort: false, groupingPriority: 3),
+                    new ColumnState(UnusedReferencesColumnDefinitions.ReferenceName, isVisible: true, width: 300, sortPriority: 3, descendingSort: false),
+                    new ColumnState(UnusedReferencesColumnDefinitions.UpdateAction, isVisible: true, width: 100, sortPriority: 4, descendingSort: false));
             }
         }
 
-        public void AddTableData(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates)
+        public void AddTableData(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates)
         {
-            _dataSource.AddTableData(project, referenceUpdates);
+            _dataSource.AddTableData(solution, projectFilePath, referenceUpdates);
         }
 
         public void ClearTableData()

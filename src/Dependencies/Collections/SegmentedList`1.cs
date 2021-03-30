@@ -751,6 +751,14 @@ namespace Microsoft.CodeAnalysis.Collections
                         // Copy last part of _items back to inserted location
                         SegmentedArray.Copy(_items, index + count, _items, index * 2, _size - index);
                     }
+                    else if (c is SegmentedList<T> list)
+                    {
+                        SegmentedArray.Copy(list._items, 0, _items, index, list.Count);
+                    }
+                    else if (c is SegmentedArray<T> array)
+                    {
+                        SegmentedArray.Copy(array, 0, _items, index, array.Length);
+                    }
                     else
                     {
                         var targetIndex = index;

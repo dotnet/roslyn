@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
-
+    <UseExportProvider>
     Public Class StatementEditingTests
         Inherits EditingTestBase
 
@@ -74,7 +74,7 @@ End If
             Dim m2 = MakeMethodBody(src2)
 
             Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1, m2)}
-            Dim match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches)
+            Dim match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -506,7 +506,7 @@ Do : Dim a = 14, b = 15, c = 16 : Console.WriteLine(a + b + c) : Loop
             Dim src1 = "Dim result = From a In {Await F(0)}, b In {Q(Async Function() Await F(2))} Select a + b" & vbLf
             Dim src2 = "Dim result = From a In {Await F(1)}, b In {Q(Async Function() Await F(3))} Select a - b" & vbLf
 
-            Dim match = GetMethodMatch(src1, src2, stateMachine:=StateMachineKind.Async)
+            Dim match = GetMethodMatch(src1, src2, methodKind:=MethodKind.Async)
             Dim actual = ToMatchingPairs(match)
 
             ' Note that 
@@ -1261,7 +1261,7 @@ For Each x In {1, 2, 3}
     Yield 2
 Next
 </text>.Value
-            Dim match = GetMethodMatches(src1, src2, stateMachine:=StateMachineKind.Iterator)
+            Dim match = GetMethodMatches(src1, src2, stateMachine:=MethodKind.Iterator)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1300,7 +1300,7 @@ Catch e As Exception When filter(e)
 End Try
 "
 
-            Dim match = GetMethodMatches(src1, src2, stateMachine:=StateMachineKind.None)
+            Dim match = GetMethodMatches(src1, src2, stateMachine:=MethodKind.Regular)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1334,7 +1334,7 @@ End Try
             Dim knownMatches = {New KeyValuePair(Of SyntaxNode, SyntaxNode)(m1.Statements(1), m2.Statements(0))}
 
             ' pre-matched:
-            Dim match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches)
+            Dim match = SyntaxComparer.Statement.ComputeMatch(m1, m2, knownMatches)
             Dim actual = ToMatchingPairs(match)
 
             Dim expected = New MatchingPairs From
@@ -1348,7 +1348,7 @@ End Try
             expected.AssertEqual(actual)
 
             ' not pre-matched:
-            match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2)
+            match = SyntaxComparer.Statement.ComputeMatch(m1, m2)
             actual = ToMatchingPairs(match)
 
             expected = New MatchingPairs From
@@ -4533,7 +4533,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                expectedSemanticEdits:=
+                semanticEdits:=
                 {
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMembers("F").Single(), preserveLocalVariables:=True)
                 })
@@ -5975,7 +5975,7 @@ Yield 2
 Yield 3
 Yield 4
 </text>.Value
-            Dim edits = GetMethodEdits(src1, src2, stateMachine:=StateMachineKind.Iterator)
+            Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Iterator)
 
             edits.VerifyEdits(
                 "Update [Yield 1]@50 -> [Yield 3]@50",
@@ -5993,7 +5993,7 @@ Yield 2
 Yield 3
 Yield 4
 </text>.Value
-            Dim edits = GetMethodEdits(src1, src2, stateMachine:=StateMachineKind.Iterator)
+            Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Iterator)
 
             edits.VerifyEdits(
                 "Update [Yield 1]@50 -> [Yield 3]@50",
@@ -6011,7 +6011,7 @@ Yield 1
 Yield 2
 Yield 3
 </text>.Value
-            Dim edits = GetMethodEdits(src1, src2, stateMachine:=StateMachineKind.Iterator)
+            Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Iterator)
 
             edits.VerifyEdits(
                 "Insert [Yield 3]@66")
@@ -6028,7 +6028,7 @@ Yield 3
 Yield 1
 Yield 2
 </text>.Value
-            Dim edits = GetMethodEdits(src1, src2, stateMachine:=StateMachineKind.Iterator)
+            Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Iterator)
 
             edits.VerifyEdits(
                 "Delete [Yield 3]@66")
@@ -6055,11 +6055,10 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                editScripts:={edits},
-                activeStatements:=ActiveStatementsDescription.Empty,
-                expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")})
+            VerifySemantics(
+                edits,
+                diagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Iterator Function F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute")},
+                targetFrameworks:={TargetFramework.Mscorlib40AndSystemCore})
         End Sub
 
         <Fact>
@@ -6083,11 +6082,9 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.CreateInstance40().VerifySemantics(
-                editScripts:={edits},
-                activeStatements:=ActiveStatementsDescription.Empty,
-                expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:=Nothing)
+            VerifySemanticDiagnostics(
+                editScript:=edits,
+                targetFrameworks:={TargetFramework.Mscorlib40AndSystemCore})
         End Sub
 
 #End Region
@@ -6103,7 +6100,7 @@ Await F(2)
 Await F(3)
 Await F(4)
 </text>.Value
-            Dim edits = GetMethodEdits(src1, src2, stateMachine:=StateMachineKind.Async)
+            Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Async)
 
             edits.VerifyEdits(
                 "Update [Await F(1)]@40 -> [Await F(3)]@40",
@@ -6121,7 +6118,7 @@ Await F(1)
 Await F(2)
 Await F(3)
 </text>.Value
-            Dim edits = GetMethodEdits(src1, src2, stateMachine:=StateMachineKind.Async)
+            Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Async)
 
             edits.VerifyEdits(
                 "Insert [Await F(2)]@51")
@@ -6138,7 +6135,7 @@ Await F(3)
 Await F(1)
 Await F(3)
 </text>.Value
-            Dim edits = GetMethodEdits(src1, src2, stateMachine:=StateMachineKind.Async)
+            Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Async)
 
             edits.VerifyEdits(
                 "Delete [Await F(2)]@51")
@@ -6167,11 +6164,11 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics(
-                editScripts:={edits},
-                activeStatements:=ActiveStatementsDescription.Empty,
-                expectedSemanticEdits:=Nothing,
-                expectedDiagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")})
+
+            VerifySemantics(
+                edits,
+                diagnostics:={Diagnostic(RudeEditKind.UpdatingStateMachineMethodMissingAttribute, "Shared Async Function F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute")},
+                targetFrameworks:={TargetFramework.MinimalAsync})
         End Sub
 
         <Fact>
@@ -6196,7 +6193,9 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            VisualBasicEditAndContinueTestHelpers.CreateInstanceMinAsync().VerifySemantics({edits})
+            VerifySemanticDiagnostics(
+                edits,
+                targetFrameworks:={TargetFramework.MinimalAsync})
         End Sub
 #End Region
     End Class

@@ -42,11 +42,6 @@
         <target state="translated">智慧縮排</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">格式化文件</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_Document">
         <source>Formatting Document...</source>
         <target state="translated">正在格式化文件...</target>

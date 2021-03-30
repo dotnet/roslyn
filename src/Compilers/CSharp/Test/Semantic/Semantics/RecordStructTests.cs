@@ -759,8 +759,8 @@ public record struct S2 : I
                 "System.Int32 S.M(System.String s)",
                 "System.String S.ToString()",
                 "System.Boolean S.PrintMembers(System.Text.StringBuilder builder)",
-                "System.Boolean S.op_Inequality(S r1, S r2)",
-                "System.Boolean S.op_Equality(S r1, S r2)",
+                "System.Boolean S.op_Inequality(S left, S right)",
+                "System.Boolean S.op_Equality(S left, S right)",
                 "System.Int32 S.GetHashCode()",
                 "System.Boolean S.Equals(System.Object obj)",
                 "System.Boolean S.Equals(S other)",
@@ -1764,8 +1764,8 @@ record struct C(int X, int Y)
                 "System.Int32 C.set_Y(System.Int32 value)",
                 "System.String C.ToString()",
                 "System.Boolean C.PrintMembers(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C r1, C r2)",
-                "System.Boolean C.op_Equality(C r1, C r2)",
+                "System.Boolean C.op_Inequality(C left, C right)",
+                "System.Boolean C.op_Equality(C left, C right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object obj)",
                 "System.Boolean C.Equals(C other)",
@@ -4263,7 +4263,7 @@ True True False False
 
             var comp = (CSharpCompilation)verifier.Compilation;
             MethodSymbol op = comp.GetMembers("A." + WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single();
-            Assert.Equal("System.Boolean A.op_Equality(A r1, A r2)", op.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.op_Equality(A left, A right)", op.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
             Assert.True(op.IsStatic);
             Assert.False(op.IsAbstract);
@@ -4273,7 +4273,7 @@ True True False False
             Assert.True(op.IsImplicitlyDeclared);
 
             op = comp.GetMembers("A." + WellKnownMemberNames.InequalityOperatorName).OfType<SynthesizedRecordInequalityOperator>().Single();
-            Assert.Equal("System.Boolean A.op_Inequality(A r1, A r2)", op.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.op_Inequality(A left, A right)", op.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
             Assert.True(op.IsStatic);
             Assert.False(op.IsAbstract);
@@ -4459,7 +4459,7 @@ public record struct RecordB();
 ";
             var comp = CreateCompilation(src);
             var b = comp.GlobalNamespace.GetTypeMember("RecordB");
-            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB r1, RecordB r2)" },
+            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB left, RecordB right)" },
                 b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
         }
 

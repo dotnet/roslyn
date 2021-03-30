@@ -1,7 +1,8 @@
 {
   "feeds": {
-      "vssdk": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json",
-      "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json"
+    "dotnet-tools": "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json",
+    "vssdk": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json",
+    "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json"
   },
   "packages": {
     "default": {
@@ -53,6 +54,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
@@ -108,84 +110,88 @@
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "arcade",
+      "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch": "arcade",
       "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "arcade",
       "Microsoft.CodeAnalysis.Remote.ServiceHub": "arcade",
       "Microsoft.CodeAnalysis.Remote.Workspaces": "arcade",
       "Microsoft.VisualStudio.LanguageServices.LiveShare": "arcade",
       "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "arcade"
+    },
+    "manual": {
+      "Microsoft.CodeAnalysis": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Common": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Compilers": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Scripting": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Scripting.Common": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Workspaces.Common": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Workspaces.MSBuild": "dotnet-tools",
+      "Microsoft.CodeAnalysis.CSharp": "dotnet-tools",
+      "Microsoft.CodeAnalysis.CSharp.CodeStyle": "dotnet-tools",
+      "Microsoft.CodeAnalysis.CSharp.Features": "dotnet-tools",
+      "Microsoft.CodeAnalysis.CSharp.Scripting": "dotnet-tools",
+      "Microsoft.CodeAnalysis.CSharp.Workspaces": "dotnet-tools",
+      "Microsoft.CodeAnalysis.VisualBasic": "dotnet-tools",
+      "Microsoft.CodeAnalysis.VisualBasic.CodeStyle": "dotnet-tools",
+      "Microsoft.CodeAnalysis.VisualBasic.Features": "dotnet-tools",
+      "Microsoft.CodeAnalysis.VisualBasic.Workspaces": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Build.Tasks": "dotnet-tools",
+      "Microsoft.Net.Compilers": "dotnet-tools",
+      "Microsoft.Net.Compilers.Toolset": "dotnet-tools",
+      "Microsoft.NETCore.Compilers": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Debugging": "dotnet-tools",
+      "Microsoft.CodeAnalysis.PooledObjects": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Collections": "dotnet-tools",
+      "Microsoft.CodeAnalysis.Features": "dotnet-tools",
+
+      "Microsoft.CodeAnalysis.EditorFeatures": "vssdk",
+      "Microsoft.CodeAnalysis.EditorFeatures.Common": "vssdk",
+      "Microsoft.CodeAnalysis.EditorFeatures.Text": "vssdk",
+      "Microsoft.VisualStudio.LanguageServices": "vssdk",
+      "Microsoft.CodeAnalysis.CSharp.EditorFeatures": "vssdk",
+      "Microsoft.CodeAnalysis.InteractiveHost": "vssdk",
+      "Microsoft.CodeAnalysis.VisualBasic.EditorFeatures": "vssdk",
+      "Microsoft.CodeAnalysis.EditorFeatures.Wpf": "vssdk",
+      "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
+
+      "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.Protocol": "vs-impl",
+      "Microsoft.CodeAnalysis.Lsif.Generator": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Apex": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.CodeLens": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Debugger": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.FSharp": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Razor": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch": "vs-impl",
+      "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "vs-impl",
+      "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
+      "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
+      "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
+      "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "vs-impl"
     }
   },
+  "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
   "branches": {
     "dev15.9.x-vs-deps": {
       "nugetKind": "PerBuildPreRelease",
       "version": "2.10.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "dev15.9" ],
+      "channels": [ ],
       "vsBranch": "rel/d15.9",
       "vsMajorVersion": 15
-    },
-    "dev16.0-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.0.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.0" ],
-      "vsBranch": "rel/d16.0",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.1-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.1.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.1" ],
-      "vsBranch": "rel/d16.1",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.2-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.2.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.2" ],
-      "vsBranch": "rel/d16.2",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.3-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.3.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.3" ],
-      "vsBranch": "rel/d16.3",
-      "vsMajorVersion": 16
     },
     "release/dev16.4-vs-deps": {
       "nugetKind": ["Shipping"],
       "version": "3.4.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "dev16.4" ],
+      "channels": [ ],
       "vsBranch": "rel/d16.4",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.5-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.5.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.5", "dev16.5p4" ],
-      "vsBranch": "rel/d16.5",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.6-vs-deps": {
-      "nugetKind": ["Shipping", "NonShipping"],
-      "version": "3.6.*",
-      "nuget": [ ],
-      "vsix": null,
-      "channels": [ "dev16.6", "dev16.6p3" ],
-      "vsBranch": "rel/d16.6",
       "vsMajorVersion": 16
     },
     "release/dev16.7-vs-deps": {
@@ -193,24 +199,15 @@
       "version": "3.7.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "dev16.7", "dev16.7p4" ],
+      "channels": [ ],
       "vsBranch": "rel/d16.7",
-      "vsMajorVersion": 16
-    },
-    "release/dev16.8-vs-deps": {
-      "nugetKind": [ "Shipping", "NonShipping" ],
-      "version": "3.8.*",
-      "vsix": null,
-      "packageFeeds": "default",
-      "channels": [ "dev16.8p5" ],
-      "vsBranch": "rel/d16.8",
       "vsMajorVersion": 16
     },
     "release/dev16.9-vs-deps": {
       "nugetKind": [ "Shipping", "NonShipping" ],
       "version": "3.9.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.9", "dev16.9p4" ],
+      "channels": [ ],
       "vsBranch": "rel/d16.9",
       "vsMajorVersion": 16
     },
@@ -218,23 +215,31 @@
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.10.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.10p1" ],
+      "channels": [ ],
       "vsBranch": "rel/d16.10",
       "vsMajorVersion": 16
     },
-    "master-vs-deps": {
+    "main-vs-deps": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.10.*",
       "packageFeeds": "default",
-      "channels": [ "dev16.10", "dev16.10p2" ],
+      "channels": [ ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
-    "master": {
+    "release/dev17.0-vs-deps": {
+      "nugetKind": ["Shipping", "NonShipping"],
+      "version": "4.0.*",
+      "packageFeeds": "manual",
+      "channels": [ ],
+      "vsBranch": "feature/d17initial",
+      "vsMajorVersion": 17
+    },
+    "main": {
       "nugetKind": ["Shipping", "NonShipping"],
       "version": "3.10.*",
       "packageFeeds": "arcade",
-      "channels": [ "validation" ],
+      "channels": [ ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
@@ -261,7 +266,7 @@
       "version": "3.1.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "razorSupport2" ],
+      "channels": [ ],
       "vsBranch": "lab/d16.1stg",
       "vsMajorVersion": 16
     },
@@ -270,16 +275,7 @@
       "version": "3.4.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "compilerNext" ],
-      "vsBranch": "main",
-      "vsMajorVersion": 16
-    },
-    "features/UsedAssemblyReferences": {
-      "nugetKind": [ "Shipping", "NonShipping" ],
-      "version": "3.8.*",
-      "packageFeeds": "arcade",
-      "channels": [ "UsedAssemblyReferences" ],
-      "vsix": null,
+      "channels": [ ],
       "vsBranch": "main",
       "vsMajorVersion": 16
     },
@@ -288,7 +284,7 @@
       "version": "3.3.*",
       "nuget": [ ],
       "vsix": null,
-      "channels": [ "unitTesting" ],
+      "channels": [ ],
       "vsBranch": "rel/d16.5",
       "vsMajorVersion": 16
     }
@@ -298,13 +294,13 @@
       "nugetKind": "Release",
       "version": "2.3.*",
       "nuget": [ "https://api.nuget.org/v3/index.json" ],
-      "channels": [ "dev15.3" ]
+      "channels": [ ]
     },
     "dev15.6": {
       "nugetKind": "Release",
       "version": "2.7.*",
       "nuget": [ "https://api.nuget.org/v3/index.json" ],
-      "channels": [ "dev15.6" ]
+      "channels": [ ]
     }
   }
 }

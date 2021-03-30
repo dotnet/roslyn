@@ -337,7 +337,7 @@ class C
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var node = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            Assert.Equal("System.Boolean RecordB.op_Equality(RecordB? r1, RecordB? r2)",
+            Assert.Equal("System.Boolean RecordB.op_Equality(RecordB? left, RecordB? right)",
                 model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
 
@@ -349,7 +349,7 @@ public record RecordB();
 ";
             var comp = CreateCompilation(src);
             var b = comp.GlobalNamespace.GetTypeMember("RecordB");
-            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB? r1, RecordB? r2)" },
+            AssertEx.SetEqual(new[] { "System.Boolean RecordB.op_Equality(RecordB? left, RecordB? right)" },
                 b.GetSimpleNonTypeMembers("op_Equality").ToTestDisplayStrings());
         }
 
@@ -540,11 +540,11 @@ public record A(int i,) { }
             AssertEx.Equal(expectedMembers,
                 comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
 
-            AssertEx.Equal(new[] { "A..ctor(System.Int32 i, ? )", "A..ctor(A original)" },
+            AssertEx.Equal(new[] { "A..ctor(System.Int32 i, ?)", "A..ctor(A original)" },
                 comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
 
             var primaryCtor = comp.GetMember<NamedTypeSymbol>("A").Constructors.First();
-            Assert.Equal("A..ctor(System.Int32 i, ? )", primaryCtor.ToTestDisplayString());
+            Assert.Equal("A..ctor(System.Int32 i, ?)", primaryCtor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
         }
 
@@ -576,7 +576,7 @@ public record A(int i, // A
                 );
 
             var primaryCtor = comp.GetMember<NamedTypeSymbol>("A").Constructors.First();
-            Assert.Equal("A..ctor(System.Int32 i, ? , ? )", primaryCtor.ToTestDisplayString());
+            Assert.Equal("A..ctor(System.Int32 i, ?, ?)", primaryCtor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[0].DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.IsType<ParameterSyntax>(primaryCtor.Parameters[2].DeclaringSyntaxReferences.Single().GetSyntax());
@@ -602,7 +602,7 @@ public class C
                 );
 
             var ctor = comp.GetMember<NamedTypeSymbol>("C").Constructors.Single();
-            Assert.Equal("C..ctor(System.Int32 i, ? )", ctor.ToTestDisplayString());
+            Assert.Equal("C..ctor(System.Int32 i, ?)", ctor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
         }
@@ -630,7 +630,7 @@ public record A(int i, int ) { }
                 comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
 
             var ctor = comp.GetMember<NamedTypeSymbol>("A").Constructors[0];
-            Assert.Equal("A..ctor(System.Int32 i, System.Int32 )", ctor.ToTestDisplayString());
+            Assert.Equal("A..ctor(System.Int32 i, System.Int32)", ctor.ToTestDisplayString());
             Assert.IsType<ParameterSyntax>(ctor.Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
             Assert.Equal(0, ctor.Parameters[1].Locations.Single().SourceSpan.Length);
         }
@@ -663,7 +663,7 @@ public record A(int, string ) { }
             AssertEx.Equal(expectedMembers,
                 comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
 
-            AssertEx.Equal(new[] { "A..ctor(System.Int32 , System.String )", "A..ctor(A original)" },
+            AssertEx.Equal(new[] { "A..ctor(System.Int32, System.String)", "A..ctor(A original)" },
                 comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
 
             Assert.IsType<ParameterSyntax>(comp.GetMember<NamedTypeSymbol>("A").Constructors[0].Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
@@ -697,7 +697,7 @@ public record A(int, int ) { }
             AssertEx.Equal(expectedMembers,
                 comp.GetMember<NamedTypeSymbol>("A").GetMembers().OfType<PropertySymbol>().ToTestDisplayStrings());
 
-            AssertEx.Equal(new[] { "A..ctor(System.Int32 , System.Int32 )", "A..ctor(A original)" },
+            AssertEx.Equal(new[] { "A..ctor(System.Int32, System.Int32)", "A..ctor(A original)" },
                 comp.GetMember<NamedTypeSymbol>("A").Constructors.ToTestDisplayStrings());
 
             Assert.IsType<ParameterSyntax>(comp.GetMember<NamedTypeSymbol>("A").Constructors[0].Parameters[1].DeclaringSyntaxReferences.Single().GetSyntax());
@@ -1177,8 +1177,8 @@ record C(int X, int Y)
                 "System.Int32 C.set_Y(System.Int32 value)",
                 "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C? r1, C? r2)",
-                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -1633,8 +1633,8 @@ class Program
                 "System.Type C.EqualityContract { get; }",
                 "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C? r1, C? r2)",
-                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -1684,8 +1684,8 @@ class Program
                 "System.Type C.EqualityContract { get; }",
                 "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C? r1, C? r2)",
-                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -9862,8 +9862,8 @@ record C(int X, int Y, int Z) : B
                 "System.Int32 C.Y.get",
                 "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C? r1, C? r2)",
-                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -10547,8 +10547,8 @@ record C(object P)
                 "System.Object B.Q { get; init; }",
                 "System.String B.ToString()",
                 "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B.op_Inequality(B? r1, B? r2)",
-                "System.Boolean B.op_Equality(B? r1, B? r2)",
+                "System.Boolean B.op_Inequality(B? left, B? right)",
+                "System.Boolean B.op_Equality(B? left, B? right)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -10572,8 +10572,8 @@ record C(object P)
                 "System.Object C.set_Q()",
                 "System.String C.ToString()",
                 "System.Boolean C." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean C.op_Inequality(C? r1, C? r2)",
-                "System.Boolean C.op_Equality(C? r1, C? r2)",
+                "System.Boolean C.op_Inequality(C? left, C? right)",
+                "System.Boolean C.op_Equality(C? left, C? right)",
                 "System.Int32 C.GetHashCode()",
                 "System.Boolean C.Equals(System.Object? obj)",
                 "System.Boolean C.Equals(C? other)",
@@ -15561,8 +15561,8 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y { get; init; }",
                 "System.String B.ToString()",
                 "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B.op_Inequality(B? r1, B? r2)",
-                "System.Boolean B.op_Equality(B? r1, B? r2)",
+                "System.Boolean B.op_Inequality(B? left, B? right)",
+                "System.Boolean B.op_Equality(B? left, B? right)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -15613,8 +15613,8 @@ record B(int X, int Y) : A
                 "System.Int32 B.Y { get; init; }",
                 "System.String B.ToString()",
                 "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B.op_Inequality(B? r1, B? r2)",
-                "System.Boolean B.op_Equality(B? r1, B? r2)",
+                "System.Boolean B.op_Inequality(B? left, B? right)",
+                "System.Boolean B.op_Equality(B? left, B? right)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -20127,7 +20127,7 @@ True True False False
 
             var comp = (CSharpCompilation)verifier.Compilation;
             MethodSymbol op = comp.GetMembers("A." + WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single();
-            Assert.Equal("System.Boolean A.op_Equality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.op_Equality(A? left, A? right)", op.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
             Assert.True(op.IsStatic);
             Assert.False(op.IsAbstract);
@@ -20137,7 +20137,7 @@ True True False False
             Assert.True(op.IsImplicitlyDeclared);
 
             op = comp.GetMembers("A." + WellKnownMemberNames.InequalityOperatorName).OfType<SynthesizedRecordInequalityOperator>().Single();
-            Assert.Equal("System.Boolean A.op_Inequality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.op_Inequality(A? left, A? right)", op.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
             Assert.True(op.IsStatic);
             Assert.False(op.IsAbstract);
@@ -20246,7 +20246,7 @@ False False True True
 
             var comp = (CSharpCompilation)verifier.Compilation;
             MethodSymbol op = comp.GetMembers("A." + WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single();
-            Assert.Equal("System.Boolean A.op_Equality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.op_Equality(A? left, A? right)", op.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
             Assert.True(op.IsStatic);
             Assert.False(op.IsAbstract);
@@ -20256,7 +20256,7 @@ False False True True
             Assert.True(op.IsImplicitlyDeclared);
 
             op = comp.GetMembers("A." + WellKnownMemberNames.InequalityOperatorName).OfType<SynthesizedRecordInequalityOperator>().Single();
-            Assert.Equal("System.Boolean A.op_Inequality(A? r1, A? r2)", op.ToTestDisplayString());
+            Assert.Equal("System.Boolean A.op_Inequality(A? left, A? right)", op.ToTestDisplayString());
             Assert.Equal(Accessibility.Public, op.DeclaredAccessibility);
             Assert.True(op.IsStatic);
             Assert.False(op.IsAbstract);
@@ -23285,8 +23285,8 @@ record C : B;
                 "System.Type B.EqualityContract.get",
                 "System.String B.ToString()",
                 "System.Boolean B." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B.op_Inequality(B? r1, B? r2)",
-                "System.Boolean B.op_Equality(B? r1, B? r2)",
+                "System.Boolean B.op_Inequality(B? left, B? right)",
+                "System.Boolean B.op_Equality(B? left, B? right)",
                 "System.Int32 B.GetHashCode()",
                 "System.Boolean B.Equals(System.Object? obj)",
                 "System.Boolean B.Equals(A? other)",
@@ -23433,8 +23433,8 @@ False").VerifyDiagnostics();
                 "System.Int32 B1.P { get; init; }",
                 "System.String B1.ToString()",
                 "System.Boolean B1." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
-                "System.Boolean B1.op_Inequality(B1? r1, B1? r2)",
-                "System.Boolean B1.op_Equality(B1? r1, B1? r2)",
+                "System.Boolean B1.op_Inequality(B1? left, B1? right)",
+                "System.Boolean B1.op_Equality(B1? left, B1? right)",
                 "System.Int32 B1.GetHashCode()",
                 "System.Boolean B1.Equals(System.Object? obj)",
                 "System.Boolean B1.Equals(A? other)",
@@ -28598,6 +28598,28 @@ namespace System.Runtime.CompilerServices
     <param name=""C"">Error C</param>
 </member>
 ", constructor.GetDocumentationCommentXml());
+        }
+
+        [Fact, WorkItem(51590, "https://github.com/dotnet/roslyn/issues/51590")]
+        public void SealedIncomplete()
+        {
+            var source = @"
+public sealed record(";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (2,21): error CS1001: Identifier expected
+                // public sealed record(
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 21),
+                // (2,22): error CS1026: ) expected
+                // public sealed record(
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 22),
+                // (2,22): error CS1514: { expected
+                // public sealed record(
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(2, 22),
+                // (2,22): error CS1513: } expected
+                // public sealed record(
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 22)
+                );
         }
     }
 }

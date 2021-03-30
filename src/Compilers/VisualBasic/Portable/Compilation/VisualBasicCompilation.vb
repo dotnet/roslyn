@@ -751,23 +751,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' LanguageVersion should already be mapped to an effective version at this point
             Debug.Assert(LanguageVersion.MapSpecifiedToEffectiveVersion() = LanguageVersion)
             WriteValue(builder, CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString())
+            WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionStrict, Options.OptionStrict.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionInfer, Options.OptionInfer.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionCompareText, Options.OptionCompareText.ToString())
+            WriteValue(builder, CompilationOptionNames.OptionExplicit, Options.OptionExplicit.ToString())
+            WriteValue(builder, CompilationOptionNames.EmbedRuntime, Options.EmbedVbCoreRuntime.ToString())
 
-            If Options.CheckOverflow Then
-                WriteValue(builder, CompilationOptionNames.Checked, Options.CheckOverflow.ToString())
+            If Options.GlobalImports.Length > 0 Then
+                WriteValue(builder, CompilationOptionNames.GlobalNamespaces, String.Join(";", Options.GlobalImports.Select(Function(x) x.Name)))
             End If
 
-            If Options.OptionStrict <> OptionStrict.Off Then
-                WriteValue(builder, CompilationOptionNames.Strict, Options.OptionStrict.ToString())
+            If Not String.IsNullOrEmpty(Options.RootNamespace) Then
+                WriteValue(builder, CompilationOptionNames.RootNamespace, Options.RootNamespace)
             End If
 
             If Options.ParseOptions IsNot Nothing Then
-                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(Function(p)
-                                                                                              If (p.Value Is Nothing) Then
-                                                                                                  Return p.Key
-                                                                                              End If
-
-                                                                                              Return p.Key + "=" + p.Value.ToString()
-                                                                                          End Function)
+                Dim preprocessorStrings = Options.ParseOptions.PreprocessorSymbols.Select(
+                    Function(p) As String
+                        If TypeOf p.Value Is String Then
+                            Return p.Key + "=""" + p.Value.ToString() + """"
+                        ElseIf p.Value Is Nothing Then
+                            Return p.Key
+                        Else
+                            Return p.Key + "=" + p.Value.ToString()
+                        End If
+                    End Function)
                 WriteValue(builder, CompilationOptionNames.Define, String.Join(",", preprocessorStrings))
             End If
         End Sub
@@ -892,12 +901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Is the passed in syntax tree in this compilation?
         ''' </summary>
         Public Shadows Function ContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean
-            If syntaxTree Is Nothing Then
-                Throw New ArgumentNullException(NameOf(syntaxTree))
-            End If
-
-            Dim vbtree = syntaxTree
-            Return vbtree IsNot Nothing AndAlso _rootNamespaces.ContainsKey(vbtree)
+            Return syntaxTree IsNot Nothing AndAlso _rootNamespaces.ContainsKey(syntaxTree)
         End Function
 
         Public Shadows Function AddSyntaxTrees(ParamArray trees As SyntaxTree()) As VisualBasicCompilation
@@ -2495,6 +2499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             moduleBuilder As CommonPEModuleBuilder,
             xmlDocStream As Stream,
             win32Resources As Stream,
+            useRawWin32Resources As Boolean,
             outputNameOverride As String,
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As Boolean
@@ -2502,7 +2507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             Dim resourceDiagnostics = DiagnosticBag.GetInstance()
 
-            SetupWin32Resources(moduleBuilder, win32Resources, resourceDiagnostics)
+            SetupWin32Resources(moduleBuilder, win32Resources, useRawWin32Resources, resourceDiagnostics)
 
             ' give the name of any added modules, but not the name of the primary module.
             ReportManifestResourceDuplicates(
@@ -2709,7 +2714,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.GetSemanticModel(syntaxTree, ignoreAccessibility)
         End Function
 
-        Protected Overrides ReadOnly Property CommonSyntaxTrees As IEnumerable(Of SyntaxTree)
+        Protected Overrides ReadOnly Property CommonSyntaxTrees As ImmutableArray(Of SyntaxTree)
             Get
                 Return Me.SyntaxTrees
             End Get

@@ -31,13 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReference
             InitializeComponent();
         }
 
-        public bool? ShowModal(Project project, ImmutableArray<ReferenceUpdate> referenceUpdates)
+        public bool? ShowModal(Solution solution, string projectFilePath, ImmutableArray<ReferenceUpdate> referenceUpdates)
         {
             bool? result = null;
 
             try
             {
-                _tableProvider.AddTableData(project, referenceUpdates);
+                _tableProvider.AddTableData(solution, projectFilePath, referenceUpdates);
 
                 using var tableControl = _tableProvider.CreateTableControl();
                 TablePanel.Child = tableControl.Control;
