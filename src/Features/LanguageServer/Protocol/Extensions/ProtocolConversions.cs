@@ -603,6 +603,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             CancellationToken cancellationToken)
         {
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            // LSP doesn't currently support indent size as an option. However, except in special
+            // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
             var updatedOptions = documentOptions
                 .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
                 .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)

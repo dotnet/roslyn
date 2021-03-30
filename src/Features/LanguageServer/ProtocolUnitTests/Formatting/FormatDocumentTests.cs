@@ -72,6 +72,34 @@ void M()
             Assert.Equal(expected, actualText);
         }
 
+        [Fact]
+        public async Task TestFormatDocument_ModifyTabIndentSizeAsync()
+        {
+            var markup =
+@"class A
+{
+void M()
+{
+			int i = 1;{|caret:|}
+    }
+}";
+            var expected =
+@"class A
+{
+  void M()
+  {
+    int i = 1;
+  }
+}";
+            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            var documentURI = locations["caret"].Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: true, tabSize: 2);
+            var actualText = ApplyTextEdits(results, documentText);
+            Assert.Equal(expected, actualText);
+        }
+
         private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(
             TestLspServer testLspServer,
             Uri uri,
