@@ -110,7 +110,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private async Task<ImmutableArray<ValueTrackingTreeItemViewModel>> CalculateChildrenAsync(CancellationToken cancellationToken)
         {
             var valueTrackedItems = await _valueTrackingService.TrackValueSourceAsync(
-                _solution,
                 _trackedItem,
                 cancellationToken).ConfigureAwait(false);
 

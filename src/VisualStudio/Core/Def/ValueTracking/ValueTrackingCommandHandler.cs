@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var valueTrackingService = solution.Workspace.Services.GetRequiredService<IValueTrackingService>();
             var classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(textView);
 
-            var childItems = await valueTrackingService.TrackValueSourceAsync(solution, item, cancellationToken).ConfigureAwait(false);
+            var childItems = await valueTrackingService.TrackValueSourceAsync(item, cancellationToken).ConfigureAwait(false);
             var childViewModels = childItems.SelectAsArray(child => CreateViewModel(child));
 
             RoslynDebug.AssertNotNull(location.SourceTree);

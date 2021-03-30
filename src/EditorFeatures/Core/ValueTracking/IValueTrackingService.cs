@@ -6,15 +6,16 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
     internal interface IValueTrackingService : IWorkspaceService
     {
-        Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken);
-        Task TrackValueSourceAsync(Solution solution, ISymbol symbol, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken);
+        Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(TextSpan selection, Document document, CancellationToken cancellationToken);
+        Task TrackValueSourceAsync(TextSpan selection, Document document, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken);
 
-        Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(Solution solution, ValueTrackedItem previousTrackedItem, CancellationToken cancellationToken);
-        Task TrackValueSourceAsync(Solution solution, ValueTrackedItem previousTrackedItem, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken);
+        Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(ValueTrackedItem previousTrackedItem, CancellationToken cancellationToken);
+        Task TrackValueSourceAsync(ValueTrackedItem previousTrackedItem, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken);
     }
 }
