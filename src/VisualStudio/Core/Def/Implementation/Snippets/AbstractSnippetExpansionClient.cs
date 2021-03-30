@@ -722,7 +722,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var token = await semanticModel.SyntaxTree.GetTouchingTokenAsync(caretPosition.Position, cancellationToken).ConfigureAwait(false);
+
+            // GetTouchingTokenAsync prefers to return tokens to the right of the caret. Adjust the caret position one
+            // to the left to avoid this.
+            if (caretPosition.Position == 0)
+                return ImmutableArray<ISymbol>.Empty;
+
+            var token = await semanticModel.SyntaxTree.GetTouchingTokenAsync(caretPosition.Position - 1, cancellationToken).ConfigureAwait(false);
             var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken);
             return semanticInfo.ReferencedSymbols;
         }

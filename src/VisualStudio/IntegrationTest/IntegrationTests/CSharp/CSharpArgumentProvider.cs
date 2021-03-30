@@ -58,6 +58,34 @@ public class Test
         }
 
         [WpfFact]
+        public void TabTabBeforeSemicolon()
+        {
+            SetUpEditor(@"
+public class Test
+{
+    private object f;
+
+    public void Method()
+    {
+        $$;
+    }
+}
+");
+
+            VisualStudio.Editor.SendKeys("f.ToSt");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString$$;", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString($$);", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("f.ToString()$$;", assertCaretPosition: true);
+        }
+
+        [WpfFact]
         public void TabTabCompletionWithArguments()
         {
             SetUpEditor(@"
