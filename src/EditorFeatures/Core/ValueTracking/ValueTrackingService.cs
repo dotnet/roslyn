@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 case IMethodSymbol methodSymbol:
                     {
-                        // The "output" is from a method, meaning it has a return our out param that is used. Track those 
+                        // The "output" is from a method, meaning it has a return or out param that is used. Track those 
                         await TrackMethodSymbolAsync(methodSymbol, previousTrackedItem.Document, progressCollector, cancellationToken).ConfigureAwait(false);
                     }
                     break;
