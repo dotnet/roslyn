@@ -7,7 +7,11 @@
         xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
         ToolTip="{Binding ToolTip}"
         AutomationProperties.Name="{Binding AutomationName}"
-        Click="Margin_OnClick">
+        Background="Transparent"
+        BorderBrush="Transparent"
+        Click="InheritanceMargin_OnClick"
+        MouseEnter="InheritanceMargin_OnMouseEnter"
+        MouseLeave="InheritanceMargin_OnMouseLeave">
 
     <Button.Resources>
         <!-- The image shown in the menu item, mark this is non-shared to make sure each menu item has its own image -->
@@ -107,6 +111,7 @@
             <Setter Property="FontFamily" Value="{DynamicResource VsFont.EnvironmentFontFamily}" />
             <Setter Property="FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}" />
             <Setter Property="Template" Value="{StaticResource ContextMenuTemplate}"/>
+            <EventSetter Event="Closed" Handler="ContextMenu_OnClose" />
         </Style>
 
         <!-- Style used to display one member's information and pops up a submenu show all the targets -->
@@ -196,13 +201,18 @@
             <Setter Property="FontFamily" Value="{DynamicResource VsFont.EnvironmentFontFamily}" />
             <Setter Property="FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}" />
             <Setter Property="Template" Value="{StaticResource ContextMenuTemplate}"/>
+            <EventSetter Event="Closed" Handler="ContextMenu_OnClose" />
         </Style>
     </Button.Resources>
 
     <!-- Control template only shows the image -->
     <Button.Template>
         <ControlTemplate>
-            <imaging:CrispImage Moniker="{Binding Path=ImageMoniker}"/>
+            <Border x:Name="Border" BorderThickness="1"
+                    Background="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Background}"
+                    BorderBrush="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=BorderBrush}">
+                <imaging:CrispImage Moniker="{Binding Path=ImageMoniker}"/>
+            </Border>
         </ControlTemplate>
     </Button.Template>
 

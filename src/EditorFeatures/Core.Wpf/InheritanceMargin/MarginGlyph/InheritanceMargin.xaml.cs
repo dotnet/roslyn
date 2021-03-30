@@ -5,6 +5,8 @@
 using System.Collections.Immutable;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -55,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             }
         }
 
-        private void Margin_OnClick(object sender, RoutedEventArgs e)
+        private void InheritanceMargin_OnClick(object sender, RoutedEventArgs e)
         {
             if (this.ContextMenu != null)
             {
@@ -80,6 +82,38 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
                         _streamingFindUsagesPresenter,
                         context.CancellationToken));
             }
+        }
+
+        private void ChangeBorderToHoveringColor()
+        {
+            SetResourceReference(BackgroundProperty, "VsBrush.CommandBarMenuBackgroundGradient");
+            SetResourceReference(BorderBrushProperty, "VsBrush.CommandBarMenuBorder");
+        }
+
+        private void ResetBorderToInitialColor()
+        {
+            this.Background = Brushes.Transparent;
+            this.BorderBrush = Brushes.Transparent;
+        }
+
+        private void InheritanceMargin_OnMouseEnter(object sender, MouseEventArgs e)
+        {
+            ChangeBorderToHoveringColor();
+        }
+
+        private void InheritanceMargin_OnMouseLeave(object sender, MouseEventArgs e)
+        {
+            // If the context menu is open, then don't reset the color of the button because we need
+            // the margin looks like being pressed.
+            if (!ContextMenu.IsOpen)
+            {
+                ResetBorderToInitialColor();
+            }
+        }
+
+        private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
+        {
+            ResetBorderToInitialColor();
         }
     }
 }
