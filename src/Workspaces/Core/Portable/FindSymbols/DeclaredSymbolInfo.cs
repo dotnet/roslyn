@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         Module,
         Property,
         Record,
+        RecordStruct,
         Struct,
     }
 
@@ -67,11 +68,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public TextSpan Span { get; }
 
         // Store the kind, accessibility, parameter-count, and type-parameter-count
-        // in a single int.  Each gets 4 bits which is ample and gives us more space
+        // in a single int.  Each gets 5 bits which is ample and gives us more space
         // for flags in the future.
         private readonly uint _flags;
 
-        private const uint Lower4BitMask = 0b1111;
+        private const uint Lower5BitMask = 0b11111;
 
         public DeclaredSymbolInfoKind Kind => GetKind(_flags);
         public Accessibility Accessibility => GetAccessibility(_flags);
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Span = span;
             InheritanceNames = inheritanceNames;
 
-            const uint MaxFlagValue = 0b1111;
+            const uint MaxFlagValue = 0b10000;
             Contract.ThrowIfTrue((uint)accessibility > MaxFlagValue);
             Contract.ThrowIfTrue((uint)kind > MaxFlagValue);
             parameterCount = Math.Min(parameterCount, (byte)MaxFlagValue);
@@ -113,11 +114,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             _flags =
                 (uint)kind |
-                ((uint)accessibility << 4) |
-                ((uint)parameterCount << 8) |
-                ((uint)typeParameterCount << 12) |
-                ((isNestedType ? 1u : 0u) << 16) |
-                ((isPartial ? 1u : 0u) << 17);
+                ((uint)accessibility << 5) |
+                ((uint)parameterCount << 10) |
+                ((uint)typeParameterCount << 15) |
+                ((isNestedType ? 1u : 0u) << 20) |
+                ((isPartial ? 1u : 0u) << 21);
         }
 
         [return: NotNullIfNotNull("name")]
@@ -125,22 +126,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => name == null ? null : stringTable.Add(name);
 
         private static DeclaredSymbolInfoKind GetKind(uint flags)
-            => (DeclaredSymbolInfoKind)(flags & Lower4BitMask);
+            => (DeclaredSymbolInfoKind)(flags & Lower5BitMask);
 
         private static Accessibility GetAccessibility(uint flags)
-            => (Accessibility)((flags >> 4) & Lower4BitMask);
+            => (Accessibility)((flags >> 5) & Lower5BitMask);
 
         private static byte GetParameterCount(uint flags)
-            => (byte)((flags >> 8) & Lower4BitMask);
+            => (byte)((flags >> 10) & Lower5BitMask);
 
         private static byte GetTypeParameterCount(uint flags)
-            => (byte)((flags >> 12) & Lower4BitMask);
+            => (byte)((flags >> 15) & Lower5BitMask);
 
         private static bool GetIsNestedType(uint flags)
-            => ((flags >> 16) & 1) == 1;
+            => ((flags >> 20) & 1) == 1;
 
         private static bool GetIsPartial(uint flags)
-            => ((flags >> 17) & 1) == 1;
+            => ((flags >> 21) & 1) == 1;
 
         internal void WriteTo(ObjectWriter writer)
         {
