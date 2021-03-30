@@ -9428,7 +9428,7 @@ End Module
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/out:{exePath}", srcPath})
-            vbc.FileSystem = TestableFileSystem.CreateForOpenFile(
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
                             Function(filePath, mode, access, share)
                                 If filePath = exePath Then
                                     Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
@@ -9448,7 +9448,7 @@ End Module
             Dim exePath = Path.Combine(Path.GetDirectoryName(srcPath), "test.exe")
             Dim pdbPath = Path.ChangeExtension(exePath, "pdb")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug", $"/out:{exePath}", srcPath})
-            vbc.FileSystem = TestableFileSystem.CreateForOpenFile(
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
                             Function(filePath, mode, access, share)
                                 If filePath = pdbPath Then
                                     Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
@@ -9467,7 +9467,7 @@ End Module
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim xmlPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.xml")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", $"/doc:{xmlPath}", srcPath})
-            vbc.FileSystem = TestableFileSystem.CreateForOpenFile(
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
                             Function(filePath, mode, access, share)
                                 If filePath = xmlPath Then
                                     Return New TestStream(backingStream:=New MemoryStream(), dispose:=Sub() Throw New IOException("Fake IOException"))
@@ -9488,7 +9488,7 @@ End Module
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json")
             Dim vbc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:" & format, $"/sourcelink:{sourceLinkPath}", srcPath})
-            vbc.FileSystem = TestableFileSystem.CreateForOpenFile(
+            vbc.FileSystem = TestableFileSystem.CreateForStandard(openFileFunc:=
                             Function(filePath, mode, access, share)
                                 If filePath = sourceLinkPath Then
                                     Return New TestStream(

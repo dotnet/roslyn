@@ -26,6 +26,17 @@ namespace Roslyn.Test.Utilities
 
         public bool FileExists(string filePath) => FileExistsFunc(filePath);
 
+        public static TestableFileSystem CreateForStandard(
+            OpenFileFunc? openFileFunc = null,
+            OpenFileExFunc? openFileExFunc = null,
+            Func<string, bool>? fileExistsFunc = null)
+            => new TestableFileSystem()
+            {
+                OpenFileFunc = openFileFunc ?? StandardFileSystem.Instance.OpenFile,
+                OpenFileExFunc = openFileExFunc ?? StandardFileSystem.Instance.OpenFileEx,
+                FileExistsFunc = fileExistsFunc ?? StandardFileSystem.Instance.FileExists,
+            };
+
         public static TestableFileSystem CreateForOpenFile(OpenFileFunc openFileFunc)
             => new TestableFileSystem() { OpenFileFunc = openFileFunc };
 
