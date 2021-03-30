@@ -263,6 +263,9 @@ dotnet_diagnostic.IDE0060.severity = warning
 # CA1822: Make member static
 dotnet_diagnostic.CA1822.severity = warning
 
+# CA2016: Forward the 'CancellationToken' parameter to methods
+dotnet_diagnostic.CA2016.severity = warning
+
 # Prefer "var" everywhere
 dotnet_diagnostic.IDE0007.severity = warning
 csharp_style_var_for_built_in_types = true:warning
