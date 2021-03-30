@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -532,6 +533,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var methodSymbols = symbols.OfType<IMethodSymbol>().ToImmutableArray();
             if (methodSymbols.Any())
             {
+                // This is the method name as it appears in source text
                 var methodName = dataBufferSpan.GetText();
                 var snippet = CreateMethodCallSnippet(methodName, includeMethod: true, ImmutableArray<IParameterSymbol>.Empty, ImmutableDictionary<string, string>.Empty, cancellationToken);
 
@@ -734,12 +736,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            // GetTouchingTokenAsync prefers to return tokens to the right of the caret. Adjust the caret position one
-            // to the left to avoid this.
-            if (caretPosition.Position == 0)
-                return ImmutableArray<ISymbol>.Empty;
-
-            var token = await semanticModel.SyntaxTree.GetTouchingTokenAsync(caretPosition.Position - 1, cancellationToken).ConfigureAwait(false);
+            var token = await semanticModel.SyntaxTree.GetTouchingWordAsync(caretPosition.Position, document.GetRequiredLanguageService<ISyntaxFactsService>(), cancellationToken).ConfigureAwait(false);
             var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken);
             return semanticInfo.ReferencedSymbols;
         }
@@ -1184,8 +1181,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             public IVsExpansionSession? _expansionSession;
 
             /// <summary>
-            /// The name of the method that we have invoked insert full method call on. Null if the session is
-            /// a regular snippets session.
+            /// The symbol name of the method that we have invoked insert full method call on; or <see langword="null"/>
+            /// if there is no active snippet session or the active session is a regular snippets session.
             /// </summary>
             public string? _methodNameForInsertFullMethodCall;
 
