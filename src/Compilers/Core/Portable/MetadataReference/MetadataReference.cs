@@ -228,7 +228,11 @@ namespace Microsoft.CodeAnalysis
             string path,
             MetadataReferenceProperties properties = default,
             DocumentationProvider? documentation = null)
-            => CreateFromFile(FileUtilities.OpenRead(path), path, properties, documentation);
+            => CreateFromFile(
+                StandardFileSystem.Instance.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read),
+                path,
+                properties,
+                documentation);
 
         internal static PortableExecutableReference CreateFromFile(
             Stream peStream,
