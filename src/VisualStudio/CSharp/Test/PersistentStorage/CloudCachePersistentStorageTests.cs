@@ -4,14 +4,12 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
