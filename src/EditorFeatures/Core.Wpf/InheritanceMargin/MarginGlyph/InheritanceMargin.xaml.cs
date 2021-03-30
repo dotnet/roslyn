@@ -28,49 +28,31 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         /// </summary>
         private const string MultipleMembersContextMenuStyle = nameof(MultipleMembersContextMenuStyle);
 
-        public static InheritanceMargin CreateForSingleMember(
+        public InheritanceMargin(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
             IWaitIndicator waitIndicator,
-            Workspace workspace,
-            SingleMemberMarginViewModel viewModel)
-        {
-            var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, workspace);
-            // This is created in the xaml file.
-            margin.DataContext = viewModel;
-            var contextMenu = margin.ContextMenu;
-            contextMenu.DataContext = viewModel;
-            contextMenu.Style = (Style)margin.FindResource(SingleMemberContextMenuStyle);
-            return margin;
-        }
-
-        public static InheritanceMargin CreateForMultipleMembers(
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
-            IWaitIndicator waitIndicator,
-            Workspace workspace,
-            MultipleMembersMarginViewModel viewModel)
-        {
-            var margin = new InheritanceMargin(threadingContext, streamingFindUsagesPresenter, waitIndicator, workspace);
-            // This is created in the xaml file.
-            margin.DataContext = viewModel;
-            var contextMenu = margin.ContextMenu;
-            contextMenu.DataContext = viewModel;
-            contextMenu.Style = (Style)margin.FindResource(MultipleMembersContextMenuStyle);
-            return margin;
-        }
-
-        private InheritanceMargin(
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
-            IWaitIndicator waitIndicator,
-            Workspace workspace)
+            InheritanceMarginTag tag)
         {
             _threadingContext = threadingContext;
             _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
-            _workspace = workspace;
+            _workspace = tag.Workspace;
             _waitIndicator = waitIndicator;
             InitializeComponent();
+            if (tag.MembersOnLine.Length == 1)
+            {
+                var viewModel = new SingleMemberMarginViewModel(tag);
+                DataContext = viewModel;
+                ContextMenu.DataContext = viewModel;
+                ContextMenu.Style = (Style)FindResource(SingleMemberContextMenuStyle);
+            }
+            else
+            {
+                var viewModel = new MultipleMembersMarginViewModel(tag);
+                DataContext = viewModel;
+                ContextMenu.DataContext = viewModel;
+                ContextMenu.Style = (Style)FindResource(MultipleMembersContextMenuStyle);
+            }
         }
 
         private void Margin_OnClick(object sender, RoutedEventArgs e)

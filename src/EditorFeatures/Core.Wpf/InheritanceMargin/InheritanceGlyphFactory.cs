@@ -35,26 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 var membersOnLine = inheritanceMarginTag.MembersOnLine;
                 Contract.ThrowIfTrue(membersOnLine.IsEmpty);
 
-                if (membersOnLine.Length == 1)
-                {
-                    var viewModel = new SingleMemberMarginViewModel(inheritanceMarginTag);
-                    return MarginGlyph.InheritanceMargin.CreateForSingleMember(
-                        _threadingContext,
-                        _streamingFindUsagesPresenter,
-                        _waitIndicator,
-                        inheritanceMarginTag.Workspace,
-                        viewModel);
-                }
-                else
-                {
-                    var viewModel = new MultipleMembersMarginViewModel(inheritanceMarginTag);
-                    return MarginGlyph.InheritanceMargin.CreateForMultipleMembers(
-                        _threadingContext,
-                        _streamingFindUsagesPresenter,
-                        _waitIndicator,
-                        inheritanceMarginTag.Workspace,
-                        viewModel);
-                }
+                return new MarginGlyph.InheritanceMargin(
+                    _threadingContext,
+                    _streamingFindUsagesPresenter,
+                    _waitIndicator,
+                    inheritanceMarginTag);
             }
 
             return null;
