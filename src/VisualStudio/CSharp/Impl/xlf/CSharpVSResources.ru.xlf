@@ -52,6 +52,11 @@
         <target state="translated">Правила форматирования C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="new">Completion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">Отменить</target>
@@ -585,11 +590,6 @@
       <trans-unit id="Place_code_snippets_in_completion_lists">
         <source>Place _code snippets in completion lists</source>
         <target state="translated">Помещать фра_гменты кода в списки завершения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Completion_Lists">
-        <source>Completion Lists</source>
-        <target state="translated">Списки завершения</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_In_Completion_List">

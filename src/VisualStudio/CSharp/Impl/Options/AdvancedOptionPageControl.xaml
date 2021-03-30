@@ -135,8 +135,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
                     <CheckBox x:Name="Report_invalid_placeholders_in_string_dot_format_calls"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
-                    <CheckBox x:Name="Automatically_complete_statement_on_semicolon"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatically_complete_statement_on_semicolon}" />
                 </StackPanel>
             </GroupBox>
 
