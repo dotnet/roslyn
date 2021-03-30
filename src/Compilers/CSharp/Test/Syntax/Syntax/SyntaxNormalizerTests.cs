@@ -326,8 +326,8 @@ breaks
         [Fact]
         public void TestSpacingOnRecord()
         {
-            TestNormalizeDeclaration("record class C(int I, int J);", "record class C(int I, int J);");
-            TestNormalizeDeclaration("record struct S(int I, int J);", "record struct S(int I, int J);");
+            TestNormalizeDeclaration("record  class  C(int I, int J);", "record class C(int I, int J);");
+            TestNormalizeDeclaration("record  struct  S(int I, int J);", "record struct S(int I, int J);");
         }
 
         [Fact]
