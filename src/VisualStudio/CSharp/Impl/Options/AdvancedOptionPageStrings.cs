@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
 
-        public static string Option_Move_to_end_of_expression_on_semi_colon => CSharpVSResources.Move_to_end_of_expression_on_semi_colon;
+        public static string Option_Automatically_complete_statement_on_semicolon => CSharpVSResources.Automatically_complete_statement_on_semicolon;
 
         public static string Option_DisplayLineSeparators
             => CSharpVSResources.Show_procedure_line_separators;

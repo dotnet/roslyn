@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.MoveToEndOfExpressionOnSemiColon))
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
             {
                 return false;
             }

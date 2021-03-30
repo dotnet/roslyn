@@ -27,6 +27,11 @@
         <target state="translated">Appliquer toutes les règles de mise en forme de C# (indentation, enveloppement, espacement)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="new">Automatically complete statement on semicolon</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
         <target state="needs-review-translation">Afficher automatiquement la liste de complétion dans les listes d'arguments (expérimental)</target>
@@ -81,11 +86,6 @@
         <source>Inside namespace</source>
         <target state="translated">Dans le namespace</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
-      <trans-unit id="Move_to_end_of_expression_on_semi_colon">
-        <source>Move to end of expression on semi-colon</source>
-        <target state="new">Move to end of expression on semi-colon</target>
-        <note />
       </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>

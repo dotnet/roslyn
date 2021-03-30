@@ -27,6 +27,11 @@
         <target state="translated">C# のすべての書式ルール (インデント、折り返し、スペース) を適用します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="new">Automatically complete statement on semicolon</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
         <target state="needs-review-translation">入力候補一覧を引数リストに自動的に表示する (試験段階)</target>
@@ -81,11 +86,6 @@
         <source>Inside namespace</source>
         <target state="translated">namespace 内</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
-      </trans-unit>
-      <trans-unit id="Move_to_end_of_expression_on_semi_colon">
-        <source>Move to end of expression on semi-colon</source>
-        <target state="new">Move to end of expression on semi-colon</target>
-        <note />
       </trans-unit>
       <trans-unit id="Outside_namespace">
         <source>Outside namespace</source>

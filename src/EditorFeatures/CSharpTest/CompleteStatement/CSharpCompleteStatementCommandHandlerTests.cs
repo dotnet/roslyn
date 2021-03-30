@@ -4103,7 +4103,7 @@ public class ClassC
             Verify(code, expected, ExecuteTest,
                 setOptionsOpt: workspace =>
                 {
-                    workspace.SetOptions(workspace.Options.WithChangedOption(FeatureOnOffOptions.MoveToEndOfExpressionOnSemiColon, false));
+                    workspace.SetOptions(workspace.Options.WithChangedOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon, false));
                 });
         }
         protected override TestWorkspace CreateTestWorkspace(string code)

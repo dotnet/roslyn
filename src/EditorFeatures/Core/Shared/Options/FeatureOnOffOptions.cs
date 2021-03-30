@@ -88,9 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(OfferRemoveUnusedReferences), defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(OfferRemoveUnusedReferences)}"));
 
-        public static readonly Option2<bool> MoveToEndOfExpressionOnSemiColon = new(
-            nameof(FeatureOnOffOptions), nameof(MoveToEndOfExpressionOnSemiColon), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(MoveToEndOfExpressionOnSemiColon)}"));
+        public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(
+            nameof(FeatureOnOffOptions), nameof(AutomaticallyCompleteStatementOnSemicolon), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.{nameof(AutomaticallyCompleteStatementOnSemicolon)}"));
 
     }
 
@@ -123,6 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.UseEnhancedColors,
             FeatureOnOffOptions.AddImportsOnPaste,
             FeatureOnOffOptions.OfferRemoveUnusedReferences,
-            FeatureOnOffOptions.MoveToEndOfExpressionOnSemiColon);
+            FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon);
     }
 }
