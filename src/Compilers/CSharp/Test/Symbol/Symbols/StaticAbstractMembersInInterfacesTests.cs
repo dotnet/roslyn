@@ -1075,6 +1075,7 @@ partial interface I1
             Assert.Null(i1.FindImplementationForInterfaceMember(m01));
 
             Assert.True(m01.IsPartialDefinition());
+            Assert.Same(m01, m01.PartialImplementationPart.PartialDefinitionPart);
 
             m01 = m01.PartialImplementationPart;
 
@@ -1214,6 +1215,7 @@ partial interface I1
             Assert.Null(i1.FindImplementationForInterfaceMember(m01));
 
             Assert.True(m01.IsPartialDefinition());
+            Assert.Same(m01, m01.PartialImplementationPart.PartialDefinitionPart);
 
             m01 = m01.PartialImplementationPart;
 
@@ -1268,6 +1270,7 @@ partial interface I1
             Assert.Null(i1.FindImplementationForInterfaceMember(m01));
 
             Assert.True(m01.IsPartialDefinition());
+            Assert.Same(m01, m01.PartialImplementationPart.PartialDefinitionPart);
 
             m01 = m01.PartialImplementationPart;
 
@@ -1325,6 +1328,7 @@ partial interface I1
             Assert.Null(i1.FindImplementationForInterfaceMember(m01));
 
             Assert.True(m01.IsPartialDefinition());
+            Assert.Same(m01, m01.PartialImplementationPart.PartialDefinitionPart);
 
             m01 = m01.PartialImplementationPart;
 

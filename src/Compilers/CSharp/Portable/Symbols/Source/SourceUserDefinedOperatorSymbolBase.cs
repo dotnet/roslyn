@@ -108,8 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected static DeclarationModifiers MakeDeclarationModifiers(bool inInterface, BaseMethodDeclarationSyntax syntax, Location location, BindingDiagnosticBag diagnostics)
         {
-            // PROTOTYPE(StaticAbstractMembersInInterfaces): Do we need to check the lack of access modifier in an interface against language version?
-            //                                               See https://github.com/dotnet/roslyn/issues/52202
             var defaultAccess = inInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
             var allowedModifiers =
                 DeclarationModifiers.AccessibilityMask |
@@ -144,8 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
                         var availableVersionArgument = availableVersion.ToDisplayString();
 
-                        reportModifier(result, DeclarationModifiers.Abstract, location, diagnostics, requiredVersionArgument, availableVersionArgument);
-                        reportModifier(result, DeclarationModifiers.Sealed, location, diagnostics, requiredVersionArgument, availableVersionArgument);
+                        reportModifierIfPresent(result, DeclarationModifiers.Abstract, location, diagnostics, requiredVersionArgument, availableVersionArgument);
+                        reportModifierIfPresent(result, DeclarationModifiers.Sealed, location, diagnostics, requiredVersionArgument, availableVersionArgument);
                     }
 
                     result &= ~DeclarationModifiers.Sealed;
@@ -158,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return result;
 
-            static void reportModifier(DeclarationModifiers result, DeclarationModifiers errorModifier, Location location, BindingDiagnosticBag diagnostics, CSharpRequiredLanguageVersion requiredVersionArgument, string availableVersionArgument)
+            static void reportModifierIfPresent(DeclarationModifiers result, DeclarationModifiers errorModifier, Location location, BindingDiagnosticBag diagnostics, CSharpRequiredLanguageVersion requiredVersionArgument, string availableVersionArgument)
             {
                 if ((result & errorModifier) != 0)
                 {
