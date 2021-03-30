@@ -12,7 +12,7 @@ namespace Roslyn.Test.Utilities
     public delegate Stream OpenFileExFunc(string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath);
     public delegate Stream OpenFileFunc(string filePath, FileMode mode, FileAccess access, FileShare share);
 
-    public sealed class TestableFileSystem : IFileSystem
+    public sealed class TestableFileSystem : ICommonCompilerFileSystem
     {
         public OpenFileFunc OpenFileFunc { get; set; } = delegate { throw new InvalidOperationException(); };
         public OpenFileExFunc OpenFileExFunc { get; set; } = (string _, FileMode _, FileAccess _, FileShare _, int _, FileOptions _, out string _) => throw new InvalidOperationException();

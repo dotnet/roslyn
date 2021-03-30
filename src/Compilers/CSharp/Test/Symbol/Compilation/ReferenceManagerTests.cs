@@ -1363,12 +1363,11 @@ public class A
 
             var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                 new TestMetadataReferenceResolver(
-                    fileSystem: TestableFileSystem.CreateForExistingPaths(new[]
+                    pathResolver: new VirtualizedRelativePathResolver(new[]
                     {
                         @"C:\A\lib.dll",
                         @"C:\B\lib.dll"
                     }),
-                    pathResolver: new RelativePathResolver(ImmutableArray<string>.Empty, null),
                     files: new Dictionary<string, PortableExecutableReference>()
                     {
                         { @"C:\A\lib.dll", Net451.MicrosoftCSharp },

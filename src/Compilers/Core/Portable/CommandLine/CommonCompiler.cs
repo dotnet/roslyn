@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis
         public IReadOnlySet<string> EmbeddedSourcePaths { get; }
 
         /// <summary>
-        /// The <see cref="IFileSystem"/> used to access the file system inside this instance.
+        /// The <see cref="ICommonCompilerFileSystem"/> used to access the file system inside this instance.
         /// </summary>
-        internal IFileSystem FileSystem { get; set; } = StandardFileSystem.Instance;
+        internal ICommonCompilerFileSystem FileSystem { get; set; } = StandardFileSystem.Instance;
 
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
@@ -214,8 +214,8 @@ namespace Microsoft.CodeAnalysis
 
         internal virtual MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger? loggerOpt)
         {
-            var pathResolver = new RelativePathResolver(Arguments.ReferencePaths, Arguments.BaseDirectory);
-            return new LoggingMetadataFileReferenceResolver(FileSystem, pathResolver, GetMetadataProvider(), loggerOpt);
+            var pathResolver = new CompilerRelativePathResolver(FileSystem, Arguments.ReferencePaths, Arguments.BaseDirectory!);
+            return new LoggingMetadataFileReferenceResolver(pathResolver, GetMetadataProvider(), loggerOpt);
         }
 
         /// <summary>
@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis
 
         // internal for testing
         internal static Stream? GetWin32ResourcesInternal(
-            IFileSystem fileSystem,
+            ICommonCompilerFileSystem fileSystem,
             CommonMessageProvider messageProvider,
             CommandLineArguments arguments,
             Compilation compilation,
@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static Stream? GetWin32Resources(
-            IFileSystem fileSystem,
+            ICommonCompilerFileSystem fileSystem,
             CommonMessageProvider messageProvider,
             CommandLineArguments arguments,
             Compilation compilation,
@@ -1532,14 +1532,14 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        private static Stream? OpenManifestStream(IFileSystem fileSystem, CommonMessageProvider messageProvider, OutputKind outputKind, CommandLineArguments arguments, DiagnosticBag diagnostics)
+        private static Stream? OpenManifestStream(ICommonCompilerFileSystem fileSystem, CommonMessageProvider messageProvider, OutputKind outputKind, CommandLineArguments arguments, DiagnosticBag diagnostics)
         {
             return outputKind.IsNetModule()
                 ? null
                 : OpenStream(fileSystem, messageProvider, arguments.Win32Manifest, arguments.BaseDirectory, messageProvider.ERR_CantOpenWin32Manifest, diagnostics);
         }
 
-        private static Stream? OpenStream(IFileSystem fileSystem, CommonMessageProvider messageProvider, string? path, string? baseDirectory, int errorCode, DiagnosticBag diagnostics)
+        private static Stream? OpenStream(ICommonCompilerFileSystem fileSystem, CommonMessageProvider messageProvider, string? path, string? baseDirectory, int errorCode, DiagnosticBag diagnostics)
         {
             if (path == null)
             {

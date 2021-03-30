@@ -14,7 +14,7 @@ namespace Roslyn.Test.Utilities
 {
     /// <summary>
     /// This works with <see cref="TestableFileSystem"/> to have an "in memory" file that can 
-    /// be manipulated by consumers of <see cref="IFileSystem"/>.o
+    /// be manipulated by consumers of <see cref="ICommonCompilerFileSystem"/>
     /// 
     /// This isn't meant to handle complex file system interactions but the basic cases of open,
     /// close, create, read and write.

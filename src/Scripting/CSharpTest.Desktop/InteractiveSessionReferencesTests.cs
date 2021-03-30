@@ -5,7 +5,6 @@
 #nullable disable
 
 extern alias PortableTestUtils;
-extern alias PortableCodeAnalysis;
 
 using System;
 using System.Collections.Generic;
@@ -27,12 +26,9 @@ using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 using WorkItemAttribute = PortableTestUtils::Roslyn.Test.Utilities.WorkItemAttribute;
 using static Microsoft.CodeAnalysis.Scripting.TestCompilationFactory;
 using static Roslyn.Test.Utilities.TestMetadata;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
-    using RelativePathResolver = PortableCodeAnalysis::Microsoft.CodeAnalysis.RelativePathResolver;
-
     public class InteractiveSessionReferencesTests : TestBase
     {
         private static readonly CSharpCompilationOptions s_signedDll =
@@ -165,9 +161,8 @@ new System.Data.DataSet()
         {
             var options = ScriptOptions.Default.
                 WithMetadataResolver(new TestMetadataReferenceResolver(
-                    pathResolver: new RelativePathResolver(ImmutableArray<string>.Empty, baseDirectory: @"C:\goo\bar"),
-                    files: new Dictionary<string, PortableExecutableReference> { { @"C:\dir\x.dll", (PortableExecutableReference)SystemCoreRef } },
-                    fileSystem: TestableFileSystem.CreateForExistingPaths(new[] { @"C:\dir\x.dll" })));
+                    pathResolver: new VirtualizedRelativePathResolver(existingFullPaths: new[] { @"C:\dir\x.dll" }, baseDirectory: @"C:\goo\bar"),
+                    files: new Dictionary<string, PortableExecutableReference> { { @"C:\dir\x.dll", (PortableExecutableReference)SystemCoreRef } }));
 
             var script = CSharpScript.Create(@"
 #r ""x.dll""

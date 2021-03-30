@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
     /// <summary>
     /// Abstraction over the file system that is useful for test hooks
     /// </summary>
-    internal interface IFileSystem
+    internal interface ICommonCompilerFileSystem
     {
         bool FileExists(string filePath);
 
@@ -20,12 +20,12 @@ namespace Roslyn.Utilities
         Stream OpenFileEx(string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath);
     }
 
-    internal static class IFileSystemExtensions
+    internal static class CommnoCompilerFileSystemExtensions
     {
         /// <summary>
         /// Open a file and ensure common exception types are wrapped to <see cref="IOException"/>.
         /// </summary>
-        internal static Stream OpenFileWithNormalizedException(this IFileSystem fileSystem, string filePath, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
+        internal static Stream OpenFileWithNormalizedException(this ICommonCompilerFileSystem fileSystem, string filePath, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
         {
             try
             {
@@ -50,7 +50,7 @@ namespace Roslyn.Utilities
         }
     }
 
-    internal sealed class StandardFileSystem : IFileSystem
+    internal sealed class StandardFileSystem : ICommonCompilerFileSystem
     {
         public static StandardFileSystem Instance { get; } = new StandardFileSystem();
 

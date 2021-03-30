@@ -15,7 +15,7 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class RelativePathResolver : IEquatable<RelativePathResolver>
+    internal class RelativePathResolver : IEquatable<RelativePathResolver>
     {
         public ImmutableArray<string> SearchPaths { get; }
         public string BaseDirectory { get; }
@@ -35,15 +35,22 @@ namespace Microsoft.CodeAnalysis
             BaseDirectory = baseDirectory;
         }
 
-        internal string ResolvePath(IFileSystem fileSystem, string reference, string baseFilePath)
+        public string ResolvePath(string reference, string baseFilePath)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, BaseDirectory, SearchPaths, fileSystem.FileExists);
+            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, BaseDirectory, SearchPaths, FileExists);
             if (resolvedPath == null)
             {
                 return null;
             }
 
             return FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
+        }
+
+        protected virtual bool FileExists(string fullPath)
+        {
+            Debug.Assert(fullPath != null);
+            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
+            return File.Exists(fullPath);
         }
 
         public RelativePathResolver WithSearchPaths(ImmutableArray<string> searchPaths) =>

@@ -2481,7 +2481,7 @@ End Module").Path
             End Sub
 
             Public Overrides Function ResolveReference(reference As String, baseFilePath As String, properties As MetadataReferenceProperties) As ImmutableArray(Of PortableExecutableReference)
-                Dim resolvedPath = _pathResolver.ResolvePath(StandardFileSystem.Instance, reference, baseFilePath)
+                Dim resolvedPath = _pathResolver.ResolvePath(reference, baseFilePath)
 
                 If resolvedPath Is Nothing OrElse Not File.Exists(reference) Then
                     Return Nothing

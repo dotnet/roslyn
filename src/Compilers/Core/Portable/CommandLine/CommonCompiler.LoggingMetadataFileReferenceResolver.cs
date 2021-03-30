@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,17 +12,15 @@ namespace Microsoft.CodeAnalysis
     {
         internal sealed class LoggingMetadataFileReferenceResolver : MetadataReferenceResolver, IEquatable<LoggingMetadataFileReferenceResolver>
         {
-            private readonly IFileSystem _fileSystem;
             private readonly TouchedFileLogger? _logger;
             private readonly RelativePathResolver _pathResolver;
             private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _provider;
 
-            public LoggingMetadataFileReferenceResolver(IFileSystem fileSystem, RelativePathResolver pathResolver, Func<string, MetadataReferenceProperties, PortableExecutableReference> provider, TouchedFileLogger? logger)
+            public LoggingMetadataFileReferenceResolver(RelativePathResolver pathResolver, Func<string, MetadataReferenceProperties, PortableExecutableReference> provider, TouchedFileLogger? logger)
             {
                 Debug.Assert(pathResolver != null);
                 Debug.Assert(provider != null);
 
-                _fileSystem = fileSystem;
                 _pathResolver = pathResolver;
                 _provider = provider;
                 _logger = logger;
@@ -31,7 +28,7 @@ namespace Microsoft.CodeAnalysis
 
             public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
             {
-                string fullPath = _pathResolver.ResolvePath(_fileSystem, reference, baseFilePath);
+                string fullPath = _pathResolver.ResolvePath(reference, baseFilePath);
 
                 if (fullPath != null)
                 {
