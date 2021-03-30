@@ -105,6 +105,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             return null;
                         }
 
+                        // If we have a current model and the caret is within its bounds, and we've been retriggered by a
+                        // caret move then we want to keep our current model rather than show help for a nested method call.
+                        if (currentModel != null &&
+                            currentModel.TextSpan.Contains(caretPosition) &&
+                            triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand &&
+                            triggerInfo.RetriggerFromCaretMovement)
+                        {
+                            // If the selected item is the same as the current model then we aren't in a nested call
+                            // so we want to retrigger to ensure the right parameter is highlighted
+                            if (currentModel.Provider != provider ||
+                               items.SelectedItemIndex == null ||
+                               !DisplayPartsMatch(currentModel.SelectedItem, items.Items[items.SelectedItemIndex.Value]))
+                            {
+                                return currentModel;
+                            }
+                        }
+
                         if (currentModel != null &&
                             currentModel.Provider == provider &&
                             currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == items.ApplicableSpan.Start &&
