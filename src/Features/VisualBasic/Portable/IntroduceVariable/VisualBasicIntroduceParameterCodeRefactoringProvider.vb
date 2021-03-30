@@ -25,20 +25,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         Protected Overrides Function GenerateExpressionFromOptionalParameter(parameterSymbol As IParameterSymbol) As SyntaxNode
             Return GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference:=True)
         End Function
-
-        Protected Overrides Function IsContainedInParameterizedDeclaration(node As SyntaxNode) As Boolean
-            Select Case node.Kind()
-                Case SyntaxKind.SubBlock,
-                     SyntaxKind.FunctionBlock,
-                     SyntaxKind.ConstructorBlock,
-                     SyntaxKind.MultiLineFunctionLambdaExpression,
-                     SyntaxKind.MultiLineSubLambdaExpression,
-                     SyntaxKind.SingleLineFunctionLambdaExpression,
-                     SyntaxKind.SingleLineSubLambdaExpression
-                    Return True
-            End Select
-
-            Return False
-        End Function
     End Class
 End Namespace

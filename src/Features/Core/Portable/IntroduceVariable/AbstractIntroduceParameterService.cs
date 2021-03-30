@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TInvocationExpressionSyntax : TExpressionSyntax
         where TIdentifierNameSyntax : TExpressionSyntax
     {
-        protected abstract bool IsContainedInParameterizedDeclaration(SyntaxNode node);
         protected abstract SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -59,7 +58,16 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Need to special case for expressions that are contained within a parameter
+            // because it is technically "contained" within a method, but an expression in a parameter does not make
+            // sense to introduce.
+            var expressionInParameter = expression.FirstAncestorOrSelf<SyntaxNode>(node => syntaxFacts.IsParameter(node));
+            if (expressionInParameter is not null)
+            {
+                return;
+            }
+
             var generator = SyntaxGenerator.GetGenerator(document);
             var containingMethod = expression.FirstAncestorOrSelf<SyntaxNode>(node => generator.GetParameterListNode(node) is not null);
 

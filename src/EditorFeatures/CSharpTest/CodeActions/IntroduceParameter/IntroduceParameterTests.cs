@@ -882,5 +882,108 @@ class TestClass
 }";
             await TestInRegularAndScriptAsync(code, expected, index: 4);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestTopLevelStatements()
+        {
+            var code =
+@"using System;
+Math.Max(5 + 5, [|6 + 7|]);";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestFieldInitializer()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int a = [|5 + 3|];
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestIndexer()
+        {
+            var code =
+@"using System;
+class SampleCollection<T>
+{
+    private T[] arr = new T[100];
+
+    public T this[int i] => arr[[|i + 5|]];
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestPropertyGetter()
+        {
+            var code =
+@"using System;
+
+class TimePeriod
+{
+   private double _seconds;
+
+   public double Hours
+   {
+       get { return [|_seconds / 3600|]; }
+   }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestPropertySetter()
+        {
+            var code =
+@"using System;
+
+class TimePeriod
+{
+   private double _seconds;
+
+   public double Hours
+   {
+       set {
+          _seconds = [|value * 3600|];
+        }
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestDestructor()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    public ~TestClass()
+    {
+        Math.Max([|5 + 5|], 5 * 5);
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestExpressionInParameter()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    public void M(int x = [|5 * 5|])
+    {
+    }
+}";
+            await TestMissingInRegularAndScriptAsync(code);
+        }
     }
 }
