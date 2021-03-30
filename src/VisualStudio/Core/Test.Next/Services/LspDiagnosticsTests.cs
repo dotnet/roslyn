@@ -384,16 +384,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
                 var languageServer = await InProcLanguageServer.CreateAsync(
                     languageClient: new TestLanguageClient(),
-                    inputStream,
-                    outputStream,
-                    dispatcherFactory.CreateRequestDispatcher(),
-                    workspace,
-                    mockDiagnosticService,
-                    listenerProvider,
-                    lspWorkspaceRegistrationService,
+                    inputStream: inputStream,
+                    outputStream: outputStream,
+                    requestDispatcher: dispatcherFactory.CreateRequestDispatcher(),
+                    diagnosticService: mockDiagnosticService,
+                    listenerProvider: listenerProvider,
+                    lspWorkspaceRegistrationService: lspWorkspaceRegistrationService,
                     asyncServiceProvider: null,
                     clientName: null,
-                    CancellationToken.None).ConfigureAwait(false);
+                    cancellationToken: CancellationToken.None).ConfigureAwait(false);
                 return languageServer;
             }
         }

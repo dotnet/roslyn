@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly JsonRpc _jsonRpc;
         private readonly AbstractInProcLanguageClient _languageClient;
         private readonly RequestDispatcher _requestDispatcher;
-        private readonly Workspace _workspace;
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
         private readonly RequestExecutionQueue _queue;
         private readonly LogHubLspLogger? _logger;
 
@@ -71,7 +71,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private InProcLanguageServer(
             AbstractInProcLanguageClient languageClient,
             RequestDispatcher requestDispatcher,
-            Workspace workspace,
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
@@ -82,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             _languageClient = languageClient;
             _requestDispatcher = requestDispatcher;
-            _workspace = workspace;
+            _workspaceRegistrationService = lspWorkspaceRegistrationService;
             _logger = logger;
 
             _jsonRpc = jsonRpc;
@@ -113,7 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             Stream inputStream,
             Stream outputStream,
             RequestDispatcher requestDispatcher,
-            Workspace workspace,
             IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
@@ -131,7 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return new InProcLanguageServer(
                 languageClient,
                 requestDispatcher,
-                workspace,
                 diagnosticService,
                 listenerProvider,
                 lspWorkspaceRegistrationService,
@@ -203,16 +200,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _logger?.TraceStart("Initialized");
 
                 // Publish diagnostics for all open documents immediately following initialization.
-                var solution = _workspace.CurrentSolution;
-                var openDocuments = _workspace.GetOpenDocumentIds();
-                foreach (var documentId in openDocuments)
-                    DiagnosticService_DiagnosticsUpdated(solution, documentId);
+                PublishOpenFileDiagnostics();
 
                 return Task.CompletedTask;
             }
             finally
             {
                 _logger?.TraceStop("Initialized");
+            }
+
+            void PublishOpenFileDiagnostics()
+            {
+                foreach (var workspace in _workspaceRegistrationService.GetAllRegistrations())
+                {
+                    var solution = workspace.CurrentSolution;
+                    var openDocuments = workspace.GetOpenDocumentIds();
+                    foreach (var documentId in openDocuments)
+                        DiagnosticService_DiagnosticsUpdated(solution, documentId);
+                }
             }
         }
 
@@ -616,11 +621,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             if (_diagnosticService == null)
                 return;
 
-            var solution = _workspace.CurrentSolution;
             foreach (var documentId in documentIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var document = solution.GetDocument(documentId);
+                var document = _workspaceRegistrationService.GetAllRegistrations().Select(w => w.CurrentSolution.GetDocument(documentId)).FirstOrDefault();
+
                 if (document != null)
                     await PublishDiagnosticsAsync(_diagnosticService, document, cancellationToken).ConfigureAwait(false);
             }

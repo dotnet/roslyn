@@ -137,7 +137,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 serverStream,
                 serverStream,
                 _requestDispatcherFactory.CreateRequestDispatcher(),
-                Workspace,
                 _diagnosticService,
                 _listenerProvider,
                 _lspWorkspaceRegistrationService,
