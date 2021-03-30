@@ -479,7 +479,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             var buffer = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer);
-            if (buffer == null || !(buffer is IVsExpansion expansion))
+            if (buffer is not IVsExpansion expansion)
             {
                 return false;
             }
@@ -503,6 +503,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return true;
             }
 
+            if (TryInsertArgumentCompletionSnippet(triggerSpan, dataBufferSpan, expansion, textSpan, cancellationToken))
+            {
+                Debug.Assert(_state.IsFullMethodCallSnippet);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryInsertArgumentCompletionSnippet(SnapshotSpan triggerSpan, SnapshotSpan dataBufferSpan, IVsExpansion expansion, VsTextSpan textSpan, CancellationToken cancellationToken)
+        {
             if (!(SubjectBuffer.GetFeatureOnOffOption(CompletionOptions.EnableArgumentCompletionSnippets) ?? false))
             {
                 // Argument completion snippets are not enabled
