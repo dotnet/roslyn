@@ -3879,7 +3879,7 @@ class C$$
             TestElement(code,
                 Sub(codeClass)
                     For i = 1 To 100
-                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        Dim variable = codeClass.AddVariable("x", "System.Int32", , Nothing)
                         codeClass.RemoveMember(variable)
                     Next
                 End Sub)
@@ -3898,7 +3898,7 @@ class C$$
             TestElement(code,
                 Sub(state, codeClass)
                     For i = 1 To 100
-                        Dim variable = codeClass.AddVariable("x", "System.Int32")
+                        Dim variable = codeClass.AddVariable("x", "System.Int32", , Nothing)
 
                         ' Now, delete the variable that we just added.
                         Dim startPoint = variable.StartPoint
