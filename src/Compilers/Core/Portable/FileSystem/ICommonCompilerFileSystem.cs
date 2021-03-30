@@ -20,7 +20,7 @@ namespace Roslyn.Utilities
         Stream OpenFileEx(string filePath, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, out string normalizedFilePath);
     }
 
-    internal static class CommnoCompilerFileSystemExtensions
+    internal static class CommonCompilerFileSystemExtensions
     {
         /// <summary>
         /// Open a file and ensure common exception types are wrapped to <see cref="IOException"/>.
