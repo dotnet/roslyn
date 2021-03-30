@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             var compilationFactory = CompilationFactory.Create(assemblyFileName, optionsReader);
             var rebuild = compilationFactory.CreateCompilation(
-                original.SyntaxTrees.Select(x => compilationFactory.CreateSyntaxTree(x.FilePath, x.GetText())).ToImmutableArray(),
+                original.SyntaxTrees.SelectAsArray(x => compilationFactory.CreateSyntaxTree(x.FilePath, x.GetText())),
                 original.References.ToImmutableArray());
 
             Assert.IsType<TCompilation>(rebuild);
@@ -97,7 +98,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             Assert.Equal(originalBytes.ToArray(), rebuildStream.ToArray());
         }
 
-#pragma warning disable 612
+#pragma warning disable 612 // 'CompilationOptions.Features' is obsolete
+
         private static void VerifyCompilationOptions(CompilationOptions originalOptions, CompilationOptions rebuildOptions)
         {
             var type = originalOptions.GetType();
