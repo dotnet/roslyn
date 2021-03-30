@@ -345,6 +345,32 @@ public record R(MyClass $$
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TreatRecordStructPositionalParameterAsProperty()
+        {
+            var markup = @"
+public class MyClass
+{
+}
+
+public record struct R(MyClass $$
+";
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TreatRecordClassPositionalParameterAsProperty()
+        {
+            var markup = @"
+public class MyClass
+{
+}
+
+public record class R(MyClass $$
+";
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NameWithOnlyType1()
         {
             var markup = @"
