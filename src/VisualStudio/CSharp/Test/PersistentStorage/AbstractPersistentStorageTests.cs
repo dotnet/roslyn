@@ -86,13 +86,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             _persistentFolderRoot.Dispose();
         }
 
-        private string GetData1(Size size)
+        protected string GetData1(Size size)
             => size == Size.Small ? SmallData1 : size == Size.Medium ? MediumData1 : LargeData1;
 
         private string GetData2(Size size)
             => size == Size.Small ? SmallData2 : size == Size.Medium ? MediumData2 : LargeData2;
 
-        private Checksum? GetChecksum1(bool withChecksum)
+        private protected Checksum? GetChecksum1(bool withChecksum)
             => withChecksum ? s_checksum1 : null;
 
         private Checksum? GetChecksum2(bool withChecksum)
