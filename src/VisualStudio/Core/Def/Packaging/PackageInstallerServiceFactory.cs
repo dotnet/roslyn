@@ -35,9 +35,6 @@ using NuGet.VisualStudio.Contracts;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
 
-// This assembly is currently broken due to interop limitations. Force the runtime to reject it.
-[assembly: ReferenceAssembly]
-
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     using Workspace = Microsoft.CodeAnalysis.Workspace;
@@ -303,7 +300,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-#if false // PROTOTYPE: needs to be enabled
                 if (!_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
@@ -325,7 +321,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                     return true;
                 }
-#endif
 
                 // fall through.
             }
@@ -355,7 +350,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-#if false // PROTOTYPE: needs to be enabled
                 if (_packageInstallerServices.Value.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0, packageName);
@@ -367,7 +361,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                     return true;
                 }
-#endif
 
                 // fall through.
             }
@@ -393,11 +386,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-#if false // PROTOTYPE: needs to be enabled
                 var installedPackages = _packageInstallerServices.Value.GetInstalledPackages(dteProject);
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
-#endif
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
