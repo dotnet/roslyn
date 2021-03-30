@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CodeFixesResources.Add_file_header, createChangedDocument)
+                : base(CodeFixesResources.Add_file_header, createChangedDocument, nameof(CodeFixesResources.Add_file_header))
             {
             }
         }

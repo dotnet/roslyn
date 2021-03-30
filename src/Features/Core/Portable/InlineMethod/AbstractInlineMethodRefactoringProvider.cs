@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
             public MySolutionChangeAction(
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
             context.RegisterRefactoring(
                 new ConvertAutoPropertyToFullPropertyCodeAction(
-                    FeaturesResources.Convert_to_full_property,
                     c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)),
                 property.Span);
         }
@@ -131,9 +130,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 
         private class ConvertAutoPropertyToFullPropertyCodeAction : CodeAction.DocumentChangeAction
         {
-            public ConvertAutoPropertyToFullPropertyCodeAction(
-                string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument)
+            public ConvertAutoPropertyToFullPropertyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Convert_to_full_property, createChangedDocument, nameof(FeaturesResources.Convert_to_full_property))
             {
             }
         }

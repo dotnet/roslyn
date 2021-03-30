@@ -64,7 +64,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             {
                 context.RegisterRefactoring(
                     new ConvertToInterpolatedStringCodeAction(
-                        FeaturesResources.Convert_to_interpolated_string,
                         c => CreateInterpolatedStringAsync(invocation, document, syntaxFactsService, c)),
                     invocation.Span);
             }
@@ -295,8 +294,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
         private class ConvertToInterpolatedStringCodeAction : CodeAction.DocumentChangeAction
         {
-            public ConvertToInterpolatedStringCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+            public ConvertToInterpolatedStringCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument, nameof(FeaturesResources.Convert_to_interpolated_string))
             {
             }
         }
