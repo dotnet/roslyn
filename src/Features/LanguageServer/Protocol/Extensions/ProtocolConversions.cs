@@ -605,7 +605,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var updatedOptions = documentOptions
                 .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
-                .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize);
+                .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
+                .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
             return updatedOptions;
         }
 
