@@ -63,10 +63,6 @@
     <PackageReference Include="System.Resources.Extensions" Version="$(SystemResourcesExtensionsVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Manual exclusions for obsolete interop assemblies -->
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="$(MicrosoftVisualStudioShellInteropVersion)" ExcludeAssets="all" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Update="Resources.resx" GenerateSource="true" />
     <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>

@@ -39,7 +39,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Manual exclusions for unwanted interop assemblies -->
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" ExcludeAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />

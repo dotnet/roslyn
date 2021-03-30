@@ -52,8 +52,6 @@
     <BasicUndoVersion>0.9.3</BasicUndoVersion>
     <BenchmarkDotNetVersion>0.12.1</BenchmarkDotNetVersion>
     <DiffPlexVersion>1.4.4</DiffPlexVersion>
-    <!--❌--><EnvDTEVersion>$(MicrosoftVisualStudioShellPackagesVersion)</EnvDTEVersion>
-    <!--❌--><EnvDTE80Version>$(MicrosoftVisualStudioShellPackagesVersion)</EnvDTE80Version>
     <FakeSignVersion>0.9.2</FakeSignVersion>
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
     <ICSharpCodeDecompilerVersion>6.1.0.5902</ICSharpCodeDecompilerVersion>
@@ -97,7 +95,6 @@
     <MicrosoftExtensionsLoggingConsoleVersion>5.0.0</MicrosoftExtensionsLoggingConsoleVersion>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.8.27812-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
-    <!--❌--><MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta3.21075.2</MicrosoftMetadataVisualizerVersion>
     <MicrosoftNETBuildExtensionsVersion>2.2.101</MicrosoftNETBuildExtensionsVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.2</MicrosoftNETCorePlatformsVersion>
@@ -130,7 +127,7 @@
     <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>16.0.28226-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.36</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioEditorVersion>
-    <MicrosoftVisualStudioGraphModelVersion>17.0.0-preview-1-31122-174</MicrosoftVisualStudioGraphModelVersion>
+    <MicrosoftVisualStudioGraphModelVersion>17.0.0-preview-1-30928-1111</MicrosoftVisualStudioGraphModelVersion>
     <MicrosoftVisualStudioImageCatalogVersion>17.0.0-preview-1-30928-1112</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>17.0.0-preview-1-30928-1112</MicrosoftVisualStudioImagingVersion>
     <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>17.0.0-preview-1-31125-292</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
@@ -149,7 +146,6 @@
     <MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>2.0.3389</MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion>
     <MicrosoftVisualStudioLiveShareWebEditorsVersion>3.0.7</MicrosoftVisualStudioLiveShareWebEditorsVersion>
     <MicrosoftVisualStudioLogHubVersion>16.9.1043</MicrosoftVisualStudioLogHubVersion>
-    <!--❌--><MicrosoftVisualStudioOLEInteropVersion>17.0.0-preview-1-31122-174</MicrosoftVisualStudioOLEInteropVersion>
     <MicrosoftVisualStudioPlatformVSEditorVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioPlatformVSEditorVersion>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
     <MicrosoftVisualStudioProgressionCommonVersion>15.8.27812-alpha</MicrosoftVisualStudioProgressionCommonVersion>
@@ -164,17 +160,6 @@
     <MicrosoftVisualStudioShellFrameworkVersion>17.0.0-preview-1-30928-1112</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>17.0.0-preview-1-30928-1112</MicrosoftVisualStudioShellDesignVersion>
     <MicrosoftVisualStudioShellImmutable110Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellImmutable110Version>
-    <!--❌--><MicrosoftVisualStudioShellInteropVersion>17.0.0-preview-1-31108-209</MicrosoftVisualStudioShellInteropVersion>
-    <!--❌--><MicrosoftVisualStudioShellInterop100Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop100Version>
-    <!--❌--><MicrosoftVisualStudioShellInterop110Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop110Version>
-    <!--❌--><MicrosoftVisualStudioShellInterop120Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop120Version>
-    <!--❌--><MicrosoftVisualStudioShellInterop121DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop121DesignTimeVersion>
-    <!--❌--><MicrosoftVisualStudioShellInterop140DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop140DesignTimeVersion>
-    <!--❌--><MicrosoftVisualStudioShellInterop150DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop150DesignTimeVersion>
-    <!--❌--><MicrosoftVisualStudioShellInterop157DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop157DesignTimeVersion>
-    <!--❌--><MicrosoftVisualStudioShellInterop169DesignTimeVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop169DesignTimeVersion>
-    <!--❌--><MicrosoftVisualStudioShellInterop80Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop80Version>
-    <!--❌--><MicrosoftVisualStudioShellInterop90Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellInterop90Version>
     <MicrosoftVisualStudioTelemetryVersion>16.3.109</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
     <MicrosoftVisualStudioTextDataVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioTextDataVersion>
@@ -183,12 +168,6 @@
     <MicrosoftVisualStudioTextUIVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioTextUIVersion>
     <MicrosoftVisualStudioTextUIWpfVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioTextUIWpfVersion>
     <MicrosoftVisualStudioTextUICocoaVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUICocoaVersion>
-    <!--❌--><MicrosoftVisualStudioTextManagerInteropVersion>17.0.0-preview-1-31108-209</MicrosoftVisualStudioTextManagerInteropVersion>
-    <!--❌--><MicrosoftVisualStudioTextManagerInterop80Version>17.0.0-preview-1-31108-209</MicrosoftVisualStudioTextManagerInterop80Version>
-    <!--❌--><MicrosoftVisualStudioTextManagerInterop100Version>10.0.30320</MicrosoftVisualStudioTextManagerInterop100Version>
-    <!--❌--><MicrosoftVisualStudioTextManagerInterop110Version>11.0.61030</MicrosoftVisualStudioTextManagerInterop110Version>
-    <!--❌--><MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
-    <!--❌--><MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>
     <MicrosoftVisualStudioThreadingAnalyzersVersion>16.10.41-alpha</MicrosoftVisualStudioThreadingAnalyzersVersion>
     <MicrosoftVisualStudioThreadingVersion>16.10.41-alpha</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>$(MicrosoftVisualStudioNewShellPackagesVersion)</MicrosoftVisualStudioUtilitiesVersion>
