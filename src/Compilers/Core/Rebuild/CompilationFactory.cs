@@ -126,14 +126,20 @@ namespace BuildValidator
             }
         }
 
-        protected static (OptimizationLevel, bool) GetOptimizationLevel(string? optimizationLevel)
-            => optimizationLevel switch
+        protected static (OptimizationLevel OptimizationLevel, bool DebugPlus) GetOptimizationLevel(string? value)
+        {
+            if (value is null)
             {
-                null or "debug" => (OptimizationLevel.Debug, false),
-                "debug-plus" => (OptimizationLevel.Debug, true),
-                "release" => (OptimizationLevel.Release, false),
-                _ => throw new InvalidDataException($"Optimization \"{optimizationLevel}\" level not recognized")
-            };
+                return OptimizationLevelFacts.DefaultValues;
+            }
+
+            if (!OptimizationLevelFacts.TryParsePdbSerializedString(value, out OptimizationLevel optimizationLevel, out bool debugPlus))
+            {
+                throw new InvalidOperationException();
+            }
+
+            return (optimizationLevel, debugPlus);
+        }
 
         protected static Platform GetPlatform(string? platform)
             => platform is null
