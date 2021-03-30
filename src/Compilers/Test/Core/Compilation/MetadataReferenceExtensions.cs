@@ -18,25 +18,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static Guid GetModuleVersionId(this MetadataReference metadataReference)
             => GetManifestModuleMetadata(metadataReference).GetModuleVersionId();
 
-        public static Guid GetModuleVersionId(this PortableExecutableReference peReference)
-        {
-            switch (peReference.GetMetadata())
-            {
-                case AssemblyMetadata assemblyMetadata:
-                    {
-                        if (assemblyMetadata.GetModules() is { Length: 1 } modules)
-                        {
-                            return modules[0].GetModuleVersionId();
-                        }
-                    }
-                    break;
-                case ModuleMetadata moduleMetadata:
-                    return moduleMetadata.GetModuleVersionId();
-            }
-
-            throw new InvalidOperationException();
-        }
-
         public static AssemblyIdentity GetAssemblyIdentity(this MetadataReference reference)
             => reference.GetManifestModuleMetadata().MetadataReader.ReadAssemblyIdentityOrThrow();
 

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
 
     internal static class OptimizationLevelFacts
     {
-        internal static (OptimizationLevel OptimizationLevel, bool DebugPlus) DefaultValues { get; } = (OptimizationLevel.Debug, false);
+        internal static (OptimizationLevel OptimizationLevel, bool DebugPlus) DefaultValues => (OptimizationLevel.Debug, false);
 
         public static string ToPdbSerializedString(this OptimizationLevel optimization, bool debugPlusMode)
             => (optimization, debugPlusMode) switch

@@ -189,7 +189,7 @@ End Module
             }
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(IsEnglishLocal))]
         [MemberData(nameof(GetVisualBasicData))]
         public void VisualBasic(string commandLine, string peFilePath, string? pdbFilePath)
         {
