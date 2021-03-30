@@ -4084,6 +4084,7 @@ class D
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(37874, "https://github.com/dotnet/roslyn/pull/37874")]
         public void TestWithSettingTurnedOff()
         {
             var code = @"
