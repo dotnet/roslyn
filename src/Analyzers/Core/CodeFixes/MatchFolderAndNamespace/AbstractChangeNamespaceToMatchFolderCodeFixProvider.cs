@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
         private sealed class MyCodeAction : CustomCodeActions.SolutionChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
+                : base(title, createChangedSolution, title)
             {
             }
         }

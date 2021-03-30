@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Collection_initialization_can_be_simplified, createChangedDocument)
+                : base(AnalyzersResources.Collection_initialization_can_be_simplified, createChangedDocument, nameof(AnalyzersResources.Collection_initialization_can_be_simplified))
             {
             }
         }

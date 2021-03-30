@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         private class MoveMisplacedUsingsCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MoveMisplacedUsingsCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Move_misplaced_using_directives, createChangedDocument)
+                : base(CSharpAnalyzersResources.Move_misplaced_using_directives, createChangedDocument, nameof(CSharpAnalyzersResources.Move_misplaced_using_directives))
             {
             }
         }
