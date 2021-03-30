@@ -89,14 +89,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return false;
             }
 
-            var caret = caretOpt.Value;
-            var document = caret.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.MoveToEndOfExpressionOnSemiColon))
             {
                 return false;
             }
 
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.MoveToEndOfExpressionOnSemiColon))
+            var caret = caretOpt.Value;
+            var document = caret.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
             {
                 return false;
             }
