@@ -7497,6 +7497,28 @@ record C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RecordClassDestructor()
+        {
+            var markup = @"
+record class C
+{
+   ~$$
+}";
+            await VerifyItemExistsAsync(markup, "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RecordStructDestructor()
+        {
+            var markup = @"
+record struct C
+{
+   ~$$
+}";
+            await VerifyItemExistsAsync(markup, "C");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task FieldAvailableInBothLinkedFiles()
         {
             var markup = @"<Workspace>
