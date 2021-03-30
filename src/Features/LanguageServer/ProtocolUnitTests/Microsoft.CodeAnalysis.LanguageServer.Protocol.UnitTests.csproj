@@ -36,10 +36,6 @@
     <ProjectReference Include="..\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <!-- Manual exclusions for obsolete interop assemblies -->
-    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" NoWarn="NU1605" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
 </Project>

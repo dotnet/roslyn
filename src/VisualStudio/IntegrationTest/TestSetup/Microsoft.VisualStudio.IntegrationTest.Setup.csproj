@@ -79,7 +79,6 @@
     <!--<PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.11.0" Version="$(MicrosoftVisualStudioTextManagerInterop110Version)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.0" Version="$(MicrosoftVisualStudioTextManagerInterop120Version)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime" Version="$(MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion)" ExcludeAssets="all" />-->
-    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" NoWarn="NU1605" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Test\Diagnostics\Roslyn.Hosting.Diagnostics.csproj">
