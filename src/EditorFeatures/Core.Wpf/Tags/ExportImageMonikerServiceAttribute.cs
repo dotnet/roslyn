@@ -7,7 +7,7 @@
 using System;
 using System.ComponentModel.Composition;
 
-namespace Microsoft.CodeAnalysis.Editor.Tags.Implementation
+namespace Microsoft.CodeAnalysis.Editor.Tags
 {
     /// <summary>
     /// Use this attribute to declare an <see cref="IImageMonikerService"/> implementation 

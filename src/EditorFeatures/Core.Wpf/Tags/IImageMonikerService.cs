@@ -8,7 +8,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace Microsoft.CodeAnalysis.Editor.Tags.Implementation
+namespace Microsoft.CodeAnalysis.Editor.Tags
 {
     /// <summary>
     /// Extensibility point for hosts to display <see cref="ImageMoniker"/>s for items with Tags.
