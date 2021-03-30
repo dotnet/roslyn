@@ -81,6 +81,32 @@ public class Test
         }
 
         [WpfFact]
+        public void TabTabCompleteNewObject()
+        {
+            SetUpEditor(@"
+public class Test
+{
+    public void Method()
+    {
+        var value = $$
+    }
+}
+");
+
+            VisualStudio.Editor.SendKeys("new obje");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("var value = new object$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("var value = new object($$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("var value = new object()$$", assertCaretPosition: true);
+        }
+
+        [WpfFact]
         public void TabTabBeforeSemicolon()
         {
             SetUpEditor(@"

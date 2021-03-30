@@ -77,6 +77,30 @@ End Class
         }
 
         [WpfFact]
+        public void TabTabCompleteNewObject()
+        {
+            SetUpEditor(@"
+Public Class Test
+    Public Sub Method()
+        Dim value = $$
+    End Sub
+End Class
+");
+
+            VisualStudio.Editor.SendKeys("New Obje");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("Dim value = New Object$$", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SignatureHelp);
+            VisualStudio.Editor.Verify.CurrentLineText("Dim value = New Object($$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Tab);
+            VisualStudio.Editor.Verify.CurrentLineText("Dim value = New Object()$$", assertCaretPosition: true);
+        }
+
+        [WpfFact]
         public void TabTabCompletionWithArguments()
         {
             SetUpEditor(@"

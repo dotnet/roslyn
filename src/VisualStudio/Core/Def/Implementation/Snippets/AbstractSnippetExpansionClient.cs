@@ -541,7 +541,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     if (expansion.InsertSpecificExpansion(doc, textSpan, this, LanguageServiceGuid, pszRelativePath: null, out _state._expansionSession) == VSConstants.S_OK)
                     {
                         Debug.Assert(_state._expansionSession != null);
-                        _state._methodNameForInsertFullMethodCall = methodName;
+                        _state._methodNameForInsertFullMethodCall = methodSymbols.First().Name;
                         Debug.Assert(_state._method == null);
 
                         if (_signatureHelpControllerProvider.GetController(TextView, SubjectBuffer) is { } controller)
