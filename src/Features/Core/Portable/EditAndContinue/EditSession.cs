@@ -881,13 +881,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // since we already checked that no changed document is out-of-sync above.
                     var oldActiveExceptionRegions = await GetBaseActiveExceptionRegionsAsync(solution, cancellationToken).ConfigureAwait(false);
 
-                    var lineEdits = await projectChanges.LineChanges.SelectAsArrayAsync(async lineChange =>
+                    var lineEdits = await projectChanges.LineChanges.SelectAsArrayAsync(async (lineChange, cancellationToken) =>
                     {
                         var document = await newProject.GetDocumentAsync(lineChange.DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
                         Contract.ThrowIfNull(document);
                         Contract.ThrowIfNull(document.FilePath);
                         return new SequencePointUpdates(document.FilePath, lineChange.Changes);
-                    }).ConfigureAwait(false);
+                    }, cancellationToken).ConfigureAwait(false);
 
                     using var pdbStream = SerializableBytes.CreateWritableStream();
                     using var metadataStream = SerializableBytes.CreateWritableStream();
