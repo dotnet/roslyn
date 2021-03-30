@@ -97,8 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return;
                     }
-
-                // PROTOTYPE(record-structs): update for record structs
                 case SyntaxKind.RecordDeclaration:
                     {
                         if (associatedSymbol is IMethodSymbol ctor)
@@ -113,6 +111,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 codeBlocks = codeBlocks.Concat(initializer);
                             }
 
+                            builder.Add(GetDeclarationInfo(node, associatedSymbol, codeBlocks));
+                            return;
+                        }
+
+                        goto case SyntaxKind.ClassDeclaration;
+                    }
+                case SyntaxKind.RecordStructDeclaration:
+                    {
+                        if (associatedSymbol is IMethodSymbol ctor)
+                        {
+                            var recordDeclaration = (RecordStructDeclarationSyntax)node;
+                            Debug.Assert(ctor.MethodKind == MethodKind.Constructor && recordDeclaration.ParameterList is object);
+
+                            var codeBlocks = GetParameterListInitializersAndAttributes(recordDeclaration.ParameterList);
                             builder.Add(GetDeclarationInfo(node, associatedSymbol, codeBlocks));
                             return;
                         }

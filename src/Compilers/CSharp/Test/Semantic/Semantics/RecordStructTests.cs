@@ -3,10 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -32,32 +35,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 // init-only is unverifiable
                 verify: Verification.Skipped);
 
-        [Fact(Skip = "PROTOTYPE(record-structs)")]
+        [Fact]
         public void StructRecord1()
         {
             var src = @"
-data struct Point(int X, int Y);";
+record struct Point(int X, int Y);";
 
             var verifier = CompileAndVerify(src).VerifyDiagnostics();
             verifier.VerifyIL("Point.Equals(object)", @"
 {
-  // Code size       26 (0x1a)
+  // Code size       23 (0x17)
   .maxstack  2
-  .locals init (Point V_0)
   IL_0000:  ldarg.1
   IL_0001:  isinst     ""Point""
-  IL_0006:  brtrue.s   IL_000a
-  IL_0008:  ldc.i4.0
-  IL_0009:  ret
-  IL_000a:  ldarg.0
-  IL_000b:  ldarg.1
-  IL_000c:  unbox.any  ""Point""
-  IL_0011:  stloc.0
-  IL_0012:  ldloca.s   V_0
-  IL_0014:  call       ""bool Point.Equals(in Point)""
-  IL_0019:  ret
+  IL_0006:  brfalse.s  IL_0015
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.1
+  IL_000a:  unbox.any  ""Point""
+  IL_000f:  call       ""bool Point.Equals(Point)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
 }");
-            verifier.VerifyIL("Point.Equals(in Point)", @"
+            verifier.VerifyIL("Point.Equals(Point)", @"
 {
   // Code size       49 (0x31)
   .maxstack  3
@@ -80,12 +80,12 @@ data struct Point(int X, int Y);";
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(record-structs)")]
+        [Fact]
         public void StructRecord2()
         {
             var src = @"
 using System;
-data struct S(int X, int Y)
+record struct S(int X, int Y)
 {
     public static void Main()
     {
@@ -103,27 +103,29 @@ True
 False").VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(record-structs)")]
+        [Fact]
         public void StructRecord3()
         {
             var src = @"
 using System;
-data struct S(int X, int Y)
+record struct S(int X, int Y)
 {
     public bool Equals(S s) => false;
     public static void Main()
     {
         var s1 = new S(0, 1);
         Console.WriteLine(s1.Equals(s1));
-        Console.WriteLine(s1.Equals(in s1));
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: @"False
-True").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: @"False")
+                .VerifyDiagnostics(
+                    // (5,17): warning CS8851: 'S' defines 'Equals' but not 'GetHashCode'
+                    //     public bool Equals(S s) => false;
+                    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("S").WithLocation(5, 17));
 
             verifier.VerifyIL("S.Main", @"
 {
-  // Code size       37 (0x25)
+  // Code size       23 (0x17)
   .maxstack  3
   .locals init (S V_0) //s1
   IL_0000:  ldloca.s   V_0
@@ -134,52 +136,20 @@ True").VerifyDiagnostics();
   IL_000b:  ldloc.0
   IL_000c:  call       ""bool S.Equals(S)""
   IL_0011:  call       ""void System.Console.WriteLine(bool)""
-  IL_0016:  ldloca.s   V_0
-  IL_0018:  ldloca.s   V_0
-  IL_001a:  call       ""bool S.Equals(in S)""
-  IL_001f:  call       ""void System.Console.WriteLine(bool)""
-  IL_0024:  ret
+  IL_0016:  ret
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(record-structs)")]
-        public void StructRecord4()
-        {
-            var src = @"
-using System;
-data struct S(int X, int Y)
-{
-    public override bool Equals(object o)
-    {
-        Console.WriteLine(""obj"");
-        return true;
-    }
-    public bool Equals(in S s)
-    {
-        Console.WriteLine(""s"");
-        return true;
-    }
-    public static void Main()
-    {
-        var s1 = new S(0, 1);
-        s1.Equals((object)s1);
-        s1.Equals(s1);
-    }
-}";
-            var verifier = CompileAndVerify(src, expectedOutput: @"obj
-s").VerifyDiagnostics();
-        }
-
-        [Fact(Skip = "PROTOTYPE(record-structs)")]
+        [Fact]
         public void StructRecord5()
         {
             var src = @"
 using System;
-data struct S(int X, int Y)
+record struct S(int X, int Y)
 {
-    public bool Equals(in S s)
+    public bool Equals(S s)
     {
-        Console.WriteLine(""s"");
+        Console.Write(""s"");
         return true;
     }
     public static void Main()
@@ -189,15 +159,19 @@ data struct S(int X, int Y)
         s1.Equals(s1);
     }
 }";
-            var verifier = CompileAndVerify(src, expectedOutput: @"s
-s").VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: @"ss")
+                .VerifyDiagnostics(
+                    // (5,17): warning CS8851: 'S' defines 'Equals' but not 'GetHashCode'
+                    //     public bool Equals(S s)
+                    Diagnostic(ErrorCode.WRN_RecordEqualsWithoutGetHashCode, "Equals").WithArguments("S").WithLocation(5, 17));
         }
 
-        [Fact(Skip = "PROTOTYPE(record-structs)")]
+        [Fact]
         public void StructRecordDefaultCtor()
         {
             const string src = @"
-public data struct S(int X);";
+public record struct S(int X);";
+
             const string src2 = @"
 class C
 {
@@ -211,12 +185,13 @@ class C
             comp2.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(record-structs)")]
+        [Fact]
         public void Equality_01()
         {
             var source =
 @"using static System.Console;
-data struct S;
+record struct S;
+
 class Program
 {
     static void Main()
@@ -227,106 +202,38 @@ class Program
         WriteLine(((object)x).Equals(y));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"True
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"True
 True").VerifyDiagnostics();
 
-            verifier.VerifyIL("S.Equals(in S)",
-@"{
+            verifier.VerifyIL("S.Equals(S)", @"
+{
+  // Code size        2 (0x2)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  ret
+}");
+            verifier.VerifyIL("S.Equals(object)", @"
+{
   // Code size       23 (0x17)
   .maxstack  2
-  .locals init (S V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  call       ""System.Type S.EqualityContract.get""
-  IL_0006:  ldarg.1
-  IL_0007:  ldobj      ""S""
-  IL_000c:  stloc.0
-  IL_000d:  ldloca.s   V_0
-  IL_000f:  call       ""System.Type S.EqualityContract.get""
-  IL_0014:  ceq
-  IL_0016:  ret
-}");
-            verifier.VerifyIL("S.Equals(object)",
-@"{
-  // Code size       26 (0x1a)
-  .maxstack  2
-  .locals init (S V_0)
   IL_0000:  ldarg.1
   IL_0001:  isinst     ""S""
-  IL_0006:  brtrue.s   IL_000a
-  IL_0008:  ldc.i4.0
-  IL_0009:  ret
-  IL_000a:  ldarg.0
-  IL_000b:  ldarg.1
-  IL_000c:  unbox.any  ""S""
-  IL_0011:  stloc.0
-  IL_0012:  ldloca.s   V_0
-  IL_0014:  call       ""bool S.Equals(in S)""
-  IL_0019:  ret
+  IL_0006:  brfalse.s  IL_0015
+  IL_0008:  ldarg.0
+  IL_0009:  ldarg.1
+  IL_000a:  unbox.any  ""S""
+  IL_000f:  call       ""bool S.Equals(S)""
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
 }");
-        }
-
-        [Fact(Skip = "PROTOTYPE(record-structs)")]
-        public void RecordClone4_0()
-        {
-            var comp = CreateCompilation(@"
-using System;
-public data struct S(int x, int y)
-{
-    public event Action E;
-    public int Z;
-}");
-            comp.VerifyDiagnostics(
-                // (3,21): error CS0171: Field 'S.E' must be fully assigned before control is returned to the caller
-                // public data struct S(int x, int y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "(int x, int y)").WithArguments("S.E").WithLocation(3, 21),
-                // (3,21): error CS0171: Field 'S.Z' must be fully assigned before control is returned to the caller
-                // public data struct S(int x, int y)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "(int x, int y)").WithArguments("S.Z").WithLocation(3, 21),
-                // (5,25): warning CS0067: The event 'S.E' is never used
-                //     public event Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S.E").WithLocation(5, 25)
-            );
-
-            var s = comp.GlobalNamespace.GetTypeMember("S");
-            var clone = s.GetMethod(WellKnownMemberNames.CloneMethodName);
-            Assert.Equal(0, clone.Arity);
-            Assert.Equal(0, clone.ParameterCount);
-            Assert.Equal(s, clone.ReturnType);
-
-            var ctor = (MethodSymbol)s.GetMembers(".ctor")[1];
-            Assert.Equal(1, ctor.ParameterCount);
-            Assert.True(ctor.Parameters[0].Type.Equals(s, TypeCompareKind.ConsiderEverything));
-        }
-
-        [Fact(Skip = "PROTOTYPE(record-structs)")]
-        public void RecordClone4_1()
-        {
-            var comp = CreateCompilation(@"
-using System;
-public data struct S(int x, int y)
-{
-    public event Action E = null;
-    public int Z = 0;
-}");
-            comp.VerifyDiagnostics(
-                // (5,25): error CS0573: 'S': cannot have instance property or field initializers in structs
-                //     public event Action E = null;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E").WithArguments("S").WithLocation(5, 25),
-                // (5,25): warning CS0414: The field 'S.E' is assigned but its value is never used
-                //     public event Action E = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E").WithArguments("S.E").WithLocation(5, 25),
-                // (6,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-                //     public int Z = 0;
-                Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "Z").WithArguments("S").WithLocation(6, 16)
-                );
         }
 
         [Fact]
         public void RecordStructLanguageVersion()
         {
-            // PROTOTYPE(record-structs): can we improve the error recovery, maybe treating this as a record struct with missing `record`?
             var src1 = @"
 struct Point(int x, int y);
 ";
@@ -851,7 +758,8 @@ public record struct S
     public S() { }
 }
 ";
-            // PROTOTYPE(record-structs): this will be allowed in C# 10
+            // This will be allowed in C# 10
+            // Tracking issue https://github.com/dotnet/roslyn/issues/52240
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (4,12): error CS0568: Structs cannot contain explicit parameterless constructors
@@ -870,7 +778,8 @@ public record struct S
     public int Property { get; set; } = 43;
 }
 ";
-            // PROTOTYPE(record-structs): this will be allowed in C# 10, or we need to improve the message
+            // This will be allowed in C# 10, or we need to improve the message
+            // Tracking issue https://github.com/dotnet/roslyn/issues/52240
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (4,16): error CS0573: 'S': cannot have instance property or field initializers in structs
@@ -1498,7 +1407,8 @@ record struct C(int X, int Y)
         [Fact]
         public void RecordProperties_01_EmptyParameterList()
         {
-            // PROTOTYPE(record-structs): we will allow declaring parameterless constructors
+            // We will allow declaring parameterless constructors
+            // Tracking issue https://github.com/dotnet/roslyn/issues/52240
             var src = @"
 using System;
 record struct C()
@@ -2858,6 +2768,44 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
+        public void XmlDoc_Cref()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for <see cref=""I1""/></param>
+public record struct C(int I1)
+{
+    /// <summary>Summary</summary>
+    /// <param name=""x"">Description for <see cref=""x""/></param>
+    public void M(int x) { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.Preview));
+            comp.VerifyDiagnostics(
+                // (7,52): warning CS1574: XML comment has cref attribute 'x' that could not be resolved
+                //     /// <param name="x">Description for <see cref="x"/></param>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "x").WithArguments("x").WithLocation(7, 52)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("I1", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            Assert.Equal(SymbolKind.Property, model.GetSymbolInfo(cref).Symbol!.Kind);
+        }
+
+        [Fact]
         public void Deconstruct_Simple()
         {
             var source =
@@ -3623,6 +3571,24 @@ record struct B
 B.Equals(B)
 False
 ");
+        }
+
+        [Fact]
+        public void RecordEquals_01_NoInParameters()
+        {
+            var source = @"
+var a1 = new B();
+var a2 = new B();
+System.Console.WriteLine(a1.Equals(in a2));
+
+record struct B;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,39): error CS1615: Argument 1 may not be passed with the 'in' keyword
+                // System.Console.WriteLine(a1.Equals(in a2));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "a2").WithArguments("1", "in").WithLocation(4, 39)
+                );
         }
 
         [Theory]
@@ -5189,6 +5155,960 @@ record struct C1
                 //     static private bool PrintMembers(System.Text.StringBuilder builder) => throw null;
                 Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 25)
                 );
+        }
+
+        [Fact]
+        public void AmbigCtor_WithFieldInitializer()
+        {
+            var src = @"
+record struct R(R X)
+{
+    public R X { get; init; } = X;
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (4,14): error CS0523: Struct member 'R.X' of type 'R' causes a cycle in the struct layout
+                //     public R X { get; init; } = X;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "X").WithArguments("R.X", "R").WithLocation(4, 14)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var parameterSyntax = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+            var parameter = model.GetDeclaredSymbol(parameterSyntax)!;
+            Assert.Equal("R X", parameter.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Parameter, parameter.Kind);
+            Assert.Equal("R..ctor(R X)", parameter.ContainingSymbol.ToTestDisplayString());
+
+            var initializerSyntax = tree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().Single();
+            var initializer = model.GetSymbolInfo(initializerSyntax.Value).Symbol!;
+            Assert.Equal("R X", initializer.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Parameter, initializer.Kind);
+            Assert.Equal("R..ctor(R X)", initializer.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GetDeclaredSymbolOnFieldInitializer()
+        {
+            var src = @"
+record struct R(int I)
+{
+    public int I { get; init; } = M(out int i);
+    static int M(out int i) => throw null; 
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,21): warning CS8907: Parameter 'I' is unread. Did you forget to use it to initialize the property with that name?
+                // record struct R(int I)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "I").WithArguments("I").WithLocation(2, 21)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var outVarSyntax = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Single();
+            var outVar = model.GetDeclaredSymbol(outVarSyntax)!;
+            Assert.Equal("System.Int32 i", outVar.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, outVar.Kind);
+            Assert.Equal("System.Int32 R.<I>k__BackingField", outVar.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void AnalyzerActions_01()
+        {
+            // Test RegisterSyntaxNodeAction
+            var text1 = @"
+record struct A([Attr1]int X = 0) : I1
+{
+    private int M() => 3;
+}
+
+interface I1 {}
+
+class Attr1 : System.Attribute {}
+";
+            var analyzer = new AnalyzerActions_01_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount0);
+            Assert.Equal(1, analyzer.FireCountRecordStructDeclarationA);
+            Assert.Equal(1, analyzer.FireCountRecordStructDeclarationACtor);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCountSimpleBaseTypeI1onA);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCountParameterListAPrimaryCtor);
+            Assert.Equal(1, analyzer.FireCount7);
+        }
+
+        private class AnalyzerActions_01_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount0;
+            public int FireCountRecordStructDeclarationA;
+            public int FireCountRecordStructDeclarationACtor;
+            public int FireCount3;
+            public int FireCountSimpleBaseTypeI1onA;
+            public int FireCount5;
+            public int FireCountParameterListAPrimaryCtor;
+            public int FireCount7;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.NumericLiteralExpression);
+                context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.EqualsValueClause);
+                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.BaseConstructorInitializer);
+                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.ConstructorDeclaration);
+                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.PrimaryConstructorBaseType);
+                context.RegisterSyntaxNodeAction(Handle6, SyntaxKind.RecordStructDeclaration);
+                context.RegisterSyntaxNodeAction(Handle7, SyntaxKind.IdentifierName);
+                context.RegisterSyntaxNodeAction(Handle8, SyntaxKind.SimpleBaseType);
+                context.RegisterSyntaxNodeAction(Handle9, SyntaxKind.ParameterList);
+                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.ArgumentList);
+            }
+
+            protected void Handle1(SyntaxNodeAnalysisContext context)
+            {
+                var literal = (LiteralExpressionSyntax)context.Node;
+
+                switch (literal.ToString())
+                {
+                    case "0":
+                        Interlocked.Increment(ref FireCount0);
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "3":
+                        Interlocked.Increment(ref FireCount7);
+                        Assert.Equal("System.Int32 A.M()", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                Assert.Same(literal.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            protected void Handle2(SyntaxNodeAnalysisContext context)
+            {
+                var equalsValue = (EqualsValueClauseSyntax)context.Node;
+
+                switch (equalsValue.ToString())
+                {
+                    case "= 0":
+                        Interlocked.Increment(ref FireCount3);
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                Assert.Same(equalsValue.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            protected void Fail(SyntaxNodeAnalysisContext context)
+            {
+                Assert.True(false);
+            }
+
+            protected void Handle6(SyntaxNodeAnalysisContext context)
+            {
+                var record = (RecordStructDeclarationSyntax)context.Node;
+
+                switch (context.ContainingSymbol.ToTestDisplayString())
+                {
+                    case "A":
+                        Interlocked.Increment(ref FireCountRecordStructDeclarationA);
+                        break;
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCountRecordStructDeclarationACtor);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                Assert.Same(record.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            protected void Handle7(SyntaxNodeAnalysisContext context)
+            {
+                var identifier = (IdentifierNameSyntax)context.Node;
+
+                switch (identifier.Identifier.ValueText)
+                {
+                    case "Attr1":
+                        Interlocked.Increment(ref FireCount5);
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                }
+            }
+
+            protected void Handle8(SyntaxNodeAnalysisContext context)
+            {
+                var baseType = (SimpleBaseTypeSyntax)context.Node;
+
+                switch (baseType.ToString())
+                {
+                    case "I1":
+                        switch (context.ContainingSymbol.ToTestDisplayString())
+                        {
+                            case "A":
+                                Interlocked.Increment(ref FireCountSimpleBaseTypeI1onA);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+
+                    case "System.Attribute":
+                        break;
+
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void Handle9(SyntaxNodeAnalysisContext context)
+            {
+                var parameterList = (ParameterListSyntax)context.Node;
+
+                switch (parameterList.ToString())
+                {
+                    case "([Attr1]int X = 0)":
+                        Interlocked.Increment(ref FireCountParameterListAPrimaryCtor);
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "()":
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_02()
+        {
+            // Test RegisterSymbolAction
+            var text1 = @"
+record struct A(int X = 0)
+{}
+
+record struct C
+{
+    C(int Z = 4)
+    {}
+}
+";
+
+            var analyzer = new AnalyzerActions_02_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+        }
+
+        private class AnalyzerActions_02_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+            public int FireCount6;
+            public int FireCount7;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(Handle, SymbolKind.Method);
+                context.RegisterSymbolAction(Handle, SymbolKind.Property);
+                context.RegisterSymbolAction(Handle, SymbolKind.Parameter);
+                context.RegisterSymbolAction(Handle, SymbolKind.NamedType);
+            }
+
+            private void Handle(SymbolAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "System.Int32 A.X { get; set; }":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    case "[System.Int32 X = 0]":
+                        Interlocked.Increment(ref FireCount3);
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount4);
+                        break;
+                    case "[System.Int32 Z = 4]":
+                        Interlocked.Increment(ref FireCount5);
+                        break;
+                    case "A":
+                        Interlocked.Increment(ref FireCount6);
+                        break;
+                    case "C":
+                        Interlocked.Increment(ref FireCount7);
+                        break;
+                    case "System.Runtime.CompilerServices.IsExternalInit":
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_03()
+        {
+            // Test RegisterSymbolStartAction
+            var text1 = @"
+readonly record struct A(int X = 0)
+{}
+
+readonly record struct C
+{
+    C(int Z = 4)
+    {}
+}
+";
+
+            var analyzer = new AnalyzerActions_03_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(0, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(0, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
+            Assert.Equal(1, analyzer.FireCount9);
+            Assert.Equal(1, analyzer.FireCount10);
+            Assert.Equal(1, analyzer.FireCount11);
+            Assert.Equal(1, analyzer.FireCount12);
+        }
+
+        private class AnalyzerActions_03_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+            public int FireCount6;
+            public int FireCount7;
+            public int FireCount8;
+            public int FireCount9;
+            public int FireCount10;
+            public int FireCount11;
+            public int FireCount12;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolStartAction(Handle1, SymbolKind.Method);
+                context.RegisterSymbolStartAction(Handle1, SymbolKind.Property);
+                context.RegisterSymbolStartAction(Handle1, SymbolKind.Parameter);
+                context.RegisterSymbolStartAction(Handle1, SymbolKind.NamedType);
+            }
+
+            private void Handle1(SymbolStartAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1);
+                        context.RegisterSymbolEndAction(Handle2);
+                        break;
+                    case "System.Int32 A.X { get; init; }":
+                        Interlocked.Increment(ref FireCount2);
+                        context.RegisterSymbolEndAction(Handle3);
+                        break;
+                    case "[System.Int32 X = 0]":
+                        Interlocked.Increment(ref FireCount3);
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount4);
+                        context.RegisterSymbolEndAction(Handle4);
+                        break;
+                    case "[System.Int32 Z = 4]":
+                        Interlocked.Increment(ref FireCount5);
+                        break;
+                    case "A":
+                        Interlocked.Increment(ref FireCount9);
+
+                        Assert.Equal(0, FireCount1);
+                        Assert.Equal(0, FireCount2);
+                        Assert.Equal(0, FireCount6);
+                        Assert.Equal(0, FireCount7);
+
+                        context.RegisterSymbolEndAction(Handle5);
+                        break;
+                    case "C":
+                        Interlocked.Increment(ref FireCount10);
+
+                        Assert.Equal(0, FireCount4);
+                        Assert.Equal(0, FireCount8);
+
+                        context.RegisterSymbolEndAction(Handle6);
+                        break;
+                    case "System.Runtime.CompilerServices.IsExternalInit":
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            private void Handle2(SymbolAnalysisContext context)
+            {
+                Assert.Equal("A..ctor([System.Int32 X = 0])", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount6);
+            }
+
+            private void Handle3(SymbolAnalysisContext context)
+            {
+                Assert.Equal("System.Int32 A.X { get; init; }", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount7);
+            }
+
+            private void Handle4(SymbolAnalysisContext context)
+            {
+                Assert.Equal("C..ctor([System.Int32 Z = 4])", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount8);
+            }
+
+            private void Handle5(SymbolAnalysisContext context)
+            {
+                Assert.Equal("A", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount11);
+
+                Assert.Equal(1, FireCount1);
+                Assert.Equal(1, FireCount2);
+                Assert.Equal(1, FireCount6);
+                Assert.Equal(1, FireCount7);
+            }
+
+            private void Handle6(SymbolAnalysisContext context)
+            {
+                Assert.Equal("C", context.Symbol.ToTestDisplayString());
+                Interlocked.Increment(ref FireCount12);
+
+                Assert.Equal(1, FireCount4);
+                Assert.Equal(1, FireCount8);
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_04()
+        {
+            // Test RegisterOperationAction
+            var text1 = @"
+record struct A([Attr1(100)]int X = 0) : I1
+{}
+
+interface I1 {}
+";
+
+            var analyzer = new AnalyzerActions_04_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(0, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount14);
+        }
+
+        private class AnalyzerActions_04_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount6;
+            public int FireCount7;
+            public int FireCount14;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationAction(HandleConstructorBody, OperationKind.ConstructorBody);
+                context.RegisterOperationAction(HandleInvocation, OperationKind.Invocation);
+                context.RegisterOperationAction(HandleLiteral, OperationKind.Literal);
+                context.RegisterOperationAction(HandleParameterInitializer, OperationKind.ParameterInitializer);
+                context.RegisterOperationAction(Fail, OperationKind.PropertyInitializer);
+                context.RegisterOperationAction(Fail, OperationKind.FieldInitializer);
+            }
+
+            protected void HandleConstructorBody(OperationAnalysisContext context)
+            {
+                switch (context.ContainingSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1);
+                        Assert.Equal(SyntaxKind.RecordDeclaration, context.Operation.Syntax.Kind());
+                        VerifyOperationTree((CSharpCompilation)context.Compilation, context.Operation, @"");
+
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void HandleInvocation(OperationAnalysisContext context)
+            {
+                Assert.True(false);
+            }
+
+            protected void HandleLiteral(OperationAnalysisContext context)
+            {
+                switch (context.Operation.Syntax.ToString())
+                {
+                    case "100":
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount6);
+                        break;
+                    case "0":
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount7);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void HandleParameterInitializer(OperationAnalysisContext context)
+            {
+                switch (context.Operation.Syntax.ToString())
+                {
+                    case "= 0":
+                        Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
+                        Interlocked.Increment(ref FireCount14);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void Fail(OperationAnalysisContext context)
+            {
+                Assert.True(false);
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_05()
+        {
+            // Test RegisterOperationBlockAction
+            var text1 = @"
+record struct A([Attr1(100)]int X = 0) : I1
+{}
+
+interface I1 {}
+";
+
+            var analyzer = new AnalyzerActions_05_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+        }
+
+        private class AnalyzerActions_05_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterOperationBlockAction(Handle);
+            }
+
+            private void Handle(OperationBlockAnalysisContext context)
+            {
+                switch (context.OwningSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1);
+                        Assert.Equal(2, context.OperationBlocks.Length);
+
+                        Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
+                        Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
+
+                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
+
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_07()
+        {
+            // Test RegisterCodeBlockAction
+            var text1 = @"
+record struct A([Attr1(100)]int X = 0) : I1
+{
+    int M() => 3;
+}
+
+interface I1 {}
+";
+            var analyzer = new AnalyzerActions_07_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount4);
+        }
+
+        private class AnalyzerActions_07_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount4;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCodeBlockAction(Handle);
+            }
+
+            private void Handle(CodeBlockAnalysisContext context)
+            {
+                switch (context.OwningSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+
+                        switch (context.CodeBlock)
+                        {
+                            case RecordStructDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                                Interlocked.Increment(ref FireCount1);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "System.Int32 A.M()":
+                        switch (context.CodeBlock)
+                        {
+                            case MethodDeclarationSyntax { Identifier: { ValueText: "M" } }:
+                                Interlocked.Increment(ref FireCount4);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_08()
+        {
+            // Test RegisterCodeBlockStartAction
+            var text1 = @"
+record struct A([Attr1]int X = 0) : I1
+{
+    private int M() => 3;
+}
+
+interface I1 {}
+";
+
+            var analyzer = new AnalyzerActions_08_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount100);
+            Assert.Equal(1, analyzer.FireCount400);
+
+            Assert.Equal(1, analyzer.FireCount0);
+            Assert.Equal(0, analyzer.FireCountRecordStructDeclarationA);
+            Assert.Equal(0, analyzer.FireCountRecordStructDeclarationACtor);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(0, analyzer.FireCountSimpleBaseTypeI1onA);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(0, analyzer.FireCountParameterListAPrimaryCtor);
+            Assert.Equal(1, analyzer.FireCount7);
+
+            Assert.Equal(1, analyzer.FireCount1000);
+            Assert.Equal(1, analyzer.FireCount4000);
+        }
+
+        private class AnalyzerActions_08_Analyzer : AnalyzerActions_01_Analyzer
+        {
+            public int FireCount100;
+            public int FireCount400;
+            public int FireCount1000;
+            public int FireCount4000;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterCodeBlockStartAction<SyntaxKind>(Handle);
+            }
+
+            private void Handle(CodeBlockStartAnalysisContext<SyntaxKind> context)
+            {
+                switch (context.OwningSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+
+                        switch (context.CodeBlock)
+                        {
+                            case RecordStructDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                                Interlocked.Increment(ref FireCount100);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "System.Int32 A.M()":
+                        switch (context.CodeBlock)
+                        {
+                            case MethodDeclarationSyntax { Identifier: { ValueText: "M" } }:
+                                Interlocked.Increment(ref FireCount400);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.NumericLiteralExpression);
+                context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.EqualsValueClause);
+                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.BaseConstructorInitializer);
+                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.ConstructorDeclaration);
+                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.PrimaryConstructorBaseType);
+                context.RegisterSyntaxNodeAction(Handle6, SyntaxKind.RecordStructDeclaration);
+                context.RegisterSyntaxNodeAction(Handle7, SyntaxKind.IdentifierName);
+                context.RegisterSyntaxNodeAction(Handle8, SyntaxKind.SimpleBaseType);
+                context.RegisterSyntaxNodeAction(Handle9, SyntaxKind.ParameterList);
+                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.ArgumentList);
+
+                context.RegisterCodeBlockEndAction(Handle11);
+            }
+
+            private void Handle11(CodeBlockAnalysisContext context)
+            {
+                switch (context.OwningSymbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+
+                        switch (context.CodeBlock)
+                        {
+                            case RecordStructDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                                Interlocked.Increment(ref FireCount1000);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "System.Int32 A.M()":
+                        switch (context.CodeBlock)
+                        {
+                            case MethodDeclarationSyntax { Identifier: { ValueText: "M" } }:
+                                Interlocked.Increment(ref FireCount4000);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+        }
+
+        [Fact]
+        public void AnalyzerActions_09()
+        {
+            // PROTOTYPE(record-structs): ported
+            var text1 = @"
+record A([Attr1(100)]int X = 0) : I1
+{}
+
+record B([Attr2(200)]int Y = 1) : A(2), I1
+{
+    int M() => 3;
+}
+
+record C : A, I1
+{
+    C([Attr3(300)]int Z = 4) : base(5)
+    {}
+}
+
+interface I1 {}
+";
+
+            var analyzer = new AnalyzerActions_09_Analyzer();
+            var comp = CreateCompilation(text1);
+            comp.GetAnalyzerDiagnostics(new[] { analyzer }, null).Verify();
+
+            Assert.Equal(1, analyzer.FireCount1);
+            Assert.Equal(1, analyzer.FireCount2);
+            Assert.Equal(1, analyzer.FireCount3);
+            Assert.Equal(1, analyzer.FireCount4);
+            Assert.Equal(1, analyzer.FireCount5);
+            Assert.Equal(1, analyzer.FireCount6);
+            Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCount8);
+            Assert.Equal(1, analyzer.FireCount9);
+        }
+
+        private class AnalyzerActions_09_Analyzer : DiagnosticAnalyzer
+        {
+            public int FireCount1;
+            public int FireCount2;
+            public int FireCount3;
+            public int FireCount4;
+            public int FireCount5;
+            public int FireCount6;
+            public int FireCount7;
+            public int FireCount8;
+            public int FireCount9;
+
+            private static readonly DiagnosticDescriptor Descriptor =
+               new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+            => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSymbolAction(Handle1, SymbolKind.Method);
+                context.RegisterSymbolAction(Handle2, SymbolKind.Property);
+                context.RegisterSymbolAction(Handle3, SymbolKind.Parameter);
+            }
+
+            private void Handle1(SymbolAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "A..ctor([System.Int32 X = 0])":
+                        Interlocked.Increment(ref FireCount1);
+                        break;
+                    case "B..ctor([System.Int32 Y = 1])":
+                        Interlocked.Increment(ref FireCount2);
+                        break;
+                    case "C..ctor([System.Int32 Z = 4])":
+                        Interlocked.Increment(ref FireCount3);
+                        break;
+                    case "System.Int32 B.M()":
+                        Interlocked.Increment(ref FireCount4);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            private void Handle2(SymbolAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "System.Int32 A.X { get; init; }":
+                        Interlocked.Increment(ref FireCount5);
+                        break;
+                    case "System.Int32 B.Y { get; init; }":
+                        Interlocked.Increment(ref FireCount6);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            private void Handle3(SymbolAnalysisContext context)
+            {
+                switch (context.Symbol.ToTestDisplayString())
+                {
+                    case "[System.Int32 X = 0]":
+                        Interlocked.Increment(ref FireCount7);
+                        break;
+                    case "[System.Int32 Y = 1]":
+                        Interlocked.Increment(ref FireCount8);
+                        break;
+                    case "[System.Int32 Z = 4]":
+                        Interlocked.Increment(ref FireCount9);
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
         }
     }
 }

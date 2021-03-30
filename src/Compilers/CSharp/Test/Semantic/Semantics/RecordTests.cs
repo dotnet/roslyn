@@ -487,6 +487,7 @@ record R3(R3 x) : Base
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor_WithFieldInitializer()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(R X)
 {
@@ -513,6 +514,32 @@ record R(R X)
             Assert.Equal("R X", initializer.ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, initializer.Kind);
             Assert.Equal("R..ctor(R X)", initializer.ContainingSymbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GetDeclaredSymbolOnFieldInitializer()
+        {
+            var src = @"
+record R(int I)
+{
+    public int I { get; init; } = M(out int i) ? i : 0;
+    static bool M(out int i) => throw null; 
+}
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,14): warning CS8907: Parameter 'I' is unread. Did you forget to use it to initialize the property with that name?
+                // record R(int I)
+                Diagnostic(ErrorCode.WRN_UnreadRecordParameter, "I").WithArguments("I").WithLocation(2, 14)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var outVarSyntax = tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Single();
+            var outVar = model.GetDeclaredSymbol(outVarSyntax)!;
+            Assert.Equal("System.Int32 i", outVar.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, outVar.Kind);
+            Assert.Equal("System.Int32 R.<I>k__BackingField", outVar.ContainingSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(46123, "https://github.com/dotnet/roslyn/issues/46123")]
@@ -25841,6 +25868,7 @@ public record A;
         [Fact]
         public void AnalyzerActions_01()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1]int X = 0) : I1
 {}
@@ -26234,6 +26262,7 @@ class Attr3 : System.Attribute {}
         [Fact]
         public void AnalyzerActions_02()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A(int X = 0)
 {}
@@ -26319,6 +26348,7 @@ record C
         [Fact]
         public void AnalyzerActions_03()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A(int X = 0)
 {}
@@ -26467,6 +26497,7 @@ record C
         [Fact]
         public void AnalyzerActions_04()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -26683,6 +26714,7 @@ IInvocationOperation ( A..ctor([System.Int32 X = 0])) (OperationKind.Invocation,
         [Fact]
         public void AnalyzerActions_05()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -26997,6 +27029,7 @@ interface I1 {}
         [Fact]
         public void AnalyzerActions_07()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -27102,6 +27135,7 @@ interface I1 {}
         [Fact]
         public void AnalyzerActions_08()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1]int X = 0) : I1
 {}
@@ -27318,6 +27352,7 @@ interface I1 {}
         [Fact]
         public void AnalyzerActions_09()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -27824,6 +27859,7 @@ namespace System.Runtime.CompilerServices
         [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Cref()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for <see cref=""I1""/></param>

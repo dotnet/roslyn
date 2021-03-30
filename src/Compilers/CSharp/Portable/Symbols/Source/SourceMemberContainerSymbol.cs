@@ -1331,7 +1331,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<Symbol>.Empty;
         }
 
-        // PROTOTYPE(record-structs): update for record structs
         /// <remarks>
         /// For source symbols, there can only be a valid clone method if this is a record, which is a
         /// simple syntax check. This will need to change when we generalize cloning, but it's a good
@@ -1512,7 +1511,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declared = Volatile.Read(ref _lazyDeclaredMembersAndInitializers);
             Debug.Assert(declared != DeclaredMembersAndInitializers.UninitializedSentinel);
 
-            // PROTOTYPE(record-structs): update for record structs
             if ((declared is object && (declared.NonTypeMembers.Contains(m => m == (object)member) || declared.RecordPrimaryConstructor == (object)member)) ||
                 Volatile.Read(ref _lazyMembersAndInitializers)?.NonTypeMembers.Contains(m => m == (object)member) == true)
             {
@@ -2969,7 +2967,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         noteRecordParameters(recordStructDecl, parameterList, builder, diagnostics);
                         AddNonTypeMembers(builder, recordStructDecl.Members, diagnostics);
 
-                        // PROTOTYPE(record-structs): we will allow declaring parameterless constructors
+                        // We will allow declaring parameterless constructors
+                        // Tracking issue https://github.com/dotnet/roslyn/issues/52240
                         if (parameterList?.ParameterCount == 0)
                         {
                             diagnostics.Add(ErrorCode.ERR_StructsCantContainDefaultConstructor, parameterList.Location);
