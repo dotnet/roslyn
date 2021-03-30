@@ -647,6 +647,26 @@ class C
             edits.VerifyRudeDiagnostics();
         }
 
+        [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
+        public void ModifiersUpdate_IgnoreUnsafe2()
+        {
+            var srcA1 = "partial class C { unsafe void F() { } }";
+            var srcB1 = "partial class C { }";
+            var srcA2 = "partial class C { }";
+            var srcB2 = "partial class C { void F() { } }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(semanticEdits: new[]
+                    {
+                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember("F"))
+                    }),
+                });
+        }
+
         [Fact]
         public void Struct_Modifiers_Ref_Update1()
         {
