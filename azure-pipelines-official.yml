@@ -126,7 +126,7 @@ stages:
     - task: NuGetAuthenticate@0
       inputs:
         ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, dnceng/dotnet-tools
+          nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
         ${{ if eq(variables['System.TeamProject'], 'internal') }}:
           nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
 
