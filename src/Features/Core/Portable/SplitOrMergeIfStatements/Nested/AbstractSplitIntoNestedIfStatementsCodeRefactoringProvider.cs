@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.SplitOrMergeIfStatements
 
         protected sealed override CodeAction CreateCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string ifKeywordText)
             => new MyCodeAction(string.Format(FeaturesResources.Split_into_nested_0_statements, ifKeywordText), createChangedDocument);
-        
 
         protected sealed override Task<SyntaxNode> GetChangedRootAsync(
             Document document,
