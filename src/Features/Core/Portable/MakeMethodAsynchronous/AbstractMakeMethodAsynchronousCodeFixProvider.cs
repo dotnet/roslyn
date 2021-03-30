@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
                 }
                 else
                 {
-                    return !makeAsyncService.IsAsyncReturnType(methodSymbolOpt.ReturnType, knownTaskTypes);;
+                    return !makeAsyncService.IsAsyncReturnType(methodSymbol.ReturnType, knownTaskTypes);
                 }
             }
         }
