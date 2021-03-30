@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         private readonly RequestDispatcher _requestDispatcher;
         private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
         private readonly RequestExecutionQueue _queue;
-        private readonly LogHubLspLogger? _logger;
+        private readonly ILspLogger? _logger;
 
         /// <summary>
         /// Legacy support for LSP push diagnostics.
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             string serverTypeName,
             string? clientName,
             JsonRpc jsonRpc,
-            LogHubLspLogger? logger)
+            ILspLogger? logger)
         {
             _languageClient = languageClient;
             _requestDispatcher = requestDispatcher;
@@ -796,7 +796,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 await _errorShutdownTask.ConfigureAwait(false);
             }
 
-            _logger?.Dispose();
+            if (_logger is IDisposable disposableLogger)
+            {
+                disposableLogger.Dispose();
+            }
         }
 
         internal TestAccessor GetTestAccessor() => new(this);
