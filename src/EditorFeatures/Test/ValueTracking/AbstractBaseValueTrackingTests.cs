@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ValueTracking;
@@ -32,25 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
             return await service.TrackValueSourceAsync(item, cancellationToken);
         }
 
-        internal static async Task<ImmutableArray<ValueTrackedItem>> ValidateChildrenAsync(TestWorkspace testWorkspace, ValueTrackedItem item, int[] lines, CancellationToken cancellationToken = default)
-        {
-            var children = await GetTrackedItemsAsync(testWorkspace, item, cancellationToken);
-
-            Assert.Equal(lines.Length, children.Length);
-
-            for (var i = 0; i < lines.Length; i++)
-            {
-                ValidateItem(children[i], lines[i]);
-            }
-
-            return children;
-        }
-
         internal static async Task<ImmutableArray<ValueTrackedItem>> ValidateChildrenAsync(TestWorkspace testWorkspace, ValueTrackedItem item, (int line, string text)[] childInfo, CancellationToken cancellationToken = default)
         {
             var children = await GetTrackedItemsAsync(testWorkspace, item, cancellationToken);
-
-            Assert.Equal(childInfo.Length, children.Length);
+            Assert.True(childInfo.Length == children.Length, $"GetTrackedItemsAsync on [{item}]\n\texpected: [{string.Join(",", childInfo.Select(p => p.text))}]\n\t  actual: [{string.Join(",", children)}]");
 
             for (var i = 0; i < childInfo.Length; i++)
             {

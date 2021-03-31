@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         private class FindReferencesProgress : IStreamingFindReferencesProgress, IStreamingProgressTracker
         {
             private readonly CancellationToken _cancellationToken;
-            private readonly ValueTrackingProgressCollector _valueTrackingProgressCollector;
-            public FindReferencesProgress(ValueTrackingProgressCollector valueTrackingProgressCollector, CancellationToken cancellationToken = default)
+            private readonly OperationCollector _operationCollector;
+            public FindReferencesProgress(OperationCollector valueTrackingProgressCollector, CancellationToken cancellationToken = default)
             {
-                _valueTrackingProgressCollector = valueTrackingProgressCollector;
+                _operationCollector = valueTrackingProgressCollector;
                 _cancellationToken = cancellationToken;
             }
 
@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                     if (syntaxFacts.IsLeftSideOfAnyAssignment(node))
                     {
-                        await AddItemsFromAssignmentAsync(location.Document, node, _valueTrackingProgressCollector, _cancellationToken).ConfigureAwait(false);
+                        await AddItemsFromAssignmentAsync(location.Document, node, _operationCollector, _cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
-                        await _valueTrackingProgressCollector.TryReportAsync(solution, location.Location, symbol, _cancellationToken).ConfigureAwait(false);
+                        await _operationCollector.ProgressCollector.TryReportAsync(solution, location.Location, symbol, _cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -99,12 +99,12 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                 var operation = semanticModel.GetOperation(originalNode.Parent, _cancellationToken);
-                if (operation is not IObjectCreationOperation objectCreationOperation)
+                if (operation is not IObjectCreationOperation)
                 {
                     return;
                 }
 
-                await TrackArgumentsAsync(objectCreationOperation.Arguments, document, _valueTrackingProgressCollector, _cancellationToken).ConfigureAwait(false);
+                await _operationCollector.VisitAsync(operation, _cancellationToken).ConfigureAwait(false);
             }
 
             private async Task TrackMethodInvocationArgumentsAsync(ReferenceLocation referenceLocation)
@@ -129,12 +129,12 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 var semanticModel = await document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
                 var operation = semanticModel.GetOperation(invocationSyntax, _cancellationToken);
-                if (operation is not IInvocationOperation invocationOperation)
+                if (operation is not IInvocationOperation)
                 {
                     return;
                 }
 
-                await TrackArgumentsAsync(invocationOperation.Arguments, document, _valueTrackingProgressCollector, _cancellationToken).ConfigureAwait(false);
+                await _operationCollector.VisitAsync(operation, _cancellationToken).ConfigureAwait(false);
             }
         }
     }

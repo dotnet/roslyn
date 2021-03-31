@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 or IParameterSymbol)
             {
                 RoslynDebug.AssertNotNull(node);
+                var operationCollector = new OperationCollector(progressCollector, document.Project.Solution);
 
                 var solution = document.Project.Solution;
                 var declaringSyntaxReferences = symbol.DeclaringSyntaxReferences;
@@ -76,14 +77,14 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         await progressCollector.TryReportAsync(solution, location, symbol, cancellationToken).ConfigureAwait(false);
                     }
 
-                    await TrackVariableSymbolAsync(symbol, document, progressCollector, cancellationToken).ConfigureAwait(false);
+                    await TrackVariableSymbolAsync(symbol, operationCollector, cancellationToken).ConfigureAwait(false);
                 }
                 // The selection is not on a declaration, check that the node
                 // is on the left side of an assignment. If so, populate so we can
                 // track the RHS values that contribute to this value
                 else if (syntaxFacts.IsLeftSideOfAnyAssignment(node))
                 {
-                    await AddItemsFromAssignmentAsync(document, node, progressCollector, cancellationToken).ConfigureAwait(false);
+                    await AddItemsFromAssignmentAsync(document, node, operationCollector, cancellationToken).ConfigureAwait(false);
                 }
                 // Not on the left part of an assignment? Then just add an item with the statement
                 // and the symbol. It should be the top item, and children will find the sources
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             CancellationToken cancellationToken)
         {
             progressCollector.Parent = previousTrackedItem;
+            var operationCollector = new OperationCollector(progressCollector, previousTrackedItem.Document.Project.Solution);
 
             switch (previousTrackedItem.Symbol)
             {
@@ -120,7 +122,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 case IFieldSymbol:
                     {
                         // The "output" is a variable assignment, track places where it gets assigned
-                        await TrackVariableSymbolAsync(previousTrackedItem.Symbol, previousTrackedItem.Document, progressCollector, cancellationToken).ConfigureAwait(false);
+                        await TrackVariableSymbolAsync(previousTrackedItem.Symbol, operationCollector, cancellationToken).ConfigureAwait(false);
                     }
                     break;
 
@@ -128,46 +130,45 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     {
                         // The "output" is method calls, so track where this method is invoked for the parameter as 
                         // well as assignments inside the method. Both contribute to the final values
-                        await TrackVariableSymbolAsync(previousTrackedItem.Symbol, previousTrackedItem.Document, progressCollector, cancellationToken).ConfigureAwait(false);
-                        await TrackParameterSymbolAsync(parameterSymbol, previousTrackedItem.Document, progressCollector, cancellationToken).ConfigureAwait(false);
+                        await TrackVariableSymbolAsync(previousTrackedItem.Symbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        await TrackParameterSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
                     }
                     break;
 
                 case IMethodSymbol methodSymbol:
                     {
                         // The "output" is from a method, meaning it has a return or out param that is used. Track those 
-                        await TrackMethodSymbolAsync(methodSymbol, previousTrackedItem.Document, progressCollector, cancellationToken).ConfigureAwait(false);
+                        await TrackMethodSymbolAsync(methodSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
                     }
                     break;
             }
         }
 
-        private static async Task TrackVariableSymbolAsync(ISymbol symbol, Document document, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken)
+        private static async Task TrackVariableSymbolAsync(ISymbol symbol, OperationCollector collector, CancellationToken cancellationToken)
         {
-            var findReferenceProgressCollector = new FindReferencesProgress(progressCollector);
+            var findReferenceProgressCollector = new FindReferencesProgress(collector, cancellationToken: cancellationToken);
             await SymbolFinder.FindReferencesAsync(
                                     symbol,
-                                    document.Project.Solution,
+                                    collector.Solution,
                                     findReferenceProgressCollector,
                                     documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task TrackParameterSymbolAsync(
             IParameterSymbol parameterSymbol,
-            Document document,
-            ValueTrackingProgressCollector progressCollector,
+            OperationCollector collector,
             CancellationToken cancellationToken)
         {
             var containingMethod = (IMethodSymbol)parameterSymbol.ContainingSymbol;
-            var findReferenceProgressCollector = new FindReferencesProgress(progressCollector);
+            var findReferenceProgressCollector = new FindReferencesProgress(collector, cancellationToken: cancellationToken);
             await SymbolFinder.FindReferencesAsync(
                 containingMethod,
-                document.Project.Solution,
+                collector.Solution,
                 findReferenceProgressCollector,
                 documents: null, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task TrackMethodSymbolAsync(IMethodSymbol methodSymbol, Document document, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken)
+        private static async Task TrackMethodSymbolAsync(IMethodSymbol methodSymbol, OperationCollector collector, CancellationToken cancellationToken)
         {
             var hasAnyOutData = HasAValueReturn(methodSymbol) || HasAnOutOrRefParam(methodSymbol);
             if (!hasAnyOutData)
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     }
 
                     var node = location.FindNode(cancellationToken);
-                    var sourceDoc = document.Project.Solution.GetRequiredDocument(location.SourceTree);
+                    var sourceDoc = collector.Solution.GetRequiredDocument(location.SourceTree);
                     var syntaxFacts = sourceDoc.GetRequiredLanguageService<ISyntaxFactsService>();
                     var returnStatements = node.DescendantNodesAndSelf().Where(n => syntaxFacts.IsReturnStatement(n)).ToImmutableArray();
                     var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                             continue;
                         }
 
-                        await TrackExpressionAsync(operation, sourceDoc, progressCollector, cancellationToken).ConfigureAwait(false);
+                        await collector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                                 continue;
                             }
 
-                            await TrackExpressionAsync(operation, sourceDoc, progressCollector, cancellationToken).ConfigureAwait(false);
+                            await collector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                         continue;
                     }
 
-                    await TrackVariableSymbolAsync(outOrRefParam, document, progressCollector, cancellationToken).ConfigureAwait(false);
+                    await TrackVariableSymbolAsync(outOrRefParam, collector, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -251,21 +252,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             static bool HasAnOutOrRefParam(IMethodSymbol methodSymbol)
                 => methodSymbol.Parameters.Any(p => p.IsRefOrOut());
-        }
-
-        private static async Task TrackExpressionAsync(IOperation expressionOperation, Document document, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken)
-        {
-            if (expressionOperation.Children.Any())
-            {
-                foreach (var childOperation in expressionOperation.Children)
-                {
-                    await AddOperationAsync(childOperation, document, progressCollector, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            else
-            {
-                await AddOperationAsync(expressionOperation, document, progressCollector, cancellationToken).ConfigureAwait(false);
-            }
         }
 
         private static async Task<(ISymbol?, SyntaxNode?)> GetSelectedSymbolAsync(TextSpan textSpan, Document document, CancellationToken cancellationToken)
@@ -281,56 +267,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             return (selectedSymbol, selectedNode);
         }
 
-        private static async Task AddOperationAsync(IOperation operation, Document document, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken)
-        {
-            var semanticModel = operation.SemanticModel;
-            if (semanticModel is null)
-            {
-                return;
-            }
-
-            var symbolInfo = semanticModel.GetSymbolInfo(operation.Syntax, cancellationToken);
-            if (symbolInfo.Symbol is null)
-            {
-                if (operation is ILiteralOperation { Type: not null } literalOperation)
-                {
-                    await progressCollector.TryReportAsync(document.Project.Solution,
-                        operation.Syntax.GetLocation(),
-                        literalOperation.Type!,
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
-                }
-
-                return;
-            }
-
-            if (operation is IInvocationOperation invocationOperation)
-            {
-                // If the operation is an invocation, we want to find if invocations are part of the arguments as well 
-                // and make sure they are added
-                foreach (var argument in invocationOperation.Arguments)
-                {
-                    if (argument.Value is IInvocationOperation argumentInvocationOperation)
-                    {
-                        await AddOperationAsync(argumentInvocationOperation, document, progressCollector, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-            }
-            else if (operation is IReturnOperation { ReturnedValue: not null } returnOperation)
-            {
-                // For return operations we want to track
-                // the value returned in case it has invocations
-                // or other items that need to be handled special
-                await AddOperationAsync(returnOperation.ReturnedValue, document, progressCollector, cancellationToken).ConfigureAwait(false);
-                return;
-            }
-
-            await progressCollector.TryReportAsync(document.Project.Solution,
-                operation.Syntax.GetLocation(),
-                symbolInfo.Symbol,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task AddItemsFromAssignmentAsync(Document document, SyntaxNode lhsNode, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken)
+        private static async Task AddItemsFromAssignmentAsync(Document document, SyntaxNode lhsNode, OperationCollector collector, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var operation = semanticModel.GetOperation(lhsNode);
@@ -354,36 +291,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             }
 
             var rhsOperation = assignmentOperation.Value;
-            await TrackExpressionAsync(rhsOperation, document, progressCollector, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static async Task TrackArgumentsAsync(ImmutableArray<IArgumentOperation> argumentOperations, Document document, ValueTrackingProgressCollector progressCollector, CancellationToken cancellationToken)
-        {
-            var collectorsAndArgumentMap = argumentOperations
-                .Select(argument => (collector: CreateCollector(), argument))
-                .ToImmutableArray();
-
-            var tasks = collectorsAndArgumentMap
-                .Select(pair => TrackExpressionAsync(pair.argument.Value, document, pair.collector, cancellationToken));
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-
-            var items = collectorsAndArgumentMap
-                .Select(pair => pair.collector)
-                .SelectMany(collector => collector.GetItems())
-                .Reverse(); // ProgressCollector uses a Stack, and we want to maintain the order by arguments, so reverse
-
-            foreach (var item in items)
-            {
-                progressCollector.Report(item);
-            }
-
-            ValueTrackingProgressCollector CreateCollector()
-            {
-                var collector = new ValueTrackingProgressCollector();
-                collector.Parent = progressCollector.Parent;
-                return collector;
-            }
+            await collector.VisitAsync(rhsOperation, cancellationToken).ConfigureAwait(false);
         }
     }
 }

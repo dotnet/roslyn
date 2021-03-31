@@ -233,7 +233,8 @@ class Other
             //
             // S = s; [Code.cs:7]
             //  |> S = [|s|] [Code.cs:7]
-            //    |> c.SetS(s); [Code.cs:17]
+            //    |> [|c.SetS(s)|]; [Code.cs:17]
+            //    |> c.SetS([|s|]); [Code.cs:17]
             //      |> CallS([|c|], CalculateDefault(c)) [Code.cs:22]
             //      |> CallS(c, [|CalculateDefault(c)|]) [Code.cs:22]
             //         |>  return "" [Code.cs:37]
@@ -246,27 +247,38 @@ class Other
             var items = await ValidateChildrenAsync(
                 workspace,
                 initialItems.Single(),
-                lines: new[]
+                childInfo: new[]
                 {
-                    17 // |> c.SetS(s); [Code.cs:17]
+                    (17, "s"), // |> c.SetS([|s|]); [Code.cs:17]
+                    (17, "c.SetS(s)"), // |> [|c.SetS(s)|]; [Code.cs:17]
                 });
 
+            // |> [|c.SetS(s)|]; [Code.cs:17]
+            await ValidateChildrenEmptyAsync(workspace, items[1]);
+
+            // |> c.SetS([|s|]); [Code.cs:17]
             items = await ValidateChildrenAsync(
                 workspace,
-                items.Single(),
+                items[0],
                 childInfo: new[]
                 {
                     (22, "c" ), // |> CallS([|c|], CalculateDefault(c)) [Code.cs:22]
-                    (22, "CalculateDefault" ) // |> CallS(c, [|CalculateDefault(c)|]) [Code.cs:22]
+                    (22, "c" ), // |> CallS(c, CalculateDefault([|c|])) [Code.cs:22]
+                    (22, "CalculateDefault(c)" ), // |> CallS(c, [|CalculateDefault(c)|]) [Code.cs:22]
+                    (22, "CallS(c, CalculateDefault(c))" ) // |> [|CallS(c, CalculateDefault(c))|] [Code.cs:22]
                 });
 
-            var referenceC = items[0];
-            await ValidateChildrenEmptyAsync(workspace, referenceC);
+            // |> CallS([|c|], CalculateDefault(c)) [Code.cs:22]
+            await ValidateChildrenEmptyAsync(workspace, items[0]);
+            // |> CallS(c, CalculateDefault([|c|])) [Code.cs:22]
+            await ValidateChildrenEmptyAsync(workspace, items[1]);
+            // |> CallS(c, [|CalculateDefault(c)|]) [Code.cs:22]
+            await ValidateChildrenEmptyAsync(workspace, items[3]);
 
-            var calculateDefaultCall = items[1];
+            // |> CallS(c, [|CalculateDefault(c)|]) [Code.cs:22]
             var children = await ValidateChildrenAsync(
                 workspace,
-                calculateDefaultCall,
+                items[2],
                 childInfo: new[]
                 {
                     (37, "\"\""), // |>  return "" [Code.cs:37]
@@ -347,53 +359,75 @@ class Program
             //
             // S = s; [Code.cs:7]
             //  |> S = [|s|] [Code.cs:7]
-            //    |> c.SetS(s); [Code.cs:23]
+            //    |> [|c.SetS(s)|]; [Code.cs:23]
+            //    |> c.SetS([|s|]); [Code.cs:23]
             //      |> CallS([|c|], CalculateDefault(c) + _adornment) [Code.cs:28]
             //        |> other.CallS([|c|]); [Code.cs:53]
             //      |> CallS(c, CalculateDefault(c) + [|_adornment|]) [Code.cs:28]
             //        |> _adornment = [|adornment|]; [Code.cs:18]
             //          |> var other = new Other([|"some value"|]); [Code.cs:51]
+            //      |> CallS(c, CalculateDefault([|c|]) + _adornment) [Code.cs:28]
+            //        |> other.CallS([|c|]); [Code.cs:53]
             //      |> CallS(c, [|CalculateDefault(c)|] + _adornment) [Code.cs:28]
             //        |>  return "" [Code.cs:37]
             //        |>  return "defaultstring" [Code.cs:34]
             //        |> return "null" [Code.cs:29]
-            // 
+            //      |> [|CallS(c, CalculateDefault(c) + _adornment)|] [Code.cs:28]
+            //
             Assert.Equal(1, initialItems.Length);
             ValidateItem(initialItems[0], 7);
 
             var items = await ValidateChildrenAsync(
                 workspace,
                 initialItems.Single(),
-                lines: new[]
+                childInfo: new[]
                 {
-                    23 // |> c.SetS(s); [Code.cs:23]
+                    (23, "s"), // |> c.SetS([|s|]); [Code.cs:23]
+                    (23, "c.SetS(s)"), // |> c.SetS(s); [Code.cs:23]
                 });
 
+            // |> c.SetS(s); [Code.cs:23]
+            await ValidateChildrenEmptyAsync(workspace, items[1]);
+
+            // |> c.SetS([|s|]); [Code.cs:23]
             items = await ValidateChildrenAsync(
                 workspace,
-                items.Single(),
+                items[0],
                 childInfo: new[]
                 {
                     (28, "c" ), // |> CallS([|c|], CalculateDefault(c) + _adornment) [Code.cs:28]
                     (28, "_adornment" ), // |> CallS(c, CalculateDefault(c) + [|_adornment|]) [Code.cs:28]
+                    (28, "c" ), // |> CallS(c, CalculateDefault([|c|]) + _adornment) [Code.cs:28]
                     (28, "CalculateDefault(c)" ), // |> CallS(c, [|CalculateDefault|](c) + _adornment) [Code.cs:28]
+                    (28, "CallS(c, CalculateDefault(c) + _adornment)" ), // |> [|CallS(c, CalculateDefault(c) + _adornment)|] [Code.cs:28]
                 });
 
-            var referenceC = items[0];
+            // |> CallS([|c|], CalculateDefault(c) + _adornment) [Code.cs:28]
             var children = await ValidateChildrenAsync(
                 workspace,
-                referenceC,
+                items[0],
                 childInfo: new[]
                 {
-                    (53, "c"), // |> other.CallS([|c|]); [Code.cs:53]
+                    (53, "other.CallS(c)"), // |> other.CallS([|c|]); [Code.cs:53]
                 });
 
             await ValidateChildrenEmptyAsync(workspace, children);
 
-            var adornmentAssignment = items[1];
+            // |> CallS(c, CalculateDefault([|c|]) + _adornment) [Code.cs:28]
             children = await ValidateChildrenAsync(
                 workspace,
-                adornmentAssignment,
+                items[2],
+                childInfo: new[]
+                {
+                    (53, "other.CallS(c)"), // |> other.CallS([|c|]); [Code.cs:53]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, children);
+
+            // |> CallS(c, CalculateDefault(c) + [|_adornment|]) [Code.cs:28]
+            children = await ValidateChildrenAsync(
+                workspace,
+                items[1],
                 childInfo: new[]
                 {
                     (18, "adornment"), // |> _adornment = [|adornment|] [Code.cs:18]
@@ -408,10 +442,11 @@ class Program
                 });
             await ValidateChildrenEmptyAsync(workspace, children);
 
-            var calculateDefaultCall = items[2];
+
+            // |> CallS(c, [|CalculateDefault(c)|] + _adornment) [Code.cs:28]
             children = await ValidateChildrenAsync(
                 workspace,
-                calculateDefaultCall,
+                items[3],
                 childInfo: new[]
                 {
                     (43, "\"\""), // |>  return "" [Code.cs:37]
@@ -420,10 +455,13 @@ class Program
                 });
 
             await ValidateChildrenEmptyAsync(workspace, children);
+
+            // |> [|CallS(c, CalculateDefault(c) + _adornment)|] [Code.cs:28]
+            await ValidateChildrenEmptyAsync(workspace, items[4]);
         }
 
         [Fact]
-        public async Task TestMethodTracking3()
+        public async Task MethodTracking3()
         {
             var code =
 @"
@@ -450,6 +488,8 @@ namespace N
 }";
             //
             //  |> return [|x|] [Code.cs:18]
+            //    |> x = await AddAsync([|x|], x) [Code.cs:17]
+            //    |> x = await AddAsync(x, [|x|]) [Code.cs:17]
             //    |> x = await [|AddAsync(x, x)|] [Code.cs:17]
             //      |> [|Task.FromResult|](Add(x, y)) [Code.cs:13]
             //      |> Task.FromResult([|Add(x, y)|]) [Code.cs:13]
@@ -464,23 +504,30 @@ namespace N
                 initialItems.Single(),
                 childInfo: new[]
                 {
+                    (17, "x"), // |> x = await AddAsync([|x|], x) [Code.cs:17]
+                    (17, "x"), // |> x = await AddAsync(x, [|x|]) [Code.cs:17]
                     (17, "AddAsync(x, x)") // |> x = await [|AddAsync(x, x)|] [Code.cs:17]
                 });
 
+            // |> x = await [|AddAsync(x, x)|] [Code.cs:17]
             children = await ValidateChildrenAsync(
                 workspace,
-                children.Single(),
+                children[2],
                 childInfo: new[]
                 {
+                    (13, "x"), // |> Task.FromResult(Add([|x|], y)) [Code.cs:13]
+                    (13, "y"), // |> Task.FromResult(Add(x, [|y|])) [Code.cs:13]
+                    (13, "Add(x,y)"),  // |> Task.FromResult([|Add(x, y)|]) [Code.cs:13]
                     (13, "Task.FromResult(Add(x,y))"), // |> [|Task.FromResult|](Add(x, y)) [Code.cs:13]
-                    (13, "Add(x,y)")  // |> Task.FromResult([|Add(x, y)|]) [Code.cs:13]
                 });
 
-            await ValidateChildrenEmptyAsync(workspace, children[0]);
+            // |> [|Task.FromResult|](Add(x, y)) [Code.cs:13]
+            await ValidateChildrenEmptyAsync(workspace, children[3]);
 
+            // |> Task.FromResult([|Add(x, y)|]) [Code.cs:13]
             children = await ValidateChildrenAsync(
                 workspace,
-                children[1],
+                children[2],
                 childInfo: new[]
                 {
                     (10, "x") // |> return x [Code.cs:10]
