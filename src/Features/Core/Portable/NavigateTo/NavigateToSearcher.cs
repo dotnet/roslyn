@@ -161,35 +161,29 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (_searchCurrentDocument && _currentDocument?.Project != project)
                 return;
 
-            var cacheService = project.Solution.Services.CacheService;
-            if (cacheService != null)
+            var service = project.GetLanguageService<INavigateToSearchService>();
+            if (service == null)
+                return;
+
+            var task = _currentDocument != null
+                ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, OnResultFound, _cancellationToken)
+                : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, OnResultFound, _cancellationToken);
+
+            await task.ConfigureAwait(false);
+            return;
+
+            async Task OnResultFound(INavigateToSearchResult result)
             {
-                using (cacheService.EnableCaching(project.Id))
+                // If we're seeing a dupe in another project, then filter it out here.  The results from
+                // the individual projects will already contain the information about all the projects
+                // leading to a better condensed view that doesn't look like it contains duplicate info.
+                lock (seenItems)
                 {
-                    var service = project.GetLanguageService<INavigateToSearchService>();
-                    if (service != null)
-                    {
-                        Func<INavigateToSearchResult, Task> onResultFound = async (result) =>
-                            {
-                                // If we're seeing a dupe in another project, then filter it out here.  The results from
-                                // the individual projects will already contain the information about all the projects
-                                // leading to a better condensed view that doesn't look like it contains duplicate info.
-                                lock (seenItems)
-                                {
-                                    if (!seenItems.Add(result))
-                                        return;
-                                }
-
-                                await _callback.AddItemAsync(project, result, _cancellationToken).ConfigureAwait(false);
-                            };
-
-                        var task = _currentDocument != null
-                            ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, onResultFound, _cancellationToken)
-                            : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, onResultFound, _cancellationToken);
-
-                        await task.ConfigureAwait(false);
-                    }
+                    if (!seenItems.Add(result))
+                        return;
                 }
+
+                await _callback.AddItemAsync(project, result, _cancellationToken).ConfigureAwait(false);
             }
         }
     }
