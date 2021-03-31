@@ -1094,7 +1094,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordDeclaration:
                     {
                         SynthesizedRecordConstructor symbol = TryGetSynthesizedRecordConstructor((RecordDeclarationSyntax)node);
-                        return symbol is null ? null : createMethodBodySemanticModel(node, symbol);
+                        if (symbol is null)
+                        {
+                            return null;
+                        }
+
+                        return createMethodBodySemanticModel(node, symbol);
                     }
 
                 case SyntaxKind.GetAccessorDeclaration:
@@ -2420,7 +2425,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SymbolKind.NamedType:
                             Debug.Assert((object)declaredSymbol.GetSymbol() == (object)ctor.ContainingSymbol);
                             // Accept nodes that do not match a 'parameter list'/'base arguments list'.
-                            //return (node) => true; 
                             return (node) => node != recordDeclaration.ParameterList &&
                                              !(node.Kind() == SyntaxKind.ArgumentList && node == recordDeclaration.PrimaryConstructorBaseType?.ArgumentList);
 
