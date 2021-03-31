@@ -66,7 +66,18 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         }
 
         protected override SnapshotPoint? GetCaretPoint(ITextView textViewOpt, ITextBuffer subjectBuffer)
-            => textViewOpt.Caret.Position.Point.GetPoint(b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
+        {
+            // With no selection we just use the caret position as expected
+            if (textViewOpt.Selection.IsEmpty)
+            {
+                return textViewOpt.Caret.Position.Point.GetPoint(b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
+            }
+
+            // If there is a selection then it makes more sense for highlighting to apply to the token at the start
+            // of the selection rather than where the caret is, otherwise you can be in a situation like [|count$$|]++
+            // and it will try to highlight the operator.
+            return textViewOpt.BufferGraph.MapDownToFirstMatch(textViewOpt.Selection.Start.Position, PointTrackingMode.Positive, b => IsSupportedContentType(b.ContentType), PositionAffinity.Successor);
+        }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {

@@ -11,7 +11,6 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -240,10 +239,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.ExecuteCommand(WellKnownCommandNames.ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject);
 
             // Waiting for a long operation: build + reset from project
-            var defaultTimeoutInMilliseconds = VisualStudio.InteractiveWindow.GetTimeoutInMilliseconds();
-            VisualStudio.InteractiveWindow.SetTimeout(120000);
             VisualStudio.InteractiveWindow.WaitForReplOutput("using TestProj;");
-            VisualStudio.InteractiveWindow.SetTimeout(defaultTimeoutInMilliseconds);
 
             VisualStudio.InteractiveWindow.SubmitText("x");
             VisualStudio.InteractiveWindow.WaitForLastReplOutputContains("CS0103");

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Structure;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -296,11 +297,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private void EnsureOutliningTagsComputed(IWpfTextView wpfTextView)
         {
             // We need to get our outlining tag source to notify it to start blocking
-            var outliningTaggerProvider = this.Package.ComponentModel.GetService<VisualStudio14StructureTaggerProvider>();
+            var outliningTaggerProvider = this.Package.ComponentModel.GetService<AbstractStructureTaggerProvider>();
 
             var subjectBuffer = wpfTextView.TextBuffer;
             var snapshot = subjectBuffer.CurrentSnapshot;
-            var tagger = outliningTaggerProvider.CreateTagger<IOutliningRegionTag>(subjectBuffer);
+            var tagger = outliningTaggerProvider.CreateTagger<IStructureTag>(subjectBuffer);
 
             using var disposable = tagger as IDisposable;
             tagger.GetAllTags(new NormalizedSnapshotSpanCollection(snapshot.GetFullSpan()), CancellationToken.None);

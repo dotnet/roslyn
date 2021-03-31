@@ -148,22 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             Language = language;
             _displayName = displayName;
 
-            var fileExtensionToWatch = language switch { LanguageNames.CSharp => ".cs", LanguageNames.VisualBasic => ".vb", _ => null };
-
-            if (filePath != null && fileExtensionToWatch != null)
-            {
-                // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
-                // having to add explicit file watches everywhere.
-                var projectDirectoryToWatch = new FileChangeWatcher.WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
-                _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
-            }
-            else
-            {
-                _documentFileChangeContext = workspace.FileChangeWatcher.CreateContext();
-            }
-
-            _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
-
             _sourceFiles = new BatchingDocumentCollection(
                 this,
                 documentAlreadyInWorkspace: (s, d) => s.ContainsDocument(d),
@@ -187,6 +171,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _compilationOptions = compilationOptions;
             _filePath = filePath;
             _parseOptions = parseOptions;
+
+            var fileExtensionToWatch = language switch { LanguageNames.CSharp => ".cs", LanguageNames.VisualBasic => ".vb", _ => null };
+
+            if (filePath != null && fileExtensionToWatch != null)
+            {
+                // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
+                // having to add explicit file watches everywhere.
+                var projectDirectoryToWatch = new FileChangeWatcher.WatchedDirectory(Path.GetDirectoryName(filePath), fileExtensionToWatch);
+                _documentFileChangeContext = _workspace.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
+            }
+            else
+            {
+                _documentFileChangeContext = workspace.FileChangeWatcher.CreateContext();
+            }
+
+            _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
         }
 
         private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, bool logThrowAwayTelemetry = false)
@@ -234,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // We log the number of syntax trees that have been parsed even if there was no compilation created yet
             var projectState = solutionState.GetRequiredProjectState(projectId);
             var parsedTrees = 0;
-            foreach (var documentState in projectState.DocumentStates.Values)
+            foreach (var documentState in projectState.DocumentStates.States)
             {
                 if (documentState.TryGetSyntaxTree(out _))
                 {

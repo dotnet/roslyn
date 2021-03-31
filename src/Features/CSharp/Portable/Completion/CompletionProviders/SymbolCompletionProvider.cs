@@ -134,23 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override bool IsTriggerOnDot(SyntaxToken token, int characterPosition)
         {
-            if (!IsDot(token, characterPosition))
+            if (!CompletionUtilities.TreatAsDot(token, characterPosition))
                 return false;
 
             // don't want to trigger after a number.  All other cases after dot are ok.
             return token.GetPreviousToken().Kind() != SyntaxKind.NumericLiteralToken;
-        }
-
-        private static bool IsDot(SyntaxToken token, int characterPosition)
-        {
-            if (token.Kind() == SyntaxKind.DotToken)
-                return true;
-
-            // if we're right after the first dot in .. then that's considered completion on dot.
-            if (token.Kind() == SyntaxKind.DotDotToken && token.SpanStart == characterPosition)
-                return true;
-
-            return false;
         }
 
         /// <returns><see langword="null"/> if not an argument list character, otherwise whether the trigger is in an argument list.</returns>

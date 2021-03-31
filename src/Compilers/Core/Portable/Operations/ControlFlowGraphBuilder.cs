@@ -3301,6 +3301,11 @@ oneMoreTime:
 
             static bool isConditionalAccessInstancePresentInChildren(IOperation operation)
             {
+                if (operation is InvalidOperation invalidOperation)
+                {
+                    return checkInvalidChildren(invalidOperation);
+                }
+
                 // The conditional access should always be first leaf node in the subtree when performing a depth-first search. Visit the first child recursively
                 // until we either reach the bottom, or find the conditional access.
                 Operation currentOperation = (Operation)operation;
@@ -3310,8 +3315,27 @@ oneMoreTime:
                     {
                         return true;
                     }
+                    else if (enumerator.Current is InvalidOperation invalidChild)
+                    {
+                        return checkInvalidChildren(invalidChild);
+                    }
 
                     currentOperation = (Operation)enumerator.Current;
+                }
+
+                return false;
+            }
+
+            static bool checkInvalidChildren(InvalidOperation operation)
+            {
+                // Invalid operations can have children ordering that doesn't put the conditional access instance first. For these cases,
+                // use a recursive check
+                foreach (var child in operation.ChildOperations)
+                {
+                    if (child is IConditionalAccessInstanceOperation || isConditionalAccessInstancePresentInChildren(child))
+                    {
+                        return true;
+                    }
                 }
 
                 return false;

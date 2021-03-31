@@ -2218,8 +2218,6 @@ tryAgain:
                         token = this.AddError(token, ErrorCode.ERR_MemberNeedsType);
                         var voidType = _syntaxFactory.PredefinedType(token);
 
-                        var identifier = this.EatToken();
-
                         if (!IsScript)
                         {
                             if (tryParseLocalDeclarationStatementFromStartPoint<LocalFunctionStatementSyntax>(attributes, ref afterAttributesPoint, out result))
@@ -2229,6 +2227,7 @@ tryAgain:
                         }
                         else
                         {
+                            var identifier = this.EatToken();
                             return this.ParseMethodDeclaration(attributes, modifiers, voidType, explicitInterfaceOpt: null, identifier: identifier, typeParameterList: null);
                         }
                     }
@@ -11261,6 +11260,12 @@ tryAgain:
 
             this.EatToken();
 
+            if (forPattern && this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+            {
+                // In a pattern, an identifier can follow a cast unless it's a binary pattern token.
+                return !isBinaryPattern();
+            }
+
             switch (type)
             {
                 // If we have any of the following, we know it must be a cast:
@@ -11279,12 +11284,12 @@ tryAgain:
                     // following a cast.
                     return !forPattern || this.CurrentToken.Kind switch
                     {
-                        SyntaxKind.PlusToken => true,
-                        SyntaxKind.MinusToken => true,
-                        SyntaxKind.AmpersandToken => true,
-                        SyntaxKind.AsteriskToken => true,
+                        SyntaxKind.PlusToken or
+                        SyntaxKind.MinusToken or
+                        SyntaxKind.AmpersandToken or
+                        SyntaxKind.AsteriskToken or
                         SyntaxKind.DotDotToken => true,
-                        _ => CanFollowCast(this.CurrentToken.Kind)
+                        var tk => CanFollowCast(tk)
                     };
 
                 case ScanTypeFlags.GenericTypeOrMethod:
@@ -11298,6 +11303,34 @@ tryAgain:
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type);
+            }
+
+            bool isBinaryPattern()
+            {
+                if (!isBinaryPatternKeyword())
+                {
+                    return false;
+                }
+
+                bool lastTokenIsBinaryOperator = true;
+
+                EatToken();
+                while (isBinaryPatternKeyword())
+                {
+                    // If we see a subsequent binary pattern token, it can't be an operator.
+                    // Later, it will be parsed as an identifier.
+                    lastTokenIsBinaryOperator = !lastTokenIsBinaryOperator;
+                    EatToken();
+                }
+
+                // In case a combinator token is used as a constant, we explicitly check that a pattern is NOT followed.
+                // Such as `(e is (int)or or >= 0)` versus `(e is (int) or or)`
+                return lastTokenIsBinaryOperator == IsPossibleSubpatternElement();
+            }
+
+            bool isBinaryPatternKeyword()
+            {
+                return this.CurrentToken.ContextualKind is SyntaxKind.OrKeyword or SyntaxKind.AndKeyword;
             }
         }
 

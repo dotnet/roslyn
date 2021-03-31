@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeRefStruct), Shared]
     internal class MakeRefStructCodeFixProvider : CodeFixProvider
     {
         // Error CS8345: Field or auto-implemented property cannot be of certain type unless it is an instance member of a ref struct.

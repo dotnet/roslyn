@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string KeyProcessors = nameof(KeyProcessors);
             public const string KeyProcessorProviders = nameof(KeyProcessorProviders);
             public const string Preview = nameof(Preview);
+            public const string LanguageServerProtocol = nameof(LanguageServerProtocol);
         }
 
         public const string Feature = nameof(Feature);
@@ -226,6 +227,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string DocCommentFormatting = nameof(DocCommentFormatting);
             public const string DocumentationComments = nameof(DocumentationComments);
             public const string EditorConfig = nameof(EditorConfig);
+            public const string EditorConfigUI = nameof(EditorConfigUI);
             public const string EncapsulateField = nameof(EncapsulateField);
             public const string EndConstructGeneration = nameof(EndConstructGeneration);
             public const string ErrorList = nameof(ErrorList);

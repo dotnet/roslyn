@@ -27,6 +27,11 @@
         <target state="translated">应用所有 C# 格式规则(缩进、换行、间隔)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_complete_statement_on_semicolon">
+        <source>Automatically complete statement on semicolon</source>
+        <target state="new">Automatically complete statement on semicolon</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
         <target state="needs-review-translation">自动显示参数列表中的完成列表(实验性)</target>
@@ -47,6 +52,11 @@
         <target state="translated">C# 格式规则</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="new">Completion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
         <target state="translated">放弃</target>
@@ -55,11 +65,6 @@
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
         <target state="translated">编辑配色方案</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document">
-        <source>Format document</source>
-        <target state="translated">设置文档的格式</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -585,11 +590,6 @@
       <trans-unit id="Place_code_snippets_in_completion_lists">
         <source>Place _code snippets in completion lists</source>
         <target state="translated">将片段放入完成列表(_C)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Completion_Lists">
-        <source>Completion Lists</source>
-        <target state="translated">完成列表</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_In_Completion_List">
