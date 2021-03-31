@@ -5318,6 +5318,7 @@ record struct C1
         [Fact]
         public void AmbigCtor_WithPropertyInitializer()
         {
+            // Scenario causes ambiguous ctor for record class, but not record struct
             var src = @"
 record struct R(R X)
 {
@@ -5347,7 +5348,7 @@ record struct R(R X)
         }
 
         [Fact]
-        public void GetDeclaredSymbolOnPropertyInitializer()
+        public void GetDeclaredSymbolInPropertyInitializer()
         {
             var src = @"
 record struct R(int I)

@@ -517,7 +517,7 @@ record R(R X)
         }
 
         [Fact]
-        public void GetDeclaredSymbolOnPropertyInitializer()
+        public void GetDeclaredSymbolInPropertyInitializer()
         {
             var src = @"
 record R(int I)
