@@ -32,7 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol? cloneMethod = null;
-            if (!receiverType.IsErrorType())
+            if (receiverType.IsValueType)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureWithOnStructs, diagnostics);
+            }
+            else if (!receiverType.IsErrorType())
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 

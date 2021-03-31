@@ -487,6 +487,7 @@ record R3(R3 x) : Base
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
         public void AmbigCtor_WithFieldInitializer()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 record R(R X)
 {
@@ -2762,9 +2763,19 @@ class C : Base<S>
 }";
             var comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-                // (11,13): error CS8858: The receiver type 'U' is not a valid record type.
+                // (11,13): error CS8652: The feature 'with on structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         _ = t with { X = 2, Property = 3 };
-                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "t").WithArguments("U").WithLocation(11, 13),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "t with { X = 2, Property = 3 }").WithArguments("with on structs").WithLocation(11, 13),
+                // (11,22): error CS0117: 'U' does not contain a definition for 'X'
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("U", "X").WithLocation(11, 22),
+                // (11,29): error CS0117: 'U' does not contain a definition for 'Property'
+                //         _ = t with { X = 2, Property = 3 };
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Property").WithArguments("U", "Property").WithLocation(11, 29)
+                );
+
+            comp = CreateCompilationWithIL(new[] { src, IsExternalInitTypeDefinition }, ilSource: ilSource, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
                 // (11,22): error CS0117: 'U' does not contain a definition for 'X'
                 //         _ = t with { X = 2, Property = 3 };
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "X").WithArguments("U", "X").WithLocation(11, 22),
@@ -8857,6 +8868,7 @@ record B(int X)
         [Fact]
         public void WithExpr_NullableAnalysis_01()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(int X)
@@ -8877,6 +8889,7 @@ record B(int X)
         [Fact]
         public void WithExpr_NullableAnalysis_02()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(string X)
@@ -8898,6 +8911,7 @@ record B(string X)
         [Fact]
         public void WithExpr_NullableAnalysis_03()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(string? X)
@@ -8961,6 +8975,7 @@ record B(int X)
         [Fact, WorkItem(44763, "https://github.com/dotnet/roslyn/issues/44763")]
         public void WithExpr_NullableAnalysis_05()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B(string? X, string? Y)
@@ -8998,6 +9013,7 @@ record B(string? X, string? Y)
         [Fact]
         public void WithExpr_NullableAnalysis_06()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 #nullable enable
 record B
@@ -9414,6 +9430,7 @@ class D
         [Fact]
         public void WithExprAssignToRef1()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 using System;
 record C(int Y)
@@ -9502,6 +9519,7 @@ record C(int Y)
         [Fact]
         public void WithExpressionSameLHS()
         {
+            // PROTOTYPE(record-structs): ported
             var comp = CreateCompilation(@"
 record C(int X)
 {
@@ -25841,6 +25859,7 @@ public record A;
         [Fact]
         public void AnalyzerActions_01()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1]int X = 0) : I1
 {}
@@ -26234,6 +26253,7 @@ class Attr3 : System.Attribute {}
         [Fact]
         public void AnalyzerActions_02()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A(int X = 0)
 {}
@@ -26319,6 +26339,7 @@ record C
         [Fact]
         public void AnalyzerActions_03()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A(int X = 0)
 {}
@@ -26467,6 +26488,7 @@ record C
         [Fact]
         public void AnalyzerActions_04()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -26683,6 +26705,7 @@ IInvocationOperation ( A..ctor([System.Int32 X = 0])) (OperationKind.Invocation,
         [Fact]
         public void AnalyzerActions_05()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -26997,6 +27020,7 @@ interface I1 {}
         [Fact]
         public void AnalyzerActions_07()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -27102,6 +27126,7 @@ interface I1 {}
         [Fact]
         public void AnalyzerActions_08()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1]int X = 0) : I1
 {}
@@ -27318,6 +27343,7 @@ interface I1 {}
         [Fact]
         public void AnalyzerActions_09()
         {
+            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
@@ -27824,6 +27850,7 @@ namespace System.Runtime.CompilerServices
         [WorkItem(44571, "https://github.com/dotnet/roslyn/issues/44571")]
         public void XmlDoc_Cref()
         {
+            // PROTOTYPE(record-structs): ported
             var src = @"
 /// <summary>Summary</summary>
 /// <param name=""I1"">Description for <see cref=""I1""/></param>

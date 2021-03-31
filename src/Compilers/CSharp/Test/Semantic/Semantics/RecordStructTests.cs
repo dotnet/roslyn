@@ -5190,5 +5190,428 @@ record struct C1
                 Diagnostic(ErrorCode.ERR_StaticAPIInRecord, "PrintMembers").WithArguments("C1.PrintMembers(System.Text.StringBuilder)").WithLocation(4, 25)
                 );
         }
+
+        [Fact]
+        public void WithExprOnStruct_LangVersion()
+        {
+            var src = @"
+var b = new B() { X = 1 };
+var b2 = b.M();
+System.Console.Write(b2.X);
+
+public struct B
+{
+    public int X { get; set; }
+    public B M()
+    {
+        return this with { X = 42 };
+    }
+}";
+            var comp = CreateCompilation(src, parseOptions: TestOptions.Regular9);
+            comp.VerifyEmitDiagnostics(
+                // (11,16): error CS8652: The feature 'with on structs' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         return this with { X = 42 };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "this with { X = 42 }").WithArguments("with on structs").WithLocation(11, 16)
+                );
+
+            comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("B.M", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (B V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""B""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldc.i4.s   42
+  IL_000b:  call       ""void B.X.set""
+  IL_0010:  ldloc.0
+  IL_0011:  ret
+}");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var with = tree.GetRoot().DescendantNodes().OfType<WithExpressionSyntax>().Single();
+            var type = model.GetTypeInfo(with);
+            Assert.Equal("B", type.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnParameter()
+        {
+            var src = @"
+var b = new B() { X = 1 };
+var b2 = B.M(b);
+System.Console.Write(b2.X);
+
+public struct B
+{
+    public int X { get; set; }
+    public static B M(B b)
+    {
+        return b with { X = 42 };
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("B.M", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (B V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.s   42
+  IL_0006:  call       ""void B.X.set""
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnTStructParameter()
+        {
+            var src = @"
+var b = new B() { X = 1 };
+var b2 = B.M(b);
+System.Console.Write(b2.X);
+
+public interface I
+{
+    int X { get; set; }
+}
+
+public struct B : I
+{
+    public int X { get; set; }
+    public static T M<T>(T b) where T : struct, I
+    {
+        return b with { X = 42 };
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("B.M<T>(T)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.s   42
+  IL_0006:  constrained. ""T""
+  IL_000c:  callvirt   ""void I.X.set""
+  IL_0011:  ldloc.0
+  IL_0012:  ret
+}");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var with = tree.GetRoot().DescendantNodes().OfType<WithExpressionSyntax>().Single();
+            var type = model.GetTypeInfo(with);
+            Assert.Equal("T", type.Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnRecordStructParameter()
+        {
+            var src = @"
+var b = new B(1);
+var b2 = B.M(b);
+System.Console.Write(b2.X);
+
+public record struct B(int X)
+{
+    public static B M(B b)
+    {
+        return b with { X = 42 };
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "42");
+            verifier.VerifyIL("B.M", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (B V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.s   42
+  IL_0006:  call       ""void B.X.set""
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnRecordStructParameter_Readonly()
+        {
+            var src = @"
+var b = new B(1, 2);
+var b2 = B.M(b);
+System.Console.Write(b2.X);
+System.Console.Write(b2.Y);
+
+public readonly record struct B(int X, int Y)
+{
+    public static B M(B b)
+    {
+        return b with { X = 42, Y = 43 };
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "4243", verify: Verification.Skipped /* init-only */);
+            verifier.VerifyIL("B.M", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (B V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.s   42
+  IL_0006:  call       ""void B.X.init""
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  ldc.i4.s   43
+  IL_000f:  call       ""void B.Y.init""
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_01()
+        {
+            var src = @"
+#nullable enable
+record struct B(int X)
+{
+    static void M(B b)
+    {
+        string? s = null;
+        _ = b with { X = M(out s) };
+        s.ToString();
+    }
+
+    static int M(out string s) { s = ""a""; return 42; }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_02()
+        {
+            var src = @"
+#nullable enable
+record struct B(string X)
+{
+    static void M(B b, string? s)
+    {
+        b.X.ToString();
+        _ = b with { X = s }; // 1
+        b.X.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (8,26): warning CS8601: Possible null reference assignment.
+                //         _ = b with { X = s }; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "s").WithLocation(8, 26));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_03()
+        {
+            var src = @"
+#nullable enable
+record struct B(string? X)
+{
+    static void M1(B b, string s, bool flag)
+    {
+        if (flag) { b.X.ToString(); } // 1
+        _ = b with { X = s };
+        if (flag) { b.X.ToString(); } // 2
+    }
+
+    static void M2(B b, string s, bool flag)
+    {
+        if (flag) { b.X.ToString(); } // 3
+        b = b with { X = s };
+        if (flag) { b.X.ToString(); }
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (7,21): warning CS8602: Dereference of a possibly null reference.
+                //         if (flag) { b.X.ToString(); } // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(7, 21),
+                // (9,21): warning CS8602: Dereference of a possibly null reference.
+                //         if (flag) { b.X.ToString(); } // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(9, 21),
+                // (14,21): warning CS8602: Dereference of a possibly null reference.
+                //         if (flag) { b.X.ToString(); } // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(14, 21));
+        }
+
+        [Fact, WorkItem(44763, "https://github.com/dotnet/roslyn/issues/44763")]
+        public void WithExpr_NullableAnalysis_05()
+        {
+            var src = @"
+#nullable enable
+record struct B(string? X, string? Y)
+{
+    static void M1(bool flag)
+    {
+        B b = new B(""hello"", null);
+        if (flag)
+        {
+            b.X.ToString(); // shouldn't warn
+            b.Y.ToString(); // 1
+        }
+
+        b = b with { Y = ""world"" };
+        b.X.ToString(); // shouldn't warn
+        b.Y.ToString();
+    }
+}";
+            // records should propagate the nullability of the
+            // constructor arguments to the corresponding properties.
+            // https://github.com/dotnet/roslyn/issues/44763
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8602: Dereference of a possibly null reference.
+                //             b.X.ToString(); // shouldn't warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(10, 13),
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
+                //             b.Y.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(11, 13),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
+                //         b.X.ToString(); // shouldn't warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.X").WithLocation(15, 9));
+        }
+
+        [Fact]
+        public void WithExpr_NullableAnalysis_06()
+        {
+            var src = @"
+#nullable enable
+struct B
+{
+    public string? X { get; init; }
+    public string? Y { get; init; }
+
+    static void M1(bool flag)
+    {
+        B b = new B { X = ""hello"", Y = null };
+        if (flag)
+        {
+            b.X.ToString();
+            b.Y.ToString(); // 1
+        }
+
+        b = b with { Y = ""world"" };
+
+        b.X.ToString();
+        b.Y.ToString();
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (14,13): warning CS8602: Dereference of a possibly null reference.
+                //             b.Y.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Y").WithLocation(14, 13)
+            );
+        }
+
+        [Fact]
+        public void WithExprAssignToRef1()
+        {
+            var src = @"
+using System;
+record struct C(int Y)
+{
+    private readonly int[] _a = new[] { 0 };
+    public ref int X => ref _a[0];
+
+    public static void Main()
+    {
+        var c = new C(0) { X = 5 };
+        Console.WriteLine(c.X);
+        c = c with { X = 1 };
+        Console.WriteLine(c.X);
+    }
+}";
+            var verifier = CompileAndVerify(src, expectedOutput: @"
+5
+1").VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (C V_0, //c
+                C V_1)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""C..ctor(int)""
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  call       ""ref int C.X.get""
+  IL_000f:  ldc.i4.5
+  IL_0010:  stind.i4
+  IL_0011:  ldloc.1
+  IL_0012:  stloc.0
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       ""ref int C.X.get""
+  IL_001a:  ldind.i4
+  IL_001b:  call       ""void System.Console.WriteLine(int)""
+  IL_0020:  ldloc.0
+  IL_0021:  stloc.1
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  call       ""ref int C.X.get""
+  IL_0029:  ldc.i4.1
+  IL_002a:  stind.i4
+  IL_002b:  ldloc.1
+  IL_002c:  stloc.0
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  call       ""ref int C.X.get""
+  IL_0034:  ldind.i4
+  IL_0035:  call       ""void System.Console.WriteLine(int)""
+  IL_003a:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExpressionSameLHS()
+        {
+            var comp = CreateCompilation(@"
+record struct C(int X)
+{
+    public static void Main()
+    {
+        var c = new C(0);
+        c = c with { X = 1, X = 2};
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,29): error CS1912: Duplicate initialization of member 'X'
+                //         c = c with { X = 1, X = 2};
+                Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "X").WithArguments("X").WithLocation(7, 29)
+            );
+        }
     }
 }
