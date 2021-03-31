@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             }
             else
             {
-                newStatements.Add(invocation);
+                newStatements.Add(generator.ExpressionStatement(invocation));
             }
 
             var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
