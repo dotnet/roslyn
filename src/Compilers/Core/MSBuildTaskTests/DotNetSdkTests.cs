@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             VerifyValues(
                 customProps: $@"
 <ItemGroup>
-    <ProjectReference Include=""Project2.csproj"" Targets=""InitializeSourceRootMappedPaths"" OutputItemType=""ReferencedProjectSourceRoots"" ReferenceOutputAssembly=""false"" />
+  <ProjectReference Include=""Project2.csproj"" Targets=""InitializeSourceRootMappedPaths"" OutputItemType=""ReferencedProjectSourceRoots"" ReferenceOutputAssembly=""false"" />
 </ItemGroup>
 ",
                 customTargets: null,
@@ -440,8 +440,9 @@ some_prop = some_val");
             VerifyValues(
                 customProps: @"
 <PropertyGroup>
-    <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
-    <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+  <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
+  <!-- Disable automatic global .editorconfig generation by the SDK -->
+  <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
                 targets: new[]
@@ -599,9 +600,9 @@ some_prop = some_val");
             VerifyValues(
                 customProps: @"
   <PropertyGroup>
-    <!-- Disable automatic global .editorconfig generation by the SDK --> 
     <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
     <DiscoverGlobalAnalyzerConfigFiles>false</DiscoverGlobalAnalyzerConfigFiles>
+    <!-- Disable automatic global .editorconfig generation by the SDK --> 
     <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
   </PropertyGroup>",
                 customTargets: null,
@@ -624,7 +625,6 @@ some_prop = some_val");
 some_prop = some_val");
 
             VerifyValues(
-                // Disable automatic global .editorconfig generation by the SDK
                 customProps: @"
   <PropertyGroup>
     <!-- Disable automatic global .editorconfig generation by the SDK --> 
