@@ -10978,6 +10978,11 @@ tryAgain:
             return _syntaxFactory.RefValueExpression(@refvalue, openParen, expr, comma, type, closeParen);
         }
 
+        private bool ScanParenthesizedLambda(Precedence precedence)
+        {
+            return ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
+        }
+
         private bool ScanParenthesizedImplicitlyTypedLambda(Precedence precedence)
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
@@ -11332,28 +11337,21 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.OpenBracketToken)
             {
                 var resetPoint = this.GetResetPoint();
-
-                _ = ParseAttributeDeclarations();
-                bool result;
-
-                switch (CurrentToken.Kind)
+                try
                 {
-                    case SyntaxKind.StaticKeyword:
-                    case SyntaxKind.IdentifierToken:
-                        result = IsPossibleLambdaExpressionCore(precedence);
-                        break;
-                    case SyntaxKind.OpenParenToken:
-                        result = ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
-                        break;
-                    default:
-                        result = false;
-                        break;
+                    _ = ParseAttributeDeclarations();
+                    return CurrentToken.Kind switch
+                    {
+                        SyntaxKind.StaticKeyword or SyntaxKind.IdentifierToken => IsPossibleLambdaExpressionCore(precedence),
+                        SyntaxKind.OpenParenToken => ScanParenthesizedLambda(precedence),
+                        _ => false,
+                    };
                 }
-
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-
-                return result;
+                finally
+                {
+                    this.Reset(ref resetPoint);
+                    this.Release(ref resetPoint);
+                }
             }
             else
             {
@@ -11472,7 +11470,7 @@ tryAgain:
             }
 
             // Check whether looks like implicitly or explicitly typed lambda
-            bool isAsync = ScanParenthesizedImplicitlyTypedLambda(precedence) || ScanExplicitlyTypedLambda(precedence);
+            bool isAsync = ScanParenthesizedLambda(precedence);
 
             // Restore current token index
             this.Reset(ref resetPoint);
