@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -96,8 +95,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
-            context.RegisterRefactoring(action.Value.Item1, textSpan);
-            context.RegisterRefactoring(action.Value.Item2, textSpan);
+            context.RegisterRefactoring(new CodeActionWithNestedActions(
+                CreateDisplayText(expression, syntaxFacts, FeaturesResources.Introduce_parameter_for_0), action.Value.Item1, isInlinable: false), textSpan);
+            context.RegisterRefactoring(new CodeActionWithNestedActions(
+                CreateDisplayText(expression, syntaxFacts, FeaturesResources.Introduce_parameter_for_all_occurrences_of_0), action.Value.Item2, isInlinable: false), textSpan);
         }
 
         /// <summary>
@@ -735,12 +736,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// Does not create actions for overloads/trampoline if there are optional parameters or if the methodSymbol
         /// is a constructor.
         /// </summary>
-        private async Task<(CodeActionWithNestedActions, CodeActionWithNestedActions)?> AddActionsAsync(Document document,
+        private async Task<(ImmutableArray<CodeAction>, ImmutableArray<CodeAction>)?> AddActionsAsync(Document document,
             TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxNode containingMethod,
             CancellationToken cancellationToken)
         {
             var actionsBuilder = ImmutableArray.CreateBuilder<CodeAction>();
             var actionsBuilderAllOccurrences = ImmutableArray.CreateBuilder<CodeAction>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var (isParameterized, hasOptionalParameter) = await ShouldExpressionDisplayCodeActionAsync(document, expression, methodSymbol, cancellationToken).ConfigureAwait(false);
             if (!isParameterized)
@@ -760,15 +762,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                         FeaturesResources.into_extracted_method_to_invoke_at_callsites, allOccurrences: true, trampoline: true, overload: false));
 
                     actionsBuilder.Add(CreateNewCodeAction(
-                        FeaturesResources.into_new_overload_of_0, allOccurrences: false, trampoline: false, overload: true));
+                        CreateDisplayText(expression, syntaxFacts, FeaturesResources.into_new_overload_of_0), allOccurrences: false, trampoline: false, overload: true));
                     actionsBuilderAllOccurrences.Add(CreateNewCodeAction(
-                         FeaturesResources.into_new_overload_of_0, allOccurrences: true, trampoline: false, overload: true));
+                        CreateDisplayText(expression, syntaxFacts, FeaturesResources.into_new_overload_of_0), allOccurrences: true, trampoline: false, overload: true));
                 }
             }
 
-            var codeActions = new CodeActionWithNestedActions(FeaturesResources.Introduce_parameter_for_0, actionsBuilder.ToImmutable(), isInlinable: false);
-            var codeActionsAllOccurrences = new CodeActionWithNestedActions(FeaturesResources.Introduce_parameter_for_all_occurrences_of_0, actionsBuilderAllOccurrences.ToImmutable(), isInlinable: false);
-            return (codeActions, codeActionsAllOccurrences);
+            return (actionsBuilder.ToImmutable(), actionsBuilderAllOccurrences.ToImmutable());
 
             // Local function to create a code action with more ease
             MyCodeAction CreateNewCodeAction(string actionName,
@@ -844,6 +844,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             static bool IsInstanceMemberReference(IOperation operation)
                 => operation is IMemberReferenceOperation memberReferenceOperation &&
                     memberReferenceOperation.Instance?.Kind == OperationKind.InstanceReference;
+        }
+
+        private static string CreateDisplayText(TExpressionSyntax expression, ISyntaxFactsService syntaxFacts, string resourceString)
+        {
+            var singleLineExpression = syntaxFacts.ConvertToSingleLine(expression);
+            var nodeString = singleLineExpression.ToString();
+
+            return string.Format(resourceString, nodeString);
         }
 
         private class MyCodeAction : SolutionChangeAction
