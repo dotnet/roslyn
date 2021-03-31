@@ -7,7 +7,19 @@ Microsoft.CodeAnalysis.GeneratorSyntaxContext
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.GeneratorSyntaxContext() -> void
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.Node.get -> Microsoft.CodeAnalysis.SyntaxNode!
 Microsoft.CodeAnalysis.GeneratorSyntaxContext.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel!
+Microsoft.CodeAnalysis.IIncrementalGenerator
+Microsoft.CodeAnalysis.IIncrementalGenerator.Initialize(Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext context) -> void
 Microsoft.CodeAnalysis.IMethodSymbol.IsPartialDefinition.get -> bool
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.IncrementalGeneratorInitializationContext() -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterExecutionPipeline(System.Action<Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext>! callback) -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorOutput
+Microsoft.CodeAnalysis.IncrementalGeneratorOutput.IncrementalGeneratorOutput() -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext
+Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.IncrementalGeneratorPipelineContext() -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorPipelineContext.RegisterOutput(Microsoft.CodeAnalysis.IncrementalGeneratorOutput output) -> void
 Microsoft.CodeAnalysis.ISyntaxContextReceiver
 Microsoft.CodeAnalysis.ISyntaxContextReceiver.OnVisitSyntaxNode(Microsoft.CodeAnalysis.GeneratorSyntaxContext context) -> void
 Microsoft.CodeAnalysis.GeneratorInitializationContext.RegisterForPostInitialization(System.Action<Microsoft.CodeAnalysis.GeneratorPostInitializationContext>! callback) -> void

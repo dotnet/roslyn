@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis
         /// For example a generator may choose to add sources during PostInitialization. These will be added to the compilation before execution and
         /// will be visited by a registered <see cref="ISyntaxReceiver"/> and available for semantic analysis as part of the <see cref="GeneratorExecutionContext.Compilation"/>
         /// 
-        /// Note that any sources added during PostInitialization <i>will</i> be visible to the later phases of other generators operation on the compilation. 
+        /// Note that any sources added during PostInitialization <i>will</i> be visible to the later phases of other generators operating on the compilation. 
         /// </remarks>
         /// <param name="callback">An <see cref="Action{T}"/> that accepts a <see cref="GeneratorPostInitializationContext"/> that will be invoked after initialization.</param>
         public void RegisterForPostInitialization(Action<GeneratorPostInitializationContext> callback)
