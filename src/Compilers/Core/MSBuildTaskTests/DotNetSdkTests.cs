@@ -409,7 +409,8 @@ some_prop = some_val");
             VerifyValues(
                 customProps: @"
 <PropertyGroup>
-    <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+  <!-- Disable automatic global .editorconfig generation by the SDK --> 
+  <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
                 targets: new[]
@@ -468,7 +469,8 @@ some_prop = some_val");
             VerifyValues(
                 customProps: @"
 <PropertyGroup>
-    <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+  <!-- Disable automatic global .editorconfig generation by the SDK --> 
+  <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
                 targets: new[]
@@ -501,8 +503,9 @@ some_prop = some_val");
             VerifyValues(
                 customProps: @"
 <PropertyGroup>
-    <DiscoverGlobalAnalyzerConfigFiles>false</DiscoverGlobalAnalyzerConfigFiles>
-    <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+  <DiscoverGlobalAnalyzerConfigFiles>false</DiscoverGlobalAnalyzerConfigFiles>
+  <!-- Disable automatic global .editorconfig generation by the SDK --> 
+  <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
                 targets: new[]
@@ -533,8 +536,9 @@ some_prop = some_val");
             VerifyValues(
                 customProps: @"
 <PropertyGroup>
-    <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
-    <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
+  <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
+  <!-- Disable automatic global .editorconfig generation by the SDK --> 
+  <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
 </PropertyGroup>",
                 customTargets: null,
                 targets: new[]
@@ -595,6 +599,7 @@ some_prop = some_val");
             VerifyValues(
                 customProps: @"
   <PropertyGroup>
+    <!-- Disable automatic global .editorconfig generation by the SDK --> 
     <DiscoverEditorConfigFiles>false</DiscoverEditorConfigFiles>
     <DiscoverGlobalAnalyzerConfigFiles>false</DiscoverGlobalAnalyzerConfigFiles>
     <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
@@ -619,8 +624,10 @@ some_prop = some_val");
 some_prop = some_val");
 
             VerifyValues(
+                // Disable automatic global .editorconfig generation by the SDK
                 customProps: @"
   <PropertyGroup>
+    <!-- Disable automatic global .editorconfig generation by the SDK --> 
     <GenerateMSBuildEditorConfigFile>false</GenerateMSBuildEditorConfigFile>
   </PropertyGroup>
   <ItemGroup>
