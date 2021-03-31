@@ -941,6 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
                 case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
+                case LocalFunctionStatementSyntax or LocalDeclarationStatementSyntax or BaseParameterListSyntax: throw ExceptionUtilities.Unreachable;
             }
 
             return default;
