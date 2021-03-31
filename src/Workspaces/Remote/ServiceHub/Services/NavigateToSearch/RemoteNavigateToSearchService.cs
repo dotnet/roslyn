@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        private Func<INavigateToSearchResult, Task> GetCallback(
+        private Func<RoslynNavigateToItem, Task> GetCallback(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
-            return async r => await _callback.InvokeAsync((callback, c) =>
-                callback.OnResultFoundAsync(callbackId, SerializableNavigateToSearchResult.Dehydrate(r)),
+            return async i => await _callback.InvokeAsync((callback, c) =>
+                callback.OnResultFoundAsync(callbackId, i),
                 cancellationToken).ConfigureAwait(false);
         }
     }

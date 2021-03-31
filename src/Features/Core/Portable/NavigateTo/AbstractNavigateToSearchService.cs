@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
@@ -31,15 +29,27 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public bool CanFilter => true;
 
+        private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(Solution solution, Func<INavigateToSearchResult, Task> onResultFound)
+        {
+            return item =>
+            {
+                if (item.TryCreateSearchResult(solution, out var result))
+                    return onResultFound(result);
+
+                return Task.CompletedTask;
+            };
+        }
+
         public async Task SearchDocumentAsync(
             Document document, string searchPattern, IImmutableSet<string> kinds,
             Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
+            var solution = document.Project.Solution;
+            var onItemFound = GetOnItemFoundCallback(solution, onResultFound);
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var solution = document.Project.Solution;
-                var callback = new NavigateToSearchServiceCallback(solution, onResultFound, cancellationToken);
+                var callback = new NavigateToSearchServiceCallback(onItemFound);
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) => service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
@@ -49,19 +59,20 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             await SearchDocumentInCurrentProcessAsync(
-                document, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
+                document, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task SearchProjectAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
             IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
+            var solution = project.Solution;
+            var onItemFound = GetOnItemFoundCallback(solution, onResultFound);
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var solution = project.Solution;
                 var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
-                var callback = new NavigateToSearchServiceCallback(solution, onResultFound, cancellationToken);
+                var callback = new NavigateToSearchServiceCallback(onItemFound);
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) => service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
@@ -71,7 +82,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
 
             await SearchProjectInCurrentProcessAsync(
-                project, priorityDocuments, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
+                project, priorityDocuments, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
     }
 }

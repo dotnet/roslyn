@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,15 +39,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public static Task SearchProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
-                project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, onResultFound, cancellationToken);
+                project, priorityDocuments, searchDocument: null, searchPattern, kinds, onResultFound, cancellationToken);
         }
 
         public static Task SearchDocumentInCurrentProcessAsync(
             Document document, string searchPattern, IImmutableSet<string> kinds,
-            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
                 document.Project, priorityDocuments: ImmutableArray<Document>.Empty,
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static async Task FindSearchResultsAsync(
             Project project, ImmutableArray<Document> priorityDocuments,
             Document searchDocument, string pattern, IImmutableSet<string> kinds,
-            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
             // Prioritize the active documents if we have any.
             var highPriDocs = priorityDocuments.WhereAsArray(d => project.ContainsDocument(d.Id));
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
             nameMatches.Clear();
             containerMatches.Clear();
@@ -143,7 +142,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
         }
 
-        private static async Task<SearchResult> ConvertResultAsync(
+        private static async Task<RoslynNavigateToItem> ConvertResultAsync(
             DeclaredSymbolInfo declaredSymbolInfo, Document document,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
@@ -154,7 +153,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // case sensitive. 
             var isCaseSensitive = nameMatches.All(m => m.IsCaseSensitive) && containerMatches.All(m => m.IsCaseSensitive);
             var kind = GetItemKind(declaredSymbolInfo);
-            var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
 
             using var _ = ArrayBuilder<TextSpan>.GetInstance(out var matchedSpans);
             foreach (var match in nameMatches)
@@ -165,9 +163,88 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // well in the UI.
             var additionalMatchingProjects = await GetAdditionalProjectsWithMatchAsync(
                 document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
-            return new SearchResult(
-                document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
-                matchedSpans.ToImmutable(), additionalMatchingProjects);
+            return new RoslynNavigateToItem(
+                isStale: false,
+                document.Id,
+                ComputeCombinedProjectName(document, additionalMatchingProjects),
+                declaredSymbolInfo.Name,
+                declaredSymbolInfo.NameSuffix,
+                declaredSymbolInfo.ContainerDisplayName,
+                declaredSymbolInfo.Kind,
+                declaredSymbolInfo.Accessibility,
+                declaredSymbolInfo.Span,
+                declaredSymbolInfo.IsPartial,
+                IsNonNestedNamedType(declaredSymbolInfo),
+                kind, matchKind,
+                isCaseSensitive,
+                matchedSpans.ToImmutable(),
+                ComputSecondarySort(declaredSymbolInfo));
+        }
+
+        private static string ComputSecondarySort(DeclaredSymbolInfo declaredSymbolInfo)
+        {
+            using var _ = ArrayBuilder<string>.GetInstance(out var parts);
+
+            parts.Add(declaredSymbolInfo.ParameterCount.ToString("X4"));
+            parts.Add(declaredSymbolInfo.TypeParameterCount.ToString("X4"));
+            parts.Add(declaredSymbolInfo.Name);
+
+            return string.Join(" ", parts);
+        }
+
+        private static string ComputeCombinedProjectName(Document document, ImmutableArray<Project> additionalMatchingProjects)
+        {
+            // If there aren't any additional matches in other projects, we don't need to merge anything.
+            if (additionalMatchingProjects.Length > 0)
+            {
+                // First get the simple project name and flavor for the actual project we got a hit in.  If we can't
+                // figure this out, we can't create a merged name.
+                var firstProject = document.Project;
+                var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
+                if (firstProjectName != null)
+                {
+
+                    using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
+                    flavors.Add(firstProjectFlavor!);
+
+                    // Now, do the same for the other projects where we had a match. As above, if we can't figure out the
+                    // simple name/flavor, or if the simple project name doesn't match the simple project name we started
+                    // with then we can't merge these.
+                    foreach (var additionalProject in additionalMatchingProjects)
+                    {
+                        var (projectName, projectFlavor) = additionalProject.State.NameAndFlavor;
+                        if (projectName == firstProjectName)
+                            flavors.Add(projectFlavor!);
+                    }
+
+                    flavors.RemoveDuplicates();
+                    flavors.Sort();
+
+                    return $"{firstProjectName} ({string.Join(", ", flavors)})";
+                }
+            }
+
+            // Couldn't compute a merged project name (or only had one project).  Just return the name of hte project itself.
+            return document.Project.Name;
+        }
+
+        private static bool IsNonNestedNamedType(DeclaredSymbolInfo info)
+            => !info.IsNestedType && IsNamedType(info);
+
+        private static bool IsNamedType(DeclaredSymbolInfo info)
+        {
+            switch (info.Kind)
+            {
+                case DeclaredSymbolInfoKind.Class:
+                case DeclaredSymbolInfoKind.Record:
+                case DeclaredSymbolInfoKind.Enum:
+                case DeclaredSymbolInfoKind.Interface:
+                case DeclaredSymbolInfoKind.Module:
+                case DeclaredSymbolInfoKind.Struct:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private static async Task<ImmutableArray<Project>> GetAdditionalProjectsWithMatchAsync(
