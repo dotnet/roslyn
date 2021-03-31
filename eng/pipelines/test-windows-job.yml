@@ -31,6 +31,11 @@ jobs:
   steps:
     - checkout: none
 
+    - task: UseDotNet@2
+      inputs:
+        packageType: sdk
+        version: 5.0.x
+
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
