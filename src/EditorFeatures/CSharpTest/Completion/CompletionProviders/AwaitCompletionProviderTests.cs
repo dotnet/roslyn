@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     /// src/EditorFeatures/Test2/IntelliSense/CSharpCompletionCommandHandlerTests_AwaitCompletion.vb
     /// </summary>
     [Trait(Traits.Feature, Traits.Features.Completion)]
-    public class AwaitKeywordRecommenderTests : AbstractCSharpCompletionProviderTests
+    public class AwaitCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType() => typeof(AwaitCompletionProvider);
 
