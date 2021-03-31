@@ -967,7 +967,7 @@ Additional information: {1}</value>
     <value>Reset Visual Studio default keymapping</value>
   </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
-    <value>Enable navigation to decompiled sources (experimental)</value>
+    <value>Enable navigation to decompiled sources</value>
   </data>
   <data name="Colorize_regular_expressions" xml:space="preserve">
     <value>Colorize regular expressions</value>

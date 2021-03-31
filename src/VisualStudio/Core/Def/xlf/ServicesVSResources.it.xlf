@@ -2519,8 +2519,8 @@ Informazioni aggiuntive: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Abilita lo spostamento in origini decompilate (sperimentale)</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">Abilita lo spostamento in origini decompilate (sperimentale)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

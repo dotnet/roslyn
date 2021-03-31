@@ -2519,8 +2519,8 @@ Zusätzliche Informationen: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Aktivieren der Navigation zu dekompilierten Quellen (experimentell)</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="needs-review-translation">Aktivieren der Navigation zu dekompilierten Quellen (experimentell)</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
