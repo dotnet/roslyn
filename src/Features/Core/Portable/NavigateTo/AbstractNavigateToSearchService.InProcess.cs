@@ -181,19 +181,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 kind,
                 matchKind,
                 isCaseSensitive,
-                matchedSpans.ToImmutable(),
-                ComputSecondarySort(declaredSymbolInfo));
-        }
-
-        private static string ComputSecondarySort(DeclaredSymbolInfo declaredSymbolInfo)
-        {
-            using var _ = ArrayBuilder<string>.GetInstance(out var parts);
-
-            parts.Add(declaredSymbolInfo.ParameterCount.ToString("X4"));
-            parts.Add(declaredSymbolInfo.TypeParameterCount.ToString("X4"));
-            parts.Add(declaredSymbolInfo.Name);
-
-            return string.Join(" ", parts);
+                matchedSpans.ToImmutable());
         }
 
         private static string ComputeCombinedProjectName(Document document, ImmutableArray<Project> additionalMatchingProjects)

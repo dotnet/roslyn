@@ -45,9 +45,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         [DataMember(Order = 7)]
         public readonly ImmutableArray<TextSpan> NameMatchSpans;
 
-        [DataMember(Order = 8)]
-        public readonly string SecondarySort;
-
         public RoslynNavigateToItem(
             bool isStale,
             DocumentId documentId,
@@ -56,8 +53,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             string kind,
             NavigateToMatchKind matchKind,
             bool isCaseSensitive,
-            ImmutableArray<TextSpan> nameMatchSpans,
-            string secondarySort)
+            ImmutableArray<TextSpan> nameMatchSpans)
         {
             IsStale = isStale;
             DocumentId = documentId;
@@ -67,7 +63,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             MatchKind = matchKind;
             IsCaseSensitive = isCaseSensitive;
             NameMatchSpans = nameMatchSpans;
-            SecondarySort = secondarySort;
         }
 
         public bool TryCreateSearchResult(Solution solution, [NotNullWhen(true)] out INavigateToSearchResult? result)
@@ -162,10 +157,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     // Outer.cs and Outer.Inner.cs  then we add "Outer" and "Outer Inner" to 
                     // the secondary sort string.  That way "Outer.cs" will be weighted above
                     // "Outer.Inner.cs"
-                    using var _ = ArrayBuilder<string>.GetInstance(out var parts);
-                    parts.Add(_item.SecondarySort);
-
                     var fileName = Path.GetFileNameWithoutExtension(_document.FilePath ?? "");
+
+                    using var _ = ArrayBuilder<string>.GetInstance(out var parts);
+
+                    parts.Add(_item.DeclaredSymbolInfo.ParameterCount.ToString("X4"));
+                    parts.Add(_item.DeclaredSymbolInfo.TypeParameterCount.ToString("X4"));
+                    parts.Add(_item.DeclaredSymbolInfo.Name);
                     parts.AddRange(fileName.Split(s_dotArray));
 
                     return string.Join(" ", parts);
