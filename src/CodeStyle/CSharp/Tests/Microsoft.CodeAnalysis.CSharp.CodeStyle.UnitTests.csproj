@@ -16,10 +16,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="$(MicrosoftCodeAnalysisCSharpCodeFixTestingXUnitVersion)" />
   </ItemGroup>
-  <ItemGroup>
-    <!-- Manual exclusions for obsolete interop assemblies -->
-    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" NoWarn="NU1605" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <!-- Directly reference the Workspaces project so we always test against the latest Roslyn bits -->
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

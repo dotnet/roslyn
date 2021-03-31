@@ -46,8 +46,4 @@
     <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
-  <ItemGroup>
-    <!-- Manual exclusions for obsolete interop assemblies -->
-    <PackageReference Update="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" NoWarn="NU1605" />
-  </ItemGroup>
 </Project>
