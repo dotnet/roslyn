@@ -106,11 +106,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Span = span;
             InheritanceNames = inheritanceNames;
 
-            const uint MaxFlagValue = 0b10000;
-            Contract.ThrowIfTrue((uint)accessibility > MaxFlagValue);
-            Contract.ThrowIfTrue((uint)kind > MaxFlagValue);
-            parameterCount = Math.Min(parameterCount, (byte)MaxFlagValue);
-            typeParameterCount = Math.Min(typeParameterCount, (byte)MaxFlagValue);
+            const uint MaxFlagValue5 = 0b10000;
+            const uint MaxFlagValue4 = 0b1111;
+            Contract.ThrowIfTrue((uint)accessibility > MaxFlagValue4);
+            Contract.ThrowIfTrue((uint)kind > MaxFlagValue5);
+            parameterCount = Math.Min(parameterCount, (byte)MaxFlagValue4);
+            typeParameterCount = Math.Min(typeParameterCount, (byte)MaxFlagValue4);
 
             _flags =
                 (uint)kind |
