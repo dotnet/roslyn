@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
             => new CSharpIntroduceParameterCodeRefactoringProvider();
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => GetNestedActions(actions);
+            => FlattenActions(actions);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
         public async Task TestSimpleExpressionWithNoMethodCallsCase()
@@ -344,7 +344,7 @@ class TestClass
 {
     void M(int x, int y, int z)
     {
-        int m = [|x * y * z|];
+        int m = [|y * x|];
     }
 
     void M1(int x, int y, int z) 
@@ -357,9 +357,9 @@ class TestClass
 @"using System;
 class TestClass
 {
-    private int M_m(int x, int y, int z)
+    private int M_m(int x, int y)
     {
-        return x * y * z;
+        return y * x;
     }
 
     void M(int x, int y, int z, int m)
@@ -368,11 +368,11 @@ class TestClass
 
     void M1(int x, int y, int z) 
     {
-        M(z, y, x, M_m(z, y, x));
+        M(z, y, x, M_m(z, y));
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
