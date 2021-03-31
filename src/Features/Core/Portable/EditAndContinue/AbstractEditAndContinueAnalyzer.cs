@@ -2642,7 +2642,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // The property itself is being updated. Currently we do not allow any modifiers or attributes to be updated,
                         // so the only case when this happens is in C# for a property/indexer that has an expression body.
                         // The symbol that's actually being updated is the getter.
-                        // TODO: This will need to be revisited in https://github.com/dotnet/roslyn/issues/48628
+                        // TODO: This will need to be revisited in https://github.com/dotnet/roslyn/issues/52300
                         if (newSymbol is IPropertySymbol { GetMethod: var propertyGetter and not null })
                         {
                             newSymbol = propertyGetter;

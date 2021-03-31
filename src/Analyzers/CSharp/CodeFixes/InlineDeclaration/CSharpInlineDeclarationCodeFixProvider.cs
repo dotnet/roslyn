@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 (semanticModel, currentRoot, t, currentNode)
                     => ReplaceIdentifierWithInlineDeclaration(
                         options, semanticModel, currentRoot, t.declarator,
-                        t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Workspace),
+                        t.identifier, currentNode, declarationsToRemove, document.Project.Solution.Workspace,
+                        cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -121,7 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             OptionSet options, SemanticModel semanticModel,
             SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
             IdentifierNameSyntax identifier, SyntaxNode currentNode,
-            HashSet<StatementSyntax> declarationsToRemove, Workspace workspace)
+            HashSet<StatementSyntax> declarationsToRemove, Workspace workspace,
+            CancellationToken cancellationToken)
         {
             declarator = currentRoot.GetCurrentNode(declarator);
             identifier = currentRoot.GetCurrentNode(identifier);
@@ -244,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 sourceText, identifier, newType, singleDeclarator ? null : declarator);
 
             // Check if using out-var changed problem semantics.
-            var semanticsChanged = SemanticsChanged(semanticModel, currentNode, identifier, declarationExpression);
+            var semanticsChanged = SemanticsChanged(semanticModel, currentNode, identifier, declarationExpression, cancellationToken);
             if (semanticsChanged)
             {
                 // Switching to 'var' changed semantics.  Just use the original type of the local.
@@ -346,7 +348,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
             SemanticModel semanticModel,
             SyntaxNode nodeToReplace,
             IdentifierNameSyntax identifier,
-            DeclarationExpressionSyntax declarationExpression)
+            DeclarationExpressionSyntax declarationExpression,
+            CancellationToken cancellationToken)
         {
             if (declarationExpression.Type.IsVar)
             {
@@ -354,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 // the semantics of the call by doing this.
 
                 // Find the symbol that the existing invocation points to.
-                var previousSymbol = semanticModel.GetSymbolInfo(nodeToReplace).Symbol;
+                var previousSymbol = semanticModel.GetSymbolInfo(nodeToReplace, cancellationToken).Symbol;
 
                 // Now, create a speculative model in which we make the change.  Make sure
                 // we still point to the same symbol afterwards.
