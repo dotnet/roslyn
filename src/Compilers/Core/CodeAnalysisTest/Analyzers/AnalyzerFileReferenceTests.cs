@@ -461,7 +461,7 @@ public class Generator : ISourceGenerator
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.FSharpGenerator", allGenerators[8]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator", allGenerators[9]);
         }
-                     
+
         // NOTE: the order in which these are emitted can change the test 'TestLoadedAnalyzerOrderIsDeterministic'
         //       and other determinism tests in this file.
         //       Ensure you do not re-arrange them alphabetically, as that will invalidate the tests, without 
