@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
     {
         public class SyntaxNodeValueSource
         {
-            public GeneratorSource<IEnumerable<T>, T> CreateSyntaxTransform<T>(Func<GeneratorSyntaxContext, IEnumerable<T>> func) => throw null!;
+            public IncrementalValueSource<T> CreateSyntaxTransform<T>(Func<GeneratorSyntaxContext, IEnumerable<T>> func) => throw null!;
 
-            public GeneratorSource<IEnumerable<GeneratorSyntaxContext>, GeneratorSyntaxContext> CreateSyntaxFilter(Func<GeneratorSyntaxContext, bool> applies) => throw null!;
+            public IncrementalValueSource<GeneratorSyntaxContext> CreateSyntaxFilter(Func<GeneratorSyntaxContext, bool> applies) => throw null!;
         }
 
 
@@ -46,15 +46,18 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
             var fields2 = nodeValueSource.CreateSyntaxFilter(ctx => ctx.Node is FieldDeclarationSyntax fds && fds.AttributeLists.Count > 0);
 
 
-            var fields3 = fields2.Transform(ctx => (((FieldDeclarationSyntax)ctx.Node).Declaration.Variables.Select(v => (v, ctx.SemanticModel))));
+            var fields3 = fields2.TransformMany(ctx => (((FieldDeclarationSyntax)ctx.Node).Declaration.Variables.Select(v => (v, ctx.SemanticModel))));
 
 
 
             var notifyAttribute = sources.CompilationSource.Transform(c => c.GetTypeByMetadataName("AutoNotify.AutoNotifyAttribute"));
 
-            var stringFields = fields.Combine(notifyAttribute).Transform(input => GenerateField(input.Item1, input.Item2));
+            var collectionOfNotify = notifyAttribute.BatchTransform(t => t);
+            var streamOfNotify = collectionOfNotify.BatchTransformMany(t => t);
 
-            var fieldsByClass = stringFields.Collect().Transform(fields => fields.GroupBy(f => f.field.ContainingType, f => f.output));
+            var stringFields = fields.Join(notifyAttribute).TransformMany(input => GenerateField(input.Item1, input.Item2));
+
+            var fieldsByClass = stringFields.BatchTransformMany(fields => fields.GroupBy(f => f.field.ContainingType, f => f.output));
 
             var producer = fieldsByClass.GenerateSource((p, group) =>
             {
@@ -145,6 +148,51 @@ public {fieldType} {propertyName}
                 return fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
             }
         }
+
+
+
+
+
+        static void M2(GeneratorInitializationContext initContext)
+        {
+            initContext.RegisterForPipelineExecution((pipelineContext) =>
+            {
+
+                var input = sources.SyntaxTrees;
+                var named = input.Transform(t => t.FilePath);
+
+                var generate = named.GenerateSourceBatch((context, names) =>
+                {
+                    StringBuilder sourceBuilder = new StringBuilder(@"
+using System;
+namespace HelloWorldGenerated
+{
+    public static class HelloWorld
+    {
+        public static void SayHello() 
+        {
+            Console.WriteLine(""Hello from generated code!"");
+            Console.WriteLine(""The following syntax trees existed in the compilation that created this program:"");
+");
+                    foreach (var name in names)
+                    {
+                        sourceBuilder.AppendLine($@"Console.WriteLine(@"" - {name}"");");
+                    }
+
+                    // finish creating the source to inject
+                    sourceBuilder.Append(@"
+        }
+    }
+}");
+
+                    context.AddSource("helloWorldGenerated", sourceBuilder.ToString());
+                });
+
+                pipelineContext.AddProducer(generate);
+            });
+        }
+
+
 
     }
 

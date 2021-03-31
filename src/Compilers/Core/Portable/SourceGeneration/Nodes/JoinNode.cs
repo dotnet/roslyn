@@ -8,12 +8,12 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal class CombineNode<TInput1, TInput2> : INode<(TInput1, TInput2)>
+    internal class JoinNode<TInput1, TInput2> : INode<(TInput1, TInput2)>
     {
         private readonly INode<TInput1> _source1;
         private readonly INode<TInput2> _source2;
 
-        public CombineNode(INode<TInput1> source1, INode<TInput2> source2)
+        public JoinNode(INode<TInput1> source1, INode<TInput2> source2)
         {
             _source1 = source1;
             _source2 = source2;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
 
         public StateTable<(TInput1, TInput2)> UpdateStateTable(GraphStateTable.Builder stateTable, StateTable<(TInput1, TInput2)> previousTable)
         {
-            // get *both* state table
+            // get *both* state tables
             stateTable.GetLatestStateTableForNode(_source1);
             stateTable.GetLatestStateTableForNode(_source2);
 

@@ -23,14 +23,19 @@ namespace Microsoft.CodeAnalysis
         //      used, and not bother running when only an unused
         //      source has changed
 
-        public GeneratorSource<Compilation, Compilation> CompilationSource { get; }
+        public IncrementalValueSource<Compilation> CompilationSource { get; }
 
-        public GeneratorSource<IEnumerable<string>, string> Strings { get; }
+        public IncrementalValueSource<string> Strings { get; }
+
+        public IncrementalValueSource<SyntaxTree> SyntaxTrees { get; }
+
+        public IncrementalValueSource<T> CreateSyntaxTransform<T>(Func<GeneratorSyntaxContext, IEnumerable<T>> func) => throw null!;
+
 
         private ValueSources(Compilation compilation, string[] additionalTexts)
         {
-            this.CompilationSource = new GeneratorSource<Compilation, Compilation>(new SingleItemValueProvider<Compilation>(compilation));
-            this.Strings = new GeneratorSource<IEnumerable<string>, string>(new MultiItemValueProvider<string>(additionalTexts));
+            this.CompilationSource = new IncrementalValueSource<Compilation>(new SingleItemValueProvider<Compilation>(compilation));
+            this.Strings = new IncrementalValueSource<string>(new MultiItemValueProvider<string>(additionalTexts));
         }
 
 

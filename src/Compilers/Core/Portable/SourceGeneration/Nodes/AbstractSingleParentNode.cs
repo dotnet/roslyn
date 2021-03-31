@@ -12,9 +12,12 @@ namespace Microsoft.CodeAnalysis
     {
         protected readonly INode<T> _parentNode;
 
-        public AbstractSingleParentNode(INode<T> parentNode)
+        protected readonly IEqualityComparer<U> _comparer;
+
+        public AbstractSingleParentNode(INode<T> parentNode, IEqualityComparer<U>? comparer)
         {
             _parentNode = parentNode ?? throw new ArgumentNullException(nameof(parentNode));
+            _comparer = comparer ?? EqualityComparer<U>.Default;
         }
 
         public StateTable<U> UpdateStateTable(GraphStateTable.Builder graphState, StateTable<U> previousTable)
@@ -26,7 +29,19 @@ namespace Microsoft.CodeAnalysis
                 return StateTable<U>.FromFaultedTable(parentState);
             }
 
-            return UpdateStateTable(parentState, previousTable);
+            //if (parentState.IsAllCached)
+            //{
+            //    return previousTable;
+            //}
+
+            try
+            {
+                return UpdateStateTable(parentState, previousTable);
+            }
+            catch (UserFunctionException ufe)
+            {
+                return StateTable<U>.FromUserFunctionException(ufe);
+            }
         }
 
         protected abstract StateTable<U> UpdateStateTable(StateTable<T> parentTable, StateTable<U> previousTable);

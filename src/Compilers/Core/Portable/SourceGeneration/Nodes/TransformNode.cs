@@ -15,38 +15,33 @@ namespace Microsoft.CodeAnalysis
 {
     internal class TransformNode<TInput, TOutput> : AbstractSingleParentNode<TInput, TOutput>, INode<TOutput>
     {
-        private readonly Func<TInput, TOutput>? _singleFunc;
-        private readonly IEqualityComparer<TOutput> _comparer;
-        private readonly Func<TInput, IEnumerable<TOutput>>? _multiFunc;
+        private readonly UserFunc<TInput, IEnumerable<TOutput>> _func;
 
-        public TransformNode(INode<TInput> sourceNode, Func<TInput, TOutput> singleFunc)
-            : this(sourceNode, singleFunc, multiFunc: null, EqualityComparer<TOutput>.Default)
+        public TransformNode(INode<TInput> sourceNode, UserFunc<TInput, TOutput> userFunc)
+            : this(sourceNode, func: SingleTransform(userFunc), comparer: null)
         {
         }
 
-        public TransformNode(INode<TInput> sourceNode, Func<TInput, IEnumerable<TOutput>> multiFunc)
-            : this(sourceNode, singleFunc: null, multiFunc, EqualityComparer<TOutput>.Default)
+        public TransformNode(INode<TInput> sourceNode, UserFunc<TInput, IEnumerable<TOutput>> userFunc)
+            : this(sourceNode, userFunc, comparer: null)
         {
         }
 
-        private TransformNode(INode<TInput> sourceNode, Func<TInput, TOutput>? singleFunc, Func<TInput, IEnumerable<TOutput>>? multiFunc, IEqualityComparer<TOutput> comparer)
-            : base(sourceNode)
+        private TransformNode(INode<TInput> sourceNode, UserFunc<TInput, IEnumerable<TOutput>> func, IEqualityComparer<TOutput>? comparer)
+            : base(sourceNode, comparer)
         {
-            _singleFunc = singleFunc;
-            _comparer = comparer;
-            _multiFunc = multiFunc;
+            _func = func;
         }
 
-        public INode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new TransformNode<TInput, TOutput>(_parentNode, _singleFunc, _multiFunc, comparer);
+        private static UserFunc<TInput, IEnumerable<TOutput>> SingleTransform(UserFunc<TInput, TOutput> func) => (inputs) => ImmutableArray.Create(func(inputs));
+
+        public INode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new TransformNode<TInput, TOutput>(_parentNode, _func, comparer);
 
         protected override StateTable<TOutput> UpdateStateTable(StateTable<TInput> sourceTable, StateTable<TOutput> previousTable)
         {
-            // TODO: if the input node returns all cached values, then we can just
-            //       return the previous table.
-
             var newTable = new StateTable<TOutput>.Builder();
 
-            // foreach entry in the source table, we create a new updated table
+            // foreach entry in the source table, we create a new updated table entry
             foreach (var entry in sourceTable)
             {
                 if (entry.state == EntryState.Cached || entry.state == EntryState.Removed)
@@ -57,11 +52,7 @@ namespace Microsoft.CodeAnalysis
                 else if (entry.state == EntryState.Added || entry.state == EntryState.Modified)
                 {
                     // generate the new entries
-                    if (!TryGetTransformedEntries(entry.index, entry.item, entry.state, out var newEntries, out var exc))
-                    {
-                        newTable.SetFaulted(exc);
-                        break;
-                    }
+                    var newEntries = _func(entry.item).ToImmutableArray();
 
                     if (entry.state == EntryState.Added)
                     {
@@ -105,42 +96,62 @@ namespace Microsoft.CodeAnalysis
             return newTable.ToImmutableAndFree();
         }
 
-        private bool TryGetTransformedEntries(int index, TInput item, EntryState state, out ImmutableArray<TOutput> output, [NotNullWhen(false)]out Exception? exc)
-        {
-            if (_singleFunc is object)
-            {
-                TOutput singleItem;
-                try
-                {
-                    singleItem = _singleFunc(item);
-                }
-                catch (Exception e)
-                {
-                    output = ImmutableArray<TOutput>.Empty;
-                    exc = e;
-                    return false;
-                }
-                output = ImmutableArray.Create(singleItem);
-            }
-            else
-            {
-                Debug.Assert(_multiFunc is object);
-                try
-                {
-                    output = _multiFunc(item).ToImmutableArray();
-                }
-                catch (Exception e)
-                {
-                    output = ImmutableArray<TOutput>.Empty;
-                    exc = e;
-                    return false;
-                }
-            }
+    }
 
-            exc = null;
-            return true;
+    internal class BatchTransformNode<TInput, TOutput> : AbstractSingleParentNode<TInput, TOutput>, INode<TOutput>
+    {
+        private readonly UserFunc<IEnumerable<TInput>, IEnumerable<TOutput>> _func;
+
+        public BatchTransformNode(INode<TInput> sourceNode, UserFunc<IEnumerable<TInput>, TOutput> userFunc)
+            : this(sourceNode, func: SingleTransform(userFunc), comparer: null)
+        {
         }
 
+        public BatchTransformNode(INode<TInput> sourceNode, UserFunc<IEnumerable<TInput>, IEnumerable<TOutput>> userFunc)
+            : this(sourceNode, userFunc, comparer: null)
+        {
+        }
 
+        private BatchTransformNode(INode<TInput> sourceNode, UserFunc<IEnumerable<TInput>, IEnumerable<TOutput>> func, IEqualityComparer<TOutput>? comparer)
+            : base(sourceNode, comparer)
+        {
+            _func = func;
+        }
+
+        private static UserFunc<IEnumerable<TInput>, IEnumerable<TOutput>> SingleTransform(UserFunc<IEnumerable<TInput>, TOutput> func) => (inputs) => ImmutableArray.Create(func(inputs));
+
+        public INode<TOutput> WithComparer(IEqualityComparer<TOutput> comparer) => new BatchTransformNode<TInput, TOutput>(_parentNode, _func, comparer);
+
+        protected override StateTable<TOutput> UpdateStateTable(StateTable<TInput> sourceTable, StateTable<TOutput> previousTable)
+        {
+            var newTable = new StateTable<TOutput>.Builder();
+
+            var inputs = sourceTable.GetEnumerable().Where(t => t.state != EntryState.Removed).Select(t => t.item).ToImmutableArray();
+            var outputs = _func(inputs).ToImmutableArray();
+
+            // we still need to loop over each entry and make a decision per-the last entry.
+            // it's essentially the same logic as the non-batch, except we don't do the transform
+
+            // hmm, is it? 
+            
+            // I think we need to work thru a couple exampls here.
+            // so maybe we should park this, and do the interface stuff, hmm?
+
+
+            foreach (var entry in sourceTable)
+            {
+                if (entry.state == EntryState.Cached || entry.state == EntryState.Removed)
+                {
+
+                }
+            }
+
+            newTable.AddEntries(outputs, EntryState.Modified); //?
+
+            return newTable.ToImmutableAndFree();
+        }
     }
+
+
+
 }

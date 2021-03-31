@@ -12,6 +12,15 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
+    // HMMM.
+    // What if: instead of IEqualityComparer, we allow the user to add a custom IHashCodeGetter
+    // We *never* store the actual object in the cache, just the hash of the thing
+    // Then when we do a modify we can just look at the hashes and compare, to decide if we need to re-run or not
+    // We end up with a lot less memory in terms of the things we're keeping around
+    // And we're still super flexible
+    // We can also 'pre create' some sensible defaults for things like syntaxNode, ISymbol etc.
+
+
     internal enum EntryState { Added, Removed, Modified, Cached };
 
     internal interface IStateTable
@@ -38,6 +47,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsFaulted { get => _exception is not null; }
 
+
         //TODO: should this just be an indexer?
         public ImmutableArray<T> GetEntries(int inputIndex)
         {
@@ -51,6 +61,12 @@ namespace Microsoft.CodeAnalysis
             foreach (var entry in _states)
                 foreach (var item in entry)
                     yield return (index++, item.Item1, item.Item2);
+        }
+
+        // TODO: should we just make state table IEnumerable?
+        public IEnumerable<(T item, EntryState state)> GetEnumerable()
+        {
+            return _states.SelectMany(s => s);
         }
 
         public IStateTable Compact()
@@ -72,6 +88,12 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(table.IsFaulted);
             return new StateTable<T>(Empty._states, 0, table._exception);
+        }
+
+        public static StateTable<T> FromUserFunctionException(UserFunctionException ufe)
+        {
+            Debug.Assert(ufe.InnerException is object);
+            return new StateTable<T>(Empty._states, 0, ufe.InnerException);
         }
 
         public class Builder
