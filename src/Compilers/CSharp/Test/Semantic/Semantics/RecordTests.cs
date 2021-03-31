@@ -6959,6 +6959,24 @@ public record B : A {
                 );
         }
 
+        [Fact]
+        public void ToString_NewToString_SealedBaseToString()
+        {
+            var source = @"
+public record A
+{
+    public sealed override string ToString() => throw null;
+}
+
+public record B : A
+{
+    public new string ToString() => throw null;
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]

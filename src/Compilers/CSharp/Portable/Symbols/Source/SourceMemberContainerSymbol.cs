@@ -3639,33 +3639,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                     explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
 
-                if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
+                bool isBaseToStringSealed = getBaseToStringMethod() is { IsSealed: true };
+
+                if (!this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord) && isBaseToStringSealed)
                 {
-                    var baseToStringMethod = getBaseToStringMethod();
-                    switch (baseToStringMethod)
-                    {
-                        case null:
-                        case { IsSealed: false }:
-                            var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
-                            members.Add(toStringMethod);
-                            break;
-                        case { IsSealed: true }:
-                            if (!this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord))
-                            {
-                                diagnostics.Add(ErrorCode.ERR_InheritingFromRecordWithSealedToString, this.Locations[0]);
-                            }
-                            break;
-                    }
+                    diagnostics.Add(ErrorCode.ERR_InheritingFromRecordWithSealedToString, this.Locations[0]);
                 }
                 else
                 {
-                    var toStringMethod = (MethodSymbol)existingToStringMethod;
-                    if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialMember.System_Object__ToString, diagnostics) && toStringMethod.IsSealed && !IsSealed)
+                    if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
                     {
-                        MessageID.IDS_FeatureSealedToStringInRecord.CheckFeatureAvailability(
-                            diagnostics,
-                            this.DeclaringCompilation,
-                            toStringMethod.Locations[0]);
+                        if (!isBaseToStringSealed)
+                        {
+                            var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
+                            members.Add(toStringMethod);
+                        }
+                    }
+                    else
+                    {
+                        var toStringMethod = (MethodSymbol)existingToStringMethod;
+                        if (!isBaseToStringSealed)
+                        {
+                            if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialMember.System_Object__ToString, diagnostics) && toStringMethod.IsSealed && !IsSealed)
+                            {
+                                MessageID.IDS_FeatureSealedToStringInRecord.CheckFeatureAvailability(
+                                    diagnostics,
+                                    this.DeclaringCompilation,
+                                    toStringMethod.Locations[0]);
+                            }
+                        }
                     }
                 }
 
