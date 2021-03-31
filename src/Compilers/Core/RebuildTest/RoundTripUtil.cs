@@ -18,6 +18,8 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -41,14 +43,29 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
             using var peReader = new PEReader(peStream);
             var optionsReader = new CompilationOptionsReader(logger, peReader.GetEmbeddedPdbMetadataReader(), peReader);
+            VerifyMetadataReferenceInfo(optionsReader, metadataReferences);
+
             var compilationFactory = CompilationFactory.Create(
                 assemblyFileName,
                 optionsReader);
             using var rebuildPeStream = new MemoryStream();
             var emitResult = compilationFactory.Emit(rebuildPeStream, syntaxTrees, metadataReferences, cancellationToken);
             Assert.True(emitResult.Success);
-
             Assert.True(peStream.ToArray().SequenceEqual(rebuildPeStream.ToArray()));
+        }
+
+        public static void VerifyMetadataReferenceInfo(CompilationOptionsReader optionsReader, ImmutableArray<MetadataReference> metadataReferences)
+        {
+            var count = 0;
+            foreach (var info in optionsReader.GetMetadataReferences())
+            {
+                count++;
+                var metadataReference = metadataReferences.FirstOrDefault(x =>
+                    info.Mvid == x.GetModuleVersionId() &&
+                    info.ExternAliases.SequenceEqual(x.Properties.Aliases));
+                AssertEx.NotNull(metadataReference);
+            }
+            Assert.Equal(metadataReferences.Length, count);
         }
 
         public static void VerifyRoundTrip<TCompilation>(TCompilation original)

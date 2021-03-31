@@ -932,8 +932,7 @@ namespace Microsoft.Cci
                 if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
                 {
                     var fileName = PathUtilities.GetFileName(portableReference.FilePath);
-                    var reference = module.CommonCompilation.GetAssemblyOrModuleSymbol(portableReference);
-                    var peReader = GetReader(reference);
+                    var peReader = GetReader(portableReference);
 
                     // Don't write before checking that we can get a peReader for the metadata reference
                     if (peReader is null)
@@ -978,13 +977,21 @@ namespace Microsoft.Cci
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
 
-            static PEReader GetReader(ISymbol symbol)
-                => symbol switch
+            static PEReader GetReader(PortableExecutableReference peReference)
+            {
+                switch (peReference.GetMetadata())
                 {
-                    IAssemblySymbol assemblySymbol => assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt,
-                    IModuleSymbol moduleSymbol => moduleSymbol.GetMetadata().Module.PEReaderOpt,
-                    _ => null
-                };
+                    case AssemblyMetadata assemblyMetadata:
+                        {
+                            var assembly = assemblyMetadata.GetAssembly();
+                            return assembly.ManifestModule?.PEReaderOpt;
+                        }
+                    case ModuleMetadata moduleMetadata:
+                        return moduleMetadata.Module.PEReaderOpt;
+                    default:
+                        return null;
+                }
+            }
         }
     }
 }
