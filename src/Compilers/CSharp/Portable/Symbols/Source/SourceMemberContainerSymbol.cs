@@ -3674,10 +3674,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MethodSymbol? getBaseToStringMethod()
                 {
                     var objectToString = this.DeclaringCompilation.GetSpecialTypeMember(SpecialMember.System_Object__ToString);
-                    var tmp = this.BaseTypeNoUseSiteDiagnostics;
-                    while (tmp is not null)
+                    var currentBaseType = this.BaseTypeNoUseSiteDiagnostics;
+                    while (currentBaseType is not null)
                     {
-                        foreach (var member in tmp.GetSimpleNonTypeMembers(WellKnownMemberNames.ObjectToString))
+                        foreach (var member in currentBaseType.GetSimpleNonTypeMembers(WellKnownMemberNames.ObjectToString))
                         {
                             if (member is not MethodSymbol method)
                                 continue;
@@ -3686,7 +3686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return method;
                         }
 
-                        tmp = tmp.BaseTypeNoUseSiteDiagnostics;
+                        currentBaseType = currentBaseType.BaseTypeNoUseSiteDiagnostics;
                     }
 
                     return null;
