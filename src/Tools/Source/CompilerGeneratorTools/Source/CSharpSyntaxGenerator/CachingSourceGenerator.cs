@@ -7,7 +7,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -61,8 +63,15 @@ namespace CSharpSyntaxGenerator
                 if (diagnostics.IsEmpty)
                 {
                     // Overwrite the cached result with the new result. This is an opportunistic cache, so as long as
-                    // the write is atomic (which it is for SetTarget) synchronization is unnecessary.
-                    s_cachedResult.SetTarget(new CachedSourceGeneratorResult(currentChecksum, sources));
+                    // the write is atomic (which it is for SetTarget) synchronization is unnecessary. We allocate an
+                    // array on the Large Object Heap (which is always part of Generation 2) and give it a reference to
+                    // the cached object to ensure this weak reference is not reclaimed prior to a full GC pass.
+                    var result = new CachedSourceGeneratorResult(currentChecksum, sources);
+                    var largeArray = new CachedSourceGeneratorResult[85000 / Unsafe.SizeOf<CachedSourceGeneratorResult>()];
+                    Debug.Assert(GC.GetGeneration(largeArray) >= 2);
+                    largeArray[0] = result;
+                    s_cachedResult.SetTarget(result);
+                    GC.KeepAlive(largeArray);
                 }
                 else
                 {
