@@ -177,15 +177,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 isStale: false,
                 document.Id,
                 ComputeCombinedProjectName(document, additionalMatchingProjects),
-                declaredSymbolInfo.Name,
-                declaredSymbolInfo.NameSuffix,
-                declaredSymbolInfo.ContainerDisplayName,
-                declaredSymbolInfo.Kind,
-                declaredSymbolInfo.Accessibility,
-                declaredSymbolInfo.Span,
-                declaredSymbolInfo.IsPartial,
-                IsNonNestedNamedType(declaredSymbolInfo),
-                kind, matchKind,
+                declaredSymbolInfo,
+                kind,
+                matchKind,
                 isCaseSensitive,
                 matchedSpans.ToImmutable(),
                 ComputSecondarySort(declaredSymbolInfo));
@@ -236,25 +230,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             // Couldn't compute a merged project name (or only had one project).  Just return the name of hte project itself.
             return document.Project.Name;
-        }
-
-        private static bool IsNonNestedNamedType(DeclaredSymbolInfo info)
-            => !info.IsNestedType && IsNamedType(info);
-
-        private static bool IsNamedType(DeclaredSymbolInfo info)
-        {
-            switch (info.Kind)
-            {
-                case DeclaredSymbolInfoKind.Class:
-                case DeclaredSymbolInfoKind.Record:
-                case DeclaredSymbolInfoKind.Enum:
-                case DeclaredSymbolInfoKind.Interface:
-                case DeclaredSymbolInfoKind.Module:
-                case DeclaredSymbolInfoKind.Struct:
-                    return true;
-                default:
-                    return false;
-            }
         }
 
         private static async Task<ImmutableArray<Project>> GetAdditionalProjectsWithMatchAsync(

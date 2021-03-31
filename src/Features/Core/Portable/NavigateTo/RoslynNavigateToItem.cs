@@ -31,56 +31,28 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public readonly string CombinedProjectName;
 
         [DataMember(Order = 3)]
-        public readonly string DeclaredSymbolInfoName;
+        public readonly DeclaredSymbolInfo DeclaredSymbolInfo;
 
         [DataMember(Order = 4)]
-        public readonly string DeclaredSymbolInfoNameSuffix;
-
-        [DataMember(Order = 5)]
-        public readonly string DeclaredSymbolInfoContainerDisplayName;
-
-        [DataMember(Order = 6)]
-        public readonly DeclaredSymbolInfoKind DeclaredSymbolInfoKind;
-
-        [DataMember(Order = 7)]
-        public readonly Accessibility DeclaredSymbolInfoAccessibility;
-
-        [DataMember(Order = 8)]
-        public readonly TextSpan DeclaredSymbolInfoSourceSpan;
-
-        [DataMember(Order = 9)]
-        public readonly bool DeclaredSymbolInfoIsPartial;
-
-        [DataMember(Order = 10)]
-        public readonly bool DeclaredSymbolInfoIsNonNestedNamedType;
-
-        [DataMember(Order = 11)]
         public readonly string Kind;
 
-        [DataMember(Order = 12)]
+        [DataMember(Order = 5)]
         public readonly NavigateToMatchKind MatchKind;
 
-        [DataMember(Order = 13)]
+        [DataMember(Order = 6)]
         public readonly bool IsCaseSensitive;
 
-        [DataMember(Order = 14)]
+        [DataMember(Order = 7)]
         public readonly ImmutableArray<TextSpan> NameMatchSpans;
 
-        [DataMember(Order = 15)]
+        [DataMember(Order = 8)]
         public readonly string SecondarySort;
 
         public RoslynNavigateToItem(
             bool isStale,
             DocumentId documentId,
             string combinedProjectName,
-            string declaredSymbolInfoName,
-            string declaredSymbolInfoNameSuffix,
-            string declaredSymbolInfoContainerDisplayName,
-            DeclaredSymbolInfoKind declaredSymbolInfoKind,
-            Accessibility declaredSymbolInfoAccessibility,
-            TextSpan declaredSymbolInfoSourceSpan,
-            bool declaredSymbolInfoIsPartial,
-            bool declaredSymbolInfoIsNonNestedNamedType,
+            DeclaredSymbolInfo declaredSymbolInfo,
             string kind,
             NavigateToMatchKind matchKind,
             bool isCaseSensitive,
@@ -90,14 +62,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             IsStale = isStale;
             DocumentId = documentId;
             CombinedProjectName = combinedProjectName;
-            DeclaredSymbolInfoName = declaredSymbolInfoName;
-            DeclaredSymbolInfoNameSuffix = declaredSymbolInfoNameSuffix;
-            DeclaredSymbolInfoContainerDisplayName = declaredSymbolInfoContainerDisplayName;
-            DeclaredSymbolInfoKind = declaredSymbolInfoKind;
-            DeclaredSymbolInfoAccessibility = declaredSymbolInfoAccessibility;
-            DeclaredSymbolInfoSourceSpan = declaredSymbolInfoSourceSpan;
-            DeclaredSymbolInfoIsPartial = declaredSymbolInfoIsPartial;
-            DeclaredSymbolInfoIsNonNestedNamedType = declaredSymbolInfoIsNonNestedNamedType;
+            DeclaredSymbolInfo = declaredSymbolInfo;
             Kind = kind;
             MatchKind = matchKind;
             IsCaseSensitive = isCaseSensitive;
@@ -143,22 +108,38 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 get
                 {
-                    //private static string ComputeAdditionalInfo(string documentName, string combinedProjectName, DeclaredSymbolInfo info)
+                    // For partial types, state what file they're in so the user can disambiguate the results.
+                    if (_item.DeclaredSymbolInfo.IsPartial)
                     {
-                        // For partial types, state what file they're in so the user can disambiguate the results.
-                        if (_item.DeclaredSymbolInfoIsPartial)
-                        {
-                            return _item.DeclaredSymbolInfoIsNonNestedNamedType
-                                ? string.Format(FeaturesResources._0_dash_1, _document.Name, _item.CombinedProjectName)
-                                : string.Format(FeaturesResources.in_0_1_2, _item.DeclaredSymbolInfoContainerDisplayName, _document.Name, _item.CombinedProjectName);
-                        }
-                        else
-                        {
-                            return _item.DeclaredSymbolInfoIsNonNestedNamedType
-                                ? string.Format(FeaturesResources.project_0, _item.CombinedProjectName)
-                                : string.Format(FeaturesResources.in_0_project_1, _item.DeclaredSymbolInfoContainerDisplayName, _item.CombinedProjectName);
-                        }
+                        return IsNonNestedNamedType()
+                            ? string.Format(FeaturesResources._0_dash_1, _document.Name, _item.CombinedProjectName)
+                            : string.Format(FeaturesResources.in_0_1_2, _item.DeclaredSymbolInfo.ContainerDisplayName, _document.Name, _item.CombinedProjectName);
                     }
+                    else
+                    {
+                        return IsNonNestedNamedType()
+                            ? string.Format(FeaturesResources.project_0, _item.CombinedProjectName)
+                            : string.Format(FeaturesResources.in_0_project_1, _item.DeclaredSymbolInfo.ContainerDisplayName, _item.CombinedProjectName);
+                    }
+                }
+            }
+
+            private bool IsNonNestedNamedType()
+                => !_item.DeclaredSymbolInfo.IsNestedType && IsNamedType();
+
+            private bool IsNamedType()
+            {
+                switch (_item.DeclaredSymbolInfo.Kind)
+                {
+                    case DeclaredSymbolInfoKind.Class:
+                    case DeclaredSymbolInfoKind.Record:
+                    case DeclaredSymbolInfoKind.Enum:
+                    case DeclaredSymbolInfoKind.Interface:
+                    case DeclaredSymbolInfoKind.Module:
+                    case DeclaredSymbolInfoKind.Struct:
+                        return true;
+                    default:
+                        return false;
                 }
             }
 
@@ -168,7 +149,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             bool INavigateToSearchResult.IsCaseSensitive => _item.IsCaseSensitive;
 
-            string INavigateToSearchResult.Name => _item.DeclaredSymbolInfoName;
+            string INavigateToSearchResult.Name => _item.DeclaredSymbolInfo.Name;
 
             ImmutableArray<TextSpan> INavigateToSearchResult.NameMatchSpans => _item.NameMatchSpans;
 
@@ -197,7 +178,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             #region INavigableItem
 
-            Glyph INavigableItem.Glyph => GetGlyph(_item.DeclaredSymbolInfoKind, _item.DeclaredSymbolInfoAccessibility);
+            Glyph INavigableItem.Glyph => GetGlyph(_item.DeclaredSymbolInfo.Kind, _item.DeclaredSymbolInfo.Accessibility);
 
             private static Glyph GetPublicGlyph(DeclaredSymbolInfoKind kind)
                 => kind switch
@@ -250,7 +231,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             ImmutableArray<TaggedText> INavigableItem.DisplayTaggedParts
                 => ImmutableArray.Create(new TaggedText(
-                    TextTags.Text, _item.DeclaredSymbolInfoName + _item.DeclaredSymbolInfoNameSuffix));
+                    TextTags.Text, _item.DeclaredSymbolInfo.Name + _item.DeclaredSymbolInfo.NameSuffix));
 
             bool INavigableItem.DisplayFileLocation => false;
 
@@ -262,7 +243,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             Document INavigableItem.Document => _document;
 
-            TextSpan INavigableItem.SourceSpan => _item.DeclaredSymbolInfoSourceSpan;
+            TextSpan INavigableItem.SourceSpan => _item.DeclaredSymbolInfo.Span;
 
             ImmutableArray<INavigableItem> INavigableItem.ChildItems => ImmutableArray<INavigableItem>.Empty;
 
