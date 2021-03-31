@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var document = solution.GetDocument(documentId);
+                var document = solution.GetRequiredDocument(documentId);
                 var callback = GetCallback(callbackId, cancellationToken);
 
                 await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
@@ -61,11 +62,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return RunServiceAsync(async cancellationToken =>
             {
                 var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                var project = solution.GetProject(projectId);
+                var project = solution.GetRequiredProject(projectId);
                 var callback = GetCallback(callbackId, cancellationToken);
 
-                var priorityDocuments = priorityDocumentIds.Select(d => solution.GetDocument(d))
-                                                           .ToImmutableArray();
+                var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
                 await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
                     project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, isFullyLoaded, cancellationToken).ConfigureAwait(false);
