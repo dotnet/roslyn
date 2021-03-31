@@ -941,6 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
                 case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
+                case LocalFunctionStatementSyntax localFunction: return localFunction.Modifiers;
             }
 
             return default;
@@ -952,6 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
                 case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
+                case LocalFunctionStatementSyntax localFunction: return localFunction.WithModifiers(modifiers);
             }
 
             return null;

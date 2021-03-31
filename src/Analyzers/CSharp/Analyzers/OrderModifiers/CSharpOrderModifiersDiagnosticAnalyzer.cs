@@ -30,29 +30,22 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
             ReportDiagnostic severity,
             SyntaxNode root)
         {
-            foreach (var child in root.ChildNodesAndTokens())
+            foreach (var node in root.ChildNodes())
             {
-                if (child.IsNode)
+                if (node is MemberDeclarationSyntax || node.IsKind(SyntaxKind.LocalFunctionStatement))
                 {
-                    var node = child.AsNode();
-                    if (node is MemberDeclarationSyntax memberDeclaration)
+                    CheckModifiers(context, preferredOrder, severity, node);
+                }
+                else if (node is AccessorListSyntax accessorList)
+                {
+                    foreach (var accessor in accessorList.Accessors)
                     {
-                        CheckModifiers(context, preferredOrder, severity, memberDeclaration);
-
-                        // Recurse and check children.  Note: we only do this if we're on an actual 
-                        // member declaration.  Once we hit something that isn't, we don't need to 
-                        // keep recursing.  This prevents us from actually entering things like method 
-                        // bodies.
-                        Recurse(context, preferredOrder, severity, node);
-                    }
-                    else if (node is AccessorListSyntax accessorList)
-                    {
-                        foreach (var accessor in accessorList.Accessors)
-                        {
-                            CheckModifiers(context, preferredOrder, severity, accessor);
-                        }
+                        CheckModifiers(context, preferredOrder, severity, accessor);
                     }
                 }
+
+                // We don't stop at member declarations only because this prevents us from visiting local functions.
+                Recurse(context, preferredOrder, severity, node);
             }
         }
     }

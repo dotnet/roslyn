@@ -5561,5 +5561,43 @@ class C
                 new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(38, 1))
             }, classifications);
         }
+
+        [Theory, WorkItem(52290, "https://github.com/dotnet/roslyn/issues/52290")]
+        [CombinatorialData]
+        public async Task TestStaticLocalFunction(TestHost testHost)
+        {
+            var code = @"
+class C
+{
+    public static void M()
+    {
+        static void LocalFunc() { }
+    }
+}";
+
+            await TestAsync(code,
+                testHost,
+                Keyword("class"),
+                Class("C"),
+                Punctuation.OpenCurly,
+                Keyword("public"),
+                Keyword("static"),
+                Keyword("void"),
+                Method("M"),
+                Static("M"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Keyword("static"),
+                Keyword("void"),
+                Method("LocalFunc"),
+                Static("LocalFunc"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
     }
 }

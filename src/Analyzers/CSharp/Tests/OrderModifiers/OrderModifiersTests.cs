@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -374,6 +375,27 @@ internal static class C
 @"partial class C
 {
     unsafe partial void M();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [WorkItem(52290, "https://github.com/dotnet/roslyn/issues/52290")]
+        public async Task TestInLocalFunction()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    public static async void M()
+    {
+        [|async|] static void Local() { }
+    }
+}",
+@"class C
+{
+    public static async void M()
+    {
+        static async void Local() { }
+    }
 }");
         }
     }
