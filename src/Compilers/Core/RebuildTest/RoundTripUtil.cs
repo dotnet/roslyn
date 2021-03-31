@@ -7,20 +7,20 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Rebuild;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
+using Microsoft.Metadata.Tools;
 using Roslyn.Utilities;
 using Xunit;
-using System.Reflection.Metadata;
-using Microsoft.Metadata.Tools;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var rebuildReader = new PEReader(rebuildBytes);
 
             AssertImagesEqual(originalBytes, originalReader, rebuildBytes, rebuildReader);
-            Assert.Equal(originalBytes.ToArray(), rebuildStream.ToArray());
 
             (ImmutableArray<byte> originalBytes, PEReader originalReader, MetadataReader originalPdbReader) emitOriginal()
             {
