@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 
         private void TargetMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
-            if (e.OriginalSource is MenuItem { DataContext: TargetDisplayViewModel viewModel })
+            if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
             {
                 _waitIndicator.Wait(
                     title: EditorFeaturesResources.Navigating,
@@ -93,12 +93,6 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             SetResourceReference(BorderBrushProperty, "VsBrush.CommandBarMenuBorder");
         }
 
-        private void ResetBorderToInitialColor()
-        {
-            this.Background = Brushes.Transparent;
-            this.BorderBrush = Brushes.Transparent;
-        }
-
         private void InheritanceMargin_OnMouseEnter(object sender, MouseEventArgs e)
         {
             ChangeBorderToHoveringColor();
@@ -117,6 +111,12 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
         {
             ResetBorderToInitialColor();
+        }
+
+        private void ResetBorderToInitialColor()
+        {
+            this.Background = Brushes.Transparent;
+            this.BorderBrush = Brushes.Transparent;
         }
     }
 }

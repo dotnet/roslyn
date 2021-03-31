@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
@@ -15,11 +14,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         public readonly int LineNumber;
 
         /// <summary>
-        /// Member's display name.
+        /// Display texts for this member.
         /// </summary>
-        public readonly string DisplayName;
-
-        public readonly DefinitionItem DefinitionItem;
+        public readonly ImmutableArray<TaggedText> DisplayTexts;
 
         /// <summary>
         /// Member's glyph.
@@ -33,14 +30,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
         public InheritanceMarginItem(
             int lineNumber,
-            string displayName,
-            DefinitionItem definitionItem,
+            ImmutableArray<TaggedText> displayTexts,
             Glyph glyph,
             ImmutableArray<InheritanceTargetItem> targetItems)
         {
             LineNumber = lineNumber;
-            DisplayName = displayName;
-            DefinitionItem = definitionItem;
+            DisplayTexts = displayTexts;
             Glyph = glyph;
             TargetItems = targetItems;
         }

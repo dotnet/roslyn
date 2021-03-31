@@ -56,14 +56,14 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             if (members.Length == 1)
             {
                 var member = tag.MembersOnLine[0];
-                var inlines = member.DefinitionItem.DisplayParts.ToInlines(classificationFormatMap, classificationTypeMap);
+                var inlines = member.DisplayTexts.ToInlines(classificationFormatMap, classificationTypeMap);
                 WrapMemberWithinApostrophe(inlines);
                 inlines.Add(new Run(" " + EditorFeaturesWpfResources.is_inherited));
                 var toolTipTextBlock = inlines.ToTextBlock(classificationFormatMap);
 
-                var automationName = member.DefinitionItem.DisplayParts.JoinText();
+                var automationName = member.DisplayTexts.JoinText();
                 var menuItemViewModels = member.TargetItems
-                    .SelectAsArray(TargetDisplayViewModel.Create).CastArray<InheritanceContextMenuItemViewModel>();
+                    .SelectAsArray(TargetMenuItemViewModel.Create).CastArray<InheritanceContextMenuItemViewModel>();
                 return new InheritanceMarginViewModel(tag.Moniker, toolTipTextBlock, automationName, menuItemViewModels);
             }
             else
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 
                 var automationName = EditorFeaturesWpfResources.Multiple_members_are_inherited;
                 var menuItemViewModels = tag.MembersOnLine
-                    .SelectAsArray(member => new MemberDisplayViewModel(member))
+                    .SelectAsArray(MemberMenuItemViewModel.Create)
                     .CastArray<InheritanceContextMenuItemViewModel>();
                 return new InheritanceMarginViewModel(tag.Moniker, textBlock, automationName, menuItemViewModels);
             }

@@ -30,12 +30,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Implemented, cancellationToken))
                 .ConfigureAwait(false);
 
-            var definitionItem = await memberSymbol.ToClassifiedDefinitionItemAsync(solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var definitionItem = await memberSymbol.ToClassifiedDefinitionItemAsync(
+                solution,
+                isPrimary: true,
+                includeHiddenLocations: false,
+                FindReferencesSearchOptions.Default,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return new InheritanceMarginItem(
                 lineNumber,
-                memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                definitionItem,
+                definitionItem.DisplayParts,
                 memberSymbol.GetGlyph(),
                 baseSymbolItems.Concat(derivedTypeItems));
         }
@@ -84,12 +88,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var overridingMemberItems = await overridingMembers
                 .SelectAsArrayAsync(symbol => CreateInheritanceItemAsync(solution, symbol, InheritanceRelationship.Overriding, cancellationToken)).ConfigureAwait(false);
 
-            var definitionItem = await memberSymbol.ToClassifiedDefinitionItemAsync(solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var definitionItem = await memberSymbol.ToClassifiedDefinitionItemAsync(
+                solution,
+                isPrimary: true,
+                includeHiddenLocations: false,
+                FindReferencesSearchOptions.Default,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return new InheritanceMarginItem(
                 lineNumber,
-                memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-                definitionItem,
+                definitionItem.DisplayParts,
                 memberSymbol.GetGlyph(),
                 implementingMemberItems.Concat(implementedMemberItems)
                     .Concat(overridenMemberItems)

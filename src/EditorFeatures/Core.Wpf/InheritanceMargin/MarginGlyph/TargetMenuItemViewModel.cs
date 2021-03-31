@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
     /// <summary>
     /// View model used to show the MenuItem for inheritance target.
     /// </summary>
-    internal class TargetDisplayViewModel : InheritanceContextMenuItemViewModel
+    internal class TargetMenuItemViewModel : InheritanceContextMenuItemViewModel
     {
         /// <summary>
         /// DefinitionItem used for navigation.
         /// </summary>
         public DefinitionItem DefinitionItem { get; }
 
-        private TargetDisplayViewModel(
+        private TargetMenuItemViewModel(
             string displayContent,
             ImageMoniker imageMoniker,
             string automationName,
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             DefinitionItem = definitionItem;
         }
 
-        public static TargetDisplayViewModel Create(InheritanceTargetItem target)
+        public static TargetMenuItemViewModel Create(InheritanceTargetItem target)
         {
             var targetName = target.DefinitionItem.DisplayParts.JoinText();
             var displayContent = string.Format(EditorFeaturesWpfResources._0_in_1, targetName, target.DisplayNameForContainingType);
             var imageMoniker = target.Glyph.GetImageMoniker();
-            return new TargetDisplayViewModel(displayContent, imageMoniker, displayContent, target.DefinitionItem);
+            return new TargetMenuItemViewModel(displayContent, imageMoniker, displayContent, target.DefinitionItem);
         }
     }
 }

@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -20,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [TagType(typeof(InheritanceMarginTag))]
+    // This would ensure the margin is clickable.
     [Order(After = "VsTextMarker")]
     internal class InheritanceGlyphFactoryProvider : IGlyphFactoryProvider
     {

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.InheritanceMargin
         private static void VerifyInheritanceMember(TestWorkspace testWorkspace, TestInheritanceMemberItem expectedItem, InheritanceMarginItem actualItem)
         {
             Assert.Equal(expectedItem.LineNumber, actualItem.LineNumber);
-            Assert.Equal(expectedItem.MemberName, actualItem.DisplayName);
+            Assert.Equal(expectedItem.MemberName, actualItem.DisplayTexts.JoinText());
             Assert.Equal(expectedItem.Targets.Length, actualItem.TargetItems.Length);
             var expectedTargets = expectedItem.Targets
                 .SelectAsArray(info => TestInheritanceTargetItem.Create(info, testWorkspace));
@@ -231,7 +231,7 @@ public class {|target2:Bar|} : IBar
 
             var itemOnLine2 = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "IBar",
+                memberName: "interface IBar",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "class Bar",
                         locationTag: "target2",
@@ -239,7 +239,7 @@ public class {|target2:Bar|} : IBar
 
             var itemOnLine3 = new TestInheritanceMemberItem(
                 lineNumber: 3,
-                memberName: "Bar",
+                memberName: "class Bar",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "interface IBar",
                         locationTag: "target1",
@@ -262,7 +262,7 @@ interface {|target2:IBar2|} : IBar { }
 
             var itemOnLine2 = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "IBar",
+                memberName: "interface IBar",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "interface IBar2",
                         locationTag: "target2",
@@ -270,7 +270,7 @@ interface {|target2:IBar2|} : IBar { }
                 );
             var itemOnLine3 = new TestInheritanceMemberItem(
                 lineNumber: 3,
-                memberName: "IBar2",
+                memberName: "interface IBar2",
                 targets: ImmutableArray<TargetInfo>.Empty
                     .Add(new TargetInfo(
                         targetSymbolDisplayName: "interface IBar",
@@ -295,7 +295,7 @@ class {|target1:B|} : A { }
 
             var itemOnLine2 = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "A",
+                memberName: "class A",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "class B",
                         locationTag: "target1",
@@ -303,7 +303,7 @@ class {|target1:B|} : A { }
             );
             var itemOnLine3 = new TestInheritanceMemberItem(
                 lineNumber: 3,
-                memberName: "B",
+                memberName: "class B",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "class A",
                         locationTag: "target2",
@@ -350,7 +350,7 @@ public class Bar : Bar1
                 LanguageNames.CSharp,
                 new TestInheritanceMemberItem(
                     lineNumber: 4,
-                    memberName: "Bar",
+                    memberName: "class Bar",
                     targets: ImmutableArray.Create(
                         new TargetInfo(
                             targetSymbolDisplayName: "class Bar1",
@@ -371,7 +371,7 @@ public class Bar : IEnumerable
                 LanguageNames.CSharp,
                 new TestInheritanceMemberItem(
                     lineNumber: 3,
-                    memberName: "Bar",
+                    memberName: "class Bar",
                     targets: ImmutableArray.Create(
                         new TargetInfo(
                                 targetSymbolDisplayName: "interface IEnumerable",
@@ -397,7 +397,7 @@ public class {|target1:Bar|} : IBar
 }";
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 3,
-                memberName: "IBar",
+                memberName: "interface IBar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "class Bar",
                     locationTag: "target1",
@@ -405,7 +405,7 @@ public class {|target1:Bar|} : IBar
 
             var itemForBar = new TestInheritanceMemberItem(
                 lineNumber: 7,
-                memberName: "Bar",
+                memberName: "class Bar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "interface IBar",
                     locationTag: "target2",
@@ -450,7 +450,7 @@ public class {|target1:Bar|} : IBar
 }";
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "IBar",
+                memberName: "interface IBar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "class Bar",
                     locationTag: "target1",
@@ -458,7 +458,7 @@ public class {|target1:Bar|} : IBar
 
             var itemForBar = new TestInheritanceMemberItem(
                 lineNumber: 6,
-                memberName: "Bar",
+                memberName: "class Bar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "interface IBar",
                     locationTag: "target2",
@@ -544,7 +544,7 @@ public class {|target2:Bar|} : IBar
 
             var itemForPooInInterface = new TestInheritanceMemberItem(
                 lineNumber: 5,
-                memberName: "int IBar.Poo",
+                memberName: "int IBar.Poo { get; set; }",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "int Bar.Poo { get; set; }",
                         locationTag: "target5",
@@ -553,7 +553,7 @@ public class {|target2:Bar|} : IBar
 
             var itemForPooInClass = new TestInheritanceMemberItem(
                 lineNumber: 11,
-                memberName: "int Bar.Poo",
+                memberName: "int Bar.Poo { get; set; }",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "int IBar.Poo { get; set; }",
                         locationTag: "target6",
@@ -580,7 +580,7 @@ public class {|target2:Bar|} : IBar
 
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "IBar",
+                memberName: "interface IBar",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "class Bar",
                         locationTag: "target2",
@@ -589,7 +589,7 @@ public class {|target2:Bar|} : IBar
 
             var itemForBar = new TestInheritanceMemberItem(
                 lineNumber: 8,
-                memberName: "Bar",
+                memberName: "class Bar",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "interface IBar",
                         locationTag: "target1",
@@ -631,7 +631,7 @@ public class {{|target1:Bar2|}} : Bar
 
             var itemForEooInClass = new TestInheritanceMemberItem(
                 lineNumber: 12,
-                memberName: "event EventHandler Bar2.Eoo",
+                memberName: "override event EventHandler Bar2.Eoo",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: $"{modifier} event EventHandler Bar.Eoo",
                         locationTag: "target8",
@@ -639,7 +639,7 @@ public class {{|target1:Bar2|}} : Bar
 
             var itemForEooInAbstractClass = new TestInheritanceMemberItem(
                 lineNumber: 6,
-                memberName: "event EventHandler Bar.Eoo",
+                memberName: $"{modifier} event EventHandler Bar.Eoo",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "override event EventHandler Bar2.Eoo",
                         locationTag: "target7",
@@ -647,7 +647,7 @@ public class {{|target1:Bar2|}} : Bar
 
             var itemForPooInClass = new TestInheritanceMemberItem(
                     lineNumber: 11,
-                    memberName: "int Bar2.Poo",
+                    memberName: "override int Bar2.Poo { get; set; }",
                     targets: ImmutableArray.Create(new TargetInfo(
                             targetSymbolDisplayName: $"{modifier} int Bar.Poo {{ get; set; }}",
                             locationTag: "target6",
@@ -655,7 +655,7 @@ public class {{|target1:Bar2|}} : Bar
 
             var itemForPooInAbstractClass = new TestInheritanceMemberItem(
                     lineNumber: 5,
-                    memberName: "int Bar.Poo",
+                    memberName: $"{modifier} int Bar.Poo {{ get; set; }}",
                     targets: ImmutableArray.Create(new TargetInfo(
                             targetSymbolDisplayName: "override int Bar2.Poo { get; set; }",
                             locationTag: "target5",
@@ -663,7 +663,7 @@ public class {{|target1:Bar2|}} : Bar
 
             var itemForFooInAbstractClass = new TestInheritanceMemberItem(
                     lineNumber: 4,
-                    memberName: "void Bar.Foo()",
+                    memberName: $"{modifier} void Bar.Foo()",
                     targets: ImmutableArray.Create(new TargetInfo(
                             targetSymbolDisplayName: "override void Bar2.Foo()",
                             locationTag: "target3",
@@ -671,7 +671,7 @@ public class {{|target1:Bar2|}} : Bar
 
             var itemForFooInClass = new TestInheritanceMemberItem(
                 lineNumber: 10,
-                memberName: "void Bar2.Foo()",
+                memberName: "override void Bar2.Foo()",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: $"{modifier} void Bar.Foo()",
                         locationTag: "target4",
@@ -679,7 +679,7 @@ public class {{|target1:Bar2|}} : Bar
 
             var itemForBar = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "Bar",
+                memberName: "class Bar",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "class Bar2",
                         locationTag: "target1",
@@ -687,7 +687,7 @@ public class {{|target1:Bar2|}} : Bar
 
             var itemForBar2 = new TestInheritanceMemberItem(
                 lineNumber: 8,
-                memberName: "Bar2",
+                memberName: "class Bar2",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "class Bar",
                         locationTag: "target2",
@@ -721,7 +721,7 @@ Class {|target1:Bar|}
 End Class";
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "IBar",
+                memberName: "Interface IBar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Class Bar",
                     locationTag: "target1",
@@ -729,7 +729,7 @@ End Class";
 
             var itemForBar = new TestInheritanceMemberItem(
                 lineNumber: 4,
-                memberName: "Bar",
+                memberName: "Class Bar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Interface IBar",
                     locationTag: "target2",
@@ -754,7 +754,7 @@ End Interface";
 
             var itemForIBar2 = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "IBar2",
+                memberName: "Interface IBar2",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Interface IBar",
                     locationTag: "target1",
@@ -762,7 +762,7 @@ End Interface";
 
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 4,
-                memberName: "IBar",
+                memberName: "Interface IBar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Interface IBar2",
                     locationTag: "target2",
@@ -782,7 +782,7 @@ End Class";
 
             var itemForBar2 = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "Bar2",
+                memberName: "Class Bar2",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Class Bar",
                     locationTag: "target1",
@@ -790,7 +790,7 @@ End Class";
 
             var itemForBar = new TestInheritanceMemberItem(
                 lineNumber: 4,
-                memberName: "Bar",
+                memberName: "Class Bar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Class Bar2",
                     locationTag: "target2",
@@ -825,7 +825,7 @@ End Class";
                 LanguageNames.VisualBasic,
                 new TestInheritanceMemberItem(
                     lineNumber: 3,
-                    memberName: "Bar",
+                    memberName: "Class Bar",
                     targets: ImmutableArray.Create(
                         new TargetInfo(
                             targetSymbolDisplayName: "Interface IEnumerable",
@@ -847,7 +847,7 @@ End Class";
 
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "IBar",
+                memberName: "Interface IBar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Class Bar",
                     locationTag: "target1",
@@ -855,7 +855,7 @@ End Class";
 
             var itemForBar = new TestInheritanceMemberItem(
                 lineNumber: 5,
-                memberName: "Bar",
+                memberName: "Class Bar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Interface IBar",
                     locationTag: "target2",
@@ -900,7 +900,7 @@ Class {|target1:Bar|}
 End Class";
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "IBar",
+                memberName: "Interface IBar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Class Bar",
                     locationTag: "target1",
@@ -908,7 +908,7 @@ End Class";
 
             var itemForBar = new TestInheritanceMemberItem(
                 lineNumber: 5,
-                memberName: "Bar",
+                memberName: "Class Bar",
                 ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Interface IBar",
                     locationTag: "target2",
@@ -963,7 +963,7 @@ Class {|target1:Bar|}
 End Class";
             var itemForIBar = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "IBar",
+                memberName: "Interface IBar",
                 targets: ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Class Bar",
                     locationTag: "target1",
@@ -971,7 +971,7 @@ End Class";
 
             var itemForBar = new TestInheritanceMemberItem(
                 lineNumber: 7,
-                memberName: "Bar",
+                memberName: "Class Bar",
                 targets: ImmutableArray.Create(new TargetInfo(
                     targetSymbolDisplayName: "Interface IBar",
                     locationTag: "target2",
@@ -1035,7 +1035,7 @@ Class {|target1:Bar|}
 End Class";
             var itemForBar1 = new TestInheritanceMemberItem(
                 lineNumber: 2,
-                memberName: "Bar1",
+                memberName: "Class Bar1",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: $"Class Bar",
                         locationTag: "target1",
@@ -1043,7 +1043,7 @@ End Class";
 
             var itemForBar = new TestInheritanceMemberItem(
                 lineNumber: 6,
-                memberName: "Bar",
+                memberName: "Class Bar",
                 targets: ImmutableArray.Create(new TargetInfo(
                         targetSymbolDisplayName: "Class Bar1",
                         locationTag: "target2",
@@ -1051,7 +1051,7 @@ End Class";
 
             var itemForFooInBar1 = new TestInheritanceMemberItem(
                     lineNumber: 3,
-                    memberName: "Sub Bar1.Foo()",
+                    memberName: "MustOverride Sub Bar1.Foo()",
                     targets: ImmutableArray.Create(new TargetInfo(
                             targetSymbolDisplayName: "Overrides Sub Bar.Foo()",
                             locationTag: "target3",
@@ -1059,7 +1059,7 @@ End Class";
 
             var itemForFooInBar = new TestInheritanceMemberItem(
                     lineNumber: 8,
-                    memberName: "Sub Bar.Foo()",
+                    memberName: "Overrides Sub Bar.Foo()",
                     targets: ImmutableArray.Create(new TargetInfo(
                             targetSymbolDisplayName: "MustOverride Sub Bar1.Foo()",
                             locationTag: "target4",
