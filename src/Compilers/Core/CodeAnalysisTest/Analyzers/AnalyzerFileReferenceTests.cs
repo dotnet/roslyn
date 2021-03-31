@@ -461,7 +461,12 @@ public class Generator : ISourceGenerator
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.FSharpGenerator", allGenerators[8]);
             Assert.Equal("Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator", allGenerators[9]);
         }
-
+                     
+        // NOTE: the order in which these are emitted can change the test 'TestLoadedAnalyzerOrderIsDeterministic'
+        //       and other determinism tests in this file.
+        //       Ensure you do not re-arrange them alphabetically, as that will invalidate the tests, without 
+        //       explicitly failing them
+       
         [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]
         public class TestAnalyzer : DiagnosticAnalyzer
         {
@@ -482,7 +487,7 @@ public class Generator : ISourceGenerator
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
             public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
         }
-
+       
         [Generator]
         public class TestGenerator : ISourceGenerator
         {
