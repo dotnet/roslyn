@@ -565,8 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        // Is there a way to recognize a record struct from PE?
-        // Tracked by https://github.com/dotnet/roslyn/issues/52233
+        // Record structs get erased when emitted to metadata
         internal override bool IsRecordStruct => false;
 
         public override Accessibility DeclaredAccessibility

@@ -1094,6 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordDeclaration:
                     {
                         SynthesizedRecordConstructor symbol = TryGetSynthesizedRecordConstructor((RecordDeclarationSyntax)node);
+
                         if (symbol is null)
                         {
                             return null;

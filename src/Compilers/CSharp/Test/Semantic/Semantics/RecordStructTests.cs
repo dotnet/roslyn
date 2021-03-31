@@ -7,6 +7,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -423,19 +425,175 @@ namespace NS
             var src = @"
 record struct Point(int x, int y);
 ";
-
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics();
 
-            var point = comp.GlobalNamespace.GetTypeMember("Point");
-            Assert.True(point.IsValueType);
-            Assert.False(point.IsReferenceType);
-            Assert.False(point.IsRecord);
-            Assert.True(point.IsRecordStruct);
-            Assert.Equal(TypeKind.Struct, point.TypeKind);
-            Assert.Equal(SpecialType.System_ValueType, point.BaseTypeNoUseSiteDiagnostics.SpecialType);
+            CompileAndVerify(comp, symbolValidator: validateModule, sourceSymbolValidator: validateModule);
 
-            Assert.True(SyntaxFacts.IsTypeDeclaration(SyntaxKind.RecordStructDeclaration));
+            static void validateModule(ModuleSymbol module)
+            {
+                var isSourceSymbol = module is SourceModuleSymbol;
+
+                var point = module.GlobalNamespace.GetTypeMember("Point");
+                Assert.True(point.IsValueType);
+                Assert.False(point.IsReferenceType);
+                Assert.False(point.IsRecord);
+                Assert.Equal(TypeKind.Struct, point.TypeKind);
+                Assert.Equal(SpecialType.System_ValueType, point.BaseTypeNoUseSiteDiagnostics.SpecialType);
+                Assert.True(SyntaxFacts.IsTypeDeclaration(SyntaxKind.RecordStructDeclaration));
+
+                if (isSourceSymbol)
+                {
+                    Assert.True(point is SourceNamedTypeSymbol);
+                    Assert.True(point.IsRecordStruct);
+                    Assert.True(point.GetPublicSymbol().IsRecord);
+                }
+                else
+                {
+                    Assert.True(point is PENamedTypeSymbol);
+                    Assert.False(point.IsRecordStruct);
+                    Assert.False(point.GetPublicSymbol().IsRecord);
+                }
+            }
+        }
+
+        [Fact]
+        public void IsRecord_Generic()
+        {
+            var src = @"
+record struct Point<T>(T x, T y);
+";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, symbolValidator: validateModule, sourceSymbolValidator: validateModule);
+
+            static void validateModule(ModuleSymbol module)
+            {
+                var isSourceSymbol = module is SourceModuleSymbol;
+
+                var point = module.GlobalNamespace.GetTypeMember("Point");
+                Assert.True(point.IsValueType);
+                Assert.False(point.IsReferenceType);
+                Assert.False(point.IsRecord);
+                Assert.Equal(TypeKind.Struct, point.TypeKind);
+                Assert.Equal(SpecialType.System_ValueType, point.BaseTypeNoUseSiteDiagnostics.SpecialType);
+                Assert.True(SyntaxFacts.IsTypeDeclaration(SyntaxKind.RecordStructDeclaration));
+
+                if (isSourceSymbol)
+                {
+                    Assert.True(point is SourceNamedTypeSymbol);
+                    Assert.True(point.IsRecordStruct);
+                    Assert.True(point.GetPublicSymbol().IsRecord);
+                }
+                else
+                {
+                    Assert.True(point is PENamedTypeSymbol);
+                    Assert.False(point.IsRecordStruct);
+                    Assert.False(point.GetPublicSymbol().IsRecord);
+                }
+            }
+        }
+
+        [Fact]
+        public void IsRecord_Retargeting()
+        {
+            var src = @"
+public record struct Point(int x, int y);
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Mscorlib40);
+            var comp2 = CreateCompilation("", targetFramework: TargetFramework.Mscorlib46, references: new[] { comp.ToMetadataReference() });
+            var point = comp2.GlobalNamespace.GetTypeMember("Point");
+
+            Assert.Equal("Point", point.ToTestDisplayString());
+            Assert.IsType<RetargetingNamedTypeSymbol>(point);
+            Assert.True(point.IsRecordStruct);
+            Assert.True(point.GetPublicSymbol().IsRecord);
+        }
+
+        [Fact]
+        public void IsRecord_AnonymousType()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        var x = new { X = 1 };
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var creation = tree.GetRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().Single();
+            var type = model.GetTypeInfo(creation).Type!;
+
+            Assert.Equal("<anonymous type: System.Int32 X>", type.ToTestDisplayString());
+            Assert.IsType<AnonymousTypeManager.AnonymousTypePublicSymbol>(((Symbols.PublicModel.NonErrorNamedTypeSymbol)type).UnderlyingNamedTypeSymbol);
+            Assert.False(type.IsRecord);
+        }
+
+        [Fact]
+        public void IsRecord_ErrorType()
+        {
+            var src = @"
+class C
+{
+    Error M() => throw null;
+}
+";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var type = model.GetDeclaredSymbol(method)!.ReturnType;
+
+            Assert.Equal("Error", type.ToTestDisplayString());
+            Assert.IsType<ExtendedErrorTypeSymbol>(((Symbols.PublicModel.ErrorTypeSymbol)type).UnderlyingNamedTypeSymbol);
+            Assert.False(type.IsRecord);
+        }
+
+        [Fact]
+        public void IsRecord_Pointer()
+        {
+            var src = @"
+class C
+{
+    int* M() => throw null;
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeReleaseDll);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var type = model.GetDeclaredSymbol(method)!.ReturnType;
+
+            Assert.Equal("System.Int32*", type.ToTestDisplayString());
+            Assert.IsType<PointerTypeSymbol>(((Symbols.PublicModel.PointerTypeSymbol)type).UnderlyingTypeSymbol);
+            Assert.False(type.IsRecord);
+        }
+
+        [Fact]
+        public void IsRecord_Dynamic()
+        {
+            var src = @"
+class C
+{
+    void M(dynamic d)
+    {
+    }
+}
+";
+            var comp = CreateCompilation(src);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var type = model.GetDeclaredSymbol(method)!.GetParameterType(0);
+
+            Assert.Equal("dynamic", type.ToTestDisplayString());
+            Assert.IsType<DynamicTypeSymbol>(((Symbols.PublicModel.DynamicTypeSymbol)type).UnderlyingTypeSymbol);
+            Assert.False(type.IsRecord);
         }
 
         [Fact]
@@ -5189,7 +5347,7 @@ record struct R(R X)
         }
 
         [Fact]
-        public void GetDeclaredSymbolOnFieldInitializer()
+        public void GetDeclaredSymbolOnPropertyInitializer()
         {
             var src = @"
 record struct R(int I)
