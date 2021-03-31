@@ -435,22 +435,22 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 var invocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(invocationExpression);
                 var parameterToArgumentMap = MapParameterToArgumentsAtInvocation(semanticFacts, invocationArguments, invocationSemanticModel, cancellationToken);
-                var currentInvocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvocation).ToArray();
-
+                var currentInvocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvocation);
+                var currentArgumentsArray = currentInvocationArguments.ToArray();
                 var requiredArguments = new List<SyntaxNode>();
 
                 foreach (var parameterSymbol in validParameters)
                 {
                     if (parameterToArgumentMap.TryGetValue(parameterSymbol, out var index))
                     {
-                        requiredArguments.Add(currentInvocationArguments[index]);
+                        requiredArguments.Add(currentArgumentsArray[index]);
                     }
                 }
 
                 var methodName = generator.IdentifierName(newMethodIdentifier);
                 var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
                 var newMethodInvocation = generator.InvocationExpression(methodName, requiredArguments);
-                var allArguments = invocationArguments.Insert(insertionIndex, newMethodInvocation);
+                var allArguments = currentInvocationArguments.Insert(insertionIndex, newMethodInvocation);
                 return (TInvocationExpressionSyntax)generator.InvocationExpression(expressionFromInvocation, allArguments);
             }
         }

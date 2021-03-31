@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -22,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
+
+        private OptionsCollection UseExpressionBody =>
+            Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
         public async Task TestSimpleExpressionWithNoMethodCallsCase()
@@ -302,7 +306,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 1);
+            await TestInRegularAndScriptAsync(code, expected, index: 3);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -332,7 +336,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -413,7 +417,7 @@ class TestClass
         M(z, y, x, M_m(z, y, x));
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 3, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            await TestInRegularAndScriptAsync(code, expected, index: 4, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -443,7 +447,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 4);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -482,7 +486,7 @@ class TestClass
         M(z, y, x);
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 4);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -504,11 +508,7 @@ class TestClass
 @"using System;
 class TestClass
 {
-    private int M(int x, int y, int z)
-    {
-        return M(x, y, z, x * y * z);
-    }
-
+    private int M(int x, int y, int z) => M(x, y, z, x * y * z);
     int M(int x, int y, int z, int v) => {|Rename:v|};
 
     void M1(int x, int y, int z)
@@ -517,7 +517,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 4);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, options: UseExpressionBody, parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -552,7 +552,7 @@ class TestClass
     }
 }";
 
-            await TestInRegularAndScriptAsync(code, expected, index: 2);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -694,7 +694,7 @@ class TestClass
 
     void M1()
     {
-        M(7, m: 7 * 5);
+        M(7, 7 * 5);
     }
 }";
             await TestInRegularAndScriptAsync(code, expected, index: 0);
@@ -766,7 +766,7 @@ class TestClass
         return M(x, x, z, M_m(x, x, z));
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 2);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -797,7 +797,7 @@ class TestClass
         return M(x, x, M(x, y, x, M_m(x, y, x)), M_m(x, x, M(x, y, x, M_m(x, y, x))));
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 2);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -861,7 +861,7 @@ class TestClass
     Func<int, int, int>
     Func<int, int, int> mult = (x, y, int v) => v;
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 2);
+            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -880,7 +880,7 @@ class TestClass
 {
     Func<int, int, int> mult = (x, y, int v) => v;
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 4);
+            await TestInRegularAndScriptAsync(code, expected, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
