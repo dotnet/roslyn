@@ -247,6 +247,8 @@ namespace Roslyn.Test.Utilities
             public static byte[] MicrosoftCSharp => ResourceLoader.GetOrCreateResource(ref _MicrosoftCSharp, "netcoreapp.Microsoft.CSharp.dll");
             private static byte[] _MicrosoftVisualBasic;
             public static byte[] MicrosoftVisualBasic => ResourceLoader.GetOrCreateResource(ref _MicrosoftVisualBasic, "netcoreapp.Microsoft.VisualBasic.dll");
+            private static byte[] _MicrosoftVisualBasicCore;
+            public static byte[] MicrosoftVisualBasicCore => ResourceLoader.GetOrCreateResource(ref _MicrosoftVisualBasicCore, "netcoreapp.Microsoft.VisualBasic.Core.dll");
             public static ReferenceInfo[] All => new[]
             {
                 new ReferenceInfo("mscorlib.dll", mscorlib),
@@ -262,6 +264,7 @@ namespace Roslyn.Test.Utilities
                 new ReferenceInfo("netstandard.dll", netstandard),
                 new ReferenceInfo("Microsoft.CSharp.dll", MicrosoftCSharp),
                 new ReferenceInfo("Microsoft.VisualBasic.dll", MicrosoftVisualBasic),
+                new ReferenceInfo("Microsoft.VisualBasic.Core.dll", MicrosoftVisualBasicCore),
             };
         }
         public static class NetCoreApp
@@ -279,6 +282,7 @@ namespace Roslyn.Test.Utilities
             public static PortableExecutableReference netstandard { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.netstandard).GetReference(display: "netstandard.dll (netcoreapp)", filePath: "netstandard.dll");
             public static PortableExecutableReference MicrosoftCSharp { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.dll (netcoreapp)", filePath: "Microsoft.CSharp.dll");
             public static PortableExecutableReference MicrosoftVisualBasic { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.MicrosoftVisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (netcoreapp)", filePath: "Microsoft.VisualBasic.dll");
+            public static PortableExecutableReference MicrosoftVisualBasicCore { get; } = AssemblyMetadata.CreateFromImage(ResourcesNetCoreApp.MicrosoftVisualBasicCore).GetReference(display: "Microsoft.VisualBasic.Core.dll (netcoreapp)", filePath: "Microsoft.VisualBasic.Core.dll");
         }
         public static class ResourcesNetStandard20
         {

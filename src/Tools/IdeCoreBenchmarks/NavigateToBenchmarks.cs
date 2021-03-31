@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -31,8 +32,8 @@ namespace IdeCoreBenchmarks
 
         public NavigateToBenchmarks()
         {
-            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            _solutionPath = Path.Combine(roslynRoot, @"C:\github\roslyn\Compilers.sln");
+            // var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            _solutionPath = @"C:\github\roslyn\Roslyn.sln";
 
             if (!File.Exists(_solutionPath))
                 throw new ArgumentException("Couldn't find Roslyn.sln");
@@ -74,6 +75,8 @@ namespace IdeCoreBenchmarks
         [Benchmark]
         public async Task RunNavigateTo()
         {
+            var sw = new Stopwatch();
+            sw.Start();
             var solution = _workspace.CurrentSolution;
             // Search each project with an independent threadpool task.
             var searchTasks = solution.Projects.Select(
@@ -81,23 +84,24 @@ namespace IdeCoreBenchmarks
 
             var result = await Task.WhenAll(searchTasks).ConfigureAwait(false);
             var sum = result.Sum();
+            sw.Stop();
+
+            Console.WriteLine($"Time: {sw.ElapsedMilliseconds}");
         }
 
         private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
             var service = project.LanguageServices.GetService<INavigateToSearchService>();
-            var results = new List<INavigateToSearchResult>();
+            var count = 0;
             await service.SearchProjectAsync(
                 project, priorityDocuments, "Document", service.KindsProvided,
                 r =>
                 {
-                    lock (results)
-                        results.Add(r);
-
+                    Interlocked.Increment(ref count);
                     return Task.CompletedTask;
-                }, CancellationToken.None);
+                }, isFullyLoaded: true, CancellationToken.None);
 
-            return results.Count;
+            return count;
         }
     }
 }
