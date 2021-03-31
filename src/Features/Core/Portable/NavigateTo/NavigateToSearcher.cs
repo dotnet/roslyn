@@ -168,8 +168,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return;
 
             var task = _currentDocument != null
-                ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, OnResultFound, _cancellationToken)
-                : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, OnResultFound, _cancellationToken);
+                ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, OnResultFound, isFullyLoaded, _cancellationToken)
+                : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, OnResultFound, isFullyLoaded, _cancellationToken);
 
             await task.ConfigureAwait(false);
             return;
