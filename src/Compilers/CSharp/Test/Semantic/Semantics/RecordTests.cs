@@ -485,7 +485,7 @@ record R3(R3 x) : Base
         }
 
         [Fact, WorkItem(49628, "https://github.com/dotnet/roslyn/issues/49628")]
-        public void AmbigCtor_WithFieldInitializer()
+        public void AmbigCtor_WithPropertyInitializer()
         {
             // PROTOTYPE(record-structs): ported
             var src = @"
@@ -517,7 +517,7 @@ record R(R X)
         }
 
         [Fact]
-        public void GetDeclaredSymbolOnFieldInitializer()
+        public void GetDeclaredSymbolOnPropertyInitializer()
         {
             var src = @"
 record R(int I)

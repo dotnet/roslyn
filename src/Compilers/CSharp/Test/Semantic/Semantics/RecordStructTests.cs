@@ -5316,7 +5316,7 @@ record struct C1
         }
 
         [Fact]
-        public void AmbigCtor_WithFieldInitializer()
+        public void AmbigCtor_WithPropertyInitializer()
         {
             var src = @"
 record struct R(R X)
@@ -5380,6 +5380,7 @@ record struct R(int I)
 record struct A([Attr1]int X = 0) : I1
 {
     private int M() => 3;
+    A(string S) : this(4) => throw null;
 }
 
 interface I1 {}
@@ -5398,6 +5399,11 @@ class Attr1 : System.Attribute {}
             Assert.Equal(1, analyzer.FireCount5);
             Assert.Equal(1, analyzer.FireCountParameterListAPrimaryCtor);
             Assert.Equal(1, analyzer.FireCount7);
+            Assert.Equal(1, analyzer.FireCountConstructorDeclaration);
+            Assert.Equal(1, analyzer.FireCountStringParameterList);
+            Assert.Equal(1, analyzer.FireCountThisConstructorInitializer);
+            Assert.Equal(1, analyzer.FireCount11);
+            Assert.Equal(1, analyzer.FireCount12);
         }
 
         private class AnalyzerActions_01_Analyzer : DiagnosticAnalyzer
@@ -5410,6 +5416,11 @@ class Attr1 : System.Attribute {}
             public int FireCount5;
             public int FireCountParameterListAPrimaryCtor;
             public int FireCount7;
+            public int FireCountConstructorDeclaration;
+            public int FireCountStringParameterList;
+            public int FireCountThisConstructorInitializer;
+            public int FireCount11;
+            public int FireCount12;
 
             private static readonly DiagnosticDescriptor Descriptor =
                new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
@@ -5422,13 +5433,14 @@ class Attr1 : System.Attribute {}
                 context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.NumericLiteralExpression);
                 context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.EqualsValueClause);
                 context.RegisterSyntaxNodeAction(Fail, SyntaxKind.BaseConstructorInitializer);
-                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.ConstructorDeclaration);
+                context.RegisterSyntaxNodeAction(Handle3, SyntaxKind.ThisConstructorInitializer);
+                context.RegisterSyntaxNodeAction(Handle4, SyntaxKind.ConstructorDeclaration);
                 context.RegisterSyntaxNodeAction(Fail, SyntaxKind.PrimaryConstructorBaseType);
                 context.RegisterSyntaxNodeAction(Handle6, SyntaxKind.RecordStructDeclaration);
                 context.RegisterSyntaxNodeAction(Handle7, SyntaxKind.IdentifierName);
                 context.RegisterSyntaxNodeAction(Handle8, SyntaxKind.SimpleBaseType);
                 context.RegisterSyntaxNodeAction(Handle9, SyntaxKind.ParameterList);
-                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.ArgumentList);
+                context.RegisterSyntaxNodeAction(Handle10, SyntaxKind.ArgumentList);
             }
 
             protected void Handle1(SyntaxNodeAnalysisContext context)
@@ -5444,6 +5456,10 @@ class Attr1 : System.Attribute {}
                     case "3":
                         Interlocked.Increment(ref FireCount7);
                         Assert.Equal("System.Int32 A.M()", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    case "4":
+                        Interlocked.Increment(ref FireCount12);
+                        Assert.Equal("A..ctor(System.String S)", context.ContainingSymbol.ToTestDisplayString());
                         break;
                     default:
                         Assert.True(false);
@@ -5469,6 +5485,30 @@ class Attr1 : System.Attribute {}
                 }
 
                 Assert.Same(equalsValue.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            protected void Handle3(SyntaxNodeAnalysisContext context)
+            {
+                var initializer = (ConstructorInitializerSyntax)context.Node;
+
+                switch (initializer.ToString())
+                {
+                    case ": this(4)":
+                        Interlocked.Increment(ref FireCountThisConstructorInitializer);
+                        Assert.Equal("A..ctor(System.String S)", context.ContainingSymbol.ToTestDisplayString());
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+
+                Assert.Same(initializer.SyntaxTree, context.ContainingSymbol!.DeclaringSyntaxReferences.Single().SyntaxTree);
+            }
+
+            protected void Handle4(SyntaxNodeAnalysisContext context)
+            {
+                Interlocked.Increment(ref FireCountConstructorDeclaration);
+                Assert.Equal("A..ctor(System.String S)", context.ContainingSymbol.ToTestDisplayString());
             }
 
             protected void Fail(SyntaxNodeAnalysisContext context)
@@ -5546,7 +5586,27 @@ class Attr1 : System.Attribute {}
                         Interlocked.Increment(ref FireCountParameterListAPrimaryCtor);
                         Assert.Equal("A..ctor([System.Int32 X = 0])", context.ContainingSymbol.ToTestDisplayString());
                         break;
+                    case "(string S)":
+                        Interlocked.Increment(ref FireCountStringParameterList);
+                        Assert.Equal("A..ctor(System.String S)", context.ContainingSymbol.ToTestDisplayString());
+                        break;
                     case "()":
+                        break;
+                    default:
+                        Assert.True(false);
+                        break;
+                }
+            }
+
+            protected void Handle10(SyntaxNodeAnalysisContext context)
+            {
+                var argumentList = (ArgumentListSyntax)context.Node;
+
+                switch (argumentList.ToString())
+                {
+                    case "(4)":
+                        Interlocked.Increment(ref FireCount11);
+                        Assert.Equal("A..ctor(System.String S)", context.ContainingSymbol.ToTestDisplayString());
                         break;
                     default:
                         Assert.True(false);
@@ -6026,6 +6086,7 @@ interface I1 {}
 record struct A([Attr1]int X = 0) : I1
 {
     private int M() => 3;
+    A(string S) : this(4) => throw null;
 }
 
 interface I1 {}
@@ -6037,6 +6098,7 @@ interface I1 {}
 
             Assert.Equal(1, analyzer.FireCount100);
             Assert.Equal(1, analyzer.FireCount400);
+            Assert.Equal(1, analyzer.FireCount500);
 
             Assert.Equal(1, analyzer.FireCount0);
             Assert.Equal(0, analyzer.FireCountRecordStructDeclarationA);
@@ -6046,17 +6108,24 @@ interface I1 {}
             Assert.Equal(1, analyzer.FireCount5);
             Assert.Equal(0, analyzer.FireCountParameterListAPrimaryCtor);
             Assert.Equal(1, analyzer.FireCount7);
-
+            Assert.Equal(0, analyzer.FireCountConstructorDeclaration);
+            Assert.Equal(0, analyzer.FireCountStringParameterList);
+            Assert.Equal(0, analyzer.FireCountThisConstructorInitializer);
+            Assert.Equal(1, analyzer.FireCount11);
+            Assert.Equal(1, analyzer.FireCount12);
             Assert.Equal(1, analyzer.FireCount1000);
             Assert.Equal(1, analyzer.FireCount4000);
+            Assert.Equal(1, analyzer.FireCount5000);
         }
 
         private class AnalyzerActions_08_Analyzer : AnalyzerActions_01_Analyzer
         {
             public int FireCount100;
             public int FireCount400;
+            public int FireCount500;
             public int FireCount1000;
             public int FireCount4000;
+            public int FireCount5000;
 
             private static readonly DiagnosticDescriptor Descriptor =
                new DiagnosticDescriptor("XY0000", "Test", "Test", "Test", DiagnosticSeverity.Warning, true, "Test", "Test");
@@ -6074,7 +6143,6 @@ interface I1 {}
                 switch (context.OwningSymbol.ToTestDisplayString())
                 {
                     case "A..ctor([System.Int32 X = 0])":
-
                         switch (context.CodeBlock)
                         {
                             case RecordStructDeclarationSyntax { Identifier: { ValueText: "A" } }:
@@ -6096,6 +6164,17 @@ interface I1 {}
                                 break;
                         }
                         break;
+                    case "A..ctor(System.String S)":
+                        switch (context.CodeBlock)
+                        {
+                            case ConstructorDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                                Interlocked.Increment(ref FireCount500);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
                     default:
                         Assert.True(false);
                         break;
@@ -6110,7 +6189,7 @@ interface I1 {}
                 context.RegisterSyntaxNodeAction(Handle7, SyntaxKind.IdentifierName);
                 context.RegisterSyntaxNodeAction(Handle8, SyntaxKind.SimpleBaseType);
                 context.RegisterSyntaxNodeAction(Handle9, SyntaxKind.ParameterList);
-                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.ArgumentList);
+                context.RegisterSyntaxNodeAction(Handle10, SyntaxKind.ArgumentList);
 
                 context.RegisterCodeBlockEndAction(Handle11);
             }
@@ -6136,6 +6215,17 @@ interface I1 {}
                         {
                             case MethodDeclarationSyntax { Identifier: { ValueText: "M" } }:
                                 Interlocked.Increment(ref FireCount4000);
+                                break;
+                            default:
+                                Assert.True(false);
+                                break;
+                        }
+                        break;
+                    case "A..ctor(System.String S)":
+                        switch (context.CodeBlock)
+                        {
+                            case ConstructorDeclarationSyntax { Identifier: { ValueText: "A" } }:
+                                Interlocked.Increment(ref FireCount5000);
                                 break;
                             default:
                                 Assert.True(false);
