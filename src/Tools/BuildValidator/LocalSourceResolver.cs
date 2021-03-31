@@ -35,14 +35,17 @@ namespace BuildValidator
             else
             {
                 string? onDiskPath = null;
-                foreach (var link in sourceLinks)
+                if (!sourceLinks.IsDefault)
                 {
-                    if (sourceFileInfo.SourceFilePath.StartsWith(link.Prefix))
+                    foreach (var link in sourceLinks)
                     {
-                        onDiskPath = Path.GetFullPath(Path.Combine(_options.SourcePath, pdbDocumentPath.Substring(link.Prefix.Length)));
-                        if (File.Exists(onDiskPath))
+                        if (sourceFileInfo.SourceFilePath.StartsWith(link.Prefix))
                         {
-                            break;
+                            onDiskPath = Path.GetFullPath(Path.Combine(_options.SourcePath, pdbDocumentPath.Substring(link.Prefix.Length)));
+                            if (File.Exists(onDiskPath))
+                            {
+                                break;
+                            }
                         }
                     }
                 }

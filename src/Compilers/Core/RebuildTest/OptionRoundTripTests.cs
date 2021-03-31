@@ -71,5 +71,16 @@ End Class",
             Assert.Equal(optimization, optimization2);
             Assert.Equal(debugPlus, debugPlus2);
         }
+
+        [Fact]
+        public void NonEmbeddedPdb()
+        {
+            var original = CreateCompilation(
+                @"class C { static void Main() { } }",
+                options: BaseCSharpCompilationOptions,
+                sourceFileName: "test.cs");
+
+            RoundTripUtil.VerifyRoundTrip(original, new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb, pdbFilePath: "test.pdb"));
+        }
     }
 }

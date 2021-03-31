@@ -18,6 +18,9 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 using Xunit;
+using System.Reflection.Metadata;
+using Microsoft.Metadata.Tools;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
@@ -51,16 +54,15 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             Assert.True(peStream.ToArray().SequenceEqual(rebuildPeStream.ToArray()));
         }
 
-        public static void VerifyRoundTrip<TCompilation>(TCompilation original)
+        public static void VerifyRoundTrip<TCompilation>(TCompilation original, EmitOptions? emitOptions = null)
             where TCompilation : Compilation
         {
             Assert.True(original.SyntaxTrees.All(x => !string.IsNullOrEmpty(x.FilePath)));
             Assert.True(original.Options.Deterministic);
 
             original.VerifyDiagnostics();
-            var originalBytes = original.EmitToArray(new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded));
-            var originalReader = new PEReader(originalBytes);
-            var originalPdbReader = originalReader.GetEmbeddedPdbMetadataReader();
+            emitOptions ??= new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
+            var (originalBytes, originalReader, originalPdbReader) = emitOriginal();
 
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("RoundTripVerification");
@@ -93,7 +95,78 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 CancellationToken.None);
             Assert.Empty(result.Diagnostics);
             Assert.True(result.Success);
+
+            var rebuildBytes = rebuildStream.ToImmutable();
+            var rebuildReader = new PEReader(rebuildBytes);
+
+            AssertImagesEqual(originalBytes, originalReader, rebuildBytes, rebuildReader);
             Assert.Equal(originalBytes.ToArray(), rebuildStream.ToArray());
+
+            (ImmutableArray<byte> originalBytes, PEReader originalReader, MetadataReader originalPdbReader) emitOriginal()
+            {
+                switch (emitOptions.DebugInformationFormat)
+                {
+                    case DebugInformationFormat.Embedded:
+                    {
+                        var originalBytes = original.EmitToArray(emitOptions);
+                        var originalReader = new PEReader(originalBytes);
+                        var originalPdbReader = originalReader.GetEmbeddedPdbMetadataReader();
+                        Assert.NotNull(originalPdbReader);
+                        return (originalBytes, originalReader, originalPdbReader!);
+                    }
+                    case DebugInformationFormat.PortablePdb:
+                    {
+                        using var pdbStream = new MemoryStream();
+                        var originalBytes = original.EmitToArray(emitOptions, pdbStream: pdbStream);
+                        var originalReader = new PEReader(originalBytes);
+
+                        pdbStream.Position = 0;
+                        var originalPdbReader = MetadataReaderProvider.FromPortablePdbStream(pdbStream).GetMetadataReader();
+                        return (originalBytes, originalReader, originalPdbReader);
+                    }
+                    default:
+                        throw new ArgumentException("Unsupported DebugInformationFormat: " + emitOptions.DebugInformationFormat);
+                }
+            }
+        }
+
+        private static void AssertImagesEqual(
+            ImmutableArray<byte> originalBytes,
+            PEReader originalReader,
+            ImmutableArray<byte> rebuildBytes,
+            PEReader rebuildReader)
+        {
+            if (originalBytes.SequenceEqual(rebuildBytes))
+            {
+                return;
+            }
+
+            var originalMdv = GetMdv(originalReader);
+            var rebuildMdv = GetMdv(rebuildReader);
+
+            // At this point the bytes were not equal, so the MDV output should also not be equal.
+            Assert.NotEqual(originalMdv, rebuildMdv);
+
+            // TODO: this is not all that useful without manual copy/pasting. Can we diff this during the test and show the differences.
+            Assert.True(false, $@"
+Expected:
+{originalMdv}
+
+Actual:
+{rebuildMdv}
+");
+
+            static string GetMdv(PEReader peReader)
+            {
+                using var stream = new MemoryStream();
+                var writer = new StreamWriter(stream);
+
+                var visualizer = new MetadataVisualizer(peReader.GetMetadataReader(), writer);
+                visualizer.Visualize();
+                writer.Flush();
+
+                return Encoding.UTF8.GetString(stream.ToArray());
+            }
         }
 
 #pragma warning disable 612 // 'CompilationOptions.Features' is obsolete

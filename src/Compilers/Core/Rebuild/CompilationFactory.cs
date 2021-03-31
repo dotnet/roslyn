@@ -87,16 +87,35 @@ namespace Microsoft.CodeAnalysis.Rebuild
             var sourceLink = OptionsReader.GetSourceLinkUTF8();
 
             var debugEntryPoint = getDebugEntryPoint();
+            var debugDirectory = OptionsReader.PeReader.ReadDebugDirectory();
+            string? pdbFilePath = null;
+            Stream? pdbStream = null;
+            if (!debugDirectory.Any(entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb))
+            {
+                var codeViewEntry = debugDirectory.SingleOrDefault(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+                if (codeViewEntry.Type == DebugDirectoryEntryType.CodeView)
+                {
+                    var codeView = OptionsReader.PeReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
+                    pdbFilePath = codeView.Path;
+
+                    // TODO: thread the resulting PDB through the rebuild library
+                    // and make available via e.g. CompilationDiff
+                    pdbStream = new MemoryStream();
+                }
+            }
 
             var emitResult = rebuildCompilation.Emit(
                 peStream: rebuildPeStream,
-                pdbStream: null,
+                pdbStream: pdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: win32ResourceStream,
                 useRawWin32Resources: true,
                 manifestResources: OptionsReader.GetManifestResources(),
                 options: new EmitOptions(
-                    debugInformationFormat: DebugInformationFormat.Embedded,
+                    debugInformationFormat: pdbFilePath is null
+                        ? DebugInformationFormat.Embedded
+                        : DebugInformationFormat.PortablePdb,
+                    pdbFilePath: pdbFilePath,
                     highEntropyVirtualAddressSpace: (peHeader.DllCharacteristics & DllCharacteristics.HighEntropyVirtualAddressSpace) != 0,
                     subsystemVersion: SubsystemVersion.Create(peHeader.MajorSubsystemVersion, peHeader.MinorSubsystemVersion)),
                 debugEntryPoint: debugEntryPoint,

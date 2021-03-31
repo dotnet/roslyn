@@ -40,7 +40,8 @@ namespace BuildValidator
         public record BuildInfo(
             byte[] AssemblyBytes,
             PEReader AssemblyReader,
-            MetadataReader PdbMetadataReader)
+            // TODO: we need to include this pdb reader even if not for an embedded PDB.
+            MetadataReader? PdbMetadataReader)
         {
             public MetadataReader AssemblyMetadataReader { get; } = AssemblyReader.GetMetadataReader();
         }
@@ -313,29 +314,31 @@ namespace BuildValidator
                 // This is deliberately named .extracted.pdb instead of .pdb. A number of tools will look
                 // for a PDB with the name assemblyName.pdb. Want to make explicitly sure that does not 
                 // happen and such tools always correctly fall back to the embedded PDB. 
-                var pdbFilePath = Path.Combine(outputPath, assemblyName + ".extracted.pdb");
-                writeAllBytes(pdbFilePath, new Span<byte>(buildInfo.PdbMetadataReader.MetadataPointer, buildInfo.PdbMetadataReader.MetadataLength));
+                if (buildInfo.PdbMetadataReader is { } pdbReader)
+                {
+                    var pdbFilePath = Path.Combine(outputPath, assemblyName + ".extracted.pdb");
+                    writeAllBytes(pdbFilePath, new Span<byte>(pdbReader.MetadataPointer, pdbReader.MetadataLength));
+                    createMetadataVisualization(buildDataFiles.PdbMdvFilePath, pdbReader);
+                    createDataFile(buildDataFiles.CustomDataFilePath, buildInfo.AssemblyReader, pdbReader);
+
+                    var pdbToXmlOptions = PdbToXmlOptions.ResolveTokens
+                        | PdbToXmlOptions.ThrowOnError
+                        | PdbToXmlOptions.ExcludeScopes
+                        | PdbToXmlOptions.IncludeSourceServerInformation
+                        | PdbToXmlOptions.IncludeEmbeddedSources
+                        | PdbToXmlOptions.IncludeTokens
+                        | PdbToXmlOptions.IncludeMethodSpans;
+
+                    using var pdbXmlStream = File.Create(buildDataFiles.PdbXmlFilePath);
+                    PdbToXmlConverter.ToXml(
+                        new StreamWriter(pdbXmlStream),
+                        pdbStream: new UnmanagedMemoryStream(pdbReader.MetadataPointer, pdbReader.MetadataLength),
+                        peStream: new MemoryStream(buildInfo.AssemblyBytes),
+                        options: pdbToXmlOptions,
+                        methodName: null);
+                }
 
                 createMetadataVisualization(buildDataFiles.AssemblyMdvFilePath, buildInfo.AssemblyMetadataReader);
-                createMetadataVisualization(buildDataFiles.PdbMdvFilePath, buildInfo.PdbMetadataReader);
-                createDataFile(buildDataFiles.CustomDataFilePath, buildInfo.AssemblyReader, buildInfo.PdbMetadataReader);
-
-                var pdbToXmlOptions = PdbToXmlOptions.ResolveTokens
-                    | PdbToXmlOptions.ThrowOnError
-                    | PdbToXmlOptions.ExcludeScopes
-                    | PdbToXmlOptions.IncludeSourceServerInformation
-                    | PdbToXmlOptions.IncludeEmbeddedSources
-                    | PdbToXmlOptions.IncludeTokens
-                    | PdbToXmlOptions.IncludeMethodSpans;
-
-                using var pdbXmlStream = File.Create(buildDataFiles.PdbXmlFilePath);
-                PdbToXmlConverter.ToXml(
-                    new StreamWriter(pdbXmlStream),
-                    pdbStream: new UnmanagedMemoryStream(buildInfo.PdbMetadataReader.MetadataPointer, buildInfo.PdbMetadataReader.MetadataLength),
-                    peStream: new MemoryStream(buildInfo.AssemblyBytes),
-                    options: pdbToXmlOptions,
-                    methodName: null);
-
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = IldasmUtilities.IldasmPath,
@@ -406,6 +409,16 @@ namespace BuildValidator
 
             bool hasPdbCompressionDifferences()
             {
+                if (originalInfo.PdbMetadataReader is null && rebuildInfo.PdbMetadataReader is null)
+                {
+                    return false;
+                }
+
+                if (originalInfo.PdbMetadataReader is null || rebuildInfo.PdbMetadataReader is null)
+                {
+                    return true;
+                }
+
                 var originalEntry = originalInfo.AssemblyReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
                 var rebuildEntry = rebuildInfo.AssemblyReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
                 if (originalEntry.DataSize != rebuildEntry.DataSize)
