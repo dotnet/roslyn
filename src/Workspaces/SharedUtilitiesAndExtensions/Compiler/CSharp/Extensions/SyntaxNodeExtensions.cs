@@ -942,6 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
                 case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
                 case LocalFunctionStatementSyntax localFunction: return localFunction.Modifiers;
+                case LocalDeclarationStatementSyntax localDeclaration: return localDeclaration.Modifiers;
             }
 
             return default;
