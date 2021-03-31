@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 this);
         }
 
-        public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan)
+        public void NavigateToSourceGeneratedFile(SourceGeneratedDocument document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             _foregroundThreadAffintizedObject.AssertIsForeground();
 
@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // We should have the file now, so navigate to the right span
             if (_openFiles.TryGetValue(temporaryFilePath, out var openFile))
             {
-                openFile.NavigateToSpan(sourceSpan);
+                openFile.NavigateToSpan(sourceSpan, cancellationToken);
             }
         }
 
@@ -378,8 +378,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                             textDocument.Encoding = generatedSource.Encoding;
                         }
 
+                        // HACK: if we do an edit here, that'll change the dirty state of the document, which
+                        // will cause us to think a provisional tab is being edited. If we pass in the textDocument
+                        // as an edit tag, the code in Microsoft.VisualStudio.Text.Implementation.TextDocument.TextBufferChangedHandler
+                        // will think this is an edit coming from itself, and will skip the dirty update.
+
                         // We'll ask the editor to do the diffing for us so updates don't refresh the entire buffer
-                        using (var edit = _textBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
+                        using (var edit = _textBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: textDocument))
                         {
                             // TODO: make the edit in some nicer way than creating a massive string
                             edit.Replace(startPosition: 0, _textBuffer.CurrentSnapshot.Length, generatedSource.ToString());
@@ -476,10 +481,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _currentWindowFrameInfoBarElement = infoBarUI;
             }
 
-            public void NavigateToSpan(TextSpan sourceSpan)
+            public void NavigateToSpan(TextSpan sourceSpan, CancellationToken cancellationToken)
             {
                 var sourceText = _textBuffer.CurrentSnapshot.AsText();
-                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan));
+                _fileManager._visualStudioDocumentNavigationService.NavigateTo(_textBuffer, sourceText.GetVsTextSpanForSpan(sourceSpan), cancellationToken);
             }
         }
     }

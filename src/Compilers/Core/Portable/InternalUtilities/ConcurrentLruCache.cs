@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
 
         private void MoveNodeToTop(LinkedListNode<K> node)
         {
-            if (!object.ReferenceEquals(_nodeList.First, node))
+            if (!ReferenceEquals(_nodeList.First, node))
             {
                 _nodeList.Remove(node);
                 _nodeList.AddFirst(node);

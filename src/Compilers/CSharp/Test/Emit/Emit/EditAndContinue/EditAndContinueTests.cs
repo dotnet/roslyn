@@ -1987,7 +1987,7 @@ interface I
 
     interface J { }
 }";
-            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp30);
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
             var compilation1 = compilation0.WithSource(source1);
             var compilation2 = compilation1.WithSource(source2);
 
@@ -2079,7 +2079,7 @@ interface I
 
             CheckEncLog(reader2,
                 Row(3, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(8, TableIndex.TypeRef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.TypeRef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.Event, EditAndContinueOperation.Default),
                 Row(3, TableIndex.Event, EditAndContinueOperation.Default),
                 Row(1, TableIndex.Field, EditAndContinueOperation.Default),
@@ -10500,6 +10500,82 @@ public class Program
       IL_0023:  ldloc.s    V_8
       IL_0025:  ret
     }
+");
+        }
+
+        [Fact]
+        public void AddUsing_AmbiguousCode()
+        {
+            var source0 = MarkedSource(@"
+using System.Threading;
+
+class C
+{
+    static void E() 
+    {
+        var t = new Timer(s => System.Console.WriteLine(s));
+    }
+}");
+            var source1 = MarkedSource(@"
+using System.Threading;
+using System.Timers;
+
+class C
+{
+    static void E() 
+    {
+        var t = new Timer(s => System.Console.WriteLine(s));
+    }
+    
+    static void G() 
+    {
+        System.Console.WriteLine(new TimersDescriptionAttribute(""""));
+    }
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, targetFramework: TargetFramework.NetStandard20, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var e0 = compilation0.GetMember<MethodSymbol>("C.E");
+            var e1 = compilation1.GetMember<MethodSymbol>("C.E");
+            var g1 = compilation1.GetMember<MethodSymbol>("C.G");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            // Pretend there was an update to C.E to ensure we haven't invalidated the test
+
+            var diffError = compilation1.EmitDifference(
+              generation0,
+              ImmutableArray.Create(
+                  SemanticEdit.Create(SemanticEditKind.Update, e0, e1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diffError.EmitResult.Diagnostics.Verify(
+                       // (9,21): error CS0104: 'Timer' is an ambiguous reference between 'System.Threading.Timer' and 'System.Timers.Timer'
+                       //         var t = new Timer(s => System.Console.WriteLine(s));
+                       Diagnostic(ErrorCode.ERR_AmbigContext, "Timer").WithArguments("Timer", "System.Threading.Timer", "System.Timers.Timer").WithLocation(9, 21));
+
+            // Semantic errors are reported only for the bodies of members being emitted so we shouldn't see any
+
+            var diff = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    SemanticEdit.Create(SemanticEditKind.Insert, null, g1)));
+
+            diff.EmitResult.Diagnostics.Verify();
+
+            diff.VerifyIL(@"C.G", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldstr      """"
+  IL_0006:  newobj     ""System.Timers.TimersDescriptionAttribute..ctor(string)""
+  IL_000b:  call       ""void System.Console.WriteLine(object)""
+  IL_0010:  nop
+  IL_0011:  ret
+}
 ");
         }
     }

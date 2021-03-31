@@ -27,32 +27,38 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             ImmutableArray.Create(
                 (PatternMatchKind.Exact, NavigateToMatchKind.Exact),
                 (PatternMatchKind.Prefix, NavigateToMatchKind.Prefix),
-                (PatternMatchKind.Substring, NavigateToMatchKind.Substring),
+                (PatternMatchKind.NonLowercaseSubstring, NavigateToMatchKind.Substring),
+                (PatternMatchKind.StartOfWordSubstring, NavigateToMatchKind.Substring),
                 (PatternMatchKind.CamelCaseExact, NavigateToMatchKind.CamelCaseExact),
                 (PatternMatchKind.CamelCasePrefix, NavigateToMatchKind.CamelCasePrefix),
                 (PatternMatchKind.CamelCaseNonContiguousPrefix, NavigateToMatchKind.CamelCaseNonContiguousPrefix),
                 (PatternMatchKind.CamelCaseSubstring, NavigateToMatchKind.CamelCaseSubstring),
                 (PatternMatchKind.CamelCaseNonContiguousSubstring, NavigateToMatchKind.CamelCaseNonContiguousSubstring),
-                (PatternMatchKind.Fuzzy, NavigateToMatchKind.Fuzzy));
+                (PatternMatchKind.Fuzzy, NavigateToMatchKind.Fuzzy),
+                // Map our value to 'Fuzzy' as that's the lower value the platform supports.
+                (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy));
 
-        public static Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInCurrentProcessAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        public static Task SearchProjectInCurrentProcessAsync(
+            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
+            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
-                project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, cancellationToken: cancellationToken);
+                project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, onResultFound, cancellationToken);
         }
 
-        public static Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInCurrentProcessAsync(
-            Document document, string searchPattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        public static Task SearchDocumentInCurrentProcessAsync(
+            Document document, string searchPattern, IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
                 document.Project, priorityDocuments: ImmutableArray<Document>.Empty,
-                document, searchPattern, kinds, cancellationToken);
+                document, searchPattern, kinds, onResultFound, cancellationToken);
         }
 
-        private static async Task<ImmutableArray<INavigateToSearchResult>> FindSearchResultsAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument,
-            string pattern, IImmutableSet<string> kinds, CancellationToken cancellationToken)
+        private static async Task FindSearchResultsAsync(
+            Project project, ImmutableArray<Document> priorityDocuments,
+            Document searchDocument, string pattern, IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
@@ -70,33 +76,29 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
 
-                var searchResults = await ComputeSearchResultsAsync(
+                await ComputeSearchResultsAsync(
                     project, priorityDocuments, searchDocument, nameMatcher, containerMatcherOpt,
-                    declaredSymbolInfoKindsSet, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
-
-                return ImmutableArray<INavigateToSearchResult>.CastUp(searchResults);
+                    declaredSymbolInfoKindsSet, nameMatches, containerMatches, onResultFound, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private static async Task<ImmutableArray<SearchResult>> ComputeSearchResultsAsync(
+        private static async Task ComputeSearchResultsAsync(
             Project project, ImmutableArray<Document> priorityDocuments, Document searchDocument,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<SearchResult>.GetInstance(out var result);
-
             // Prioritize the active documents if we have any.
             var highPriDocs = priorityDocuments.WhereAsArray(d => project.ContainsDocument(d.Id));
 
             var highPriDocsSet = highPriDocs.ToSet();
-            var lowPriDocs = project.Documents.Where(d => !highPriDocsSet.Contains(d));
+            var lowPriDocs = (await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+                              .Where(d => !highPriDocsSet.Contains(d));
 
             var orderedDocs = highPriDocs.AddRange(lowPriDocs);
 
             Debug.Assert(priorityDocuments.All(d => project.ContainsDocument(d.Id)), "Priority docs included doc not from project.");
-            Debug.Assert(orderedDocs.Length == project.Documents.Count(), "Didn't have the same number of project after ordering them!");
             Debug.Assert(orderedDocs.Distinct().Length == orderedDocs.Length, "Ordered list contained a duplicate!");
             Debug.Assert(project.Documents.All(d => orderedDocs.Contains(d)), "At least one document from the project was missing from the ordered list!");
 
@@ -115,11 +117,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         nameMatcher, containerMatcherOpt,
                         kinds,
                         nameMatches, containerMatches,
-                        result, cancellationToken).ConfigureAwait(false);
+                        onResultFound, cancellationToken).ConfigureAwait(false);
                 }
             }
-
-            return result.ToImmutable();
         }
 
         private static async Task AddResultIfMatchAsync(
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
-            ArrayBuilder<SearchResult> result, CancellationToken cancellationToken)
+            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
             nameMatches.Clear();
             containerMatches.Clear();
@@ -137,8 +137,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
                 containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
             {
-                result.Add(await ConvertResultAsync(
-                    declaredSymbolInfo, document, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false));
+                var result = await ConvertResultAsync(
+                    declaredSymbolInfo, document, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
+                await onResultFound(result).ConfigureAwait(false);
             }
         }
 

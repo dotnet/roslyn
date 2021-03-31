@@ -50,7 +50,7 @@ class Baz
             return (CodeClass)GetCodeElement(path);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_BeforeNamespace()
         {
@@ -62,7 +62,7 @@ class Baz
             Assert.Equal(1, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_BeforeOtherClass()
         {
@@ -74,7 +74,7 @@ class Baz
             Assert.Equal(1, endPoint.LineCharOffset);
         }
 
-        [ConditionalWpfFact(typeof(x86))]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body_Eof()
         {

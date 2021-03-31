@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Reflection;
 using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis
@@ -262,6 +263,17 @@ namespace Microsoft.CodeAnalysis
         /// null.
         /// </summary>
         IMethodSymbol? PartialImplementationPart { get; }
+
+        /// <summary>
+        /// Returns the implementation flags for the given method symbol.
+        /// </summary>
+        MethodImplAttributes MethodImplementationFlags { get; }
+
+        /// <summary>
+        /// Return true if this is a partial method definition without a body. If there
+        /// is an implementing body, it can be retrieved with <see cref="PartialImplementationPart"/>.
+        /// </summary>
+        bool IsPartialDefinition { get; }
 
         /// <summary>
         /// Platform invoke information, or null if the method isn't a P/Invoke.

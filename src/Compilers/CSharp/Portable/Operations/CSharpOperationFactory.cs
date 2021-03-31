@@ -205,6 +205,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
                     return CreateBoundTupleOperation((BoundTupleExpression)boundNode);
+                case BoundKind.UnconvertedInterpolatedString:
+                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.InterpolatedString:
                     return CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)boundNode);
                 case BoundKind.StringInsert:
@@ -312,6 +314,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return new NoneOperation(children, _semanticModel, boundNode.Syntax, type: null, constantValue, isImplicit: isImplicit);
 
                 default:
+                    // If you're hitting this because the IOperation test hook has failed, see
+                    // <roslyn-root>/docs/Compilers/IOperation Test Hook.md for instructions on how to fix.
                     throw ExceptionUtilities.UnexpectedValue(boundNode.Kind);
             }
         }
@@ -1624,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (enumeratorInfoOpt != null)
             {
-                HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 var compilation = (CSharpCompilation)_semanticModel.Compilation;
 
                 var iDisposable = enumeratorInfoOpt.IsAsync
@@ -1641,7 +1645,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                                                                      compilation.Conversions.
                                                                                          ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType,
                                                                                                                             iDisposable,
-                                                                                                                            ref useSiteDiagnostics).IsImplicit :
+                                                                                                                            ref discardedUseSiteInfo).IsImplicit :
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     enumeratorInfoOpt.CurrentConversion,

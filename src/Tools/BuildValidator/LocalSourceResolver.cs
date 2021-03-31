@@ -3,85 +3,90 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 
 namespace BuildValidator
 {
-    /// <summary>
-    /// Roslyn specific implementation for looking for files
-    /// in the Roslyn repo
-    /// </summary>
     internal class LocalSourceResolver
     {
-        private readonly DirectoryInfo _baseDirectory;
+        private readonly Options _options;
         private readonly ILogger _logger;
 
-        public LocalSourceResolver(ILoggerFactory loggerFactory)
+        public LocalSourceResolver(Options options, ILoggerFactory loggerFactory)
         {
-            _baseDirectory = GetSourceDirectory();
+            _options = options;
             _logger = loggerFactory.CreateLogger<LocalSourceResolver>();
-
-            _logger.LogInformation($"Source Base Directory: {_baseDirectory}");
         }
 
-        public SourceText ResolveSource(string name, Encoding encoding)
+        public ResolvedSource ResolveSource(SourceFileInfo sourceFileInfo, ImmutableArray<SourceLink> sourceLinks, Encoding encoding)
         {
-            if (!File.Exists(name))
+            var pdbDocumentPath = sourceFileInfo.SourceFilePath;
+            if (sourceFileInfo.EmbeddedText is { } embeddedText)
             {
-                _logger.LogTrace($"{name} doesn't exist, adding base directory");
-                name = Path.Combine(_baseDirectory.FullName, name);
+                return new ResolvedSource(OnDiskPath: null, embeddedText, sourceFileInfo);
             }
-            if (File.Exists(name))
+            else
             {
-                using var fileStream = File.OpenRead(name);
-                var sourceText = SourceText.From(fileStream, encoding: encoding);
-                return sourceText;
+                string? onDiskPath = null;
+                foreach (var link in sourceLinks)
+                {
+                    if (sourceFileInfo.SourceFilePath.StartsWith(link.Prefix))
+                    {
+                        onDiskPath = Path.GetFullPath(Path.Combine(_options.SourcePath, pdbDocumentPath.Substring(link.Prefix.Length)));
+                        if (File.Exists(onDiskPath))
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                // if no source links exist to let us prefix the source path,
+                // then assume the file path in the pdb points to the on-disk location of the file.
+                onDiskPath ??= pdbDocumentPath;
+
+                using var fileStream = File.OpenRead(onDiskPath);
+                var sourceText = SourceText.From(fileStream, encoding: encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256, canBeEmbedded: false);
+                if (!sourceText.GetChecksum().AsSpan().SequenceEqual(sourceFileInfo.Hash))
+                {
+                    throw new Exception($@"File ""{onDiskPath}"" has incorrect hash");
+                }
+
+                return new ResolvedSource(onDiskPath, sourceText, sourceFileInfo);
             }
 
-            throw new FileNotFoundException(name);
+            throw new FileNotFoundException(pdbDocumentPath);
         }
 
-        private static DirectoryInfo GetSourceDirectory()
+        internal ImmutableArray<ResolvedSource>? ResolveSources(
+            ImmutableArray<SourceFileInfo> sourceFileInfos,
+            ImmutableArray<SourceLink> sourceLinks,
+            Encoding encoding)
         {
-            var assemblyLocation = typeof(LocalSourceResolver).Assembly.Location;
-            var srcDir = Directory.GetParent(assemblyLocation);
+            _logger.LogInformation("Locating source files");
 
-            while (srcDir != null)
+            var sources = ImmutableArray.CreateBuilder<ResolvedSource>();
+            var isError = false;
+            foreach (var sourceFileInfo in sourceFileInfos)
             {
-                var potentialDir = srcDir.GetDirectories().FirstOrDefault(IsSourceDirectory);
-                if (potentialDir is null)
+                try
                 {
-                    srcDir = srcDir.Parent;
+                    sources.Add(ResolveSource(sourceFileInfo, sourceLinks, encoding));
                 }
-                else
+                catch (Exception ex)
                 {
-                    srcDir = potentialDir;
-                    break;
+                    _logger.LogError($"Unable to resolve {sourceFileInfo.SourceFilePath}: {ex.Message}");
+                    isError = true;
                 }
             }
 
-            if (srcDir == null)
-            {
-                throw new Exception("Unable to find src directory");
-            }
-
-            return srcDir;
-
-            static bool IsSourceDirectory(DirectoryInfo directoryInfo)
-            {
-                if (FileNameEqualityComparer.StringComparer.Equals(directoryInfo.Name, "src"))
-                {
-                    // Check that src/compilers exists to be more accurate about getting the correct src directory
-                    return directoryInfo.GetDirectories().Any(d => FileNameEqualityComparer.StringComparer.Equals(d.Name, "compilers"));
-                }
-
-                return false;
-            }
+            return isError ? null : sources.ToImmutable();
         }
     }
 }

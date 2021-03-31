@@ -577,14 +577,14 @@ testHost, @"partial class Goo
 
                 VerifyNavigateToResultItems(expecteditems, items);
 
-                var item = items.ElementAt(0);
+                var item = items.ElementAt(1);
                 var itemDisplay = item.DisplayFactory.CreateItemDisplay(item);
                 var unused = itemDisplay.Glyph;
 
                 Assert.Equal("Name", itemDisplay.Name);
                 Assert.Equal(string.Format(FeaturesResources.in_0_project_1, "DogBed", "Test"), itemDisplay.AdditionalInformation);
 
-                item = items.ElementAt(1);
+                item = items.ElementAt(0);
                 itemDisplay = item.DisplayFactory.CreateItemDisplay(item);
                 unused = itemDisplay.Glyph;
 
@@ -672,8 +672,8 @@ class Test
             {
                 var expectedItems = new List<NavigateToItem>
                 {
+                    new NavigateToItem("Goo", NavigateToItemKind.Class, "csharp", "Goo", null, s_emptyExactPatternMatch, null),
                     new NavigateToItem("Goo", NavigateToItemKind.Method, "csharp", "Goo", null, s_emptyExactPatternMatch, null),
-                    new NavigateToItem("Goo", NavigateToItemKind.Class, "csharp", "Goo", null, s_emptyExactPatternMatch, null)
                 };
                 var items = await _aggregator.GetItemsAsync("Goo");
                 VerifyNavigateToResultItems(expectedItems, items);
@@ -890,6 +890,8 @@ testHost, @"public class Goo
             {
                 var expecteditems = new List<NavigateToItem>
                 {
+                    new NavigateToItem("getkeyword", NavigateToItemKind.Field, "csharp", null, null, s_emptyFuzzyPatternMatch, null),
+                    new NavigateToItem("get_keyword", NavigateToItemKind.Field, "csharp", null, null, s_emptyFuzzyPatternMatch, null),
                     new NavigateToItem("get_key_word", NavigateToItemKind.Field, "csharp", null, null,s_emptySubstringPatternMatch, null),
                     new NavigateToItem("GetKeyWord", NavigateToItemKind.Field, "csharp", null, null, s_emptySubstringPatternMatch_NotCaseSensitive, null)
                 };
@@ -1385,6 +1387,32 @@ testHost, @"class C
                     new NavigateToItem("Outer", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                 },
                 await _aggregator.GetItemsAsync("Outer"));
+        }
+
+        [Fact]
+        public async Task DoIncludeSymbolsFromSourceGeneratedFiles()
+        {
+            using var workspace = TestWorkspace.Create(@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"">
+        <DocumentFromSourceGenerator>
+            public class C
+            {
+            }
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+", composition: EditorTestCompositions.EditorFeatures);
+
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
+            _aggregator = new NavigateToTestAggregator(_provider);
+
+            VerifyNavigateToResultItems(
+                new()
+                {
+                    new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                },
+                await _aggregator.GetItemsAsync("C"));
         }
     }
 }

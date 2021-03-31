@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<FunctionPointerParameterSymbol> _parameters;
         private ImmutableHashSet<CustomModifier>? _lazyCallingConventionModifiers;
 
-        public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
+        public static FunctionPointerMethodSymbol CreateFromSource(FunctionPointerTypeSyntax syntax, Binder typeBinder, BindingDiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             ArrayBuilder<CustomModifier> customModifiers = ArrayBuilder<CustomModifier>.GetInstance();
             CallingConvention callingConvention = getCallingConvention(typeBinder.Compilation, syntax.CallingConvention, customModifiers, diagnostics);
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 suppressUseSiteDiagnostics);
 
-            static CallingConvention getCallingConvention(CSharpCompilation compilation, FunctionPointerCallingConventionSyntax? callingConventionSyntax, ArrayBuilder<CustomModifier> customModifiers, DiagnosticBag diagnostics)
+            static CallingConvention getCallingConvention(CSharpCompilation compilation, FunctionPointerCallingConventionSyntax? callingConventionSyntax, ArrayBuilder<CustomModifier> customModifiers, BindingDiagnosticBag diagnostics)
             {
                 switch (callingConventionSyntax?.ManagedOrUnmanagedKeyword.Kind())
                 {
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         throw ExceptionUtilities.UnexpectedValue(unexpected);
                 }
 
-                static CallingConvention handleSingleConvention(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, ArrayBuilder<CustomModifier> customModifiers, DiagnosticBag diagnostics)
+                static CallingConvention handleSingleConvention(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, ArrayBuilder<CustomModifier> customModifiers, BindingDiagnosticBag diagnostics)
                 {
                     checkUnmanagedSupport(compilation, specifier.GetLocation(), diagnostics);
                     CustomModifier? modifier = handleIndividualUnrecognizedSpecifier(specifier, compilation, diagnostics);
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return CallingConvention.Unmanaged;
                 }
 
-                static CustomModifier? handleIndividualUnrecognizedSpecifier(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, DiagnosticBag diagnostics)
+                static CustomModifier? handleIndividualUnrecognizedSpecifier(FunctionPointerUnmanagedCallingConventionSyntax specifier, CSharpCompilation compilation, BindingDiagnosticBag diagnostics)
                 {
                     string specifierText = specifier.Name.ValueText;
                     if (string.IsNullOrEmpty(specifierText))
@@ -219,15 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_TypeMustBePublic, specifier.GetLocation(), specifierType);
                     }
 
-                    if (specifierType.GetUseSiteDiagnostic() is DiagnosticInfo diagnostic)
-                    {
-                        diagnostics.Add(diagnostic, specifier.GetLocation());
-                    }
+                    diagnostics.Add(specifierType.GetUseSiteInfo(), specifier.GetLocation());
 
                     return CSharpCustomModifier.CreateOptional(specifierType);
                 }
 
-                static void checkUnmanagedSupport(CSharpCompilation compilation, Location errorLocation, DiagnosticBag diagnostics)
+                static void checkUnmanagedSupport(CSharpCompilation compilation, Location errorLocation, BindingDiagnosticBag diagnostics)
                 {
                     if (!compilation.Assembly.RuntimeSupportsUnmanagedSignatureCallingConvention)
                     {
@@ -515,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers,
             FunctionPointerTypeSyntax syntax,
             Binder typeBinder,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             bool suppressUseSiteDiagnostics)
         {
             RefCustomModifiers = refCustomModifiers;
@@ -760,14 +757,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
         public override MethodKind MethodKind => MethodKind.FunctionPointerSignature;
 
-        internal override DiagnosticInfo? GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            DiagnosticInfo? info = null;
+            UseSiteInfo<AssemblySymbol> info = default;
             CalculateUseSiteDiagnostic(ref info);
 
             if (CallingConvention.IsCallingConvention(CallingConvention.ExtraArguments))
             {
-                MergeUseSiteDiagnostics(ref info, new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, this));
+                MergeUseSiteInfo(ref info, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCallingConvention, this)));
             }
 
             return info;

@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// The record type includes synthesized '==' and '!=' operators equivalent to operators declared as follows:
     /// 
-    /// public static bool operator==(R? r1, R? r2)
-    ///      => (object) r1 == r2 || ((object)r1 != null &amp;&amp; r1.Equals(r2));
-    /// public static bool operator !=(R? r1, R? r2)
-    ///      => !(r1 == r2);
+    /// public static bool operator==(R? left, R? right)
+    ///      => (object) left == right || ((object)left != null &amp;&amp; left.Equals(right));
+    /// public static bool operator !=(R? left, R? right)
+    ///      => !(left == right);
     ///        
     ///The 'Equals' method called by the '==' operator is the 'Equals(R? other)' (<see cref="SynthesizedRecordEquals"/>).
     ///The '!=' operator delegates to the '==' operator. It is an error if the operators are declared explicitly.
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly int _memberOffset;
 
-        protected SynthesizedRecordEqualityOperatorBase(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, DiagnosticBag diagnostics)
+        protected SynthesizedRecordEqualityOperatorBase(SourceMemberContainerTypeSymbol containingType, string name, int memberOffset, BindingDiagnosticBag diagnostics)
             : base(MethodKind.UserDefinedOperator, name, containingType, containingType.Locations[0], (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
                    DeclarationModifiers.Public | DeclarationModifiers.Static, hasBody: true, isExpressionBodied: false, isIterator: false, isNullableAnalysisEnabled: false, diagnostics)
         {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool SynthesizesLoweredBoundBody => true;
 
-        protected sealed override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(DiagnosticBag diagnostics)
+        protected sealed override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = ReturnTypeLocation;
@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Parameters: ImmutableArray.Create<ParameterSymbol>(
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType, NullableAnnotation.Annotated),
-                                                                    ordinal: 0, RefKind.None, "r1", isDiscard: false, Locations),
+                                                                    ordinal: 0, RefKind.None, "left", isDiscard: false, Locations),
                                     new SourceSimpleParameterSymbol(owner: this,
                                                                     TypeWithAnnotations.Create(ContainingType, NullableAnnotation.Annotated),
-                                                                    ordinal: 1, RefKind.None, "r2", isDiscard: false, Locations)));
+                                                                    ordinal: 1, RefKind.None, "right", isDiscard: false, Locations)));
         }
 
         protected override int GetParameterCountFromSyntax() => 2;

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     /// When user types <c>;</c> in a statement, semicolon is added and caret is placed after the semicolon
     /// </summary>
     [Export(typeof(ICommandHandler))]
+    [Export]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(CompleteStatementCommandHandler))]
     [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
@@ -83,6 +85,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             var caretOpt = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!caretOpt.HasValue)
+            {
+                return false;
+            }
+
+            if (!args.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutomaticallyCompleteStatementOnSemicolon))
             {
                 return false;
             }

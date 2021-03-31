@@ -17,11 +17,6 @@
         <target state="translated">&amp;Trier les espaces de noms</target>
         <note />
       </trans-unit>
-      <trans-unit id="Xaml_Language_Server_Client">
-        <source>XAML Language Server Client</source>
-        <target state="translated">Client du serveur de langage XAML</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

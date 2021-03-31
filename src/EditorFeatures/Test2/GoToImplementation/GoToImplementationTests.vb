@@ -500,7 +500,7 @@ class D : C
         Public Async Function TestMultiTargetting1(host As TestHost) As Task
             Dim workspace =
 <Workspace>
-    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp30="true">
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
         <Document FilePath="C.cs">
 public interface $$IInterface
 {
@@ -532,7 +532,7 @@ public class [|Impl|] : IInterface
         Public Async Function TestCrossTargetting1(host As TestHost) As Task
             Dim workspace =
 <Workspace>
-    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp30="true">
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
         <ProjectReference>BaseProjectStandard</ProjectReference>
         <Document FilePath="C.cs">
 using System;
@@ -579,7 +579,7 @@ public class StringCreator : IStringCreator
         Public Async Function TestCrossTargetting2(host As TestHost) As Task
             Dim workspace =
 <Workspace>
-    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp30="true">
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
         <ProjectReference>BaseProjectStandard</ProjectReference>
         <Document FilePath="C.cs">
 using System;
@@ -626,7 +626,7 @@ public class StringCreator : IStringCreator
         Public Async Function TestCrossTargetting3(host As TestHost) As Task
             Dim workspace =
 <Workspace>
-    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp30="true">
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
         <ProjectReference>BaseProjectStandard</ProjectReference>
         <Document FilePath="C.cs">
 using System;

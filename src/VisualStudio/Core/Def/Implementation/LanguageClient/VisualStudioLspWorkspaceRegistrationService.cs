@@ -7,7 +7,9 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
@@ -29,6 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             lock (_gate)
             {
+                Logger.Log(FunctionId.RegisterWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m["WorkspaceKind"] = workspace.Kind;
+                    m["WorkspaceCanOpenDocuments"] = workspace.CanOpenDocuments;
+                    m["WorkspaceCanChangeActiveContextDocument"] = workspace.CanChangeActiveContextDocument;
+                    m["WorkspacePartialSemanticsEnabled"] = workspace.PartialSemanticsEnabled;
+                }));
+
                 _registrations = _registrations.Add(workspace);
             }
         }

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -60,7 +61,7 @@ namespace IdeCoreBenchmarks
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            using var storage = storageService.GetStorage(_workspace.CurrentSolution);
+            using var storage = storageService.GetStorageAsync(_workspace.CurrentSolution, CancellationToken.None).AsTask().GetAwaiter().GetResult();
         }
 
         [GlobalCleanup]
@@ -85,10 +86,18 @@ namespace IdeCoreBenchmarks
         private async Task<int> SearchAsync(Project project, ImmutableArray<Document> priorityDocuments)
         {
             var service = project.LanguageServices.GetService<INavigateToSearchService>();
-            var searchTask = service.SearchProjectAsync(project, priorityDocuments, "Document", service.KindsProvided, CancellationToken.None);
+            var results = new List<INavigateToSearchResult>();
+            await service.SearchProjectAsync(
+                project, priorityDocuments, "Document", service.KindsProvided,
+                r =>
+                {
+                    lock (results)
+                        results.Add(r);
 
-            var results = await searchTask.ConfigureAwait(false);
-            return results.Length;
+                    return Task.CompletedTask;
+                }, CancellationToken.None);
+
+            return results.Count;
         }
     }
 }

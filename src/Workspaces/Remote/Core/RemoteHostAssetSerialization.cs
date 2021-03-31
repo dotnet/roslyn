@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var mustNotCancelToken = CancellationToken.None;
 
             // Workaround for ObjectReader not supporting async reading.
-            // Unless we read from the RPC stream asynchronously and with cancallation support we might hang when the server cancels.
+            // Unless we read from the RPC stream asynchronously and with cancallation support we might deadlock when the server cancels.
             // https://github.com/dotnet/roslyn/issues/47861
 
             // Use local pipe to avoid blocking the current thread on networking IO.

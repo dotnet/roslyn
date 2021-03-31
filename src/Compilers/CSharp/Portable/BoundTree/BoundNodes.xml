@@ -33,6 +33,7 @@
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>
+  <ValueType Name="ImmutableBindingDiagnostic"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -255,7 +256,7 @@
 
   <Node Name="BoundNamespaceExpression" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
 
     <Field Name="NamespaceSymbol" Type="NamespaceSymbol"/>
     <Field Name="AliasOpt" Type="AliasSymbol?"/>
@@ -1439,7 +1440,7 @@
 
   <AbstractNode Name="BoundMethodOrPropertyGroup" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
 
     <!--We wish to keep the left-hand-side of the member access in the method group even if the
     *instance* expression ought to be null. For example, if we have System.Console.WriteLine then
@@ -1614,7 +1615,7 @@
     <Field Name="ConstructorArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
     <Field Name="ConstructorArgumentsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstructorExpanded" Type="bool" />
-    <Field Name="NamedArguments" Type ="ImmutableArray&lt;BoundExpression&gt;"/>
+    <Field Name="NamedArguments" Type ="ImmutableArray&lt;BoundAssignmentOperator&gt;"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
 
@@ -1844,7 +1845,7 @@
 
   <Node Name="BoundArrayInitialization" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
 
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
@@ -1957,14 +1958,16 @@
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
     <Field Name="Body" Type="BoundBlock"/>
-    <Field Name="Diagnostics" Type="ImmutableArray&lt;Microsoft.CodeAnalysis.Diagnostic&gt;" />
+    <Field Name="Diagnostics" Type="ImmutableBindingDiagnostic&lt;AssemblySymbol&gt;"/>
     <Field Name="Binder" Type="Binder" Null="disallow" />
   </Node>
 
   <Node Name="UnboundLambda" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="Data" Type="UnboundLambdaState" Null="disallow"/>
+    <!-- Track dependencies while binding body, etc. -->
+    <Field Name="WithDependencies" Type="Boolean"/>
   </Node>
 
   <Node Name="BoundQueryClause" Base="BoundExpression">
@@ -1999,12 +2002,18 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundInterpolatedString" Base="BoundExpression">
+  <AbstractNode Name="BoundInterpolatedStringBase" Base="BoundExpression">
     <!-- The sequence of parts of an interpolated string. The even numbered positions (starting with 0) are
          from the literal parts of the input. The odd numbered positions are the string inserts. When a
          width or format string are provided, the corresponding insert will be a BoundStringInsert -->
     <Field Name="Parts" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+  </AbstractNode>
+
+  <Node Name="BoundUnconvertedInterpolatedString" Base="BoundInterpolatedStringBase">
+  </Node>
+
+  <Node Name="BoundInterpolatedString" Base="BoundInterpolatedStringBase">
   </Node>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">
@@ -2121,7 +2130,7 @@
 
   <AbstractNode Name="VariablePendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <!-- A local symbol or a field symbol representing the variable -->
     <Field Name="VariableSymbol" Type="Symbol"/>
     <!-- A field receiver when VariableSymbol is a field -->
@@ -2137,7 +2146,7 @@
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
   <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
   </Node>
   
   <AbstractNode Name="BoundMethodBodyBase" Base="BoundNode">

@@ -2739,9 +2739,9 @@ public struct S3
 
             void verifyIsManagedType()
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Assert.True(s3.IsManagedType(ref useSiteDiagnostics));
-                useSiteDiagnostics.Verify(
+                var managedKindUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(s3.ContainingAssembly);
+                Assert.True(s3.IsManagedType(ref managedKindUseSiteInfo));
+                managedKindUseSiteInfo.Diagnostics.Verify(
                     // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                     Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
                     );
@@ -2756,10 +2756,1072 @@ public struct S3
 
             void verifyIsUnmanagedType()
             {
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Assert.False(s3.IsManagedType(ref useSiteDiagnostics));
-                Assert.Null(useSiteDiagnostics);
+                var managedKindUseSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(s3.ContainingAssembly);
+                Assert.False(s3.IsManagedType(ref managedKindUseSiteInfo));
+                Assert.Null(managedKindUseSiteInfo.Diagnostics);
             }
+        }
+
+        [Fact]
+        public void OverrideWithModreq_01()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int get_P()
+    {
+        return default;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (4,25): error CS0570: 'CL1.get_P()' is not supported by the language
+                //     public override int get_P()
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_P").WithArguments("CL1.get_P()").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_02()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .property instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        get => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (4,25): error CS0569: 'Test.P': cannot override 'CL1.P' because it is not supported by the language
+                //     public override int P
+                Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "P").WithArguments("Test.P", "CL1.P").WithLocation(4, 25)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_03()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        get => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_04()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_05()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .method public hidebysig newslot virtual
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9),
+                // (7,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_06()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .method public hidebysig newslot virtual
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (7,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_07()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig newslot virtual
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+      .maxstack  8
+      ldc.i4.s   123
+      ret
+    } 
+
+    .method public hidebysig newslot virtual
+            instance void set_P(int32 x) cil managed
+    {
+      .maxstack  8
+      ret
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_08()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void add_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(6, 9),
+                // (7,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_09()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void add_E (
+            class [mscorlib]System.Action 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action)
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (7,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void OverrideWithModreq_10()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit CL1
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006: ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void add_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .method public hidebysig specialname newslot virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action 'value'
+        ) cil managed 
+    {
+      ret
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action)
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public override event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_01()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+} // end of class CL1
+";
+
+            var source = @"
+class Test : CL1
+{
+    public int get_P()
+    {
+        return default;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (4,16): error CS0570: 'CL1.get_P()' is not supported by the language
+                //     public int get_P()
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_P").WithArguments("CL1.get_P()").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_02()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .property instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        get => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        get => throw null;
+    }
+}
+
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0686: Accessor 'Test1.P.get' cannot implement interface member 'CL1.get_P()' for type 'Test1'. Use an explicit interface implementation.
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_AccessorImplementingMethod, "get").WithArguments("Test1.P.get", "CL1.get_P()", "Test1").WithLocation(6, 9),
+                // (12,13): error CS0682: 'Test2.CL1.P' cannot implement 'CL1.P' because it is not supported by the language
+                //     int CL1.P
+                Diagnostic(ErrorCode.ERR_BogusExplicitImpl, "P").WithArguments("Test2.CL1.P", "CL1.P").WithLocation(12, 13),
+                // (14,9): error CS0570: 'CL1.get_P()' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.get_P()").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_03()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        get => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        get => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9),
+                // (14,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_04()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        set => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(6, 9),
+                // (14,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_05()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9),
+                // (7,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(7, 9),
+                // (15,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(15, 9),
+                // (16,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_06()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 get_P() cil managed
+    {
+    } 
+
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 CL1::get_P()
+      .set instance void modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (7,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(7, 9),
+                // (16,9): error CS0570: 'CL1.P.set' is not supported by the language
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set").WithArguments("CL1.P.set").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_07()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+    .method public hidebysig newslot specialname abstract virtual 
+            instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) get_P() cil managed
+    {
+    } 
+
+    .method public hidebysig newslot specialname abstract virtual 
+            instance void set_P(int32 x) cil managed
+    {
+    } 
+
+    .property instance int32 P()
+    {
+      .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) CL1::get_P()
+      .set instance void CL1::set_P(int32)
+    } 
+
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public int P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    int CL1.P
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(6, 9),
+                // (15,9): error CS0570: 'CL1.P.get' is not supported by the language
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get").WithArguments("CL1.P.get").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_08()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void add_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+    }
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    event System.Action CL1.E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(6, 9),
+                // (7,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(7, 9),
+                // (15,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(15, 9),
+                // (16,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_09()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void add_E (
+            class [mscorlib]System.Action 'value'
+        ) cil managed 
+    {
+    }
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action)
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    event System.Action CL1.E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (7,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(7, 9),
+                // (16,9): error CS0570: 'CL1.E.remove' is not supported by the language
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "remove").WithArguments("CL1.E.remove").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void ImplementWithModreq_10()
+        {
+            var il = @"
+.class interface public abstract auto ansi CL1
+{
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void add_E (
+            class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 'value'
+        ) cil managed 
+    {
+    }
+
+    .method public hidebysig specialname newslot abstract virtual 
+        instance void remove_E (
+            class [mscorlib]System.Action 'value'
+        ) cil managed 
+    {
+    }
+
+    .event [mscorlib]System.Action E
+    {
+        .addon instance void CL1::add_E(class [mscorlib]System.Action modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+        .removeon instance void CL1::remove_E(class [mscorlib]System.Action)
+    }
+} // end of class CL1
+";
+
+            var source = @"
+class Test1 : CL1
+{
+    public event System.Action E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+class Test2 : CL1
+{
+    event System.Action CL1.E
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+";
+            CreateCompilationWithIL(source, il).VerifyDiagnostics(
+                // (6,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(6, 9),
+                // (15,9): error CS0570: 'CL1.E.add' is not supported by the language
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_BindToBogus, "add").WithArguments("CL1.E.add").WithLocation(15, 9)
+                );
         }
     }
 }
