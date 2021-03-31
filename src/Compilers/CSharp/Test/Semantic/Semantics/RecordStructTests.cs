@@ -5348,7 +5348,7 @@ record struct R(R X)
         }
 
         [Fact]
-        public void GetDeclaredSymbolInPropertyInitializer()
+        public void GetDeclaredSymbolOnAnOutLocalInPropertyInitializer()
         {
             var src = @"
 record struct R(int I)
