@@ -180,7 +180,7 @@ public class C
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_NotTask() As Task
+        Public Async Function AwaitCompletionDoesNotAddAsync_NotTask() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Threading.Tasks;
@@ -203,7 +203,7 @@ using System.Threading.Tasks;
 
 public class C
 {
-    public static Task Main()
+    public static void Main()
     {
         await
     }

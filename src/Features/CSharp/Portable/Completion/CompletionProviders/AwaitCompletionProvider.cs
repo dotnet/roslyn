@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     /// The container is made async if and only if the containing method is returning a Task-like type.
     /// </remarks>
     [ExportCompletionProvider(nameof(AwaitCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
     [Shared]
     internal sealed class AwaitCompletionProvider : LSPCompletionProvider
     {
@@ -88,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var declaration = root?.FindToken(completionListSpan.Start).GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
-            if (root is null || declaration is null)
+            var declaration = root.FindToken(completionListSpan.Start).GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+            if (declaration is null)
             {
                 return await base.GetChangeAsync(document, completionItem, completionListSpan, commitKey, disallowAddingImports, cancellationToken).ConfigureAwait(false);
             }
