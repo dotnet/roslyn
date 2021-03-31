@@ -111,6 +111,7 @@
             <Setter Property="FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}" />
             <Setter Property="Template" Value="{StaticResource ContextMenuTemplate}"/>
             <EventSetter Event="Closed" Handler="ContextMenu_OnClose" />
+            <EventSetter Event="Opened" Handler="TargetsMenu_OnOpen" />
         </Style>
 
         <!-- Style used to display one member's information and pops up a submenu show all the targets -->
@@ -125,6 +126,7 @@
             <Setter Property="VerticalContentAlignment" Value="{Binding Path=VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}"/>
+            <EventSetter Event="SubmenuOpened" Handler="TargetsMenu_OnOpen"/>
             <!-- Style copied from editor -->
             <Setter Property="DockPanel.Dock" Value="Top"/>
             <Setter Property="Padding" Value="0,2,0,2"/>

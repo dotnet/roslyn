@@ -10,6 +10,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         {
             if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
             {
+                Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget);
                 _waitIndicator.Wait(
                     title: EditorFeaturesResources.Navigating,
                     message: string.Format(EditorFeaturesWpfResources.Navigate_to_0, viewModel.DisplayContent),
@@ -111,6 +113,11 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
         {
             ResetBorderToInitialColor();
+        }
+
+        private void TargetsMenu_OnOpen(object sender, RoutedEventArgs e)
+        {
+            Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen);
         }
 
         private void ResetBorderToInitialColor()

@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
             //  If there are multiple targets and we have the corresponding compound image, use it
             if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverriding))
             {
-                return KnownMonikers.ImplementingOverriding;
+                return KnownMonikers.Implementing;
             }
 
             if (inheritanceRelationship.HasFlag(InheritanceRelationship.ImplementingOverridden))
             {
-                return KnownMonikers.ImplementingOverridden;
+                return KnownMonikers.Implementing;
             }
 
             // Otherwise, show the image based on this preference
