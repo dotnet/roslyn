@@ -8,7 +8,6 @@
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\Workspaces\CoreTestUtilities\DotNetCoreSdk.cs" Link="DotNetCoreSdk.cs" />
     <Compile Include="..\..\..\Test\Resources\Core\ResourceLoader.cs" Link="ResourceLoader.cs" />
   </ItemGroup>
   <ItemGroup Label="Project References">
