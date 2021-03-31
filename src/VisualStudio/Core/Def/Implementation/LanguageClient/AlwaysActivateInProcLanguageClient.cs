@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -16,6 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Utilities;
+using StreamJsonRpc;
 using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
@@ -32,12 +34,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
     internal class AlwaysActivateInProcLanguageClient : AbstractInProcLanguageClient
     {
         private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
-        private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
-            IGlobalOptionService globalOptionService,
             CSharpVisualBasicRequestDispatcherFactory csharpVBRequestDispatcherFactory,
             VisualStudioWorkspace workspace,
             IAsynchronousOperationListenerProvider listenerProvider,
@@ -47,11 +47,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             IThreadingContext threadingContext)
             : base(csharpVBRequestDispatcherFactory, workspace, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, asyncServiceProvider, threadingContext, diagnosticsClientName: null)
         {
-            _globalOptionService = globalOptionService;
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
-        public override string Name => "C#/Visual Basic Language Server Client";
+        public override string Name => CSharpVisualBasicLanguageServerFactory.UserVisibleName;
 
         protected internal override VSServerCapabilities GetCapabilities()
         {

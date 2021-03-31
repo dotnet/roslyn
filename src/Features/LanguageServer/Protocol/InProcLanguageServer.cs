@@ -5,57 +5,44 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LogHub;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
-using VSShell = Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
+namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    /// <summary>
-    /// Defines the language server to be hooked up to an <see cref="ILanguageClient"/> using StreamJsonRpc.  This runs
-    /// in proc as not all features provided by this server are available out of proc (e.g. some diagnostics).
-    /// </summary>
-    internal partial class InProcLanguageServer : IAsyncDisposable
+    internal class InProcLanguageServer : IAsyncDisposable
     {
-        /// <summary>
-        /// A unique, always increasing, ID we use to identify this server in our loghub logs.  Needed so that if our
-        /// server is restarted that we can have a new logstream for the new server.
-        /// </summary>
-        private static int s_logHubSessionId;
+        private readonly RequestDispatcher _requestDispatcher;
+        private readonly RequestExecutionQueue _queue;
+        private readonly JsonRpc _jsonRpc;
+        private readonly ServerCapabilities _serverCapabilities;
+        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly ILspLogger _logger;
+
+        private readonly string? _clientName;
 
         /// <summary>
-        /// Legacy support for LSP push diagnostics.
-        ///
+        /// Server name used when sending error messages to the client.
         /// </summary>
-        private readonly IDiagnosticService? _diagnosticService;
-        private readonly IAsynchronousOperationListener _listener;
-        private readonly string? _clientName;
-        private readonly JsonRpc _jsonRpc;
-        private readonly AbstractInProcLanguageClient _languageClient;
-        private readonly RequestDispatcher _requestDispatcher;
-        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
-        private readonly RequestExecutionQueue _queue;
-        private readonly ILspLogger? _logger;
+        private readonly string _userVisibleServerName;
+
+        /// <summary>
+        /// Server name used when capturing error telemetry.
+        /// </summary>
+        private readonly string _telemetryServerName;
 
         /// <summary>
         /// Legacy support for LSP push diagnostics.
@@ -63,36 +50,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// interested parties.
         /// </summary>
         private readonly AsyncBatchingWorkQueue<DocumentId> _diagnosticsWorkQueue;
+        private readonly IDiagnosticService? _diagnosticService;
 
-        private VSClientCapabilities? _clientCapabilities;
+        // Set on first LSP initialize request.
+        private ClientCapabilities? _clientCapabilities;
+
+        // Fields used during shutdown.
         private bool _shuttingDown;
         private Task? _errorShutdownTask;
 
-        private InProcLanguageServer(
-            AbstractInProcLanguageClient languageClient,
-            RequestDispatcher requestDispatcher,
-            IDiagnosticService? diagnosticService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            string serverTypeName,
-            string? clientName,
+        internal bool HasShutdownStarted => _shuttingDown;
+
+        internal InProcLanguageServer(
+            AbstractRequestDispatcherFactory requestDispatcherFactory,
             JsonRpc jsonRpc,
-            ILspLogger? logger)
+            ServerCapabilities serverCapabilities,
+            ILspWorkspaceRegistrationService workspaceRegistrationService,
+            IAsynchronousOperationListenerProvider listenerProvider,
+            ILspLogger logger,
+            IDiagnosticService? diagnosticService,
+            string? clientName,
+            string userVisibleServerName,
+            string telemetryServerTypeName)
         {
-            _languageClient = languageClient;
-            _requestDispatcher = requestDispatcher;
-            _workspaceRegistrationService = lspWorkspaceRegistrationService;
+            _requestDispatcher = requestDispatcherFactory.CreateRequestDispatcher();
+
+            _serverCapabilities = serverCapabilities;
+            _workspaceRegistrationService = workspaceRegistrationService;
             _logger = logger;
 
             _jsonRpc = jsonRpc;
             _jsonRpc.AddLocalRpcTarget(this);
-            _jsonRpc.StartListening();
 
             _diagnosticService = diagnosticService;
             _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
             _clientName = clientName;
 
-            _queue = new RequestExecutionQueue(logger ?? NoOpLspLogger.Instance, lspWorkspaceRegistrationService, languageClient.Name, serverTypeName);
+            _userVisibleServerName = userVisibleServerName;
+            _telemetryServerName = telemetryServerTypeName;
+
+            _queue = new RequestExecutionQueue(logger, workspaceRegistrationService, userVisibleServerName, _telemetryServerName);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             // Dedupe on DocumentId.  If we hear about the same document multiple times, we only need to process that id once.
@@ -106,67 +103,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             if (_diagnosticService != null)
                 _diagnosticService.DiagnosticsUpdated += DiagnosticService_DiagnosticsUpdated;
         }
-
-        public static async Task<InProcLanguageServer> CreateAsync(
-            AbstractInProcLanguageClient languageClient,
-            Stream inputStream,
-            Stream outputStream,
-            RequestDispatcher requestDispatcher,
-            IDiagnosticService? diagnosticService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            VSShell.IAsyncServiceProvider? asyncServiceProvider,
-            string? clientName,
-            CancellationToken cancellationToken)
-        {
-            var jsonMessageFormatter = new JsonMessageFormatter();
-            VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
-
-            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
-            var serverTypeName = languageClient.GetType().Name;
-            var logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
-
-            return new InProcLanguageServer(
-                languageClient,
-                requestDispatcher,
-                diagnosticService,
-                listenerProvider,
-                lspWorkspaceRegistrationService,
-                serverTypeName,
-                clientName,
-                jsonRpc,
-                logger);
-        }
-
-        private static async Task<LogHubLspLogger?> CreateLoggerAsync(
-            VSShell.IAsyncServiceProvider? asyncServiceProvider,
-            string serverTypeName,
-            string? clientName,
-            JsonRpc jsonRpc,
-            CancellationToken cancellationToken)
-        {
-            if (asyncServiceProvider == null)
-                return null;
-
-            var logName = $"Roslyn.{serverTypeName}.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
-            var logId = new LogId(logName, new ServiceMoniker(typeof(InProcLanguageServer).FullName));
-
-            var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(asyncServiceProvider).ConfigureAwait(false);
-            var service = serviceContainer.GetFullAccessServiceBroker();
-
-            var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
-            var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
-
-            traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
-
-            // Associate this trace source with the jsonrpc conduit.  This ensures that we can associate logs we report
-            // with our callers and the operations they are performing.
-            jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy { TraceSource = traceSource };
-
-            return new LogHubLspLogger(configuration, traceSource);
-        }
-
-        public bool HasShutdownStarted => _shuttingDown;
 
         /// <summary>
         /// Handle the LSP initialize request by storing the client capabilities and responding with the server
@@ -183,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _clientCapabilities = (VSClientCapabilities)initializeParams.Capabilities;
                 return Task.FromResult(new InitializeResult
                 {
-                    Capabilities = _languageClient.GetCapabilities(),
+                    Capabilities = _serverCapabilities,
                 });
             }
             finally
@@ -428,11 +364,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         }
 
         [JsonRpcMethod(Methods.TextDocumentSignatureHelpName, UseSingleObjectParameterDeserialization = true)]
-        public Task<SignatureHelp> GetTextDocumentSignatureHelpAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
+        public Task<LSP.SignatureHelp> GetTextDocumentSignatureHelpAsync(TextDocumentPositionParams textDocumentPositionParams, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
 
-            return _requestDispatcher.ExecuteRequestAsync<TextDocumentPositionParams, SignatureHelp>(_queue, Methods.TextDocumentSignatureHelpName, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
+            return _requestDispatcher.ExecuteRequestAsync<TextDocumentPositionParams, LSP.SignatureHelp>(_queue, Methods.TextDocumentSignatureHelpName, textDocumentPositionParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
         [JsonRpcMethod(Methods.WorkspaceExecuteCommandName, UseSingleObjectParameterDeserialization = true)]
@@ -533,26 +469,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 didCloseParams, _clientCapabilities, _clientName, cancellationToken);
         }
 
-        private void DiagnosticService_DiagnosticsUpdated(object _, DiagnosticsUpdatedArgs e)
-            => DiagnosticService_DiagnosticsUpdated(e.Solution, e.DocumentId);
-
-        private void DiagnosticService_DiagnosticsUpdated(Solution? solution, DocumentId? documentId)
-        {
-            // LSP doesn't support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
-            if (documentId != null && solution != null)
-            {
-                var document = solution.GetDocument(documentId);
-                if (document == null || document.FilePath == null)
-                    return;
-
-                // Only publish document diagnostics for the languages this provider supports.
-                if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
-                    return;
-
-                _diagnosticsWorkQueue.AddWork(document.Id);
-            }
-        }
-
         private void ShutdownRequestQueue()
         {
             _queue.RequestServerShutdown -= RequestExecutionQueue_Errored;
@@ -561,7 +477,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             _queue.Shutdown();
         }
 
-        private void RequestExecutionQueue_Errored(object sender, RequestShutdownEventArgs e)
+        private void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
         {
             // log message and shut down
             _logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
@@ -584,6 +500,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             }).CompletesAsyncOperation(asyncToken);
         }
 
+        private void DiagnosticService_DiagnosticsUpdated(object? _, DiagnosticsUpdatedArgs e)
+            => DiagnosticService_DiagnosticsUpdated(e.Solution, e.DocumentId);
+
+        private void DiagnosticService_DiagnosticsUpdated(Solution? solution, DocumentId? documentId)
+        {
+            // LSP doesn't support diagnostics without a document. So if we get project level diagnostics without a document, ignore them.
+            if (documentId != null && solution != null)
+            {
+                var document = solution.GetDocument(documentId);
+                if (document == null || document.FilePath == null)
+                    return;
+
+                // Only publish document diagnostics for the languages this provider supports.
+                if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
+                    return;
+
+                _diagnosticsWorkQueue.AddWork(document.Id);
+            }
+        }
+
         /// <summary>
         /// Stores the last published LSP diagnostics with the Roslyn document that they came from.
         /// This is useful in the following scenario.  Imagine we have documentA which has contributions to mapped files m1 and m2.
@@ -597,7 +533,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         /// This dictionary stores the previously computed diagnostics for the published file so that we can
         /// union the currently computed diagnostics (e.g. for dA) with previously computed diagnostics (e.g. from dB).
         /// </summary>
-        private readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LanguageServer.Protocol.Diagnostic>>> _publishedFileToDiagnostics =
+        private readonly Dictionary<Uri, Dictionary<DocumentId, ImmutableArray<LSP.Diagnostic>>> _publishedFileToDiagnostics =
             new();
 
         /// <summary>
@@ -745,7 +681,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 
             var diagnostic = new LSP.Diagnostic
             {
-                Source = _languageClient?.GetType().Name,
+                Source = _telemetryServerName,
                 Code = diagnosticData.Id,
                 Severity = Convert(diagnosticData.Severity),
                 Range = GetDiagnosticRange(diagnosticData.DataLocation, text),

@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -11,17 +13,27 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.LogHub;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Threading;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {
-    internal abstract class AbstractInProcLanguageClient : ILanguageClient
+    internal abstract partial class AbstractInProcLanguageClient : ILanguageClient, ILanguageServerFactory
     {
+        /// <summary>
+        /// A unique, always increasing, ID we use to identify this server in our loghub logs.  Needed so that if our
+        /// server is restarted that we can have a new logstream for the new server.
+        /// </summary>
+        private static int s_logHubSessionId;
+
         private readonly string? _diagnosticsClientName;
         private readonly VSShell.IAsyncServiceProvider _asyncServiceProvider;
         private readonly IThreadingContext _threadingContext;
@@ -132,13 +144,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             }
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            _languageServer = await InProcLanguageServer.CreateAsync(
+
+            _languageServer = await CreateAsync(
                 this,
                 serverStream,
                 serverStream,
-                _requestDispatcherFactory.CreateRequestDispatcher(),
-                _diagnosticService,
-                _listenerProvider,
                 _lspWorkspaceRegistrationService,
                 _asyncServiceProvider,
                 _diagnosticsClientName,
@@ -174,6 +184,79 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
         {
             // We don't need to provide additional exception handling here, liveshare already handles failure cases for this server.
             return Task.CompletedTask;
+        }
+
+        private static async Task<InProcLanguageServer> CreateAsync(
+            AbstractInProcLanguageClient languageClient,
+            Stream inputStream,
+            Stream outputStream,
+            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            VSShell.IAsyncServiceProvider? asyncServiceProvider,
+            string? clientName,
+            CancellationToken cancellationToken)
+        {
+            var jsonMessageFormatter = new JsonMessageFormatter();
+            VSExtensionUtilities.AddVSExtensionConverters(jsonMessageFormatter.JsonSerializer);
+
+            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter));
+            var serverTypeName = languageClient.GetType().Name;
+            var logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
+
+            var server = await languageClient.CreateAsync(
+                jsonRpc,
+                languageClient.GetCapabilities(),
+                lspWorkspaceRegistrationService,
+                logger ?? NoOpLspLogger.Instance).ConfigureAwait(false);
+
+            jsonRpc.StartListening();
+            return server;
+        }
+
+        private static async Task<LogHubLspLogger?> CreateLoggerAsync(
+            VSShell.IAsyncServiceProvider? asyncServiceProvider,
+            string serverTypeName,
+            string? clientName,
+            JsonRpc jsonRpc,
+            CancellationToken cancellationToken)
+        {
+            if (asyncServiceProvider == null)
+                return null;
+
+            var logName = $"Roslyn.{serverTypeName}.{clientName ?? "Default"}.{Interlocked.Increment(ref s_logHubSessionId)}";
+            var logId = new LogId(logName, new ServiceMoniker(typeof(InProcLanguageServer).FullName));
+
+            var serviceContainer = await VSShell.ServiceExtensions.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(asyncServiceProvider).ConfigureAwait(false);
+            var service = serviceContainer.GetFullAccessServiceBroker();
+
+            var configuration = await TraceConfiguration.CreateTraceConfigurationInstanceAsync(service, cancellationToken).ConfigureAwait(false);
+            var traceSource = await configuration.RegisterLogSourceAsync(logId, new LogHub.LoggerOptions(), cancellationToken).ConfigureAwait(false);
+
+            traceSource.Switch.Level = SourceLevels.ActivityTracing | SourceLevels.Information;
+
+            // Associate this trace source with the jsonrpc conduit.  This ensures that we can associate logs we report
+            // with our callers and the operations they are performing.
+            jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy { TraceSource = traceSource };
+
+            return new LogHubLspLogger(configuration, traceSource);
+        }
+
+        public Task<InProcLanguageServer> CreateAsync(
+            JsonRpc jsonRpc,
+            ServerCapabilities serverCapabilities,
+            ILspWorkspaceRegistrationService workspaceRegistrationService,
+            ILspLogger logger)
+        {
+            return Task.FromResult(new InProcLanguageServer(
+                _requestDispatcherFactory,
+                jsonRpc,
+                serverCapabilities,
+                workspaceRegistrationService,
+                _listenerProvider,
+                logger,
+                _diagnosticService,
+                clientName: _diagnosticsClientName,
+                userVisibleServerName: this.Name,
+                telemetryServerTypeName: this.GetType().Name));
         }
     }
 }
