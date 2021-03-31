@@ -40,6 +40,32 @@ try {
   $rebuildArgs = ("--verbose" +
   " --assembliesPath `"$ArtifactsDir/obj/`"" +
 
+# Rebuilds with compilation errors
+  " --exclude net472\Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests.dll" +
+  " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.CSharp.Scripting.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.CSharp.Scripting.dll" +
+  " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities.dll" +
+  " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.EditorFeatures.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.EditorFeatures.dll" +
+  " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.dll" +
+  " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures.UnitTests.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.InteractiveHost.dll" +
+  " --exclude net472\Microsoft.CodeAnalysis.Scripting.UnitTests.dll" +
+  " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Scripting.UnitTests.dll" +
+  " --exclude net472\Roslyn.VisualStudio.Next.UnitTests.dll" +
+
+# Rebuilds with missing references
+
+# Rebuilds with other issues
+  " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
+  " --exclude net45\Microsoft.CodeAnalysis.Debugging.Package.dll" +
+  " --exclude netstandard1.3\Microsoft.CodeAnalysis.Debugging.Package.dll" +
+  " --exclude net45\Microsoft.CodeAnalysis.PooledObjects.Package.dll" +
+  " --exclude netstandard1.3\Microsoft.CodeAnalysis.PooledObjects.Package.dll" +
+  " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Workspaces.UnitTests.dll" +
+  " --exclude net472\Zip\tools\vsixexpinstaller\System.ValueTuple.dll" +
+  " --exclude net472\Zip\tools\vsixexpinstaller\VSIXExpInstaller.exe" +
 
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +
   " --sourcePath `"$RepoRoot`"" +
