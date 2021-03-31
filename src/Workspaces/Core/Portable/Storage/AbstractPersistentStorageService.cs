@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     // This will remove the single ref count we ourselves added when we cached the
                     // instance.  Then once all other existing clients who are holding onto this
                     // instance let go, it will finally get truly disposed.
-                    _ = Task.Run(() => storageToDispose.Dispose());
+                    _ = Task.Run(() => storageToDispose.Dispose(), CancellationToken.None);
 
                     _currentPersistentStorage = null;
                     _currentPersistentStorageSolutionId = null;
