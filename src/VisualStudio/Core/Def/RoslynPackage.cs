@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -62,6 +63,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private const string DecompilerEulaOptionKey = "ILSpy-234190A6EE66";
         private const byte DecompilerEulaOptionVersion = 1;
 
+        // The randomly-generated key name is used for serializing the Background Analysis Scope preference to the .SUO
+        // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that
+        // might be saving an "AnalysisScope" named stream to the same file.
+        // note: must be <= 31 characters long
+        private const string BackgroundAnalysisScopeOptionKey = "AnalysisScope-DCE33A29A768";
+        private const byte BackgroundAnalysisScopeOptionVersion = 1;
+
         private VisualStudioWorkspace? _workspace;
         private IComponentModel? _componentModel;
         private RuleSetEventHandler? _ruleSetEventHandler;
@@ -72,9 +80,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
             AddOptionKey(DecompilerEulaOptionKey);
+            AddOptionKey(BackgroundAnalysisScopeOptionKey);
         }
 
         public bool IsDecompilerEulaAccepted { get; set; }
+
+        public BackgroundAnalysisScope? AnalysisScope { get; set; }
 
         protected override void OnLoadOptions(string key, Stream stream)
         {
@@ -90,6 +101,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
                 }
             }
 
+            if (key == BackgroundAnalysisScopeOptionKey)
+            {
+                if (stream.ReadByte() == BackgroundAnalysisScopeOptionVersion)
+                {
+                    var hasValue = stream.ReadByte() == 1;
+                    AnalysisScope = hasValue ? (BackgroundAnalysisScope)stream.ReadByte() : null;
+                }
+                else
+                {
+                    AnalysisScope = null;
+                }
+            }
+
             base.OnLoadOptions(key, stream);
         }
 
@@ -99,6 +123,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 stream.WriteByte(DecompilerEulaOptionVersion);
                 stream.WriteByte(IsDecompilerEulaAccepted ? (byte)1 : (byte)0);
+            }
+
+            if (key == BackgroundAnalysisScopeOptionKey)
+            {
+                stream.WriteByte(BackgroundAnalysisScopeOptionVersion);
+                stream.WriteByte(AnalysisScope.HasValue ? (byte)1 : (byte)0);
+                stream.WriteByte((byte)AnalysisScope.GetValueOrDefault());
             }
 
             base.OnSaveOptions(key, stream);
