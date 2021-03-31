@@ -115,8 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             // If the selected item is the same as the current model then we aren't in a nested call
                             // so we want to retrigger to ensure the right parameter is highlighted
                             if (currentModel.Provider != provider ||
-                               items.SelectedItemIndex == null ||
-                               !DisplayPartsMatch(currentModel.SelectedItem, items.Items[items.SelectedItemIndex.Value]))
+                               !DisplayPartsMatch(currentModel.SelectedItem, items.Items[items.SelectedItemIndex.GetValueOrDefault()]))
                             {
                                 return currentModel;
                             }
