@@ -164,14 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Storage
             // and then pass that out.  This should not be a problem in practice as PipeReader internally intelligently
             // uses and pools reasonable sized buffers, preventing us from exacerbating the GC or causing LOH
             // allocations.
-            while (true)
-            {
-                var readResult = await pipe.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
-                pipe.Reader.AdvanceTo(readResult.Buffer.Start, readResult.Buffer.End);
-
-                if (readResult.IsCompleted)
-                    return readResult.Buffer.AsStream();
-            }
+            return await pipe.Reader.AsPrebufferedStreamAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public sealed override Task<bool> WriteStreamAsync(string name, Stream stream, Checksum? checksum, CancellationToken cancellationToken)
