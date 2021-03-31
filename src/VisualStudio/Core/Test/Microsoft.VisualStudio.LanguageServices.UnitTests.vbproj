@@ -64,6 +64,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
 
     <!-- This is needed by the Progression and Graph Model APIs at runtime  -->
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="$(MicrosoftVisualStudioDiagnosticsMeasurementVersion)" NoWarn="NU1605" IncludeAssets="runtime" />
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" IncludeAssets="runtime" />
   </ItemGroup>
   <ItemGroup>

@@ -125,7 +125,8 @@
     <MicrosoftVisualStudioDebuggerEngineimplementationVersion>16.5.1122001-preview</MicrosoftVisualStudioDebuggerEngineimplementationVersion>
     <MicrosoftVisualStudioDebuggerMetadataimplementationVersion>16.5.1122001-preview</MicrosoftVisualStudioDebuggerMetadataimplementationVersion>
     <MicrosoftVisualStudioDesignerInterfacesVersion>17.0.0-preview-1-31108-209</MicrosoftVisualStudioDesignerInterfacesVersion>
-    <!--🔼--><MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>16.0.28226-alpha</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
+    <MicrosoftVisualStudioDiagnosticsMeasurementVersion>17.0.0-preview-1-30928-1112</MicrosoftVisualStudioDiagnosticsMeasurementVersion>
+    <MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>17.0.0-preview-1-30928-1112</MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion>
     <MicrosoftVisualStudioSDKEmbedInteropTypesVersion>15.0.36</MicrosoftVisualStudioSDKEmbedInteropTypesVersion>
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioGraphModelVersion>17.0.0-preview-1-30928-1111</MicrosoftVisualStudioGraphModelVersion>
