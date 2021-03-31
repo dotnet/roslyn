@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), "await");
         }
 
-        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string inlineDescription = null)
+        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string? inlineDescription = null)
         {
             await VerifyItemExistsAsync(GetMarkup(code, languageVersion), "await", glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
         }

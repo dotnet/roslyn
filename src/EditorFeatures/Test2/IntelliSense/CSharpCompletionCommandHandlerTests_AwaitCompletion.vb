@@ -81,7 +81,7 @@ public class C
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_AnonymousMethodExpression() As Task
+        Public Async Function AwaitCompletionAddsAsync_AnonymousMethodExpression_Void() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -106,7 +106,7 @@ public class C
 {
     public void F()
     {
-        Action<int> a = static delegate(int i) { await };
+        Action<int> a = static delegate (int i) { await };
     }
 }
 ", state.GetDocumentText())
@@ -114,7 +114,42 @@ public class C
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_SimpleLambdaExpression() As Task
+        Public Async Function AwaitCompletionAddsAsync_AnonymousMethodExpression_Task() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {
+        Func<int, Task> a = static delegate(int i) { $$ };
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=CSharpFeaturesResources.Make_container_async)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {
+        Func<int, Task> a = static async delegate(int i) { await };
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function AwaitCompletionAddsAsync_SimpleLambdaExpression_Void() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -147,7 +182,42 @@ public class C
         End Function
 
         <WpfFact>
-        Public Async Function AwaitCompletionAddsAsync_ParenthesizedLambdaExpression() As Task
+        Public Async Function AwaitCompletionAddsAsync_SimpleLambdaExpression_Task() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {
+        Func<int, Task> b = static a => { $$ };
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=CSharpFeaturesResources.Make_container_async)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {
+        Func<int, Task> b = static async a => { await };
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function AwaitCompletionAddsAsync_ParenthesizedLambdaExpression_Void() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -173,6 +243,41 @@ public class C
     public void F()
     {
         Action<int> c = static (a) => { await };
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function AwaitCompletionAddsAsync_ParenthesizedLambdaExpression_Task() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {
+        Func<int, Task> c = static (a) => { $$ };
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True, inlineDescription:=CSharpFeaturesResources.Make_container_async)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {
+        Func<int, Task> c = static async (a) => { await };
     }
 }
 ", state.GetDocumentText())
