@@ -941,6 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
                 case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
+                case AnonymousFunctionExpressionSyntax anonymous: return anonymous.Modifiers;
             }
 
             return default;
