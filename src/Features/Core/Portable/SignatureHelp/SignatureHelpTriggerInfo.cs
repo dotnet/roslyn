@@ -10,15 +10,15 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
     {
         public SignatureHelpTriggerReason TriggerReason { get; }
         public char? TriggerCharacter { get; }
-        public bool RetriggerFromCaretMovement { get; }
+        public bool RetriggerFromArrowKeys { get; }
 
-        internal SignatureHelpTriggerInfo(SignatureHelpTriggerReason triggerReason, char? triggerCharacter = null, bool retriggerFromCaretMovement = false)
+        internal SignatureHelpTriggerInfo(SignatureHelpTriggerReason triggerReason, char? triggerCharacter = null, bool retriggerFromArrowKeys = false)
             : this()
         {
             Contract.ThrowIfTrue(triggerReason == SignatureHelpTriggerReason.TypeCharCommand && triggerCharacter == null);
             TriggerReason = triggerReason;
             TriggerCharacter = triggerCharacter;
-            RetriggerFromCaretMovement = retriggerFromCaretMovement;
+            RetriggerFromArrowKeys = retriggerFromArrowKeys;
         }
     }
 }

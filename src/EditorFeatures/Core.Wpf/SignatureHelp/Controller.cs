@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _allProviders;
         private ImmutableArray<ISignatureHelpProvider> _providers;
         private IContentType _lastSeenContentType;
+        private bool _caretMoveFromArrowKeys;
 
         public string DisplayName => EditorFeaturesResources.Signature_Help;
 
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return _providers;
         }
 
-        private void Retrigger(bool fromCaretMovement)
+        private void Retrigger(bool fromArrowKeys)
         {
             AssertIsForeground();
             if (!IsSessionActive)
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return;
             }
 
-            sessionOpt.ComputeModel(GetProviders(), new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.RetriggerCommand, retriggerFromCaretMovement: fromCaretMovement));
+            sessionOpt.ComputeModel(GetProviders(), new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.RetriggerCommand, retriggerFromArrowKeys: fromArrowKeys));
         }
     }
 }

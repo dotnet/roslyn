@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         AbstractSignatureHelpCommandHandler,
         IChainedCommandHandler<EscapeKeyCommandArgs>,
         IChainedCommandHandler<UpKeyCommandArgs>,
-        IChainedCommandHandler<DownKeyCommandArgs>
+        IChainedCommandHandler<DownKeyCommandArgs>,
+        IChainedCommandHandler<LeftKeyCommandArgs>,
+        IChainedCommandHandler<RightKeyCommandArgs>
     {
         public string DisplayName => EditorFeaturesResources.Signature_Help;
 
@@ -64,6 +66,12 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             => nextHandler();
 
         public CommandState GetCommandState(DownKeyCommandArgs args, Func<CommandState> nextHandler)
+            => nextHandler();
+
+        public CommandState GetCommandState(LeftKeyCommandArgs args, Func<CommandState> nextHandler)
+            => nextHandler();
+
+        public CommandState GetCommandState(RightKeyCommandArgs args, Func<CommandState> nextHandler)
             => nextHandler();
 
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
@@ -89,6 +97,26 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public void ExecuteCommand(DownKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             if (TryGetController(args, out var controller) && controller.TryHandleDownKey())
+            {
+                return;
+            }
+
+            nextHandler();
+        }
+
+        public void ExecuteCommand(LeftKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        {
+            if (TryGetController(args, out var controller) && controller.TryHandleLeftOrRightKey())
+            {
+                return;
+            }
+
+            nextHandler();
+        }
+
+        public void ExecuteCommand(RightKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        {
+            if (TryGetController(args, out var controller) && controller.TryHandleLeftOrRightKey())
             {
                 return;
             }

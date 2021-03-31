@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                                 return currentModel;
                             }
 
-                            // if we have a model and we're retriggering from a caret movement, and the caret is not within
+                            // If we have a model and we're retriggering from an arrow key being pressed, and the caret is not within
                             // the span of the current model, then dismiss the session as the user has navigated out of the
-                            // signature that the session is for
-                            if (triggerInfo.RetriggerFromCaretMovement && !currentModel.TextSpan.Contains(caretPosition))
+                            // signature that the session is for.
+                            if (triggerInfo.RetriggerFromArrowKeys && !currentModel.TextSpan.Contains(caretPosition))
                             {
                                 return null;
                             }
@@ -105,20 +105,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             return null;
                         }
 
-                        // If we have a current model and the caret is within its bounds, and we've been retriggered by a
-                        // caret move then we want to keep our current model rather than show help for a nested method call.
-                        if (currentModel != null &&
-                            currentModel.TextSpan.Contains(caretPosition) &&
+                        // If we have a current model and the caret is within its bounds, and we've been retriggered by the
+                        // arrow keys then we need to check if what is displayed will cause a change. If so, we want to keep
+                        // our current model rather than show help for a nested method call.
+                        // If the display won't change we still want to retrigger to ensure correct argument highlighting.
+                        if (triggerInfo.RetriggerFromArrowKeys &&
                             triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand &&
-                            triggerInfo.RetriggerFromCaretMovement)
+                            currentModel != null &&
+                            currentModel.TextSpan.Contains(caretPosition) &&
+                            WillChangeDisplay(currentModel, provider, items))
                         {
-                            // If the selected item is the same as the current model then we aren't in a nested call
-                            // so we want to retrigger to ensure the right parameter is highlighted
-                            if (currentModel.Provider != provider ||
-                               !DisplayPartsMatch(currentModel.SelectedItem, items.Items[items.SelectedItemIndex.GetValueOrDefault()]))
-                            {
-                                return currentModel;
-                            }
+                            return currentModel;
                         }
 
                         if (currentModel != null &&
@@ -194,6 +191,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                 return lastSelectionOrDefault;
             }
+
+            private static bool WillChangeDisplay(Model currentModel, ISignatureHelpProvider provider, SignatureHelpItems items)
+                => currentModel.Provider != provider ||
+                   !DisplayPartsMatch(currentModel.SelectedItem, items.Items[items.SelectedItemIndex.GetValueOrDefault()]);
 
             private static bool DisplayPartsMatch(SignatureHelpItem i1, SignatureHelpItem i2)
                 => i1.GetAllParts().SequenceEqual(i2.GetAllParts(), CompareParts);

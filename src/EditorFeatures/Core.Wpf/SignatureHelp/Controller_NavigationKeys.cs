@@ -13,13 +13,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         internal bool TryHandleUpKey()
         {
             AssertIsForeground();
-            return ChangeSelection(() => sessionOpt.PresenterSession.SelectPreviousItem());
+            var handled = ChangeSelection(() => sessionOpt.PresenterSession.SelectPreviousItem());
+
+            // If we're letting the editor handle it then we need to know an arrow key was pressed, as there is specific
+            // behaviour in that scenario
+            _caretMoveFromArrowKeys = !handled;
+            return handled;
         }
 
         internal bool TryHandleDownKey()
         {
             AssertIsForeground();
-            return ChangeSelection(() => sessionOpt.PresenterSession.SelectNextItem());
+            var handled = ChangeSelection(() => sessionOpt.PresenterSession.SelectNextItem());
+
+            // If we're letting the editor handle it then we need to know an arrow key was pressed, as there is specific
+            // behaviour in that scenario
+            _caretMoveFromArrowKeys = !handled;
+            return handled;
+        }
+
+        internal bool TryHandleLeftOrRightKey()
+        {
+            _caretMoveFromArrowKeys = true;
+            return false;
         }
 
         private bool ChangeSelection(Action computationAction)

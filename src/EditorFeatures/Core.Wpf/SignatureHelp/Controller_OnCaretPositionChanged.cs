@@ -17,6 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         }
 
         private void OnCaretPositionChanged()
-            => Retrigger(fromCaretMovement: true);
+        {
+            Retrigger(fromArrowKeys: _caretMoveFromArrowKeys);
+
+            // Always clear this flag because when argument snippet completion is active Tab characters
+            // will cause a caret move, but we don't want our special arrow key logic running.
+            _caretMoveFromArrowKeys = false;
+        }
     }
 }
