@@ -11,6 +11,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Test.Utilities.TestGenerators
 {
+    // NOTE: the order in which these are emitted can change the test 'TestLoadedAnalyzerOrderIsDeterministic'.
+    //       Ensure you do not re-arrange them alphabetically, as that will invalidate the test, without 
+    //       explicitly failing it
+
     internal class SingleFileTestGenerator : ISourceGenerator
     {
         private readonly string _content;
