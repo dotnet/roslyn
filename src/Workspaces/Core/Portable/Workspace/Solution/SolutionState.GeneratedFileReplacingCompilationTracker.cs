@@ -48,7 +48,15 @@ namespace Microsoft.CodeAnalysis
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
             {
-                throw new NotImplementedException();
+                if (_compilationWithReplacement == null)
+                {
+                    // We don't have a compilation yet, so this couldn't have came from us
+                    return false;
+                }
+                else
+                {
+                    return UnrootedSymbolSet.Create(_compilationWithReplacement).ContainsAssemblyOrModuleOrDynamic(symbol, primary);
+                }
             }
 
             public bool? ContainsSymbolsWithNameFromDeclarationOnlyCompilation(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)

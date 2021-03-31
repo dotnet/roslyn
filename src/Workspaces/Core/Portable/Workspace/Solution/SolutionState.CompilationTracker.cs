@@ -104,52 +104,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                if (primary)
-                {
-                    return symbol.Equals(unrootedSymbolSet.Value.PrimaryAssemblySymbol.GetTarget()) ||
-                           symbol.Equals(unrootedSymbolSet.Value.PrimaryDynamicSymbol.GetTarget());
-                }
-                else
-                {
-                    var secondarySymbols = unrootedSymbolSet.Value.SecondaryReferencedSymbols;
-
-                    var symbolHash = ReferenceEqualityComparer.GetHashCode(symbol);
-
-                    // The secondary symbol array is sorted by the symbols' hash codes.  So do a binary search to find
-                    // the location we should start looking at.
-                    var index = secondarySymbols.BinarySearch((symbolHash, null!), WeakSymbolComparer.Instance);
-                    if (index < 0)
-                        return false;
-
-                    // Could have multiple symbols with the same hash.  They will all be placed next to each other,
-                    // so walk backward to hit the first.
-                    while (index > 0 && secondarySymbols[index - 1].hashCode == symbolHash)
-                        index--;
-
-                    // Now, walk forward through the stored symbols with the same hash looking to see if any are a reference match.
-                    while (index < secondarySymbols.Length && secondarySymbols[index].hashCode == symbolHash)
-                    {
-                        var cached = secondarySymbols[index].symbol;
-                        if (cached.TryGetTarget(out var otherSymbol) && otherSymbol == symbol)
-                            return true;
-
-                        index++;
-                    }
-
-                    return false;
-                }
-            }
-
-            private class WeakSymbolComparer : IComparer<(int hashcode, WeakReference<ISymbol> symbol)>
-            {
-                public static readonly WeakSymbolComparer Instance = new WeakSymbolComparer();
-
-                private WeakSymbolComparer()
-                {
-                }
-
-                public int Compare((int hashcode, WeakReference<ISymbol> symbol) x, (int hashcode, WeakReference<ISymbol> symbol) y)
-                    => x.hashcode - y.hashcode;
+                return unrootedSymbolSet.Value.ContainsAssemblyOrModuleOrDynamic(symbol, primary);
             }
 
             /// <summary>
