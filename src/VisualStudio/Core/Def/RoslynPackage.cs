@@ -56,13 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     [Guid(Guids.RoslynPackageIdString)]
     internal sealed class RoslynPackage : AbstractPackage
     {
-        // The randomly-generated key name is used for serializing the ILSpy decompiler EULA preference to the .SUO
-        // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that
-        // might be saving an "ILSpy" named stream to the same file.
-        // note: must be <= 31 characters long
-        private const string DecompilerEulaOptionKey = "ILSpy-234190A6EE66";
-        private const byte DecompilerEulaOptionVersion = 1;
-
         // The randomly-generated key name is used for serializing the Background Analysis Scope preference to the .SUO
         // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that
         // might be saving an "AnalysisScope" named stream to the same file.
@@ -79,28 +72,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         public RoslynPackage()
         {
             // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
-            AddOptionKey(DecompilerEulaOptionKey);
             AddOptionKey(BackgroundAnalysisScopeOptionKey);
         }
-
-        public bool IsDecompilerEulaAccepted { get; set; }
 
         public BackgroundAnalysisScope? AnalysisScope { get; set; }
 
         protected override void OnLoadOptions(string key, Stream stream)
         {
-            if (key == DecompilerEulaOptionKey)
-            {
-                if (stream.ReadByte() == DecompilerEulaOptionVersion)
-                {
-                    IsDecompilerEulaAccepted = stream.ReadByte() == 1;
-                }
-                else
-                {
-                    IsDecompilerEulaAccepted = false;
-                }
-            }
-
             if (key == BackgroundAnalysisScopeOptionKey)
             {
                 if (stream.ReadByte() == BackgroundAnalysisScopeOptionVersion)
@@ -119,12 +97,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override void OnSaveOptions(string key, Stream stream)
         {
-            if (key == DecompilerEulaOptionKey)
-            {
-                stream.WriteByte(DecompilerEulaOptionVersion);
-                stream.WriteByte(IsDecompilerEulaAccepted ? (byte)1 : (byte)0);
-            }
-
             if (key == BackgroundAnalysisScopeOptionKey)
             {
                 stream.WriteByte(BackgroundAnalysisScopeOptionVersion);
