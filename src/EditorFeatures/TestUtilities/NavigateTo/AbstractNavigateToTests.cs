@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             await TestAsync(content, body, testHost, w => new FirstDocIsVisibleDocumentTrackingService(w.Workspace));
             await TestAsync(content, body, testHost, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w.Workspace));
 
+            return;
+
             async Task TestAsync(
                 string content, Func<TestWorkspace, Task> body, TestHost testHost,
                 Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
@@ -85,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             await TestAsync(content, body, testHost, null);
             await TestAsync(content, body, testHost, w => new FirstDocIsVisibleDocumentTrackingService(w.Workspace));
             await TestAsync(content, body, testHost, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w.Workspace));
+
+            return;
 
             async Task TestAsync(
                 XElement content, Func<TestWorkspace, Task> body, TestHost testHost,

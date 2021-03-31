@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public TextSpan Span { get; }
 
-        // Store the kind, accessibility, parameter-count, and type-parameter-count
-        // in a single int.  Each gets 5 bits which is ample and gives us more space
-        // for flags in the future.
+        // Store the kind (5 bits), accessibility (4 bits), parameter-count (4 bits), and type-parameter-count (4 bits)
+        // in a single int.
         private readonly uint _flags;
 
+        private const uint Lower4BitMask = 0b1111;
         private const uint Lower5BitMask = 0b11111;
 
         public DeclaredSymbolInfoKind Kind => GetKind(_flags);
@@ -115,10 +115,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _flags =
                 (uint)kind |
                 ((uint)accessibility << 5) |
-                ((uint)parameterCount << 10) |
-                ((uint)typeParameterCount << 15) |
-                ((isNestedType ? 1u : 0u) << 20) |
-                ((isPartial ? 1u : 0u) << 21);
+                ((uint)parameterCount << 9) |
+                ((uint)typeParameterCount << 13) |
+                ((isNestedType ? 1u : 0u) << 17) |
+                ((isPartial ? 1u : 0u) << 18);
         }
 
         [return: NotNullIfNotNull("name")]
@@ -129,19 +129,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => (DeclaredSymbolInfoKind)(flags & Lower5BitMask);
 
         private static Accessibility GetAccessibility(uint flags)
-            => (Accessibility)((flags >> 5) & Lower5BitMask);
+            => (Accessibility)((flags >> 5) & Lower4BitMask);
 
         private static byte GetParameterCount(uint flags)
-            => (byte)((flags >> 10) & Lower5BitMask);
+            => (byte)((flags >> 9) & Lower4BitMask);
 
         private static byte GetTypeParameterCount(uint flags)
-            => (byte)((flags >> 15) & Lower5BitMask);
+            => (byte)((flags >> 13) & Lower4BitMask);
 
         private static bool GetIsNestedType(uint flags)
-            => ((flags >> 20) & 1) == 1;
+            => ((flags >> 17) & 1) == 1;
 
         private static bool GetIsPartial(uint flags)
-            => ((flags >> 21) & 1) == 1;
+            => ((flags >> 18) & 1) == 1;
 
         internal void WriteTo(ObjectWriter writer)
         {

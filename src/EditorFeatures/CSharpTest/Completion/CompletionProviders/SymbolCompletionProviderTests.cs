@@ -7485,36 +7485,17 @@ struct C
             await VerifyItemExistsAsync(markup, "C");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RecordDestructor()
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task RecordDestructor(string record)
         {
-            var markup = @"
-record C
-{
+            var markup = $@"
+{record} C
+{{
    ~$$
-}";
-            await VerifyItemExistsAsync(markup, "C");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RecordClassDestructor()
-        {
-            var markup = @"
-record class C
-{
-   ~$$
-}";
-            await VerifyItemExistsAsync(markup, "C");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task RecordStructDestructor()
-        {
-            var markup = @"
-record struct C
-{
-   ~$$
-}";
+}}";
             await VerifyItemExistsAsync(markup, "C");
         }
 
