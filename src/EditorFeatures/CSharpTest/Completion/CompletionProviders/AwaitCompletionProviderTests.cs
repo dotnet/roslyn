@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -35,9 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyItemIsAbsentAsync(GetMarkup(code, languageVersion), "await");
         }
 
-        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion)
+        private async Task VerifyKeywordAsync(string code, LanguageVersion languageVersion, string inlineDescription = null)
         {
-            await VerifyItemExistsAsync(GetMarkup(code, languageVersion), "await");
+            await VerifyItemExistsAsync(GetMarkup(code, languageVersion), "await", glyph: (int)Glyph.Keyword, inlineDescription: inlineDescription);
         }
 
         [Fact]
@@ -91,6 +90,19 @@ class C
     var z = $$  }
 }
 ", LanguageVersion.CSharp9);
+        }
+
+        [Fact]
+        public async Task TestExpressionInNonAsyncMethodWithTaskReturn()
+        {
+            await VerifyKeywordAsync(@"
+class C
+{
+  Task F()
+  {
+    var z = $$  }
+}
+", LanguageVersion.CSharp9, CSharpFeaturesResources.Make_container_async);
         }
 
         [Fact]
