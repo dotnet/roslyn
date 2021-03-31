@@ -12,34 +12,17 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
     /// <summary>
     /// View model used to display a member in MenuItem. Only used when there are multiple members on the same line.
     /// </summary>
-    internal class MemberDisplayViewModel
+    internal class MemberDisplayViewModel : InheritanceContextMenuItemViewModel
     {
-        /// <summary>
-        /// ImageMoniker for this member.
-        /// </summary>
-        public ImageMoniker ImageMoniker { get; }
-
-        /// <summary>
-        /// Display content in the MenuItem.
-        /// </summary>
-        public string DisplayContent { get; }
-
         /// <summary>
         /// Inheritance Targets for this member.
         /// </summary>
         public ImmutableArray<TargetDisplayViewModel> Targets { get; }
 
-        /// <summary>
-        /// AutomationName for the MenuItem.
-        /// </summary>
-        public string AutomationName { get; }
-
         public MemberDisplayViewModel(InheritanceMarginItem member)
+            : base(member.DisplayName, member.Glyph.GetImageMoniker(), member.DisplayName)
         {
-            ImageMoniker = member.Glyph.GetImageMoniker();
-            DisplayContent = member.DisplayName;
-            AutomationName = member.DisplayName;
-            Targets = member.TargetItems.SelectAsArray(item => new TargetDisplayViewModel(item));
+            Targets = member.TargetItems.SelectAsArray(item => TargetDisplayViewModel.Create(item));
         }
     }
 }

@@ -7,11 +7,6 @@
         <target state="new">Building Project</target>
         <note />
       </trans-unit>
-      <trans-unit id="Click_to_select_member">
-        <source>Click to select member</source>
-        <target state="new">Click to select member</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Copying_selection_to_Interactive_Window">
         <source>Copying selection to Interactive Window.</source>
         <target state="new">Copying selection to Interactive Window.</target>
@@ -30,6 +25,11 @@
       <trans-unit id="Interactive_host_process_platform">
         <source>Interactive host process platform</source>
         <target state="new">Interactive host process platform</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited">
+        <source>Multiple members are inherited</source>
+        <target state="new">Multiple members are inherited</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">
@@ -122,9 +122,9 @@
         <target state="new">'{0}' in '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_is_inherited">
-        <source>'{0}' is inherited</source>
-        <target state="new">'{0}' is inherited</target>
+      <trans-unit id="is_inherited">
+        <source>is inherited</source>
+        <target state="new">is inherited</target>
         <note />
       </trans-unit>
     </body>

@@ -5,7 +5,6 @@
         xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
         xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
-        ToolTip="{Binding ToolTip}"
         AutomationProperties.Name="{Binding AutomationName}"
         Background="Transparent"
         BorderBrush="Transparent"
@@ -103,7 +102,7 @@
         <!-- Style used to display a single member's information, if click the button, it pops up a menu contains targets' information (one level menu)-->
         <Style x:Key="SingleMemberContextMenuStyle" TargetType="{x:Type ContextMenu}">
             <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
-            <Setter Property="ItemsSource" Value="{Binding Targets}"/>
+            <Setter Property="ItemsSource" Value="{Binding MenuItemViewModels}"/>
             <Setter Property="MaxHeight" Value="400"/>
             <Setter Property="StaysOpen" Value="True"/>
             <Setter Property="Background" Value="{DynamicResource VsBrush.CommandBarMenuBackgroundGradient}"/>
@@ -193,7 +192,7 @@
         then each member has a second level of context menu, show its targets -->
         <Style x:Key="MultipleMembersContextMenuStyle" TargetType="ContextMenu">
             <Setter Property="ItemContainerStyle" Value="{StaticResource MemberMenuItemStyle}"/>
-            <Setter Property="ItemsSource" Value="{Binding Members}"/>
+            <Setter Property="ItemsSource" Value="{Binding MenuItemViewModels}"/>
             <Setter Property="MaxHeight" Value="400"/>
             <Setter Property="StaysOpen" Value="True"/>
             <Setter Property="Background" Value="{DynamicResource VsBrush.CommandBarMenuBackgroundGradient}"/>
@@ -202,6 +201,12 @@
             <Setter Property="FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}" />
             <Setter Property="Template" Value="{StaticResource ContextMenuTemplate}"/>
             <EventSetter Event="Closed" Handler="ContextMenu_OnClose" />
+        </Style>
+
+        <!-- The key is referenced from the code behind -->
+        <Style x:Key="ToolTipStyle" TargetType="ToolTip">
+            <Setter Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolTipBrushKey }}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolTipBorderBrushKey }}"/>
         </Style>
     </Button.Resources>
 

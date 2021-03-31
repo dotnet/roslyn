@@ -10,6 +10,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 {
@@ -33,6 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         public InheritanceMargin(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
+            ClassificationTypeMap classificationTypeMap,
+            IClassificationFormatMap classificationFormatMap,
             IWaitIndicator waitIndicator,
             InheritanceMarginTag tag)
         {
@@ -41,18 +44,18 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             _workspace = tag.Workspace;
             _waitIndicator = waitIndicator;
             InitializeComponent();
+
+            var viewModel = InheritanceMarginViewModel.Create(classificationTypeMap, classificationFormatMap, tag);
+            DataContext = viewModel;
+            ContextMenu.DataContext = viewModel;
+            ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource("ToolTipStyle") };
+
             if (tag.MembersOnLine.Length == 1)
             {
-                var viewModel = new SingleMemberMarginViewModel(tag);
-                DataContext = viewModel;
-                ContextMenu.DataContext = viewModel;
                 ContextMenu.Style = (Style)FindResource(SingleMemberContextMenuStyle);
             }
             else
             {
-                var viewModel = new MultipleMembersMarginViewModel(tag);
-                DataContext = viewModel;
-                ContextMenu.DataContext = viewModel;
                 ContextMenu.Style = (Style)FindResource(MultipleMembersContextMenuStyle);
             }
         }
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
 
         private void TargetMenuItem_OnClick(object sender, RoutedEventArgs e)
         {
-            if (e.OriginalSource is MenuItem menuItem && menuItem.DataContext is TargetDisplayViewModel viewModel)
+            if (e.OriginalSource is MenuItem { DataContext: TargetDisplayViewModel viewModel })
             {
                 _waitIndicator.Wait(
                     title: EditorFeaturesResources.Navigating,

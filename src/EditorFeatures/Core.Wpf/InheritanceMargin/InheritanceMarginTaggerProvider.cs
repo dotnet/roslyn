@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
@@ -118,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 .GroupBy(item => item.LineNumber);
 
             var snapshot = spanToTag.SnapshotSpan.Snapshot;
+
             foreach (var (lineNumber, membersOnTheLine) in lineToMembers)
             {
                 var membersOnTheLineArray = membersOnTheLine.ToImmutableArray();
