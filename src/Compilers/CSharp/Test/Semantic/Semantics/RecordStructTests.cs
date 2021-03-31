@@ -6111,7 +6111,7 @@ interface I1 {}
             Assert.Equal(1, analyzer.FireCount7);
             Assert.Equal(0, analyzer.FireCountConstructorDeclaration);
             Assert.Equal(0, analyzer.FireCountStringParameterList);
-            Assert.Equal(0, analyzer.FireCountThisConstructorInitializer);
+            Assert.Equal(1, analyzer.FireCountThisConstructorInitializer);
             Assert.Equal(1, analyzer.FireCount11);
             Assert.Equal(1, analyzer.FireCount12);
             Assert.Equal(1, analyzer.FireCount1000);
@@ -6184,7 +6184,8 @@ interface I1 {}
                 context.RegisterSyntaxNodeAction(Handle1, SyntaxKind.NumericLiteralExpression);
                 context.RegisterSyntaxNodeAction(Handle2, SyntaxKind.EqualsValueClause);
                 context.RegisterSyntaxNodeAction(Fail, SyntaxKind.BaseConstructorInitializer);
-                context.RegisterSyntaxNodeAction(Fail, SyntaxKind.ConstructorDeclaration);
+                context.RegisterSyntaxNodeAction(Handle3, SyntaxKind.ThisConstructorInitializer);
+                context.RegisterSyntaxNodeAction(Handle4, SyntaxKind.ConstructorDeclaration);
                 context.RegisterSyntaxNodeAction(Fail, SyntaxKind.PrimaryConstructorBaseType);
                 context.RegisterSyntaxNodeAction(Handle6, SyntaxKind.RecordStructDeclaration);
                 context.RegisterSyntaxNodeAction(Handle7, SyntaxKind.IdentifierName);
@@ -6243,7 +6244,6 @@ interface I1 {}
         [Fact]
         public void AnalyzerActions_09()
         {
-            // PROTOTYPE(record-structs): ported
             var text1 = @"
 record A([Attr1(100)]int X = 0) : I1
 {}
