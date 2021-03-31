@@ -5910,10 +5910,7 @@ record C2 : C1;
                 comp.VerifyEmitDiagnostics(
                     // (4,35): error CS8652: The feature 'sealed ToString in record' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public sealed override string ToString() => throw null;
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(7, 35),
-                    // (9,8): error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9. Please use language version 'preview' or greater.
-                    // record C2 : C1;
-                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "C2").WithArguments("9.0", "preview").WithLocation(9, 8)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(7, 35)
                     );
             }
         }
@@ -15471,10 +15468,7 @@ record B(int X, int Y) : A
                     Diagnostic(ErrorCode.ERR_SealedAPIInRecord, "GetHashCode").WithArguments("A.GetHashCode()").WithLocation(4, 32),
                     // (7,8): error CS0239: 'B.GetHashCode()': cannot override inherited member 'A.GetHashCode()' because it is sealed
                     // record B(int X, int Y) : A
-                    Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8),
-                    // (7,8): error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9. Please use language version 'preview' or greater.
-                    // record B(int X, int Y) : A
-                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "B").WithArguments("9.0", "preview").WithLocation(7, 8)
+                    Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8)
                     );
             }
 

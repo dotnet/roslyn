@@ -3639,17 +3639,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     refCustomModifiers: ImmutableArray<CustomModifier>.Empty,
                     explicitInterfaceImplementations: ImmutableArray<MethodSymbol>.Empty);
 
-                bool isBaseToStringSealed = getBaseToStringMethod() is { IsSealed: true };
+                var baseToStringMethod = getBaseToStringMethod();
+                bool isBaseToStringSealed = baseToStringMethod is { IsSealed: true };
 
                 if (!this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord) && isBaseToStringSealed)
                 {
-                    var languageVersion = ((CSharpParseOptions)this.Locations[0].SourceTree!.Options).LanguageVersion;
-                    var requiredVersion = MessageID.IDS_FeatureSealedToStringInRecord.RequiredVersion();
-                    diagnostics.Add(
-                        ErrorCode.ERR_InheritingFromRecordWithSealedToString,
-                        this.Locations[0],
-                        languageVersion.ToDisplayString(),
-                        new CSharpRequiredLanguageVersion(requiredVersion));
+                    if (baseToStringMethod?.ContainingModule != this.ContainingModule)
+                    {
+                        var languageVersion = ((CSharpParseOptions)this.Locations[0].SourceTree!.Options).LanguageVersion;
+                        var requiredVersion = MessageID.IDS_FeatureSealedToStringInRecord.RequiredVersion();
+                        diagnostics.Add(
+                            ErrorCode.ERR_InheritingFromRecordWithSealedToString,
+                            this.Locations[0],
+                            languageVersion.ToDisplayString(),
+                            new CSharpRequiredLanguageVersion(requiredVersion));
+                    }
                 }
                 else
                 {
