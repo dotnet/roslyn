@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30905.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildValidator", "BuildValidator.csproj", "{F3EDD192-7E74-441D-B096-16C0FE2731E3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rebuild", "..\..\Compilers\Core\Rebuild\Rebuild.csproj", "{04CCBB7F-B1E3-4E76-A4A7-C648EBE77CBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild", "..\..\Compilers\Core\Rebuild\Microsoft.CodeAnalysis.Rebuild.csproj", "{04CCBB7F-B1E3-4E76-A4A7-C648EBE77CBB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild.UnitTests", "..\..\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj", "{48B87FA3-669F-48D2-A23A-50E43D875C61}"
 EndProject

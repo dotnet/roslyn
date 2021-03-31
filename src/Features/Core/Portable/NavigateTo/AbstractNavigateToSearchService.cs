@@ -41,8 +41,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         public async Task SearchDocumentAsync(
-            Document document, string searchPattern, IImmutableSet<string> kinds,
-            Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Document document,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            bool isFullyLoaded,
+            CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var onItemFound = GetOnItemFoundCallback(solution, onResultFound);
@@ -52,19 +56,25 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     solution,
-                    (service, solutionInfo, callbackId, cancellationToken) => service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                    (service, solutionInfo, callbackId, cancellationToken) =>
+                    service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, isFullyLoaded, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 
                 return;
             }
 
             await SearchDocumentInCurrentProcessAsync(
-                document, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+                document, searchPattern, kinds, onItemFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
         }
 
         public async Task SearchProjectAsync(
-            Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            bool isFullyLoaded,
+            CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             var onItemFound = GetOnItemFoundCallback(solution, onResultFound);
@@ -75,14 +85,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var callback = new NavigateToSearchServiceCallback(onItemFound);
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     solution,
-                    (service, solutionInfo, callbackId, cancellationToken) => service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                    (service, solutionInfo, callbackId, cancellationToken) =>
+                        service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, isFullyLoaded, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 
                 return;
             }
 
             await SearchProjectInCurrentProcessAsync(
-                project, priorityDocuments, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+                project, priorityDocuments, searchPattern, kinds, onItemFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
         }
     }
 }

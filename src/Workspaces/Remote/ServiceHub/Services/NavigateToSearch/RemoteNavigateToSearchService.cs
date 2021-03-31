@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Remote
             string searchPattern,
             ImmutableArray<string> kinds,
             RemoteServiceCallbackId callbackId,
+            bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var callback = GetCallback(callbackId, cancellationToken);
 
                 await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    document, searchPattern, kinds.ToImmutableHashSet(), callback, isFullyLoaded, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Remote
             string searchPattern,
             ImmutableArray<string> kinds,
             RemoteServiceCallbackId callbackId,
+            bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
                                                            .ToImmutableArray();
 
                 await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, isFullyLoaded, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
