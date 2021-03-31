@@ -3643,7 +3643,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord) && isBaseToStringSealed)
                 {
-                    diagnostics.Add(ErrorCode.ERR_InheritingFromRecordWithSealedToString, this.Locations[0]);
+                    var languageVersion = ((CSharpParseOptions)this.Locations[0].SourceTree!.Options).LanguageVersion;
+                    var requiredVersion = MessageID.IDS_FeatureSealedToStringInRecord.RequiredVersion();
+                    diagnostics.Add(
+                        ErrorCode.ERR_InheritingFromRecordWithSealedToString,
+                        this.Locations[0],
+                        languageVersion.ToDisplayString(),
+                        new CSharpRequiredLanguageVersion(requiredVersion));
                 }
                 else
                 {

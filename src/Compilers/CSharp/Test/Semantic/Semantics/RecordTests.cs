@@ -5913,7 +5913,7 @@ record C2 : C1;
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "ToString").WithArguments("sealed ToString in record").WithLocation(7, 35),
                     // (9,8): error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9. Please use language version 'preview' or greater.
                     // record C2 : C1;
-                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "C2").WithLocation(9, 8)
+                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "C2").WithArguments("9.0", "preview").WithLocation(9, 8)
                     );
             }
         }
@@ -7062,7 +7062,7 @@ public record B : A {
                 comp.VerifyEmitDiagnostics(
                     // (2,1): error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9. Please use language version 'preview' or greater.
                     // record B : A
-                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "B").WithLocation(2, 15)
+                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "B").WithArguments("9.0", "preview").WithLocation(2, 15)
                     );
             }
         }
@@ -15474,7 +15474,7 @@ record B(int X, int Y) : A
                     Diagnostic(ErrorCode.ERR_CantOverrideSealed, "B").WithArguments("B.GetHashCode()", "A.GetHashCode()").WithLocation(7, 8),
                     // (7,8): error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9. Please use language version 'preview' or greater.
                     // record B(int X, int Y) : A
-                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "B").WithLocation(7, 8)
+                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "B").WithArguments("9.0", "preview").WithLocation(7, 8)
                     );
             }
 

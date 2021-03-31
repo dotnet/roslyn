@@ -6604,6 +6604,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>sealed ToString in record</value>
   </data>
   <data name="ERR_InheritingFromRecordWithSealedToString" xml:space="preserve">
-    <value>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9. Please use language version 'preview' or greater.</value>
+    <value>Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.</value>
   </data>
 </root>
