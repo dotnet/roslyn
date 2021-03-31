@@ -487,7 +487,7 @@ public class Generator : ISourceGenerator
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
             public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
         }
-       
+
         [Generator]
         public class TestGenerator : ISourceGenerator
         {
