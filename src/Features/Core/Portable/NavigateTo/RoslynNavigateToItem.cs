@@ -6,9 +6,12 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -33,6 +36,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         [DataMember(Order = 3)]
         public readonly DeclaredSymbolInfo DeclaredSymbolInfo;
 
+        /// <summary>
+        /// Will be one of the values from <see cref="NavigateToItemKind"/>.
+        /// </summary>
         [DataMember(Order = 4)]
         public readonly string Kind;
 
@@ -65,25 +71,23 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             NameMatchSpans = nameMatchSpans;
         }
 
-        public bool TryCreateSearchResult(Solution solution, [NotNullWhen(true)] out INavigateToSearchResult? result)
+        public async Task<INavigateToSearchResult?> TryCreateSearchResultAsync(Solution solution, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(DocumentId);
-            if (document == null)
+            if (IsStale)
             {
-                var project = solution.GetProject(DocumentId.ProjectId);
-                if (project != null)
-                    document = project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(DocumentId);
-            }
-            Contract.ThrowIfTrue(document == null && !IsStale, "We should always be able to map back a non-stale result to the solution");
+                // may refer to a document that doesn't exist anymore.  Bail out gracefully in that case.
+                var document = solution.GetDocument(DocumentId);
+                if (document == null)
+                    return null;
 
-            if (document == null)
+                return new NavigateToSearchResult(this, document);
+            }
+            else
             {
-                result = null;
-                return false;
+                var document = await solution.GetRequiredDocumentAsync(
+                    DocumentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                return new NavigateToSearchResult(this, document);
             }
-
-            result = new NavigateToSearchResult(this, document);
-            return true;
         }
 
         private class NavigateToSearchResult : INavigateToSearchResult, INavigableItem

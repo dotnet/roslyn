@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public bool CanFilter => true;
 
-        private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(Solution solution, Func<INavigateToSearchResult, Task> onResultFound)
+        private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(
+            Solution solution, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
-            return item =>
+            return async item =>
             {
-                if (item.TryCreateSearchResult(solution, out var result))
-                    return onResultFound(result);
-
-                return Task.CompletedTask;
+                var result = await item.TryCreateSearchResultAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (result != null)
+                    await onResultFound(result).ConfigureAwait(false);
             };
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
-            var onItemFound = GetOnItemFoundCallback(solution, onResultFound);
+            var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var onItemFound = GetOnItemFoundCallback(solution, onResultFound);
+            var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
