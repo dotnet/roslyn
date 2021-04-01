@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 workspaceRegistrationService,
                 _listenerProvider,
                 logger,
-                diagnosticService: null,
                 clientName: null,
                 userVisibleServerName: UserVisibleName,
                 telemetryServerTypeName: this.GetType().Name);
