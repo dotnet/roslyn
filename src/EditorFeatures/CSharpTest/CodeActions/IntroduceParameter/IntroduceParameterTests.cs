@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.IntroducePa
             Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionWithNoMethodCallsCase()
+        public async Task TestExpressionWithNoMethodCallsCase()
         {
             var code =
 @"using System;
@@ -53,7 +53,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithLocal()
+        public async Task TestExpressionCaseWithLocal()
         {
             var code =
 @"using System;
@@ -70,7 +70,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithSingleMethodCall()
+        public async Task TestExpressionCaseWithSingleMethodCall()
         {
             var code =
 @"using System;
@@ -141,7 +141,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithSingleMethodCallInLocalFunction()
+        public async Task TestExpressionCaseWithSingleMethodCallInLocalFunction()
         {
             var code =
 @"using System;
@@ -178,7 +178,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithSingleMethodCallInStaticLocalFunction()
+        public async Task TestExpressionCaseWithSingleMethodCallInStaticLocalFunction()
         {
             var code =
 @"using System;
@@ -236,7 +236,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithMultipleMethodCall()
+        public async Task TestExpressionCaseWithMultipleMethodCall()
         {
             var code =
 @"using System;
@@ -273,7 +273,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionAllOccurrences()
+        public async Task TestExpressionAllOccurrences()
         {
             var code =
 @"using System;
@@ -310,7 +310,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionWithNoMethodCallTrampoline()
+        public async Task TestxpressionWithNoMethodCallTrampoline()
         {
             var code =
 @"using System;
@@ -340,7 +340,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionWithSingleMethodCallTrampoline()
+        public async Task TestExpressionWithSingleMethodCallTrampoline()
         {
             var code =
 @"using System;
@@ -380,7 +380,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionWithSingleMethodCallTrampolineAllOccurrences()
+        public async Task TestExpressionWithSingleMethodCallTrampolineAllOccurrences()
         {
             var code =
 @"using System;
@@ -421,7 +421,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionWithNoMethodCallOverload()
+        public async Task TestExpressionWithNoMethodCallOverload()
         {
             var code =
 @"using System;
@@ -451,7 +451,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionWithSingleMethodCallOverload()
+        public async Task TestExpressionWithSingleMethodCallOverload()
         {
             var code =
 @"using System;
@@ -556,7 +556,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithRecursiveCall()
+        public async Task TestExpressionCaseWithRecursiveCall()
         {
             var code =
 @"using System;
@@ -582,7 +582,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithNestedRecursiveCall()
+        public async Task TestExpressionCaseWithNestedRecursiveCall()
         {
             var code =
 @"using System;
@@ -608,7 +608,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithParamsArg()
+        public async Task TestExpressionCaseWithParamsArg()
         {
             var code =
 @"using System;
@@ -629,7 +629,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithOptionalParameters()
+        public async Task TestExpressionCaseWithOptionalParameters()
         {
             var code =
 @"using System;
@@ -665,7 +665,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithOptionalParametersUsed()
+        public async Task TestExpressionCaseWithOptionalParametersUsed()
         {
             var code =
 @"using System;
@@ -701,7 +701,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithOptionalParametersUsedOverload()
+        public async Task TestExpressionCaseWithOptionalParametersUsedOverload()
         {
             var code =
 @"using System;
@@ -742,7 +742,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithOptionalParametersUsedTrampoline()
+        public async Task TestExpressionCaseWithOptionalParametersUsedTrampoline()
         {
             var code =
 @"using System;
@@ -783,7 +783,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithOptionalParametersUnusedTrampoline()
+        public async Task TestExpressionCaseWithOptionalParametersUnusedTrampoline()
         {
             var code =
 @"using System;
@@ -824,7 +824,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithCancellationToken()
+        public async Task TestExpressionCaseWithCancellationToken()
         {
             var code =
 @"using System;
@@ -862,7 +862,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithRecursiveCallTrampoline()
+        public async Task TestExpressionCaseWithRecursiveCallTrampoline()
         {
             var code =
 @"using System;
@@ -893,7 +893,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseWithNestedRecursiveCallTrampoline()
+        public async Task TestExpressionCaseWithNestedRecursiveCallTrampoline()
         {
             var code =
 @"using System;
@@ -924,7 +924,7 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-        public async Task TestSimpleExpressionCaseInConstructor()
+        public async Task TestExpressionCaseInConstructor()
         {
             var code =
 @"using System;
