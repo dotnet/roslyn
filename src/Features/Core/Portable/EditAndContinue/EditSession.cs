@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
                 return CreateActiveStatementsMap(await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false));
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return new ActiveStatementsMap(
                     SpecializedCollections.EmptyReadOnlyDictionary<DocumentId, ImmutableArray<ActiveStatement>>(),
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return result;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return ImmutableArray<ActiveStatementExceptionRegions>.Empty;
             }
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return false;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     addedSymbols,
                     activeStatementsInChangedDocuments.ToImmutable());
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -974,7 +974,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     diagnostics.ToImmutable(),
                     documentsWithRudeEdits.ToImmutable());
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

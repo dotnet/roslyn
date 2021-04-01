@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                             return;
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var syntaxTree = await document.GetSyntaxTreeAsync();
+                        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                         var documentToken = nodeRoot.FindToken(caretPosition);
 
@@ -107,11 +107,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                         // the parents should bring us to the class definition
                         var parentTypeNode = documentToken.Parent?.Parent?.Parent?.Parent;
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-                        var compilation = await document.Project.GetCompilationAsync();
+                        var compilation = await document.Project.GetCompilationAsync(cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                         // let's finally get our implementing type
-                        var namedTypeSymbol = compilation.GetSemanticModel(syntaxTree).GetDeclaredSymbol(parentTypeNode) as INamedTypeSymbol;
+                        var namedTypeSymbol = compilation.GetSemanticModel(syntaxTree).GetDeclaredSymbol(parentTypeNode, cancellationToken: cancellationToken) as INamedTypeSymbol;
                         // unless something went wrong, and we got an empty symbol,
                         if (namedTypeSymbol == null)
                             return;
