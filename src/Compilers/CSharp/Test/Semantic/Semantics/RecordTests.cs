@@ -5936,6 +5936,80 @@ record C3 : C2;
         }
 
         [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseTriesToOverride()
+        {
+            var src = @"
+var c = new C3();
+System.Console.Write(c.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1
+{
+    public override string ToString() => ""C2"";
+}
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                    // (11,28): error CS0239: 'C2.ToString()': cannot override inherited member 'C1.ToString()' because it is sealed
+                    //     public override string ToString() => "C2";
+                    Diagnostic(ErrorCode.ERR_CantOverrideSealed, "ToString").WithArguments("C2.ToString()", "C1.ToString()").WithLocation(11, 28)
+                    );
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseShadowsToStringPrivate()
+        {
+            var src = @"
+var c = new C3();
+System.Console.Write(c.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1
+{
+    private new string ToString() => ""C2"";
+}
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1");
+        }
+
+        [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseShadowsToStringNonSealed()
+        {
+            var src = @"
+C3 c3 = new C3();
+System.Console.Write(c3.ToString());
+C1 c1 = c3;
+System.Console.Write(c1.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1
+{
+    public new virtual string ToString() => ""C2"";
+}
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C2C1");
+        }
+
+        [Fact]
         public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseHasToStringWithDifferentSignature()
         {
             var src = @"
