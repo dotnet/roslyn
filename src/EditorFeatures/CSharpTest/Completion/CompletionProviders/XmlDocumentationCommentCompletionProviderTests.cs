@@ -697,6 +697,7 @@ class C
         }
 
         [WorkItem(11489, "https://github.com/dotnet/roslyn/issues/11490")]
+        [WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SeeAttributeNames()
         {
@@ -709,7 +710,7 @@ class C
     static void Goo()
     {
     }
-}", "cref", "langword");
+}", "cref", "langword", "href");
         }
 
         [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
