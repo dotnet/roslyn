@@ -701,6 +701,129 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithOptionalParametersUsedOverload()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y = 5)
+    {
+        int m = [|x * y|];
+        return m;
+    }
+
+    void M1()
+    {
+        M(7);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    private int M(int x, int y = 5)
+    {
+        return M(x, x * y, y);
+    }
+
+    int M(int x, int m, int y = 5)
+    {
+        return m;
+    }
+
+    void M1()
+    {
+        M(7);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithOptionalParametersUsedTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y = 5)
+    {
+        int m = [|x * y|];
+        return m;
+    }
+
+    void M1()
+    {
+        M(7);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    private int M_m(int x, int y = 5)
+    {
+        return x * y;
+    }
+
+    int M(int x, int m, int y = 5)
+    {
+        return m;
+    }
+
+    void M1()
+    {
+        M(7, M_m(7));
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestSimpleExpressionCaseWithOptionalParametersUnusedTrampoline()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    int M(int x, int y = 5)
+    {
+        int m = [|x * y|];
+        return m;
+    }
+
+    void M1()
+    {
+        M(7, 2);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    private int M_m(int x, int y = 5)
+    {
+        return x * y;
+    }
+
+    int M(int x, int m, int y = 5)
+    {
+        return m;
+    }
+
+    void M1()
+    {
+        M(7, M_m(7, 2), 2);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
         public async Task TestSimpleExpressionCaseWithCancellationToken()
         {
             var code =
@@ -835,13 +958,7 @@ class TestClass
     Func<int, int, int> mult = (x, y) => [|x * y|];
 }";
 
-            var expected =
-@"using System;
-class TestClass
-{
-    Func<int, int, int> mult = (x, y, int v) => v;
-}";
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -854,14 +971,7 @@ class TestClass
     Func<int, int, int> mult = (x, y) => [|x * y|];
 }";
 
-            var expected =
-@"using System;
-class TestClass
-{
-    Func<int, int, int>
-    Func<int, int, int> mult = (x, y, int v) => v;
-}";
-            await TestInRegularAndScriptAsync(code, expected, index: 1, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
@@ -874,13 +984,7 @@ class TestClass
     Func<int, int, int> mult = (x, y) => [|x * y|];
 }";
 
-            var expected =
-@"using System;
-class TestClass
-{
-    Func<int, int, int> mult = (x, y, int v) => v;
-}";
-            await TestInRegularAndScriptAsync(code, expected, index: 2, options: new OptionsCollection(GetLanguage()), parseOptions: CSharpParseOptions.Default);
+            await TestMissingInRegularAndScriptAsync(code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]

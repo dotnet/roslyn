@@ -75,8 +75,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return;
             }
 
+            var test = semanticModel.GetEnclosingSymbol(expression.SpanStart, cancellationToken);
             var containingSymbol = semanticModel.GetDeclaredSymbol(containingMethod, cancellationToken);
-            if (containingSymbol is not IMethodSymbol methodSymbol)
+            if (containingSymbol is not IMethodSymbol methodSymbol || test is not IMethodSymbol symbol)
             {
                 return;
             }
@@ -219,14 +220,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// </summary>
         private static SeparatedSyntaxList<SyntaxNode> AddArgumentToArgumentList(
             SeparatedSyntaxList<SyntaxNode> invocationArguments, SyntaxGenerator generator,
-            SyntaxNode newArgumentExpression, int insertionIndex, string name, bool named)
+            SyntaxNode newArgumentExpression, int insertionIndex)
         {
-            var argument = named
-                ? generator.Argument(name, RefKind.None,
-                    newArgumentExpression)
-                :
-                generator.Argument(newArgumentExpression);
-
+            var argument = generator.Argument(newArgumentExpression);
             return invocationArguments.Insert(insertionIndex, argument.WithAdditionalAnnotations(Simplifier.Annotation));
         }
 
@@ -386,7 +382,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
                 if (overload)
                 {
-                    var newMethodNode = await GenerateNewMethodOverloadAsync(originalDocument, expression, methodSymbol,
+                    var newMethodNode = await GenerateNewMethodOverloadAsync(originalDocument, expression, methodSymbol, insertionIndex,
                         generator, cancellationToken).ConfigureAwait(false);
                     editor.InsertBefore(containingMethod, newMethodNode);
                 }
@@ -513,12 +509,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         ///     int f = x * y;
         /// }
         /// </summary>
-        private static async Task<SyntaxNode> GenerateNewMethodOverloadAsync(Document document, TExpressionSyntax expression, IMethodSymbol methodSymbol, SyntaxGenerator generator, CancellationToken cancellationToken)
+        private static async Task<SyntaxNode> GenerateNewMethodOverloadAsync(Document document, TExpressionSyntax expression,
+            IMethodSymbol methodSymbol, int insertionIndex, SyntaxGenerator generator, CancellationToken cancellationToken)
         {
+            var named = methodSymbol.Parameters.Where(parameter => parameter.HasExplicitDefaultValue).Any();
             var arguments = generator.CreateArguments(methodSymbol.Parameters);
 
-            // Remove trailing trivia because it adds spaces to the beginning of the following statement.
-            arguments = arguments.Add(generator.Argument(expression.WithoutTrailingTrivia()));
+            // Remove trivia so the expression is in a single line and does not affect the spacing of the following line
+            arguments = arguments.Insert(insertionIndex, generator.Argument(expression.WithoutTrivia()));
             var memberName = methodSymbol.IsGenericMethod
                 ? generator.GenericName(methodSymbol.Name, methodSymbol.TypeArguments)
                 : generator.IdentifierName(methodSymbol.Name);
@@ -589,14 +587,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 editor.ReplaceNode(invocationExpression, (currentInvocation, _) =>
                 {
                     var updatedInvocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvocation);
-                    var parameterIsNamed = false;
 
                     var updatedExpression = CreateNewArgumentExpression(expressionEditor,
                         syntaxFacts, mappingDictionary, variablesInExpression, parameterToArgumentMap, updatedInvocationArguments);
 
                     var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
                     var allArguments = AddArgumentToArgumentList(updatedInvocationArguments, generator,
-                        updatedExpression.WithAdditionalAnnotations(Formatter.Annotation), insertionIndex, parameterName, parameterIsNamed);
+                        updatedExpression.WithAdditionalAnnotations(Formatter.Annotation), insertionIndex);
                     var newInvo = editor.Generator.InvocationExpression(expressionFromInvocation, allArguments);
                     return newInvo;
                 });
@@ -754,18 +751,18 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 actionsBuilder.Add(CreateNewCodeAction(FeaturesResources.and_update_callsites_directly, allOccurrences: false, trampoline: false, overload: false));
                 actionsBuilderAllOccurrences.Add(CreateNewCodeAction(FeaturesResources.and_update_callsites_directly, allOccurrences: true, trampoline: false, overload: false));
 
-                if (!hasOptionalParameter && methodSymbol.MethodKind is not MethodKind.Constructor)
-                {
-                    actionsBuilder.Add(CreateNewCodeAction(
-                        FeaturesResources.into_extracted_method_to_invoke_at_callsites, allOccurrences: false, trampoline: true, overload: false));
-                    actionsBuilderAllOccurrences.Add(CreateNewCodeAction(
-                        FeaturesResources.into_extracted_method_to_invoke_at_callsites, allOccurrences: true, trampoline: true, overload: false));
+                /*if (!hasOptionalParameter && methodSymbol.MethodKind is not MethodKind.Constructor)
+                {*/
+                actionsBuilder.Add(CreateNewCodeAction(
+                    FeaturesResources.into_extracted_method_to_invoke_at_callsites, allOccurrences: false, trampoline: true, overload: false));
+                actionsBuilderAllOccurrences.Add(CreateNewCodeAction(
+                    FeaturesResources.into_extracted_method_to_invoke_at_callsites, allOccurrences: true, trampoline: true, overload: false));
 
-                    actionsBuilder.Add(CreateNewCodeAction(
-                        CreateDisplayText(expression, syntaxFacts, FeaturesResources.into_new_overload_of_0), allOccurrences: false, trampoline: false, overload: true));
-                    actionsBuilderAllOccurrences.Add(CreateNewCodeAction(
-                        CreateDisplayText(expression, syntaxFacts, FeaturesResources.into_new_overload_of_0), allOccurrences: true, trampoline: false, overload: true));
-                }
+                actionsBuilder.Add(CreateNewCodeAction(
+                    CreateDisplayText(expression, syntaxFacts, FeaturesResources.into_new_overload_of_0), allOccurrences: false, trampoline: false, overload: true));
+                actionsBuilderAllOccurrences.Add(CreateNewCodeAction(
+                    CreateDisplayText(expression, syntaxFacts, FeaturesResources.into_new_overload_of_0), allOccurrences: true, trampoline: false, overload: true));
+                //}
             }
 
             return (actionsBuilder.ToImmutable(), actionsBuilderAllOccurrences.ToImmutable());
