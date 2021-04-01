@@ -261,6 +261,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.WaitForController()
 
             ' Move the caret outside the span
+            controller.TryHandleLeftOrRightKey()
             caretPosition = 6
             Mock.Get(GetMocks(controller).View.Object.Caret).Raise(Sub(c) AddHandler c.PositionChanged, Nothing, New CaretPositionChangedEventArgs(Nothing, Nothing, Nothing))
             controller.WaitForController()
