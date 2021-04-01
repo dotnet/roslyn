@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Metadata.Tools;
+using Roslyn.Utilities;
 
 namespace BuildValidator
 {
@@ -40,8 +41,7 @@ namespace BuildValidator
         public record BuildInfo(
             byte[] AssemblyBytes,
             PEReader AssemblyReader,
-            // TODO: we need to include this pdb reader even if not for an embedded PDB.
-            MetadataReader? PdbMetadataReader)
+            MetadataReader PdbMetadataReader)
         {
             public MetadataReader AssemblyMetadataReader { get; } = AssemblyReader.GetMetadataReader();
         }
@@ -55,7 +55,9 @@ namespace BuildValidator
 
         private readonly ImmutableArray<Diagnostic> _diagnostics;
         private readonly byte[]? _originalPortableExecutableBytes;
+        private readonly MetadataReader? _originalPdbReader;
         private readonly byte[]? _rebuildPortableExecutableBytes;
+        private readonly MetadataReader? _rebuildPdbReader;
         private readonly Compilation? _rebuildCompilation;
         private readonly ImmutableArray<MetadataReferenceInfo> _references;
         private readonly LocalReferenceResolver? _localReferenceResolver;
@@ -90,7 +92,9 @@ namespace BuildValidator
             RebuildResult outcome,
             ImmutableArray<Diagnostic> diagnostics = default,
             byte[]? originalPortableExecutableBytes = null,
+            MetadataReader? originalPdbReader = null,
             byte[]? rebuildPortableExecutableBytes = null,
+            MetadataReader? rebuildPdbReader = null,
             Compilation? rebuildCompilation = null,
             LocalReferenceResolver? localReferenceResolver = null,
             ImmutableArray<MetadataReferenceInfo> references = default,
@@ -100,7 +104,9 @@ namespace BuildValidator
             Result = outcome;
             _diagnostics = diagnostics;
             _originalPortableExecutableBytes = originalPortableExecutableBytes;
+            _originalPdbReader = originalPdbReader;
             _rebuildPortableExecutableBytes = rebuildPortableExecutableBytes;
+            _rebuildPdbReader = rebuildPdbReader;
             _rebuildCompilation = rebuildCompilation;
             _references = references;
             _localReferenceResolver = localReferenceResolver;
@@ -133,9 +139,12 @@ namespace BuildValidator
             ILogger logger)
         {
             using var rebuildPeStream = new MemoryStream();
+            var hasEmbeddedPdb = compilationFactory.OptionsReader.HasEmbeddedPdb;
+            var rebuildPdbStream = hasEmbeddedPdb ? null : new MemoryStream();
             var rebuildCompilation = compilationFactory.CreateCompilation(syntaxTrees, metadataReferences);
             var emitResult = compilationFactory.Emit(
                 rebuildPeStream,
+                rebuildPdbStream,
                 rebuildCompilation,
                 CancellationToken.None);
 
@@ -155,6 +164,7 @@ namespace BuildValidator
             else
             {
                 var originalBytes = File.ReadAllBytes(assemblyInfo.FilePath);
+                var originalPdbReader = compilationFactory.OptionsReader.PdbReader;
                 var rebuildBytes = rebuildPeStream.ToArray();
                 if (originalBytes.SequenceEqual(rebuildBytes))
                 {
@@ -166,8 +176,28 @@ namespace BuildValidator
                         assemblyInfo,
                         RebuildResult.BinaryDifference,
                         originalPortableExecutableBytes: originalBytes,
+                        originalPdbReader: compilationFactory.OptionsReader.PdbReader,
                         rebuildPortableExecutableBytes: rebuildBytes,
+                        rebuildPdbReader: getRebuildPdbReader(),
                         rebuildCompilation: rebuildCompilation);
+                }
+
+                unsafe MetadataReader getRebuildPdbReader()
+                {
+                    if (hasEmbeddedPdb)
+                    {
+                        fixed (byte* rebuildPtr = rebuildBytes)
+                        {
+                            var peReader = new PEReader(rebuildPtr, rebuildBytes.Length);
+                            return peReader.GetEmbeddedPdbMetadataReader() ?? throw ExceptionUtilities.Unreachable;
+                        }
+                    }
+                    else
+                    {
+                        // TODO: it appears that readers created from this stream have non-deterministic issues.
+                        // For example, "read out of bounds" exceptions, "method is not supported" exceptions in DiaSymReader, etc.
+                        return MetadataReaderProvider.FromPortablePdbImage(rebuildPdbStream!.ToImmutable()).GetMetadataReader();
+                    }
                 }
             }
         }
@@ -240,7 +270,9 @@ namespace BuildValidator
             {
                 Debug.Assert(Result == RebuildResult.BinaryDifference);
                 Debug.Assert(_originalPortableExecutableBytes is object);
+                Debug.Assert(_originalPdbReader is object);
                 Debug.Assert(_rebuildPortableExecutableBytes is object);
+                Debug.Assert(_rebuildPdbReader is object);
                 Debug.Assert(_rebuildCompilation is object);
 
                 fixed (byte* originalPtr = _originalPortableExecutableBytes)
@@ -251,12 +283,12 @@ namespace BuildValidator
                     var originalInfo = new BuildInfo(
                         AssemblyBytes: _originalPortableExecutableBytes,
                         AssemblyReader: originalPeReader,
-                        PdbMetadataReader: originalPeReader.GetEmbeddedPdbMetadataReader());
+                        PdbMetadataReader: _originalPdbReader);
 
                     var rebuildInfo = new BuildInfo(
                         AssemblyBytes: _rebuildPortableExecutableBytes,
                         AssemblyReader: rebuildPeReader,
-                        PdbMetadataReader: rebuildPeReader.GetEmbeddedPdbMetadataReader());
+                        PdbMetadataReader: _rebuildPdbReader);
 
                     createDiffArtifacts(debugPath, AssemblyInfo.FileName, originalInfo, rebuildInfo, _rebuildCompilation);
                     SearchForKnownIssues(logger, originalInfo, rebuildInfo);
@@ -314,31 +346,29 @@ namespace BuildValidator
                 // This is deliberately named .extracted.pdb instead of .pdb. A number of tools will look
                 // for a PDB with the name assemblyName.pdb. Want to make explicitly sure that does not 
                 // happen and such tools always correctly fall back to the embedded PDB. 
-                if (buildInfo.PdbMetadataReader is { } pdbReader)
-                {
-                    var pdbFilePath = Path.Combine(outputPath, assemblyName + ".extracted.pdb");
-                    writeAllBytes(pdbFilePath, new Span<byte>(pdbReader.MetadataPointer, pdbReader.MetadataLength));
-                    createMetadataVisualization(buildDataFiles.PdbMdvFilePath, pdbReader);
-                    createDataFile(buildDataFiles.CustomDataFilePath, buildInfo.AssemblyReader, pdbReader);
-
-                    var pdbToXmlOptions = PdbToXmlOptions.ResolveTokens
-                        | PdbToXmlOptions.ThrowOnError
-                        | PdbToXmlOptions.ExcludeScopes
-                        | PdbToXmlOptions.IncludeSourceServerInformation
-                        | PdbToXmlOptions.IncludeEmbeddedSources
-                        | PdbToXmlOptions.IncludeTokens
-                        | PdbToXmlOptions.IncludeMethodSpans;
-
-                    using var pdbXmlStream = File.Create(buildDataFiles.PdbXmlFilePath);
-                    PdbToXmlConverter.ToXml(
-                        new StreamWriter(pdbXmlStream),
-                        pdbStream: new UnmanagedMemoryStream(pdbReader.MetadataPointer, pdbReader.MetadataLength),
-                        peStream: new MemoryStream(buildInfo.AssemblyBytes),
-                        options: pdbToXmlOptions,
-                        methodName: null);
-                }
+                var pdbFilePath = Path.Combine(outputPath, assemblyName + ".extracted.pdb");
+                writeAllBytes(pdbFilePath, new Span<byte>(buildInfo.PdbMetadataReader.MetadataPointer, buildInfo.PdbMetadataReader.MetadataLength));
 
                 createMetadataVisualization(buildDataFiles.AssemblyMdvFilePath, buildInfo.AssemblyMetadataReader);
+                createMetadataVisualization(buildDataFiles.PdbMdvFilePath, buildInfo.PdbMetadataReader);
+                createDataFile(buildDataFiles.CustomDataFilePath, buildInfo.AssemblyReader, buildInfo.PdbMetadataReader);
+
+                var pdbToXmlOptions = PdbToXmlOptions.ResolveTokens
+                    | PdbToXmlOptions.ThrowOnError
+                    | PdbToXmlOptions.ExcludeScopes
+                    | PdbToXmlOptions.IncludeSourceServerInformation
+                    | PdbToXmlOptions.IncludeEmbeddedSources
+                    | PdbToXmlOptions.IncludeTokens
+                    | PdbToXmlOptions.IncludeMethodSpans;
+
+                using var pdbXmlStream = File.Create(buildDataFiles.PdbXmlFilePath);
+                PdbToXmlConverter.ToXml(
+                    new StreamWriter(pdbXmlStream),
+                    pdbStream: new UnmanagedMemoryStream(buildInfo.PdbMetadataReader.MetadataPointer, buildInfo.PdbMetadataReader.MetadataLength),
+                    peStream: new MemoryStream(buildInfo.AssemblyBytes),
+                    options: pdbToXmlOptions,
+                    methodName: null);
+
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = IldasmUtilities.IldasmPath,
@@ -409,18 +439,21 @@ namespace BuildValidator
 
             bool hasPdbCompressionDifferences()
             {
-                if (originalInfo.PdbMetadataReader is null && rebuildInfo.PdbMetadataReader is null)
+                var originalEntry = originalInfo.AssemblyReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                var rebuildEntry = rebuildInfo.AssemblyReader.ReadDebugDirectory().SingleOrDefault(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
+                if (originalEntry.Type == DebugDirectoryEntryType.Unknown && rebuildEntry.Type == DebugDirectoryEntryType.Unknown)
                 {
                     return false;
                 }
 
-                if (originalInfo.PdbMetadataReader is null || rebuildInfo.PdbMetadataReader is null)
+                var originalMissingEmbeddedPdb = originalEntry.Type == DebugDirectoryEntryType.Unknown;
+                if (originalMissingEmbeddedPdb || rebuildEntry.Type == DebugDirectoryEntryType.Unknown)
                 {
+                    var (hasEmbedded, doesntHaveEmbedded) = originalMissingEmbeddedPdb ? ("rebuild", "original") : ("original", "rebuild");
+                    logger.LogError($"Known issue: {hasEmbedded} has an embedded PDB but {doesntHaveEmbedded} does not have an embedded PDB");
                     return true;
                 }
 
-                var originalEntry = originalInfo.AssemblyReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
-                var rebuildEntry = rebuildInfo.AssemblyReader.ReadDebugDirectory().Single(x => x.Type == DebugDirectoryEntryType.EmbeddedPortablePdb);
                 if (originalEntry.DataSize != rebuildEntry.DataSize)
                 {
                     var originalPdbSpan = new Span<byte>(originalInfo.PdbMetadataReader.MetadataPointer, originalInfo.PdbMetadataReader.MetadataLength);

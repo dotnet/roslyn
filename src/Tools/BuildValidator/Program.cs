@@ -383,7 +383,8 @@ namespace BuildValidator
             var sourceLinkUTF8 = compilationOptionsReader.GetSourceLinkUTF8();
             if (sourceLinkUTF8 is null)
             {
-                return default;
+                logger.LogInformation("No source link cdi found in pdb");
+                return ImmutableArray<SourceLink>.Empty;
             }
 
             var parseResult = JsonConvert.DeserializeAnonymousType(Encoding.UTF8.GetString(sourceLinkUTF8), new { documents = (Dictionary<string, string>?)null });
@@ -391,7 +392,7 @@ namespace BuildValidator
 
             if (sourceLinks.IsDefault)
             {
-                logger.LogInformation("No source links found in pdb");
+                logger.LogInformation("Empty source link cdi found in pdb");
                 sourceLinks = ImmutableArray<SourceLink>.Empty;
             }
             else

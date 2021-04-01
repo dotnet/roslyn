@@ -46,16 +46,19 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
         public EmitResult Emit(
             Stream rebuildPeStream,
+            Stream? rebuildPdbStream,
             ImmutableArray<SyntaxTree> syntaxTrees,
             ImmutableArray<MetadataReference> metadataReferences,
             CancellationToken cancellationToken)
             => Emit(
                 rebuildPeStream,
+                rebuildPdbStream,
                 CreateCompilation(syntaxTrees, metadataReferences),
                 cancellationToken);
 
         public EmitResult Emit(
             Stream rebuildPeStream,
+            Stream? rebuildPdbStream,
             Compilation rebuildCompilation,
             CancellationToken cancellationToken)
         {
@@ -67,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
             return Emit(
                 rebuildPeStream,
+                rebuildPdbStream,
                 rebuildCompilation,
                 embeddedTexts,
                 cancellationToken);
@@ -74,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
         public unsafe EmitResult Emit(
             Stream rebuildPeStream,
+            Stream? rebuildPdbStream,
             Compilation rebuildCompilation,
             ImmutableArray<EmbeddedText> embeddedTexts,
             CancellationToken cancellationToken)
@@ -88,31 +93,37 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
             var debugEntryPoint = getDebugEntryPoint();
             var debugDirectory = OptionsReader.PeReader.ReadDebugDirectory();
-            string? pdbFilePath = null;
-            Stream? pdbStream = null;
-            if (!debugDirectory.Any(entry => entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb))
+            var hasEmbeddedPdb = OptionsReader.HasEmbeddedPdb;
+            if (hasEmbeddedPdb && rebuildPdbStream is object)
             {
-                var codeViewEntry = debugDirectory.SingleOrDefault(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+                throw new ArgumentException("PDB stream must be null because the compilation has an embedded PDB", nameof(rebuildPdbStream));
+            }
+
+            string? pdbFilePath = null;
+            if (!hasEmbeddedPdb)
+            {
+                if (rebuildPdbStream is null)
+                {
+                    throw new ArgumentException("A non-null PDB stream must be provided because the compilation does not have an embedded PDB", nameof(rebuildPdbStream));
+                }
+
+                var codeViewEntry = debugDirectory.Single(entry => entry.Type == DebugDirectoryEntryType.CodeView);
                 if (codeViewEntry.Type == DebugDirectoryEntryType.CodeView)
                 {
                     var codeView = OptionsReader.PeReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
                     pdbFilePath = codeView.Path;
-
-                    // TODO: thread the resulting PDB through the rebuild library
-                    // and make available via e.g. CompilationDiff
-                    pdbStream = new MemoryStream();
                 }
             }
 
             var emitResult = rebuildCompilation.Emit(
                 peStream: rebuildPeStream,
-                pdbStream: pdbStream,
+                pdbStream: rebuildPdbStream,
                 xmlDocumentationStream: null,
                 win32Resources: win32ResourceStream,
                 useRawWin32Resources: true,
                 manifestResources: OptionsReader.GetManifestResources(),
                 options: new EmitOptions(
-                    debugInformationFormat: pdbFilePath is null
+                    debugInformationFormat: hasEmbeddedPdb
                         ? DebugInformationFormat.Embedded
                         : DebugInformationFormat.PortablePdb,
                     pdbFilePath: pdbFilePath,

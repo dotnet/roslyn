@@ -34,21 +34,22 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             ImmutableArray<MetadataReference> metadataReferences,
             CancellationToken cancellationToken = default)
         {
-            // https://github.com/dotnet/roslyn/issues/51890
-            // Will be null until we add support for non-embedded PDBs. When this assert fires 
-            // the below logic needs to be updated to support non-embedded PDBs. Should be straight
-            // forward
-            Assert.Null(pdbStream);
+            // TODO: introduce CommonCompiler-based test which exercises this code path.
+            using var peReader = new PEReader(peStream);
+            var embeddedPdbReader = peReader.GetEmbeddedPdbMetadataReader();
+            var nonEmbeddedPdbReader = pdbStream is not null ? MetadataReaderProvider.FromPortablePdbStream(pdbStream).GetMetadataReader() : null;
+            Assert.True(embeddedPdbReader == null ^ nonEmbeddedPdbReader == null);
+
+            var pdbReader = embeddedPdbReader ?? nonEmbeddedPdbReader ?? throw ExceptionUtilities.Unreachable;
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("RoundTripVerification");
-
-            using var peReader = new PEReader(peStream);
-            var optionsReader = new CompilationOptionsReader(logger, peReader.GetEmbeddedPdbMetadataReader(), peReader);
+            var optionsReader = new CompilationOptionsReader(logger, pdbReader, peReader);
             var compilationFactory = CompilationFactory.Create(
                 assemblyFileName,
                 optionsReader);
             using var rebuildPeStream = new MemoryStream();
-            var emitResult = compilationFactory.Emit(rebuildPeStream, syntaxTrees, metadataReferences, cancellationToken);
+            using var rebuildPdbStream = optionsReader.HasEmbeddedPdb ? null : new MemoryStream();
+            var emitResult = compilationFactory.Emit(rebuildPeStream, rebuildPdbStream, syntaxTrees, metadataReferences, cancellationToken);
             Assert.True(emitResult.Success);
 
             Assert.True(peStream.ToArray().SequenceEqual(rebuildPeStream.ToArray()));
@@ -88,8 +89,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             VerifyCompilationOptions(original.Options, rebuild.Options);
 
             using var rebuildStream = new MemoryStream();
+            using var rebuildPdbStream = optionsReader.HasEmbeddedPdb ? null : new MemoryStream();
             var result = compilationFactory.Emit(
                 rebuildStream,
+                rebuildPdbStream,
                 rebuild,
                 embeddedTexts: ImmutableArray<EmbeddedText>.Empty,
                 CancellationToken.None);
@@ -99,6 +102,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var rebuildBytes = rebuildStream.ToImmutable();
             var rebuildReader = new PEReader(rebuildBytes);
 
+            // https://github.com/dotnet/roslyn/issues/52327
+            // This should be replaced with a CompilationDiff-based helper in MS.CA.RB which writes diffs
+            // out to the test output, not necessarily entire visualizations.
             AssertImagesEqual(originalBytes, originalReader, rebuildBytes, rebuildReader);
 
             (ImmutableArray<byte> originalBytes, PEReader originalReader, MetadataReader originalPdbReader) emitOriginal()
