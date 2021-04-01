@@ -927,12 +927,15 @@ namespace Microsoft.Cci
             // COFF header Timestamp field (4 byte int)
             // COFF header SizeOfImage field (4 byte int)
             // MVID (Guid, 24 bytes)
-            foreach (var metadataReference in module.CommonCompilation.ExternalReferences)
+            var referenceManager = module.CommonCompilation.GetBoundReferenceManager();
+            foreach (var pair in referenceManager.GetReferencedAssemblyAliases())
             {
-                if (metadataReference is PortableExecutableReference portableReference && portableReference.FilePath is object)
+                if (referenceManager.GetMetadataReference(pair.AssemblySymbol) is PortableExecutableReference { FilePath: { } } portableReference)
                 {
                     var fileName = PathUtilities.GetFileName(portableReference.FilePath);
-                    var peReader = GetReader(portableReference);
+                    var peReader = pair.AssemblySymbol.GetISymbol() is IAssemblySymbol assemblySymbol
+                        ? assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt
+                        : null;
 
                     // Don't write before checking that we can get a peReader for the metadata reference
                     if (peReader is null)
@@ -945,8 +948,8 @@ namespace Microsoft.Cci
                     builder.WriteByte(0);
 
                     // Extern alias
-                    if (portableReference.Properties.Aliases.Any())
-                        builder.WriteUTF8(string.Join(",", portableReference.Properties.Aliases));
+                    if (pair.Aliases.Length > 0)
+                        builder.WriteUTF8(string.Join(",", pair.Aliases));
 
                     // Always null terminate the extern alias list
                     builder.WriteByte(0);
@@ -976,22 +979,6 @@ namespace Microsoft.Cci
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
                 value: _debugMetadataOpt.GetOrAddBlob(builder));
-
-            static PEReader GetReader(PortableExecutableReference peReference)
-            {
-                switch (peReference.GetMetadata())
-                {
-                    case AssemblyMetadata assemblyMetadata:
-                        {
-                            var assembly = assemblyMetadata.GetAssembly();
-                            return assembly.ManifestModule?.PEReaderOpt;
-                        }
-                    case ModuleMetadata moduleMetadata:
-                        return moduleMetadata.Module.PEReaderOpt;
-                    default:
-                        return null;
-                }
-            }
         }
     }
 }

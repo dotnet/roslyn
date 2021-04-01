@@ -62,10 +62,20 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 count++;
                 var metadataReference = metadataReferences.FirstOrDefault(x =>
                     info.Mvid == x.GetModuleVersionId() &&
-                    info.ExternAliases.SequenceEqual(x.Properties.Aliases));
+                    info.ExternAlias == GetSingleAlias(x));
                 AssertEx.NotNull(metadataReference);
+
+                string? GetSingleAlias(MetadataReference metadataReference)
+                {
+                    Assert.True(metadataReference.Properties.Aliases.Length is 0 or 1);
+                    return metadataReference.Properties.Aliases.Length == 1
+                        ? metadataReference.Properties.Aliases[0]
+                        : null;
+                }
             }
+
             Assert.Equal(metadataReferences.Length, count);
+
         }
 
         public static void VerifyRoundTrip<TCompilation>(TCompilation original)
