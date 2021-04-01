@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 return conflicts.ToImmutableAndFree();
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

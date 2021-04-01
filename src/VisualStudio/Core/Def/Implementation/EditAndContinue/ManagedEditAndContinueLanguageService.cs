@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 var solution = _proxy.Workspace.CurrentSolution;
                 _debuggingSessionConnection = await _proxy.StartDebuggingSessionAsync(solution, _debuggerService, captureMatchingDocuments: false, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 _disabled = true;
             }
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
             {
                 await _proxy.BreakStateEnteredAsync(_diagnosticService, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 _disabled = true;
                 return;
@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 _debuggingSessionConnection.Dispose();
                 _debuggingSessionConnection = null;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 _disabled = true;
             }
@@ -179,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
                 return await _proxy.HasChangesAsync(solution, activeStatementSpanProvider, sourceFilePath, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return true;
             }
@@ -193,7 +193,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
                 return await _proxy.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, _diagnosticService, _diagnosticUpdateSource, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
             }
@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 var span = await _proxy.GetCurrentActiveStatementPositionAsync(solution, activeStatementSpanProvider, instruction, cancellationToken).ConfigureAwait(false);
                 return span?.ToSourceSpan();
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 var solution = _proxy.Workspace.CurrentSolution;
                 return await _proxy.IsActiveStatementInExceptionRegionAsync(solution, instruction, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return null;
             }
