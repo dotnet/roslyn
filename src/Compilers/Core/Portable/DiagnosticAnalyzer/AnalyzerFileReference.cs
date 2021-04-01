@@ -15,7 +15,6 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
-        private readonly GeneratorExtensions _generators;
+        private readonly Extensions<ISourceGenerator> _generators;
 
         private string? _lazyDisplay;
         private object? _lazyIdentity;
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
 
             _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
-            _generators = new GeneratorExtensions(this);
+            _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false, coerceFunction: CoerceGeneratorType);
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages()
         {
-            return _generators.GetExtensionsForAllLanguages();
+            return _generators.GetExtensionsForAllLanguages(includeDuplicates: false);
         }
 
         [Obsolete("Use GetGenerators(string language) or GetGeneratorsForAllLanguages()")]
@@ -197,11 +196,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _generators.AddExtensions(builder, language);
         }
 
-        private void ReportNoAnalyzers()
-        {
-            this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
-        }
-
         private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string? typeName = null)
         {
             // unwrap:
@@ -217,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeName);
         }
 
-        internal ImmutableSortedDictionary<string, ImmutableSortedSet<string>> GetAnalyzerTypeNameMap()
+        internal ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap()
         {
             return _diagnosticAnalyzers.GetExtensionTypeNameMap();
         }
@@ -228,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         /// <exception cref="IOException">IO error reading the metadata.</exception>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30449")]
-        private static ImmutableSortedDictionary<string, ImmutableSortedSet<string>> GetAnalyzerTypeNameMap(string fullPath, Type attributeType, AttributeLanguagesFunc languagesFunc)
+        private static ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap(string fullPath, Type attributeType, AttributeLanguagesFunc languagesFunc)
         {
             using var assembly = AssemblyMetadata.CreateFromFile(fullPath);
 
@@ -244,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                               from supportedLanguage in supportedLanguages
                               group typeName by supportedLanguage;
 
-            return typeNameMap.ToImmutableSortedDictionary(g => g.Key, g => g.ToImmutableSortedSet(StringComparer.OrdinalIgnoreCase), StringComparer.OrdinalIgnoreCase);
+            return typeNameMap.ToImmutableDictionary(g => g.Key, g => g.ToImmutableHashSet());
         }
 
         private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, Type attributeType, AttributeLanguagesFunc languagesFunc)
@@ -327,6 +321,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedCollections.EmptyEnumerable<string>();
         }
 
+        private static ISourceGenerator? CoerceGeneratorType(object generator)
+        {
+            if (generator is IIncrementalGenerator)
+            {
+                return (ISourceGenerator?)Activator.CreateInstance(typeof(IncrementalAdaptor<>).MakeGenericType(generator.GetType()), generator);
+            }
+            return null;
+        }
+
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {
             var declaringType = typeDef.GetDeclaringType();
@@ -350,16 +353,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly Type _attributeType;
             private readonly AttributeLanguagesFunc _languagesFunc;
             private readonly bool _allowNetFramework;
+            private readonly Func<object?, TExtension?>? _coerceFunction;
             private ImmutableArray<TExtension> _lazyAllExtensions;
             private ImmutableDictionary<string, ImmutableArray<TExtension>> _lazyExtensionsPerLanguage;
-            private ImmutableSortedDictionary<string, ImmutableSortedSet<string>>? _lazyExtensionTypeNameMap;
+            private ImmutableDictionary<string, ImmutableHashSet<string>>? _lazyExtensionTypeNameMap;
 
-            internal Extensions(AnalyzerFileReference reference, Type attributeType, AttributeLanguagesFunc languagesFunc, bool allowNetFramework)
+            internal Extensions(AnalyzerFileReference reference, Type attributeType, AttributeLanguagesFunc languagesFunc, bool allowNetFramework, Func<object?, TExtension?>? coerceFunction = null)
             {
                 _reference = reference;
                 _attributeType = attributeType;
                 _languagesFunc = languagesFunc;
                 _allowNetFramework = allowNetFramework;
+                _coerceFunction = coerceFunction;
                 _lazyAllExtensions = default;
                 _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<TExtension>>.Empty;
             }
@@ -377,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private static ImmutableArray<TExtension> CreateExtensionsForAllLanguages(Extensions<TExtension> extensions, bool includeDuplicates)
             {
                 // Get all analyzers in the assembly.
-                var map = ImmutableSortedDictionary.CreateBuilder<string, ImmutableArray<TExtension>>(StringComparer.OrdinalIgnoreCase);
+                var map = ImmutableDictionary.CreateBuilder<string, ImmutableArray<TExtension>>();
                 extensions.AddExtensions(map);
 
                 var builder = ImmutableArray.CreateBuilder<TExtension>();
@@ -426,7 +431,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return builder.ToImmutable();
             }
 
-            internal ImmutableSortedDictionary<string, ImmutableSortedSet<string>> GetExtensionTypeNameMap()
+            internal ImmutableDictionary<string, ImmutableHashSet<string>> GetExtensionTypeNameMap()
             {
                 if (_lazyExtensionTypeNameMap == null)
                 {
@@ -437,9 +442,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return _lazyExtensionTypeNameMap;
             }
 
-            internal void AddExtensions(ImmutableSortedDictionary<string, ImmutableArray<TExtension>>.Builder builder)
+            internal void AddExtensions(ImmutableDictionary<string, ImmutableArray<TExtension>>.Builder builder)
             {
-                ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap;
+                ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap;
                 Assembly analyzerAssembly;
 
                 try
@@ -477,26 +482,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
                 if (builder.Count == initialCount && !reportedError)
                 {
-                    _reference.ReportNoAnalyzers();
+                    _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
                 }
             }
 
             internal void AddExtensions(ImmutableArray<TExtension>.Builder builder, string language)
             {
-                int initialCount = builder.Count;
-                bool success = AddExtensionsCore(builder, language);
-
-                // If there were types with the attribute but weren't an analyzer, generate a diagnostic
-                // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
-                if (builder.Count == initialCount && success)
-                {
-                    _reference.ReportNoAnalyzers();
-                }
-            }
-
-            internal bool AddExtensionsCore(ImmutableArray<TExtension>.Builder builder, string language)
-            {
-                ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap;
+                ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap;
                 Assembly analyzerAssembly;
 
                 try
@@ -506,33 +498,40 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // If there are no analyzers, don't load the assembly at all.
                     if (!analyzerTypeNameMap.ContainsKey(language))
                     {
-                        return false;
+                        return;
                     }
 
                     analyzerAssembly = _reference.GetAssembly();
                     if (analyzerAssembly == null)
                     {
                         // This can be null if NoOpAnalyzerAssemblyLoader is used.
-                        return false;
+                        return;
                     }
                 }
                 catch (Exception e)
                 {
                     _reference.AnalyzerLoadFailed?.Invoke(_reference, CreateAnalyzerFailedArgs(e));
-                    return false;
+                    return;
                 }
 
+                var initialCount = builder.Count;
+                var reportedError = false;
+
                 // Add language specific analyzers.
-                bool reportedError = false;
                 var analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
                 builder.AddRange(analyzers);
 
-                return !reportedError;
+                // If there were types with the attribute but weren't an analyzer, generate a diagnostic.
+                // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
+                if (builder.Count == initialCount && !reportedError)
+                {
+                    _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, CodeAnalysisResources.NoAnalyzersFound));
+                }
             }
 
-            private ImmutableArray<TExtension> GetLanguageSpecificAnalyzers(Assembly analyzerAssembly, ImmutableSortedDictionary<string, ImmutableSortedSet<string>> analyzerTypeNameMap, string language, ref bool reportedError)
+            private ImmutableArray<TExtension> GetLanguageSpecificAnalyzers(Assembly analyzerAssembly, ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, string language, ref bool reportedError)
             {
-                ImmutableSortedSet<string>? languageSpecificAnalyzerTypeNames;
+                ImmutableHashSet<string>? languageSpecificAnalyzerTypeNames;
                 if (!analyzerTypeNameMap.TryGetValue(language, out languageSpecificAnalyzerTypeNames))
                 {
                     return ImmutableArray<TExtension>.Empty;
@@ -543,14 +542,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private ImmutableArray<TExtension> GetAnalyzersForTypeNames(Assembly analyzerAssembly, IEnumerable<string> analyzerTypeNames, ref bool reportedError)
             {
                 var analyzers = ImmutableArray.CreateBuilder<TExtension>();
-
-                // if this extension type is not supposed to reference .NET Framework, see if the assembly does
-                bool referencesFramework = false;
-                if (!_allowNetFramework)
-                {
-                    var targetFrameworkAttribute = analyzerAssembly.GetCustomAttribute<TargetFrameworkAttribute>();
-                    referencesFramework = targetFrameworkAttribute?.FrameworkName.StartsWith(".NETFramework", StringComparison.OrdinalIgnoreCase) ?? false;
-                }
 
                 // Given the type names, get the actual System.Type and try to create an instance of the type through reflection.
                 foreach (var typeName in analyzerTypeNames)
@@ -569,10 +560,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     Debug.Assert(type != null);
 
-                    TExtension? analyzer;
+                    // check if this references net framework, and issue a diagnostic that this isn't supported
+                    if (!_allowNetFramework)
+                    {
+                        var targetFrameworkAttribute = analyzerAssembly.GetCustomAttribute<TargetFrameworkAttribute>();
+                        if (targetFrameworkAttribute is object && targetFrameworkAttribute.FrameworkName.StartsWith(".NETFramework", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(
+                                AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework,
+                                string.Format(CodeAnalysisResources.AssemblyReferencesNetFramework, typeName),
+                                typeNameOpt: typeName));
+                            continue;
+                        }
+                    }
+
+                    object? typeInstance;
                     try
                     {
-                        analyzer = Activator.CreateInstance(type) as TExtension;
+                        typeInstance = Activator.CreateInstance(type);
                     }
                     catch (Exception e)
                     {
@@ -581,103 +586,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
+                    TExtension? analyzer = typeInstance as TExtension ?? _coerceFunction?.Invoke(typeInstance);
                     if (analyzer != null)
                     {
-                        // issue a diagnostic that this isn't supported if referencing .NET framework when not allowed to
-                        if (!_allowNetFramework && referencesFramework)
-                        {
-                            _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(
-                                AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework,
-                                string.Format(CodeAnalysisResources.AssemblyReferencesNetFramework, typeName),
-                                typeNameOpt: typeName));
-                        }
-                        else
-                        {
-                            analyzers.Add(analyzer);
-                        }
+                        analyzers.Add(analyzer);
                     }
                 }
 
                 return analyzers.ToImmutable();
-            }
-        }
-
-        private sealed class GeneratorExtensions
-        {
-            private readonly Extensions<ISourceGenerator> _generators;
-            private readonly Extensions<IIncrementalGenerator> _incrementalGenerators;
-            private readonly AnalyzerFileReference _reference;
-            private ImmutableArray<ISourceGenerator> _lazyAllExtensions;
-            private ImmutableDictionary<string, ImmutableArray<ISourceGenerator>> _lazyExtensionsPerLanguage;
-
-            internal GeneratorExtensions(AnalyzerFileReference reference)
-            {
-                _generators = new(reference, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false);
-                _incrementalGenerators = new(reference, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false);
-                _lazyExtensionsPerLanguage = ImmutableDictionary<string, ImmutableArray<ISourceGenerator>>.Empty;
-                _reference = reference;
-            }
-
-            internal ImmutableArray<ISourceGenerator> GetExtensionsForAllLanguages()
-            {
-                if (_lazyAllExtensions.IsDefault)
-                {
-                    var generators = _generators.GetExtensionsForAllLanguages(includeDuplicates: false);
-                    var incremental = _incrementalGenerators.GetExtensionsForAllLanguages(includeDuplicates: false);
-                    var combined = CombineGeneratorTypes(generators, incremental);
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyAllExtensions, combined);
-                }
-                return _lazyAllExtensions;
-            }
-
-            internal ImmutableArray<ISourceGenerator> GetExtensions(string language)
-            {
-                return ImmutableInterlocked.GetOrAdd(ref _lazyExtensionsPerLanguage, language, (lang) =>
-                {
-                    var generators = _generators.GetExtensions(lang);
-                    var incremental = _incrementalGenerators.GetExtensions(lang);
-                    return CombineGeneratorTypes(generators, incremental);
-                });
-            }
-
-            internal void AddExtensions(ImmutableArray<ISourceGenerator>.Builder builder, string language)
-            {
-                var initialCount = builder.Count;
-                bool success = _generators.AddExtensionsCore(builder, language);
-
-                ImmutableArray<IIncrementalGenerator>.Builder incrementalBuilder = ImmutableArray.CreateBuilder<IIncrementalGenerator>();
-                success &= _incrementalGenerators.AddExtensionsCore(incrementalBuilder, language);
-                foreach (var incrementalGenerator in incrementalBuilder)
-                {
-                    builder.Add(WrapIncrementalGenerator(incrementalGenerator));
-                }
-
-                // If there were types with the attribute but weren't a generator, generate a diagnostic
-                // If we've reported errors already while trying to instantiate types, don't complain that there are no generators.
-                if (builder.Count == initialCount && success)
-                {
-                    _reference.ReportNoAnalyzers();
-                }
-            }
-
-            private static ImmutableArray<ISourceGenerator> CombineGeneratorTypes(ImmutableArray<ISourceGenerator> sourceGenerators, ImmutableArray<IIncrementalGenerator> incrementalGenerators)
-            {
-                var generators = ArrayBuilder<ISourceGenerator>.GetInstance(sourceGenerators.Length + incrementalGenerators.Length);
-                generators.AddRange(sourceGenerators);
-                foreach (var incrementalGenerator in incrementalGenerators)
-                {
-                    generators.Add(WrapIncrementalGenerator(incrementalGenerator));
-                }
-                return generators.ToImmutableAndFree();
-            }
-
-            private static ISourceGenerator WrapIncrementalGenerator(IIncrementalGenerator incrementalGenerator)
-            {
-                var adaptorType = typeof(IncrementalAdaptor<>).MakeGenericType(incrementalGenerator.GetType());
-                var adaptor = Activator.CreateInstance(adaptorType, incrementalGenerator);
-
-                Debug.Assert(adaptor is ISourceGenerator);
-                return (ISourceGenerator)adaptor;
             }
         }
 
