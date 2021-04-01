@@ -27,7 +27,7 @@ namespace Nerdbank.Streams
         /// </summary>
         private Task<int>? lastReadTask;
 
-        private ReadOnlySequence<byte> readOnlySequence;
+        private readonly ReadOnlySequence<byte> readOnlySequence;
 
         private SequencePosition position;
 
