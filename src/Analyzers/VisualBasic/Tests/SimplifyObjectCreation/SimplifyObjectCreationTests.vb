@@ -51,7 +51,7 @@ End Class
                 .TestCode = code,
                 .FixedCode = fixedCode
             }
-            test.Options.Add(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, False)
+            test.Options.Add(VisualBasicCodeStyleOptions.PreferSimplifiedObjectCreation, True)
             Await test.RunAsync()
         End Function
 
