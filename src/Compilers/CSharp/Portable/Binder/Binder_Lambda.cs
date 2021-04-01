@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -42,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var names = default(ImmutableArray<string>);
             var refKinds = default(ImmutableArray<RefKind>);
             var types = default(ImmutableArray<TypeWithAnnotations>);
+            var attributes = default(ImmutableArray<SyntaxList<AttributeListSyntax>>);
 
             var namesBuilder = ArrayBuilder<string>.GetInstance();
             ImmutableArray<bool> discardsOpt = default;
@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
+                var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
                 // In the batch compiler case we probably should have given a syntax error if the
                 // user did something like (int x, y)=>x+y -- but in the IDE scenario we might be in
@@ -106,7 +107,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var attributeList in p.AttributeLists)
                     {
-                        Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                        if (syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression)
+                        {
+                            // PROTOTYPE: Report error if parameter syntax is missing the type (using implicit parameter type syntax).
+                            MessageID.IDS_FeatureLambdaAttributes.CheckFeatureAvailability(diagnostics, attributeList);
+                        }
+                        else
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                        }
                     }
 
                     if (p.Default != null)
@@ -167,6 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);
                     refKindsBuilder.Add(refKind);
+                    attributesBuilder.Add(syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression ? p.AttributeLists : default);
                 }
 
                 discardsOpt = computeDiscards(parameterSyntaxList.Value, underscoresCount);
@@ -181,8 +191,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds = refKindsBuilder.ToImmutable();
                 }
 
+                if (attributesBuilder.Any(a => a.Count > 0))
+                {
+                    attributes = attributesBuilder.ToImmutable();
+                }
+
                 typesBuilder.Free();
                 refKindsBuilder.Free();
+                attributesBuilder.Free();
             }
 
             if (hasSignature)
@@ -192,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return new UnboundLambda(syntax, this, diagnostics.AccumulatesDependencies, refKinds, types, names, discardsOpt, isAsync, isStatic);
+            return new UnboundLambda(syntax, this, diagnostics.AccumulatesDependencies, attributes, refKinds, types, names, discardsOpt, isAsync, isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -212,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CheckParenthesizedLambdaParameters(
+        private static void CheckParenthesizedLambdaParameters(
             SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, BindingDiagnosticBag diagnostics)
         {
             if (parameterSyntaxList.Count > 0)
