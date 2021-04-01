@@ -222,6 +222,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 {
                     return true;
                 }
+
+                if (method.Modifiers.Any(SyntaxKind.PartialKeyword) && method.Body is null)
+                {
+                    return true;
+                }
             }
 
             return false;
