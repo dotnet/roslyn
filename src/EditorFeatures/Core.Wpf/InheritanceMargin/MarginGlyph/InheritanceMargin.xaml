@@ -197,6 +197,7 @@
         <Style x:Key="ToolTipStyle" TargetType="ToolTip">
             <Setter Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolTipBrushKey}}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolTipBorderBrushKey}}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolTipTextBrushKey}}"/>
         </Style>
     </Button.Resources>
 
