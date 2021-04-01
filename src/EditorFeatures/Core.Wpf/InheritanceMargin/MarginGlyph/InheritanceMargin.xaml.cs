@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         {
             if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
             {
-                Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget);
+                Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
                 _waitIndicator.Wait(
                     title: EditorFeaturesResources.Navigating,
                     message: string.Format(EditorFeaturesWpfResources.Navigate_to_0, viewModel.DisplayContent),
@@ -111,13 +111,13 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             // If this context menu just has one member, then if the context menu open, it means all inheritance targets are shown.
             if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel { HasMultipleMembers: false }})
             {
-                Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen);
+                Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
             }
         }
 
         private void TargetsMenu_OnOpen(object sender, RoutedEventArgs e)
         {
-            Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen);
+            Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
         }
 
         private void ResetBorderToInitialColor()
