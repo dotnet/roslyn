@@ -4,6 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
         xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+        xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
         xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
         AutomationProperties.Name="{Binding AutomationName}"
         Background="Transparent"
@@ -40,7 +41,7 @@
                 <ScrollViewer CanContentScroll="true"
                               VerticalScrollBarVisibility="Auto"
                               Margin="3"
-                              Style="{DynamicResource {ComponentResourceKey TypeInTargetAssembly={x:Type FrameworkElement}, ResourceId=MenuScrollViewer}}">
+                              Style="{StaticResource {x:Static vsshell:VsResourceKeys.ScrollViewerStyleKey}}">
                     <ItemsPresenter KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Cycle"
                                     SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Grid.IsSharedSizeScope="true"/>
                 </ScrollViewer>
@@ -139,8 +140,9 @@
                                 <vsui:SystemDropShadowChrome x:Uid="vsui:SystemDropShadowChrome_2" Name="Shdw" Color="Transparent">
                                     <Grid x:Uid="Grid_8" Background="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarMenuIconBackgroundBrushKey}}">
                                         <ScrollViewer CanContentScroll="true"
+                                                      VerticalScrollBarVisibility="Auto"
                                                       Margin="3"
-                                                      Style="{DynamicResource {ComponentResourceKey TypeInTargetAssembly={x:Type FrameworkElement}, ResourceId=MenuScrollViewer}}">
+                                                      Style="{StaticResource {x:Static vsshell:VsResourceKeys.ScrollViewerStyleKey}}">
                                             <ItemsPresenter KeyboardNavigation.TabNavigation="Cycle" KeyboardNavigation.DirectionalNavigation="Cycle"
                                                             SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Grid.IsSharedSizeScope="true"/>
                                         </ScrollViewer>
