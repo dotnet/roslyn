@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, onResultFound, cancellationToken);
         }
 
-        public static Task SearchDocumentInCurrentProcessAsync(
+        public static Task SearchFullyLoadedDocumentInCurrentProcessAsync(
             Document document, string searchPattern, IImmutableSet<string> kinds,
             Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
@@ -108,6 +109,60 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             await ProcessIndexAsync(
                 document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task SearchCachedDocumentsInCurrentProcessAsync(
+            Workspace workspace,
+            ImmutableArray<DocumentKey> documentKeys,
+            ImmutableArray<DocumentKey> priorityDocumentKeys,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<RoslynNavigateToItem, Task> onItemFound,
+            CancellationToken cancellationToken)
+        {
+            var stringTable = new StringTable();
+
+            var highPriDocsSet = priorityDocumentKeys.ToSet();
+            var lowPriDocs = documentKeys.WhereAsArray(d => !highPriDocsSet.Contains(d));
+
+            // If the user created a dotted pattern then we'll grab the last part of the name
+            var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
+            var declaredSymbolInfoKindsSet = new DeclaredSymbolInfoKindSet(kinds);
+
+            await SearchCachedDocumentsInCurrentProcessAsync(
+                workspace, priorityDocumentKeys, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
+
+            await SearchCachedDocumentsInCurrentProcessAsync(
+                workspace, lowPriDocs, patternName, patternContainer, declaredSymbolInfoKindsSet, onItemFound, stringTable, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task SearchCachedDocumentsInCurrentProcessAsync(
+            Workspace workspace,
+            ImmutableArray<DocumentKey> documentKeys,
+            string patternName,
+            string patternContainer,
+            DeclaredSymbolInfoKindSet kinds,
+            Func<RoslynNavigateToItem, Task> onItemFound,
+            StringTable stringTable,
+            CancellationToken cancellationToken)
+        {
+            using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
+
+            foreach (var documentKey in documentKeys)
+            {
+                tasks.Add(Task.Run(async () =>
+                {
+                    var index = await SyntaxTreeIndex.LoadAsync(
+                        workspace, documentKey, checksum: null, stringTable, cancellationToken).ConfigureAwait(false);
+                    if (index == null)
+                        return;
+
+                    await ProcessIndexAsync(
+                        documentKey.Id, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
+                }));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static async Task ProcessIndexAsync(
