@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
             var sourceLink = OptionsReader.GetSourceLinkUTF8();
 
             var debugEntryPoint = getDebugEntryPoint();
-            string pdbFilePath;
+            string? pdbFilePath;
             DebugInformationFormat debugInformationFormat;
             if (OptionsReader.HasEmbeddedPdb)
             {
@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 }
 
                 debugInformationFormat = DebugInformationFormat.Embedded;
+                pdbFilePath = null;
             }
             else
             {
