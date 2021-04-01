@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var argumentListSyntax = syntaxFacts.GetArgumentListOfInvocationExpression(invocationExpression);
                     editor.ReplaceNode(argumentListSyntax, (currentArgumentListSyntax, _) =>
                     {
-                        return GenerateNewInvocationExpressionForTrampoline(syntaxFacts, semanticFacts, invocationSemanticModel, generator, currentArgumentListSyntax,
+                        return GenerateNewArgumentListSyntaxForTrampoline(syntaxFacts, semanticFacts, invocationSemanticModel, generator, currentArgumentListSyntax,
                             argumentListSyntax, validParameters, newMethodIdentifier, insertionIndex, cancellationToken);
                     });
                 }
@@ -394,6 +394,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 var parameter = generator.ParameterDeclaration(parameterName, generator.TypeExpression(parameterType), refKind: refKind);
                 editor.InsertParameter(containingMethod, insertionIndex, parameter);
             }
+
             return editor.GetChangedRoot();
 
             // Adds an argument which is an invocation of the newly created method to the callsites
@@ -425,7 +426,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // {
             //     M(5, 6, M_f(5, 6)); // This is the generated invocation which is a new argument at the call site
             // }
-            static SyntaxNode GenerateNewInvocationExpressionForTrampoline(ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
+            static SyntaxNode GenerateNewArgumentListSyntaxForTrampoline(ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
                 SemanticModel invocationSemanticModel, SyntaxGenerator generator, SyntaxNode currentArgumentListSyntax, SyntaxNode argumentListSyntax,
                 ImmutableArray<IParameterSymbol> validParameters, string newMethodIdentifier, int insertionIndex, CancellationToken cancellationToken)
             {
@@ -444,10 +445,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
 
                 var methodName = generator.IdentifierName(newMethodIdentifier);
-                // var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
                 var newMethodInvocation = generator.InvocationExpression(methodName, requiredArguments);
                 var allArguments = AddArgumentToArgumentList(currentInvocationArguments, generator, newMethodInvocation, insertionIndex);
-                //return (TInvocationExpressionSyntax)generator.InvocationExpression(expressionFromInvocation, allArguments);
                 return syntaxFacts.UpdateArgumentListSyntax(currentArgumentListSyntax, allArguments);
             }
         }
@@ -592,15 +591,11 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
                 editor.ReplaceNode(argumentListSyntax, (currentArgumentListSyntax, _) =>
                 {
-                    //var updatedInvocationArguments = syntaxFacts.GetArgumentsOfInvocationExpression(currentInvocation);
                     var updatedInvocationArguments = syntaxFacts.GetArgumentsOfArgumentList(currentArgumentListSyntax);
                     var updatedExpression = CreateNewArgumentExpression(expressionEditor,
                         syntaxFacts, mappingDictionary, variablesInExpression, parameterToArgumentMap, updatedInvocationArguments);
-                    //var expressionFromInvocation = syntaxFacts.GetExpressionOfInvocationExpression(invocationExpression);
                     var allArguments = AddArgumentToArgumentList(updatedInvocationArguments, generator,
                         updatedExpression.WithAdditionalAnnotations(Formatter.Annotation), insertionIndex);
-                    //var newInvo = editor.Generator.InvocationExpression(expressionFromInvocation, allArguments);
-                    //return newInvo;
                     return syntaxFacts.UpdateArgumentListSyntax(currentArgumentListSyntax, allArguments);
                 });
             }
