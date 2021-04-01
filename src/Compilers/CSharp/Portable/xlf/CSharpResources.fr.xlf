@@ -517,6 +517,11 @@
         <target state="translated">Nom d'algorithme de hachage non valide : '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidModifierForLanguageVersion">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="translated">Création d'objet non valide</target>
@@ -10815,11 +10820,6 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
         <target state="translated">'{0}' ne peut pas implémenter le membre d'interface '{1}' dans le type '{2}', car le runtime cible ne prend pas en charge l'implémentation d'interface par défaut.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="translated">Le modificateur '{0}' est non valide pour cet élément en C# {1}. Utilisez la version de langage '{2}' ou une version ultérieure.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">

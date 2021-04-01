@@ -2399,7 +2399,7 @@ _Default:
             Dim tupleTypeSyntax = TryCast(elementSyntax.Parent, TupleTypeSyntax)
 
             If tupleTypeSyntax IsNot Nothing Then
-                Return TryCast(GetSymbolInfo(tupleTypeSyntax).Symbol, TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(elementSyntax))
+                Return TryCast(GetSymbolInfo(tupleTypeSyntax, cancellationToken).Symbol, TupleTypeSymbol)?.TupleElements.ElementAtOrDefault(tupleTypeSyntax.Elements.IndexOf(elementSyntax))
             End If
 
             Return Nothing

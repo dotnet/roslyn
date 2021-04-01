@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertForToForEachCodeRefactoringProvider)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertForToForEach), [Shared]>
     Friend Class VisualBasicConvertForToForEachCodeRefactoringProvider
         Inherits AbstractConvertForToForEachCodeRefactoringProvider(Of
             StatementSyntax,

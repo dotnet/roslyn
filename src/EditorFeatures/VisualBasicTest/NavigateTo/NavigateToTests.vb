@@ -680,8 +680,8 @@ End Sub
 End Class", Async Function(w)
                 Dim expectedItems = New List(Of NavigateToItem) From
                     {
-                        New NavigateToItem("Goo", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
-                        New NavigateToItem("Goo", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
+                        New NavigateToItem("Goo", NavigateToItemKind.Class, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing),
+                        New NavigateToItem("Goo", NavigateToItemKind.Method, "vb", Nothing, Nothing, s_emptyExactPatternMatch, Nothing)
                     }
 
                 Dim items As List(Of NavigateToItem) = (Await _aggregator.GetItemsAsync("Goo")).ToList()
