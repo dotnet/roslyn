@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _listenerProvider = listenerProvider;
         }
 
-        public Task<InProcLanguageServer> CreateAsync(
+        public InProcLanguageServer Create(
             JsonRpc jsonRpc,
             ServerCapabilities serverCapabilities,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
-            return Task.FromResult(new InProcLanguageServer(
+            return new InProcLanguageServer(
                 _dispatcherFactory,
                 jsonRpc,
                 serverCapabilities,
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 diagnosticService: null,
                 clientName: null,
                 userVisibleServerName: UserVisibleName,
-                telemetryServerTypeName: this.GetType().Name));
+                telemetryServerTypeName: this.GetType().Name);
         }
     }
 }

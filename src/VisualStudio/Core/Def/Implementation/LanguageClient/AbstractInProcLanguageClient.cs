@@ -202,11 +202,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             var serverTypeName = languageClient.GetType().Name;
             var logger = await CreateLoggerAsync(asyncServiceProvider, serverTypeName, clientName, jsonRpc, cancellationToken).ConfigureAwait(false);
 
-            var server = await languageClient.CreateAsync(
+            var server = languageClient.Create(
                 jsonRpc,
                 languageClient.GetCapabilities(),
                 lspWorkspaceRegistrationService,
-                logger ?? NoOpLspLogger.Instance).ConfigureAwait(false);
+                logger ?? NoOpLspLogger.Instance);
 
             jsonRpc.StartListening();
             return server;
@@ -240,13 +240,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return new LogHubLspLogger(configuration, traceSource);
         }
 
-        public Task<InProcLanguageServer> CreateAsync(
+        public InProcLanguageServer Create(
             JsonRpc jsonRpc,
             ServerCapabilities serverCapabilities,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
-            return Task.FromResult((InProcLanguageServer)new VisualStudioInProcLanguageServer(
+            return new VisualStudioInProcLanguageServer(
                 _requestDispatcherFactory,
                 jsonRpc,
                 serverCapabilities,
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
                 _diagnosticService,
                 clientName: _diagnosticsClientName,
                 userVisibleServerName: this.Name,
-                telemetryServerTypeName: this.GetType().Name));
+                telemetryServerTypeName: this.GetType().Name);
         }
     }
 }

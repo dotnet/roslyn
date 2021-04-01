@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 {
     internal interface ILanguageServerFactory
     {
-        public Task<InProcLanguageServer> CreateAsync(
+        public InProcLanguageServer Create(
             JsonRpc jsonRpc,
             ServerCapabilities serverCapabilities,
             ILspWorkspaceRegistrationService workspaceRegistrationService,
