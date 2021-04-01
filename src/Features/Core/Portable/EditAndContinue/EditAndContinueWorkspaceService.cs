@@ -314,11 +314,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var editSession = _editSession;
             Contract.ThrowIfNull(editSession);
 
-            var pendingUpdate = editSession.RetrievePendingUpdate();
-            foreach (var moduleReader in pendingUpdate.ModuleReaders)
-            {
-                moduleReader.Dispose();
-            }
+            _ = editSession.RetrievePendingUpdate();
         }
 
         public async ValueTask<ImmutableArray<ImmutableArray<(LinePositionSpan, ActiveStatementFlags)>>> GetBaseActiveStatementSpansAsync(Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)

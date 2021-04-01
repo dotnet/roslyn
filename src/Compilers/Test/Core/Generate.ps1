@@ -181,7 +181,8 @@ Add-TargetFramework "NetCoreApp" '$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0' @(
   'System.Threading.Tasks.dll',
   'netstandard.dll',
   'Microsoft.CSharp.dll',
-  'Microsoft.VisualBasic.dll'
+  'Microsoft.VisualBasic.dll',
+  'Microsoft.VisualBasic.Core.dll'
 )
 
 Add-TargetFramework "NetStandard20" '$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref' @(
