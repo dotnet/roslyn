@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis
     /// This isn't created directly by the user, but from the result of calls to extension methods,
     /// which is then passed back to the <see cref="IncrementalGeneratorPipelineContext"/>
     /// </remarks>
-    public struct IncrementalGeneratorOutput
+    public readonly struct IncrementalGeneratorOutput
     {
-        internal readonly IOutputNode node;
+        internal readonly IIncrementalGeneratorOutputNode node;
 
-        internal IncrementalGeneratorOutput(IOutputNode node)
+        internal IncrementalGeneratorOutput(IIncrementalGeneratorOutputNode node)
         {
             this.node = node;
         }
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Internal representation of an incremental output
     /// </summary>
-    internal interface IOutputNode
+    internal interface IIncrementalGeneratorOutputNode
     {
     }
 }

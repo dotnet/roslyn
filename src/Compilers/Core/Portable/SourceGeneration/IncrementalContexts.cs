@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    public struct IncrementalGeneratorPipelineContext
+    public readonly struct IncrementalGeneratorPipelineContext
     {
         public void RegisterOutput(IncrementalGeneratorOutput output)
         {
