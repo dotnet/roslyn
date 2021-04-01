@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             // TODO: introduce CommonCompiler-based test which exercises this code path.
             using var peReader = new PEReader(peStream);
             var embeddedPdbReader = peReader.GetEmbeddedPdbMetadataReader();
-            var nonEmbeddedPdbReader = pdbStream is not null ? MetadataReaderProvider.FromPortablePdbStream(pdbStream).GetMetadataReader() : null;
-            Assert.True(embeddedPdbReader == null ^ nonEmbeddedPdbReader == null);
+            var portablePdbReader = pdbStream is not null ? MetadataReaderProvider.FromPortablePdbStream(pdbStream).GetMetadataReader() : null;
+            Assert.True(embeddedPdbReader == null ^ portablePdbReader == null);
 
-            var pdbReader = embeddedPdbReader ?? nonEmbeddedPdbReader ?? throw ExceptionUtilities.Unreachable;
+            var pdbReader = embeddedPdbReader ?? portablePdbReader ?? throw ExceptionUtilities.Unreachable;
             var factory = LoggerFactory.Create(configure => { });
             var logger = factory.CreateLogger("RoundTripVerification");
             var optionsReader = new CompilationOptionsReader(logger, pdbReader, peReader);
@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             var emitResult = compilationFactory.Emit(rebuildPeStream, rebuildPdbStream, syntaxTrees, metadataReferences, cancellationToken);
             Assert.True(emitResult.Success);
 
-            Assert.True(peStream.ToArray().SequenceEqual(rebuildPeStream.ToArray()));
+            Assert.Equal(peStream.ToArray(), rebuildPeStream.ToArray());
+            Assert.Equal(pdbStream?.ToArray(), rebuildPdbStream?.ToArray());
         }
 
         public static void VerifyRoundTrip<TCompilation>(TCompilation original, EmitOptions? emitOptions = null)
