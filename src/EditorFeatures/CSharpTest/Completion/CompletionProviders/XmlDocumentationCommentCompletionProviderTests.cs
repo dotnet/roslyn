@@ -713,6 +713,22 @@ class C
 }", "cref", "langword", "href");
         }
 
+        [WorkItem(37504, "https://github.com/dotnet/roslyn/issues/37504")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task SeeAlsoAttributeNames()
+        {
+            await VerifyItemsExistAsync(@"
+class C
+{
+    /// <summary>
+    /// <seealso $$/>
+    /// </summary>
+    static void Goo()
+    {
+    }
+}", "cref", "href");
+        }
+
         [WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LangwordCompletionInPlainText()
