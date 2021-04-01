@@ -1354,7 +1354,7 @@ static void Main(string[] args)
 ~", result.Output.Trim().Replace(srcFile, "src.vb"));
             Assert.Equal(1, result.ExitCode);
 
-            var listener = await serverData.Complete();;
+            var listener = await serverData.Complete();
             Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
         }
 
