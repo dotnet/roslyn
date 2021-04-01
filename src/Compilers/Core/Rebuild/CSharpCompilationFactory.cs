@@ -59,9 +59,6 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
             var langVersionString = pdbCompilationOptions.GetUniqueOption(CompilationOptionNames.LanguageVersion);
             pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Optimization, out var optimization);
-            // uncomment to force rebuild failure
-            // TODO: delete
-            // optimization = "release";
             pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Platform, out var platform);
 
             // TODO: Check portability policy if needed

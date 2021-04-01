@@ -164,7 +164,6 @@ namespace BuildValidator
             else
             {
                 var originalBytes = File.ReadAllBytes(assemblyInfo.FilePath);
-                var originalPdbReader = compilationFactory.OptionsReader.PdbReader;
                 var rebuildBytes = rebuildPeStream.ToArray();
                 if (originalBytes.SequenceEqual(rebuildBytes))
                 {
@@ -182,21 +181,17 @@ namespace BuildValidator
                         rebuildCompilation: rebuildCompilation);
                 }
 
-                unsafe MetadataReader getRebuildPdbReader()
+                MetadataReader getRebuildPdbReader()
                 {
                     if (hasEmbeddedPdb)
                     {
-                        fixed (byte* rebuildPtr = rebuildBytes)
-                        {
-                            var peReader = new PEReader(rebuildPtr, rebuildBytes.Length);
-                            return peReader.GetEmbeddedPdbMetadataReader() ?? throw ExceptionUtilities.Unreachable;
-                        }
+                        var peReader = new PEReader(rebuildBytes.ToImmutableArray());
+                        return peReader.GetEmbeddedPdbMetadataReader() ?? throw ExceptionUtilities.Unreachable;
                     }
                     else
                     {
-                        // TODO: it appears that readers created from this stream have non-deterministic issues.
-                        // For example, "read out of bounds" exceptions, "method is not supported" exceptions in DiaSymReader, etc.
-                        return MetadataReaderProvider.FromPortablePdbImage(rebuildPdbStream!.ToImmutable()).GetMetadataReader();
+                        rebuildPdbStream!.Position = 0;
+                        return MetadataReaderProvider.FromPortablePdbStream(rebuildPdbStream).GetMetadataReader();
                     }
                 }
             }
@@ -275,24 +270,20 @@ namespace BuildValidator
                 Debug.Assert(_rebuildPdbReader is object);
                 Debug.Assert(_rebuildCompilation is object);
 
-                fixed (byte* originalPtr = _originalPortableExecutableBytes)
-                fixed (byte* rebuildPtr = _rebuildPortableExecutableBytes)
-                {
-                    using var originalPeReader = new PEReader(originalPtr, _originalPortableExecutableBytes.Length);
-                    using var rebuildPeReader = new PEReader(rebuildPtr, _rebuildPortableExecutableBytes.Length);
-                    var originalInfo = new BuildInfo(
-                        AssemblyBytes: _originalPortableExecutableBytes,
-                        AssemblyReader: originalPeReader,
-                        PdbMetadataReader: _originalPdbReader);
+                var originalPeReader = new PEReader(_originalPortableExecutableBytes.ToImmutableArray());
+                var rebuildPeReader = new PEReader(_rebuildPortableExecutableBytes.ToImmutableArray());
+                var originalInfo = new BuildInfo(
+                    AssemblyBytes: _originalPortableExecutableBytes,
+                    AssemblyReader: originalPeReader,
+                    PdbMetadataReader: _originalPdbReader);
 
-                    var rebuildInfo = new BuildInfo(
-                        AssemblyBytes: _rebuildPortableExecutableBytes,
-                        AssemblyReader: rebuildPeReader,
-                        PdbMetadataReader: _rebuildPdbReader);
+                var rebuildInfo = new BuildInfo(
+                    AssemblyBytes: _rebuildPortableExecutableBytes,
+                    AssemblyReader: rebuildPeReader,
+                    PdbMetadataReader: _rebuildPdbReader);
 
-                    createDiffArtifacts(debugPath, AssemblyInfo.FileName, originalInfo, rebuildInfo, _rebuildCompilation);
-                    SearchForKnownIssues(logger, originalInfo, rebuildInfo);
-                }
+                createDiffArtifacts(debugPath, AssemblyInfo.FileName, originalInfo, rebuildInfo, _rebuildCompilation);
+                SearchForKnownIssues(logger, originalInfo, rebuildInfo);
             }
 
             static void createDiffArtifacts(string debugPath, string assemblyFileName, BuildInfo originalInfo, BuildInfo rebuildInfo, Compilation compilation)

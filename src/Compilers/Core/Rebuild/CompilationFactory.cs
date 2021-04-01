@@ -92,22 +92,23 @@ namespace Microsoft.CodeAnalysis.Rebuild
             var sourceLink = OptionsReader.GetSourceLinkUTF8();
 
             var debugEntryPoint = getDebugEntryPoint();
-            var debugDirectory = OptionsReader.PeReader.ReadDebugDirectory();
             var hasEmbeddedPdb = OptionsReader.HasEmbeddedPdb;
-            if (hasEmbeddedPdb && rebuildPdbStream is object)
-            {
-                throw new ArgumentException("PDB stream must be null because the compilation has an embedded PDB", nameof(rebuildPdbStream));
-            }
-
             string? pdbFilePath = null;
-            if (!hasEmbeddedPdb)
+            if (hasEmbeddedPdb)
+            {
+                if (rebuildPdbStream is object)
+                {
+                    throw new ArgumentException("PDB stream must be null because the compilation has an embedded PDB", nameof(rebuildPdbStream));
+                }
+            }
+            else
             {
                 if (rebuildPdbStream is null)
                 {
                     throw new ArgumentException("A non-null PDB stream must be provided because the compilation does not have an embedded PDB", nameof(rebuildPdbStream));
                 }
 
-                var codeViewEntry = debugDirectory.Single(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+                var codeViewEntry = OptionsReader.PeReader.ReadDebugDirectory().Single(entry => entry.Type == DebugDirectoryEntryType.CodeView);
                 if (codeViewEntry.Type == DebugDirectoryEntryType.CodeView)
                 {
                     var codeView = OptionsReader.PeReader.ReadCodeViewDebugDirectoryData(codeViewEntry);

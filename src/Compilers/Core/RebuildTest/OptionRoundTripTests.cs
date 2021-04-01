@@ -73,7 +73,7 @@ End Class",
         }
 
         [Fact]
-        public void NonEmbeddedPdb()
+        public void PortablePdb()
         {
             var original = CreateCompilation(
                 @"class C { static void Main() { } }",

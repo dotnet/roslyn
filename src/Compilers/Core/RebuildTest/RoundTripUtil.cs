@@ -112,23 +112,23 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 switch (emitOptions.DebugInformationFormat)
                 {
                     case DebugInformationFormat.Embedded:
-                    {
-                        var originalBytes = original.EmitToArray(emitOptions);
-                        var originalReader = new PEReader(originalBytes);
-                        var originalPdbReader = originalReader.GetEmbeddedPdbMetadataReader();
-                        Assert.NotNull(originalPdbReader);
-                        return (originalBytes, originalReader, originalPdbReader!);
-                    }
+                        {
+                            var originalBytes = original.EmitToArray(emitOptions);
+                            var originalReader = new PEReader(originalBytes);
+                            var originalPdbReader = originalReader.GetEmbeddedPdbMetadataReader();
+                            Assert.NotNull(originalPdbReader);
+                            return (originalBytes, originalReader, originalPdbReader!);
+                        }
                     case DebugInformationFormat.PortablePdb:
-                    {
-                        using var pdbStream = new MemoryStream();
-                        var originalBytes = original.EmitToArray(emitOptions, pdbStream: pdbStream);
-                        var originalReader = new PEReader(originalBytes);
+                        {
+                            using var pdbStream = new MemoryStream();
+                            var originalBytes = original.EmitToArray(emitOptions, pdbStream: pdbStream);
+                            var originalReader = new PEReader(originalBytes);
 
-                        pdbStream.Position = 0;
-                        var originalPdbReader = MetadataReaderProvider.FromPortablePdbStream(pdbStream).GetMetadataReader();
-                        return (originalBytes, originalReader, originalPdbReader);
-                    }
+                            pdbStream.Position = 0;
+                            var originalPdbReader = MetadataReaderProvider.FromPortablePdbStream(pdbStream).GetMetadataReader();
+                            return (originalBytes, originalReader, originalPdbReader);
+                        }
                     default:
                         throw new ArgumentException("Unsupported DebugInformationFormat: " + emitOptions.DebugInformationFormat);
                 }
