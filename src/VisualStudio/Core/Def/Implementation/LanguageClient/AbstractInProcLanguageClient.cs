@@ -246,7 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
-            return Task.FromResult(new InProcLanguageServer(
+            return Task.FromResult((InProcLanguageServer)new VisualStudioInProcLanguageServer(
                 _requestDispatcherFactory,
                 jsonRpc,
                 serverCapabilities,
