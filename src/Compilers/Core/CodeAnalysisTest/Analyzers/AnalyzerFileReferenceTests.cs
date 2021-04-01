@@ -466,7 +466,7 @@ public class Generator : ISourceGenerator
         //       and other determinism tests in this file.
         //       Ensure you do not re-arrange them alphabetically, as that will invalidate the tests, without 
         //       explicitly failing them
-       
+
         [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]
         public class TestAnalyzer : DiagnosticAnalyzer
         {
