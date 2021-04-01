@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public readonly DocumentId DocumentId;
 
         [DataMember(Order = 2)]
-        public readonly string CombinedProjectName;
+        public readonly ImmutableArray<ProjectId> AdditionalMatchingProjects;
 
         [DataMember(Order = 3)]
         public readonly DeclaredSymbolInfo DeclaredSymbolInfo;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public RoslynNavigateToItem(
             bool isStale,
             DocumentId documentId,
-            string combinedProjectName,
+            ImmutableArray<ProjectId> additionalMatchingProjects,
             DeclaredSymbolInfo declaredSymbolInfo,
             string kind,
             NavigateToMatchKind matchKind,
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             IsStale = isStale;
             DocumentId = documentId;
-            CombinedProjectName = combinedProjectName;
+            AdditionalMatchingProjects = additionalMatchingProjects;
             DeclaredSymbolInfo = declaredSymbolInfo;
             Kind = kind;
             MatchKind = matchKind;
@@ -96,32 +96,68 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             private readonly RoslynNavigateToItem _item;
             private readonly Document _document;
+            private readonly string _additionalInformation;
 
             public NavigateToSearchResult(RoslynNavigateToItem item, Document document)
             {
                 _item = item;
                 _document = document;
+                _additionalInformation = ComputeAdditionalInformation();
             }
 
-            string INavigateToSearchResult.AdditionalInformation
+            private string ComputeAdditionalInformation()
             {
-                get
+                // For partial types, state what file they're in so the user can disambiguate the results.
+                var combinedProjectName = ComputeCombinedProjectName();
+                return (_item.DeclaredSymbolInfo.IsPartial, IsNonNestedNamedType()) switch
                 {
-                    // For partial types, state what file they're in so the user can disambiguate the results.
-                    if (_item.DeclaredSymbolInfo.IsPartial)
+                    (true, true) => string.Format(FeaturesResources._0_dash_1, _document.Name, combinedProjectName),
+                    (true, false) => string.Format(FeaturesResources.in_0_1_2, _item.DeclaredSymbolInfo.ContainerDisplayName, _document.Name, combinedProjectName),
+                    (false, true) => string.Format(FeaturesResources.project_0, combinedProjectName),
+                    (false, false) => string.Format(FeaturesResources.in_0_project_1, _item.DeclaredSymbolInfo.ContainerDisplayName, combinedProjectName),
+                };
+            }
+
+            private string ComputeCombinedProjectName()
+            {
+                // If there aren't any additional matches in other projects, we don't need to merge anything.
+                if (_item.AdditionalMatchingProjects.Length > 0)
+                {
+                    // First get the simple project name and flavor for the actual project we got a hit in.  If we can't
+                    // figure this out, we can't create a merged name.
+                    var firstProject = _document.Project;
+                    var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
+
+                    if (firstProjectName != null)
                     {
-                        return IsNonNestedNamedType()
-                            ? string.Format(FeaturesResources._0_dash_1, _document.Name, _item.CombinedProjectName)
-                            : string.Format(FeaturesResources.in_0_1_2, _item.DeclaredSymbolInfo.ContainerDisplayName, _document.Name, _item.CombinedProjectName);
-                    }
-                    else
-                    {
-                        return IsNonNestedNamedType()
-                            ? string.Format(FeaturesResources.project_0, _item.CombinedProjectName)
-                            : string.Format(FeaturesResources.in_0_project_1, _item.DeclaredSymbolInfo.ContainerDisplayName, _item.CombinedProjectName);
+                        var solution = firstProject.Solution;
+
+                        using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
+                        flavors.Add(firstProjectFlavor!);
+
+                        // Now, do the same for the other projects where we had a match. As above, if we can't figure out the
+                        // simple name/flavor, or if the simple project name doesn't match the simple project name we started
+                        // with then we can't merge these.
+                        foreach (var additionalProjectId in _item.AdditionalMatchingProjects)
+                        {
+                            var additionalProject = solution.GetRequiredProject(additionalProjectId);
+                            var (projectName, projectFlavor) = additionalProject.State.NameAndFlavor;
+                            if (projectName == firstProjectName)
+                                flavors.Add(projectFlavor!);
+                        }
+
+                        flavors.RemoveDuplicates();
+                        flavors.Sort();
+
+                        return $"{firstProjectName} ({string.Join(", ", flavors)})";
                     }
                 }
+
+                // Couldn't compute a merged project name (or only had one project).  Just return the name of hte project itself.
+                return _document.Project.Name;
             }
+
+            string INavigateToSearchResult.AdditionalInformation => _additionalInformation;
 
             private bool IsNonNestedNamedType()
                 => !_item.DeclaredSymbolInfo.IsNestedType && IsNamedType();
