@@ -3642,9 +3642,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var baseToStringMethod = getBaseToStringMethod();
                 bool isBaseToStringSealed = baseToStringMethod is { IsSealed: true };
 
-                if (!this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord) && isBaseToStringSealed)
+                if (isBaseToStringSealed)
                 {
-                    if (baseToStringMethod?.ContainingModule != this.ContainingModule)
+                    if (baseToStringMethod!.ContainingModule != this.ContainingModule && !this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord))
                     {
                         var languageVersion = ((CSharpParseOptions)this.Locations[0].SourceTree!.Options).LanguageVersion;
                         var requiredVersion = MessageID.IDS_FeatureSealedToStringInRecord.RequiredVersion();
@@ -3659,24 +3659,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!memberSignatures.TryGetValue(targetMethod, out Symbol? existingToStringMethod))
                     {
-                        if (!isBaseToStringSealed)
-                        {
-                            var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
-                            members.Add(toStringMethod);
-                        }
+                        var toStringMethod = new SynthesizedRecordToString(this, printMethod, memberOffset: members.Count, diagnostics);
+                        members.Add(toStringMethod);
                     }
                     else
                     {
                         var toStringMethod = (MethodSymbol)existingToStringMethod;
-                        if (!isBaseToStringSealed)
+                        if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialMember.System_Object__ToString, diagnostics) && toStringMethod.IsSealed && !IsSealed)
                         {
-                            if (!SynthesizedRecordObjectMethod.VerifyOverridesMethodFromObject(toStringMethod, SpecialMember.System_Object__ToString, diagnostics) && toStringMethod.IsSealed && !IsSealed)
-                            {
-                                MessageID.IDS_FeatureSealedToStringInRecord.CheckFeatureAvailability(
-                                    diagnostics,
-                                    this.DeclaringCompilation,
-                                    toStringMethod.Locations[0]);
-                            }
+                            MessageID.IDS_FeatureSealedToStringInRecord.CheckFeatureAvailability(
+                                diagnostics,
+                                this.DeclaringCompilation,
+                                toStringMethod.Locations[0]);
                         }
                     }
                 }
