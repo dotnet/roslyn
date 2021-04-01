@@ -180,13 +180,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // this file is linked in.  If so, include the full set of projects the match is in so we can display that
             // well in the UI.
             var additionalMatchingProjects = document == null
-                ? ImmutableArray<Project>.Empty
+                ? ImmutableArray<ProjectId>.Empty
                 : await GetAdditionalProjectsWithMatchAsync(document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
 
             return new RoslynNavigateToItem(
                 isStale: false,
                 documentId,
-                ComputeCombinedProjectName(document, additionalMatchingProjects),
+                additionalMatchingProjects,
                 declaredSymbolInfo,
                 kind,
                 matchKind,
@@ -194,46 +194,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 matchedSpans.ToImmutable());
         }
 
-        private static string ComputeCombinedProjectName(Document document, ImmutableArray<Project> additionalMatchingProjects)
-        {
-            // If there aren't any additional matches in other projects, we don't need to merge anything.
-            if (additionalMatchingProjects.Length > 0)
-            {
-                // First get the simple project name and flavor for the actual project we got a hit in.  If we can't
-                // figure this out, we can't create a merged name.
-                var firstProject = document.Project;
-                var (firstProjectName, firstProjectFlavor) = firstProject.State.NameAndFlavor;
-                if (firstProjectName != null)
-                {
-
-                    using var _ = ArrayBuilder<string>.GetInstance(out var flavors);
-                    flavors.Add(firstProjectFlavor!);
-
-                    // Now, do the same for the other projects where we had a match. As above, if we can't figure out the
-                    // simple name/flavor, or if the simple project name doesn't match the simple project name we started
-                    // with then we can't merge these.
-                    foreach (var additionalProject in additionalMatchingProjects)
-                    {
-                        var (projectName, projectFlavor) = additionalProject.State.NameAndFlavor;
-                        if (projectName == firstProjectName)
-                            flavors.Add(projectFlavor!);
-                    }
-
-                    flavors.RemoveDuplicates();
-                    flavors.Sort();
-
-                    return $"{firstProjectName} ({string.Join(", ", flavors)})";
-                }
-            }
-
-            // Couldn't compute a merged project name (or only had one project).  Just return the name of hte project itself.
-            return document.Project.Name;
-        }
-
-        private static async Task<ImmutableArray<Project>> GetAdditionalProjectsWithMatchAsync(
+        private static async Task<ImmutableArray<ProjectId>> GetAdditionalProjectsWithMatchAsync(
             Document document, DeclaredSymbolInfo declaredSymbolInfo, CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<Project>.GetInstance(out var result);
+            using var _ = ArrayBuilder<ProjectId>.GetInstance(out var result);
 
             var solution = document.Project.Solution;
             var linkedDocumentIds = document.GetLinkedDocumentIds();
@@ -245,7 +209,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // See if the index for the other file also contains this same info.  If so, merge the results so the
                 // user only sees them as a single hit in the UI.
                 if (index.DeclaredSymbolInfoSet.Contains(declaredSymbolInfo))
-                    result.Add(linkedDocument.Project);
+                    result.Add(linkedDocument.Project.Id);
             }
 
             result.RemoveDuplicates();
