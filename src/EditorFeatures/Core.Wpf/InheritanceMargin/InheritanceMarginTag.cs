@@ -26,13 +26,19 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
         /// </summary>
         public readonly ImmutableArray<InheritanceMarginItem> MembersOnLine;
 
+        /// <summary>
+        /// Used for accessibility purpose.
+        /// </summary>
+        public readonly int LineNumber;
+
         public readonly Workspace Workspace;
 
-        public InheritanceMarginTag(Workspace workspace, ImmutableArray<InheritanceMarginItem> membersOnLine)
+        public InheritanceMarginTag(Workspace workspace, int lineNumber, ImmutableArray<InheritanceMarginItem> membersOnLine)
         {
             Contract.ThrowIfTrue(membersOnLine.IsEmpty);
 
             Workspace = workspace;
+            LineNumber = lineNumber;
             MembersOnLine = membersOnLine;
             // The common case, one line has one member, avoid to use select & aggregate
             if (membersOnLine.Length == 1)

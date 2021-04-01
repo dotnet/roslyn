@@ -32,6 +32,11 @@
         <target state="new">Multiple members are inherited</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited_on_line_0">
+        <source>Multiple members are inherited on line {0}</source>
+        <target state="new">Multiple members are inherited on line {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_to_0">
         <source>Navigate to '{0}'</source>
         <target state="new">Navigate to '{0}'</target>

@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
                 // We only care about the line, so just tag the start.
                 context.AddTag(new TagSpan<InheritanceMarginTag>(
                     new SnapshotSpan(snapshot, line.Start, length: 0),
-                    new InheritanceMarginTag(document.Project.Solution.Workspace, membersOnTheLineArray)));
+                    new InheritanceMarginTag(document.Project.Solution.Workspace, lineNumber, membersOnTheLineArray)));
             }
         }
     }
