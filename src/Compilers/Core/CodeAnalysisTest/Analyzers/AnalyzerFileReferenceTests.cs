@@ -266,7 +266,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
-                "Microsoft.CodeAnalysis.UnitTests.FSharpGenerator"
+                "Microsoft.CodeAnalysis.UnitTests.FSharpGenerator",
+                "Microsoft.CodeAnalysis.IncrementalAdaptor`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]"
             }, typeNames);
         }
 
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var generators2 = reference.GetGenerators();
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            Assert.Equal(generators, generators2);
+            AssertEx.Equal(generators, generators2);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -299,7 +300,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Microsoft.CodeAnalysis.UnitTests.SubClassedGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
-                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator"
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
+                "Microsoft.CodeAnalysis.IncrementalAdaptor`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]"
             }, typeNames);
         }
 
@@ -314,7 +316,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
-                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator"
+                "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
+                "Microsoft.CodeAnalysis.IncrementalAdaptor`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]"
             }, typeNames);
         }
 
@@ -597,4 +600,15 @@ public class Generator : ISourceGenerator
 
     [Generator(LanguageNames.FSharp)]
     public class FSharpGenerator : TestGenerator { }
+
+    [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class TestIncrementalGenerator : IIncrementalGenerator
+    {
+        public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
+    }
+
+    public class TestIncrementalGeneratorWithNoAttrib : IIncrementalGenerator
+    {
+        public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
+    }
 }
