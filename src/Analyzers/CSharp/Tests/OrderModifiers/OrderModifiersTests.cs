@@ -378,7 +378,7 @@ internal static class C
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/52297#discussion_r605273814"), Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
         [WorkItem(52290, "https://github.com/dotnet/roslyn/issues/52290")]
         public async Task TestInLocalFunction()
         {
