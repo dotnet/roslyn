@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
         {
             // If this context menu just has one member, then if the context menu open, it means all inheritance targets are shown.
-            if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel { HasMultipleMembers: false }})
+            if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel { HasMultipleMembers: false } })
             {
                 Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen, KeyValueLogMessage.Create(LogType.UserAction));
             }
