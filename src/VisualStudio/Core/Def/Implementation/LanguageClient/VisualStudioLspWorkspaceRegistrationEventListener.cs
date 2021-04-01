@@ -7,8 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.CodeAnalysis.LanguageServer.Api;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
 {

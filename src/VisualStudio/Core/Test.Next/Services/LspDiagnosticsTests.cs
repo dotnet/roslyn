@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Api;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -382,7 +383,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
 
-                var languageServer = await InProcLanguageServer.CreateAsync(
+                var languageServer = await AbstractInProcLanguageClient.CreateAsync(
                     languageClient: new TestLanguageClient(),
                     inputStream: inputStream,
                     outputStream: outputStream,

@@ -4,7 +4,7 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer.Api
 {
     /// <summary>
     /// Allows workspaces to register themselves to be considered when LSP requests come in. Any workspace

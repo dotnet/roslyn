@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Api;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -186,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageClient
             return Task.CompletedTask;
         }
 
-        private static async Task<InProcLanguageServer> CreateAsync(
+        internal static async Task<InProcLanguageServer> CreateAsync(
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,

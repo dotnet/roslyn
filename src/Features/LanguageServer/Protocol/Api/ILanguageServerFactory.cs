@@ -5,7 +5,7 @@
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer.Api
 {
     internal interface ILanguageServerFactory
     {

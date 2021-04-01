@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -20,7 +21,7 @@ using StreamJsonRpc;
 
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer.Api
 {
     internal class InProcLanguageServer : IAsyncDisposable
     {
@@ -457,7 +458,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     return;
 
                 // Only publish document diagnostics for the languages this provider supports.
-                if (document.Project.Language != CodeAnalysis.LanguageNames.CSharp && document.Project.Language != CodeAnalysis.LanguageNames.VisualBasic)
+                if (document.Project.Language != LanguageNames.CSharp && document.Project.Language != LanguageNames.VisualBasic)
                     return;
 
                 _diagnosticsWorkQueue.AddWork(document.Id);
@@ -641,13 +642,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return diagnostic;
         }
 
-        private static LSP.DiagnosticSeverity Convert(CodeAnalysis.DiagnosticSeverity severity)
+        private static LSP.DiagnosticSeverity Convert(DiagnosticSeverity severity)
             => severity switch
             {
-                CodeAnalysis.DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
-                CodeAnalysis.DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Hint,
-                CodeAnalysis.DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
-                CodeAnalysis.DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
+                DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
+                DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Hint,
+                DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
+                DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
                 _ => throw ExceptionUtilities.UnexpectedValue(severity),
             };
 
@@ -672,14 +673,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             // if the server shut down due to error, we might not have finished cleaning up
             if (_errorShutdownTask is not null)
-            {
                 await _errorShutdownTask.ConfigureAwait(false);
-            }
 
             if (_logger is IDisposable disposableLogger)
-            {
                 disposableLogger.Dispose();
-            }
         }
 
         internal TestAccessor GetTestAccessor() => new(this);
@@ -705,9 +702,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             internal ImmutableArray<LSP.Diagnostic> GetDiagnosticsForUriAndDocument(DocumentId documentId, Uri uri)
             {
                 if (_server._publishedFileToDiagnostics.TryGetValue(uri, out var dict) && dict.TryGetValue(documentId, out var diagnostics))
-                {
                     return diagnostics;
-                }
 
                 return ImmutableArray<LSP.Diagnostic>.Empty;
             }

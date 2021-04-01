@@ -4,7 +4,7 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Api;
 using Microsoft.VisualStudio.LogHub;
 using Roslyn.Utilities;
 
