@@ -5959,6 +5959,29 @@ record C3 : C2;
         }
 
         [Fact]
+        public void ToString_DerivedRecord_BaseBaseHasSealedToString_And_BaseHasToStringWithDifferentReturnType()
+        {
+            var src = @"
+C1 c = new C3();
+System.Console.Write(c.ToString());
+
+record C1
+{
+    public sealed override string ToString() => ""C1"";
+}
+record C2 : C1
+{
+    public new int ToString() => throw null;
+}
+record C3 : C2;
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C1");
+        }
+
+        [Fact]
         public void ToString_DerivedRecord_TwoFieldsAndTwoProperties_ReverseOrder()
         {
             var src = @"
