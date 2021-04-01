@@ -1,5 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
 // https://github.com/dotnet/runtime/blob/v5.0.4/src/libraries/System.Private.CoreLib/src/System/Gen2GcCallback.cs
@@ -41,7 +42,7 @@ namespace System
         public static void Register(Func<bool> callback)
         {
             // Create a unreachable object that remembers the callback function and target object.
-            new Gen2GcCallback(callback);
+            _ = new Gen2GcCallback(callback);
         }
 
         /// <summary>
@@ -54,7 +55,7 @@ namespace System
         public static void Register(Func<object, bool> callback, object targetObj)
         {
             // Create a unreachable object that remembers the callback function and target object.
-            new Gen2GcCallback(callback, targetObj);
+            _ = new Gen2GcCallback(callback, targetObj);
         }
 
         ~Gen2GcCallback()
