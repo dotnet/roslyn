@@ -858,6 +858,7 @@ namespace Microsoft.Cci
 
                 WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
                 WriteValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString());
+                WriteValue(CompilationOptionNames.OutputKind, module.OutputKind.ToString());
 
                 if (module.EmitOptions.FallbackSourceFileEncoding != null)
                 {
