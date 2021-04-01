@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.SimplifyObjectCreation), [Shared]>
     Friend Class VisualBasicSimplifyObjectCreationCodeFixProvider
         Inherits SyntaxEditorBasedCodeFixProvider
 
