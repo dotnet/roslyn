@@ -322,7 +322,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         }
 
         [ConditionalTheory(typeof(WindowsOnly))]
-        [InlineData(@"C:\", "\t")]
         [InlineData(@"C:\", "B")]
         [InlineData(@"C:\A", "B")]
         [InlineData(@"C:\A\", "B")]
@@ -375,6 +374,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
 
         [ConditionalTheory(typeof(WindowsOnly))]
         [InlineData(@"C:\|\<>", @"C:\|", "<>")]
+        [InlineData("C:\\\t", @"C:\", "\t")]
         [InlineData("C", "C", null)]
         [InlineData("C:B", "C:", "B")]
         [InlineData(null, null, null)]
