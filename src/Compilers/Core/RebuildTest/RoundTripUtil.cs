@@ -176,7 +176,7 @@ Actual:
 
 #pragma warning disable 612 // 'CompilationOptions.Features' is obsolete
 
-        private static void VerifyCompilationOptions(CompilationOptions originalOptions, CompilationOptions rebuildOptions)
+        public static void VerifyCompilationOptions(CompilationOptions originalOptions, CompilationOptions rebuildOptions)
         {
             var type = originalOptions.GetType();
             foreach (var propertyInfo in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
@@ -189,6 +189,12 @@ Actual:
                     case nameof(CompilationOptions.MainTypeName):
                     case nameof(CompilationOptions.ConcurrentBuild):
                     case nameof(CompilationOptions.WarningLevel):
+                    case nameof(CompilationOptions.SyntaxTreeOptionsProvider):
+                    case nameof(CompilationOptions.MetadataReferenceResolver):
+                    case nameof(CompilationOptions.XmlReferenceResolver):
+                    case nameof(CompilationOptions.SourceReferenceResolver):
+                    case nameof(CompilationOptions.StrongNameProvider):
+                    case nameof(CompilationOptions.AssemblyIdentityComparer):
                         // Can be different and are special cased
                         break;
                     case nameof(VisualBasicCompilationOptions.ParseOptions):

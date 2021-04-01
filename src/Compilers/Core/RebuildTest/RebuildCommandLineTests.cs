@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -17,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 {
     public sealed partial class RebuildCommandLineTests : CSharpTestBase
     {
+        private record CommandInfo(string CommandLine, string PeFileName, string? PdbFileName);
+
         internal static string RootDirectory => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"q:\" : "/";
         internal static string ClientDirectory => Path.Combine(RootDirectory, "compiler");
         internal static string WorkingDirectory => Path.Combine(RootDirectory, "rebuild");
@@ -71,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 analyzerConfigOptions: default,
                 globalConfigOptions: default);
             AssertEx.NotNull(compilation);
+            RoundTripUtil.VerifyCompilationOptions(commonCompiler.Arguments.CompilationOptions, compilation.Options);
 
             RoundTripUtil.VerifyRoundTrip(
                 peStream,
@@ -105,21 +110,46 @@ class Library
         {
             var list = new List<object?[]>();
 
-            PermutateOptimizations("hw.cs /target:exe /debug:embedded", "test.exe", null);
-            PermutateOptimizations("lib1.cs /target:library /debug:embedded", "test.dll", null);
+            Add(Permutate(new CommandInfo("hw.cs /target:exe /debug:embedded", "test.exe", null)));
+            Add(Permutate(new CommandInfo("lib1.cs /target:library /debug:embedded", "test.dll", null)));
 
             return list;
 
-            void PermutateOptimizations(string commandLine, string peFileName, string? pdbFileName)
+            IEnumerable<CommandInfo> Permutate(CommandInfo commandInfo)
             {
-                Add(commandLine + " /optimize+", peFileName, pdbFileName);
-                Add(commandLine + " /debug+", peFileName, pdbFileName);
-                Add(commandLine + " /optimize+ /debug+", peFileName, pdbFileName);
+                IEnumerable<CommandInfo> e = new[] { commandInfo };
+                e = e.SelectMany(PermutateOptimizations);
+                return e;
             }
 
-            void Add(string commandLine, string peFileName, string? pdbFileName)
+            IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
             {
-                list.Add(new object?[] { commandLine, peFileName, pdbFileName });
+                // No options at all for optimization
+                yield return commandInfo;
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /debug+ /optimize+"
+                };
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /debug+ /optimize-"
+                };
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /optimize-"
+                };
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /optimize+"
+                };
+            }
+
+            void Add(IEnumerable<CommandInfo> commandInfos)
+            {
+                foreach (var commandInfo in commandInfos)
+                {
+                    list.Add(new object?[] { commandInfo.CommandLine, commandInfo.PeFileName, commandInfo.PdbFileName });
+                }
             }
         }
 
@@ -167,25 +197,59 @@ End Module
         {
             var list = new List<object?[]>();
 
-            PermutateOptimizations("hw.vb /target:exe /debug:embedded", "test.exe", null);
+            Add(Permutate(new CommandInfo("hw.vb /target:exe /debug:embedded", "test.exe", null)));
 
             return list;
 
-            void PermutateOptimizations(string commandLine, string peFileName, string? pdbFileName)
+            IEnumerable<CommandInfo> Permutate(CommandInfo commandInfo)
             {
-                PermutateRuntime(commandLine + " /optimize+", peFileName, pdbFileName);
-                PermutateRuntime(commandLine + " /debug+", peFileName, pdbFileName);
-                PermutateRuntime(commandLine + " /optimize+ /debug+", peFileName, pdbFileName);
+                IEnumerable<CommandInfo> e = new[] { commandInfo };
+                e = e.SelectMany(PermutateOptimizations);
+                e = e.SelectMany(PermutateRuntime);
+                return e;
             }
 
-            void PermutateRuntime(string commandLine, string peFileName, string? pdbFileName)
+            IEnumerable<CommandInfo> PermutateOptimizations(CommandInfo commandInfo)
             {
-                Add(commandLine + " /vbruntime*", peFileName, pdbFileName);
+                // No options at all for optimization
+                yield return commandInfo;
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /debug+ /optimize+"
+                };
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /debug+ /optimize-"
+                };
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /optimize-"
+                };
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /optimize+"
+                };
             }
 
-            void Add(string commandLine, string peFileName, string? pdbFileName)
+            IEnumerable<CommandInfo> PermutateRuntime(CommandInfo commandInfo)
             {
-                list.Add(new object?[] { commandLine, peFileName, pdbFileName });
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + " /vbruntime*"
+                };
+
+                yield return commandInfo with
+                {
+                    CommandLine = commandInfo.CommandLine + @" /d:_MYTYPE=""Empty"" /vbruntime:Microsoft.VisualBasic.dll"
+                };
+            }
+
+            void Add(IEnumerable<CommandInfo> commandInfos)
+            {
+                foreach (var commandInfo in commandInfos)
+                {
+                    list.Add(new object?[] { commandInfo.CommandLine, commandInfo.PeFileName, commandInfo.PdbFileName });
+                }
             }
         }
 
