@@ -356,7 +356,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             params Document[] documentsToPublish)
         {
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-            var languageServer = await CreateLanguageServerAsync(serverStream, serverStream, workspace, diagnosticService).ConfigureAwait(false);
+            var languageServer = CreateLanguageServer(serverStream, serverStream, workspace, diagnosticService);
 
             // Notification target for tests to receive the notification details
             var callback = new Callback(expectedNumberOfCallbacks);
@@ -377,23 +377,27 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
 
             return (languageServer.GetTestAccessor(), callback.Results);
 
-            static async Task<InProcLanguageServer> CreateLanguageServerAsync(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
+            static InProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, IDiagnosticService mockDiagnosticService)
             {
                 var dispatcherFactory = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicRequestDispatcherFactory>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
                 var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<ILspWorkspaceRegistrationService>();
 
-                var languageServer = await AbstractInProcLanguageClient.CreateAsync(
-                    languageClient: new TestLanguageClient(),
-                    inputStream: inputStream,
-                    outputStream: outputStream,
-                    requestDispatcher: dispatcherFactory.CreateRequestDispatcher(),
-                    diagnosticService: mockDiagnosticService,
-                    listenerProvider: listenerProvider,
-                    lspWorkspaceRegistrationService: lspWorkspaceRegistrationService,
-                    asyncServiceProvider: null,
+                var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream));
+
+                var languageServer = new InProcLanguageServer(
+                    dispatcherFactory,
+                    jsonRpc,
+                    new LSP.ServerCapabilities(),
+                    lspWorkspaceRegistrationService,
+                    listenerProvider,
+                    NoOpLspLogger.Instance,
+                    mockDiagnosticService,
                     clientName: null,
-                    cancellationToken: CancellationToken.None).ConfigureAwait(false);
+                    userVisibleServerName: string.Empty,
+                    telemetryServerTypeName: string.Empty);
+
+                jsonRpc.StartListening();
                 return languageServer;
             }
         }
