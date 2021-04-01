@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
             }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var makeAsyncService = document.GetRequiredLanguageService<IMakeMethodAsynchronousService>();
             var methodSymbol = GetMethodSymbol(node, semanticModel, cancellationToken);
 
             if (methodSymbol == null)
@@ -52,7 +51,7 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 return;
             }
 
-            if (makeAsyncService.IsTaskLikeType(methodSymbol.ReturnType, knownTaskTypes))
+            if (knownTaskTypes.IsTaskLikeType(methodSymbol.ReturnType))
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(c => FixAsync(document, diagnostic, c)),

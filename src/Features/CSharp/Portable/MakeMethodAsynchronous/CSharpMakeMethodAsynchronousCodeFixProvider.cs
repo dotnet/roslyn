@@ -47,12 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         protected override SyntaxNode AddAsyncTokenAndFixReturnType(
             bool keepVoid, IMethodSymbol methodSymbolOpt, SyntaxNode node,
-            IMakeMethodAsynchronousService makeAsyncService, KnownTaskTypes knownTaskTypes)
+            KnownTaskTypes knownTaskTypes)
         {
             switch (node)
             {
-                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, makeAsyncService, knownTaskTypes);
-                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, makeAsyncService, knownTaskTypes);
+                case MethodDeclarationSyntax method: return FixMethod(keepVoid, methodSymbolOpt, method, knownTaskTypes);
+                case LocalFunctionStatementSyntax localFunction: return FixLocalFunction(keepVoid, methodSymbolOpt, localFunction, knownTaskTypes);
                 case AnonymousMethodExpressionSyntax method: return FixAnonymousMethod(method);
                 case ParenthesizedLambdaExpressionSyntax lambda: return FixParenthesizedLambda(lambda);
                 case SimpleLambdaExpressionSyntax lambda: return FixSimpleLambda(lambda);
@@ -62,25 +62,25 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 
         private static SyntaxNode FixMethod(
             bool keepVoid, IMethodSymbol methodSymbol, MethodDeclarationSyntax method,
-            IMakeMethodAsynchronousService makeAsyncService, KnownTaskTypes knownTaskTypes)
+            KnownTaskTypes knownTaskTypes)
         {
-            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, makeAsyncService, knownTaskTypes);
+            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTaskTypes);
             var newModifiers = AddAsyncModifierWithCorrectedTrivia(method.Modifiers, ref newReturnType);
             return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
         private static SyntaxNode FixLocalFunction(
             bool keepVoid, IMethodSymbol methodSymbol, LocalFunctionStatementSyntax localFunction,
-            IMakeMethodAsynchronousService makeAsyncService, KnownTaskTypes knownTaskTypes)
+            KnownTaskTypes knownTaskTypes)
         {
-            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, makeAsyncService, knownTaskTypes);
+            var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, knownTaskTypes);
             var newModifiers = AddAsyncModifierWithCorrectedTrivia(localFunction.Modifiers, ref newReturnType);
             return localFunction.WithReturnType(newReturnType).WithModifiers(newModifiers);
         }
 
         private static TypeSyntax FixMethodReturnType(
             bool keepVoid, IMethodSymbol methodSymbol, TypeSyntax returnTypeSyntax,
-            IMakeMethodAsynchronousService makeAsyncService, KnownTaskTypes knownTaskTypes)
+            KnownTaskTypes knownTaskTypes)
         {
             var newReturnType = returnTypeSyntax.WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -106,11 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
                         ? MakeGenericType("IAsyncEnumerator", methodSymbol.ReturnType)
                         : knownTaskTypes.IAsyncEnumeratorOfT.Construct(methodSymbol.ReturnType.GetTypeArguments()[0]).GenerateTypeSyntax();
                 }
-                else if (makeAsyncService.IsIAsyncEnumerableOrEnumerator(returnType, knownTaskTypes))
+                else if (knownTaskTypes.IsIAsyncEnumerableOrEnumerator(returnType))
                 {
                     // Leave the return type alone
                 }
-                else if (!makeAsyncService.IsTaskLikeType(returnType, knownTaskTypes))
+                else if (!knownTaskTypes.IsTaskLikeType(returnType))
                 {
                     // If it's not already Task-like, then wrap the existing return type
                     // in Task<>.

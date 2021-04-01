@@ -30,5 +30,28 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
             IAsyncEnumerableOfT = compilation.IAsyncEnumerableOfTType();
             IAsyncEnumeratorOfT = compilation.IAsyncEnumeratorOfTType();
         }
+
+        public bool IsTaskLikeType(ITypeSymbol type)
+        {
+            if (type.Equals(Task, SymbolEqualityComparer.Default) ||
+                type.Equals(ValueTask, SymbolEqualityComparer.Default) ||
+                type.OriginalDefinition.Equals(TaskOfT, SymbolEqualityComparer.Default) ||
+                type.OriginalDefinition.Equals(ValueTaskOfT, SymbolEqualityComparer.Default))
+            {
+                return true;
+            }
+
+            if (type.IsErrorType())
+            {
+                return type.Name.Equals("Task") ||
+                       type.Name.Equals("ValueTask");
+            }
+
+            return false;
+        }
+
+        public bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType)
+            => returnType.OriginalDefinition.Equals(IAsyncEnumerableOfT, SymbolEqualityComparer.Default) ||
+                returnType.OriginalDefinition.Equals(IAsyncEnumeratorOfT, SymbolEqualityComparer.Default);
     }
 }

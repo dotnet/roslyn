@@ -9,15 +9,15 @@ Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous
 Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
     <ExportLanguageService(GetType(IMakeMethodAsynchronousService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicMakeMethodAsynchronousService
-        Inherits AbstractMakeMethodAsynchronousService
+        Implements IMakeMethodAsynchronousService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Public Overrides Function IsAsyncReturnType(type As ITypeSymbol, knownTaskTypes As KnownTaskTypes) As Boolean
-            Return IsTaskLikeType(type, knownTaskTypes)
+        Public Function IsAsyncReturnType(type As ITypeSymbol, knownTaskTypes As KnownTaskTypes) As Boolean Implements IMakeMethodAsynchronousService.IsAsyncReturnType
+            Return knownTaskTypes.IsTaskLikeType(type)
         End Function
     End Class
 End Namespace

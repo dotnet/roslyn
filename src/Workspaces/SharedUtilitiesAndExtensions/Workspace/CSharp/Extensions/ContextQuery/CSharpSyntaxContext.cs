@@ -403,6 +403,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return false;
         }
 
+        /// <summary>
+        /// Determines whether await should be suggested in a given position.
+        /// </summary>
         internal bool IsAwaitKeywordContext(int position)
         {
             if (IsGlobalStatementContext)

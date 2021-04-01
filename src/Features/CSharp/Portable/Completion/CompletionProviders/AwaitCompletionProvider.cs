@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var asyncService = document.GetRequiredLanguageService<IMakeMethodAsynchronousService>();
                 var symbol = semanticModel.GetDeclaredSymbol(method, cancellationToken) as IMethodSymbol;
                 symbol ??= semanticModel.GetSymbolInfo(method, cancellationToken).Symbol as IMethodSymbol;
-                if (symbol is not null && asyncService.IsTaskLikeType(symbol.ReturnType, new KnownTaskTypes(semanticModel.Compilation)))
+                if (symbol is not null && asyncService.IsAsyncReturnType(symbol.ReturnType, new KnownTaskTypes(semanticModel.Compilation)))
                 {
                     context.AddItem(GetCompletionItem(shouldMakeContainerAsync: true));
                     return;

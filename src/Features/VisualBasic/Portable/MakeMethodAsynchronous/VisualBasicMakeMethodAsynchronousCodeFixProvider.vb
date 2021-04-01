@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
         Protected Overrides Function AddAsyncTokenAndFixReturnType(
                 keepVoid As Boolean, methodSymbolOpt As IMethodSymbol, node As SyntaxNode,
-                makeAsyncService As IMakeMethodAsynchronousService, knownTaskTypes As KnownTaskTypes) As SyntaxNode
+                knownTaskTypes As KnownTaskTypes) As SyntaxNode
 
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
@@ -64,16 +64,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
                 Return FixSubBlock(keepVoid, DirectCast(node, MethodBlockSyntax), knownTaskTypes.Task)
             Else
                 Return FixFunctionBlock(
-                    methodSymbolOpt, DirectCast(node, MethodBlockSyntax), makeAsyncService, knownTaskTypes)
+                    methodSymbolOpt, DirectCast(node, MethodBlockSyntax), knownTaskTypes)
             End If
         End Function
 
-        Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, makeAsyncService As IMakeMethodAsynchronousService, knownTaskTypes As KnownTaskTypes) As SyntaxNode
+        Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTaskTypes As KnownTaskTypes) As SyntaxNode
 
             Dim functionStatement = node.SubOrFunctionStatement
             Dim newFunctionStatement = AddAsyncKeyword(functionStatement)
 
-            If Not makeAsyncService.IsTaskLikeType(methodSymbol.ReturnType, knownTaskTypes) Then
+            If Not knownTaskTypes.IsTaskLikeType(methodSymbol.ReturnType) Then
                 ' if the current return type is not already task-list, then wrap it in Task(of ...)
                 Dim returnType = knownTaskTypes.TaskOfT.Construct(methodSymbol.ReturnType).GenerateTypeSyntax().WithAdditionalAnnotations(Simplifier.AddImportsAnnotation)
                 newFunctionStatement = newFunctionStatement.WithAsClause(

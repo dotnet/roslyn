@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.MakeMethodAsynchronous;
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
 {
     [ExportLanguageService(typeof(IMakeMethodAsynchronousService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpMakeMethodAsynchronousService : AbstractMakeMethodAsynchronousService
+    internal sealed class CSharpMakeMethodAsynchronousService : IMakeMethodAsynchronousService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous
         {
         }
 
-        public override bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTaskTypes)
+        public bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTaskTypes)
         {
-            return IsIAsyncEnumerableOrEnumerator(type, knownTaskTypes) || IsTaskLikeType(type, knownTaskTypes);
+            return knownTaskTypes.IsIAsyncEnumerableOrEnumerator(type) || knownTaskTypes.IsTaskLikeType(type);
         }
     }
 }

@@ -8,10 +8,6 @@ namespace Microsoft.CodeAnalysis.MakeMethodAsynchronous
 {
     internal interface IMakeMethodAsynchronousService : ILanguageService
     {
-        bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTaskTypes knownTaskTypes);
-
-        bool IsTaskLikeType(ITypeSymbol type, KnownTaskTypes knownTaskTypes);
-
         bool IsAsyncReturnType(ITypeSymbol type, KnownTaskTypes knownTaskTypes);
     }
 }
