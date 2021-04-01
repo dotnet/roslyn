@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     public readonly struct MetadataReferenceInfo
     {

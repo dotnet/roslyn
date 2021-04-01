@@ -755,10 +755,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 using var _1 = ArrayBuilder<ManagedModuleUpdate>.GetInstance(out var deltas);
                 using var _2 = ArrayBuilder<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)>.GetInstance(out var nonRemappableRegions);
                 using var _3 = ArrayBuilder<(ProjectId, EmitBaseline)>.GetInstance(out var emitBaselines);
-                using var _4 = ArrayBuilder<IDisposable>.GetInstance(out var readers);
-                using var _5 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
-                using var _6 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
-                using var _7 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
+                using var _4 = ArrayBuilder<(ProjectId, ImmutableArray<Diagnostic>)>.GetInstance(out var diagnostics);
+                using var _5 = ArrayBuilder<Document>.GetInstance(out var changedOrAddedDocuments);
+                using var _6 = ArrayBuilder<(DocumentId, ImmutableArray<RudeEditDiagnostic>)>.GetInstance(out var documentsWithRudeEdits);
 
                 var oldSolution = DebuggingSession.LastCommittedSolution;
 
@@ -855,7 +854,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, readers, out var createBaselineDiagnostics, out var baseline))
+                    if (!DebuggingSession.TryGetOrCreateEmitBaseline(newProject, out var createBaselineDiagnostics, out var baseline))
                     {
                         Debug.Assert(!createBaselineDiagnostics.IsEmpty);
 
@@ -962,11 +961,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 if (isBlocked)
                 {
-                    foreach (var reader in readers)
-                    {
-                        reader.Dispose();
-                    }
-
                     return SolutionUpdate.Blocked(diagnostics.ToImmutable(), documentsWithRudeEdits.ToImmutable());
                 }
 
@@ -975,7 +969,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         (deltas.Count > 0) ? ManagedModuleUpdateStatus.Ready : ManagedModuleUpdateStatus.None,
                         deltas.ToImmutable()),
                     nonRemappableRegions.ToImmutable(),
-                    readers.ToImmutable(),
+
                     emitBaselines.ToImmutable(),
                     diagnostics.ToImmutable(),
                     documentsWithRudeEdits.ToImmutable());
@@ -1131,8 +1125,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 solution,
                 update.EmitBaselines,
                 update.ModuleUpdates.Updates,
-                update.NonRemappableRegions,
-                update.ModuleReaders));
+                update.NonRemappableRegions));
 
             // commit/discard was not called:
             Contract.ThrowIfFalse(previousPendingUpdate == null);
