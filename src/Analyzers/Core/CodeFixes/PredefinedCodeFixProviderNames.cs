@@ -80,5 +80,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveIn = nameof(RemoveIn);
         public const string SimplifyLinqExpression = nameof(SimplifyLinqExpression);
         public const string ChangeNamespaceToMatchFolder = nameof(ChangeNamespaceToMatchFolder);
+        public const string SimplifyObjectCreation = nameof(SimplifyObjectCreation);
     }
 }
