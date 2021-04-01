@@ -103,8 +103,8 @@ class Test
         var typeName = Foo([|typeof(System.String).Name|]);
     }
 
-    void Foo(String typeName) {
-        return;
+    string Foo(string typeName) {
+        return typeName;
     }
 }
 ";
@@ -116,8 +116,8 @@ class Test
         var typeName = Foo(nameof(System.String));
     }
 
-    void Foo(String typeName) {
-        return;
+    string Foo(string typeName) {
+        return typeName;
     }
 }
 ";
@@ -211,7 +211,7 @@ class Test
     void Method()
     {
         var typeName1 = typeof(Test);
-        var typeName2 = typeof(Test).toString();
+        var typeName2 = typeof(Test).ToString();
         var typeName3 = typeof(Test).FullName;
     }
 }
