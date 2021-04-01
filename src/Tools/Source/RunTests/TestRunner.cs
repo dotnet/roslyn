@@ -172,7 +172,7 @@ namespace RunTests
                 {lsCommand}
                 {setRollforward}
                 {setPrereleaseRollforward}
-                dotnet --version
+                dotnet --info
                 {setTestIOperation}
                 dotnet {commandLineArguments}
             </Command>
@@ -249,7 +249,7 @@ namespace RunTests
                 }
 
                 // Display the current status of the TestRunner.
-                // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns. 
+                // Note: The { ... , 2 } is to right align the values, thus aligns sections into columns.
                 ConsoleUtil.Write($"  {running.Count,2} running, {waiting.Count,2} queued, {completed.Count,2} completed");
                 if (failures > 0)
                 {
