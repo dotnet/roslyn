@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using static Microsoft.CodeAnalysis.EditAndContinue.TraceLog;
-using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
@@ -33,7 +32,14 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     IInvocationOperation invocationOperation => VisitInvocationAsync(invocationOperation, cancellationToken),
                     ILiteralOperation literalOperation => VisitLiteralAsync(literalOperation, cancellationToken),
                     IReturnOperation returnOperation => VisitReturnAsync(returnOperation, cancellationToken),
+                    IArgumentOperation argumentOperation => ShouldTrackArgument(argumentOperation) ? VisitAsync(argumentOperation.Value, cancellationToken) : Task.CompletedTask,
+                    ILocalReferenceOperation localReferenceOperation => VisitLocalReferenceAsync(localReferenceOperation, cancellationToken),
+                    IParameterReferenceOperation parameterReferenceOperation => VisitParameterReferenceAsync(parameterReferenceOperation, cancellationToken),
                     IFieldReferenceOperation fieldReferenceOperation => VisitFieldReferenceAsync(fieldReferenceOperation, cancellationToken),
+                    IPropertyReferenceOperation propertyReferenceOperation => VisitPropertyReferenceAsync(propertyReferenceOperation, cancellationToken),
+                    IAssignmentOperation assignmentOperation => VisitAssignmentOperationAsync(assignmentOperation, cancellationToken),
+
+                    // Default to reporting if there is symbol information available
                     _ => VisitDefaultAsync(operation, cancellationToken)
                 };
 
@@ -66,8 +72,8 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 await AddOperationAsync(operation, symbolInfo.Symbol, cancellationToken).ConfigureAwait(false);
             }
 
-            private Task VisitFieldReferenceAsync(IFieldReferenceOperation fieldReferenceOperation, CancellationToken cancellationToken)
-               => AddOperationAsync(fieldReferenceOperation, fieldReferenceOperation.Member, cancellationToken);
+            private Task VisitAssignmentOperationAsync(IAssignmentOperation assignmentOperation, CancellationToken cancellationToken)
+                => VisitDefaultAsync(assignmentOperation.Value, cancellationToken);
 
             private Task VisitObjectCreationAsync(IObjectCreationOperation objectCreationOperation, CancellationToken cancellationToken)
                 => TrackArgumentsAsync(objectCreationOperation.Arguments, cancellationToken);
@@ -76,6 +82,77 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             {
                 await AddOperationAsync(invocationOperation, invocationOperation.TargetMethod, cancellationToken).ConfigureAwait(false);
                 await TrackArgumentsAsync(invocationOperation.Arguments, cancellationToken).ConfigureAwait(false);
+            }
+
+            private Task VisitLocalReferenceAsync(ILocalReferenceOperation localReferenceOperation, CancellationToken cancellationToken)
+            {
+                if (IsOutOrRefForMethod(localReferenceOperation, out var parameterSymbol))
+                {
+                    return AddOperationAsync(localReferenceOperation, parameterSymbol, cancellationToken);
+                }
+
+                return Task.CompletedTask;
+            }
+
+            private Task VisitParameterReferenceAsync(IParameterReferenceOperation parameterReferenceOperation, CancellationToken cancellationToken)
+            {
+                if (IsOutOrRefForMethod(parameterReferenceOperation, out var parameterSymbol))
+                {
+                    return AddOperationAsync(parameterReferenceOperation, parameterSymbol, cancellationToken);
+                }
+
+                return Task.CompletedTask;
+            }
+
+            private Task VisitFieldReferenceAsync(IFieldReferenceOperation fieldReferenceOperation, CancellationToken cancellationToken)
+            {
+                if (IsOutOrRefForMethod(fieldReferenceOperation, out var parameterSymbol))
+                {
+                    return AddOperationAsync(fieldReferenceOperation, parameterSymbol, cancellationToken);
+                }
+
+                return Task.CompletedTask;
+            }
+
+            private Task VisitPropertyReferenceAsync(IPropertyReferenceOperation propertyReferenceOperation, CancellationToken cancellationToken)
+            {
+                if (IsOutOrRefForMethod(propertyReferenceOperation, out var parameterSymbol))
+                {
+                    return AddOperationAsync(propertyReferenceOperation, parameterSymbol, cancellationToken);
+                }
+
+                return Task.CompletedTask;
+            }
+
+            private static bool IsOutOrRefForMethod(IOperation operation, [NotNullWhen(returnValue: true)] out IParameterSymbol? parameterSymbol)
+            {
+                var originalOperation = operation;
+                parameterSymbol = null;
+
+                var argumentOperation = operation as IArgumentOperation;
+                while (argumentOperation is null)
+                {
+                    if (operation.Parent is null)
+                    {
+                        return false;
+                    }
+
+                    operation = operation.Parent;
+                    argumentOperation = operation as IArgumentOperation;
+                }
+
+                if (argumentOperation is null)
+                {
+                    return false;
+                }
+
+                if (argumentOperation.Value == originalOperation)
+                {
+                    parameterSymbol = argumentOperation.Parameter;
+                    return true;
+                }
+
+                return false;
             }
 
             private async Task VisitLiteralAsync(ILiteralOperation literalOperation, CancellationToken cancellationToken)
@@ -110,12 +187,12 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             private async Task TrackArgumentsAsync(ImmutableArray<IArgumentOperation> argumentOperations, CancellationToken cancellationToken)
             {
                 var collectorsAndArgumentMap = argumentOperations
-                    .Where(ShouldTrack)
+                    .Where(ShouldTrackArgument)
                     .Select(argument => (collector: Clone(), argument))
                     .ToImmutableArray();
 
                 var tasks = collectorsAndArgumentMap
-                    .Select(pair => pair.collector.VisitAsync(pair.argument.Value, cancellationToken));
+                    .Select(pair => pair.collector.VisitAsync(pair.argument, cancellationToken));
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
@@ -128,16 +205,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 {
                     ProgressCollector.Report(item);
                 }
-
-                static bool ShouldTrack(IArgumentOperation argumentOperation)
-                {
-                    return argumentOperation.Parameter.IsRefOrOut()
-                        || argumentOperation.Value is IExpressionStatementOperation
-                            or IBinaryOperation
-                            or IInvocationOperation
-                            or IParameterReferenceOperation
-                            or ILiteralOperation;
-                }
             }
 
             private OperationCollector Clone()
@@ -145,6 +212,16 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 var collector = new ValueTrackingProgressCollector();
                 collector.Parent = ProgressCollector.Parent;
                 return new OperationCollector(collector, Solution);
+            }
+
+            private static bool ShouldTrackArgument(IArgumentOperation argumentOperation)
+            {
+                return argumentOperation.Parameter?.IsRefOrOut() == true
+                    || argumentOperation.Value is IExpressionStatementOperation
+                        or IBinaryOperation
+                        or IInvocationOperation
+                        or IParameterReferenceOperation
+                        or ILiteralOperation;
             }
         }
     }

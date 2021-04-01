@@ -5,28 +5,27 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Elfie.Model;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
+    internal class BaseTrackingService
+    {
+
+    }
+
     [ExportWorkspaceService(typeof(IValueTrackingService)), Shared]
-    internal partial class ValueTrackingService : IValueTrackingService
+    internal partial class ValueTrackingService : BaseTrackingService, IValueTrackingService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -51,6 +50,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             CancellationToken cancellationToken)
         {
             var (symbol, node) = await GetSelectedSymbolAsync(selection, document, cancellationToken).ConfigureAwait(false);
+            var operationCollector = new OperationCollector(progressCollector, document.Project.Solution);
 
             if (symbol
                 is IPropertySymbol
@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 or IParameterSymbol)
             {
                 RoslynDebug.AssertNotNull(node);
-                var operationCollector = new OperationCollector(progressCollector, document.Project.Solution);
 
                 var solution = document.Project.Solution;
                 var declaringSyntaxReferences = symbol.DeclaringSyntaxReferences;
@@ -96,6 +95,20 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     await progressCollector.TryReportAsync(document.Project.Solution, node.GetLocation(), symbol, cancellationToken).ConfigureAwait(false);
                 }
             }
+            else if (node is not null)
+            {
+                // If the correct symbol couldn't be determined but a node is available, try to let
+                // the operation collector handle the operation and report as needed
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var operation = semanticModel.GetOperation(node, cancellationToken);
+
+                if (operation is null)
+                {
+                    return;
+                }
+
+                await operationCollector.VisitAsync(operation, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         public async Task<ImmutableArray<ValueTrackedItem>> TrackValueSourceAsync(
@@ -128,10 +141,22 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 case IParameterSymbol parameterSymbol:
                     {
-                        // The "output" is method calls, so track where this method is invoked for the parameter as 
-                        // well as assignments inside the method. Both contribute to the final values
-                        await TrackVariableSymbolAsync(previousTrackedItem.Symbol, operationCollector, cancellationToken).ConfigureAwait(false);
-                        await TrackParameterSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        if (parameterSymbol.IsRefOrOut())
+                        {
+                            // For Ref or Out parameters, they contribute data across method calls through assignments
+                            // within the method. No need to track returns
+                            // Ex: TryGetValue("mykey", out var [|v|])
+                            // [|v|] is the interesting part, we don't care what the method returns
+                            await TrackVariableSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
+
+                        }
+                        else
+                        {
+                            // The "output" is method calls, so track where this method is invoked for the parameter as 
+                            // well as assignments inside the method. Both contribute to the final values
+                            await TrackVariableSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                            await TrackParameterSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        }
                     }
                     break;
 
@@ -264,6 +289,22 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 semanticModel.GetSymbolInfo(selectedNode, cancellationToken).Symbol
                 ?? semanticModel.GetDeclaredSymbol(selectedNode, cancellationToken);
 
+            if (selectedSymbol is null)
+            {
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                // If the node is an argument it's possible that it's just 
+                // an identifier in the expression. If so, then grab the symbol
+                // for that node instead of the argument. 
+                // EX: MyMethodCall($$x, y) should get the identifier x and
+                // the symbol for that identifier
+                if (syntaxFacts.IsArgument(selectedNode))
+                {
+                    selectedNode = syntaxFacts.GetExpressionOfArgument(selectedNode);
+                    selectedSymbol = semanticModel.GetSymbolInfo(selectedNode, cancellationToken).Symbol;
+                }
+            }
+
             return (selectedSymbol, selectedNode);
         }
 
@@ -290,8 +331,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 return;
             }
 
-            var rhsOperation = assignmentOperation.Value;
-            await collector.VisitAsync(rhsOperation, cancellationToken).ConfigureAwait(false);
+            await collector.VisitAsync(assignmentOperation, cancellationToken).ConfigureAwait(false);
         }
     }
 }

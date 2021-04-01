@@ -33,6 +33,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
             return await service.TrackValueSourceAsync(item, cancellationToken);
         }
 
+        internal static async Task<ImmutableArray<ValueTrackedItem>> ValidateItemsAsync(TestWorkspace testWorkspace, (int line, string text)[] itemInfo, CancellationToken cancellationToken = default)
+        {
+            var items = await GetTrackedItemsAsync(testWorkspace, cancellationToken);
+            Assert.True(itemInfo.Length == items.Length, $"GetTrackedItemsAsync\n\texpected: [{string.Join(",", itemInfo.Select(p => p.text))}]\n\t  actual: [{string.Join(",", items)}]");
+
+            for (var i = 0; i < items.Length; i++)
+            {
+                ValidateItem(items[i], itemInfo[i].line, itemInfo[i].text);
+            }
+
+            return items;
+        }
+
         internal static async Task<ImmutableArray<ValueTrackedItem>> ValidateChildrenAsync(TestWorkspace testWorkspace, ValueTrackedItem item, (int line, string text)[] childInfo, CancellationToken cancellationToken = default)
         {
             var children = await GetTrackedItemsAsync(testWorkspace, item, cancellationToken);

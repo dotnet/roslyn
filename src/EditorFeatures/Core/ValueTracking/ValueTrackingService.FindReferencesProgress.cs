@@ -2,11 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -14,7 +9,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
@@ -51,8 +45,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     return;
                 }
 
-                var solution = location.Document.Project.Solution;
-
                 if (symbol is IMethodSymbol methodSymbol)
                 {
                     if (methodSymbol.IsConstructor())
@@ -77,7 +69,14 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     }
                     else
                     {
-                        await _operationCollector.ProgressCollector.TryReportAsync(solution, location.Location, symbol, _cancellationToken).ConfigureAwait(false);
+                        var semanticModel = await location.Document.GetRequiredSemanticModelAsync(_cancellationToken).ConfigureAwait(false);
+                        var operation = semanticModel.GetOperation(node, _cancellationToken);
+                        if (operation is null)
+                        {
+                            return;
+                        }
+
+                        await _operationCollector.VisitAsync(operation, _cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

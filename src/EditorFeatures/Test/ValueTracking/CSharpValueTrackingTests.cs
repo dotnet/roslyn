@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ValueTracking
 {
@@ -31,16 +32,19 @@ class C
 }
 ";
             using var workspace = TestWorkspace.CreateCSharp(code);
-            var initialItems = await GetTrackedItemsAsync(workspace);
 
             //
             // property S 
             //  |> S = s [Code.cs:7]
             //  |> public string S { get; set; } [Code.cs:3]
             //
-            Assert.Equal(2, initialItems.Length);
-            ValidateItem(initialItems[0], 7);
-            ValidateItem(initialItems[1], 3);
+            await ValidateItemsAsync(
+                workspace,
+                itemInfo: new[]
+                {
+                    (7, "s"),
+                    (3, "public string S { get; set; } = \"\""),
+                });
         }
 
         [Fact]
@@ -442,7 +446,6 @@ class Program
                 });
             await ValidateChildrenEmptyAsync(workspace, children);
 
-
             // |> CallS(c, [|CalculateDefault(c)|] + _adornment) [Code.cs:28]
             children = await ValidateChildrenAsync(
                 workspace,
@@ -532,6 +535,73 @@ namespace N
                 {
                     (10, "x") // |> return x [Code.cs:10]
                 });
+        }
+
+        [Fact]
+        public async Task OutParam()
+        {
+            var code = @"
+class C
+{
+    bool TryConvertInt(object o, out int i)
+    {
+        if (int.TryParse(o.ToString(), out i))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    void M()
+    {
+        int i = 0;
+        object o = ""5"";
+
+        if (TryConvertInt(o, out i))
+        {
+            Console.WriteLine($$i);
+        }
+        else
+        {
+            i = 2;
+        }
+    }
+}";
+
+            //
+            //  |> Console.WriteLine($$i); [Code.cs:20]
+            //    |> i = [|2|] [Code.cs:24]
+            //    |> if (TryConvertInt(o, out [|i|])) [Code.cs:18]
+            //      |> if (int.TryParse(o.ToString(), out [|i|])) [Code.cs:5]
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var initialItems = await GetTrackedItemsAsync(workspace);
+
+            Assert.Equal(1, initialItems.Length);
+
+            // |> Console.WriteLine($$i);[Code.cs:20]
+            ValidateItem(initialItems.Single(), 20, "i");
+
+            var children = await ValidateChildrenAsync(
+                workspace,
+                initialItems.Single(),
+                childInfo: new[]
+                {
+                    (24, "2"), // |> i = [|2|] [Code.cs:24]
+                    (18, "i"), // |> if (TryConvertInt(o, out [|i|])) [Code.cs:18]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, children[0]);
+
+            children = await ValidateChildrenAsync(
+                workspace,
+                children[1],
+                childInfo: new[]
+                {
+                    (5, "i") // |> if (int.TryParse(o.ToString(), out [|i|])) [Code.cs:5]
+                });
+
+            await ValidateChildrenEmptyAsync(workspace, children[0]);
         }
     }
 }
