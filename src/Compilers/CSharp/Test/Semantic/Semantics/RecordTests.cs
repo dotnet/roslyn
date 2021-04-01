@@ -6960,18 +6960,24 @@ public record B : A {
         public void ToString_NewToString_SealedBaseToString()
         {
             var source = @"
+B b = new B();
+System.Console.Write(b.ToString());
+A a = b;
+System.Console.Write(a.ToString());
+
 public record A
 {
-    public sealed override string ToString() => throw null;
+    public sealed override string ToString() => ""A"";
 }
 
 public record B : A
 {
-    public new string ToString() => throw null;
+    public new string ToString() => ""B"";
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "BA");
         }
 
         [Theory]
@@ -7038,12 +7044,15 @@ public record B : A
 
     .method public final hidebysig virtual instance string ToString () cil managed
     {
-        IL_0000: ldnull
-        IL_0001: throw
+        IL_0000: ldstr ""A""
+        IL_0001: ret
     }
 }
 ";
             var source = @"
+var b = new B();
+System.Console.Write(b.ToString());
+
 public record B : A {
 }";
             var comp = CreateCompilationWithIL(
@@ -7057,9 +7066,9 @@ public record B : A {
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (2,1): error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9. Please use language version 'preview' or greater.
+                    // (2,1): error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# 9.0. Please use language version 'preview' or greater.
                     // record B : A
-                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "B").WithArguments("9.0", "preview").WithLocation(2, 15)
+                    Diagnostic(ErrorCode.ERR_InheritingFromRecordWithSealedToString, "B").WithArguments("9.0", "preview").WithLocation(5, 15)
                     );
             }
         }
