@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
                 _semanticModel = semanticModel
                 _expressionToInline = expressionToInline
                 _cancellationToken = cancellationToken
-                _localSymbol = DirectCast(_semanticModel.GetDeclaredSymbol(_definition), ILocalSymbol)
+                _localSymbol = DirectCast(_semanticModel.GetDeclaredSymbol(_definition, cancellationToken), ILocalSymbol)
             End Sub
 
             Private Function IsReference(node As SimpleNameSyntax) As Boolean
