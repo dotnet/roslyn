@@ -7,6 +7,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -19,27 +20,77 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
 {
     public partial class MetadataAsSourceTests : AbstractMetadataAsSourceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public async Task TestClass()
+        public enum OriginatingProjectLanguage
+        {
+            CSharp,
+            VisualBasic,
+        }
+
+        private static string ToLanguageName(OriginatingProjectLanguage language)
+            => language switch
+            {
+                OriginatingProjectLanguage.CSharp => LanguageNames.CSharp,
+                OriginatingProjectLanguage.VisualBasic => LanguageNames.VisualBasic,
+                _ => throw ExceptionUtilities.UnexpectedValue(language),
+            };
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestClass(OriginatingProjectLanguage language, bool allowDecompilation)
         {
             var metadataSource = "public class C {}";
             var symbolName = "C";
 
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            var expected = (language, allowDecompilation) switch
+            {
+                (OriginatingProjectLanguage.CSharp, false) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
 public class [|C|]
 {{
     public C();
-}}");
-            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+}}",
+                (OriginatingProjectLanguage.VisualBasic, false) => $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
 ' {CodeAnalysisResources.InMemoryAssembly}
 #End Region
 
 Public Class [|C|]
     Public Sub New()
-End Class");
+End Class",
+                (OriginatingProjectLanguage.CSharp, true) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+#endregion
+
+public class [|C|]
+{{
+}}
+#if false // {CSharpEditorResources.Decompilation_log}
+{string.Format(CSharpEditorResources._0_items_in_cache, 6)}
+------------------
+{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+#endif",
+                (OriginatingProjectLanguage.VisualBasic, true) => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {FeaturesResources.location_unknown}
+// Decompiled with ICSharpCode.Decompiler 6.1.0.5902
+#endregion
+
+public class [|C|]
+{{
+}}
+#if false // {CSharpEditorResources.Decompilation_log}
+{string.Format(CSharpEditorResources._0_items_in_cache, 9)}
+------------------
+{string.Format(CSharpEditorResources.Resolve_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(CSharpEditorResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
+{string.Format(CSharpEditorResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
+#endif",
+                _ => throw ExceptionUtilities.Unreachable,
+            };
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, ToLanguageName(language), expected, allowDecompilation: allowDecompilation);
         }
 
         [WorkItem(546241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546241")]

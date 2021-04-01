@@ -8,10 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 {
@@ -109,8 +111,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
                 // reference assemblies should be fine here, we only need the metadata of references.
                 var reference = _parentCompilation.GetMetadataReference(assembly);
                 Log(CSharpEditorResources.Load_from_0, reference.Display);
-                return new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
+                if (File.Exists(reference.Display))
+                {
+                    return new PEFile(reference.Display, PEStreamOptions.PrefetchMetadata);
+                }
+                else
+                {
+                    var peReader = GetPropertyValue<PEReader>(GetPropertyValue(assembly.GetMetadata().GetModules().First(), "Module"), "PEReaderOpt");
+                    return new PEFile(reference.Display, peReader);
+                }
             }
+        }
+
+        private static PropertyType GetPropertyValue<PropertyType>(object instance, string propertyName)
+        {
+            return (PropertyType)GetPropertyValue(instance, propertyName);
+        }
+
+        private static object GetPropertyValue(object instance, string propertyName)
+        {
+            var type = instance.GetType();
+            var propertyInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (propertyInfo == null)
+            {
+                throw new ArgumentException("Property " + propertyName + " was not found on type " + type.ToString());
+            }
+            var result = propertyInfo.GetValue(instance, null);
+            return result;
         }
 
         public PEFile ResolveModule(PEFile mainModule, string moduleName)

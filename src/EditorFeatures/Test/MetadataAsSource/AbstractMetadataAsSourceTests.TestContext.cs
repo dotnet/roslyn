@@ -105,9 +105,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 Assert.Equal(expectedSpan.End, actualSpan.End);
             }
 
-            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null)
+            public async Task GenerateAndVerifySourceAsync(string symbolMetadataName, string expected, Project? project = null, bool allowDecompilation = false)
             {
-                var result = await GenerateSourceAsync(symbolMetadataName, project);
+                var result = await GenerateSourceAsync(symbolMetadataName, project, allowDecompilation);
                 VerifyResult(result, expected);
             }
 

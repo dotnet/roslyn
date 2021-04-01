@@ -6,11 +6,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             var containingOrThis = symbol.GetContainingTypeOrThis();
             var fullName = GetFullReflectionName(containingOrThis);
 
+            var peReader = GetPropertyValue<PEReader>(GetPropertyValue(symbol.ContainingAssembly.GetMetadata().GetModules().First(), "Module"), "PEReaderOpt");
             string assemblyLocation = null;
             var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
                 && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
@@ -66,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             if (assemblyLocation == null)
             {
                 var reference = symbolCompilation.GetMetadataReference(symbol.ContainingAssembly);
-                assemblyLocation = (reference as PortableExecutableReference)?.FilePath;
+                assemblyLocation = (reference as PortableExecutableReference)?.FilePath ?? symbol.ContainingAssembly.Name;
                 if (assemblyLocation == null)
                 {
                     throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             }
 
             // Decompile
-            document = PerformDecompilation(document, fullName, symbolCompilation, assemblyLocation);
+            document = PerformDecompilation(document, fullName, symbolCompilation, peReader, assemblyLocation);
 
             document = await AddAssemblyInfoRegionAsync(document, symbol, cancellationToken).ConfigureAwait(false);
 
@@ -83,6 +88,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             document = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
             return await FormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static PropertyType GetPropertyValue<PropertyType>(object instance, string propertyName)
+        {
+            return (PropertyType)GetPropertyValue(instance, propertyName);
+        }
+
+        private static object GetPropertyValue(object instance, string propertyName)
+        {
+            var type = instance.GetType();
+            var propertyInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            if (propertyInfo == null)
+            {
+                throw new ArgumentException("Property " + propertyName + " was not found on type " + type.ToString());
+            }
+            var result = propertyInfo.GetValue(instance, null);
+            return result;
         }
 
         public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
@@ -99,10 +121,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
             return formattedDoc;
         }
 
-        private static Document PerformDecompilation(Document document, string fullName, Compilation compilation, string assemblyLocation)
+        private static Document PerformDecompilation(Document document, string fullName, Compilation compilation, PEReader peReader, string assemblyLocation)
         {
             // Load the assembly.
-            var file = new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);
+            var file = new PEFile(assemblyLocation, peReader);
 
             var logger = new StringBuilder();
 
