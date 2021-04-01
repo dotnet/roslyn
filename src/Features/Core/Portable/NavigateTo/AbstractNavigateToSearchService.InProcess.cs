@@ -35,27 +35,27 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 // Map our value to 'Fuzzy' as that's the lower value the platform supports.
                 (PatternMatchKind.LowercaseSubstring, NavigateToMatchKind.Fuzzy));
 
-        public static Task SearchProjectInCurrentProcessAsync(
+        public static Task SearchFullyLoadedProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
+            IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
-                project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, onResultFound, isFullyLoaded, cancellationToken);
+                project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, onResultFound, cancellationToken);
         }
 
         public static Task SearchDocumentInCurrentProcessAsync(
             Document document, string searchPattern, IImmutableSet<string> kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
+            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
                 document.Project, priorityDocuments: ImmutableArray<Document>.Empty,
-                document, searchPattern, kinds, onResultFound, isFullyLoaded, cancellationToken);
+                document, searchPattern, kinds, onResultFound, cancellationToken);
         }
 
         private static async Task FindSearchResultsAsync(
             Project project, ImmutableArray<Document> priorityDocuments,
             Document? searchDocument, string pattern, IImmutableSet<string> kinds,
-            Func<RoslynNavigateToItem, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
+            Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
             // If the user created a dotted pattern then we'll grab the last part of the name
             var (patternName, patternContainerOpt) = PatternMatcher.GetNameAndContainer(pattern);
@@ -70,11 +70,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var lowPriDocs = project.Documents.Where(d => !highPriDocs.Contains(d)).ToSet();
             await ProcessDocumentsAsync(searchDocument, patternName, patternContainerOpt, declaredSymbolInfoKindsSet, onResultFound, lowPriDocs, cancellationToken).ConfigureAwait(false);
 
-            // Don't bother checking generated documents during solution load.  It's slow and requires generating
-            // compilations, and the user will already get a message saying the search is only showing partial results.
-            if (!isFullyLoaded)
-                return;
-
             // if the caller is only searching a single doc, and we already covered it above, don't bother computing
             // source-generator docs.
             if (searchDocument != null && (highPriDocs.Contains(searchDocument) || lowPriDocs.Contains(searchDocument)))
@@ -87,7 +82,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task ProcessDocumentsAsync(
-            Document? searchDocument, string patternName, string patternContainerOpt, DeclaredSymbolInfoKindSet kinds,
+            Document? searchDocument, string patternName, string? patternContainer, DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onResultFound, ISet<Document> documents, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Task>.GetInstance(out var tasks);
@@ -99,26 +94,26 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(Task.Run(() =>
-                    ProcessDocumentAsync(document, patternName, patternContainerOpt, kinds, onResultFound, cancellationToken), cancellationToken));
+                    ProcessDocumentAsync(document, patternName, patternContainer, kinds, onResultFound, cancellationToken), cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private static async Task ProcessDocumentAsync(
-            Document document, string patternName, string patternContainerOpt, DeclaredSymbolInfoKindSet kinds,
+            Document document, string patternName, string? patternContainer, DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
-            var containerMatcher = patternContainerOpt != null
-                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainerOpt)
+            var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+
+            var containerMatcher = patternContainer != null
+                ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer)
                 : null;
 
             using var nameMatcher = PatternMatcher.CreatePatternMatcher(patternName, includeMatchedSpans: true, allowFuzzyMatching: true);
             using var _1 = containerMatcher;
             using var _2 = ArrayBuilder<PatternMatch>.GetInstance(out var nameMatches);
             using var _3 = ArrayBuilder<PatternMatch>.GetInstance(out var containerMatches);
-
-            var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
             {
@@ -133,7 +128,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private static async Task AddResultIfMatchAsync(
             Document document, DeclaredSymbolInfo declaredSymbolInfo,
-            PatternMatcher nameMatcher, PatternMatcher? containerMatcherOpt,
+            PatternMatcher nameMatcher, PatternMatcher? containerMatcher,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
@@ -144,7 +139,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             cancellationToken.ThrowIfCancellationRequested();
             if (kinds.Contains(declaredSymbolInfo.Kind) &&
                 nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
-                containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
+                containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
             {
                 var result = await ConvertResultAsync(
                     declaredSymbolInfo, document, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);

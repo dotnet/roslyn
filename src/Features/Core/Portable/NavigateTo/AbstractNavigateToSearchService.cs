@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -67,18 +68,25 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 document, searchPattern, kinds, onItemFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task SearchProjectAsync(
+        public Task SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
+        {
+            return isFullyLoaded
+                ? SearchFullyLoadedProjectAsync(project, priorityDocuments, searchPattern, kinds, onResultFound, cancellationToken)
+                : SearchCachedProjectAsync(project, priorityDocuments, searchPattern, kinds, onResultFound, cancellationToken);
+        }
+
+        private async Task SearchFullyLoadedProjectAsync(
             Project project,
             ImmutableArray<Document> priorityDocuments,
             string searchPattern,
             IImmutableSet<string> kinds,
             Func<INavigateToSearchResult, Task> onResultFound,
-            bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
             var solution = project.Solution;
-            var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
+
             if (client != null)
             {
                 var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
@@ -92,8 +100,38 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return;
             }
 
-            await SearchProjectInCurrentProcessAsync(
-                project, priorityDocuments, searchPattern, kinds, onItemFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+            await SearchFullyLoadedProjectInCurrentProcessAsync(
+                project, priorityDocuments, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task SearchCachedProjectAsync(
+            Project project,
+            ImmutableArray<Document> priorityDocuments,
+            string searchPattern,
+            IImmutableSet<string> kinds,
+            Func<INavigateToSearchResult, Task> onResultFound,
+            CancellationToken cancellationToken)
+        {
+            var solution = project.Solution;
+            var solutionKey = SolutionKey.ToSolutionKey(solution);
+            var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
+            var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
+
+            var documentIds = project.DocumentIds.ToImmutableArray();
+            var priorityDocumentIds = priorityDocuments.SelectAsArray(d => d.Id);
+            if (client != null)
+            {
+                var callback = new NavigateToSearchServiceCallback(onItemFound);
+                await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                    (service, callbackId, cancellationToken) =>
+                        service.SearchCachedProjectAsync(solutionKey, documentIds, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                    callback, cancellationToken).ConfigureAwait(false);
+
+                return;
+            }
+
+            await SearchCachedProjectInCurrentProcessAsync(
+                workspace, solutionKey, documentIds, priorityDocumentIds, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
     }
 }

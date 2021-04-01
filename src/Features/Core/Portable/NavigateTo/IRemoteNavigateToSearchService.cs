@@ -8,17 +8,16 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal interface IRemoteNavigateToSearchService
     {
-        ValueTask SearchDocumentAsync(
-            PinnedSolutionInfo solutionInfo, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, bool isFullyLoaded, CancellationToken cancellationToken);
-
-        ValueTask SearchProjectAsync(
-            PinnedSolutionInfo solutionInfo, ProjectId projectId, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, bool isFullyLoaded, CancellationToken cancellationToken);
+        ValueTask SearchDocumentAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+        ValueTask SearchProjectAsync(PinnedSolutionInfo solutionInfo, ProjectId projectId, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+        ValueTask SearchCachedProjectAsync(SolutionKey solutionKey, ImmutableArray<DocumentId> documentIds, ImmutableArray<DocumentId> priorityDocumentIds, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
 
         public interface ICallback
         {
