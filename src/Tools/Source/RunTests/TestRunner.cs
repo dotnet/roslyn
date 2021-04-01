@@ -158,7 +158,8 @@ namespace RunTests
                 var rehydrateFilename = isUnix ? "rehydrate.sh" : "rehydrate.cmd";
                 var lsCommand = isUnix ? "ls" : "dir";
                 var rehydrateCommand = isUnix ? $"./{rehydrateFilename}" : $@"call .\{rehydrateFilename}";
-                var setEnvironmentVariables = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
+                var setPrereleaseRollforward = $"{(isUnix ? "export" : "set")} DOTNET_ROLL_FORWARD_TO_PRERELEASE=1";
+                var setTestIOperation = Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION") is { } iop
                     ? $"{(isUnix ? "export" : "set")} ROSLYN_TEST_IOPERATION={iop}"
                     : "";
                 var workItem = $@"
@@ -168,8 +169,9 @@ namespace RunTests
                 {lsCommand}
                 {rehydrateCommand}
                 {lsCommand}
+                {setPrereleaseRollforward}
                 dotnet --version
-                {setEnvironmentVariables}
+                {setTestIOperation}
                 dotnet {commandLineArguments}
             </Command>
             <Timeout>00:15:00</Timeout>
