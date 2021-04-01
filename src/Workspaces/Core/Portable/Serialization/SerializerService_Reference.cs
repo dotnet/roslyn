@@ -661,7 +661,43 @@ namespace Microsoft.CodeAnalysis.Serialization
             public override string ToString()
             {
                 var checksum = Checksum.Create(WellKnownSynchronizationKind.MetadataReference, CreateChecksum(this, CancellationToken.None)).ToString();
-                return $@"{Display} {{""Checksum"":{checksum},""{nameof(Properties.Kind)}"":{Properties.Kind},""{nameof(Properties.Aliases)}"":[{string.Join(",", Properties.Aliases.Select(alias => $@"""{alias}"""))}],""{nameof(Properties.EmbedInteropTypes)}"":{Properties.EmbedInteropTypes},""HasRecursiveAliases"":{Properties.GetType().GetProperty("HasRecursiveAliases", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(Properties)}}}";
+                var mvids = string.Join(",", GetMvids().Select(guid => "\"" + guid + "\""));
+                return $@"{Display} {{""Checksum"":{checksum},""{nameof(Properties.Kind)}"":{Properties.Kind},""{nameof(Properties.Aliases)}"":[{string.Join(",", Properties.Aliases.Select(alias => $@"""{alias}"""))}],""{nameof(Properties.EmbedInteropTypes)}"":{Properties.EmbedInteropTypes},""HasRecursiveAliases"":{Properties.GetType().GetProperty("HasRecursiveAliases", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(Properties)},""Mvids"":[{mvids}]}}";
+            }
+
+            private ImmutableArray<Guid> GetMvids()
+            {
+                var metadata = TryGetMetadata(this);
+                if (metadata is null)
+                    return ImmutableArray<Guid>.Empty;
+
+                if (metadata is AssemblyMetadata assemblyMetadata)
+                {
+                    if (!TryGetModules(assemblyMetadata, out var modules))
+                    {
+                        // Gracefully bail out without writing anything to the writer.
+                        return ImmutableArray<Guid>.Empty;
+                    }
+
+                    var builder = ImmutableArray.CreateBuilder<Guid>(modules.Length);
+                    foreach (var module in modules)
+                    {
+                        builder.Add(GetMvid(module));
+                    }
+
+                    return builder.MoveToImmutable();
+                }
+                else
+                {
+                    return ImmutableArray.Create(GetMvid((ModuleMetadata)metadata));
+                }
+            }
+
+            private static Guid GetMvid(ModuleMetadata metadata)
+            {
+                var metadataReader = metadata.GetMetadataReader();
+                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+                return metadataReader.GetGuid(mvidHandle);
             }
         }
     }
