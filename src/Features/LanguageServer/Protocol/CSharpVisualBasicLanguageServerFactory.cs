@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -13,7 +12,6 @@ using StreamJsonRpc;
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [Export(typeof(ILanguageServerFactory)), Shared]
-    [Export(typeof(CSharpVisualBasicLanguageServerFactory))]
     internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
         public const string UserVisibleName = "C#/Visual Basic Language Server Client";
