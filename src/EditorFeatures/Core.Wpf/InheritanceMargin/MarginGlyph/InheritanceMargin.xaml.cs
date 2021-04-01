@@ -50,15 +50,6 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
             DataContext = viewModel;
             ContextMenu.DataContext = viewModel;
             ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource("ToolTipStyle") };
-
-            if (tag.MembersOnLine.Length == 1)
-            {
-                ContextMenu.Style = (Style)FindResource(SingleMemberContextMenuStyle);
-            }
-            else
-            {
-                ContextMenu.Style = (Style)FindResource(MultipleMembersContextMenuStyle);
-            }
         }
 
         private void InheritanceMargin_OnClick(object sender, RoutedEventArgs e)
@@ -113,6 +104,15 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
         {
             ResetBorderToInitialColor();
+        }
+
+        private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
+        {
+            // If this context menu just has one member, then if the context menu open, it means all inheritance targets are shown.
+            if (e.OriginalSource is ContextMenu { DataContext: InheritanceMarginViewModel { HasMultipleMembers: false }})
+            {
+                Logger.Log(FunctionId.InheritanceMargin_TargetsMenuOpen);
+            }
         }
 
         private void TargetsMenu_OnOpen(object sender, RoutedEventArgs e)

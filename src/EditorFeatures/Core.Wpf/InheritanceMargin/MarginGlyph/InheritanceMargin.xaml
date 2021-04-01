@@ -98,22 +98,6 @@
             </Setter>
         </Style>
 
-        <!-- The key is referenced from the code behind -->
-        <!-- Style used to display a single member's information, if click the button, it pops up a menu contains targets' information (one level menu)-->
-        <Style x:Key="SingleMemberContextMenuStyle" TargetType="{x:Type ContextMenu}">
-            <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
-            <Setter Property="ItemsSource" Value="{Binding MenuItemViewModels}"/>
-            <Setter Property="MaxHeight" Value="400"/>
-            <Setter Property="StaysOpen" Value="True"/>
-            <Setter Property="Background" Value="{DynamicResource VsBrush.CommandBarMenuBackgroundGradient}"/>
-            <Setter Property="platformUi:ImageThemingUtilities.ImageBackgroundColor" Value="{Binding Path=Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}" />
-            <Setter Property="FontFamily" Value="{DynamicResource VsFont.EnvironmentFontFamily}" />
-            <Setter Property="FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}" />
-            <Setter Property="Template" Value="{StaticResource ContextMenuTemplate}"/>
-            <EventSetter Event="Closed" Handler="ContextMenu_OnClose" />
-            <EventSetter Event="Opened" Handler="TargetsMenu_OnOpen" />
-        </Style>
-
         <!-- Style used to display one member's information and pops up a submenu show all the targets -->
         <Style x:Key="MemberMenuItemStyle" TargetType="{x:Type MenuItem}">
             <Setter Property="Icon" Value="{StaticResource NonSharedIcon}"/>
@@ -188,12 +172,9 @@
             </Setter>
         </Style>
 
-
-        <!-- The key is referenced from the code behind -->
-        <!-- Style to show multiple members, when click the button it first pops a menu for all the members on this line (first level menu),
-        then each member has a second level of context menu, show its targets -->
-        <Style x:Key="MultipleMembersContextMenuStyle" TargetType="ContextMenu">
-            <Setter Property="ItemContainerStyle" Value="{StaticResource MemberMenuItemStyle}"/>
+        <!-- Style used to display context menu -->
+        <Style x:Key="ContextMenuStyle" TargetType="{x:Type ContextMenu}">
+            <Setter Property="ItemContainerStyle" Value="{StaticResource TargetMenuItemStyle}"/>
             <Setter Property="ItemsSource" Value="{Binding MenuItemViewModels}"/>
             <Setter Property="MaxHeight" Value="400"/>
             <Setter Property="StaysOpen" Value="True"/>
@@ -203,12 +184,19 @@
             <Setter Property="FontSize" Value="{DynamicResource VsFont.EnvironmentFontSize}" />
             <Setter Property="Template" Value="{StaticResource ContextMenuTemplate}"/>
             <EventSetter Event="Closed" Handler="ContextMenu_OnClose" />
+            <EventSetter Event="Opened" Handler="ContextMenu_OnOpen" />
+            <Style.Triggers>
+                 <!-- For multiple members on the same line, when click the button it first pops a menu for all the members on this line (first level menu) -->
+                <DataTrigger Binding="{Binding HasMultipleMembers}" Value="True">
+                    <Setter Property="ItemContainerStyle" Value="{StaticResource MemberMenuItemStyle}"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
         <!-- The key is referenced from the code behind -->
         <Style x:Key="ToolTipStyle" TargetType="ToolTip">
-            <Setter Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolTipBrushKey }}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolTipBorderBrushKey }}"/>
+            <Setter Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolTipBrushKey}}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolTipBorderBrushKey}}"/>
         </Style>
     </Button.Resources>
 
@@ -225,6 +213,6 @@
 
     <Button.ContextMenu>
         <!-- Ensure the context menu is not null -->
-        <ContextMenu/>
+        <ContextMenu Style="{StaticResource ContextMenuStyle}"/>
     </Button.ContextMenu>
 </Button>

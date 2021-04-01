@@ -35,16 +35,20 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
         /// </summary>
         public ImmutableArray<InheritanceContextMenuItemViewModel> MenuItemViewModels { get; }
 
+        public bool HasMultipleMembers { get; }
+
         private InheritanceMarginViewModel(
             ImageMoniker imageMoniker,
             TextBlock toolTipTextBlock,
             string automationName,
-            ImmutableArray<InheritanceContextMenuItemViewModel> menuItemViewModels)
+            ImmutableArray<InheritanceContextMenuItemViewModel> menuItemViewModels,
+            bool hasMultipleMembers)
         {
             ImageMoniker = imageMoniker;
             ToolTipTextBlock = toolTipTextBlock;
             AutomationName = automationName;
             MenuItemViewModels = menuItemViewModels;
+            HasMultipleMembers = hasMultipleMembers;
         }
 
         public static InheritanceMarginViewModel Create(
@@ -65,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
                 var automationName = member.DisplayTexts.JoinText() + textAppended;
                 var menuItemViewModels = member.TargetItems
                     .SelectAsArray(TargetMenuItemViewModel.Create).CastArray<InheritanceContextMenuItemViewModel>();
-                return new InheritanceMarginViewModel(tag.Moniker, toolTipTextBlock, automationName, menuItemViewModels);
+                return new InheritanceMarginViewModel(tag.Moniker, toolTipTextBlock, automationName, menuItemViewModels, false);
             }
             else
             {
@@ -74,14 +78,12 @@ namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin.MarginGlyph
                     Text = EditorFeaturesWpfResources.Multiple_members_are_inherited
                 };
 
-                var allMemberDisplayNames = members.SelectAsArray(member => member.DisplayTexts.JoinText());
-
-                // Use a different automation name for accessiblity purpose.
+                // Same automation name can't be set for control. So add the line number info.
                 var automationName = string.Format(EditorFeaturesWpfResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
                 var menuItemViewModels = tag.MembersOnLine
                     .SelectAsArray(MemberMenuItemViewModel.Create)
                     .CastArray<InheritanceContextMenuItemViewModel>();
-                return new InheritanceMarginViewModel(tag.Moniker, textBlock, automationName, menuItemViewModels);
+                return new InheritanceMarginViewModel(tag.Moniker, textBlock, automationName, menuItemViewModels, true);
             }
         }
 
