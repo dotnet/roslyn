@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
 
         [WpfTheory, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         [InlineData("extern void M(object o$$)", "extern void M(object o)")]
+        [InlineData("partial void M(object o$$)", "partial void M(object o)")]
         [InlineData("abstract void M(object o$$)", "abstract void M(object o)")]
         [InlineData("abstract void M($$object o)", "abstract void M(object o)")]
         [InlineData("abstract void M(object o = default(object$$))", "abstract void M(object o = default(object))")]
@@ -91,6 +92,7 @@ public interface I
         [InlineData("void Me$$thod(object o)")]
         [InlineData("void Method(object o$$")]
         [InlineData("void Method($$object o")]
+        [InlineData("partial void Method($$object o) { }")]
         public void ParameterList_NotHandled(string signature)
         {
             var code = $@"
