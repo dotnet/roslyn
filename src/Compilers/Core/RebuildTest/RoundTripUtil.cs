@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             ImmutableArray<MetadataReference> metadataReferences,
             CancellationToken cancellationToken = default)
         {
-            // TODO: introduce CommonCompiler-based test which exercises this code path.
             using var peReader = new PEReader(peStream);
             var embeddedPdbReader = peReader.GetEmbeddedPdbMetadataReader();
             var portablePdbReader = pdbStream is not null ? MetadataReaderProvider.FromPortablePdbStream(pdbStream).GetMetadataReader() : null;
