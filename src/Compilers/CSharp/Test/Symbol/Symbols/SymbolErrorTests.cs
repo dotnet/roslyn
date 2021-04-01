@@ -10642,10 +10642,16 @@ interface IA
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "S1").WithArguments("parameterless struct constructors").WithLocation(5, 16),
                 // (9,13): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //             S2() { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("parameterless struct constructors").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "S2").WithArguments("parameterless struct constructors").WithLocation(9, 13),
+                // (9,13): error CS8912: The parameterless struct constructor must be 'public'.
+                //             S2() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(9, 13));
 
             comp = CreateCompilation(text, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8912: The parameterless struct constructor must be 'public'.
+                //             S2() { }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "S2").WithLocation(9, 13));
         }
 
         [Fact]

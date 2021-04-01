@@ -3644,7 +3644,7 @@ using System;
 
                                  AssertEx.SetEqual(expectedBMembers, actualBMembers.Select(s => s.Name));
 
-                                 string[] expectedCMembers = { "C", "B", "A", ".ctor", ".cctor", "F" };
+                                 string[] expectedCMembers = { "C", "B", "A", ".ctor", "F" };
                                  var actualCMembers = m.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers().ToArray();
 
                                  AssertEx.SetEqual(expectedCMembers, actualCMembers.Select(s => s.Name));

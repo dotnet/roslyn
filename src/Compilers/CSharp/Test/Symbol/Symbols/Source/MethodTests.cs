@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -50,7 +49,13 @@ class A {
         {
             var text = "struct A { A() {} }";
             var comp = CreateCompilation(text);
-            Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
+            comp.VerifyDiagnostics(
+                // (1,12): error CS8652: The feature 'parameterless struct constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // struct A { A() {} }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A").WithArguments("parameterless struct constructors").WithLocation(1, 12),
+                // (1,12): error CS8912: The parameterless struct constructor must be 'public'.
+                // struct A { A() {} }
+                Diagnostic(ErrorCode.ERR_NonPublicParameterlessStructConstructor, "A").WithLocation(1, 12));
         }
 
         [WorkItem(537194, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537194")]
