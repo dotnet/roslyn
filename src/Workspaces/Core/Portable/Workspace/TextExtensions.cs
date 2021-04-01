@@ -27,6 +27,14 @@ namespace Microsoft.CodeAnalysis.Text
 
                 var solution = workspace.CurrentSolution;
 
+                if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(documentId, out var documentIdentity))
+                {
+                    // For source generated documents, we won't count them as linked across multiple projects; this is because
+                    // the generated documents in each target may have different source so other features might be surprised if we
+                    // return the same documents but with different text. So in this case, we'll just return a single document.
+                    return ImmutableArray.Create(solution.WithFrozenSourceGeneratedDocument(documentIdentity, text));
+                }
+
                 var relatedIds = solution.GetRelatedDocumentIds(documentId);
                 solution = solution.WithDocumentText(relatedIds, text, PreservationMode.PreserveIdentity);
                 return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
