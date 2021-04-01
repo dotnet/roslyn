@@ -50,11 +50,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             InheritanceRelationship inheritanceRelationship,
             CancellationToken cancellationToken)
         {
-            var definition = await targetSymbol.ToClassifiedDefinitionItemAsync(
+            // Right now the targets are not shown in a classified way.
+            var definition = await targetSymbol.ToNonClassifiedDefinitionItemAsync(
                 solution,
-                isPrimary: true,
                 includeHiddenLocations: false,
-                FindReferencesSearchOptions.Default,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var containingSymbol = targetSymbol.ContainingSymbol;
