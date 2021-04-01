@@ -1268,6 +1268,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode? argumentList)
             => (argumentList as BaseArgumentListSyntax)?.Arguments ?? default;
 
+        public SyntaxNode GetArgumentListOfInvocationExpression(SyntaxNode invocationExpression)
+            => (invocationExpression as InvocationExpressionSyntax)!.ArgumentList;
+
+        public SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<SyntaxNode> arguments)
+            => (argumentList as ArgumentListSyntax)!.WithArguments(arguments);
+
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
 

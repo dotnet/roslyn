@@ -949,6 +949,36 @@ class TestClass
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestExpressionCaseInConstructorOverload()
+        {
+            var code =
+@"using System;
+class TestClass
+{
+    public TestClass(int x, int y)
+    {
+        Math.Max([|x + y|], x * y);
+    }
+}";
+
+            var expected =
+@"using System;
+class TestClass
+{
+    public TestClass(int x, int y)
+    {
+        TestClass(x, y, x + y);
+    }
+
+    public TestClass(int x, int y, int val1)
+    {
+        Math.Max({|Rename:val1|}, x * y);
+    }
+}";
+            await TestInRegularAndScriptAsync(code, expected, index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
         public async Task TestLambdaCaseNormal()
         {
             var code =
