@@ -398,29 +398,5 @@ namespace Roslyn.Utilities
                 throw new IOException(e.Message, e);
             }
         }
-
-        internal static Stream OpenFileStream(string path)
-        {
-            try
-            {
-                return File.OpenRead(path);
-            }
-            catch (ArgumentException)
-            {
-                throw;
-            }
-            catch (DirectoryNotFoundException e)
-            {
-                throw new FileNotFoundException(e.Message, path, e);
-            }
-            catch (IOException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                throw new IOException(e.Message, e);
-            }
-        }
     }
 }

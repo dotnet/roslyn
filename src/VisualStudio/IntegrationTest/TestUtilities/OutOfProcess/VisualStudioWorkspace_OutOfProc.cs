@@ -56,6 +56,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();
 
+        public void ResetOptions()
+            => _inProc.ResetOptions();
+
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
 

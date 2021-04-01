@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     }
 
     [ExportLspRequestHandler(LiveShareConstants.TypeScriptContractName, Methods.TextDocumentSignatureHelpName)]
-    internal class TypeScriptSignatureHelpHandlerShim : SignatureHelpHandler, ILspRequestHandler<TextDocumentPositionParams, SignatureHelp, Solution>
+    internal class TypeScriptSignatureHelpHandlerShim : SignatureHelpHandler, ILspRequestHandler<TextDocumentPositionParams, SignatureHelp?, Solution>
     {
         private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
 
@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
             _workspaceRegistrationService = workspaceRegistrationService;
         }
 
-        public Task<SignatureHelp> HandleAsync(TextDocumentPositionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
+        public Task<SignatureHelp?> HandleAsync(TextDocumentPositionParams param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
             var context = this.CreateRequestContext(param, _workspaceRegistrationService, requestContext.GetClientCapabilities());
             return base.HandleRequestAsync(param, context, cancellationToken);

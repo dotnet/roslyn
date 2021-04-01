@@ -279,6 +279,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -289,7 +290,7 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="translated">Tamamlanma listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlanma Listeleri;
+        <target state="needs-review-translation">Tamamlanma listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlanma Listeleri;
 Bir karakter yazıldıktan sonra tamamlanma listesini göster;
 Bir karakter silindikten sonra tamamlanma listesini göster;
 Bağımsız değişken listelerinde tamamlanma listelerini otomatik olarak göster (deneysel);
