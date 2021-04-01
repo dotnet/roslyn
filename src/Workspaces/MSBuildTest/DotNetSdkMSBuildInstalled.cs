@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     {
         private static readonly VisualStudioInstance? s_instance;
 
-#if NETCOREAPP
         static DotNetSdkMSBuildInstalled()
         {
             s_instance = MSBuildLocator.QueryVisualStudioInstances()
@@ -22,11 +21,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             if (s_instance != null && !MSBuildLocator.IsRegistered)
             {
-                LooseVersionAssemblyLoader.Register(s_instance.MSBuildPath);
                 MSBuildLocator.RegisterInstance(s_instance);
             }
         }
-#endif
 
         private readonly Version _minimumVersion;
 
@@ -43,9 +40,9 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         public override string SkipReason
 #if NETCOREAPP
-            => $"Could not locate .NET SDK {_minimumVersion} or higher installed";
+            => $"Could not locate .NET SDK {_minimumVersion} or higher installed.";
 #else
-            => $"Test runs on .NET Core";
+            => $"Test runs on .NET Core only.";
 #endif
     }
 }

@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     {
         private static readonly VisualStudioInstance? s_instance;
 
-#if !NETCOREAPP
         static VisualStudioMSBuildInstalled()
         {
             s_instance = MSBuildLocator.QueryVisualStudioInstances()
@@ -25,7 +24,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 MSBuildLocator.RegisterInstance(s_instance);
             }
         }
-#endif
 
         private readonly Version _minimumVersion;
 
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 #if !NETCOREAPP
             => $"Could not locate Visual Studio with MSBuild {_minimumVersion} or higher installed";
 #else
-            => $"Test runs on .NET Framework";
+            => $"Test runs on .NET Framework only.";
 #endif
     }
 }

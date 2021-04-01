@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 {
     public class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
     {
+        // On .NET Core this tests fails with "CodePape Not Found"
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
         [WorkItem(991528, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991528")]
         public async Task MSBuildProjectShouldHandleCodePageProperty()
@@ -42,56 +43,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             // impact subsequent asserts.
             Assert.Equal(5, "//\u00E2\u20AC\u0153".Length);
             Assert.Equal("//\u00E2\u20AC\u0153".Length, text.Length);
-        }
-
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_WithInvalidFilePath_Fails()
-        {
-            CreateFiles(GetSimpleCSharpSolutionFiles());
-            var projectFilePath = GetSolutionFileName(@"http://localhost/Invalid/InvalidProject.csproj");
-
-            using var workspace = CreateMSBuildWorkspace();
-
-            AssertEx.Throws<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath).Wait());
-        }
-
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenProject_WithInvalidProjectReference_SkipFalse_Fails()
-        {
-            CreateFiles(GetMultiProjectSolutionFiles()
-                .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.InvalidProjectReference));
-            var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
-
-            using var workspace = CreateMSBuildWorkspace();
-            workspace.SkipUnrecognizedProjects = false;
-
-            AssertEx.Throws<InvalidOperationException>(() => workspace.OpenProjectAsync(projectFilePath).Wait());
-        }
-
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenSolution_WithInvalidProjectPath_SkipFalse_Fails()
-        {
-            // when not skipped we should get an exception for the invalid project
-
-            CreateFiles(GetSimpleCSharpSolutionFiles()
-                .WithFile(@"TestSolution.sln", Resources.SolutionFiles.InvalidProjectPath));
-            var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
-
-            using var workspace = CreateMSBuildWorkspace();
-            workspace.SkipUnrecognizedProjects = false;
-
-            AssertEx.Throws<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath).Wait());
-        }
-
-        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-        public void TestOpenSolution_WithInvalidSolutionFile_Fails()
-        {
-            CreateFiles(GetSimpleCSharpSolutionFiles());
-            var solutionFilePath = GetSolutionFileName(@"http://localhost/Invalid/InvalidSolution.sln");
-
-            using var workspace = CreateMSBuildWorkspace();
-
-            AssertEx.Throws<InvalidOperationException>(() => workspace.OpenSolutionAsync(solutionFilePath).Wait());
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
