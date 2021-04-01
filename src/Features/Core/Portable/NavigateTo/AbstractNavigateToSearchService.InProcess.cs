@@ -104,8 +104,20 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             Document document, string patternName, string? patternContainer, DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
         {
-            var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+            var index = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
 
+            await ProcessIndexAsync(
+                document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task ProcessIndexAsync(
+            DocumentId documentId, Document? document,
+            string patternName, string? patternContainer,
+            DeclaredSymbolInfoKindSet kinds,
+            Func<RoslynNavigateToItem, Task> onResultFound,
+            SyntaxTreeIndex index,
+            CancellationToken cancellationToken)
+        {
             var containerMatcher = patternContainer != null
                 ? PatternMatcher.CreateDotSeparatedContainerMatcher(patternContainer)
                 : null;
@@ -115,10 +127,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             using var _2 = ArrayBuilder<PatternMatch>.GetInstance(out var nameMatches);
             using var _3 = ArrayBuilder<PatternMatch>.GetInstance(out var containerMatches);
 
-            foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
+            foreach (var declaredSymbolInfo in index.DeclaredSymbolInfos)
             {
                 await AddResultIfMatchAsync(
-                    document, declaredSymbolInfo,
+                    documentId, document,
+                    declaredSymbolInfo,
                     nameMatcher, containerMatcher,
                     kinds,
                     nameMatches, containerMatches,
@@ -127,7 +140,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task AddResultIfMatchAsync(
-            Document document, DeclaredSymbolInfo declaredSymbolInfo,
+            DocumentId documentId, Document? document, DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher, PatternMatcher? containerMatcher,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
@@ -142,13 +155,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
             {
                 var result = await ConvertResultAsync(
-                    declaredSymbolInfo, document, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
+                    declaredSymbolInfo, documentId, document, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
                 await onResultFound(result).ConfigureAwait(false);
             }
         }
 
         private static async Task<RoslynNavigateToItem> ConvertResultAsync(
-            DeclaredSymbolInfo declaredSymbolInfo, Document document,
+            DeclaredSymbolInfo declaredSymbolInfo, DocumentId documentId, Document? document,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {
@@ -166,11 +179,13 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // See if we have a match in a linked file.  If so, see if we have the same match in other projects that
             // this file is linked in.  If so, include the full set of projects the match is in so we can display that
             // well in the UI.
-            var additionalMatchingProjects = await GetAdditionalProjectsWithMatchAsync(
-                document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
+            var additionalMatchingProjects = document == null
+                ? ImmutableArray<Project>.Empty
+                : await GetAdditionalProjectsWithMatchAsync(document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
+
             return new RoslynNavigateToItem(
                 isStale: false,
-                document.Id,
+                documentId,
                 ComputeCombinedProjectName(document, additionalMatchingProjects),
                 declaredSymbolInfo,
                 kind,
