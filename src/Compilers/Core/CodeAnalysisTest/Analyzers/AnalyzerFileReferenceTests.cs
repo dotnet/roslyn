@@ -267,6 +267,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.FSharpGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator",
                 "Microsoft.CodeAnalysis.IncrementalAdaptor`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]"
             }, typeNames);
         }
@@ -301,6 +302,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Microsoft.CodeAnalysis.UnitTests.ExplicitCSharpOnlyGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator",
                 "Microsoft.CodeAnalysis.IncrementalAdaptor`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]"
             }, typeNames);
         }
@@ -317,6 +319,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicOnlyGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.CSharpAndVisualBasicGenerator",
                 "Microsoft.CodeAnalysis.UnitTests.VisualBasicAndCSharpGenerator",
+                "Microsoft.CodeAnalysis.UnitTests.TestSourceAndIncrementalGenerator",
                 "Microsoft.CodeAnalysis.IncrementalAdaptor`1[[Microsoft.CodeAnalysis.UnitTests.TestIncrementalGenerator, Microsoft.CodeAnalysis.UnitTests, Version=42.42.42.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35]]"
             }, typeNames);
         }
@@ -610,5 +613,15 @@ public class Generator : ISourceGenerator
     public class TestIncrementalGeneratorWithNoAttrib : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
+    }
+
+    [Generator(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+    public class TestSourceAndIncrementalGenerator : IIncrementalGenerator, ISourceGenerator
+    {
+        public void Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
+
+        public void Initialize(IncrementalGeneratorInitializationContext context) => throw new NotImplementedException();
+
+        public void Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
     }
 }
