@@ -7,13 +7,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
-    public record SyntaxTreeInfo(
-        string FilePath,
-        SourceText SourceText)
-    {
-        public static SyntaxTreeInfo Create(SyntaxTree syntaxTree, CancellationToken cancellationToken = default) =>
-            new SyntaxTreeInfo(syntaxTree.FilePath, syntaxTree.GetText(cancellationToken));
-    }
 }

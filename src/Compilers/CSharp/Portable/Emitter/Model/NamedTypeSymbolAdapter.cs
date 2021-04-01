@@ -409,6 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var f in AdaptedNamedTypeSymbol.GetFieldsToEmit())
             {
                 Debug.Assert((object)(f.TupleUnderlyingField ?? f) == f);
+                Debug.Assert(!(f is TupleErrorFieldSymbol));
                 if (isStruct || f.GetCciAdapter().ShouldInclude(context))
                 {
                     yield return f.GetCciAdapter();
