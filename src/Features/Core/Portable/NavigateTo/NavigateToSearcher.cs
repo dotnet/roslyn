@@ -163,23 +163,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             if (_searchCurrentDocument && _currentDocument?.Project != project)
                 return;
 
-            var cacheService = project.Solution.Services.CacheService;
-            if (cacheService != null)
-            {
-                using (cacheService.EnableCaching(project.Id))
-                {
-                    var service = project.GetLanguageService<INavigateToSearchService>();
-                    if (service != null)
-                    {
-                        var task = _currentDocument != null
-                            ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, OnResultFound, isFullyLoaded, _cancellationToken)
-                            : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, OnResultFound, isFullyLoaded, _cancellationToken);
+            var service = project.GetLanguageService<INavigateToSearchService>();
+            if (service == null)
+                return;
 
-                        await task.ConfigureAwait(false);
-                    }
-                }
-            }
+            var task = _currentDocument != null
+                ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, OnResultFound, isFullyLoaded, _cancellationToken)
+                : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, OnResultFound, isFullyLoaded, _cancellationToken);
 
+            await task.ConfigureAwait(false);
             return;
 
             async Task OnResultFound(INavigateToSearchResult result)
