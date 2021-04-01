@@ -92,14 +92,16 @@ namespace Microsoft.CodeAnalysis.Rebuild
             var sourceLink = OptionsReader.GetSourceLinkUTF8();
 
             var debugEntryPoint = getDebugEntryPoint();
-            var hasEmbeddedPdb = OptionsReader.HasEmbeddedPdb;
-            string? pdbFilePath = null;
-            if (hasEmbeddedPdb)
+            string pdbFilePath;
+            DebugInformationFormat debugInformationFormat;
+            if (OptionsReader.HasEmbeddedPdb)
             {
                 if (rebuildPdbStream is object)
                 {
                     throw new ArgumentException("PDB stream must be null because the compilation has an embedded PDB", nameof(rebuildPdbStream));
                 }
+
+                debugInformationFormat = DebugInformationFormat.Embedded;
             }
             else
             {
@@ -108,12 +110,10 @@ namespace Microsoft.CodeAnalysis.Rebuild
                     throw new ArgumentException("A non-null PDB stream must be provided because the compilation does not have an embedded PDB", nameof(rebuildPdbStream));
                 }
 
+                debugInformationFormat = DebugInformationFormat.PortablePdb;
                 var codeViewEntry = OptionsReader.PeReader.ReadDebugDirectory().Single(entry => entry.Type == DebugDirectoryEntryType.CodeView);
-                if (codeViewEntry.Type == DebugDirectoryEntryType.CodeView)
-                {
-                    var codeView = OptionsReader.PeReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
-                    pdbFilePath = codeView.Path;
-                }
+                var codeView = OptionsReader.PeReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
+                pdbFilePath = codeView.Path ?? throw new InvalidOperationException("Could not get PDB file path");
             }
 
             var emitResult = rebuildCompilation.Emit(
@@ -124,9 +124,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 useRawWin32Resources: true,
                 manifestResources: OptionsReader.GetManifestResources(),
                 options: new EmitOptions(
-                    debugInformationFormat: hasEmbeddedPdb
-                        ? DebugInformationFormat.Embedded
-                        : DebugInformationFormat.PortablePdb,
+                    debugInformationFormat: debugInformationFormat,
                     pdbFilePath: pdbFilePath,
                     highEntropyVirtualAddressSpace: (peHeader.DllCharacteristics & DllCharacteristics.HighEntropyVirtualAddressSpace) != 0,
                     subsystemVersion: SubsystemVersion.Create(peHeader.MajorSubsystemVersion, peHeader.MinorSubsystemVersion)),
