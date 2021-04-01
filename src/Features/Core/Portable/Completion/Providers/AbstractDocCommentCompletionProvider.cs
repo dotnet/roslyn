@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 new[] { SeeElementName, LangwordAttributeName, $"{LangwordAttributeName}=\"", "\"" },
                 new[] { SeeElementName, HrefAttributeName, $"{HrefAttributeName}=\"", "\"" },
                 new[] { SeeAlsoElementName, CrefAttributeName, $"{CrefAttributeName}=\"", "\"" },
+                new[] { SeeAlsoElementName, HrefAttributeName, $"{HrefAttributeName}=\"", "\"" },
                 new[] { ListElementName, TypeAttributeName, $"{TypeAttributeName}=\"", "\"" },
                 new[] { ParameterElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
                 new[] { ParameterReferenceElementName, NameAttributeName, $"{NameAttributeName}=\"", "\"" },
