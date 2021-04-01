@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task SearchCachedDocumentsInCurrentProcessAsync(
+        public static async Task SearchCachedDocumentsInCurrentProcessAsync(
             Workspace workspace,
             ImmutableArray<DocumentKey> documentKeys,
             ImmutableArray<DocumentKey> priorityDocumentKeys,

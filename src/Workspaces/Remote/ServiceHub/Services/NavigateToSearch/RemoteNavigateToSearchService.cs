@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.PersistentStorage;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -28,13 +29,20 @@ namespace Microsoft.CodeAnalysis.Remote
             _callback = callback;
         }
 
+        private Func<RoslynNavigateToItem, Task> GetCallback(
+            RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        {
+            return async i => await _callback.InvokeAsync((callback, c) =>
+                callback.OnResultFoundAsync(callbackId, i),
+                cancellationToken).ConfigureAwait(false);
+        }
+
         public ValueTask SearchDocumentAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             string searchPattern,
             ImmutableArray<string> kinds,
             RemoteServiceCallbackId callbackId,
-            bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -43,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetRequiredDocument(documentId);
                 var callback = GetCallback(callbackId, cancellationToken);
 
-                await AbstractNavigateToSearchService.SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, kinds.ToImmutableHashSet(), callback, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+                await AbstractNavigateToSearchService.SearchFullyLoadedDocumentInCurrentProcessAsync(
+                    document, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -55,7 +63,6 @@ namespace Microsoft.CodeAnalysis.Remote
             string searchPattern,
             ImmutableArray<string> kinds,
             RemoteServiceCallbackId callbackId,
-            bool isFullyLoaded,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(async cancellationToken =>
@@ -66,17 +73,20 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
-                await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
-                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, isFullyLoaded, cancellationToken).ConfigureAwait(false);
+                await AbstractNavigateToSearchService.SearchFullyLoadedProjectInCurrentProcessAsync(
+                    project, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
-        private Func<RoslynNavigateToItem, Task> GetCallback(
-            RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+        public ValueTask SearchCachedDocumentsAsync(ImmutableArray<DocumentKey> documentKeys, ImmutableArray<DocumentKey> priorityDocumentKeys, string searchPattern, ImmutableArray<string> kinds, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
-            return async i => await _callback.InvokeAsync((callback, c) =>
-                callback.OnResultFoundAsync(callbackId, i),
-                cancellationToken).ConfigureAwait(false);
+            return RunServiceAsync(async cancellationToken =>
+            {
+                var callback = GetCallback(callbackId, cancellationToken);
+
+                await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
+                    GetWorkspace(), documentKeys, priorityDocumentKeys, searchPattern, kinds.ToImmutableHashSet(), callback, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
         }
     }
 }

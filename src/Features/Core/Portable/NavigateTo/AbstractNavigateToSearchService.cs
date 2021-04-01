@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 : SearchCachedDocumentsAsync(ImmutableArray.Create(document), ImmutableArray<Document>.Empty, searchPattern, kinds, onResultFound, cancellationToken);
         }
 
-        public static async Task SearchFullyLoadedDocumentAsync(
+        private static async Task SearchFullyLoadedDocumentAsync(
             Document document,
             string searchPattern,
             IImmutableSet<string> kinds,
