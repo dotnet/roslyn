@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     document: document,
                     codeFixProvider: codeFixProvider,
                     scope: FixAllScope.Document,
-                    codeActionEquivalenceKey: fixes.LastOrDefault()?.Action.EquivalenceKey,
+                    codeActionEquivalenceKey: fixes[0].Action.EquivalenceKey,
                     diagnosticIds: diagnosticIds,
                     fixAllDiagnosticProvider: diagnosticProvider);
 
