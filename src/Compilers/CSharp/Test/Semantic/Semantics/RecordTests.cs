@@ -7190,8 +7190,9 @@ public record B : A
 
     .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
     {
-        IL_0000: ldnull
-        IL_0001: throw
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
     }
 
     .method family hidebysig newslot virtual instance class [mscorlib]System.Type get_EqualityContract () cil managed
@@ -7231,6 +7232,7 @@ public record B : A {
             if (usePreview)
             {
                 comp.VerifyEmitDiagnostics();
+                CompileAndVerify(comp, expectedOutput: "A");
             }
             else
             {
