@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (generator is IIncrementalGenerator)
             {
-                return (ISourceGenerator?)Activator.CreateInstance(typeof(IncrementalAdaptor<>).MakeGenericType(generator.GetType()), generator);
+                return (ISourceGenerator?)Activator.CreateInstance(typeof(IncrementalToSourceGeneratorWrapper<>).MakeGenericType(generator.GetType()), generator);
             }
             return null;
         }

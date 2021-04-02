@@ -1099,7 +1099,7 @@ class C { }
             var generator = new CallbackGenerator((ic) => initCount++, (sgc) => executeCount++);
 
             int incrementalInitCount = 0;
-            var generator2 = new IncrementalAdaptor<IncrementalCallbackGenerator>(new IncrementalCallbackGenerator((ic) => incrementalInitCount++));
+            var generator2 = new IncrementalToSourceGeneratorWrapper<IncrementalCallbackGenerator>(new IncrementalCallbackGenerator((ic) => incrementalInitCount++));
 
             int dualInitCount = 0, dualExecuteCount = 0, dualIncrementalInitCount = 0;
             var generator3 = new IncrementalAndSourceCallbackGenerator((ic) => dualInitCount++, (sgc) => dualExecuteCount++, (ic) => dualIncrementalInitCount++);

@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis
     /// Used to unify loading incremental generators with older ISourceGenerator style ones
     /// </remarks>
     /// <typeparam name="TIncrementalGenerator">The type of the incrmental generator being wrapped</typeparam>
-    internal class IncrementalAdaptor<TIncrementalGenerator> : ISourceGenerator
+    internal class IncrementalToSourceGeneratorWrapper<TIncrementalGenerator> : ISourceGenerator
         where TIncrementalGenerator : IIncrementalGenerator
     {
         internal TIncrementalGenerator IncrementalGenerator { get; }
 
-        public IncrementalAdaptor(TIncrementalGenerator generator)
+        public IncrementalToSourceGeneratorWrapper(TIncrementalGenerator generator)
         {
             this.IncrementalGenerator = generator;
         }
@@ -29,15 +29,5 @@ namespace Microsoft.CodeAnalysis
         void ISourceGenerator.Execute(GeneratorExecutionContext context) => throw new NotImplementedException();
 
         void ISourceGenerator.Initialize(GeneratorInitializationContext context) => throw new NotImplementedException();
-
-        public override bool Equals(object? obj)
-        {
-            return IncrementalGenerator.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return IncrementalGenerator.GetHashCode();
-        }
     }
 }
