@@ -5110,31 +5110,31 @@ interface I15<T151, T152> where T151 : I15<T151, T152> where T152 : I15<T151, T1
                 // (9,25): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
                 //     static T2? operator ++(I2<T2> x) => throw null;
                 Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(9, 25),
-                // (19,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.
+                // (19,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T4? operator ++(I4<T4> x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(19, 34),
-                // (26,37): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.
+                // (26,37): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //         static abstract T5 operator ++(I6 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(26, 37),
-                // (32,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.
+                // (32,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T71 operator ++(I7<T71, T72> x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(32, 34),
-                // (37,33): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.
+                // (37,33): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T8 operator ++(I8<T8> x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(37, 33),
-                // (44,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.
+                // (44,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T10 operator ++(I10<T10> x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(44, 34),
-                // (51,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.
+                // (51,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract int operator ++(I12 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(51, 34),
-                // (56,35): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.
+                // (56,35): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T13? operator ++(T13 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(56, 35),
-                // (61,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.
+                // (61,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T14 operator ++(T14? x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(61, 34),
-                // (66,35): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.
+                // (66,35): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
                 //     static abstract T151 operator ++(T152 x);
                 Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(66, 35)
                 );

@@ -6616,7 +6616,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.</value>
   </data>
   <data name="ERR_BadAbstractIncDecRetType" xml:space="preserve">
-    <value>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.</value>
+    <value>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</value>
   </data>
   <data name="ERR_BadAbstractBinaryOperatorSignature" xml:space="preserve">
     <value>One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</value>

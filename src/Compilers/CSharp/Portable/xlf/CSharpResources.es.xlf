@@ -103,8 +103,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecRetType">
-        <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.</source>
-        <target state="new">The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be containing type's type parameter constrained to it unless parameter type is a different type parameter.</target>
+        <source>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</source>
+        <target state="new">The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractIncDecSignature">
