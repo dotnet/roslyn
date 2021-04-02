@@ -16,8 +16,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         bool CanFilter { get; }
 
         /// <summary>
-        /// Searches the document inside <paramref name="project"/> for symbols that matches <paramref name="searchPattern"/>.
-        /// <paramref name="priorityDocuments"/> is an optional subset of the documents from <paramref name="project"/> that can be used to prioritize work.
+        /// Searches the documents inside <paramref name="project"/> for symbols that matches
+        /// <paramref name="searchPattern"/>. <paramref name="priorityDocuments"/> is an optional
+        /// subset of the documents from <paramref name="project"/> that can be used to prioritize
+        /// work.
         /// </summary>
         Task<NavigateToSearchLocation> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, bool allowCachedData, CancellationToken cancellationToken);
         Task<NavigateToSearchLocation> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, bool allowCachedData, CancellationToken cancellationToken);

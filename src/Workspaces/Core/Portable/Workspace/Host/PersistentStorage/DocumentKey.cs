@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
@@ -26,12 +24,12 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         public readonly DocumentId Id;
 
         [DataMember(Order = 2)]
-        public readonly string FilePath;
+        public readonly string? FilePath;
 
         [DataMember(Order = 3)]
         public readonly string Name;
 
-        public DocumentKey(ProjectKey project, DocumentId id, string filePath, string name)
+        public DocumentKey(ProjectKey project, DocumentId id, string? filePath, string name)
         {
             Project = project;
             Id = id;

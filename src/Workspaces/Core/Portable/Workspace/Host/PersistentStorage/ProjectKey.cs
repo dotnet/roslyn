@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Host;
 
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         public readonly ProjectId Id;
 
         [DataMember(Order = 2)]
-        public readonly string FilePath;
+        public readonly string? FilePath;
 
         [DataMember(Order = 3)]
         public readonly string Name;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.PersistentStorage
         [DataMember(Order = 4)]
         public readonly Checksum ParseOptionsChecksum;
 
-        public ProjectKey(SolutionKey solution, ProjectId id, string filePath, string name, Checksum parseOptionsChecksum)
+        public ProjectKey(SolutionKey solution, ProjectId id, string? filePath, string name, Checksum parseOptionsChecksum)
         {
             Solution = solution;
             Id = id;

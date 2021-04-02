@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
-                    service.SearchDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                    service.SearchFullyLoadedDocumentAsync(solutionInfo, document.Id, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 
                 return;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
                     solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
-                        service.SearchProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
+                        service.SearchFullyLoadedProjectAsync(solutionInfo, project.Id, priorityDocumentIds, searchPattern, kinds.ToImmutableArray(), callbackId, cancellationToken),
                     callback, cancellationToken).ConfigureAwait(false);
 
                 return;
@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             var project = document.Project;
             var solution = project.Solution;
-            var solutionKey = SolutionKey.ToSolutionKey(solution);
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
 

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
         }
 
-        public ValueTask SearchDocumentAsync(
+        public ValueTask SearchFullyLoadedDocumentAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,
             string searchPattern,
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public ValueTask SearchProjectAsync(
+        public ValueTask SearchFullyLoadedProjectAsync(
             PinnedSolutionInfo solutionInfo,
             ProjectId projectId,
             ImmutableArray<DocumentId> priorityDocumentIds,
