@@ -5,9 +5,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.Testing</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.9.0-2.final" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest\Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest.vbproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing\Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.vbproj" />
     <ProjectReference Include="..\..\..\src\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.Testing.Verifiers.MSTest\Microsoft.CodeAnalysis.Testing.Verifiers.MSTest.csproj" />
