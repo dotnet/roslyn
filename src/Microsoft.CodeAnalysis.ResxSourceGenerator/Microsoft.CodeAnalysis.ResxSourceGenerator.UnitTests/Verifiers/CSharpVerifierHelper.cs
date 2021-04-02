@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
 {
@@ -22,14 +21,7 @@ namespace Microsoft.CodeAnalysis.ResxSourceGenerator.Test
         {
             string[] args = { "/warnaserror:nullable" };
             var commandLineArguments = CSharpCommandLineParser.Default.Parse(args, baseDirectory: Environment.CurrentDirectory, sdkDirectory: Environment.CurrentDirectory);
-            var nullableWarnings = commandLineArguments.CompilationOptions.SpecificDiagnosticOptions;
-
-            // Workaround for https://github.com/dotnet/roslyn/issues/41610
-            nullableWarnings = nullableWarnings
-                .SetItem("CS8632", ReportDiagnostic.Error)
-                .SetItem("CS8669", ReportDiagnostic.Error);
-
-            return nullableWarnings;
+            return commandLineArguments.CompilationOptions.SpecificDiagnosticOptions;
         }
     }
 }
