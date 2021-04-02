@@ -7419,5 +7419,102 @@ static class Program
                 //         const int red = Color.Red.ToArgb();
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "Color.Red.ToArgb()").WithArguments("red").WithLocation(13, 25));
         }
+
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
+        [Theory]
+        [InlineData("sbyte")]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("ushort")]
+        [InlineData("int")]
+        [InlineData("uint")]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        [InlineData("long")]
+        [InlineData("ulong")]
+        public void MismatchedConstantType_01(string type)
+        {
+            var sourceA =
+@"class Program
+{
+    static void Main()
+    {
+        if (shape is Circle { Radius: >= 100.0 })
+        {
+        }
+    }
+}";
+            var sourceB =
+$@"class Circle
+{{
+    public {type} Radius {{ get; set; }}
+}}";
+            var compilation = CreateCompilation(new[] { sourceA, sourceB });
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS0103: The name 'shape' does not exist in the current context
+                //         if (shape is Circle { Radius: >= 100.0 })
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13),
+                // (5,42): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         if (shape is Circle { Radius: >= 100.0 })
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "100.0").WithArguments("double", type).WithLocation(5, 42));
+        }
+
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
+        [Theory]
+        [InlineData("float")]
+        [InlineData("double")]
+        [InlineData("decimal")]
+        public void MismatchedConstantType_02(string type)
+        {
+            var sourceA =
+@"class Program
+{
+    static void Main()
+    {
+        if (shape is Circle { Radius: >= 100 })
+        {
+        }
+    }
+}";
+            var sourceB =
+$@"class Circle
+{{
+    public {type} Radius {{ get; set; }}
+}}";
+            var compilation = CreateCompilation(new[] { sourceA, sourceB });
+            compilation.VerifyDiagnostics(
+                // (5,13): error CS0103: The name 'shape' does not exist in the current context
+                //         if (shape is Circle { Radius: >= 100 })
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
+        }
+
+        [WorkItem(51936, "https://github.com/dotnet/roslyn/issues/51936")]
+        [Fact]
+        public void MismatchedConstantType_03()
+        {
+            var sourceA =
+@"class Program
+{
+    static void Main()
+    {
+        if (shape is Circle { Radius: >= 100 })
+        {
+        }
+    }
+}";
+            var sourceB =
+@"class Circle
+{
+    public event System.Func<double> Radius;
+}";
+            var compilation = CreateCompilation(new[] { sourceA, sourceB });
+            compilation.VerifyDiagnostics(
+                // (3,38): warning CS0067: The event 'Circle.Radius' is never used
+                //     public event System.Func<double> Radius;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Radius").WithArguments("Circle.Radius").WithLocation(3, 38),
+                // (5,13): error CS0103: The name 'shape' does not exist in the current context
+                //         if (shape is Circle { Radius: >= 100 })
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
+        }
     }
 }

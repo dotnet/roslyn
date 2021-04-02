@@ -58,13 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             TestMetadataReferenceInfo[] metadataReferences,
             int? debugDocumentsCount = null)
         {
+            var targetFramework = TargetFramework.NetCoreApp;
             var originalCompilation = CreateCompilation(
                 syntaxTrees,
                 references: metadataReferences.SelectAsArray(r => r.MetadataReference),
                 options: compilationOptions,
-                // TFM needs to specified so the references are always the same, and not
-                // dependent on the testrun environment
-                targetFramework: TargetFramework.NetCoreApp);
+                targetFramework: targetFramework);
 
             var peBlob = originalCompilation.EmitToArray(options: emitOptions);
 
@@ -88,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                     Assert.Equal(debugDocumentsCount ?? syntaxTrees.Length, pdbReader.Documents.Count);
 
                     VerifyCompilationOptions(compilationOptions, originalCompilation, emitOptions, compilationOptionsReader, langVersion, syntaxTrees.Length);
-                    DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, metadataReferenceReader);
+                    DeterministicBuildCompilationTestHelpers.VerifyReferenceInfo(metadataReferences, targetFramework, metadataReferenceReader);
                 }
             }
         }
@@ -342,8 +341,6 @@ public struct StructWithValue
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Disable);
             yield return defaultOptions.WithNullableContextOptions(NullableContextOptions.Warnings);
             yield return defaultOptions.WithOptimizationLevel(OptimizationLevel.Release);
-            yield return defaultOptions.WithDebugPlusMode(true);
-            yield return defaultOptions.WithOptimizationLevel(OptimizationLevel.Release).WithDebugPlusMode(true);
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: false)));
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: true, suppressSilverlightPlatformAssembliesPortability: false)));
             yield return defaultOptions.WithAssemblyIdentityComparer(new DesktopAssemblyIdentityComparer(new AssemblyPortabilityPolicy(suppressSilverlightLibraryAssembliesPortability: false, suppressSilverlightPlatformAssembliesPortability: true)));

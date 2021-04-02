@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _typedRecordEquals = typedRecordEquals;
         }
 
+        protected override SpecialMember OverriddenSpecialMember => SpecialMember.System_Object__Equals;
+
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;

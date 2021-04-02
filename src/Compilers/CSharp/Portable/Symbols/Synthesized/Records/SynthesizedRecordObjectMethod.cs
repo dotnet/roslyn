@@ -26,13 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             base.MethodChecks(diagnostics);
-            VerifyOverridesMethodFromObject(this, ReturnType.SpecialType, diagnostics);
+            VerifyOverridesMethodFromObject(this, OverriddenSpecialMember, diagnostics);
         }
+
+        protected abstract SpecialMember OverriddenSpecialMember { get; }
 
         /// <summary>
         /// Returns true if reported an error
         /// </summary>
-        internal static bool VerifyOverridesMethodFromObject(MethodSymbol overriding, SpecialType returnSpecialType, BindingDiagnosticBag diagnostics)
+        internal static bool VerifyOverridesMethodFromObject(MethodSymbol overriding, SpecialMember overriddenSpecialMember, BindingDiagnosticBag diagnostics)
         {
             bool reportAnError = false;
 
@@ -48,8 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     MethodSymbol leastOverridden = overriding.GetLeastOverriddenMethod(accessingTypeOpt: null);
 
-                    reportAnError = leastOverridden.ReturnType.Equals(overriding.ReturnType, TypeCompareKind.AllIgnoreOptions) &&
-                                    (leastOverridden.ContainingType.SpecialType != SpecialType.System_Object || returnSpecialType != leastOverridden.ReturnType.SpecialType);
+                    reportAnError = (object)leastOverridden != overriding.ContainingAssembly.GetSpecialTypeMember(overriddenSpecialMember) &&
+                                    leastOverridden.ReturnType.Equals(overriding.ReturnType, TypeCompareKind.AllIgnoreOptions);
                 }
             }
 

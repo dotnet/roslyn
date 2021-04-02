@@ -16,11 +16,10 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
     /// <summary>
-    /// The pattern matcher is thread-safe.  However, it maintains an internal cache of
-    /// information as it is used.  Therefore, you should not keep it around forever and should get
-    /// and release the matcher appropriately once you no longer need it.
-    /// Also, while the pattern matcher is culture aware, it uses the culture specified in the
-    /// constructor.
+    /// The pattern matcher is not thread-safe.  Do not use the pattern matcher across mutiple threads concurrently.  It
+    /// also keeps an internal cache of data for speeding up operations.  As such, it should be disposed when done to
+    /// release the cached data back. and release the matcher appropriately once you no longer need it. Also, while the
+    /// pattern matcher is culture aware, it uses the culture specified in the constructor.
     /// </summary>
     internal abstract partial class PatternMatcher : IDisposable
     {

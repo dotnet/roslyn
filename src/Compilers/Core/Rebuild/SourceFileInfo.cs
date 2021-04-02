@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.Text;
 
-namespace BuildValidator
+namespace Microsoft.CodeAnalysis.Rebuild
 {
     public readonly struct SourceFileInfo
     {

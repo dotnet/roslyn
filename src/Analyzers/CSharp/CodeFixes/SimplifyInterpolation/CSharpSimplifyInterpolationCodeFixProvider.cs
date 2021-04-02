@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.SimplifyInterpolation;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyInterpolation), Shared]
     internal class CSharpSimplifyInterpolationCodeFixProvider : AbstractSimplifyInterpolationCodeFixProvider<
         InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
         InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax,
