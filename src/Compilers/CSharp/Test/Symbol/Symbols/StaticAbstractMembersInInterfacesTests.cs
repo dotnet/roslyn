@@ -4110,16 +4110,16 @@ struct C1
         }
 
         [Fact]
-        public void SealedStaticInstruct_01()
+        public void SealedStaticInStruct_01()
         {
             var source1 =
 @"
-class C1
+struct C1
 {
     sealed static void M01() {}
     sealed static bool P01 { get => false; }
     sealed static event System.Action E01 { add {} remove {} }
-    public sealed static C1 operator+ (C1 x) => null;
+    public sealed static C1 operator+ (C1 x) => default;
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -4137,8 +4137,1313 @@ class C1
                 //     sealed static event System.Action E01 { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "E01").WithArguments("C1.E01").WithLocation(6, 39),
                 // (7,37): error CS0106: The modifier 'sealed' is not valid for this item
-                //     public sealed static C1 operator+ (C1 x) => null;
+                //     public sealed static C1 operator+ (C1 x) => default;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("sealed").WithLocation(7, 37)
+                );
+        }
+
+        [Fact]
+        public void DefineAbstractStaticMethod_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static void M01();
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
+
+                Assert.True(m01.IsMetadataNewSlot());
+                Assert.True(m01.IsAbstract);
+                Assert.True(m01.IsMetadataVirtual());
+                Assert.False(m01.IsMetadataFinal);
+                Assert.False(m01.IsVirtual);
+                Assert.False(m01.IsSealed);
+                Assert.True(m01.IsStatic);
+                Assert.False(m01.IsOverride);
+            }
+        }
+
+        [Fact]
+        public void DefineAbstractStaticMethod_02()
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static void M01();
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics(
+                // (4,26): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static void M01();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M01").WithLocation(4, 26)
+                );
+        }
+
+        [Theory]
+        [InlineData("I1", "+", "(I1 x)")]
+        [InlineData("I1", "-", "(I1 x)")]
+        [InlineData("I1", "!", "(I1 x)")]
+        [InlineData("I1", "~", "(I1 x)")]
+        [InlineData("I1", "++", "(I1 x)")]
+        [InlineData("I1", "--", "(I1 x)")]
+        [InlineData("I1", "+", "(I1 x, I1 y)")]
+        [InlineData("I1", "-", "(I1 x, I1 y)")]
+        [InlineData("I1", "*", "(I1 x, I1 y)")]
+        [InlineData("I1", "/", "(I1 x, I1 y)")]
+        [InlineData("I1", "%", "(I1 x, I1 y)")]
+        [InlineData("I1", "&", "(I1 x, I1 y)")]
+        [InlineData("I1", "|", "(I1 x, I1 y)")]
+        [InlineData("I1", "^", "(I1 x, I1 y)")]
+        [InlineData("I1", "<<", "(I1 x, int y)")]
+        [InlineData("I1", ">>", "(I1 x, int y)")]
+        public void DefineAbstractStaticOperator_01(string type, string op, string paramList)
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static " + type + " operator " + op + " " + paramList + @";
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var m01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>().Single();
+
+                Assert.True(m01.IsMetadataNewSlot());
+                Assert.True(m01.IsAbstract);
+                Assert.True(m01.IsMetadataVirtual());
+                Assert.False(m01.IsMetadataFinal);
+                Assert.False(m01.IsVirtual);
+                Assert.False(m01.IsSealed);
+                Assert.True(m01.IsStatic);
+                Assert.False(m01.IsOverride);
+            }
+        }
+
+        [Fact]
+        public void DefineAbstractStaticOperator_02()
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
+    abstract static I1 operator > (I1 x, I1 y);
+    abstract static I1 operator < (I1 x, I1 y);
+    abstract static I1 operator >= (I1 x, I1 y);
+    abstract static I1 operator <= (I1 x, I1 y);
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                int count = 0;
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.True(m01.IsMetadataNewSlot());
+                    Assert.True(m01.IsAbstract);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsMetadataFinal);
+                    Assert.False(m01.IsVirtual);
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsOverride);
+
+                    count++;
+                }
+
+                Assert.Equal(6, count);
+            }
+        }
+
+        [Theory]
+        [InlineData("I1", "+", "(I1 x)")]
+        [InlineData("I1", "-", "(I1 x)")]
+        [InlineData("I1", "!", "(I1 x)")]
+        [InlineData("I1", "~", "(I1 x)")]
+        [InlineData("I1", "++", "(I1 x)")]
+        [InlineData("I1", "--", "(I1 x)")]
+        [InlineData("I1", "+", "(I1 x, I1 y)")]
+        [InlineData("I1", "-", "(I1 x, I1 y)")]
+        [InlineData("I1", "*", "(I1 x, I1 y)")]
+        [InlineData("I1", "/", "(I1 x, I1 y)")]
+        [InlineData("I1", "%", "(I1 x, I1 y)")]
+        [InlineData("I1", "&", "(I1 x, I1 y)")]
+        [InlineData("I1", "|", "(I1 x, I1 y)")]
+        [InlineData("I1", "^", "(I1 x, I1 y)")]
+        [InlineData("I1", "<<", "(I1 x, int y)")]
+        [InlineData("I1", ">>", "(I1 x, int y)")]
+        public void DefineAbstractStaticOperator_03(string type, string op, string paramList)
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static " + type + " operator " + op + " " + paramList + @";
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics(
+                // (4,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static I1 operator + (I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 31 + type.Length)
+                );
+        }
+
+        [Fact]
+        public void DefineAbstractStaticOperator_04()
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static bool operator true (I1 x);
+    abstract static bool operator false (I1 x);
+    abstract static I1 operator > (I1 x, I1 y);
+    abstract static I1 operator < (I1 x, I1 y);
+    abstract static I1 operator >= (I1 x, I1 y);
+    abstract static I1 operator <= (I1 x, I1 y);
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics(
+                // (4,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static bool operator true (I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "true").WithLocation(4, 35),
+                // (5,35): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static bool operator false (I1 x);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "false").WithLocation(5, 35),
+                // (6,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static I1 operator > (I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, ">").WithLocation(6, 33),
+                // (7,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static I1 operator < (I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "<").WithLocation(7, 33),
+                // (8,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static I1 operator >= (I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, ">=").WithLocation(8, 33),
+                // (9,33): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static I1 operator <= (I1 x, I1 y);
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "<=").WithLocation(9, 33)
+                );
+        }
+
+        [Fact]
+        public void DefineAbstractStaticProperty_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static int P01 { get; set; }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var p01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<PropertySymbol>().Single();
+
+                Assert.True(p01.IsAbstract);
+                Assert.False(p01.IsVirtual);
+                Assert.False(p01.IsSealed);
+                Assert.True(p01.IsStatic);
+                Assert.False(p01.IsOverride);
+
+                int count = 0;
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.True(m01.IsMetadataNewSlot());
+                    Assert.True(m01.IsAbstract);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsMetadataFinal);
+                    Assert.False(m01.IsVirtual);
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsOverride);
+
+                    count++;
+                }
+
+                Assert.Equal(2, count);
+            }
+        }
+
+        [Fact]
+        public void DefineAbstractStaticProperty_02()
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static int P01 { get; set; }
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics(
+                // (4,31): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static int P01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 31),
+                // (4,36): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static int P01 { get; set; }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(4, 36)
+                );
+        }
+
+        [Fact]
+        public void DefineAbstractStaticEvent_01()
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static event System.Action E01;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            CompileAndVerify(compilation1, sourceSymbolValidator: validate, symbolValidator: validate, verify: Verification.Skipped).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var e01 = module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<EventSymbol>().Single();
+
+                Assert.True(e01.IsAbstract);
+                Assert.False(e01.IsVirtual);
+                Assert.False(e01.IsSealed);
+                Assert.True(e01.IsStatic);
+                Assert.False(e01.IsOverride);
+
+                int count = 0;
+                foreach (var m01 in module.GlobalNamespace.GetTypeMember("I1").GetMembers().OfType<MethodSymbol>())
+                {
+                    Assert.True(m01.IsMetadataNewSlot());
+                    Assert.True(m01.IsAbstract);
+                    Assert.True(m01.IsMetadataVirtual());
+                    Assert.False(m01.IsMetadataFinal);
+                    Assert.False(m01.IsVirtual);
+                    Assert.False(m01.IsSealed);
+                    Assert.True(m01.IsStatic);
+                    Assert.False(m01.IsOverride);
+
+                    count++;
+                }
+
+                Assert.Equal(2, count);
+            }
+        }
+
+        [Fact]
+        public void DefineAbstractStaticEvent_02()
+        {
+            var source1 =
+@"
+interface I1
+{
+    abstract static event System.Action E01;
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            compilation1.VerifyDiagnostics(
+                // (4,41): error CS9100: Target runtime doesn't support static abstract members in interfaces.
+                //     abstract static event System.Action E01;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "E01").WithLocation(4, 41)
+                );
+        }
+
+        [Fact]
+        public void ConstraintChecks_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+
+public interface I2 : I1
+{
+}
+
+public interface I3 : I2
+{
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var source2 =
+@"
+class C1<T1> where T1 : I1
+{
+    void Test(C1<I2> x)
+    {
+    }
+}
+
+class C2
+{
+    void M<T2>() where T2 : I1 {}
+
+    void Test(C2 x)
+    {
+        x.M<I2>();
+    }
+}
+
+class C3<T3> where T3 : I2
+{
+    void Test(C3<I2> x, C3<I3> y)
+    {
+    }
+}
+
+class C4
+{
+    void M<T4>() where T4 : I2 {}
+
+    void Test(C4 x)
+    {
+        x.M<I2>();
+        x.M<I3>();
+    }
+}
+
+class C5<T5> where T5 : I3
+{
+    void Test(C5<I3> y)
+    {
+    }
+}
+
+class C6
+{
+    void M<T6>() where T6 : I3 {}
+
+    void Test(C6 x)
+    {
+        x.M<I3>();
+    }
+}
+
+class C7<T7> where T7 : I1
+{
+    void Test(C7<I1> y)
+    {
+    }
+}
+
+class C8
+{
+    void M<T8>() where T8 : I1 {}
+
+    void Test(C8 x)
+    {
+        x.M<I1>();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            var expected = new[] {
+                // (4,22): error CS9101: The interface 'I2' cannot be used as type parameter 'T1' in the generic type or method 'C1<T1>'. The constraint interface 'I1' or its base interface has static abstract members.
+                //     void Test(C1<I2> x)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("C1<T1>", "I1", "T1", "I2").WithLocation(4, 22),
+                // (15,11): error CS9101: The interface 'I2' cannot be used as type parameter 'T2' in the generic type or method 'C2.M<T2>()'. The constraint interface 'I1' or its base interface has static abstract members.
+                //         x.M<I2>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("C2.M<T2>()", "I1", "T2", "I2").WithLocation(15, 11),
+                // (21,22): error CS9101: The interface 'I2' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract members.
+                //     void Test(C3<I2> x, C3<I3> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "x").WithArguments("C3<T3>", "I2", "T3", "I2").WithLocation(21, 22),
+                // (21,32): error CS9101: The interface 'I3' cannot be used as type parameter 'T3' in the generic type or method 'C3<T3>'. The constraint interface 'I2' or its base interface has static abstract members.
+                //     void Test(C3<I2> x, C3<I3> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C3<T3>", "I2", "T3", "I3").WithLocation(21, 32),
+                // (32,11): error CS9101: The interface 'I2' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract members.
+                //         x.M<I2>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I2>").WithArguments("C4.M<T4>()", "I2", "T4", "I2").WithLocation(32, 11),
+                // (33,11): error CS9101: The interface 'I3' cannot be used as type parameter 'T4' in the generic type or method 'C4.M<T4>()'. The constraint interface 'I2' or its base interface has static abstract members.
+                //         x.M<I3>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("C4.M<T4>()", "I2", "T4", "I3").WithLocation(33, 11),
+                // (39,22): error CS9101: The interface 'I3' cannot be used as type parameter 'T5' in the generic type or method 'C5<T5>'. The constraint interface 'I3' or its base interface has static abstract members.
+                //     void Test(C5<I3> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C5<T5>", "I3", "T5", "I3").WithLocation(39, 22),
+                // (50,11): error CS9101: The interface 'I3' cannot be used as type parameter 'T6' in the generic type or method 'C6.M<T6>()'. The constraint interface 'I3' or its base interface has static abstract members.
+                //         x.M<I3>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I3>").WithArguments("C6.M<T6>()", "I3", "T6", "I3").WithLocation(50, 11),
+                // (56,22): error CS9101: The interface 'I1' cannot be used as type parameter 'T7' in the generic type or method 'C7<T7>'. The constraint interface 'I1' or its base interface has static abstract members.
+                //     void Test(C7<I1> y)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "y").WithArguments("C7<T7>", "I1", "T7", "I1").WithLocation(56, 22),
+                // (67,11): error CS9101: The interface 'I1' cannot be used as type parameter 'T8' in the generic type or method 'C8.M<T8>()'. The constraint interface 'I1' or its base interface has static abstract members.
+                //         x.M<I1>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers, "M<I1>").WithArguments("C8.M<T8>()", "I1", "T8", "I1").WithLocation(67, 11)
+            };
+
+            compilation2.VerifyDiagnostics(expected);
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.EmitToImageReference() });
+
+            compilation2.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void ConstraintChecks_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract static void M01();
+}
+
+public class C : I1
+{
+    public static void M01() {}
+}
+
+public struct S : I1
+{
+    public static void M01() {}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+
+            var source2 =
+@"
+class C1<T1> where T1 : I1
+{
+    void Test(C1<C> x, C1<S> y, C1<T1> z)
+    {
+    }
+}
+
+class C2
+{
+    public void M<T2>(C2 x) where T2 : I1
+    {
+        x.M<T2>(x);
+    }
+
+    void Test(C2 x)
+    {
+        x.M<C>(x);
+        x.M<S>(x);
+    }
+}
+
+class C3<T3> where T3 : I1
+{
+    void Test(C1<T3> z)
+    {
+    }
+}
+
+class C4
+{
+    void M<T4>(C2 x) where T4 : I1
+    {
+        x.M<T4>(x);
+    }
+}
+
+class C5<T5>
+{
+    internal virtual void M<U5>() where U5 : T5 { }
+}
+
+class C6 : C5<I1>
+{
+    internal override void M<U6>() { base.M<U6>(); }
+}
+";
+            var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.ToMetadataReference() });
+
+            compilation2.VerifyEmitDiagnostics();
+
+            compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp,
+                                                 references: new[] { compilation1.EmitToImageReference() });
+
+            compilation2.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void VarianceSafety_01()
+        {
+            var source1 =
+@"
+interface I2<out T1, in T2>
+{
+    abstract static T1 P1 { get; }
+    abstract static T2 P2 { get; }
+    abstract static T1 P3 { set; }
+    abstract static T2 P4 { set; }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (5,21): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.P2'. 'T2' is contravariant.
+                //     abstract static T2 P2 { get; }
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I2<T1, T2>.P2", "T2", "contravariant", "covariantly").WithLocation(5, 21),
+                // (6,21): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.P3'. 'T1' is covariant.
+                //     abstract static T1 P3 { set; }
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I2<T1, T2>.P3", "T1", "covariant", "contravariantly").WithLocation(6, 21)
+                );
+        }
+
+        [Fact]
+        public void VarianceSafety_02()
+        {
+            var source1 =
+@"
+interface I2<out T1, in T2>
+{
+    abstract static T1 M1();
+    abstract static T2 M2();
+    abstract static void M3(T1 x);
+    abstract static void M4(T2 x);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (5,21): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.M2()'. 'T2' is contravariant.
+                //     abstract static T2 M2();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T2").WithArguments("I2<T1, T2>.M2()", "T2", "contravariant", "covariantly").WithLocation(5, 21),
+                // (6,29): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M3(T1)'. 'T1' is covariant.
+                //     abstract static void M3(T1 x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T1").WithArguments("I2<T1, T2>.M3(T1)", "T1", "covariant", "contravariantly").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        public void VarianceSafety_03()
+        {
+            var source1 =
+@"
+interface I2<out T1, in T2>
+{
+    abstract static event System.Action<System.Func<T1>> E1;
+    abstract static event System.Action<System.Func<T2>> E2;
+    abstract static event System.Action<System.Action<T1>> E3;
+    abstract static event System.Action<System.Action<T2>> E4;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (5,58): error CS1961: Invalid variance: The type parameter 'T2' must be covariantly valid on 'I2<T1, T2>.E2'. 'T2' is contravariant.
+                //     abstract static event System.Action<System.Func<T2>> E2;
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "E2").WithArguments("I2<T1, T2>.E2", "T2", "contravariant", "covariantly").WithLocation(5, 58),
+                // (6,60): error CS1961: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.E3'. 'T1' is covariant.
+                //     abstract static event System.Action<System.Action<T1>> E3;
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "E3").WithArguments("I2<T1, T2>.E3", "T1", "covariant", "contravariantly").WithLocation(6, 60)
+                );
+        }
+
+        [Fact]
+        public void VarianceSafety_04()
+        {
+            var source1 =
+@"
+interface I2<out T2>
+{
+    abstract static int operator +(I2<T2> x);
+}
+
+interface I3<out T3>
+{
+    abstract static int operator +(I3<T3> x);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (4,36): error CS1961: Invalid variance: The type parameter 'T2' must be contravariantly valid on 'I2<T2>.operator +(I2<T2>)'. 'T2' is covariant.
+                //     abstract static int operator +(I2<T2> x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "I2<T2>").WithArguments("I2<T2>.operator +(I2<T2>)", "T2", "covariant", "contravariantly").WithLocation(4, 36),
+                // (9,36): error CS1961: Invalid variance: The type parameter 'T3' must be contravariantly valid on 'I3<T3>.operator +(I3<T3>)'. 'T3' is covariant.
+                //     abstract static int operator +(I3<T3> x);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "I3<T3>").WithArguments("I3<T3>.operator +(I3<T3>)", "T3", "covariant", "contravariantly").WithLocation(9, 36)
+                );
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("!")]
+        [InlineData("~")]
+        [InlineData("true")]
+        [InlineData("false")]
+        public void OperatorSignature_01(string op)
+        {
+            var source1 =
+@"
+interface I1<T1> where T1 : I1<T1>
+{
+    static bool operator " + op + @"(T1 x) => throw null;
+}
+
+interface I2<T2> where T2 : struct, I2<T2>
+{
+    static bool operator " + op + @"(T2? x) => throw null;
+}
+
+interface I3<T3> where T3 : I3<T3>
+{
+    static abstract bool operator " + op + @"(T3 x);
+}
+
+interface I4<T4> where T4 : struct, I4<T4>
+{
+    static abstract bool operator " + op + @"(T4? x);
+}
+
+class C5<T5> where T5 : C5<T5>.I6
+{
+    public interface I6
+    {
+        static abstract bool operator " + op + @"(T5 x);
+    }
+}
+
+interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
+{
+    static abstract bool operator " + op + @"(T71 x);
+}
+
+interface I8<T8> where T8 : I9<T8>
+{
+    static abstract bool operator " + op + @"(T8 x);
+}
+
+interface I9<T9> : I8<T9> where T9 : I9<T9> {}
+
+interface I10<T10> where T10 : C11<T10>
+{
+    static abstract bool operator " + op + @"(T10 x);
+}
+
+class C11<T11> : I10<T11> where T11 : C11<T11> {}
+
+interface I12
+{
+    static abstract bool operator " + op + @"(int x);
+}
+
+interface I13
+{
+    static abstract bool operator " + op + @"(I13 x);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (4,26): error CS0562: The parameter of a unary operator must be the containing type
+                //     static bool operator +(T1 x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, op).WithLocation(4, 26),
+                // (9,26): error CS0562: The parameter of a unary operator must be the containing type
+                //     static bool operator +(T2? x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, op).WithLocation(9, 26),
+                // (26,39): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                //         static abstract bool operator +(T5 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(26, 39),
+                // (32,35): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(T71 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(32, 35),
+                // (37,35): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(T8 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(37, 35),
+                // (44,35): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(T10 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(44, 35),
+                // (51,35): error CS9102: The parameter of a unary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator false(int x);
+                Diagnostic(ErrorCode.ERR_BadAbstractUnaryOperatorSignature, op).WithLocation(51, 35)
+                );
+        }
+
+        [Theory]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void OperatorSignature_02(string op)
+        {
+            var source1 =
+@"
+interface I1<T1> where T1 : I1<T1>
+{
+    static T1 operator " + op + @"(T1 x) => throw null;
+}
+
+interface I2<T2> where T2 : struct, I2<T2>
+{
+    static T2? operator " + op + @"(T2? x) => throw null;
+}
+
+interface I3<T3> where T3 : I3<T3>
+{
+    static abstract T3 operator " + op + @"(T3 x);
+}
+
+interface I4<T4> where T4 : struct, I4<T4>
+{
+    static abstract T4? operator " + op + @"(T4? x);
+}
+
+class C5<T5> where T5 : C5<T5>.I6
+{
+    public interface I6
+    {
+        static abstract T5 operator " + op + @"(T5 x);
+    }
+}
+
+interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
+{
+    static abstract T71 operator " + op + @"(T71 x);
+}
+
+interface I8<T8> where T8 : I9<T8>
+{
+    static abstract T8 operator " + op + @"(T8 x);
+}
+
+interface I9<T9> : I8<T9> where T9 : I9<T9> {}
+
+interface I10<T10> where T10 : C11<T10>
+{
+    static abstract T10 operator " + op + @"(T10 x);
+}
+
+class C11<T11> : I10<T11> where T11 : C11<T11> {}
+
+interface I12
+{
+    static abstract int operator " + op + @"(int x);
+}
+
+interface I13
+{
+    static abstract I13 operator " + op + @"(I13 x);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (4,24): error CS0559: The parameter type for ++ or -- operator must be the containing type
+                //     static T1 operator ++(T1 x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadIncDecSignature, op).WithLocation(4, 24),
+                // (9,25): error CS0559: The parameter type for ++ or -- operator must be the containing type
+                //     static T2? operator ++(T2? x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadIncDecSignature, op).WithLocation(9, 25),
+                // (26,37): error CS9103: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
+                //         static abstract T5 operator ++(T5 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(26, 37),
+                // (32,34): error CS9103: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract T71 operator ++(T71 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(32, 34),
+                // (37,33): error CS9103: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract T8 operator ++(T8 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(37, 33),
+                // (44,34): error CS9103: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract T10 operator ++(T10 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(44, 34),
+                // (51,34): error CS9103: The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract int operator ++(int x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecSignature, op).WithLocation(51, 34)
+                );
+        }
+
+        [Theory]
+        [InlineData("++")]
+        [InlineData("--")]
+        public void OperatorSignature_03(string op)
+        {
+            var source1 =
+@"
+interface I1<T1> where T1 : I1<T1>
+{
+    static T1 operator " + op + @"(I1<T1> x) => throw null;
+}
+
+interface I2<T2> where T2 : struct, I2<T2>
+{
+    static T2? operator " + op + @"(I2<T2> x) => throw null;
+}
+
+interface I3<T3> where T3 : I3<T3>
+{
+    static abstract T3 operator " + op + @"(I3<T3> x);
+}
+
+interface I4<T4> where T4 : struct, I4<T4>
+{
+    static abstract T4? operator " + op + @"(I4<T4> x);
+}
+
+class C5<T5> where T5 : C5<T5>.I6
+{
+    public interface I6
+    {
+        static abstract T5 operator " + op + @"(I6 x);
+    }
+}
+
+interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
+{
+    static abstract T71 operator " + op + @"(I7<T71, T72> x);
+}
+
+interface I8<T8> where T8 : I9<T8>
+{
+    static abstract T8 operator " + op + @"(I8<T8> x);
+}
+
+interface I9<T9> : I8<T9> where T9 : I9<T9> {}
+
+interface I10<T10> where T10 : C11<T10>
+{
+    static abstract T10 operator " + op + @"(I10<T10> x);
+}
+
+class C11<T11> : I10<T11> where T11 : C11<T11> {}
+
+interface I12
+{
+    static abstract int operator " + op + @"(I12 x);
+}
+
+interface I13<T13> where T13 : struct, I13<T13>
+{
+    static abstract T13? operator " + op + @"(T13 x);
+}
+
+interface I14<T14> where T14 : struct, I14<T14>
+{
+    static abstract T14 operator " + op + @"(T14? x);
+}
+
+interface I15<T151, T152> where T151 : I15<T151, T152> where T152 : I15<T151, T152>
+{
+    static abstract T151 operator " + op + @"(T152 x);
+}
+
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.VerifyDiagnostics(
+                // (4,24): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
+                //     static T1 operator ++(I1<T1> x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(4, 24),
+                // (9,25): error CS0448: The return type for ++ or -- operator must match the parameter type or be derived from the parameter type
+                //     static T2? operator ++(I2<T2> x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadIncDecRetType, op).WithLocation(9, 25),
+                // (19,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                //     static abstract T4? operator ++(I4<T4> x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(19, 34),
+                // (26,37): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                //         static abstract T5 operator ++(I6 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(26, 37),
+                // (32,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                //     static abstract T71 operator ++(I7<T71, T72> x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(32, 34),
+                // (37,33): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                //     static abstract T8 operator ++(I8<T8> x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(37, 33),
+                // (44,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                //     static abstract T10 operator ++(I10<T10> x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(44, 34),
+                // (51,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                //     static abstract int operator ++(I12 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(51, 34),
+                // (56,35): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                //     static abstract T13? operator ++(T13 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(56, 35),
+                // (61,34): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                //     static abstract T14 operator ++(T14? x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(61, 34),
+                // (66,35): error CS9104: The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.
+                //     static abstract T151 operator ++(T152 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractIncDecRetType, op).WithLocation(66, 35)
+                );
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        [InlineData("%")]
+        [InlineData("&")]
+        [InlineData("|")]
+        [InlineData("^")]
+        [InlineData("<")]
+        [InlineData(">")]
+        [InlineData("<=")]
+        [InlineData(">=")]
+        public void OperatorSignature_04(string op)
+        {
+            var source1 =
+@"
+interface I1<T1> where T1 : I1<T1>
+{
+    static bool operator " + op + @"(T1 x, bool y) => throw null;
+}
+
+interface I2<T2> where T2 : struct, I2<T2>
+{
+    static bool operator " + op + @"(T2? x, bool y) => throw null;
+}
+
+interface I3<T3> where T3 : I3<T3>
+{
+    static abstract bool operator " + op + @"(T3 x, bool y);
+}
+
+interface I4<T4> where T4 : struct, I4<T4>
+{
+    static abstract bool operator " + op + @"(T4? x, bool y);
+}
+
+class C5<T5> where T5 : C5<T5>.I6
+{
+    public interface I6
+    {
+        static abstract bool operator " + op + @"(T5 x, bool y);
+    }
+}
+
+interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
+{
+    static abstract bool operator " + op + @"(T71 x, bool y);
+}
+
+interface I8<T8> where T8 : I9<T8>
+{
+    static abstract bool operator " + op + @"(T8 x, bool y);
+}
+
+interface I9<T9> : I8<T9> where T9 : I9<T9> {}
+
+interface I10<T10> where T10 : C11<T10>
+{
+    static abstract bool operator " + op + @"(T10 x, bool y);
+}
+
+class C11<T11> : I10<T11> where T11 : C11<T11> {}
+
+interface I12
+{
+    static abstract bool operator " + op + @"(int x, bool y);
+}
+
+interface I13
+{
+    static abstract bool operator " + op + @"(I13 x, bool y);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (4,26): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     static bool operator +(T1 x, bool y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(4, 26),
+                // (9,26): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     static bool operator +(T2? x, bool y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(9, 26),
+                // (26,39): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //         static abstract bool operator +(T5 x, bool y);
+                Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(26, 39),
+                // (32,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(T71 x, bool y);
+                Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(32, 35),
+                // (37,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(T8 x, bool y);
+                Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(37, 35),
+                // (44,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(T10 x, bool y);
+                Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(44, 35),
+                // (51,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(int x, bool y);
+                Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(51, 35)
+                );
+        }
+
+        [Theory]
+        [InlineData("+")]
+        [InlineData("-")]
+        [InlineData("*")]
+        [InlineData("/")]
+        [InlineData("%")]
+        [InlineData("&")]
+        [InlineData("|")]
+        [InlineData("^")]
+        [InlineData("<")]
+        [InlineData(">")]
+        [InlineData("<=")]
+        [InlineData(">=")]
+        public void OperatorSignature_05(string op)
+        {
+            var source1 =
+@"
+interface I1<T1> where T1 : I1<T1>
+{
+    static bool operator " + op + @"(bool y, T1 x) => throw null;
+}
+
+interface I2<T2> where T2 : struct, I2<T2>
+{
+    static bool operator " + op + @"(bool y, T2? x) => throw null;
+}
+
+interface I3<T3> where T3 : I3<T3>
+{
+    static abstract bool operator " + op + @"(bool y, T3 x);
+}
+
+interface I4<T4> where T4 : struct, I4<T4>
+{
+    static abstract bool operator " + op + @"(bool y, T4? x);
+}
+
+class C5<T5> where T5 : C5<T5>.I6
+{
+    public interface I6
+    {
+        static abstract bool operator " + op + @"(bool y, T5 x);
+    }
+}
+
+interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
+{
+    static abstract bool operator " + op + @"(bool y, T71 x);
+}
+
+interface I8<T8> where T8 : I9<T8>
+{
+    static abstract bool operator " + op + @"(bool y, T8 x);
+}
+
+interface I9<T9> : I8<T9> where T9 : I9<T9> {}
+
+interface I10<T10> where T10 : C11<T10>
+{
+    static abstract bool operator " + op + @"(bool y, T10 x);
+}
+
+class C11<T11> : I10<T11> where T11 : C11<T11> {}
+
+interface I12
+{
+    static abstract bool operator " + op + @"(bool y, int x);
+}
+
+interface I13
+{
+    static abstract bool operator " + op + @"(bool y, I13 x);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (4,26): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     static bool operator +(bool y, T1 x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(4, 26),
+                // (9,26): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     static bool operator +(bool y, T2? x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, op).WithLocation(9, 26),
+                // (26,39): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //         static abstract bool operator +(bool y, T5 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(26, 39),
+                // (32,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(bool y, T71 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(32, 35),
+                // (37,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(bool y, T8 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(37, 35),
+                // (44,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(bool y, T10 x);
+                Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(44, 35),
+                // (51,35): error CS9105: One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.
+                //     static abstract bool operator +(bool y, int x);
+                Diagnostic(ErrorCode.ERR_BadAbstractBinaryOperatorSignature, op).WithLocation(51, 35)
+                );
+        }
+
+        [Theory]
+        [InlineData("<<")]
+        [InlineData(">>")]
+        public void OperatorSignature_06(string op)
+        {
+            var source1 =
+@"
+interface I1<T1> where T1 : I1<T1>
+{
+    static bool operator " + op + @"(T1 x, int y) => throw null;
+}
+
+interface I2<T2> where T2 : struct, I2<T2>
+{
+    static bool operator " + op + @"(T2? x, int y) => throw null;
+}
+
+interface I3<T3> where T3 : I3<T3>
+{
+    static abstract bool operator " + op + @"(T3 x, int y);
+}
+
+interface I4<T4> where T4 : struct, I4<T4>
+{
+    static abstract bool operator " + op + @"(T4? x, int y);
+}
+
+class C5<T5> where T5 : C5<T5>.I6
+{
+    public interface I6
+    {
+        static abstract bool operator " + op + @"(T5 x, int y);
+    }
+}
+
+interface I7<T71, T72> where T72 : I7<T71, T72> where T71 : T72
+{
+    static abstract bool operator " + op + @"(T71 x, int y);
+}
+
+interface I8<T8> where T8 : I9<T8>
+{
+    static abstract bool operator " + op + @"(T8 x, int y);
+}
+
+interface I9<T9> : I8<T9> where T9 : I9<T9> {}
+
+interface I10<T10> where T10 : C11<T10>
+{
+    static abstract bool operator " + op + @"(T10 x, int y);
+}
+
+class C11<T11> : I10<T11> where T11 : C11<T11> {}
+
+interface I12
+{
+    static abstract bool operator " + op + @"(int x, int y);
+}
+
+interface I13
+{
+    static abstract bool operator " + op + @"(I13 x, int y);
+}
+
+interface I14
+{
+    static abstract bool operator " + op + @"(I14 x, bool y);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.NetCoreApp);
+            compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_OperatorNeedsMatch).Verify(
+                // (4,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     static bool operator <<(T1 x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, op).WithLocation(4, 26),
+                // (9,26): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     static bool operator <<(T2? x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, op).WithLocation(9, 26),
+                // (26,39): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                //         static abstract bool operator <<(T5 x, int y);
+                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(26, 39),
+                // (32,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                //     static abstract bool operator <<(T71 x, int y);
+                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(32, 35),
+                // (37,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                //     static abstract bool operator <<(T8 x, int y);
+                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(37, 35),
+                // (44,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                //     static abstract bool operator <<(T10 x, int y);
+                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(44, 35),
+                // (51,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                //     static abstract bool operator <<(int x, int y);
+                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(51, 35),
+                // (61,35): error CS9106: The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int
+                //     static abstract bool operator <<(I14 x, bool y);
+                Diagnostic(ErrorCode.ERR_BadAbstractShiftOperatorSignature, op).WithLocation(61, 35)
                 );
         }
     }

@@ -6603,4 +6603,25 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureStaticAbstractMembersInInterfaces" xml:space="preserve">
     <value>static abstract members in interfaces</value>
   </data>
+  <data name="ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces" xml:space="preserve">
+    <value>Target runtime doesn't support static abstract members in interfaces.</value>
+  </data>
+  <data name="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers" xml:space="preserve">
+    <value>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</value>
+  </data>
+  <data name="ERR_BadAbstractUnaryOperatorSignature" xml:space="preserve">
+    <value>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</value>
+  </data>
+  <data name="ERR_BadAbstractIncDecSignature" xml:space="preserve">
+    <value>The parameter type for ++ or -- operator must be the containing type, or its type parameter constrained to it.</value>
+  </data>
+  <data name="ERR_BadAbstractIncDecRetType" xml:space="preserve">
+    <value>The return type for ++ or -- operator must either match the parameter type, or be derived from the parameter type, or be the containing type's type parameter constrained to it unless the parameter type is a different type parameter.</value>
+  </data>
+  <data name="ERR_BadAbstractBinaryOperatorSignature" xml:space="preserve">
+    <value>One of the parameters of a binary operator must be the containing type, or its type parameter constrained to it.</value>
+  </data>
+  <data name="ERR_BadAbstractShiftOperatorSignature" xml:space="preserve">
+    <value>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</value>
+  </data>
 </root>

@@ -980,7 +980,10 @@ done:
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
                 }
 
-                // PROTOTYPE(StaticAbstractMembersInInterfaces): Check runtime capability. 
+                if (!hasBody && IsAbstract && IsStatic && !ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, location);
+                }
             }
         }
 
