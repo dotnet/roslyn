@@ -1307,6 +1307,11 @@
         <target state="new">'{0}' in '{1}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_is_inherited">
+        <source>'{0}' is inherited</source>
+        <target state="new">'{0}' is inherited</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
         <source>'{0}' will be changed to abstract.</source>
         <target state="translated">{0} se změní na abstraktní.</target>
@@ -2346,11 +2351,6 @@ Další informace: {1}</target>
       <trans-unit id="When_inserting_properties_events_and_methods_place_them">
         <source>When inserting properties, events and methods, place them:</source>
         <target state="translated">Vlastnosti, události a metody při vkládání umístit:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="is_inherited">
-        <source>is inherited</source>
-        <target state="new">is inherited</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">
