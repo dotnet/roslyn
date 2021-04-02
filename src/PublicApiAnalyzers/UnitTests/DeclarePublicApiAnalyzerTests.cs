@@ -611,6 +611,7 @@ C.Method() -> void
         }
 
         [Fact]
+        [WorkItem(3329, "https://github.com/dotnet/roslyn-analyzers/issues/3329")]
         public async Task RemovedPrefixForNonRemovedApi()
         {
             var source = @"
