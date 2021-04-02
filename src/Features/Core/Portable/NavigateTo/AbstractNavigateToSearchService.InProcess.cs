@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         public static Task SearchFullyLoadedProjectInCurrentProcessAsync(
             Project project, ImmutableArray<Document> priorityDocuments, string searchPattern,
-            IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onResultFound, CancellationToken cancellationToken)
+            IImmutableSet<string> kinds, Func<RoslynNavigateToItem, Task> onResultFound,
+            CancellationToken cancellationToken)
         {
             return FindSearchResultsAsync(
                 project, priorityDocuments, searchDocument: null, pattern: searchPattern, kinds, onResultFound, cancellationToken);

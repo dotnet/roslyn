@@ -42,11 +42,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             };
         }
 
-        public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
+        public async Task<NavigateToSearchLocation> SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
         {
-            return isFullyLoaded
-                ? SearchFullyLoadedDocumentAsync(document, searchPattern, kinds, onResultFound, cancellationToken)
-                : SearchCachedDocumentsAsync(ImmutableArray.Create(document), ImmutableArray<Document>.Empty, searchPattern, kinds, onResultFound, cancellationToken);
+            if (isFullyLoaded)
+            {
+                await SearchFullyLoadedDocumentAsync(document, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
+                return NavigateToSearchLocation.Latest;
+            }
+            else
+            {
+                await SearchCachedDocumentsAsync(ImmutableArray.Create(document), ImmutableArray<Document>.Empty, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
+                return NavigateToSearchLocation.Cache;
+            }
         }
 
         private static async Task SearchFullyLoadedDocumentAsync(
@@ -75,11 +82,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 document, searchPattern, kinds, onItemFound, cancellationToken).ConfigureAwait(false);
         }
 
-        public Task SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
+        public async Task<NavigateToSearchLocation> SearchProjectAsync(Project project, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, bool isFullyLoaded, CancellationToken cancellationToken)
         {
-            return isFullyLoaded
-                ? SearchFullyLoadedProjectAsync(project, priorityDocuments, searchPattern, kinds, onResultFound, cancellationToken)
-                : SearchCachedDocumentsAsync(project.Documents.ToImmutableArray(), priorityDocuments, searchPattern, kinds, onResultFound, cancellationToken);
+            if (isFullyLoaded)
+            {
+                await SearchFullyLoadedProjectAsync(project, priorityDocuments, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
+                return NavigateToSearchLocation.Latest;
+            }
+            else
+            {
+                await SearchCachedDocumentsAsync(project.Documents.ToImmutableArray(), priorityDocuments, searchPattern, kinds, onResultFound, cancellationToken).ConfigureAwait(false);
+                return NavigateToSearchLocation.Cache;
+            }
         }
 
         private static async Task SearchFullyLoadedProjectAsync(

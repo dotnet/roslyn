@@ -37,6 +37,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 cancellationToken).ConfigureAwait(false);
         }
 
+        public ValueTask HydrateAsync(PinnedSolutionInfo solutionInfo, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async cancellationToken =>
+            {
+                await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken);
+        }
+
         public ValueTask SearchFullyLoadedDocumentAsync(
             PinnedSolutionInfo solutionInfo,
             DocumentId documentId,

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -30,19 +32,26 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private readonly IImmutableSet<string> _kinds;
         private readonly Document? _currentDocument;
         private readonly IStreamingProgressTracker _progress;
-        private readonly CancellationToken _cancellationToken;
 
         private readonly Document? _activeDocument;
         private readonly ImmutableArray<Document> _visibleDocuments;
 
-        public NavigateToSearcher(
+        /// <summary>
+        /// Single task used to both hydrate the remote host with the initial workspace solution,
+        /// and track if that work completed.  Prior to it completing, we will try to get all
+        /// navigate-to requests from our caches.  Once it is populated though, we can attempt to
+        /// use the latest data instead.
+        /// </summary>
+        private static readonly object s_gate = new();
+        private static Task s_remoteHostPopulatedTask = null!;
+
+        private NavigateToSearcher(
             Solution solution,
             IAsynchronousOperationListener asyncListener,
             INavigateToSearchCallback callback,
             string searchPattern,
             bool searchCurrentDocument,
-            IImmutableSet<string> kinds,
-            CancellationToken cancellationToken)
+            IImmutableSet<string> kinds)
         {
             _solution = solution;
             _asyncListener = asyncListener;
@@ -50,7 +59,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _searchPattern = searchPattern;
             _searchCurrentDocument = searchCurrentDocument;
             _kinds = kinds;
-            _cancellationToken = cancellationToken;
             _progress = new StreamingProgressTracker((current, maximum) =>
             {
                 callback.ReportProgress(current, maximum);
@@ -74,16 +82,58 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                                                   .WhereAsArray(d => d != _activeDocument);
         }
 
-        internal async Task SearchAsync()
+        public static NavigateToSearcher Create(
+            Solution solution,
+            IAsynchronousOperationListener asyncListener,
+            INavigateToSearchCallback callback,
+            string searchPattern,
+            bool searchCurrentDocument,
+            IImmutableSet<string> kinds,
+            CancellationToken disposalToken)
+        {
+            InitializeRemoteHostIfNecessary(solution, disposalToken);
+            return new NavigateToSearcher(solution, asyncListener, callback, searchPattern, searchCurrentDocument, kinds);
+        }
+
+        private static void InitializeRemoteHostIfNecessary(Solution solution, CancellationToken disposalToken)
+        {
+            lock (s_gate)
+            {
+                if (s_remoteHostPopulatedTask != null)
+                    return;
+
+                // If there are no projects in this solution that use OOP, then there's nothing we need to do.
+                if (solution.Projects.All(p => !RemoteSupportedLanguages.IsSupported(p.Language)))
+                {
+                    s_remoteHostPopulatedTask = Task.CompletedTask;
+                    return;
+                }
+
+                s_remoteHostPopulatedTask = Task.Run(async () =>
+                {
+                    var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, disposalToken).ConfigureAwait(false);
+                    if (client != null)
+                    {
+                        await client.TryInvokeAsync<IRemoteNavigateToSearchService>(
+                            solution,
+                            (service, solutionInfo, cancellationToken) =>
+                            service.HydrateAsync(solutionInfo, cancellationToken),
+                            disposalToken).ConfigureAwait(false);
+                    }
+                }, disposalToken);
+            }
+        }
+
+        internal async Task SearchAsync(CancellationToken cancellationToken)
         {
             var searchWasComplete = true;
 
             try
             {
-                using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken);
+                using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
                 using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
 
-                searchWasComplete = await SearchAllProjectsAsync().ConfigureAwait(false);
+                searchWasComplete = await SearchAllProjectsAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -101,22 +151,24 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         /// and represent the complete set of results. Or <see langword="false"/> if any searches
         /// were performed against cached data.
         /// </summary>
-        private async Task<bool> SearchAllProjectsAsync()
+        private async Task<bool> SearchAllProjectsAsync(CancellationToken cancellationToken)
         {
             var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-            var isFullyLoaded = await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false);
+            var isProjectSystemFullyLoaded = await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            var isRemoteHostFullyLoaded = s_remoteHostPopulatedTask.IsCompleted;
+
+            var isFullyLoaded = isProjectSystemFullyLoaded && isRemoteHostFullyLoaded;
 
             var orderedProjects = GetOrderedProjectsToProcess();
             var (itemsReported, projectResults) = await ProcessProjectsAsync(
-                orderedProjects, isFullyLoaded, allowCachedData: true).ConfigureAwait(false);
+                orderedProjects, isFullyLoaded, cancellationToken).ConfigureAwait(false);
 
             // If we're not fully loaded yet, this is the best we could do in terms of getting
             // results.  Nothing we can do at this point until we reach the fully loaded state.
-            if (!isFullyLoaded)
+            if (isFullyLoaded)
             {
-                // We weren't fully loaded, so definitely let the user know the results are
-                // incomplete in the UI.
-                return false;
+                // We were fully loaded, so definitely let the user know the results are complete in the UI.
+                return true;
             }
 
             // We were fully loaded *and* we reported some items to the user.
@@ -128,13 +180,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 return !anyCached;
             }
 
-            // We didn't have any items reported.  If it turns out that some of our projects were
-            // using cached data, try searching them again, but this time disallow checking them for
-            // cached results.
+            // We didn't have any items reported and we weren't fully loaded.  If it turns out that
+            // some of our projects were using cached data then we can try searching them again, but
+            // this tell them to use the latest data.  The ensures the user at least gets some
+            // result instead of nothing.
             var projectsUsingCache = projectResults.Where(t => t.cached).SelectAsArray(t => t.project);
-            Contract.ThrowIfFalse(isFullyLoaded);
-            await ProcessProjectsAsync(
-                ImmutableArray.Create(projectsUsingCache), isFullyLoaded: true, allowCachedData: false).ConfigureAwait(false);
+            await ProcessProjectsAsync(ImmutableArray.Create(projectsUsingCache), isFullyLoaded: true, cancellationToken).ConfigureAwait(false);
 
             // we did a full uncached search.  return true to indicate that no message should be
             // shown to the user.
@@ -204,9 +255,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private async Task<(int itemsReported, ImmutableArray<(Project project, bool cached)>)> ProcessProjectsAsync(
-            ImmutableArray<ImmutableArray<Project>> orderedProjects,
-            bool isFullyLoaded,
-            bool allowCachedData)
+            ImmutableArray<ImmutableArray<Project>> orderedProjects, bool isFullyLoaded, CancellationToken cancellationToken)
         {
             var projectCount = orderedProjects.Sum(p => p.Length);
             await _progress.AddItemsAsync(projectCount).ConfigureAwait(false);
@@ -216,7 +265,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
             foreach (var projectGroup in orderedProjects)
             {
-                var tasks = projectGroup.SelectAsArray(p => Task.Run(() => SearchAsync(p, isFullyLoaded, allowCachedData, seenItems)));
+                var tasks = projectGroup.SelectAsArray(p => Task.Run(() => SearchAsync(p, isFullyLoaded, seenItems, cancellationToken)));
                 var taskResults = await Task.WhenAll(tasks).ConfigureAwait(false);
                 foreach (var taskResult in taskResults)
                     result.AddIfNotNull(taskResult);
@@ -226,12 +275,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private async Task<(Project project, bool cached)?> SearchAsync(
-            Project project, bool isFullyLoaded, bool allowCachedData,
-            HashSet<INavigateToSearchResult> seenItems)
+            Project project, bool isFullyLoaded, HashSet<INavigateToSearchResult> seenItems, CancellationToken cancellationToken)
         {
             try
             {
-                var location = await SearchCoreAsync(project, allowCachedData, isFullyLoaded, seenItems).ConfigureAwait(false);
+                var location = await SearchCoreAsync(project, isFullyLoaded, seenItems, cancellationToken).ConfigureAwait(false);
                 if (location == null)
                     return null;
 
@@ -244,8 +292,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private async Task<NavigateToSearchLocation?> SearchCoreAsync(
-            Project project, bool isFullyLoaded, bool allowCachedData,
-            HashSet<INavigateToSearchResult> seenItems)
+            Project project, bool isFullyLoaded, HashSet<INavigateToSearchResult> seenItems, CancellationToken cancellationToken)
         {
             var service = project.GetLanguageService<INavigateToSearchService>();
             if (service == null)
@@ -255,12 +302,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 Contract.ThrowIfNull(_currentDocument);
                 return await service.SearchDocumentAsync(
-                    _currentDocument, _searchPattern, _kinds, OnResultFound, isFullyLoaded, allowCachedData, _cancellationToken).ConfigureAwait(false);
+                    _currentDocument, _searchPattern, _kinds, OnResultFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
             }
 
             var priorityDocuments = GetPriorityDocuments(project);
             return await service.SearchProjectAsync(
-                project, priorityDocuments, _searchPattern, _kinds, OnResultFound, isFullyLoaded, allowCachedData, _cancellationToken).ConfigureAwait(false);
+                project, priorityDocuments, _searchPattern, _kinds, OnResultFound, isFullyLoaded, cancellationToken).ConfigureAwait(false);
 
             async Task OnResultFound(INavigateToSearchResult result)
             {
@@ -273,7 +320,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         return;
                 }
 
-                await _callback.AddItemAsync(project, result, _cancellationToken).ConfigureAwait(false);
+                await _callback.AddItemAsync(project, result, cancellationToken).ConfigureAwait(false);
             }
         }
     }
