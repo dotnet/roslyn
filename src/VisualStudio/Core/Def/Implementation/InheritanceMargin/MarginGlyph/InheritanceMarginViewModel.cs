@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
@@ -74,6 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 inlines.Insert(0, new Run(prefixString));
                 inlines.Add(new Run(suffixString));
                 var toolTipTextBlock = inlines.ToTextBlock(classificationFormatMap);
+                toolTipTextBlock.FlowDirection = FlowDirection.LeftToRight;
 
                 var automationName = string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
                 var menuItemViewModels = member.TargetItems
