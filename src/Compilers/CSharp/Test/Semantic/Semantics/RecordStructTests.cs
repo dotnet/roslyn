@@ -429,6 +429,7 @@ record struct Point(int x, int y);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, symbolValidator: validateModule, sourceSymbolValidator: validateModule);
+            Assert.True(SyntaxFacts.IsTypeDeclaration(SyntaxKind.RecordStructDeclaration));
 
             static void validateModule(ModuleSymbol module)
             {
@@ -440,7 +441,6 @@ record struct Point(int x, int y);
                 Assert.False(point.IsRecord);
                 Assert.Equal(TypeKind.Struct, point.TypeKind);
                 Assert.Equal(SpecialType.System_ValueType, point.BaseTypeNoUseSiteDiagnostics.SpecialType);
-                Assert.True(SyntaxFacts.IsTypeDeclaration(SyntaxKind.RecordStructDeclaration));
 
                 if (isSourceSymbol)
                 {
@@ -5345,6 +5345,16 @@ record struct R(R X)
             Assert.Equal("R X", initializer.ToTestDisplayString());
             Assert.Equal(SymbolKind.Parameter, initializer.Kind);
             Assert.Equal("R..ctor(R X)", initializer.ContainingSymbol.ToTestDisplayString());
+
+            var src2 = @"
+record struct R(R X);
+";
+            var comp2 = CreateCompilation(src2);
+            comp2.VerifyEmitDiagnostics(
+                // (2,19): error CS0523: Struct member 'R.X' of type 'R' causes a cycle in the struct layout
+                // record struct R(R X);
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "X").WithArguments("R.X", "R").WithLocation(2, 19)
+                );
         }
 
         [Fact]
