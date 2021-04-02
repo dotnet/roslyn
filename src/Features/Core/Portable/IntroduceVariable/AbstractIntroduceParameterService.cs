@@ -560,9 +560,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private static async Task<SyntaxNode> ExtractMethodAsync(Document document, TExpressionSyntax expression,
             IMethodSymbol methodSymbol, ImmutableArray<IParameterSymbol> validParameters, string newMethodIdentifier, SyntaxGenerator generator, CancellationToken cancellationToken)
         {
-            // Remove trailing trivia because it adds spaces to the beginning of the following statement.
+            // Remove trivia so the expression is in a single line and does not affect the spacing of the following line
             var newStatements = ImmutableArray.CreateBuilder<SyntaxNode>();
-            newStatements.Add(generator.ReturnStatement(expression.WithoutTrailingTrivia()));
+            newStatements.Add(generator.ReturnStatement(expression.WithoutTrivia()));
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var typeSymbol = semanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType ?? semanticModel.Compilation.ObjectType;
             var codeGenerationService = document.GetRequiredLanguageService<ICodeGenerationService>();
