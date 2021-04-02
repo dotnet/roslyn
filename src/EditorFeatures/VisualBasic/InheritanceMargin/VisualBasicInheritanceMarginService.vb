@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InheritanceMarginService
             End Using
         End Function
 
-        Protected Overrides Function GetIdentifier(declarationNode As SyntaxNode) As SyntaxToken
+        Protected Overrides Function GetDeclarationToken(declarationNode As SyntaxNode) As SyntaxToken
 
             Dim typeStatementNode = TryCast(declarationNode, TypeStatementSyntax)
             If typeStatementNode IsNot Nothing Then

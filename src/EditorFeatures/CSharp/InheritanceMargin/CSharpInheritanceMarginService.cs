@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InheritanceMargin
             return builder.ToImmutableArray();
         }
 
-        protected override SyntaxToken GetIdentifier(SyntaxNode declarationNode)
+        protected override SyntaxToken GetDeclarationToken(SyntaxNode declarationNode)
             => declarationNode switch
             {
                 MethodDeclarationSyntax methodDeclarationNode => methodDeclarationNode.Identifier,
