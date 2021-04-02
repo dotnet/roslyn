@@ -3127,13 +3127,16 @@ moreArguments:
 
                 case BoundKind.WithExpression:
                     {
-                        var initializerExpr = ((BoundWithExpression)expr).InitializerExpression;
+                        var withExpr = (BoundWithExpression)expr;
+                        var escape = CheckValEscape(node, withExpr.Receiver, escapeFrom, escapeTo, checkingReceiver: false, diagnostics);
+
+                        var initializerExpr = withExpr.InitializerExpression;
                         if (initializerExpr != null)
                         {
-                            return CheckValEscape(initializerExpr.Syntax, initializerExpr, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
+                            escape = escape && CheckValEscape(initializerExpr.Syntax, initializerExpr, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
                         }
 
-                        return true;
+                        return escape;
                     }
 
                 default:
