@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis.Testing
             await VerifyDiagnosticsAsync(new EvaluatedProjectState(testState, ReferenceAssemblies).WithAdditionalDiagnostics(diagnostics), testState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), testState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of test state"), cancellationToken).ConfigureAwait(false);
         }
 
+        protected override async Task<Compilation> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
+        {
+            var (finalProject, diagnostics) = await ApplySourceGeneratorAsync(GetSourceGenerators().ToImmutableArray(), project, verifier, cancellationToken).ConfigureAwait(false);
+            return (await finalProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+        }
+
         /// <summary>
         /// Called to test a C# source generator when applied on the input source as a string.
         /// </summary>
