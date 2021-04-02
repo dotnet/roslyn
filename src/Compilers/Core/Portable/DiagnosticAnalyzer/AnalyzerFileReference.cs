@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return SpecializedCollections.EmptyEnumerable<string>();
         }
 
-        private static ISourceGenerator? CoerceGeneratorType(object generator)
+        private static ISourceGenerator? CoerceGeneratorType(object? generator)
         {
             if (generator is IIncrementalGenerator)
             {
