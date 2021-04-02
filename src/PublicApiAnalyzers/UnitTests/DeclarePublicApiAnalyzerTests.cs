@@ -611,6 +611,36 @@ C.Method() -> void
         }
 
         [Fact]
+        public async Task RemovedPrefixForNonRemovedApi()
+        {
+            var source = @"
+public class C
+{
+    public int Field;
+    public int Property { get; set; }
+    public void Method() { }
+}
+";
+
+            var shippedText = @"
+C
+C.C() -> void
+C.Field -> int
+C.Property.get -> int
+C.Property.set -> void
+C.Method() -> void
+";
+
+            string unshippedText = $@"
+{DeclarePublicApiAnalyzer.RemovedApiPrefix}C.Method() -> void
+";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // PublicAPI.Unshipped.txt(2,1): warning RS0050: Symbol 'C.Method() -> void' is marked as removed but it isn't deleted in source code
+                GetAdditionalFileResultAt(2, 1, DeclarePublicApiAnalyzer.UnshippedFileName, DeclarePublicApiAnalyzer.RemovedApiIsNotActuallyRemovedRule, "C.Method() -> void"));
+        }
+
+        [Fact]
         public async Task ApiFileShippedWithRemoved()
         {
             var source = @"

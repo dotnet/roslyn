@@ -647,10 +647,22 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                 List<ApiLine> deletedApiList = GetDeletedApiList();
                 foreach (ApiLine cur in deletedApiList)
                 {
-                    LinePositionSpan linePositionSpan = cur.SourceText.Lines.GetLinePositionSpan(cur.Span);
-                    Location location = Location.Create(cur.Path, cur.Span, linePositionSpan);
+                    Location location = getLocationFromApiLine(cur);
                     ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, cur.Text);
                     context.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, propertyBag, cur.Text));
+                }
+
+                List<RemovedApiLine> markedAsRemovedButNotRemoved = GetMarkedAsRemovedButNotActuallyRemovedApiList();
+                foreach (RemovedApiLine removedApiLine in markedAsRemovedButNotRemoved)
+                {
+                    Location location = getLocationFromApiLine(removedApiLine.ApiLine);
+                    context.ReportDiagnostic(Diagnostic.Create(RemovedApiIsNotActuallyRemovedRule, location, messageArgs: removedApiLine.Text));
+                }
+
+                static Location getLocationFromApiLine(ApiLine apiLine)
+                {
+                    LinePositionSpan linePositionSpan = apiLine.SourceText.Lines.GetLinePositionSpan(apiLine.Span);
+                    return Location.Create(apiLine.Path, apiLine.Span, linePositionSpan);
                 }
             }
 
@@ -720,6 +732,24 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                     }
 
                     list.Add(pair.Value);
+                }
+
+                return list;
+            }
+
+            /// <summary>
+            /// Calculated the set of APIs which have been marked with *REMOVED* but still exists in source code.
+            /// </summary>
+            /// <returns></returns>
+            internal List<RemovedApiLine> GetMarkedAsRemovedButNotActuallyRemovedApiList()
+            {
+                var list = new List<RemovedApiLine>();
+                foreach (var markedAsRemoved in _unshippedData.RemovedApiList)
+                {
+                    if (_visitedApiList.ContainsKey(markedAsRemoved.Text))
+                    {
+                        list.Add(markedAsRemoved);
+                    }
                 }
 
                 return list;
