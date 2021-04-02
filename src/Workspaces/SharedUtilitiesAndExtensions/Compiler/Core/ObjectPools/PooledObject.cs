@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -69,10 +71,28 @@ namespace Microsoft.CodeAnalysis
                 (p, sb) => Releaser(p, sb));
         }
 
+        public static PooledObject<ConcurrentSet<TItem>> Create<TItem>(ObjectPool<ConcurrentSet<TItem>> pool)
+            where TItem : notnull
+        {
+            return new PooledObject<ConcurrentSet<TItem>>(
+                pool,
+                p => Allocator(p),
+                (p, sb) => Releaser(p, sb));
+        }
+
         public static PooledObject<Dictionary<TKey, TValue>> Create<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)
             where TKey : notnull
         {
             return new PooledObject<Dictionary<TKey, TValue>>(
+                pool,
+                p => Allocator(p),
+                (p, sb) => Releaser(p, sb));
+        }
+
+        public static PooledObject<ConcurrentDictionary<TKey, TValue>> Create<TKey, TValue>(ObjectPool<ConcurrentDictionary<TKey, TValue>> pool)
+            where TKey : notnull
+        {
+            return new PooledObject<ConcurrentDictionary<TKey, TValue>>(
                 pool,
                 p => Allocator(p),
                 (p, sb) => Releaser(p, sb));
@@ -112,11 +132,25 @@ namespace Microsoft.CodeAnalysis
         private static void Releaser<TItem>(ObjectPool<HashSet<TItem>> pool, HashSet<TItem> obj)
             => pool.ClearAndFree(obj);
 
+        private static ConcurrentSet<TItem> Allocator<TItem>(ObjectPool<ConcurrentSet<TItem>> pool) where TItem : notnull
+            => pool.AllocateAndClear();
+
+        private static void Releaser<TItem>(ObjectPool<ConcurrentSet<TItem>> pool, ConcurrentSet<TItem> obj) where TItem : notnull
+            => pool.ClearAndFree(obj);
+
         private static Dictionary<TKey, TValue> Allocator<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)
             where TKey : notnull
             => pool.AllocateAndClear();
 
         private static void Releaser<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool, Dictionary<TKey, TValue> obj)
+            where TKey : notnull
+            => pool.ClearAndFree(obj);
+
+        private static ConcurrentDictionary<TKey, TValue> Allocator<TKey, TValue>(ObjectPool<ConcurrentDictionary<TKey, TValue>> pool)
+            where TKey : notnull
+            => pool.AllocateAndClear();
+
+        private static void Releaser<TKey, TValue>(ObjectPool<ConcurrentDictionary<TKey, TValue>> pool, ConcurrentDictionary<TKey, TValue> obj)
             where TKey : notnull
             => pool.ClearAndFree(obj);
 

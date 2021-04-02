@@ -4,8 +4,10 @@
 
 #nullable disable
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,13 +32,16 @@ namespace Microsoft.CodeAnalysis.Serialization
         public ProjectChecksumCollection Projects => (ProjectChecksumCollection)Children[2];
         public AnalyzerReferenceChecksumCollection AnalyzerReferences => (AnalyzerReferenceChecksumCollection)Children[3];
 
-        public async Task FindAsync(
+        public Task FindAsync(
             SolutionState state,
-            HashSet<Checksum> searchingChecksumsLeft,
-            Dictionary<Checksum, object> result,
+            ConcurrentSet<Checksum> searchingChecksumsLeft,
+            ConcurrentDictionary<Checksum, object> result,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (searchingChecksumsLeft.Count == 0)
+                return Task.CompletedTask;
 
             // verify input
             Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
@@ -67,24 +72,25 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[AnalyzerReferences.Checksum] = AnalyzerReferences;
             }
 
-            foreach (var (_, projectState) in state.ProjectStates)
-            {
-                // solution state checksum can't be created without project state checksums created first
-                // check unsupported projects
-                if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
-                {
-                    Contract.ThrowIfTrue(RemoteSupportedLanguages.IsSupported(projectState.Language));
-                    continue;
-                }
+            var tasks = new List<Task>();
+            tasks.Add(Task.Run(() =>
+                ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken), cancellationToken));
 
-                await projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-                if (searchingChecksumsLeft.Count == 0)
+            tasks.AddRange(state.ProjectStates.Values.Select(projectState =>
+                Task.Run(() =>
                 {
-                    break;
-                }
-            }
+                    // solution state checksum can't be created without project state checksums created first
+                    // check unsupported projects
+                    if (!projectState.TryGetStateChecksums(out var projectStateChecksums))
+                    {
+                        Contract.ThrowIfTrue(RemoteSupportedLanguages.IsSupported(projectState.Language));
+                        return Task.CompletedTask;
+                    }
 
-            ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
+                    return projectStateChecksums.FindAsync(projectState, searchingChecksumsLeft, result, cancellationToken);
+                })));
+
+            return Task.WhenAll(tasks);
         }
     }
 
@@ -130,12 +136,15 @@ namespace Microsoft.CodeAnalysis.Serialization
         public TextDocumentChecksumCollection AdditionalDocuments => (TextDocumentChecksumCollection)Children[7];
         public AnalyzerConfigDocumentChecksumCollection AnalyzerConfigDocuments => (AnalyzerConfigDocumentChecksumCollection)Children[8];
 
-        public async Task FindAsync(
+        public Task FindAsync(
             ProjectState state,
-            HashSet<Checksum> searchingChecksumsLeft,
-            Dictionary<Checksum, object> result,
+            ConcurrentSet<Checksum> searchingChecksumsLeft,
+            ConcurrentDictionary<Checksum, object> result,
             CancellationToken cancellationToken)
         {
+            if (searchingChecksumsLeft.Count == 0)
+                return Task.CompletedTask;
+
             cancellationToken.ThrowIfCancellationRequested();
             // verify input
             Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksum));
@@ -191,13 +200,13 @@ namespace Microsoft.CodeAnalysis.Serialization
                 result[AnalyzerConfigDocuments.Checksum] = AnalyzerConfigDocuments;
             }
 
-            ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken);
-            ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken);
-            ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken);
-
-            await ChecksumCollection.FindAsync(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            await ChecksumCollection.FindAsync(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-            await ChecksumCollection.FindAsync(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+            return Task.WhenAll(
+                Task.Run(() => ChecksumCollection.Find(state.ProjectReferences, ProjectReferences, searchingChecksumsLeft, result, cancellationToken), cancellationToken),
+                Task.Run(() => ChecksumCollection.Find(state.MetadataReferences, MetadataReferences, searchingChecksumsLeft, result, cancellationToken), cancellationToken),
+                Task.Run(() => ChecksumCollection.Find(state.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, result, cancellationToken), cancellationToken),
+                Task.Run(() => ChecksumCollection.FindAsync(state.DocumentStates, searchingChecksumsLeft, result, cancellationToken), cancellationToken),
+                Task.Run(() => ChecksumCollection.FindAsync(state.AdditionalDocumentStates, searchingChecksumsLeft, result, cancellationToken), cancellationToken),
+                Task.Run(() => ChecksumCollection.FindAsync(state.AnalyzerConfigDocumentStates, searchingChecksumsLeft, result, cancellationToken), cancellationToken));
         }
     }
 
@@ -217,10 +226,13 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public async Task FindAsync(
             TextDocumentState state,
-            HashSet<Checksum> searchingChecksumsLeft,
-            Dictionary<Checksum, object> result,
+            ConcurrentSet<Checksum> searchingChecksumsLeft,
+            ConcurrentDictionary<Checksum, object> result,
             CancellationToken cancellationToken)
         {
+            if (searchingChecksumsLeft.Count == 0)
+                return;
+
             Debug.Assert(state.TryGetStateChecksums(out var stateChecksum) && this == stateChecksum);
 
             cancellationToken.ThrowIfCancellationRequested();

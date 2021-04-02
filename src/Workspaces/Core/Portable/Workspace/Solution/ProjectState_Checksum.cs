@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.ProjectState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    var documentChecksumsTasks = DocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
-                    var additionalDocumentChecksumTasks = AdditionalDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
-                    var analyzerConfigDocumentChecksumTasks = AnalyzerConfigDocumentStates.SelectAsArray(static (state, token) => state.GetChecksumAsync(token), cancellationToken);
+                    var documentChecksumsTasks = DocumentStates.SelectAsArray(static (state, token) => Task.Run(() => state.GetChecksumAsync(token), token), cancellationToken);
+                    var additionalDocumentChecksumTasks = AdditionalDocumentStates.SelectAsArray(static (state, token) => Task.Run(() => state.GetChecksumAsync(token), token), cancellationToken);
+                    var analyzerConfigDocumentChecksumTasks = AnalyzerConfigDocumentStates.SelectAsArray(static (state, token) => Task.Run(() => state.GetChecksumAsync(token), token), cancellationToken);
 
                     var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
 

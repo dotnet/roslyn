@@ -5,11 +5,13 @@
 #nullable disable
 
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -36,29 +38,28 @@ namespace Microsoft.CodeAnalysis.Serialization
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
 
-        internal static async Task FindAsync<TState>(
+        internal static Task FindAsync<TState>(
             TextDocumentStates<TState> documentStates,
-            HashSet<Checksum> searchingChecksumsLeft,
-            Dictionary<Checksum, object> result,
+            ConcurrentSet<Checksum> searchingChecksumsLeft,
+            ConcurrentDictionary<Checksum, object> result,
             CancellationToken cancellationToken) where TState : TextDocumentState
         {
-            foreach (var state in documentStates.States)
-            {
-                Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
+            if (searchingChecksumsLeft.Count == 0)
+                return Task.CompletedTask;
 
-                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
-                if (searchingChecksumsLeft.Count == 0)
-                {
-                    return;
-                }
-            }
+            return Task.WhenAll(documentStates.States.Select(s => Task.Run(() =>
+            {
+                Contract.ThrowIfFalse(s.TryGetStateChecksums(out var stateChecksums));
+
+                return stateChecksums.FindAsync(s, searchingChecksumsLeft, result, cancellationToken);
+            }, cancellationToken)));
         }
 
         internal static void Find<T>(
             IReadOnlyList<T> values,
             ChecksumWithChildren checksums,
-            HashSet<Checksum> searchingChecksumsLeft,
-            Dictionary<Checksum, object> result,
+            ConcurrentSet<Checksum> searchingChecksumsLeft,
+            ConcurrentDictionary<Checksum, object> result,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(values.Count == checksums.Children.Count);

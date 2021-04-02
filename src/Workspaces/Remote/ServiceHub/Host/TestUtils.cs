@@ -4,11 +4,13 @@
 
 #nullable disable
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Serialization;
+using Roslyn.Utilities;
 
 #if DEBUG
 using System.Diagnostics;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public static void RemoveChecksums(this Dictionary<Checksum, object> map, ChecksumWithChildren checksums)
         {
-            var set = new HashSet<Checksum>();
+            var set = new ConcurrentSet<Checksum>();
             set.AppendChecksums(checksums);
 
             RemoveChecksums(map, set);
@@ -107,9 +109,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 return items;
             }
 
-            async Task<HashSet<Checksum>> GetAllChildrenChecksumsAsync(Checksum solutionChecksum)
+            async Task<ConcurrentSet<Checksum>> GetAllChildrenChecksumsAsync(Checksum solutionChecksum)
             {
-                var set = new HashSet<Checksum>();
+                var set = new ConcurrentSet<Checksum>();
 
                 var solutionChecksums = await assetService.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, CancellationToken.None).ConfigureAwait(false);
                 set.AppendChecksums(solutionChecksums);
@@ -139,26 +141,26 @@ namespace Microsoft.CodeAnalysis.Remote
         /// create checksum to correspoing object map from solution
         /// this map should contain every parts of solution that can be used to re-create the solution back
         /// </summary>
-        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, CancellationToken cancellationToken)
+        public static async Task<ConcurrentDictionary<Checksum, object>> GetAssetMapAsync(this Solution solution, CancellationToken cancellationToken)
         {
-            var map = new Dictionary<Checksum, object>();
+            var map = new ConcurrentDictionary<Checksum, object>();
             await solution.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             return map;
         }
 
         /// <summary>
-        /// create checksum to correspoing object map from project
+        /// create checksum to corresponding object map from project.
         /// this map should contain every parts of project that can be used to re-create the project back
         /// </summary>
-        public static async Task<Dictionary<Checksum, object>> GetAssetMapAsync(this Project project, CancellationToken cancellationToken)
+        public static async Task<ConcurrentDictionary<Checksum, object>> GetAssetMapAsync(this Project project, CancellationToken cancellationToken)
         {
-            var map = new Dictionary<Checksum, object>();
+            var map = new ConcurrentDictionary<Checksum, object>();
 
             await project.AppendAssetMapAsync(map, cancellationToken).ConfigureAwait(false);
             return map;
         }
 
-        public static async Task AppendAssetMapAsync(this Solution solution, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
+        public static async Task AppendAssetMapAsync(this Solution solution, ConcurrentDictionary<Checksum, object> map, CancellationToken cancellationToken)
         {
             var solutionChecksums = await solution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static async Task AppendAssetMapAsync(this Project project, Dictionary<Checksum, object> map, CancellationToken cancellationToken)
+        private static async Task AppendAssetMapAsync(this Project project, ConcurrentDictionary<Checksum, object> map, CancellationToken cancellationToken)
         {
             if (!RemoteSupportedLanguages.IsSupported(project.Language))
             {
@@ -187,15 +189,15 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static HashSet<Checksum> Flatten(ChecksumWithChildren checksums)
+        private static ConcurrentSet<Checksum> Flatten(ChecksumWithChildren checksums)
         {
-            var set = new HashSet<Checksum>();
+            var set = new ConcurrentSet<Checksum>();
             set.AppendChecksums(checksums);
 
             return set;
         }
 
-        public static void AppendChecksums(this HashSet<Checksum> set, ChecksumWithChildren checksums)
+        public static void AppendChecksums(this ConcurrentSet<Checksum> set, ChecksumWithChildren checksums)
         {
             set.Add(checksums.Checksum);
 

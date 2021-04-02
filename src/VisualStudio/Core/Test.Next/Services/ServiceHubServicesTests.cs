@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -176,12 +177,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             }
         }
 
-        private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, Workspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
+        private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, Workspace remoteWorkspace, Solution solution, ConcurrentDictionary<Checksum, object> map = null)
         {
             // make sure checksum is calculated
             await solution.State.GetChecksumAsync(CancellationToken.None);
 
-            map ??= new Dictionary<Checksum, object>();
+            map ??= new ConcurrentDictionary<Checksum, object>();
             await solution.AppendAssetMapAsync(map, CancellationToken.None);
 
             var sessionId = 0;

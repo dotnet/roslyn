@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
@@ -14,11 +16,12 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// </summary>
     internal static class Creator
     {
-        public static PooledObject<HashSet<Checksum>> CreateChecksumSet(IEnumerable<Checksum> checksums = null)
+        public static PooledObject<ConcurrentSet<Checksum>> CreateChecksumSet(IEnumerable<Checksum> checksums = null)
         {
-            var items = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
+            var items = SharedPools.Default<ConcurrentSet<Checksum>>().GetPooledObject();
 
-            items.Object.UnionWith(checksums ?? SpecializedCollections.EmptyEnumerable<Checksum>());
+            if (checksums != null)
+                items.Object.AddRange(checksums);
 
             return items;
         }
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         public static PooledObject<List<T>> CreateList<T>()
             => SharedPools.Default<List<T>>().GetPooledObject();
 
-        public static PooledObject<Dictionary<Checksum, object>> CreateResultSet()
-            => SharedPools.Default<Dictionary<Checksum, object>>().GetPooledObject();
+        public static PooledObject<ConcurrentDictionary<Checksum, object>> CreateResultSet()
+            => SharedPools.Default<ConcurrentDictionary<Checksum, object>>().GetPooledObject();
     }
 }

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                     var orderedProjectIds = ChecksumCache.GetOrCreate(ProjectIds, _ => ProjectIds.OrderBy(id => id.Id).ToImmutableArray());
                     var projectChecksumTasks = orderedProjectIds.Select(id => ProjectStates[id])
                                                                 .Where(s => RemoteSupportedLanguages.IsSupported(s.Language))
-                                                                .Select(s => s.GetChecksumAsync(cancellationToken));
+                                                                .Select(s => Task.Run(() => s.GetChecksumAsync(cancellationToken)));
 
                     var serializer = _solutionServices.Workspace.Services.GetService<ISerializerService>();
                     var infoChecksum = serializer.CreateChecksum(SolutionAttributes, cancellationToken);

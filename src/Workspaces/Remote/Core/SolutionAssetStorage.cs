@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Find an assets of the specified <paramref name="remainingChecksumsToFind"/> within <paramref name="solutionState"/>.
         /// Once an asset of given checksum is found the corresponding asset is placed to <paramref name="result"/> and the checksum is removed from <paramref name="remainingChecksumsToFind"/>.
         /// </summary>
-        private static async Task FindAssetsAsync(SolutionState solutionState, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, SolutionAsset> result, CancellationToken cancellationToken)
+        private static async Task FindAssetsAsync(SolutionState solutionState, ConcurrentSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, SolutionAsset> result, CancellationToken cancellationToken)
         {
             using var resultPool = Creator.CreateResultSet();
 
@@ -147,12 +147,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private static async Task FindAssetsAsync(SolutionState solutionState, HashSet<Checksum> remainingChecksumsToFind, Dictionary<Checksum, object> result, CancellationToken cancellationToken)
+        private static Task FindAssetsAsync(SolutionState solutionState, ConcurrentSet<Checksum> remainingChecksumsToFind, ConcurrentDictionary<Checksum, object> result, CancellationToken cancellationToken)
         {
             // only solution with checksum can be in asset storage
             Contract.ThrowIfFalse(solutionState.TryGetStateChecksums(out var stateChecksums));
 
-            await stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken).ConfigureAwait(false);
+            return stateChecksums.FindAsync(solutionState, remainingChecksumsToFind, result, cancellationToken);
         }
 
         internal TestAccessor GetTestAccessor()

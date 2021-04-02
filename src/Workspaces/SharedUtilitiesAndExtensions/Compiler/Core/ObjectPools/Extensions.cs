@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -24,9 +26,16 @@ namespace Microsoft.CodeAnalysis
         public static PooledObject<HashSet<TItem>> GetPooledObject<TItem>(this ObjectPool<HashSet<TItem>> pool)
             => PooledObject<HashSet<TItem>>.Create(pool);
 
+        public static PooledObject<ConcurrentSet<TItem>> GetPooledObject<TItem>(this ObjectPool<ConcurrentSet<TItem>> pool) where TItem : notnull
+            => PooledObject<ConcurrentSet<TItem>>.Create(pool);
+
         public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool)
             where TKey : notnull
             => PooledObject<Dictionary<TKey, TValue>>.Create(pool);
+
+        public static PooledObject<ConcurrentDictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(this ObjectPool<ConcurrentDictionary<TKey, TValue>> pool)
+            where TKey : notnull
+            => PooledObject<ConcurrentDictionary<TKey, TValue>>.Create(pool);
 
         public static PooledObject<List<TItem>> GetPooledObject<TItem>(this ObjectPool<List<TItem>> pool)
             => PooledObject<List<TItem>>.Create(pool);
@@ -73,7 +82,25 @@ namespace Microsoft.CodeAnalysis
             return set;
         }
 
+        public static ConcurrentSet<T> AllocateAndClear<T>(this ObjectPool<ConcurrentSet<T>> pool)
+            where T : notnull
+        {
+            var set = pool.Allocate();
+            set.Clear();
+
+            return set;
+        }
+
         public static Dictionary<TKey, TValue> AllocateAndClear<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool)
+            where TKey : notnull
+        {
+            var map = pool.Allocate();
+            map.Clear();
+
+            return map;
+        }
+
+        public static ConcurrentDictionary<TKey, TValue> AllocateAndClear<TKey, TValue>(this ObjectPool<ConcurrentDictionary<TKey, TValue>> pool)
             where TKey : notnull
         {
             var map = pool.Allocate();
@@ -125,6 +152,24 @@ namespace Microsoft.CodeAnalysis
             pool.Free(set);
         }
 
+        public static void ClearAndFree<T>(this ObjectPool<ConcurrentSet<T>> pool, ConcurrentSet<T> set) where T : notnull
+        {
+            if (set == null)
+            {
+                return;
+            }
+
+            // if map grew too big, don't put it back to pool
+            if (set.Count > Threshold)
+            {
+                pool.ForgetTrackedObject(set);
+                return;
+            }
+
+            set.Clear();
+            pool.Free(set);
+        }
+
         public static void ClearAndFree<T>(this ObjectPool<Stack<T>> pool, Stack<T> set)
         {
             if (set == null)
@@ -162,6 +207,25 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static void ClearAndFree<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool, Dictionary<TKey, TValue> map)
+            where TKey : notnull
+        {
+            if (map == null)
+            {
+                return;
+            }
+
+            // if map grew too big, don't put it back to pool
+            if (map.Count > Threshold)
+            {
+                pool.ForgetTrackedObject(map);
+                return;
+            }
+
+            map.Clear();
+            pool.Free(map);
+        }
+
+        public static void ClearAndFree<TKey, TValue>(this ObjectPool<ConcurrentDictionary<TKey, TValue>> pool, ConcurrentDictionary<TKey, TValue> map)
             where TKey : notnull
         {
             if (map == null)
