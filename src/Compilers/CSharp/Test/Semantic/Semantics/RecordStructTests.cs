@@ -5394,6 +5394,256 @@ public readonly record struct B(int X, int Y)
         }
 
         [Fact]
+        public void WithExprOnStruct_OnTuple()
+        {
+            var src = @"
+var b = (1, 2);
+var b2 = M(b);
+System.Console.Write(b2.Item1);
+System.Console.Write(b2.Item2);
+
+static (int, int) M((int, int) b)
+{
+    return b with { Item1 = 42, Item2 = 43 };
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "4243");
+            verifier.VerifyIL("<Program>$.<<Main>$>g__M|0_0(System.ValueTuple<int, int>)", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.s   42
+  IL_0006:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  ldc.i4.s   43
+  IL_000f:  stfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnTuple_WithNames()
+        {
+            var src = @"
+var b = (1, 2);
+var b2 = M(b);
+System.Console.Write(b2.Item1);
+System.Console.Write(b2.Item2);
+
+static (int, int) M((int X, int Y) b)
+{
+    return b with { X = 42, Y = 43 };
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "4243");
+            verifier.VerifyIL("<Program>$.<<Main>$>g__M|0_0(System.ValueTuple<int, int>)", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.s   42
+  IL_0006:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  ldc.i4.s   43
+  IL_000f:  stfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnTuple_LongTuple()
+        {
+            var src = @"
+var b = (1, 2, 3, 4, 5, 6, 7, 8);
+var b2 = M(b);
+System.Console.Write(b2.Item7);
+System.Console.Write(b2.Item8);
+
+static (int, int, int, int, int, int, int, int) M((int, int, int, int, int, int, int, int) b)
+{
+    return b with { Item7 = 42, Item8 = 43 };
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "4243");
+            verifier.VerifyIL("<Program>$.<<Main>$>g__M|0_0(System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>)", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldc.i4.s   42
+  IL_0006:  stfld      ""int System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>.Item7""
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  ldflda     ""System.ValueTuple<int> System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>.Rest""
+  IL_0012:  ldc.i4.s   43
+  IL_0014:  stfld      ""int System.ValueTuple<int>.Item1""
+  IL_0019:  ldloc.0
+  IL_001a:  ret
+}");
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnReadonlyField()
+        {
+            var src = @"
+var b = new B { X = 1 };
+
+public struct B
+{
+    public readonly int X;
+    public B M()
+    {
+        return this with { X = 42 };
+    }
+    public static B M2(B b)
+    {
+        return b with { X = 42 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (2,17): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                // var b = new B { X = 1 };
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "X").WithLocation(2, 17),
+                // (9,28): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         return this with { X = 42 };
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "X").WithLocation(9, 28),
+                // (13,25): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
+                //         return b with { X = 42 };
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "X").WithLocation(13, 25)
+                );
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnEnum()
+        {
+            var src = @"
+public enum E { }
+class C
+{
+    static E M(E e)
+    {
+        return e with { };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnPointer()
+        {
+            var src = @"
+unsafe class C
+{
+    static int* M(int* i)
+    {
+        return i with { };
+    }
+}";
+            var comp = CreateCompilation(src, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void WithExprOnStruct_OnInterface()
+        {
+            var src = @"
+public interface I
+{
+    int X { get; set; }
+}
+class C
+{
+    static I M(I i)
+    {
+        return i with { X = 42 };
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (10,16): error CS8858: The receiver type 'I' is not a valid record type and is not a value type.
+                //         return i with { X = 42 };
+                Diagnostic(ErrorCode.ERR_NoSingleCloneMethod, "i").WithArguments("I").WithLocation(10, 16)
+                );
+        }
+
+        [Fact()]
+        public void WithExprOnStruct_OnRefStruct()
+        {
+            // Similar to test RefLikeObjInitializers but with `with` expressions
+            var text = @"
+using System;
+
+class Program
+{
+    static S2 Test1()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        // error
+        return new S2() with { Field1 = outer, Field2 = inner };
+    }
+
+    static S2 Test2()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        S2 result;
+
+        // error
+        result = new S2() with { Field1 = inner, Field2 = outer };
+
+        return result;
+    }
+
+    static S2 Test3()
+    {
+        S1 outer = default;
+        S1 inner = stackalloc int[1];
+
+        return new S2() with { Field1 = outer, Field2 = outer };
+    }
+
+    public ref struct S1
+    {
+        public static implicit operator S1(Span<int> o) => default;
+    }
+
+    public ref struct S2
+    {
+        public S1 Field1;
+        public S1 Field2;
+    }
+}
+";
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (12,48): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         return new S2() with { Field1 = outer, Field2 = inner };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "Field2 = inner").WithArguments("inner").WithLocation(12, 48),
+                // (23,34): error CS8352: Cannot use local 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                //         result = new S2() with { Field1 = inner, Field2 = outer };
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "Field1 = inner").WithArguments("inner").WithLocation(23, 34)
+                );
+        }
+
+        [Fact]
         public void WithExpr_NullableAnalysis_01()
         {
             var src = @"
