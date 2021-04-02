@@ -56,6 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             _threadingContext = threadingContext;
 
             AnalyzerService = analyzerService;
+
+            _workspace.DocumentClosed += OnDocumentClosed;
         }
 
         public static IXamlDocumentAnalyzerService? AnalyzerService { get; private set; }
@@ -184,6 +186,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             return null;
         }
 
+        private void OnDocumentClosed(object sender, DocumentEventArgs e)
+        {
+            this.OnDocumentClosed(e.Document.FilePath);
+        }
+
         private void OnProjectClosing(IVsHierarchy hierarchy)
         {
             if (_xamlProjects.TryGetValue(hierarchy, out var project))
@@ -232,8 +239,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             }
         }
 
-        private void OnDocumentClosed(string filePath)
+        private void OnDocumentClosed(string? filePath)
         {
+            if (filePath == null)
+            {
+                return;
+            }
+
             if (_documentIds.TryGetValue(filePath, out var documentId))
             {
                 var document = _workspace.CurrentSolution.GetDocument(documentId);

@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml
 {
@@ -47,13 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         public int OnBeforeLastDocumentUnlock(uint docCookie, uint dwRDTLockType, uint dwReadLocksRemaining, uint dwEditLocksRemaining)
         {
-            if (dwReadLocksRemaining == 0 && dwEditLocksRemaining == 0)
-            {
-                var docInfo = _rdt.GetDocumentInfo(docCookie);
-                OnDocumentClosed(docInfo.Moniker);
-            }
-
-            return VSConstants.S_OK;
+            return VSConstants.E_NOTIMPL;
         }
 
         public int OnBeforeSave(uint docCookie)
