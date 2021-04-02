@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -19,13 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking
 {
-    internal class BaseTrackingService
-    {
-
-    }
-
     [ExportWorkspaceService(typeof(IValueTrackingService)), Shared]
-    internal partial class ValueTrackingService : BaseTrackingService, IValueTrackingService
+    internal partial class ValueTrackingService : IValueTrackingService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
