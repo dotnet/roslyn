@@ -82,6 +82,9 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async cancellationToken =>
             {
+                // Intentionally do not call GetSolutionAsync here.  We do not want the cost of
+                // synchronizing the solution over to the remote side.  Instead, we just directly
+                // check whatever cached data we have from the previous vs session.
                 var callback = GetCallback(callbackId, cancellationToken);
 
                 await AbstractNavigateToSearchService.SearchCachedDocumentsInCurrentProcessAsync(
