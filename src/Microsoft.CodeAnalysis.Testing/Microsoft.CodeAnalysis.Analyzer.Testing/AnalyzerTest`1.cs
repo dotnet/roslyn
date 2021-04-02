@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 additionalDiagnostics = additionalDiagnostics.AddRange(project.AdditionalDiagnostics);
             }
 
-            return await GetSortedDiagnosticsAsync(solution, analyzers, additionalDiagnostics, CompilerDiagnostics, cancellationToken);
+            return await GetSortedDiagnosticsAsync(solution, analyzers, additionalDiagnostics, CompilerDiagnostics, verifier, cancellationToken);
         }
 
         /// <summary>
@@ -989,10 +989,11 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="analyzers">The analyzer to run on the documents.</param>
         /// <param name="additionalDiagnostics">Additional diagnostics reported for the solution, which need to be verified.</param>
         /// <param name="compilerDiagnostics">The behavior of compiler diagnostics in validation scenarios.</param>
+        /// <param name="verifier">The verifier to use for test assertions.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A collection of <see cref="Diagnostic"/>s that surfaced in the source code, sorted by
         /// <see cref="Diagnostic.Location"/>.</returns>
-        protected async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<Diagnostic> additionalDiagnostics, CompilerDiagnostics compilerDiagnostics, CancellationToken cancellationToken)
+        protected async Task<ImmutableArray<Diagnostic>> GetSortedDiagnosticsAsync(Solution solution, ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<Diagnostic> additionalDiagnostics, CompilerDiagnostics compilerDiagnostics, IVerifier verifier, CancellationToken cancellationToken)
         {
             if (analyzers.IsEmpty)
             {
@@ -1002,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var diagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
             foreach (var project in solution.Projects)
             {
-                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await GetProjectCompilationAsync(project, verifier, cancellationToken).ConfigureAwait(false);
                 var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, GetAnalyzerOptions(project), cancellationToken);
                 var allDiagnostics = await compilationWithAnalyzers.GetAllDiagnosticsAsync().ConfigureAwait(false);
 
@@ -1012,6 +1013,11 @@ namespace Microsoft.CodeAnalysis.Testing
             diagnostics.AddRange(additionalDiagnostics);
             var results = SortDistinctDiagnostics(diagnostics);
             return results.ToImmutableArray();
+        }
+
+        protected virtual Task<Compilation> GetProjectCompilationAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
+        {
+            return project.GetCompilationAsync(cancellationToken);
         }
 
         private static bool IsCompilerDiagnostic(Diagnostic diagnostic)
