@@ -32,5 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         {
             return ExpressionGenerator.GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
         }
+
+        protected override SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl)
+        {
+            return variableDecl.Parent?.Parent;
+        }
     }
 }

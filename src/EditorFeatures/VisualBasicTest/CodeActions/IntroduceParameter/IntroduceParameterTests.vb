@@ -139,7 +139,7 @@ End Class"
         M(z, y, x, z * y * x)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=1)
+            Await TestInRegularAndScriptAsync(source, expected, index:=3)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -152,14 +152,14 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Public Function M_num(x As Integer, y As Integer, z As Integer) As Integer
+    Public Function GetNum(x As Integer, y As Integer, z As Integer) As Integer
         Return x * y * z
     End Function
 
     Sub M(x As Integer, y As Integer, z As Integer, num As Integer)
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=2)
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -176,7 +176,7 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Public Function M_num(x As Integer, y As Integer, z As Integer) As Integer
+    Public Function GetNum(x As Integer, y As Integer, z As Integer) As Integer
         Return x * y * z
     End Function
 
@@ -184,10 +184,10 @@ End Class"
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
-        M(z, y, x, M_num(z, y, x))
+        M(z, y, x, GetNum(z, y, x))
     End Sub
 End Class"
-            Await TestInRegularAndScriptAsync(source, expected, index:=2)
+            Await TestInRegularAndScriptAsync(source, expected, index:=1)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -205,7 +205,7 @@ End Class"
 End Class"
             Dim expected =
 "Class Program
-    Public Function M_num(x As Integer, y As Integer, z As Integer) As Integer
+    Public Function GetNum(x As Integer, y As Integer, z As Integer) As Integer
         Return x * y * z
     End Function
 
@@ -214,11 +214,11 @@ End Class"
     End Sub
 
     Sub M1(x As Integer, y As Integer, z As Integer)
-        M(z, y, x, M_num(z, y, x))
+        M(z, y, x, GetNum(z, y, x))
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=3)
+            Await TestInRegularAndScriptAsync(source, expected, index:=4)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -247,7 +247,7 @@ End Class"
     End Sub
 End Class"
 
-            Await TestInRegularAndScriptAsync(source, expected, index:=4)
+            Await TestInRegularAndScriptAsync(source, expected, index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)>
@@ -319,7 +319,7 @@ End Class"
     End Sub
 
     Sub M1()
-        M(7, num:=7 * 5)
+        M(7, 7 * 5)
     End Sub
 End Class"
 

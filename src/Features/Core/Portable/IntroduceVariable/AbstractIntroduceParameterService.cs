@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         where TIdentifierNameSyntax : TExpressionSyntax
     {
         protected abstract SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol);
+        protected abstract SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// Gets the parameter name, if the expression's grandparent is a variable declarator then it just gets the
         /// local declarations name. Otherwise, it generates a name based on the context of the expression.
         /// </summary>
-        private static async Task<string> GetNewParameterNameAsync(Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
+        private async Task<string> GetNewParameterNameAsync(Document document, TExpressionSyntax expression, CancellationToken cancellationToken)
         {
             if (ShouldRemoveVariableDeclaratorContainingExpression(document, expression, out var varDeclName, out _))
             {
@@ -136,7 +137,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// Determines if the expression's grandparent is a variable declarator and if so,
         /// returns the name
         /// </summary>
-        protected static bool ShouldRemoveVariableDeclaratorContainingExpression(
+        protected bool ShouldRemoveVariableDeclaratorContainingExpression(
             Document document, TExpressionSyntax expression, [NotNullWhen(true)] out string? varDeclName, [NotNullWhen(true)] out SyntaxNode? localDeclaration)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
 
             if (syntaxFacts.IsVariableDeclarator(expressionDecl))
             {
-                var localDec = expressionDecl.Parent?.Parent;
+                var localDec = GetLocalDeclarationFromDeclarator(expressionDecl);
                 if (syntaxFacts.IsLocalDeclarationStatement(localDec))
                 {
                     localDeclaration = localDec;
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// Otherwise, it needs to have a rename annotation added to it because the new parameter gets a randomly
         /// generated name that the user can immediately change.
         /// </summary>
-        public static async Task UpdateExpressionInOriginalFunctionAsync(Document document,
+        public async Task UpdateExpressionInOriginalFunctionAsync(Document document,
             TExpressionSyntax expression, SyntaxNode scope, string parameterName, SyntaxEditor editor,
             bool allOccurrences, CancellationToken cancellationToken)
         {
@@ -353,7 +354,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// Introduces a new method overload or new trampoline method.
         /// Updates the original method site with a newly introduced parameter.
         /// </summary>
-        private static async Task<SyntaxNode> ModifyDocumentInvocationsTrampolineOverloadAndIntroduceParameterAsync(
+        private async Task<SyntaxNode> ModifyDocumentInvocationsTrampolineOverloadAndIntroduceParameterAsync(
             Compilation compilation, Document currentDocument, Document originalDocument,
             List<TInvocationExpressionSyntax> invocations, Dictionary<TIdentifierNameSyntax, IParameterSymbol> mappingDictionary,
             IMethodSymbol methodSymbol, SyntaxNode containingMethod,
