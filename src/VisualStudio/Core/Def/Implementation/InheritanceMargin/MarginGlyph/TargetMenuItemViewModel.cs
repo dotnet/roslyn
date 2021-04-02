@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.InheritanceMargin;
@@ -33,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         public static TargetMenuItemViewModel Create(InheritanceTargetItem target)
         {
             var targetName = target.DefinitionItem.DisplayParts.JoinText();
-            var displayContent = string.Format(EditorFeaturesWpfResources._0_in_1, targetName, target.DisplayNameForContainingType);
+            var displayContent = string.Format(ServicesVSResources._0_in_1, targetName, target.DisplayNameForContainingType);
             var imageMoniker = target.Glyph.GetImageMoniker();
             return new TargetMenuItemViewModel(displayContent, imageMoniker, displayContent, target.DefinitionItem);
         }

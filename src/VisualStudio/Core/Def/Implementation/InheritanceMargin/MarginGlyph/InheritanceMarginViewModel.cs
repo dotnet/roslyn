@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -62,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             if (members.Length == 1)
             {
                 var member = tag.MembersOnLine[0];
-                var textAppended = " " + EditorFeaturesWpfResources.is_inherited;
+                var textAppended = " " + ServicesVSResources.is_inherited;
                 var inlines = member.DisplayTexts.ToInlines(classificationFormatMap, classificationTypeMap);
                 WrapMemberWithinApostrophe(inlines);
                 inlines.Add(new Run(textAppended));
@@ -77,11 +76,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             {
                 var textBlock = new TextBlock
                 {
-                    Text = EditorFeaturesWpfResources.Multiple_members_are_inherited
+                    Text = ServicesVSResources.Multiple_members_are_inherited
                 };
 
                 // Same automation name can't be set for control. So add the line number info.
-                var automationName = string.Format(EditorFeaturesWpfResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
+                var automationName = string.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
                 var menuItemViewModels = tag.MembersOnLine
                     .SelectAsArray(MemberMenuItemViewModel.Create)
                     .CastArray<InheritanceContextMenuItemViewModel>();

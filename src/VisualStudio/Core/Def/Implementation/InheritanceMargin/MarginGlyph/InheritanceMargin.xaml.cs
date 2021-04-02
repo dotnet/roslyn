@@ -24,16 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         private readonly IWaitIndicator _waitIndicator;
         private readonly Workspace _workspace;
 
-        /// <summary>
-        /// Note: This name is used in xaml file.
-        /// </summary>
-        private const string SingleMemberContextMenuStyle = nameof(SingleMemberContextMenuStyle);
-
-        /// <summary>
-        /// Note: This name is used in xaml file.
-        /// </summary>
-        private const string MultipleMembersContextMenuStyle = nameof(MultipleMembersContextMenuStyle);
-
         public InheritanceMargin(
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
@@ -70,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 Logger.Log(FunctionId.InheritanceMargin_NavigateToTarget, KeyValueLogMessage.Create(LogType.UserAction));
                 _waitIndicator.Wait(
                     title: EditorFeaturesResources.Navigating,
-                    message: string.Format(EditorFeaturesWpfResources.Navigate_to_0, viewModel.DisplayContent),
+                    message: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
                     allowCancel: true,
                     context => GoToDefinitionHelpers.TryGoToDefinition(
                         ImmutableArray.Create(viewModel.DefinitionItem),
