@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                     await ProcessIndexAsync(
                         documentKey.Id, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
-                }));
+                }, cancellationToken));
             }
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
