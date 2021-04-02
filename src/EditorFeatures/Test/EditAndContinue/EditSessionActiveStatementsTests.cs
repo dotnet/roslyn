@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 EditAndContinueWorkspaceServiceTests.SetDocumentsState(debuggingSession, solution, initialState);
             }
 
-            debuggingSession.Test_SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
+            debuggingSession.GetTestAccessor().SetNonRemappableRegions(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty);
 
             var telemetry = new EditSessionTelemetry();
             return new EditSession(debuggingSession, telemetry, inBreakState: true);

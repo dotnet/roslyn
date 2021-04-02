@@ -48,25 +48,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private readonly EditSessionTelemetry _editSessionTelemetry;
         private readonly DebuggingSessionTelemetry _debuggingSessionTelemetry;
-        private readonly Func<Project, CompilationOutputs> _compilationOutputsProvider;
-        private readonly Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
+        private Func<Project, CompilationOutputs> _compilationOutputsProvider;
+        private Action<DebuggingSessionTelemetry.Data> _reportTelemetry;
 
         private DebuggingSession? _debuggingSession;
         private EditSession? _editSession;
 
-        internal EditAndContinueWorkspaceService(
-            Func<Project, CompilationOutputs>? testCompilationOutputsProvider = null,
-            Action<DebuggingSessionTelemetry.Data>? testReportTelemetry = null)
+        internal EditAndContinueWorkspaceService()
         {
             _debuggingSessionTelemetry = new DebuggingSessionTelemetry();
             _editSessionTelemetry = new EditSessionTelemetry();
-            _compilationOutputsProvider = testCompilationOutputsProvider ?? GetCompilationOutputs;
-            _reportTelemetry = testReportTelemetry ?? ReportTelemetry;
+            _compilationOutputsProvider = GetCompilationOutputs;
+            _reportTelemetry = ReportTelemetry;
         }
-
-        // test only:
-        internal DebuggingSession? Test_GetDebuggingSession() => _debuggingSession;
-        internal EditSession? Test_GetEditSession() => _editSession;
 
         private static CompilationOutputs GetCompilationOutputs(Project project)
         {
@@ -115,9 +109,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             var session = Interlocked.Exchange(ref _editSession, null);
             Contract.ThrowIfNull(session, "Edit session has not started.");
 
-            // then cancel all ongoing work bound to the session:
-            session.Cancel();
-
             // clear all reported rude edits:
             documentsToReanalyze = session.GetDocumentsWithReportedDiagnostics();
 
@@ -126,8 +117,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 _debuggingSessionTelemetry.LogEditSession(_editSessionTelemetry.GetDataAndClear());
             }
-
-            session.Dispose();
         }
 
         public void EndDebuggingSession(out ImmutableArray<DocumentId> documentsToReanalyze)
@@ -555,6 +544,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }));
                 }
             }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly EditAndContinueWorkspaceService _service;
+
+            public TestAccessor(EditAndContinueWorkspaceService service)
+            {
+                _service = service;
+            }
+
+            internal DebuggingSession? GetDebuggingSession() => _service._debuggingSession;
+            internal EditSession? GetEditSession() => _service._editSession;
+            internal void SetOutputProvider(Func<Project, CompilationOutputs> value) => _service._compilationOutputsProvider = value;
+            internal void SetReportTelemetry(Action<DebuggingSessionTelemetry.Data> value) => _service._reportTelemetry = value;
         }
     }
 }

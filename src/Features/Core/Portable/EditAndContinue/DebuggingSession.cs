@@ -110,37 +110,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
         }
 
-        // test only
-        internal void Test_SetNonRemappableRegions(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
-            => NonRemappableRegions = nonRemappableRegions;
-
-        // test only
-        internal ImmutableHashSet<Guid> Test_GetModulesPreparedForUpdate()
-        {
-            lock (_modulesPreparedForUpdateGuard)
-            {
-                return _modulesPreparedForUpdate.ToImmutableHashSet();
-            }
-        }
-
-        // test only
-        internal EmitBaseline Test_GetProjectEmitBaseline(ProjectId id)
-        {
-            lock (_projectEmitBaselinesGuard)
-            {
-                return _projectEmitBaselines[id];
-            }
-        }
-
-        // internal for testing
-        internal ImmutableArray<IDisposable> GetBaselineModuleReaders()
-        {
-            lock (_projectEmitBaselinesGuard)
-            {
-                return _initialBaselineModuleReaders.ToImmutableArrayOrEmpty();
-            }
-        }
-
         internal CancellationToken CancellationToken => _cancellationSource.Token;
         internal void Cancel() => _cancellationSource.Cancel();
 
@@ -152,6 +121,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             _cancellationSource.Dispose();
+        }
+
+        private ImmutableArray<IDisposable> GetBaselineModuleReaders()
+        {
+            lock (_projectEmitBaselinesGuard)
+            {
+                return _initialBaselineModuleReaders.ToImmutableArrayOrEmpty();
+            }
         }
 
         internal CompilationOutputs GetCompilationOutputs(Project project)
@@ -361,6 +338,39 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             return builder.ToImmutable();
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly DebuggingSession _instance;
+
+            public TestAccessor(DebuggingSession instance)
+                => _instance = instance;
+
+            public void SetNonRemappableRegions(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions)
+                => _instance.NonRemappableRegions = nonRemappableRegions;
+
+            public ImmutableHashSet<Guid> GetModulesPreparedForUpdate()
+            {
+                lock (_instance._modulesPreparedForUpdateGuard)
+                {
+                    return _instance._modulesPreparedForUpdate.ToImmutableHashSet();
+                }
+            }
+
+            public EmitBaseline GetProjectEmitBaseline(ProjectId id)
+            {
+                lock (_instance._projectEmitBaselinesGuard)
+                {
+                    return _instance._projectEmitBaselines[id];
+                }
+            }
+
+            public ImmutableArray<IDisposable> GetBaselineModuleReaders()
+                => _instance.GetBaselineModuleReaders();
         }
     }
 }
