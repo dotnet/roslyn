@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private const string PersistenceName = "<SyntaxTreeIndex>";
         private static readonly Checksum SerializationFormatChecksum = Checksum.Create("22");
 
-        public readonly Checksum Checksum;
+        public readonly Checksum? Checksum;
 
         private static Task<SyntaxTreeIndex?> LoadAsync(Document document, Checksum checksum, CancellationToken cancellationToken)
             => LoadAsync(document.Project.Solution.Workspace, DocumentKey.ToDocumentKey(document), checksum, GetStringTable(document.Project), cancellationToken);
