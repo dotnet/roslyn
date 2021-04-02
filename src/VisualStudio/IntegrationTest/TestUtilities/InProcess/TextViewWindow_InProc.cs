@@ -257,6 +257,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 action(view);
             };
 
+        public void InvokeQuickInfo()
+        {
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
+                await broker.TriggerQuickInfoAsync(GetActiveTextView());
+            });
+        }
+
         public string GetQuickInfo()
             => ExecuteOnActiveView(view =>
             {
