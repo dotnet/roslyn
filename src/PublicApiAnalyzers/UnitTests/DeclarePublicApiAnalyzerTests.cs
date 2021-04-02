@@ -856,6 +856,25 @@ static System.StringComparer.FromComparison(System.StringComparison comparisonTy
                 GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "IEnumerable<>"));
         }
 
+        [Fact, WorkItem(1192, "https://github.com/dotnet/roslyn-analyzers/issues/1192")]
+        public async Task GenericTypeForwardsAreProcessed()
+        {
+            var source = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Collections.Generic.IEnumerable<string>))]
+";
+
+            string shippedText = "";
+            string unshippedText = "";
+
+            await VerifyCSharpAsync(source, shippedText, unshippedText,
+                // /0/Test0.cs(2,12): warning RS0037: PublicAPI.txt is missing '#nullable enable', so the nullability annotations of API isn't recorded. It is recommended to enable this tracking.
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.ShouldAnnotateApiFilesRule),
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "GetEnumerator"),
+                // /0/Test0.cs(2,12): warning RS0016: Symbol 'GetEnumerator' is not part of the declared API
+                GetCSharpResultAt(2, 12, DeclarePublicApiAnalyzer.DeclareNewApiRule, "IEnumerable<String>"));
+        }
+
         [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
         public async Task TestAvoidMultipleOverloadsWithOptionalParameters()
         {
