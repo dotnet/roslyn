@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp;
+using Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using CSharpLanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
@@ -148,13 +149,9 @@ namespace TestProject
                 {
                     Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", "TestProject.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(CSharpResxGenerator), "TestProject.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -208,15 +205,10 @@ End Namespace
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", "TestProject.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(VisualBasicResxGenerator), "TestProject.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -236,7 +228,6 @@ End Namespace
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -254,7 +245,6 @@ build_metadata.AdditionalFiles.GenerateSource = false
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -308,7 +298,6 @@ namespace {rootNamespace}
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -318,13 +307,9 @@ is_global = true
 build_property.RootNamespace = {rootNamespace}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", $"{rootNamespace}.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(CSharpResxGenerator), $"{rootNamespace}.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -381,7 +366,6 @@ End Namespace
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -391,13 +375,9 @@ is_global = true
 build_property.RootNamespace = {rootNamespace}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", $"{rootNamespace}.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(VisualBasicResxGenerator), $"{rootNamespace}.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -451,7 +431,6 @@ namespace {namespaceName}
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -462,13 +441,9 @@ is_global = true
 build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", $"{namespaceName}.{typeName}.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(CSharpResxGenerator), $"{namespaceName}.{typeName}.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -534,7 +509,6 @@ End Namespace
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -545,13 +519,9 @@ is_global = true
 build_metadata.AdditionalFiles.RelativeDir = {relativeDir}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", $"{namespaceName}.{typeName}.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(VisualBasicResxGenerator), $"{namespaceName}.{typeName}.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -621,13 +591,9 @@ is_global = true
 build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ? "true" : "false")}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        omitGetResourceString ? customGetResourceString : "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", "TestProject.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(CSharpResxGenerator), "TestProject.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -708,13 +674,9 @@ is_global = true
 build_metadata.AdditionalFiles.OmitGetResourceString = {(omitGetResourceString ? "true" : "false")}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        omitGetResourceString ? customGetResourceString : "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", "TestProject.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(VisualBasicResxGenerator), "TestProject.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -762,7 +724,6 @@ namespace TestProject
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -773,13 +734,9 @@ is_global = true
 build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", "TestProject.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(CSharpResxGenerator), "TestProject.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -839,7 +796,6 @@ End Namespace
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -850,13 +806,9 @@ is_global = true
 build_metadata.AdditionalFiles.AsConstants = {(asConstants ? "true" : "false")}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", "TestProject.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(VisualBasicResxGenerator), "TestProject.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -904,7 +856,6 @@ namespace TestProject
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -915,13 +866,9 @@ is_global = true
 build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "true" : "false")}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", "TestProject.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(CSharpResxGenerator), "TestProject.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -981,7 +928,6 @@ End Namespace
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -992,13 +938,9 @@ is_global = true
 build_metadata.AdditionalFiles.IncludeDefaultValues = {(includeDefaultValues ? "true" : "false")}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", "TestProject.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(VisualBasicResxGenerator), "TestProject.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -1081,7 +1023,6 @@ namespace TestProject
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -1092,13 +1033,9 @@ is_global = true
 build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" : "false")}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp", "Microsoft.CodeAnalysis.ResxSourceGenerator.CSharp.CSharpResxGenerator", "TestProject.Resources.Designer.cs"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(CSharpResxGenerator), "TestProject.Resources.Designer.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
@@ -1154,7 +1091,6 @@ End Namespace
             {
                 TestState =
                 {
-                    Sources = { "" },
                     AdditionalFiles = { ("/0/Resources.resx", code) },
                     AnalyzerConfigFiles =
                     {
@@ -1165,13 +1101,9 @@ is_global = true
 build_metadata.AdditionalFiles.EmitFormatMethods = {(emitFormatMethods ? "true" : "false")}
 "),
                     },
-                },
-                FixedState =
-                {
-                    Sources =
+                    GeneratedSources =
                     {
-                        "",
-                        (Path.Combine("Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic", "Microsoft.CodeAnalysis.ResxSourceGenerator.VisualBasic.VisualBasicResxGenerator", "TestProject.Resources.Designer.vb"), SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+                        (typeof(VisualBasicResxGenerator), "TestProject.Resources.Designer.vb", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
                     },
                 },
             }.RunAsync();
