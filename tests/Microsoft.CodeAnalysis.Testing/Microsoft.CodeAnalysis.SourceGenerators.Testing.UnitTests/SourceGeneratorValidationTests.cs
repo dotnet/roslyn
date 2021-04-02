@@ -91,6 +91,28 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        public async Task AddSimpleFileWithWrongExpectedEncoding()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpSourceGeneratorTest<AddEmptyFile>
+                {
+                    TestState =
+                    {
+                        GeneratedSources =
+                        {
+                            (typeof(AddEmptyFile), "EmptyGeneratedFile.cs", SourceText.From(string.Empty, Encoding.Unicode)),
+                        },
+                    },
+                }.RunAsync();
+            });
+
+            var expectedMessage = @"Context: Source generator application
+encoding of 'Microsoft.CodeAnalysis.SourceGenerators.Testing.UnitTests\Microsoft.CodeAnalysis.Testing.TestGenerators.AddEmptyFile\EmptyGeneratedFile.cs' was expected to be 'utf-16' but was 'utf-8'";
+            new DefaultVerifier().EqualOrDiff(expectedMessage, exception.Message);
+        }
+
+        [Fact]
         public async Task AddSimpleFileWithDiagnostic()
         {
             await new CSharpSourceGeneratorTest<AddEmptyFileWithDiagnostic>
