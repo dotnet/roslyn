@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -31,18 +30,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private const string NewLineFollowedByReplSubmissionText = "\n. ";
         private const string ReplSubmissionText = ". ";
         private const string ReplPromptText = "> ";
-        private const int DefaultTimeoutInMilliseconds = 10000;
 
         private readonly string _viewCommand;
         private readonly Guid _windowId;
-        private int _timeoutInMilliseconds;
         private IInteractiveWindow _interactiveWindow;
 
         protected InteractiveWindow_InProc(string viewCommand, Guid windowId)
         {
             _viewCommand = viewCommand;
             _windowId = windowId;
-            _timeoutInMilliseconds = DefaultTimeoutInMilliseconds;
         }
 
         public void Initialize()
@@ -57,16 +53,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         protected abstract IInteractiveWindow AcquireInteractiveWindow();
-
-        public void SetTimeout(int milliseconds)
-        {
-            _timeoutInMilliseconds = milliseconds;
-        }
-
-        public int GetTimeoutInMilliseconds()
-        {
-            return _timeoutInMilliseconds;
-        }
 
         public bool IsInitializing
             => InvokeOnUIThread(cancellationToken => _interactiveWindow.IsInitializing);
@@ -225,7 +211,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer)
         {
             var beginTime = DateTime.UtcNow;
-            while (!valueComparer(expectedValue, getValue()) && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
+            while (!valueComparer(expectedValue, getValue()) && DateTime.UtcNow < beginTime + Helper.HangMitigatingTimeout)
             {
                 Thread.Sleep(50);
             }
@@ -234,7 +220,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             if (!valueComparer(expectedValue, getValue()))
             {
                 throw new Exception(
-                    $"Unable to find expected content in REPL within {_timeoutInMilliseconds} milliseconds and no exceptions were thrown.{Environment.NewLine}" +
+                    $"Unable to find expected content in REPL within {Helper.HangMitigatingTimeout.TotalMilliseconds} milliseconds and no exceptions were thrown.{Environment.NewLine}" +
                     $"Expected:{Environment.NewLine}" +
                     $"[[{expectedValue}]]" +
                     $"Actual:{Environment.NewLine}" +

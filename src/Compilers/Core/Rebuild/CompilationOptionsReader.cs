@@ -50,7 +50,6 @@ namespace BuildValidator
         private ImmutableArray<MetadataReferenceInfo> _metadataReferenceInfo;
         private byte[]? _sourceLinkUTF8;
 
-
         public CompilationOptionsReader(ILogger logger, MetadataReader pdbReader, PEReader peReader)
         {
             _logger = logger;
@@ -67,7 +66,7 @@ namespace BuildValidator
         {
             if (!TryGetMetadataCompilationOptionsBlobReader(out var reader))
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException("Does not contain metadata compilation options");
             }
             return reader;
         }
@@ -92,6 +91,20 @@ namespace BuildValidator
             }
 
             return _metadataCompilationOptions;
+        }
+
+        /// <summary>
+        /// Get the specified <see cref="LanguageNames"/> for this compilation.
+        /// </summary>
+        public string GetLanguageName()
+        {
+            var pdbCompilationOptions = GetMetadataCompilationOptions();
+            if (!pdbCompilationOptions.TryGetUniqueOption(CompilationOptionNames.Language, out var language))
+            {
+                throw new Exception("Invalid language name");
+            }
+
+            return language;
         }
 
         public Encoding GetEncoding()

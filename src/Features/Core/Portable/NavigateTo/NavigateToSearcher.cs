@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private readonly bool _searchCurrentDocument;
         private readonly IImmutableSet<string> _kinds;
         private readonly Document? _currentDocument;
-        private readonly ProgressTracker _progress;
+        private readonly IStreamingProgressTracker _progress;
         private readonly CancellationToken _cancellationToken;
 
         public NavigateToSearcher(
@@ -46,7 +46,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             _searchCurrentDocument = searchCurrentDocument;
             _kinds = kinds;
             _cancellationToken = cancellationToken;
-            _progress = new ProgressTracker((_, current, maximum) => callback.ReportProgress(current, maximum));
+            _progress = new StreamingProgressTracker((current, maximum) =>
+            {
+                callback.ReportProgress(current, maximum);
+                return new ValueTask();
+            });
 
             if (_searchCurrentDocument)
             {
@@ -58,12 +62,16 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         internal async Task SearchAsync()
         {
+            var isFullyLoaded = true;
+
             try
             {
+                var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+                isFullyLoaded = await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false);
+
                 using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken);
                 using var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search");
-                _progress.AddItems(_solution.Projects.Count());
-
+                await _progress.AddItemsAsync(_solution.Projects.Count()).ConfigureAwait(false);
                 await SearchAllProjectsAsync().ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -71,8 +79,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
             finally
             {
-                var service = _solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-                var isFullyLoaded = await service.IsFullyLoadedAsync(_cancellationToken).ConfigureAwait(false);
                 // providing this extra information will make UI to show indication to users
                 // that result might not contain full data
                 _callback.Done(isFullyLoaded);
@@ -143,7 +149,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             }
             finally
             {
-                _progress.ItemCompleted();
+                await _progress.ItemCompletedAsync().ConfigureAwait(false);
             }
         }
 
@@ -160,17 +166,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 using (cacheService.EnableCaching(project.Id))
                 {
-                    var service = GetSearchService(project);
+                    var service = project.GetLanguageService<INavigateToSearchService>();
                     if (service != null)
                     {
-                        var searchTask = _currentDocument != null
-                            ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, _cancellationToken)
-                            : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, _cancellationToken);
-
-                        var results = await searchTask.ConfigureAwait(false);
-                        if (results != null)
-                        {
-                            foreach (var result in results)
+                        Func<INavigateToSearchResult, Task> onResultFound = async (result) =>
                             {
                                 // If we're seeing a dupe in another project, then filter it out here.  The results from
                                 // the individual projects will already contain the information about all the projects
@@ -178,25 +177,20 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                                 lock (seenItems)
                                 {
                                     if (!seenItems.Add(result))
-                                        continue;
+                                        return;
                                 }
 
                                 await _callback.AddItemAsync(project, result, _cancellationToken).ConfigureAwait(false);
-                            }
-                        }
+                            };
+
+                        var task = _currentDocument != null
+                            ? service.SearchDocumentAsync(_currentDocument, _searchPattern, _kinds, onResultFound, _cancellationToken)
+                            : service.SearchProjectAsync(project, priorityDocuments, _searchPattern, _kinds, onResultFound, _cancellationToken);
+
+                        await task.ConfigureAwait(false);
                     }
                 }
             }
-        }
-
-        private static INavigateToSearchService? GetSearchService(Project project)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacySearchService = project.GetLanguageService<INavigateToSeINavigateToSearchService_RemoveInterfaceAboveAndRenameThisAfterInternalsVisibleToUsersUpdatearchService>();
-            return legacySearchService != null
-                ? new WrappedNavigateToSearchService(legacySearchService)
-                : project.GetLanguageService<INavigateToSearchService>();
-#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }

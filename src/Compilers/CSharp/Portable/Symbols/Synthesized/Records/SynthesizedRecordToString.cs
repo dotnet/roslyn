@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _printMethod = printMethod;
         }
 
+        protected override SpecialMember OverriddenSpecialMember => SpecialMember.System_Object__ToString;
+
         protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters, bool IsVararg, ImmutableArray<TypeParameterConstraintClause> DeclaredConstraintsForOverrideOrImplementation) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
