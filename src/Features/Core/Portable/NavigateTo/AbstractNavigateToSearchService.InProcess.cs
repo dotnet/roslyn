@@ -235,9 +235,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             foreach (var match in nameMatches)
                 matchedSpans.AddRange(match.MatchedSpans);
 
-            // See if we have a match in a linked file.  If so, see if we have the same match in other projects that
-            // this file is linked in.  If so, include the full set of projects the match is in so we can display that
-            // well in the UI.
+            // See if we have a match in a linked file.  If so, see if we have the same match in
+            // other projects that this file is linked in.  If so, include the full set of projects
+            // the match is in so we can display that well in the UI.
+            //
+            // We can only do this in the case where the solution is loaded and thus we can examine
+            // the relationship between this document and the other documents linked to it.  In the
+            // case where the solution isn't fully loaded and we're just reading in cached data, we
+            // don't know what other files we're linked to and can't merge results in this fashion.
             var additionalMatchingProjects = document == null
                 ? ImmutableArray<ProjectId>.Empty
                 : await GetAdditionalProjectsWithMatchAsync(document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
