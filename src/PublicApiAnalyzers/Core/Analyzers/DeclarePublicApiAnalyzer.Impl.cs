@@ -685,12 +685,12 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
 
                 if (symbol is INamedTypeSymbol namedTypeSymbol)
                 {
-                    foreach (var nestedType in namedTypeSymbol.GetTypeMembers())
+                    foreach (var nestedType in namedTypeSymbol.ConstructedFrom.GetTypeMembers())
                     {
                         VisitForwardedTypeRecursively(nestedType, reportDiagnostic, obsoleteAttribute, typeForwardedAttributeLocation, cancellationToken);
                     }
 
-                    foreach (var member in namedTypeSymbol.GetMembers())
+                    foreach (var member in namedTypeSymbol.ConstructedFrom.GetMembers())
                     {
                         if (!(member.IsImplicitlyDeclared && member.IsDefaultConstructor()))
                         {
