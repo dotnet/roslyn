@@ -3643,7 +3643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (baseToStringMethod is { IsSealed: true })
                 {
-                    if (baseToStringMethod!.ContainingModule != this.ContainingModule && !this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord))
+                    if (baseToStringMethod.ContainingModule != this.ContainingModule && !this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureSealedToStringInRecord))
                     {
                         var languageVersion = ((CSharpParseOptions)this.Locations[0].SourceTree!.Options).LanguageVersion;
                         var requiredVersion = MessageID.IDS_FeatureSealedToStringInRecord.RequiredVersion();
