@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis
         private new SourceGeneratedDocumentState State => (SourceGeneratedDocumentState)base.State;
 
         // TODO: make this public. Tracked by https://github.com/dotnet/roslyn/issues/50546
-        internal ISourceGenerator SourceGenerator => State.SourceGenerator;
+        internal string SourceGeneratorAssemblyName => Identity.GeneratorAssemblyName;
+        internal string SourceGeneratorTypeName => Identity.GeneratorTypeName;
         public string HintName => State.HintName;
         internal SourceGeneratedDocumentIdentity Identity => State.Identity;
 

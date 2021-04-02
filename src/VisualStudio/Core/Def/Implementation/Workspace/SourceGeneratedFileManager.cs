@@ -298,7 +298,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 _cancellationTokenSource.Cancel();
             }
 
-            private string GeneratorDisplayName => _documentIdentity.Generator.GetType().FullName;
+            private string GeneratorDisplayName => _documentIdentity.GeneratorTypeName;
 
             public async Task UpdateBufferContentsAsync(CancellationToken cancellationToken)
             {
@@ -328,7 +328,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     else
                     {
                         // The file isn't there anymore; do we still have the generator at all?
-                        if (project.AnalyzerReferences.Any(a => a.GetGenerators(project.Language).Any(g => g.GetType().Assembly.Equals(_documentIdentity.Generator.GetType().Assembly))))
+                        if (project.AnalyzerReferences.Any(a => a.GetGenerators(project.Language).Any(g => SourceGeneratedDocumentIdentity.GetGeneratorAssemblyName(g) == _documentIdentity.GeneratorAssemblyName)))
                         {
                             windowFrameMessageToShow = string.Format(ServicesVSResources.The_generator_0_that_generated_this_file_has_stopped_generating_this_file, GeneratorDisplayName);
                             windowFrameImageMonikerToShow = KnownMonikers.StatusError;

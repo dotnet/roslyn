@@ -903,9 +903,15 @@ namespace Microsoft.CodeAnalysis
                     ISourceGenerator generator,
                     string hintName)
                 {
+                    var generatorAssemblyName = SourceGeneratedDocumentIdentity.GetGeneratorAssemblyName(generator);
+                    var generatorTypeName = SourceGeneratedDocumentIdentity.GetGeneratorTypeName(generator);
+
                     foreach (var state in states.States)
                     {
-                        if (state.SourceGenerator != generator)
+                        if (state.SourceGeneratorAssemblyName != generatorAssemblyName)
+                            continue;
+
+                        if (state.SourceGeneratorTypeName != generatorTypeName)
                             continue;
 
                         if (state.HintName != hintName)

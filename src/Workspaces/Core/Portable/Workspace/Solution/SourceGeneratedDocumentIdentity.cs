@@ -17,15 +17,27 @@ namespace Microsoft.CodeAnalysis
     {
         public DocumentId DocumentId { get; }
         public string HintName { get; }
-        public ISourceGenerator Generator { get; }
+        public string GeneratorAssemblyName { get; }
+        public string GeneratorTypeName { get; }
         public string FilePath { get; }
 
-        public SourceGeneratedDocumentIdentity(DocumentId documentId, string hintName, ISourceGenerator generator, string filePath)
+        public SourceGeneratedDocumentIdentity(DocumentId documentId, string hintName, string generatorAssemblyName, string generatorTypeName, string filePath)
         {
             DocumentId = documentId;
             HintName = hintName;
-            Generator = generator;
+            GeneratorAssemblyName = generatorAssemblyName;
+            GeneratorTypeName = generatorTypeName;
             FilePath = filePath;
+        }
+
+        public static string GetGeneratorTypeName(ISourceGenerator generator)
+        {
+            return generator.GetType().FullName!;
+        }
+
+        public static string GetGeneratorAssemblyName(ISourceGenerator generator)
+        {
+            return generator.GetType().Assembly.FullName!;
         }
 
         public static SourceGeneratedDocumentIdentity Generate(ProjectId projectId, string hintName, ISourceGenerator generator, string filePath)
@@ -34,18 +46,20 @@ namespace Microsoft.CodeAnalysis
             // a document by DocumentId can find it after some change has happened that requires generators to run again.
             // To achieve this we'll just do a crytographic hash of the generator name and hint name; the choice of a cryptographic hash
             // as opposed to a more generic string hash is we actually want to ensure we don't have collisions.
-            var generatorName = generator.GetType().FullName;
-            Contract.ThrowIfNull(generatorName);
+            var generatorAssemblyName = GetGeneratorAssemblyName(generator);
+            var generatorTypeName = GetGeneratorTypeName(generator);
 
             // Combine the strings together; we'll use Encoding.Unicode since that'll match the underlying format; this can be made much
             // faster once we're on .NET Core since we could directly treat the strings as ReadOnlySpan<char>.
             var projectIdBytes = projectId.Id.ToByteArray();
-            using var _ = ArrayBuilder<byte>.GetInstance(capacity: (generatorName.Length + hintName.Length + 1) * 2 + projectIdBytes.Length, out var hashInput);
+            using var _ = ArrayBuilder<byte>.GetInstance(capacity: (generatorAssemblyName.Length + 1 + generatorTypeName.Length + 1 + hintName.Length) * 2 + projectIdBytes.Length, out var hashInput);
             hashInput.AddRange(projectIdBytes);
-            hashInput.AddRange(Encoding.Unicode.GetBytes(generatorName));
 
             // Add a null to separate the generator name and hint name; since this is effectively a joining of UTF-16 bytes
             // we'll use a UTF-16 null just to make sure there's absolutely no risk of collision.
+            hashInput.AddRange(Encoding.Unicode.GetBytes(generatorAssemblyName));
+            hashInput.AddRange(0, 0);
+            hashInput.AddRange(Encoding.Unicode.GetBytes(generatorTypeName));
             hashInput.AddRange(0, 0);
             hashInput.AddRange(Encoding.Unicode.GetBytes(hintName));
 
@@ -58,7 +72,7 @@ namespace Microsoft.CodeAnalysis
 
             var documentId = DocumentId.CreateFromSerialized(projectId, guid, hintName);
 
-            return new SourceGeneratedDocumentIdentity(documentId, hintName, generator, filePath);
+            return new SourceGeneratedDocumentIdentity(documentId, hintName, generatorAssemblyName, generatorTypeName, filePath);
         }
     }
 }
