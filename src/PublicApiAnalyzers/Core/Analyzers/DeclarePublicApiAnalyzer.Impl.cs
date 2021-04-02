@@ -644,26 +644,8 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             internal void OnCompilationEnd(CompilationAnalysisContext context)
             {
                 ProcessTypeForwardedAttributes(context.Compilation, context.ReportDiagnostic, context.CancellationToken);
-                List<ApiLine> deletedApiList = GetDeletedApiList();
-                foreach (ApiLine cur in deletedApiList)
-                {
-                    Location location = getLocationFromApiLine(cur);
-                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, cur.Text);
-                    context.ReportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, propertyBag, cur.Text));
-                }
-
-                List<RemovedApiLine> markedAsRemovedButNotRemoved = GetMarkedAsRemovedButNotActuallyRemovedApiList();
-                foreach (RemovedApiLine removedApiLine in markedAsRemovedButNotRemoved)
-                {
-                    Location location = getLocationFromApiLine(removedApiLine.ApiLine);
-                    context.ReportDiagnostic(Diagnostic.Create(RemovedApiIsNotActuallyRemovedRule, location, messageArgs: removedApiLine.Text));
-                }
-
-                static Location getLocationFromApiLine(ApiLine apiLine)
-                {
-                    LinePositionSpan linePositionSpan = apiLine.SourceText.Lines.GetLinePositionSpan(apiLine.Span);
-                    return Location.Create(apiLine.Path, apiLine.Span, linePositionSpan);
-                }
+                ReportDeletedApiList(context.ReportDiagnostic);
+                ReportMarkedAsRemovedButNotActuallyRemovedApiList(context.ReportDiagnostic);
             }
 
             private void ProcessTypeForwardedAttributes(Compilation compilation, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
@@ -713,12 +695,10 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
             }
 
             /// <summary>
-            /// Calculated the set of APIs which have been deleted but not yet documented.
+            /// Report diagnostics to the set of APIs which have been deleted but not yet documented.
             /// </summary>
-            /// <returns></returns>
-            internal List<ApiLine> GetDeletedApiList()
+            internal void ReportDeletedApiList(Action<Diagnostic> reportDiagnostic)
             {
-                var list = new List<ApiLine>();
                 foreach (KeyValuePair<string, ApiLine> pair in _publicApiMap)
                 {
                     if (_visitedApiList.ContainsKey(pair.Key))
@@ -731,28 +711,31 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers
                         continue;
                     }
 
-                    list.Add(pair.Value);
+                    Location location = GetLocationFromApiLine(pair.Value);
+                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty.Add(PublicApiNamePropertyBagKey, pair.Value.Text);
+                    reportDiagnostic(Diagnostic.Create(RemoveDeletedApiRule, location, propertyBag, pair.Value.Text));
                 }
-
-                return list;
             }
 
             /// <summary>
-            /// Calculated the set of APIs which have been marked with *REMOVED* but still exists in source code.
+            /// Report diagnostics to the set of APIs which have been marked with *REMOVED* but still exists in source code.
             /// </summary>
-            /// <returns></returns>
-            internal List<RemovedApiLine> GetMarkedAsRemovedButNotActuallyRemovedApiList()
+            internal void ReportMarkedAsRemovedButNotActuallyRemovedApiList(Action<Diagnostic> reportDiagnostic)
             {
-                var list = new List<RemovedApiLine>();
                 foreach (var markedAsRemoved in _unshippedData.RemovedApiList)
                 {
                     if (_visitedApiList.ContainsKey(markedAsRemoved.Text))
                     {
-                        list.Add(markedAsRemoved);
+                        Location location = GetLocationFromApiLine(markedAsRemoved.ApiLine);
+                        reportDiagnostic(Diagnostic.Create(RemovedApiIsNotActuallyRemovedRule, location, messageArgs: markedAsRemoved.Text));
                     }
                 }
+            }
 
-                return list;
+            private static Location GetLocationFromApiLine(ApiLine apiLine)
+            {
+                LinePositionSpan linePositionSpan = apiLine.SourceText.Lines.GetLinePositionSpan(apiLine.Span);
+                return Location.Create(apiLine.Path, apiLine.Span, linePositionSpan);
             }
 
             private bool IsPublicAPI(ISymbol symbol)
