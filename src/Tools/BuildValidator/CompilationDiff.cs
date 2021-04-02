@@ -18,6 +18,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Rebuild;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Extensions.Logging;
@@ -125,15 +126,16 @@ namespace BuildValidator
 
         public static unsafe CompilationDiff Create(
             AssemblyInfo assemblyInfo,
-            CompilationOptionsReader optionsReader,
-            Compilation producedCompilation,
+            CompilationFactory compilationFactory,
+            ImmutableArray<SyntaxTree> syntaxTrees,
+            ImmutableArray<MetadataReference> metadataReferences,
             ILogger logger)
         {
             using var rebuildPeStream = new MemoryStream();
-            var emitResult = BuildConstructor.Emit(
+            var rebuildCompilation = compilationFactory.CreateCompilation(syntaxTrees, metadataReferences);
+            var emitResult = compilationFactory.Emit(
                 rebuildPeStream,
-                optionsReader,
-                producedCompilation,
+                rebuildCompilation,
                 CancellationToken.None);
 
             if (!emitResult.Success)
@@ -164,7 +166,7 @@ namespace BuildValidator
                         RebuildResult.BinaryDifference,
                         originalPortableExecutableBytes: originalBytes,
                         rebuildPortableExecutableBytes: rebuildBytes,
-                        rebuildCompilation: producedCompilation);
+                        rebuildCompilation: rebuildCompilation);
                 }
             }
         }

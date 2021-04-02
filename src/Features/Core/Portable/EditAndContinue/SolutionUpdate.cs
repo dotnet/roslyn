@@ -13,32 +13,32 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         public readonly ManagedModuleUpdates ModuleUpdates;
         public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> NonRemappableRegions;
-        public readonly ImmutableArray<IDisposable> ModuleReaders;
         public readonly ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> EmitBaselines;
         public readonly ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostic)> Diagnostics;
+        public readonly ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> DocumentsWithRudeEdits;
 
         public SolutionUpdate(
             ManagedModuleUpdates moduleUpdates,
             ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions,
-            ImmutableArray<IDisposable> moduleReaders,
             ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> emitBaselines,
-            ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnostics)
+            ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnostics,
+            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> documentsWithRudeEdits)
         {
             ModuleUpdates = moduleUpdates;
             NonRemappableRegions = nonRemappableRegions;
             EmitBaselines = emitBaselines;
-            ModuleReaders = moduleReaders;
             Diagnostics = diagnostics;
+            DocumentsWithRudeEdits = documentsWithRudeEdits;
         }
 
-        public static SolutionUpdate Blocked()
-            => Blocked(ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)>.Empty);
-
-        public static SolutionUpdate Blocked(ImmutableArray<(ProjectId ProjectId, ImmutableArray<Diagnostic> Diagnostics)> diagnostics) => new(
-            new(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty),
-            ImmutableArray<(Guid, ImmutableArray<(ManagedModuleMethodId, NonRemappableRegion)>)>.Empty,
-            ImmutableArray<IDisposable>.Empty,
-            ImmutableArray<(ProjectId, EmitBaseline)>.Empty,
-            diagnostics);
+        public static SolutionUpdate Blocked(
+            ImmutableArray<(ProjectId, ImmutableArray<Diagnostic>)> diagnostics,
+            ImmutableArray<(DocumentId, ImmutableArray<RudeEditDiagnostic>)> documentsWithRudeEdits)
+            => new(
+                new(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty),
+                ImmutableArray<(Guid, ImmutableArray<(ManagedModuleMethodId, NonRemappableRegion)>)>.Empty,
+                ImmutableArray<(ProjectId, EmitBaseline)>.Empty,
+                diagnostics,
+                documentsWithRudeEdits);
     }
 }

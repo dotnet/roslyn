@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
-        protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
+        protected abstract Conversion GetInterpolatedStringConversion(BoundUnconvertedInterpolatedString source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
@@ -931,8 +931,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.InterpolatedString:
-                    Conversion interpolatedStringConversion = GetInterpolatedStringConversion((BoundInterpolatedString)sourceExpression, destination, ref useSiteInfo);
+                case BoundKind.UnconvertedInterpolatedString:
+                    Conversion interpolatedStringConversion = GetInterpolatedStringConversion((BoundUnconvertedInterpolatedString)sourceExpression, destination, ref useSiteInfo);
                     if (interpolatedStringConversion.Exists)
                     {
                         return interpolatedStringConversion;

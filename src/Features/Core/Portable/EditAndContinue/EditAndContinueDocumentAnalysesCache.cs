@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var results = await GetDocumentAnalysisAsync(baseDocument.Project, document, activeStatementSpans, cancellationToken).ConfigureAwait(false);
                 return results.ActiveStatements;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return allResults.ToImmutableArray();
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return await lazyResults.GetValueAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                         return await analyzer.AnalyzeDocumentAsync(baseProject, documentBaseActiveStatements, document, activeStatementSpans, cancellationToken).ConfigureAwait(false);
                     }
-                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
