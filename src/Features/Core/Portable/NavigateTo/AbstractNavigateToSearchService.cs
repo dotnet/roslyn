@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
             var project = document.Project;
             var solution = project.Solution;
-            var solutionKey = SolutionKey.ToSolutionKey(solution);
             var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
             var onItemFound = GetOnItemFoundCallback(solution, onResultFound, cancellationToken);
 
