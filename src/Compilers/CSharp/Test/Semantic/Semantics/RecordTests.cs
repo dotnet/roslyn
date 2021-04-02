@@ -5982,6 +5982,24 @@ record C3 : C2;
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C1");
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C3").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C3.EqualityContract.get",
+                "System.Type C3.EqualityContract { get; }",
+                "System.Boolean C3." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C3.op_Inequality(C3? left, C3? right)",
+                "System.Boolean C3.op_Equality(C3? left, C3? right)",
+                "System.Int32 C3.GetHashCode()",
+                "System.Boolean C3.Equals(System.Object? obj)",
+                "System.Boolean C3.Equals(C2? other)",
+                "System.Boolean C3.Equals(C3? other)",
+                "C1 C3." + WellKnownMemberNames.CloneMethodName + "()",
+                "C3..ctor(C3 original)",
+                "C3..ctor()"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -6007,6 +6025,24 @@ record C3 : C2;
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C2C1");
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C3").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C3.EqualityContract.get",
+                "System.Type C3.EqualityContract { get; }",
+                "System.Boolean C3." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C3.op_Inequality(C3? left, C3? right)",
+                "System.Boolean C3.op_Equality(C3? left, C3? right)",
+                "System.Int32 C3.GetHashCode()",
+                "System.Boolean C3.Equals(System.Object? obj)",
+                "System.Boolean C3.Equals(C2? other)",
+                "System.Boolean C3.Equals(C3? other)",
+                "C1 C3." + WellKnownMemberNames.CloneMethodName + "()",
+                "C3..ctor(C3 original)",
+                "C3..ctor()"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -6030,6 +6066,24 @@ record C3 : C2;
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C1");
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C3").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C3.EqualityContract.get",
+                "System.Type C3.EqualityContract { get; }",
+                "System.Boolean C3." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C3.op_Inequality(C3? left, C3? right)",
+                "System.Boolean C3.op_Equality(C3? left, C3? right)",
+                "System.Int32 C3.GetHashCode()",
+                "System.Boolean C3.Equals(System.Object? obj)",
+                "System.Boolean C3.Equals(C2? other)",
+                "System.Boolean C3.Equals(C3? other)",
+                "C1 C3." + WellKnownMemberNames.CloneMethodName + "()",
+                "C3..ctor(C3 original)",
+                "C3..ctor()"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -6053,6 +6107,24 @@ record C3 : C2;
             var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C1");
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C3").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Type C3.EqualityContract.get",
+                "System.Type C3.EqualityContract { get; }",
+                "System.Boolean C3." + WellKnownMemberNames.PrintMembersMethodName + "(System.Text.StringBuilder builder)",
+                "System.Boolean C3.op_Inequality(C3? left, C3? right)",
+                "System.Boolean C3.op_Equality(C3? left, C3? right)",
+                "System.Int32 C3.GetHashCode()",
+                "System.Boolean C3.Equals(System.Object? obj)",
+                "System.Boolean C3.Equals(C2? other)",
+                "System.Boolean C3.Equals(C3? other)",
+                "C1 C3." + WellKnownMemberNames.CloneMethodName + "()",
+                "C3..ctor(C3 original)",
+                "C3..ctor()"
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
