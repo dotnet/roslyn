@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var index = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
 
             await ProcessIndexAsync(
-                document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
+                document.Id, document, isStale: false, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task SearchCachedDocumentsInCurrentProcessAsync(
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         return;
 
                     await ProcessIndexAsync(
-                        documentKey.Id, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
+                        documentKey.Id, document: null, isStale: true, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
                 }));
             }
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private static async Task ProcessIndexAsync(
             DocumentId documentId, Document? document,
-            string patternName, string? patternContainer,
+            bool isStale, string patternName, string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onResultFound,
             SyntaxTreeIndex index,
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 await AddResultIfMatchAsync(
                     documentId, document,
-                    declaredSymbolInfo,
+                    isStale, declaredSymbolInfo,
                     nameMatcher, containerMatcher,
                     kinds,
                     nameMatches, containerMatches,
@@ -195,7 +195,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static async Task AddResultIfMatchAsync(
-            DocumentId documentId, Document? document, DeclaredSymbolInfo declaredSymbolInfo,
+            DocumentId documentId, Document? document,
+            bool isStale, DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher, PatternMatcher? containerMatcher,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
@@ -210,13 +211,14 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
             {
                 var result = await ConvertResultAsync(
-                    declaredSymbolInfo, documentId, document, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
+                    documentId, document, isStale, declaredSymbolInfo, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
                 await onResultFound(result).ConfigureAwait(false);
             }
         }
 
         private static async Task<RoslynNavigateToItem> ConvertResultAsync(
-            DeclaredSymbolInfo declaredSymbolInfo, DocumentId documentId, Document? document,
+            DocumentId documentId, Document? document,
+            bool isStale, DeclaredSymbolInfo declaredSymbolInfo,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {
@@ -239,7 +241,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 : await GetAdditionalProjectsWithMatchAsync(document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
 
             return new RoslynNavigateToItem(
-                isStale: false,
+                isStale,
                 documentId,
                 additionalMatchingProjects,
                 declaredSymbolInfo,
