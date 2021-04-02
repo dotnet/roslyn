@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             var index = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
 
             await ProcessIndexAsync(
-                document.Id, document, isStale: false, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
+                document.Id, document, patternName, patternContainer, kinds, onResultFound, index, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task SearchCachedDocumentsInCurrentProcessAsync(
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         return;
 
                     await ProcessIndexAsync(
-                        documentKey.Id, document: null, isStale: true, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
+                        documentKey.Id, document: null, patternName, patternContainer, kinds, onItemFound, index, cancellationToken).ConfigureAwait(false);
                 }));
             }
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private static async Task ProcessIndexAsync(
             DocumentId documentId, Document? document,
-            bool isStale, string patternName, string? patternContainer,
+            string patternName, string? patternContainer,
             DeclaredSymbolInfoKindSet kinds,
             Func<RoslynNavigateToItem, Task> onResultFound,
             SyntaxTreeIndex index,
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             {
                 await AddResultIfMatchAsync(
                     documentId, document,
-                    isStale, declaredSymbolInfo,
+                    declaredSymbolInfo,
                     nameMatcher, containerMatcher,
                     kinds,
                     nameMatches, containerMatches,
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private static async Task AddResultIfMatchAsync(
             DocumentId documentId, Document? document,
-            bool isStale, DeclaredSymbolInfo declaredSymbolInfo,
+            DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher, PatternMatcher? containerMatcher,
             DeclaredSymbolInfoKindSet kinds,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
@@ -211,15 +211,17 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 containerMatcher?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
             {
                 var result = await ConvertResultAsync(
-                    documentId, document, isStale, declaredSymbolInfo, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
+                    documentId, document, declaredSymbolInfo, nameMatches, containerMatches, cancellationToken).ConfigureAwait(false);
                 await onResultFound(result).ConfigureAwait(false);
             }
         }
 
         private static async Task<RoslynNavigateToItem> ConvertResultAsync(
-            DocumentId documentId, Document? document,
-            bool isStale, DeclaredSymbolInfo declaredSymbolInfo,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches,
+            DocumentId documentId,
+            Document? document,
+            DeclaredSymbolInfo declaredSymbolInfo,
+            ArrayBuilder<PatternMatch> nameMatches,
+            ArrayBuilder<PatternMatch> containerMatches,
             CancellationToken cancellationToken)
         {
             var matchKind = GetNavigateToMatchKind(nameMatches);
@@ -240,8 +242,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 ? ImmutableArray<ProjectId>.Empty
                 : await GetAdditionalProjectsWithMatchAsync(document, declaredSymbolInfo, cancellationToken).ConfigureAwait(false);
 
+            // If we were not given a Document instance, then we're finding matches in cached data
+            // and thus could be 'stale'.
             return new RoslynNavigateToItem(
-                isStale,
+                isStale: document == null,
                 documentId,
                 additionalMatchingProjects,
                 declaredSymbolInfo,
