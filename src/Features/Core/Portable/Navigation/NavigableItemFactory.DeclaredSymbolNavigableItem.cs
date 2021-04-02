@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Navigation
                     case DeclaredSymbolInfoKind.Module: return Glyph.ModulePublic;
                     case DeclaredSymbolInfoKind.Property: return Glyph.PropertyPublic;
                     case DeclaredSymbolInfoKind.Struct: return Glyph.StructurePublic;
+                    case DeclaredSymbolInfoKind.RecordStruct: return Glyph.StructurePublic;
                     default: return Glyph.ClassPublic;
                 }
             }

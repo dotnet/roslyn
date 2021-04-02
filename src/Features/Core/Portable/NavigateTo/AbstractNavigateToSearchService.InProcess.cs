@@ -200,6 +200,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     return NavigateToItemKind.Class;
                 case DeclaredSymbolInfoKind.Record:
                     return NavigateToItemKind.Record;
+                case DeclaredSymbolInfoKind.RecordStruct:
+                    return NavigateToItemKind.RecordStruct;
                 case DeclaredSymbolInfoKind.Constant:
                     return NavigateToItemKind.Constant;
                 case DeclaredSymbolInfoKind.Delegate:
@@ -269,6 +271,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                             break;
                         case NavigateToItemKind.Record:
                             lookupTable[(int)DeclaredSymbolInfoKind.Record] = true;
+                            break;
+                        case NavigateToItemKind.RecordStruct:
+                            lookupTable[(int)DeclaredSymbolInfoKind.RecordStruct] = true;
                             break;
                         case NavigateToItemKind.Constant:
                             lookupTable[(int)DeclaredSymbolInfoKind.Constant] = true;

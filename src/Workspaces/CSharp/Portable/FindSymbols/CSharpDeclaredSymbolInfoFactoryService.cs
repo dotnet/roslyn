@@ -236,6 +236,20 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         GetInheritanceNames(stringTable, structDecl.BaseList),
                         IsNestedType(structDecl));
                     return true;
+                case SyntaxKind.RecordStructDeclaration:
+                    var recordStructDecl = (RecordStructDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        stringTable,
+                        recordStructDecl.Identifier.ValueText, GetTypeParameterSuffix(recordStructDecl.TypeParameterList),
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        recordStructDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        DeclaredSymbolInfoKind.RecordStruct,
+                        GetAccessibility(recordStructDecl, recordStructDecl.Modifiers),
+                        recordStructDecl.Identifier.Span,
+                        GetInheritanceNames(stringTable, recordStructDecl.BaseList),
+                        IsNestedType(recordStructDecl));
+                    return true;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(

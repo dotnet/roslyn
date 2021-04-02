@@ -112,6 +112,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 {
                     case DeclaredSymbolInfoKind.Class:
                     case DeclaredSymbolInfoKind.Record:
+                    case DeclaredSymbolInfoKind.RecordStruct:
                     case DeclaredSymbolInfoKind.Enum:
                     case DeclaredSymbolInfoKind.Interface:
                     case DeclaredSymbolInfoKind.Module:

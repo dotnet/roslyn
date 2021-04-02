@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo
         public static string File = NavigateToItemKind.File;
         public static string Class => NavigateToItemKind.Class;
         public static string Record => NavigateToItemKind.Record;
+        public static string RecordStruct => NavigateToItemKind.RecordStruct;
         public static string Structure => NavigateToItemKind.Structure;
         public static string Interface => NavigateToItemKind.Interface;
         public static string Delegate => NavigateToItemKind.Delegate;
