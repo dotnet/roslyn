@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -33,10 +34,10 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     ILiteralOperation literalOperation => VisitLiteralAsync(literalOperation, cancellationToken),
                     IReturnOperation returnOperation => VisitReturnAsync(returnOperation, cancellationToken),
                     IArgumentOperation argumentOperation => ShouldTrackArgument(argumentOperation) ? VisitAsync(argumentOperation.Value, cancellationToken) : Task.CompletedTask,
-                    ILocalReferenceOperation localReferenceOperation => VisitLocalReferenceAsync(localReferenceOperation, cancellationToken),
-                    IParameterReferenceOperation parameterReferenceOperation => VisitParameterReferenceAsync(parameterReferenceOperation, cancellationToken),
-                    IFieldReferenceOperation fieldReferenceOperation => VisitFieldReferenceAsync(fieldReferenceOperation, cancellationToken),
-                    IPropertyReferenceOperation propertyReferenceOperation => VisitPropertyReferenceAsync(propertyReferenceOperation, cancellationToken),
+                    ILocalReferenceOperation or
+                        IParameterReferenceOperation or
+                        IFieldReferenceOperation or
+                        IPropertyReferenceOperation => VisitReferenceAsync(operation, cancellationToken),
                     IAssignmentOperation assignmentOperation => VisitAssignmentOperationAsync(assignmentOperation, cancellationToken),
 
                     // Default to reporting if there is symbol information available
@@ -84,72 +85,75 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 await TrackArgumentsAsync(invocationOperation.Arguments, cancellationToken).ConfigureAwait(false);
             }
 
-            private Task VisitLocalReferenceAsync(ILocalReferenceOperation localReferenceOperation, CancellationToken cancellationToken)
+            private Task VisitReferenceAsync(IOperation operation, CancellationToken cancellationToken)
             {
-                if (IsOutOrRefForMethod(localReferenceOperation, out var parameterSymbol))
+                Debug.Assert(operation is
+                    ILocalReferenceOperation or
+                    IParameterReferenceOperation or
+                    IFieldReferenceOperation or
+                    IPropertyReferenceOperation);
+
+                if (IsArgument(operation, out var argumentOperation) && argumentOperation.Parameter is not null)
                 {
-                    return AddOperationAsync(localReferenceOperation, parameterSymbol, cancellationToken);
-                }
-
-                return Task.CompletedTask;
-            }
-
-            private Task VisitParameterReferenceAsync(IParameterReferenceOperation parameterReferenceOperation, CancellationToken cancellationToken)
-            {
-                if (IsOutOrRefForMethod(parameterReferenceOperation, out var parameterSymbol))
-                {
-                    return AddOperationAsync(parameterReferenceOperation, parameterSymbol, cancellationToken);
-                }
-
-                return Task.CompletedTask;
-            }
-
-            private Task VisitFieldReferenceAsync(IFieldReferenceOperation fieldReferenceOperation, CancellationToken cancellationToken)
-            {
-                if (IsOutOrRefForMethod(fieldReferenceOperation, out var parameterSymbol))
-                {
-                    return AddOperationAsync(fieldReferenceOperation, parameterSymbol, cancellationToken);
-                }
-
-                return Task.CompletedTask;
-            }
-
-            private Task VisitPropertyReferenceAsync(IPropertyReferenceOperation propertyReferenceOperation, CancellationToken cancellationToken)
-            {
-                if (IsOutOrRefForMethod(propertyReferenceOperation, out var parameterSymbol))
-                {
-                    return AddOperationAsync(propertyReferenceOperation, parameterSymbol, cancellationToken);
-                }
-
-                return Task.CompletedTask;
-            }
-
-            private static bool IsOutOrRefForMethod(IOperation operation, [NotNullWhen(returnValue: true)] out IParameterSymbol? parameterSymbol)
-            {
-                var originalOperation = operation;
-                parameterSymbol = null;
-
-                var argumentOperation = operation as IArgumentOperation;
-                while (argumentOperation is null)
-                {
-                    if (operation.Parent is null)
+                    if (argumentOperation.Parameter.IsRefOrOut())
                     {
-                        return false;
+                        // Always add ref or out parameters to track as assignments since the values count as 
+                        // assignments across method calls for the purposes of value tracking.
+                        return AddOperationAsync(operation, argumentOperation.Parameter, cancellationToken);
+                    }
+
+                    // If the parameter is not a ref or out param, track the reference assignments that count
+                    // as input to the argument being passed to the method.
+                    return AddReference(operation, cancellationToken);
+                }
+
+                if (IsReturn(operation))
+                {
+                    // If the reference is part of a return operation we want to track where the values come from
+                    // since they contribute to the "output" of the method and are relavent for value tracking.
+                    return AddReference(operation, cancellationToken);
+                }
+
+                return Task.CompletedTask;
+
+                Task AddReference(IOperation operation, CancellationToken cancellationToken)
+                    => operation switch
+                    {
+                        IParameterReferenceOperation parameterReference => AddOperationAsync(operation, parameterReference.Parameter, cancellationToken),
+                        IFieldReferenceOperation fieldReferenceOperation => AddOperationAsync(operation, fieldReferenceOperation.Member, cancellationToken),
+                        IPropertyReferenceOperation propertyReferenceOperation => AddOperationAsync(operation, propertyReferenceOperation.Member, cancellationToken),
+                        ILocalReferenceOperation localReferenceOperation => AddOperationAsync(operation, localReferenceOperation.Local, cancellationToken),
+                        _ => Task.CompletedTask
+                    };
+            }
+
+            private static bool IsArgument(IOperation? operation, [NotNullWhen(returnValue: true)] out IArgumentOperation? argumentOperation)
+            {
+                while (operation is not null)
+                {
+                    if (operation is IArgumentOperation tmpArgumentOperation)
+                    {
+                        argumentOperation = tmpArgumentOperation;
+                        return true;
                     }
 
                     operation = operation.Parent;
-                    argumentOperation = operation as IArgumentOperation;
                 }
 
-                if (argumentOperation is null)
-                {
-                    return false;
-                }
+                argumentOperation = null;
+                return false;
+            }
 
-                if (argumentOperation.Value == originalOperation)
+            private static bool IsReturn(IOperation? operation)
+            {
+                while (operation is not null)
                 {
-                    parameterSymbol = argumentOperation.Parameter;
-                    return true;
+                    if (operation is IReturnOperation)
+                    {
+                        return true;
+                    }
+
+                    operation = operation.Parent;
                 }
 
                 return false;

@@ -205,9 +205,9 @@ class C
 
 class Other
 {
-    public void CallS(C c, string s)
+    public void CallS(C c, string str)
     {
-        c.SetS(s);
+        c.SetS(str);
     }
 
     public void CallS(C c)
@@ -237,8 +237,8 @@ class Other
             //
             // S = s; [Code.cs:7]
             //  |> S = [|s|] [Code.cs:7]
-            //    |> [|c.SetS(s)|]; [Code.cs:17]
-            //    |> c.SetS([|s|]); [Code.cs:17]
+            //    |> [|c.SetS(str)|]; [Code.cs:17]
+            //    |> c.SetS([|str|]); [Code.cs:17]
             //      |> CallS([|c|], CalculateDefault(c)) [Code.cs:22]
             //      |> CallS(c, [|CalculateDefault(c)|]) [Code.cs:22]
             //         |>  return "" [Code.cs:37]
@@ -253,8 +253,8 @@ class Other
                 initialItems.Single(),
                 childInfo: new[]
                 {
-                    (17, "s"), // |> c.SetS([|s|]); [Code.cs:17]
-                    (17, "c.SetS(s)"), // |> [|c.SetS(s)|]; [Code.cs:17]
+                    (17, "str"), // |> c.SetS([|str|]); [Code.cs:17]
+                    (17, "c.SetS(str)"), // |> [|c.SetS(str)|]; [Code.cs:17]
                 });
 
             // |> [|c.SetS(s)|]; [Code.cs:17]
@@ -587,21 +587,18 @@ class C
                 initialItems.Single(),
                 childInfo: new[]
                 {
-                    (24, "2"), // |> i = [|2|] [Code.cs:24]
                     (18, "i"), // |> if (TryConvertInt(o, out [|i|])) [Code.cs:18]
                 });
 
-            await ValidateChildrenEmptyAsync(workspace, children[0]);
-
             children = await ValidateChildrenAsync(
                 workspace,
-                children[1],
+                children.Single(),
                 childInfo: new[]
                 {
                     (5, "i") // |> if (int.TryParse(o.ToString(), out [|i|])) [Code.cs:5]
                 });
 
-            await ValidateChildrenEmptyAsync(workspace, children[0]);
+            await ValidateChildrenEmptyAsync(workspace, children.Single());
         }
     }
 }

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                     await progressCollector.TryReportAsync(document.Project.Solution, node.GetLocation(), symbol, cancellationToken).ConfigureAwait(false);
                 }
             }
-            else if (node is not null)
+            else if (node is not null && symbol is null)
             {
                 // If the correct symbol couldn't be determined but a node is available, try to let
                 // the operation collector handle the operation and report as needed
@@ -141,20 +141,30 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
                 case IParameterSymbol parameterSymbol:
                     {
-                        if (parameterSymbol.IsRefOrOut())
-                        {
-                            // For Ref or Out parameters, they contribute data across method calls through assignments
-                            // within the method. No need to track returns
-                            // Ex: TryGetValue("mykey", out var [|v|])
-                            // [|v|] is the interesting part, we don't care what the method returns
-                            await TrackVariableSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
+                        var previousSymbol = previousTrackedItem.Parent?.Symbol;
 
-                        }
-                        else
+                        // If the current parameter is a parameter symbol for the previous tracked method it should be treated differently.
+                        // For example: 
+                        // string PrependString(string pre, string s) => pre + s;
+                        //        ^--- previously tracked          ^---- current parameter being tracked
+                        //
+                        // In this case, s is being tracked because it contributed to the return of the method. We only
+                        // want to track assignments to s that could impact the return rather than tracking the same method
+                        // twice.
+                        var isParameterForPreviousTrackedMethod = previousSymbol == parameterSymbol.ContainingSymbol;
+
+                        // For Ref or Out parameters, they contribute data across method calls through assignments
+                        // within the method. No need to track returns
+                        // Ex: TryGetValue("mykey", out var [|v|])
+                        // [|v|] is the interesting part, we don't care what the method returns
+                        var isRefOrOut = parameterSymbol.IsRefOrOut();
+
+                        // Always track the parameter assignments as variables, in case they are assigned anywhere in the method
+                        await TrackVariableSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
+
+                        var trackMethod = !(isParameterForPreviousTrackedMethod || isRefOrOut);
+                        if (trackMethod)
                         {
-                            // The "output" is method calls, so track where this method is invoked for the parameter as 
-                            // well as assignments inside the method. Both contribute to the final values
-                            await TrackVariableSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
                             await TrackParameterSymbolAsync(parameterSymbol, operationCollector, cancellationToken).ConfigureAwait(false);
                         }
                     }
@@ -300,7 +310,7 @@ namespace Microsoft.CodeAnalysis.ValueTracking
                 // the symbol for that identifier
                 if (syntaxFacts.IsArgument(selectedNode))
                 {
-                    selectedNode = syntaxFacts.GetExpressionOfArgument(selectedNode);
+                    selectedNode = syntaxFacts.GetExpressionOfArgument(selectedNode)!;
                     selectedSymbol = semanticModel.GetSymbolInfo(selectedNode, cancellationToken).Symbol;
                 }
             }
