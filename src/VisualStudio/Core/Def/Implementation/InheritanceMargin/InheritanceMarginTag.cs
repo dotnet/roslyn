@@ -4,12 +4,13 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
     internal class InheritanceMarginTag : IGlyphTag
     {

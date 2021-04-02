@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
     internal sealed class InheritanceGlyphFactory : IGlyphFactory
     {

@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.InheritanceMargin
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin
 {
     internal static class InheritanceMarginHelpers
     {
