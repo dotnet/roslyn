@@ -97,30 +97,65 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal readonly IManagedEditAndContinueDebuggerService DebuggerService;
 
+        private readonly DebuggingSessionTelemetry _telemetry;
+
+        internal EditSession EditSession;
+
         internal DebuggingSession(
             Solution solution,
             IManagedEditAndContinueDebuggerService debuggerService,
             Func<Project, CompilationOutputs> compilationOutputsProvider,
-            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates)
+            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
+            DebuggingSessionTelemetry debuggingSessionTelemetry,
+            EditSessionTelemetry editSessionTelemetry)
         {
             _compilationOutputsProvider = compilationOutputsProvider;
+            _telemetry = debuggingSessionTelemetry;
 
             DebuggerService = debuggerService;
             LastCommittedSolution = new CommittedSolution(this, solution, initialDocumentStates);
             NonRemappableRegions = ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty;
+            EditSession = new EditSession(this, editSessionTelemetry, inBreakState: false);
         }
 
         internal CancellationToken CancellationToken => _cancellationSource.Token;
-        internal void Cancel() => _cancellationSource.Cancel();
 
         public void Dispose()
         {
+            _cancellationSource.Cancel();
+
             foreach (var reader in GetBaselineModuleReaders())
             {
                 reader.Dispose();
             }
 
             _cancellationSource.Dispose();
+        }
+
+        private void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            documentsToReanalyze = EditSession.GetDocumentsWithReportedDiagnostics();
+
+            var editSessionTelemetryData = EditSession.Telemetry.GetDataAndClear();
+
+            // TODO: report a separate telemetry data for hot reload sessions to preserve the semantics of the current telemetry data
+            if (EditSession.InBreakState)
+            {
+                _telemetry.LogEditSession(editSessionTelemetryData);
+            }
+        }
+
+        public void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze, out DebuggingSessionTelemetry.Data telemetryData)
+        {
+            EndEditSession(out documentsToReanalyze);
+            telemetryData = _telemetry.GetDataAndClear();
+            Dispose();
+        }
+
+        internal void RestartEditSession(bool inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+        {
+            EndEditSession(out documentsToReanalyze);
+            EditSession = new EditSession(this, EditSession.Telemetry, inBreakState);
         }
 
         private ImmutableArray<IDisposable> GetBaselineModuleReaders()
