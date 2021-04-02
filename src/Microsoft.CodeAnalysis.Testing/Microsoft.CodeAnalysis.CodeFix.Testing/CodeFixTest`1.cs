@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Testing
             bool done;
             do
             {
-                var analyzerDiagnostics = await GetSortedDiagnosticsAsync(project.Solution, analyzers, additionalDiagnostics: ImmutableArray<Diagnostic>.Empty, CompilerDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDiagnostics = await GetSortedDiagnosticsAsync(project.Solution, analyzers, additionalDiagnostics: ImmutableArray<Diagnostic>.Empty, CompilerDiagnostics, verifier, cancellationToken).ConfigureAwait(false);
                 if (analyzerDiagnostics.Length == 0)
                 {
                     break;
@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.Testing
             bool done;
             do
             {
-                var analyzerDiagnostics = await GetSortedDiagnosticsAsync(project.Solution, analyzers, additionalDiagnostics: ImmutableArray<Diagnostic>.Empty, CompilerDiagnostics, cancellationToken).ConfigureAwait(false);
+                var analyzerDiagnostics = await GetSortedDiagnosticsAsync(project.Solution, analyzers, additionalDiagnostics: ImmutableArray<Diagnostic>.Empty, CompilerDiagnostics, verifier, cancellationToken).ConfigureAwait(false);
                 if (analyzerDiagnostics.Length == 0)
                 {
                     break;
