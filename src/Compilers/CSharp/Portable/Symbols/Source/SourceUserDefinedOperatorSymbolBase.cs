@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
             {
                 // The parameter of a unary operator must be the containing type
-                diagnostics.Add(ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
+                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
             }
 
             if (this.ReturnsVoid)
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!MatchesContainingType(this.GetParameterType(0).StrippedType()))
             {
                 // The parameter of a unary operator must be the containing type
-                diagnostics.Add(ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
+                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractUnaryOperatorSignature : ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
             }
         }
 
@@ -572,13 +572,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!MatchesContainingType(parameterType.StrippedType()))
             {
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
-                diagnostics.Add(ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
+                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractIncDecSignature : ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
             }
-            else if (!this.ReturnType.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo))
+            else if (!(parameterType.IsTypeParameter() ?
+                         this.ReturnType.Equals(parameterType, ComparisonForUserDefinedOperators) :
+                         ((IsAbstract && IsContainingType(parameterType) && IsSelfConstrainedTypeParameter(this.ReturnType)) ||
+                             this.ReturnType.EffectiveTypeNoUseSiteDiagnostics.IsEqualToOrDerivedFrom(parameterType, ComparisonForUserDefinedOperators, useSiteInfo: ref useSiteInfo))))
             {
                 // CS0448: The return type for ++ or -- operator must match the parameter type
                 //         or be derived from the parameter type
-                diagnostics.Add(ErrorCode.ERR_BadIncDecRetType, this.Locations[0]);
+                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractIncDecRetType : ErrorCode.ERR_BadIncDecRetType, this.Locations[0]);
             }
 
             diagnostics.Add(this.Locations[0], useSiteInfo);
@@ -586,7 +589,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool MatchesContainingType(TypeSymbol type)
         {
+            return IsContainingType(type) || (IsAbstract && IsSelfConstrainedTypeParameter(type));
+        }
+
+        private bool IsContainingType(TypeSymbol type)
+        {
             return type.Equals(this.ContainingType, ComparisonForUserDefinedOperators);
+        }
+
+        private bool IsSelfConstrainedTypeParameter(TypeSymbol type)
+        {
+            return type is TypeParameterSymbol p &&
+                // PROTOTYPE(StaticAbstractMembersInInterfaces): For now assuming the type parameter must belong to the containing type.
+                (object)p.ContainingSymbol == this.ContainingType &&
+                // PROTOTYPE(StaticAbstractMembersInInterfaces): For now assume containing type must be one of the directly specified constraints.
+                p.ConstraintTypesNoUseSiteDiagnostics.Any((typeArgument, containingType) => typeArgument.Type.Equals(containingType, ComparisonForUserDefinedOperators),
+                                                          this.ContainingType);
         }
 
         private void CheckShiftSignature(BindingDiagnosticBag diagnostics)
@@ -601,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS0546: The first operand of an overloaded shift operator must have the 
                 //         same type as the containing type, and the type of the second 
                 //         operand must be int
-                diagnostics.Add(ErrorCode.ERR_BadShiftOperatorSignature, this.Locations[0]);
+                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractShiftOperatorSignature : ErrorCode.ERR_BadShiftOperatorSignature, this.Locations[0]);
             }
 
             if (this.ReturnsVoid)
@@ -620,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !MatchesContainingType(this.GetParameterType(1).StrippedType()))
             {
                 // CS0563: One of the parameters of a binary operator must be the containing type
-                diagnostics.Add(ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);
+                diagnostics.Add(IsAbstract ? ErrorCode.ERR_BadAbstractBinaryOperatorSignature : ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);
             }
 
             if (this.ReturnsVoid)

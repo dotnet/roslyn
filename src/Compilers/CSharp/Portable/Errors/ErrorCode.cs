@@ -1932,6 +1932,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion diagnostics introduced for C# 9.0
 
+        ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces = 9100,
+        ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers = 9101,
+        ERR_BadAbstractUnaryOperatorSignature = 9102,
+        ERR_BadAbstractIncDecSignature = 9103,
+        ERR_BadAbstractIncDecRetType = 9104,
+        ERR_BadAbstractBinaryOperatorSignature = 9105,
+        ERR_BadAbstractShiftOperatorSignature = 9106,
+
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
     }
 }
