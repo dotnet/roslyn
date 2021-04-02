@@ -185,7 +185,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 SyntaxKind.DefaultExpression,
                 SyntaxKind.CheckedExpression,
                 SyntaxKind.UncheckedExpression,
-                SyntaxKind.TypeOfExpression))
+                SyntaxKind.TypeOfExpression,
+                SyntaxKind.TupleExpression))
             {
                 // make sure the closing delimiter exists
                 if (RequiredDelimiterIsMissing(currentNode))
@@ -530,6 +531,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.TypeOfExpression:
                     var typeOfExpressionSyntax = (TypeOfExpressionSyntax)currentNode;
                     return (typeOfExpressionSyntax.OpenParenToken, typeOfExpressionSyntax.CloseParenToken);
+
+                case SyntaxKind.TupleExpression:
+                    var tupleExpressionSyntax = (TupleExpressionSyntax)currentNode;
+                    return (tupleExpressionSyntax.OpenParenToken, tupleExpressionSyntax.CloseParenToken);
 
                 default:
                     // Type of node does not have delimiters used by this feature
