@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
             // PROTOTYPE: we currently drop any incremental generators.
             //            in a future PR we'll switch this round to create adaptors for the old style generators
             //            and natively deal with incremental generators in the driver.
-            generators = generators.WhereAsArray(g => !g.GetType().IsGenericType || g.GetType().GetGenericTypeDefinition() != typeof(IncrementalToSourceGeneratorWrapper<>));
+            generators = generators.WhereAsArray(g => g is not IncrementalGeneratorWrapper);
 
             _state = new GeneratorDriverState(parseOptions, optionsProvider, generators, additionalTexts, ImmutableArray.Create(new GeneratorState[generators.Length]));
         }
