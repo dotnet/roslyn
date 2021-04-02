@@ -364,6 +364,65 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// call to the extracted method.
         /// Introduces a new method overload or new trampoline method.
         /// Updates the original method site with a newly introduced parameter.
+        /// 
+        /// ****Trampoline Example:****
+        /// public void M(int x, int y)
+        /// {
+        ///     int f = [|x * y|];
+        ///     Console.WriteLine(f);
+        /// }
+        /// 
+        /// public void InvokeMethod()
+        /// {
+        ///     M(5, 6);
+        /// }
+        /// 
+        /// ---------------------------------------------------->
+        /// 
+        /// public int GetF(int x, int y) // Generated method
+        /// {
+        ///     return x * y;
+        /// }
+        /// 
+        /// public void M(int x, int y, int f)
+        /// {
+        ///     Console.WriteLine(f);
+        /// }
+        /// 
+        /// public void InvokeMethod()
+        /// {
+        ///     M(5, 6, GetF(5, 6)); //Fills in with call to generated method
+        /// }
+        /// 
+        /// -----------------------------------------------------------------------
+        /// ****Overload Example:****
+        /// public void M(int x, int y)
+        /// {
+        ///     int f = [|x * y|];
+        ///     Console.WriteLine(f);
+        /// }
+        /// 
+        /// public void InvokeMethod()
+        /// {
+        ///     M(5, 6);
+        /// }
+        /// 
+        /// ---------------------------------------------------->
+        /// 
+        /// public void M(int x, int y) // Generated overload
+        /// {
+        ///     M(x, y, x * y)
+        /// }
+        /// 
+        /// public void M(int x, int y, int f)
+        /// {
+        ///     Console.WriteLine(f);
+        /// }
+        /// 
+        /// public void InvokeMethod()
+        /// {
+        ///     M(5, 6);
+        /// }
         /// </summary>
         private async Task<SyntaxNode> ModifyDocumentInvocationsTrampolineOverloadAndIntroduceParameterAsync(
             Compilation compilation, Document currentDocument, Document originalDocument,
@@ -428,7 +487,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // Example:
             // public void M(int x, int y)
             // {
-            //     int f = x * y; // highlight this expression
+            //     int f = [|x * y|];
+            //     Console.WriteLine(f);
             // }
             // 
             // public void InvokeMethod()
@@ -438,7 +498,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             //
             // ---------------------------------------------------->
             // 
-            // public int M_f(int x, int y)
+            // public int GetF(int x, int y)
             // {
             //     return x * y;
             // }
@@ -446,11 +506,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             // public void M(int x, int y)
             // {
             //     int f = x * y;
+            //     Console.WriteLine(f);
             // }
             //
             // public void InvokeMethod()
             // {
-            //     M(5, 6, M_f(5, 6)); // This is the generated invocation which is a new argument at the call site
+            //     M(5, 6, GetF(5, 6)); // This is the generated invocation which is a new argument at the call site
             // }
             static SyntaxNode GenerateNewArgumentListSyntaxForTrampoline(ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
                 SemanticModel invocationSemanticModel, SyntaxGenerator generator, SyntaxNode currentArgumentListSyntax, SyntaxNode argumentListSyntax,
@@ -486,7 +547,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         /// 
         /// ---------------------------------------------------->
         /// 
-        /// public int M_f(int x, int y)
+        /// public int GetF(int x, int y)
         /// {
         ///     return x * y;
         /// }
@@ -499,7 +560,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         private static async Task<SyntaxNode> ExtractMethodAsync(Document document, TExpressionSyntax expression,
             IMethodSymbol methodSymbol, ImmutableArray<IParameterSymbol> validParameters, string newMethodIdentifier, SyntaxGenerator generator, CancellationToken cancellationToken)
         {
-
             // Remove trailing trivia because it adds spaces to the beginning of the following statement.
             var newStatements = ImmutableArray.CreateBuilder<SyntaxNode>();
             newStatements.Add(generator.ReturnStatement(expression.WithoutTrailingTrivia()));
