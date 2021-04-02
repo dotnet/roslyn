@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph
@@ -74,8 +75,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
         private void ChangeBorderToHoveringColor()
         {
-            SetResourceReference(BackgroundProperty, "VsBrush.CommandBarMenuBackgroundGradient");
-            SetResourceReference(BorderBrushProperty, "VsBrush.CommandBarMenuBorder");
+            SetResourceReference(BackgroundProperty, VsBrushes.CommandBarMenuBackgroundGradientKey);
+            SetResourceReference(BorderBrushProperty, VsBrushes.CommandBarMenuBorderKey);
         }
 
         private void InheritanceMargin_OnMouseEnter(object sender, MouseEventArgs e)
