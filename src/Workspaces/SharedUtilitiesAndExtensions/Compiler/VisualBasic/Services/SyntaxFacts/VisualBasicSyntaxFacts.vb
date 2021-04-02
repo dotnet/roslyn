@@ -1301,6 +1301,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TryCast(node, InvocationExpressionSyntax)?.ArgumentList
         End Function
 
+        Public Function GetArgumentListOfObjectCreationExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetArgumentListOfObjectCreationExpression
+            Return TryCast(node, ObjectCreationExpressionSyntax)?.ArgumentList
+        End Function
+
         Public Function UpdateArgumentListSyntax(node As SyntaxNode, arguments As SeparatedSyntaxList(Of SyntaxNode)) As SyntaxNode Implements ISyntaxFacts.UpdateArgumentListSyntax
             Return TryCast(node, ArgumentListSyntax)?.WithArguments(arguments)
         End Function

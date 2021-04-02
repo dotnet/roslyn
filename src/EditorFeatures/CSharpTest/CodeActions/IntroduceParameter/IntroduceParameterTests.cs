@@ -988,9 +988,13 @@ class TestClass
     {
         Math.Max([|x + y|], x * y);
     }
-}";
 
-            var expected =
+    void TestMethod()
+    {
+        var test = new TestClass(5, 6);
+    }
+}";
+            var expression =
 @"using System;
 class TestClass
 {
@@ -998,8 +1002,14 @@ class TestClass
     {
         Math.Max({|Rename:val1|}, x * y);
     }
+
+    void TestMethod()
+    {
+        var test = new TestClass(5, 6, 5 + 6);
+    }
 }";
-            await TestInRegularAndScriptAsync(code, expected, index: 0);
+
+            await TestInRegularAndScriptAsync(code, expression, 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
